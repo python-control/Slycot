@@ -1,0 +1,161 @@
+!    -*- f90 -*-
+! Note: the context of this file is case sensitive.
+
+python module wrapper ! in 
+    interface  ! in :wrapper
+!
+! SB02MD and corresponding dependencies
+!
+        subroutine sb02md(dico,hinv,uplo,scal,sort,n,a,lda,g,ldg,q,ldq,rcond,wr,wi,s,lds,u,ldu,iwork,dwork,ldwork,bwork,info) ! in :slycot:SB02MD.f
+            character :: dico
+            character :: hinv='D'
+            character :: uplo='U'
+            character :: scal='N'
+            character :: sort='S'
+            integer :: n
+            double precision check(shape(a,1)==n),dimension(lda,*),depend(n) :: a
+            integer intent(hide),check(lda>=n),depend(a,n) :: lda=shape(a,0)
+            double precision check(shape(g,1)==n),dimension(ldg,*),depend(n) :: g
+            integer intent(hide),check(ldg>=n),depend(g,n) :: ldg=shape(g,0)
+            double precision intent(in,out,copy),check(shape(q,1)==n),dimension(ldq,*),depend(n) :: q
+            integer intent(hide),check(ldq>=n),depend(q,n) :: ldq=shape(q,0)
+            double precision intent(out),dimension(2*n,2*n),depend(n) :: u
+            integer intent(hide),depend(u) :: ldu=shape(u,0)
+            integer intent(out) :: info
+            double precision intent(out):: rcond
+            double precision intent(out),dimension(2*n),depend(n) :: wr
+            double precision intent(out),dimension(2*n),depend(n) :: wi
+            double precision intent(out),dimension(2*n,2*n),depend(n) :: s
+            integer intent(hide),depend(s) :: lds=shape(s,0)
+            integer intent(hide,cache),dimension(2*n),depend(n) :: iwork
+            double precision intent(hide,cache),dimension(ldwork) :: dwork
+            integer optional,check(ldwork>=max(3,6*n)),depend(n) :: ldwork=max(3,6*n)
+            logical intent(hide,cache),dimension(2*n),depend(n) :: bwork
+        end subroutine sb02md
+        subroutine sb02mu(dico,hinv,uplo,n,a,lda,g,ldg,q,ldq,s,lds,iwork,dwork,ldwork,info) ! in :slycot:SB02MU.f
+            character :: dico
+            character :: hinv
+            character :: uplo
+            integer :: n
+            double precision dimension(lda,*) :: a
+            integer optional,check(shape(a,0)==lda),depend(a) :: lda=shape(a,0)
+            double precision dimension(ldg,*) :: g
+            integer optional,check(shape(g,0)==ldg),depend(g) :: ldg=shape(g,0)
+            double precision dimension(ldq,*) :: q
+            integer optional,check(shape(q,0)==ldq),depend(q) :: ldq=shape(q,0)
+            double precision dimension(lds,*) :: s
+            integer optional,check(shape(s,0)==lds),depend(s) :: lds=shape(s,0)
+            integer dimension(*) :: iwork
+            double precision dimension(*) :: dwork
+            integer :: ldwork
+            integer :: info
+        end subroutine sb02mu
+!
+! 		SB03MD and corresponding dependencies
+!  
+        subroutine sb03md(dico,job,fact,trana,n,c,ldc,a,lda,u,ldu,scale,sep,ferr,wr,wi,iwork,dwork,ldwork,info) ! in :new:SB03MD.f
+            character :: dico
+            character :: job='X'
+            character :: fact='N'
+            character :: trana='N'
+            integer :: n
+            double precision check(shape(a,1)==n),dimension(lda,*),depend(n) :: a
+            integer intent(hide),depend(a) :: lda=shape(a,0)
+            double precision dimension(ldu,*) :: u
+            integer intent(hide),depend(u) :: ldu=shape(u,0)
+            double precision intent(in,out,copy),dimension(ldc,*) :: c
+            integer intent(hide),depend(c) :: ldc=shape(c,0)
+            double precision intent(out) :: scale
+            double precision intent(out) :: sep
+            double precision intent(out) :: ferr
+            double precision intent(out),dimension(n),depend(n) :: wr
+            double precision intent(out),dimension(n),depend(n) :: wi
+            integer intent(hide,chache),dimension(n*n),depend(n) :: iwork
+            double precision intent(hide,chache),dimension(ldwork) :: dwork
+            integer optional,check(ldwork>=max(2*n*n,3*n)),depend(n) :: ldwork=max(2*n*n,3*n)
+            integer intent(out) :: info
+        end subroutine sb03md
+        subroutine sb03mv(ltran,lupper,t,ldt,b,ldb,scale,x,ldx,xnorm,info) ! in :new:SB03MV.f
+            logical :: ltran
+            logical :: lupper
+            double precision dimension(ldt,*) :: t
+            integer optional,check(shape(t,0)==ldt),depend(t) :: ldt=shape(t,0)
+            double precision dimension(ldb,*) :: b
+            integer optional,check(shape(b,0)==ldb),depend(b) :: ldb=shape(b,0)
+            double precision :: scale
+            double precision dimension(ldx,*) :: x
+            integer optional,check(shape(x,0)==ldx),depend(x) :: ldx=shape(x,0)
+            double precision :: xnorm
+            integer :: info
+        end subroutine sb03mv
+        subroutine sb03mw(ltran,lupper,t,ldt,b,ldb,scale,x,ldx,xnorm,info) ! in :new:SB03MW.f
+            logical :: ltran
+            logical :: lupper
+            double precision dimension(ldt,*) :: t
+            integer optional,check(shape(t,0)==ldt),depend(t) :: ldt=shape(t,0)
+            double precision dimension(ldb,*) :: b
+            integer optional,check(shape(b,0)==ldb),depend(b) :: ldb=shape(b,0)
+            double precision :: scale
+            double precision dimension(ldx,*) :: x
+            integer optional,check(shape(x,0)==ldx),depend(x) :: ldx=shape(x,0)
+            double precision :: xnorm
+            integer :: info
+        end subroutine sb03mw
+        subroutine sb03mx(trana,n,a,lda,c,ldc,scale,dwork,info) ! in :new:SB03MX.f
+            character :: trana
+            integer :: n
+            double precision dimension(lda,*) :: a
+            integer optional,check(shape(a,0)==lda),depend(a) :: lda=shape(a,0)
+            double precision dimension(ldc,*) :: c
+            integer optional,check(shape(c,0)==ldc),depend(c) :: ldc=shape(c,0)
+            double precision :: scale
+            double precision dimension(*) :: dwork
+            integer :: info
+        end subroutine sb03mx
+        subroutine sb03my(trana,n,a,lda,c,ldc,scale,info) ! in :new:SB03MY.f
+            character :: trana
+            integer :: n
+            double precision dimension(lda,*) :: a
+            integer optional,check(shape(a,0)==lda),depend(a) :: lda=shape(a,0)
+            double precision dimension(ldc,*) :: c
+            integer optional,check(shape(c,0)==ldc),depend(c) :: ldc=shape(c,0)
+            double precision :: scale
+            integer :: info
+        end subroutine sb03my
+        subroutine sb04px(ltranl,ltranr,isgn,n1,n2,tl,ldtl,tr,ldtr,b,ldb,scale,x,ldx,xnorm,info) ! in :new:SB04PX.f
+            logical :: ltranl
+            logical :: ltranr
+            integer :: isgn
+            integer :: n1
+            integer :: n2
+            double precision dimension(ldtl,*) :: tl
+            integer optional,check(shape(tl,0)==ldtl),depend(tl) :: ldtl=shape(tl,0)
+            double precision dimension(ldtr,*) :: tr
+            integer optional,check(shape(tr,0)==ldtr),depend(tr) :: ldtr=shape(tr,0)
+            double precision dimension(ldb,*) :: b
+            integer optional,check(shape(b,0)==ldb),depend(b) :: ldb=shape(b,0)
+            double precision :: scale
+            double precision dimension(ldx,*) :: x
+            integer optional,check(shape(x,0)==ldx),depend(x) :: ldx=shape(x,0)
+            double precision :: xnorm
+            integer :: info
+        end subroutine sb04px
+        subroutine mb01rd(uplo,trans,m,n,alpha,beta,r,ldr,a,lda,x,ldx,dwork,ldwork,info) ! in :new:MB01RD.f
+            character :: uplo
+            character :: trans
+            integer :: m
+            integer :: n
+            double precision :: alpha
+            double precision :: beta
+            double precision dimension(ldr,*) :: r
+            integer optional,check(shape(r,0)==ldr),depend(r) :: ldr=shape(r,0)
+            double precision dimension(lda,*) :: a
+            integer optional,check(shape(a,0)==lda),depend(a) :: lda=shape(a,0)
+            double precision dimension(ldx,*) :: x
+            integer optional,check(shape(x,0)==ldx),depend(x) :: ldx=shape(x,0)
+            double precision dimension(*) :: dwork
+            integer :: ldwork
+            integer :: info
+        end subroutine mb01rd
+    end interface 
+end python module slycot
