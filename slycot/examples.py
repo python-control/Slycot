@@ -73,3 +73,13 @@ def ab08nd_example():
 	print '--- Example for ab08nd ---'
 	print 'The finite invariant zeros are'
 	print eigvals(out[8][0:nu,0:nu],out[9][0:nu,0:nu])
+	
+def mc01td_example():
+	p = array([2, 0, 1, -1, 1])
+	out = slycot.mc01td(4,p,'C')
+	print '--- Example for mc01td ...'
+	if out[1]:
+		print 'The polynomial is stable'
+	else:
+		print 'The polynomial has', out[2], 'unstable zeros'
+		
