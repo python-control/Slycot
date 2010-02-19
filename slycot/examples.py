@@ -76,10 +76,28 @@ def ab08nd_example():
 	
 def mc01td_example():
 	p = array([2, 0, 1, -1, 1])
-	out = slycot.mc01td(4,p,'C')
+	out = slycot.mc01td('C',4,p)
 	print '--- Example for mc01td ...'
 	if out[1]:
 		print 'The polynomial is stable'
 	else:
 		print 'The polynomial has', out[2], 'unstable zeros'
+		
+def sb02od_example():
+	from numpy import zeros, shape, dot, ones
+	A = array([ [0, 1],
+				[0, 0]])
+	B = array([ [0],
+				[1]])
+	C = array([ [1, 0],
+				[0, 1],
+				[0, 0]])
+	Q = dot(C.T,C)
+	R = zeros((1,1))
+	L = zeros((2,1))
+	out = slycot.sb02od('D',2,1,3,A,B,Q,R,L)
+	print '--- Example for sb01od ...'
+	print 'The solution X is'
+	print out[1]
+	print 'rcond =', out[0]
 		
