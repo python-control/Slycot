@@ -100,4 +100,35 @@ def sb02od_example():
 	print 'The solution X is'
 	print out[1]
 	print 'rcond =', out[0]
+	
+def tb03ad_example():
+	A = array([ [1, 2, 0],
+				[4,-1, 0],
+				[0, 0, 1]])
+	B = array([ [1, 0],
+				[0, 0],
+				[1, 0]])
+	C = array([ [0, 1,-1],
+				[0, 0, 1]])
+	D = array([ [0, 1],
+				[0, 0]])
+	n = 3
+	m = 1
+	p = 2
+	out = slycot.tb03ad_r(n,m,p,A,B,C,D)
+	#out = slycot.tb03ad_l(n,m,p,A,B,C,D)
+	print '--- Example for tb03ad ...'
+	print 'The right polynomial representation of' 
+	print '    W(z) = C(zI-A)^-1B + D'
+	print 'is the following:' 
+	print 'index', out[1]
+	k_max = max(out[1]) + 1
+	for k in range(0,k_max):
+		print 'P_%d =' %(k)
+		print out[2][0:m,0:m,k]
+	for k in range(0,k_max):
+		print 'Q_%d =' %(k)
+		print out[3][0:m,0:p,k]
+	print 'NB: read Slicot documentation about the meaning of this'
+	
 		

@@ -134,6 +134,72 @@ python module wrapper ! in
             logical intent(hide,cache),dimension(2*n),depend(n) :: bwork
             integer intent(out) :: info
         end subroutine sb02od
+        ! the following defaults to leri = 'L' 
+        subroutine tb03ad_l(leri,equil,n,m,p,a,lda,b,ldb,c,ldc,d,ldd,nr,index_bn,pcoeff,ldpco1,ldpco2,qcoeff,ldqco1,ldqco2,vcoeff,ldvco1,ldvco2,tol,iwork,dwork,ldwork,info) ! in :new:TB03AD.f
+            fortranname tb03ad
+            character intent(hide) :: leri = 'L'
+            character :: equil = 'N'
+            integer check(n>0) :: n
+            integer check(m>0) :: m
+            integer check(p>0) :: p
+            double precision intent(in,out=a_min),check(shape(a,1)==n),dimension(lda,*),depend(n) :: a
+            integer intent(hide),check(lda>=n),depend(a) :: lda=shape(a,0)
+            double precision intent(in,out=b_min),check(shape(b,1)==max(m,p)),dimension(ldb,*),depend(m,p) :: b
+            integer intent(hide),check(ldb>=n),depend(b) :: ldb=shape(b,0)
+            double precision intent(in,out=c_min),check(shape(c,1)==n),dimension(ldc,*),depend(n) :: c
+            integer intent(hide),check(ldc>=max(m,p)),depend(c) :: ldc=shape(c,0)
+            double precision check(shape(d,1)==max(m,p)),dimension(ldd,*),depend(m,p) :: d
+            integer intent(hide),check(ldd>=max(m,p)),depend(d) :: ldd=shape(d,0)
+            integer intent(out) :: nr
+            integer intent(out),dimension(p) :: index_bn
+            double precision intent(out),dimension(p,p,n+1) :: pcoeff
+            integer intent(hide),depend(pcoeff) :: ldpco1=shape(pcoeff,0)
+            integer intent(hide),depend(pcoeff) :: ldpco2=shape(pcoeff,1)
+            double precision intent(out),dimension(p,m,n+1) :: qcoeff
+            integer intent(hide),depend(qcoeff) :: ldqco1=shape(qcoeff,0)
+            integer intent(hide),depend(qcoeff) :: ldqco2=shape(qcoeff,1)
+            double precision intent(out),dimension(p,n,n+1) :: vcoeff
+            integer intent(hide),depend(vcoeff) :: ldvco1=shape(vcoeff,0)
+            integer intent(hide),depend(vcoeff) :: ldvco2=shape(vcoeff,1)
+            double precision :: tol = 0
+            integer intent(hide,cache),dimension(n+max(m,p)) :: iwork
+            double precision intent(hide,cache),dimension(ldwork),depend(ldwork) :: dwork
+            integer :: ldwork = max( 2*n + 3*max(m,p), p*(p+2)) 
+            integer intent(out) :: info
+        end subroutine tb03ad
+        ! the following defaults to leri = 'R'
+        subroutine tb03ad_r(leri,equil,n,m,p,a,lda,b,ldb,c,ldc,d,ldd,nr,index_bn,pcoeff,ldpco1,ldpco2,qcoeff,ldqco1,ldqco2,vcoeff,ldvco1,ldvco2,tol,iwork,dwork,ldwork,info) ! in :new:TB03AD.f
+            fortranname tb03ad
+            character intent(hide) :: leri = 'R'
+            character :: equil = 'N'
+            integer check(n>0) :: n
+            integer check(m>0) :: m
+            integer check(p>0) :: p
+            double precision intent(in,out=a_min),check(shape(a,1)==n),dimension(lda,*),depend(n) :: a
+            integer intent(hide),check(lda>=n),depend(a) :: lda=shape(a,0)
+            double precision intent(in,out=b_min),check(shape(b,1)==max(m,p)),dimension(ldb,*),depend(m,p) :: b
+            integer intent(hide),check(ldb>=n),depend(b) :: ldb=shape(b,0)
+            double precision intent(in,out=c_min),check(shape(c,1)==n),dimension(ldc,*),depend(n) :: c
+            integer intent(hide),check(ldc>=max(m,p)),depend(c) :: ldc=shape(c,0)
+            double precision check(shape(d,1)==max(m,p)),dimension(ldd,*),depend(m,p) :: d
+            integer intent(hide),check(ldd>=max(m,p)),depend(d) :: ldd=shape(d,0)
+            integer intent(out) :: nr
+            integer intent(out),dimension(m) :: index_bn
+            double precision intent(out),dimension(m,m,n+1) :: pcoeff
+            integer intent(hide),depend(pcoeff) :: ldpco1=shape(pcoeff,0)
+            integer intent(hide),depend(pcoeff) :: ldpco2=shape(pcoeff,1)
+            double precision intent(out),dimension(max(m,p),max(m,p),n+1) :: qcoeff
+            integer intent(hide),depend(qcoeff) :: ldqco1=shape(qcoeff,0)
+            integer intent(hide),depend(qcoeff) :: ldqco2=shape(qcoeff,1)
+            double precision intent(out),dimension(m,n,n+1) :: vcoeff
+            integer intent(hide),depend(vcoeff) :: ldvco1=shape(vcoeff,0)
+            integer intent(hide),depend(vcoeff) :: ldvco2=shape(vcoeff,1)
+            double precision :: tol = 0
+            integer intent(hide,cache),dimension(n+max(m,p)) :: iwork
+            double precision intent(hide,cache),dimension(ldwork),depend(ldwork) :: dwork
+            integer :: ldwork = max( 2*n + 3*max(m,p), m*(m+2)) 
+            integer intent(out) :: info
+        end subroutine tb03ad
 !
 ! routines whose wrapper was auto generated
 !
