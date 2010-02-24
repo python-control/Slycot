@@ -1,0 +1,9 @@
+Known issues:
+
+- if you get the glibc error "double free or corruption" you can try
+	export MALLOC_CHECK_=0
+  before executing python.
+  
+TODO:
+ 
+- find a way to make L input argument optional in sb02od routine.

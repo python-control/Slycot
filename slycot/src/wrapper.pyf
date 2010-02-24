@@ -17,7 +17,7 @@ python module wrapper ! in
             integer intent(hide),check(lda>=n),depend(a,n) :: lda=shape(a,0)
             double precision check(shape(g,1)==n),dimension(ldg,*),depend(n) :: g
             integer intent(hide),check(ldg>=n),depend(g,n) :: ldg=shape(g,0)
-            double precision intent(in,out,copy),check(shape(q,1)==n),dimension(ldq,*),depend(n) :: q
+            double precision intent(in,out=x,copy),check(shape(q,1)==n),dimension(ldq,*),depend(n) :: q
             integer intent(hide),check(ldq>=n),depend(q,n) :: ldq=shape(q,0)
             double precision intent(out),dimension(2*n,2*n),depend(n) :: u
             integer intent(hide),depend(u) :: ldu=shape(u,0)
@@ -42,7 +42,7 @@ python module wrapper ! in
             integer intent(hide),depend(a) :: lda=shape(a,0)
             double precision dimension(ldu,*) :: u
             integer intent(hide),depend(u) :: ldu=shape(u,0)
-            double precision intent(in,out,copy),dimension(ldc,*) :: c
+            double precision intent(in,out=x,copy),dimension(ldc,*) :: c
             integer intent(hide),depend(c) :: ldc=shape(c,0)
             double precision intent(out) :: scale
             double precision intent(out) :: sep
@@ -97,14 +97,14 @@ python module wrapper ! in
         end subroutine mc01td
         subroutine sb02od(dico,jobb,fact,uplo,jobl,sort,n,m,p,a,lda,b,ldb,q,ldq,r,ldr,l,ldl,rcond,x,ldx,alfar,alfai,beta,s,lds,t,ldt,u,ldu,tol,iwork,dwork,ldwork,bwork,info) ! in :new:SB02OD.f
             character :: dico
-            character intent(hide) :: jobb = 'B'
-            character intent(hide) :: fact = 'N'
+            character intent(hide) :: jobb = 'B' ! fixed for simplicity reasons, for 'G' use sb02md instead
+            character intent(hide) :: fact = 'N' ! idem
             character :: uplo = 'U'
             character :: jobl = 'Z'
             character :: sort = 'S'
             integer check(n>0) :: n
             integer check(m>0) :: m
-            integer check(p>0) :: p
+            integer intent(hide) :: p=0 ! this is not needed as fact = 'N' 
             double precision check(shape(a,1)==n),dimension(lda,*),depend(n) :: a
             integer intent(hide),check(lda>=n),depend(a) :: lda=shape(a,0)
             double precision check(shape(b,1)==m),dimension(ldb,*),depend(m) :: b
@@ -113,7 +113,7 @@ python module wrapper ! in
             integer intent(hide),check(ldq>=n),depend(q) :: ldq=shape(q,0)
             double precision check(shape(r,1)==m),dimension(ldr,*),depend(m) :: r
             integer intent(hide),check(ldr>=m),depend(r) :: ldr=shape(r,0)
-            double precision check(shape(l,1)==m),dimension(ldl,*),depend(m) :: l
+            double precision check(shape(l,1)==m),dimension(ldl,m),depend(m) :: l
             integer intent(hide),check(ldl>=n),depend(l) :: ldl=shape(l,0)
             double precision intent(out) :: rcond
             double precision intent(out),dimension(n,n) :: x
@@ -121,11 +121,11 @@ python module wrapper ! in
             double precision intent(out),dimension(2*n) :: alfar
             double precision intent(out),dimension(2*n) :: alfai
             double precision intent(out),dimension(2*n) :: beta
-            double precision intent(out),dimension(lds,2*n),depend(lds) :: s
-            integer intent(hide) :: lds=2*n+m
-            double precision intent(out),dimension(ldt,2*n),depend(ldt) :: t
-            integer intent(hide) :: ldt=2*n+m+1
-            double precision intent(out),dimension(2*n,2*n) :: u
+            double precision intent(out),dimension(2*n+m,2*n) :: s
+            integer intent(hide),depend(s) :: lds=shape(s,0)
+            double precision intent(out),dimension(2*n+m+1,2*n) :: t
+            integer intent(hide),depend(t) :: ldt=shape(t,0)
+            double precision intent(hide),dimension(2*n,2*n) :: u ! not needed as jobb = 'B'
             integer intent(hide),depend(u) :: ldu=shape(u,0)
             double precision :: tol=0
             integer intent(hide,cache),dimension(max(2*n,m)),depend(n,m) :: iwork
@@ -236,5 +236,6 @@ python module wrapper ! in
             double precision dimension(*) :: dwork
             integer :: ldwork
             integer :: info
+         end subroutine mb01rd
     end interface 
 end python module slycot
