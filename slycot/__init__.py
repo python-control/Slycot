@@ -1,2 +1,8 @@
-from wrapper import sb02md,sb02od,sb03md,ab08nd,mc01td,tb03ad_l,tb03ad_r
-import examples
+# Analysis routines
+from wrapper import ab08nd
+# Mathematical routines
+from wrapper import mc01td
+# Synthesis routines
+from wrapper import sb02md,sb02od,sb03md
+# Transformation routines
+from glue import tb03ad,tc04ad

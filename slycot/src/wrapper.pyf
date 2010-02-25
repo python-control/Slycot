@@ -200,6 +200,60 @@ python module wrapper ! in
             integer :: ldwork = max( 2*n + 3*max(m,p), m*(m+2)) 
             integer intent(out) :: info
         end subroutine tb03ad
+        subroutine tc04ad_l(leri,m,p,index_bn,pcoeff,ldpco1,ldpco2,qcoeff,ldqco1,ldqco2,n,rcond,a,lda,b,ldb,c,ldc,d,ldd,iwork,dwork,ldwork,info) ! in TC04AD.f
+    		fortranname tc04ad
+    		character intent(hide) :: leri = 'L'
+			integer intent(in,required),check(m>0) :: m
+			integer intent(in,required),check(p>0) :: p
+			integer dimension(p) :: index_bn
+			double precision required,dimension(p,p,*),depend(p) :: pcoeff
+			integer intent(hide),depend(pcoeff) :: ldpco1=shape(pcoeff,0)
+			integer intent(hide),depend(pcoeff) :: ldpco2=shape(pcoeff,1)
+			double precision required,dimension(p,m,*),depend(m,p) :: qcoeff
+			integer intent(hide),depend(qcoeff) :: ldqco1=shape(qcoeff,0)
+			integer intent(hide),depend(qcoeff) :: ldqco2=shape(qcoeff,1)
+			integer intent(inout) :: n != sum(index_bn)
+			double precision intent(out) :: rcond
+			double precision intent(out),dimension(n,n),depend(n) :: a
+			integer intent(hide),depend(a) :: lda=shape(a,0)
+			double precision intent(out),dimension(n,max(m,p)),depend(n,m,p) :: b
+			integer intent(hide),depend(b) :: ldb=shape(b,0)
+			double precision intent(out),dimension(max(m,p),n),depend(n,m,p) :: c
+			integer intent(hide),depend(c) :: ldc=shape(c,0)
+			double precision intent(out),dimension(max(m,p),max(m,p)),depend(m,p) :: d
+			integer intent(hide),depend(d) :: ldd=shape(d,0)
+			integer intent(hide,cache),dimension(2*max(m,p)),depend(m,p) :: iwork
+			double precision intent(hide,cache),dimension(ldwork),depend(ldwork) :: dwork
+			integer depend(m,p) :: ldwork = max(m,p)*(max(m,p)+4)
+			integer intent(out) :: info
+		end subroutine tc04ad        
+		subroutine tc04ad_r(leri,m,p,index_bn,pcoeff,ldpco1,ldpco2,qcoeff,ldqco1,ldqco2,n,rcond,a,lda,b,ldb,c,ldc,d,ldd,iwork,dwork,ldwork,info) ! in TC04AD.f
+    		fortranname tc04ad
+    		character intent(hide) :: leri = 'R'
+			integer required,intent(in),check(m>0) :: m
+			integer required,intent(in),check(p>0) :: p
+			integer dimension(m) :: index_bn
+			double precision required,dimension(m,m,*),depend(p) :: pcoeff
+			integer intent(hide),depend(pcoeff) :: ldpco1=shape(pcoeff,0)
+			integer intent(hide),depend(pcoeff) :: ldpco2=shape(pcoeff,1)
+			double precision required,dimension(max(m,p),max(m,p),*),depend(m,p) :: qcoeff
+			integer intent(hide),depend(qcoeff) :: ldqco1=shape(qcoeff,0)
+			integer intent(hide),depend(qcoeff) :: ldqco2=shape(qcoeff,1)
+			integer intent(inout) :: n != sum(index_bn)
+			double precision intent(out) :: rcond
+			double precision intent(out),dimension(n,n),depend(n) :: a
+			integer intent(hide),depend(a) :: lda=shape(a,0)
+			double precision intent(out),dimension(n,max(m,p)),depend(n,m,p) :: b
+			integer intent(hide),depend(b) :: ldb=shape(b,0)
+			double precision intent(out),dimension(max(m,p),n),depend(n,m,p) :: c
+			integer intent(hide),depend(c) :: ldc=shape(c,0)
+			double precision intent(out),dimension(max(m,p),max(m,p)),depend(m,p) :: d
+			integer intent(hide),depend(d) :: ldd=shape(d,0)
+			integer intent(hide,cache),dimension(2*max(m,p)),depend(m,p) :: iwork
+			double precision intent(hide,cache),dimension(ldwork),depend(ldwork) :: dwork
+			integer depend(m,p) :: ldwork = max(m,p)*(max(m,p)+4)
+			integer intent(out) :: info
+		end subroutine tc04ad
 !
 ! routines whose wrapper was auto generated
 !
