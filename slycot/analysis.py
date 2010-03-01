@@ -22,4 +22,5 @@
 from slycot import _wrapper
 
 # to be replaced by python wrappers
+ab07nd = _wrapper.ab07nd
 ab08nd = _wrapper.ab08nd

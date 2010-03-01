@@ -6,5 +6,6 @@ Known issues:
   
 TODO:
  
+- write unit tests, starting from converting the examples
 - find a way to make L input argument optional in sb02od routine.
 - make multiple wrappers for SB02OD for managing different modes.

@@ -51,3 +51,6 @@ def tc01od(m,p,indlin,pcoeff,qcoeff,leri):
 		out = _wrapper.tc01od_r(m,p,indlin,pcoeff,qcoeff)
 		return out
 	raise ValueError('leri must be either L or R')
+	
+# to be replaced by python wrappers
+tb01id = _wrapper.tb01id
