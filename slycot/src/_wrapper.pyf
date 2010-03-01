@@ -1,11 +1,11 @@
 !    -*- f90 -*-
 ! Note: the context of this file is case sensitive.
 
-python module _raw_wrapper ! in 
+python module _wrapper ! in 
     interface  ! in :wrapper
-		include "_raw_analysis.pyf"
-		include "_raw_math.pyf"
-		include "_raw_synthesis.pyf"
-		include "_raw_transform.pyf"
+		include "analysis.pyf"
+		include "math.pyf"
+		include "synthesis.pyf"
+		include "transform.pyf"
     end interface 
 end python module slycot

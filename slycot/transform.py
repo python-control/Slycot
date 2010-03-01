@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-#       glue.py
+#       transform.py
 #       
 #       Copyright 2010 Enrico Avventi <avventi@kth.se>
 #       
@@ -19,15 +19,15 @@
 #       Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 #       MA 02110-1301, USA.
 
-import slycot._raw_wrapper
+from slycot import _wrapper
 
 def tb03ad(n,m,p,A,B,C,D,leri):
 	""" Find a left/right polynomial matrix representation of a given state-space system."""
 	if leri == 'L':
-		out = slycot._raw_wrapper.tb03ad_l(n,m,p,A,B,C,D)
+		out = _wrapper.tb03ad_l(n,m,p,A,B,C,D)
 		return out
 	if leri == 'R':
-		out = slycot._raw_wrapper.tb03ad_r(n,m,p,A,B,C,D)
+		out = _wrapper.tb03ad_r(n,m,p,A,B,C,D)
 		return out
 	raise ValueError('leri must be either L or R')
 
@@ -35,19 +35,19 @@ def tc04ad(m,p,index,pcoeff,qcoeff,leri):
 	""" Find a state-space realization of a given left/right polynomial matrix representation."""
 	n = sum(index)
 	if leri == 'L':
-		out = slycot._raw_wrapper.tc04ad_l(m,p,index,pcoeff,qcoeff,n)
+		out = _wrapper.tc04ad_l(m,p,index,pcoeff,qcoeff,n)
 		return out
 	if leri == 'R':
-		out = slycot._raw_wrapper.tc04ad_r(m,p,index,pcoeff,qcoeff,n)
+		out = _wrapper.tc04ad_r(m,p,index,pcoeff,qcoeff,n)
 		return out
 	raise ValueError('leri must be either L or R')
 	
 def tc01od(m,p,indlin,pcoeff,qcoeff,leri):
 	""" Find a left/right polynomial matrix representation for a given right/left polynomial matrix representation."""
 	if leri == 'L':
-		out = slycot._raw_wrapper.tc01od_l(m,p,indlin,pcoeff,qcoeff)
+		out = _wrapper.tc01od_l(m,p,indlin,pcoeff,qcoeff)
 		return out
 	if leri == 'R':
-		out = slycot._raw_wrapper.tc01od_r(m,p,indlin,pcoeff,qcoeff)
+		out = _wrapper.tc01od_r(m,p,indlin,pcoeff,qcoeff)
 		return out
 	raise ValueError('leri must be either L or R')

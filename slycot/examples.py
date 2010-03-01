@@ -19,7 +19,7 @@
 #       Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 #       MA 02110-1301, USA.
 from numpy import array
-import slycot.wrapper
+import slycot
 
 def sb02md_example():
 	A = array([ [0, 1],
@@ -115,7 +115,7 @@ def tb03ad_example():
 	n = 3
 	m = 1
 	p = 2
-	out = slycot.wrapper.tb03ad_r(n,m,p,A,B,C,D)
+	out = slycot.tb03ad(n,m,p,A,B,C,D,'R')
 	#out = slycot.tb03ad_l(n,m,p,A,B,C,D)
 	print '--- Example for tb03ad ...'
 	print 'The right polynomial representation of' 
@@ -147,8 +147,8 @@ def tc04ad_example():
 	n = 3
 	m = 1
 	p = 2
-	out = slycot.wrapper.tb03ad_r(n,m,p,A,B,C,D)
-	out2 = slycot.wrapper.tc04ad_r(m,p,out[1],out[2],out[3],sum(out[1]))
+	out = slycot.tb03ad(n,m,p,A,B,C,D,'R')
+	out2 = slycot.tc04ad(m,p,out[1],out[2],out[3],'R')
 	print '--- Example for tb04ad ...'
 	print 'The system has a state space realization (A,B,C,D) where'
 	print 'A ='
