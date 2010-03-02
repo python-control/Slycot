@@ -67,7 +67,7 @@ def ab01nd(n,m,A,B,jobz='N',tol=0,ldwork=None):
             The leading n-by-m part of this array must contain the input 
             matrix B.
     Optional arguments:        
-        jobz := 'N' char
+        jobz := 'N' input string(len=1)
             Indicates whether the user wishes to accumulate in a matrix Z 
             the orthogonal similarity transformations for reducing the system, 
             as follows:
@@ -100,7 +100,7 @@ def ab01nd(n,m,A,B,jobz='N',tol=0,ldwork=None):
         nblk : rank-1 array('i') with bounds (n)
             The leading indcon elements of this array contain the the orders of 
             the diagonal blocks of Acont.
-        z : rank-2 array('d') with bounds (n,n)
+        Z : rank-2 array('d') with bounds (n,n)
             If jobz = 'I', then the leading N-by-N part of this array contains 
             the matrix of accumulated orthogonal similarity transformations 
             which reduces the given system to orthogonal canonical form.
@@ -201,7 +201,7 @@ def ab05nd(n1,m1,p1,n2,A1,B1,C1,D1,A2,B2,C2,D2,alpha=1.0,ldwork=None):
         info : int
             = 0:  successful exit;
             < 0:  if info = -i, the i-th argument had an illegal value.
-            > 0:  if info = i, 1 <= i <= P1, the system is not completely 
+            > 0:  if info = i, 1 <= i <= p1, the system is not completely 
                 controllable. That is, the matrix   (I + alpha*D1*D2) is 
                 exactly singular (the element U(i,i) of the upper triangular 
                 factor of LU factorization is exactly zero), possibly due to

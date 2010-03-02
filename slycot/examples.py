@@ -121,19 +121,17 @@ def tb03ad_example():
 	print 'The right polynomial representation of' 
 	print '    W(z) = C(zI-A)^-1B + D'
 	print 'is the following:' 
-	print 'index', out[1]
-	k_max = max(out[1]) + 1
+	print 'index', out[4]
+	k_max = max(out[4]) + 1
 	for k in range(0,k_max):
 		print 'P_%d =' %(k)
-		print out[2][0:m,0:m,k]
+		print out[5][0:m,0:m,k]
 	for k in range(0,k_max):
 		print 'Q_%d =' %(k)
-		print out[3][0:m,0:p,k]
-	print 'NB: read Slicot documentation about the meaning of this'
-	
+		print out[6][0:m,0:p,k]
 		
 def tc04ad_example():
-	from numpy import shape
+	from numpy import shape,zeros
 	A = array([ [1, 2, 0],
 				[4,-1, 0],
 				[0, 0, 1]])
@@ -148,7 +146,9 @@ def tc04ad_example():
 	m = 1
 	p = 2
 	out = slycot.tb03ad(n,m,p,A,B,C,D,'R')
-	out2 = slycot.tc04ad(m,p,out[1],out[2],out[3],'R')
+	qcoeff = zeros((max(m,p),max(m,p),shape(out[6])[2]))
+	qcoeff[0:shape(out[6])[0],0:shape(out[6])[1],0:shape(out[6])[1]]
+	out2 = slycot.tc04ad(m,p,out[4],out[5][0:m,0:m,:],qcoeff,'R')
 	print '--- Example for tb04ad ...'
 	print 'The system has a state space realization (A,B,C,D) where'
 	print 'A ='
