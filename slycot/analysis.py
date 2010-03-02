@@ -66,7 +66,16 @@ def ab01nd(n,m,A,B,jobz='N',tol=0,ldwork=None):
         B : rank-2 array('d') with bounds (n,m)
             The leading n-by-m part of this array must contain the input 
             matrix B.
-    Optional arguments:
+    Optional arguments:        
+        jobz := 'N' char
+            Indicates whether the user wishes to accumulate in a matrix Z 
+            the orthogonal similarity transformations for reducing the system, 
+            as follows:
+            = 'N':  Do not form Z and do not store the orthogonal transformations;
+            = 'F':  Do not form Z, but store the orthogonal transformations in 
+                    the factored form;
+            = 'I':  Z is initialized to the unit matrix and the orthogonal 
+                    transformation matrix Z is returned.
         tol := 0 input float
             The tolerance to be used in rank determination when transforming 
             (A, B). If tol <= 0 a default value is used.
