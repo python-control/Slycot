@@ -28,7 +28,7 @@ def sb02md_example():
 				[0, 2]])
 	G = array([ [0, 0],
 				[0, 1]])
-	out = slycot.sb02md('C',2,A,G,Q)
+	out = slycot.sb02md(2,A,G,Q,'C')
 	print '--- Example for sb02md ---'		
 	print 'The solution X is'
 	print out[0]

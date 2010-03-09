@@ -5,13 +5,13 @@ subroutine sb02md(dico,hinv,uplo,scal,sort,n,a,lda,g,ldg,q,ldq,rcond,wr,wi,s,lds
 	character :: uplo='U'
 	character :: scal='N'
 	character :: sort='S'
-	integer :: n
-	double precision check(shape(a,1)==n),dimension(lda,*),depend(n) :: a
-	integer intent(hide),check(lda>=n),depend(a,n) :: lda=shape(a,0)
-	double precision check(shape(g,1)==n),dimension(ldg,*),depend(n) :: g
-	integer intent(hide),check(ldg>=n),depend(g,n) :: ldg=shape(g,0)
-	double precision intent(in,out=x,copy),check(shape(q,1)==n),dimension(ldq,*),depend(n) :: q
-	integer intent(hide),check(ldq>=n),depend(q,n) :: ldq=shape(q,0)
+	integer check(n>0):: n
+	double precision dimension(n,n),depend(n) :: a
+	integer intent(hide),depend(a) :: lda=shape(a,0)
+	double precision dimension(n,n),depend(n) :: g
+	integer intent(hide),depend(g) :: ldg=shape(g,0)
+	double precision intent(in,out),dimension(n,n),depend(n) :: q
+	integer intent(hide),depend(q) :: ldq=shape(q,0)
 	double precision intent(out),dimension(2*n,2*n),depend(n) :: u
 	integer intent(hide),depend(u) :: ldu=shape(u,0)
 	integer intent(out) :: info
@@ -32,11 +32,11 @@ subroutine sb03md(dico,job,fact,trana,n,c,ldc,a,lda,u,ldu,scale,sep,ferr,wr,wi,i
 	character :: fact='N'
 	character :: trana='N'
 	integer :: n
-	double precision check(shape(a,1)==n),dimension(lda,*),depend(n) :: a
+	double precision dimension(n,n),depend(n) :: a
 	integer intent(hide),depend(a) :: lda=shape(a,0)
-	double precision dimension(ldu,*) :: u
+	double precision dimension(n,n),depend(n) :: u
 	integer intent(hide),depend(u) :: ldu=shape(u,0)
-	double precision intent(in,out=x,copy),dimension(ldc,*) :: c
+	double precision intent(in,out,copy),dimension(n,n),depend(n) :: c
 	integer intent(hide),depend(c) :: ldc=shape(c,0)
 	double precision intent(out) :: scale
 	double precision intent(out) :: sep
