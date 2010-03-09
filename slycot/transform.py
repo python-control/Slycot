@@ -21,6 +21,86 @@
 
 from slycot import _wrapper
 
+def tb01id(n,m,p,maxred,a,b,c,job='A'):
+    """ s_norm,A,B,C,scale = tb01id(n,m,p,maxred,A,B,C,[job])
+    
+    To reduce the 1-norm of a system matrix
+
+          S =  ( A  B )
+               ( C  0 )
+
+    corresponding to the triple (A,B,C), by balancing. This involves
+    a diagonal similarity transformation inv(D)*A*D applied
+    iteratively to A to make the rows and columns of
+                        -1
+               diag(D,I)  * S * diag(D,I)
+
+    as close in norm as possible.
+
+    The balancing can be performed optionally on the following
+    particular system matrices
+
+           S = A,    S = ( A  B )    or    S = ( A )
+                                               ( C )
+    
+    Required arguments:
+        n : input int
+            The order of the matrix A, the number of rows of matrix B and 
+            the number of columns of matrix C. It represents the dimension of 
+            the state vector.  n > 0.
+        m : input int
+            The number of columns of matrix B. It represents the dimension of 
+            the input vector.  m > 0.
+        p : input int
+            The number of rows of matrix C. It represents the dimension of 
+            the output vector.  p > 0.
+        maxred : input float
+            The maximum allowed reduction in the 1-norm of S  (in an iteration) 
+            if zero rows or columns are encountered.
+            If maxred > 0.0, maxred must be larger than one (to enable the norm 
+            reduction). 
+            If maxred <= 0.0, then the value 10.0 for maxred is used.
+        A : input rank-2 array('d') with bounds (n,n)
+            The leading n-by-n part of this array must contain the system state 
+            matrix A.
+        B : input rank-2 array('d') with bounds (n,m)
+            The leading n-by-m part of this array must contain the system input 
+            matrix B.
+        C : input rank-2 array('d') with bounds (p,n)
+            The leading p-by-n part of this array must contain the system output 
+            matrix C.
+    Optional arguments:
+        job := 'A' input string(len=1)
+            Indicates which matrices are involved in balancing, as follows:
+            = 'A':  All matrices are involved in balancing;
+            = 'B':  B and A matrices are involved in balancing;
+            = 'C':  C and A matrices are involved in balancing;
+            = 'N':  B and C matrices are not involved in balancing.
+    Return objects:
+        s_norm : float
+            The 1-norm of the given matrix S is non-zero, the ratio between 
+            the 1-norm of the given matrix and the 1-norm of the balanced matrix.
+        A : rank-2 array('d') with bounds (n,n)
+            The leading n-by-n part of this array contains the balanced matrix 
+            inv(D)*A*D.
+        B : rank-2 array('d') with bounds (n,m)
+            The leading n-by-m part of this array contains the balanced matrix 
+            inv(D)*B.
+        C : rank-2 array('d') with bounds (p,n)
+            The leading p-by-n part of this array contains the balanced matrix C*D.
+        scale : rank-1 array('d') with bounds (n)
+            The scaling factors applied to S.  If D(j) is the scaling factor 
+            applied to row and column j, then scale(j) = D(j), for j = 1,...,n.
+    """
+    hidden = ' (hidden by the wrapper)'
+    arg_list = ['job', 'N', 'M', 'P', 'maxred', 'A', 'LDA'+hidden, 'B', 
+        'LDB'+hidden, 'C', 'LDC'+hidden, 'scale', 'INFO'+hidden]
+    our = _wrapper.tb01id(n,m,p,maxred,a,b,c,job=job)
+    if out[-1] < 0:
+        error_text = "The following argument had an illegal value: "+arg_list[-out[-1]-1]
+        raise ValueError(error_text)    
+    return out[:-1]
+
 def tb03ad(n,m,p,A,B,C,D,leri,equil='N',tol=0.0,ldwork=None):
 	""" A_min,b_min,C_min,nr,index,pcoeff,qcoeff,vcoeff = tb03ad_l(n,m,p,A,B,C,D,leri,[equil,tol,ldwork])
 	
@@ -151,7 +231,7 @@ def tb03ad(n,m,p,A,B,C,D,leri,equil='N',tol=0.0,ldwork=None):
 	raise ValueError('leri must be either L or R')
 
 def tc04ad(m,p,index,pcoeff,qcoeff,leri,ldwork=None):
-    """ n,rcond,a,b,c,d,info = tc04ad_l(m,p,index,pcoeff,qcoeff,leri,[ldwork])
+    """ n,rcond,a,b,c,d = tc04ad_l(m,p,index,pcoeff,qcoeff,leri,[ldwork])
 
     To find a state-space representation (A,B,C,D) with the same
     transfer matrix as that of a given left or right polynomial
@@ -252,7 +332,7 @@ def tc04ad(m,p,index,pcoeff,qcoeff,leri,ldwork=None):
 	raise ValueError('leri must be either L or R')
 	
 def tc01od(m,p,indlin,pcoeff,qcoeff,leri):
-	""" pcoeff,qcoeff,info = tc01od_l(m,p,indlim,pcoeff,qcoeff,leri)
+	""" pcoeff,qcoeff = tc01od_l(m,p,indlim,pcoeff,qcoeff,leri)
 	
 	To find the dual right (left) polynomial matrix representation of a given 
 	left (right) polynomial matrix representation, where the right and left 
@@ -312,4 +392,3 @@ def tc01od(m,p,indlin,pcoeff,qcoeff,leri):
 	raise ValueError('leri must be either L or R')
 	
 # to be replaced by python wrappers
-tb01id = _wrapper.tb01id

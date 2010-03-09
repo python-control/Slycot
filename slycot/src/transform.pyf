@@ -3,7 +3,7 @@ subroutine tb01id(job,n,m,p,maxred,a,lda,b,ldb,c,ldc,scale,info) ! in TB01ID.f
     integer check(n>0) :: n
     integer check(m>0) :: m
     integer check(p>0) :: p
-    double precision intent(in,out=s_norm),check(maxred<=0 || maxred>1) :: maxred
+    double precision intent(in,out),check(maxred<=0 || maxred>1) :: maxred
     double precision intent(in,out),dimension(n,n),depend(n) :: a
     integer intent(hide),depend(a) :: lda=shape(a,0)
     double precision intent(in,out),dimension(n,m),depend(n,m) :: b
