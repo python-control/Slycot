@@ -22,7 +22,7 @@
 from slycot import _wrapper
 
 def ab01nd(n,m,A,B,jobz='N',tol=0,ldwork=None):
-	""" Ac,Bc,ncont,indcon,nblk,Z,tau,info = ab01nd_i(n,m,A,B,[jobz,tol,ldwork]) 
+	""" Ac,Bc,ncont,indcon,nblk,Z,tau = ab01nd_i(n,m,A,B,[jobz,tol,ldwork]) 
 	
     To find a controllable realization for the linear time-invariant
     multi-input system
@@ -112,26 +112,37 @@ def ab01nd(n,m,A,B,jobz='N',tol=0,ldwork=None):
         tau : rank-1 array('d') with bounds (n)
             The elements of tau contain the scalar factors of the
             elementary reflectors used in the reduction of B and A.
-        info : int
-            = 0:  successful exit;
-            < 0:  if info = -i, the i-th argument had an illegal
-                value.
 	"""
+    hidden = ' (hidden by the wrapper)'
+    arg_list = ['jobz', 'n', 'm', 'A', 'LDA'+hidden, 'B', 'LDB'+hidden, 
+    'ncont', 'indcon', 'nblk', 'Z', 'LDZ'+hidden, 'tau', 'tol', 
+    'IWORK'+hidden, 'DWORK'+hidden, 'ldwork', 'info'+hidden]
 	if ldwork is None:
 	    ldwork = max(n,3*m)
 	if jobz == 'N':
 		out = _wrapper.ab01nd_n(n,m,A,B,tol=tol,ldwork=ldwork)
+		if out[-1] < 0:
+            error_text = "The following argument had an illegal value: "+arg_list[-out[-1]-1]
+            raise ValueError(error_text)
 		# sets Z to None
 		out[5] = None
-		return out
+		return out[:-1]
 	if jobz == 'I':
-		return _wrapper.ab01nd_i(n,m,A,B,tol=tol,ldwork=ldwork)
+		out = _wrapper.ab01nd_i(n,m,A,B,tol=tol,ldwork=ldwork)
+		if out[-1] < 0:
+            error_text = "The following argument had an illegal value: "+arg_list[-out[-1]-1]
+            raise ValueError(error_text)
+		return out[:-1]
 	if jobz == 'F':
-		return _wrapper.ab01nd_f(n,m,A,B,tol=tol,ldwork=ldwork)
+		out = _wrapper.ab01nd_f(n,m,A,B,tol=tol,ldwork=ldwork)
+		if out[-1] < 0:
+            error_text = "The following argument had an illegal value: "+arg_list[-out[-1]-1]
+            raise ValueError(error_text)
+		return out[:-1]
 	raise ValueError('jobz must be either N, I or F')
 
 def ab05md(n1,m1,p1,n2,p2,A1,B1,C1,D1,A2,B2,C2,D2,uplo='U'):
-    """ n,a,b,c,d,info = ab05md(n1,m1,p1,n2,p2,a1,b1,c1,d1,a2,b2,c2,d2,[uplo])
+    """ n,a,b,c,d = ab05md(n1,m1,p1,n2,p2,a1,b1,c1,d1,a2,b2,c2,d2,[uplo])
     
     To obtain the state-space model (A,B,C,D) for the cascaded
     inter-connection of two systems, each given in state-space form.
@@ -197,14 +208,22 @@ def ab05md(n1,m1,p1,n2,p2,A1,B1,C1,D1,A2,B2,C2,D2,uplo='U'):
         D : rank-2 array('d') with bounds (p2,m1)
             The leading p2-by-m1 part of this array contains the input/output 
             matrix D for the cascaded system.
-        info : int
-            = 0:  successful exit;
-            < 0:  if INFO = -i, the i-th argument had an illegal value.
     """
-    return _wrapper.ab05md(n1,m1,p1,n2,p2,A1,B1,C1,D1,A2,B2,C2,D2,uplo=uplo)
+    hidden = ' (hidden by the wrapper)'
+    arg_list = ['uplo', 'OVER'+hidden, 'n1', 'm1', 'p1', 'n2', 'p2', 'A1', 
+        'LDA1'+hidden, 'B1', 'LDB1'+hidden, 'C1', 'LDC1'+hidden, 'D1', 
+        'LDD1'+hidden, 'A2', 'LDA2'+hidden, 'B2', 'LDB2'+hidden, 'C2', 
+        'LDC2'+hidden, 'D2', 'LDD2'+hidden, 'n', 'A', 'LDA'+hidden, 'B', 
+        'LDB'+hidden, 'C', 'LDC'+hidden, 'D', 'LDD'+hidden, 'DWORK'+hidden, 
+        'ldwork', 'info'+hidden ]
+    out = _wrapper.ab05md(n1,m1,p1,n2,p2,A1,B1,C1,D1,A2,B2,C2,D2,uplo=uplo)
+    if out[-1] < 0:
+        error_text = "The following argument had an illegal value: "+arg_list[-out[-1]-1]
+        raise ValueError(error_text)
+    return out[:-1]
 	
 def ab05nd(n1,m1,p1,n2,A1,B1,C1,D1,A2,B2,C2,D2,alpha=1.0,ldwork=None):
-    """  n,A,B,C,D,info = ab05nd(n1,m1,p1,n2,A1,B1,C1,D1,A2,B2,C2,D2,[alpha,ldwork])
+    """  n,A,B,C,D = ab05nd(n1,m1,p1,n2,A1,B1,C1,D1,A2,B2,C2,D2,[alpha,ldwork])
     
     To obtain the state-space model (A,B,C,D) for the feedback inter-connection 
     of two systems, each given in state-space form.
@@ -271,18 +290,23 @@ def ab05nd(n1,m1,p1,n2,A1,B1,C1,D1,A2,B2,C2,D2,alpha=1.0,ldwork=None):
         D : rank-2 array('d') with bounds (p1,m1)
             The leading p1-by-m1 part of this array contains the input/output 
             matrix D for the connected system.
-        info : int
-            = 0:  successful exit;
-            < 0:  if info = -i, the i-th argument had an illegal value.
-            > 0:  if info = i, 1 <= i <= p1, the system is not completely 
-                controllable. That is, the matrix   (I + alpha*D1*D2) is 
-                exactly singular (the element U(i,i) of the upper triangular 
-                factor of LU factorization is exactly zero), possibly due to
-                rounding errors.
     """
+    hidden = ' (hidden by the wrapper)' 
+    arg_list = ['over'+hidden, 'n1', 'm1', 'p1', 'n2', 'alpha', 'A1', 'LDA1'+hidden, 
+        'B1', 'LDB1'+hidden, 'C1', 'LDC1'+hidden, 'D1', 'LDD1'+hidden, 'A2', 
+        'LDA2'+hidden, 'B2', 'LDB2'+hidden, 'C2', 'LDC2'+hidden, 'D2', 
+        'LDD2'+hidden, 'n', 'A', 'LDA'+hidden, 'B', 'LDB'+hidden, 'C', 
+        'LDC'+hidden, 'D', 'LDD'+hidden, 'IWORK'+hidden, 'DWORK'+hidden, 
+        'ldwork', 'info'+hidden]
     if ldwork is None:
 	    ldwork = max(p1*p1,m1*m1,n1*p1)
-    return _wrapper.ab05nd(n1,m1,p1,n2,alpha,A1,B1,C1,D1,A2,B2,C2,D2,ldwork=ldwork)
+    out = _wrapper.ab05nd(n1,m1,p1,n2,alpha,A1,B1,C1,D1,A2,B2,C2,D2,ldwork=ldwork)
+    if out[-1] < 0:
+        error_text = "The following argument had an illegal value: "+arg_list[-out[-1]-1]
+        raise ValueError(error_text)
+    if out[-1] > 0:
+        raise ArithmeticError('The resulting system is not completely controllable.')
+    return out[:-1]
 	
 # to be replaced by python wrappers
 ab07nd = _wrapper.ab07nd
