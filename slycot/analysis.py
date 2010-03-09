@@ -129,6 +129,79 @@ def ab01nd(n,m,A,B,jobz='N',tol=0,ldwork=None):
 	if jobz == 'F':
 		return _wrapper.ab01nd_f(n,m,A,B,tol=tol,ldwork=ldwork)
 	raise ValueError('jobz must be either N, I or F')
+
+def ab05md(n1,m1,p1,n2,p2,A1,B1,C1,D1,A2,B2,C2,D2,uplo='U'):
+    """ n,a,b,c,d,info = ab05md(n1,m1,p1,n2,p2,a1,b1,c1,d1,a2,b2,c2,d2,[uplo])
+    
+    To obtain the state-space model (A,B,C,D) for the cascaded
+    inter-connection of two systems, each given in state-space form.
+    
+    Required arguments:
+        n1 : input int
+            The number of state variables in the first system, i.e. the order 
+            of the matrix A1.  n1 > 0.
+        m1 : input int
+            The number of input variables for the first system. m1 > 0.
+        p1 : input int
+            The number of output variables from the first system and the number 
+            of input variables for the second system. p1 > 0.
+        n2 : input int
+            The number of state variables in the second system, i.e. the order 
+            of the matrix A2.  n2 > 0.
+        p2 : input int
+            The number of output variables from the second system. p2 > 0.
+        A1 : input rank-2 array('d') with bounds (n1,n1)
+            The leading n1-by-n1 part of this array must contain the state 
+            transition matrix A1 for the first system.
+        B1 : input rank-2 array('d') with bounds (n1,m1)
+            The leading n1-by-m1 part of this array must contain the input/state 
+            matrix B1 for the first system.
+        C1 : input rank-2 array('d') with bounds (p1,n1)
+            The leading p1-by-n1 part of this array must contain the state/output 
+            matrix C1 for the first system.
+        D1 : input rank-2 array('d') with bounds (p1,m1)
+            The leading p1-by-m1 part of this array must contain the input/output 
+            matrix D1 for the first system.
+        A2 : input rank-2 array('d') with bounds (n2,n2)
+            The leading n2-by-n2 part of this array must contain the state 
+            transition matrix A2 for the second system.
+        B2 : input rank-2 array('d') with bounds (n2,p1)
+            The leading n2-by-p1 part of this array must contain the input/state 
+            matrix B2 for the second system.
+        C2 : input rank-2 array('d') with bounds (p2,n2)
+            The leading p2-by-n2 part of this array must contain the state/output 
+            matrix C2 for the second system.
+        D2 : input rank-2 array('d') with bounds (p2,p1)
+            The leading p2-by-p1 part of this array must contain the input/output 
+            matrix D2 for the second system.
+    Optional arguments:
+        uplo := 'U' input string(len=1)
+            Indicates whether the user wishes to obtain the matrix A in 
+            the upper or lower block diagonal form, as follows:
+                = 'U':  Obtain A in the upper block diagonal form;
+                = 'L':  Obtain A in the lower block diagonal form.
+    Return objects:
+        n : int
+            The number of state variables (n1 + n2) in the resulting system, 
+            i.e. the order of the matrix A, the number of rows of B and 
+            the number of columns of C.
+        A : rank-2 array('d') with bounds (n1+n2,n1+n2)
+            The leading N-by-N part of this array contains the state transition 
+            matrix A for the cascaded system.
+        B : rank-2 array('d') with bounds (n1+n2,m1)
+            The leading n-by-m1 part of this array contains the input/state 
+            matrix B for the cascaded system.
+        C : rank-2 array('d') with bounds (p2,n1+n2)
+            The leading p2-by-n part of this array contains the state/output 
+            matrix C for the cascaded system.
+        D : rank-2 array('d') with bounds (p2,m1)
+            The leading p2-by-m1 part of this array contains the input/output 
+            matrix D for the cascaded system.
+        info : int
+            = 0:  successful exit;
+            < 0:  if INFO = -i, the i-th argument had an illegal value.
+    """
+    return _wrapper.ab05md(n1,m1,p1,n2,p2,A1,B1,C1,D1,A2,B2,C2,D2,uplo=uplo)
 	
 def ab05nd(n1,m1,p1,n2,A1,B1,C1,D1,A2,B2,C2,D2,alpha=1.0,ldwork=None):
     """  n,A,B,C,D,info = ab05nd(n1,m1,p1,n2,A1,B1,C1,D1,A2,B2,C2,D2,[alpha,ldwork])
