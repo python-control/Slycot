@@ -171,6 +171,115 @@ def sb02md(n,A,G,Q,dico,hinv='D',uplo='U',scal='N',sort='S',ldwork=None):
         raise ArithmeticError('if the N-th order system of linear algebraic equations is singular to working precision')
     return out[:-1]
 
+def sb03md(n,C,A,U,dico,job='X',fact='N',trana='N',ldwork=None):
+    """  X,scale,sep,ferr,wr,wi = sb03md(dico,n,C,A,U,[job,fact,trana,ldwork])
+    
+    To solve for X either the real continuous-time Lyapunov equation
+
+       op(A)'*X + X*op(A) = scale*C                             (1)
+
+    or the real discrete-time Lyapunov equation
+
+       op(A)'*X*op(A) - X = scale*C                             (2)
+
+    and/or estimate an associated condition number, called separation,
+    where op(A) = A or A' (A**T) and C is symmetric (C = C').
+    (A' denotes the transpose of the matrix A.) A is n-by-n, the right
+    hand side C and the solution X are n-by-n, and scale is an output
+    scale factor, set less than or equal to 1 to avoid overflow in X.
+    
+    Required arguments:
+        n : input int
+            The order of the matrices A, X, and C.  n > 0.
+        C : input rank-2 array('d') with bounds (n,n)
+            If job = 'X' or 'B', the leading n-by-n part of this array must 
+            contain the symmetric matrix C. If job = 'S', C is not referenced.
+        A : input rank-2 array('d') with bounds (n,n)
+            On entry, the leading n-by-n part of this array must contain the 
+            matrix A. If fact = 'F', then A contains an upper quasi-triangular 
+            matrix in Schur canonical form; the elements below the upper 
+            Hessenberg part of the array A are not referenced.
+            On exit, the leading n-by-n upper Hessenberg part of this array 
+            contains the upper quasi-triangular matrix in Schur canonical form 
+            from the Schur factorization of A. The contents of array A is not
+            modified if fact = 'F'.
+        U : input rank-2 array('d') with bounds (n,n)
+            If fact = 'F', then U is an input argument and on entry the leading 
+            n-by-n part of this array must contain the orthogonal matrix U of 
+            the real Schur factorization of A.
+            If fact = 'N', then U is an output argument and on exit, it contains 
+            the orthogonal n-by-n matrix from the real Schur factorization of A.
+        dico : input string(len=1)
+            Specifies the equation from which X is to be determined as follows:
+            = 'C':  Equation (1), continuous-time case;
+            = 'D':  Equation (2), discrete-time case.
+    Optional arguments:
+        job := 'X' input string(len=1)
+            Specifies the computation to be performed, as follows:
+            = 'X':  Compute the solution only;
+            = 'S':  Compute the separation only;
+            = 'B':  Compute both the solution and the separation.
+        fact := 'N' input string(len=1)
+            Specifies whether or not the real Schur factorization of the matrix 
+            A is supplied on entry, as follows:
+            = 'F':  On entry, A and U contain the factors from the real Schur 
+            factorization of the matrix A;
+            = 'N':  The Schur factorization of A will be computed and the factors 
+            will be stored in A and U.
+        trana := 'N' input string(len=1)
+            Specifies the form of op(A) to be used, as follows:
+            = 'N':  op(A) = A    (No transpose);
+            = 'T':  op(A) = A**T (Transpose);
+            = 'C':  op(A) = A**T (Conjugate transpose = Transpose).
+        ldwork := max(2*n*n,3*n) input int
+            The length of the cache array. ldwork >= max(2*n*n,3*n).
+            For optimum performance it should be larger.
+    Return objects:
+        X : rank-2 array('d') with bounds (n,n)
+            If job = 'X' or 'B', the leading n-by-n part contains the symmetric 
+            solution matrix.
+        scale : float
+            The scale factor, scale, set less than or equal to 1 to prevent 
+            the solution from overflowing.
+        sep : float
+            If job = 'S' or 'B', sep contains the estimated separation of 
+            the matrices op(A) and -op(A)', if dico = 'C' or of op(A) and op(A)', 
+            if dico = 'D'.
+        ferr : float
+            If job = 'B', ferr contains an estimated forward error bound for 
+            the solution X. If X_true is the true solution, ferr bounds the 
+            relative error in the computed solution, measured in the Frobenius
+            norm:  norm(X - X_true)/norm(X_true).
+        wr : rank-1 array('d') with bounds (n)
+        wi : rank-1 array('d') with bounds (n)
+            If fact = 'N', wr and wi contain the real and imaginary parts, 
+            respectively, of the eigenvalues of A.
+    """
+    hidden = ' (hidden by the wrapper)'
+    arg_list = ['dico', 'job', 'fact', 'trana', 'n', 'A', 'LDA'+hidden, 'U', 
+        'LDU'+hidden, 'C', 'LDC'+hidden, 'scale', 'sep', 'ferr', 'wr', 'wi', 
+        'IWORK'+hidden, 'DWORK'+hidden, 'ldwork', 'INFO'+hidden]
+    if ldwork is None:
+	    ldwork = max(2*n*n,3*n)
+    if dico != 'C' and dico != 'D':
+        raise ValueError('dico must be either D or C')
+    out = _wrapper.sb03md(dico,n,C,A,U,job=job,fact=fact,trana=trana,ldwork=ldwork)
+    if out[-1] < 0:
+        error_text = "The following argument had an illegal value: "+arg_list[-out[-1]-1]
+        raise ValueError(error_text)
+    if out[-1] == n+1:
+        if dico == 'D':
+            warnings.warn('The matrix A has eigenvalues that are almost reciprocal.')
+        else:
+            warnings.warn('The matrix A and -A have common or veru close eigenvalues.')
+    else:
+        if out[-1] > 0:
+            warn_text = """The QR algorithm failed to compute all the eigenvalues 
+(see LAPACK Library routine DGEES); elements %i:%i or wr and wi 
+contains eigenvalues which have converged, A contains the partially 
+converged Shur form'""" %(out[-1],n) # not sure about the indenting here
+            warnings.warn(warn_text)
+    return out[:-1]
+
 # to be replaced by python wrappers
 sb02od = _wrapper.sb02od
-sb03md = _wrapper.sb03md

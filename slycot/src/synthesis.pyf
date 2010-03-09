@@ -31,7 +31,7 @@ subroutine sb03md(dico,job,fact,trana,n,c,ldc,a,lda,u,ldu,scale,sep,ferr,wr,wi,i
 	character :: job='X'
 	character :: fact='N'
 	character :: trana='N'
-	integer :: n
+	integer check(n>0) :: n
 	double precision dimension(n,n),depend(n) :: a
 	integer intent(hide),depend(a) :: lda=shape(a,0)
 	double precision dimension(n,n),depend(n) :: u

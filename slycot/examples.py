@@ -43,7 +43,7 @@ def sb03md_example():
 				[24, 32,  8],
 				[15,  8, 40]])
 	U = zeros((3,3))
-	out = slycot.sb03md('D',3,C,A,U)
+	out = slycot.sb03md(3,C,A,U,'D')
 	print '--- Example for sb03md ---'		
 	print 'The solution X is'
 	print out[0]
