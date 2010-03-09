@@ -22,7 +22,7 @@
 from slycot import _wrapper
 
 def tb03ad(n,m,p,A,B,C,D,leri,equil='N',tol=0.0,ldwork=None):
-	""" A_min,b_min,C_min,nr,index,pcoeff,qcoeff,vcoeff,info = tb03ad_l(n,m,p,A,B,C,D,leri,[equil,tol,ldwork])
+	""" A_min,b_min,C_min,nr,index,pcoeff,qcoeff,vcoeff = tb03ad_l(n,m,p,A,B,C,D,leri,[equil,tol,ldwork])
 	
     To find a relatively prime left or right polynomial matrix representation
     with the same transfer matrix as that of a given state-space representation, 
@@ -121,24 +121,33 @@ def tb03ad(n,m,p,A,B,C,D,leri,equil='N',tol=0.0,ldwork=None):
             The leading porm-by-nr-by-kpcoef part of this array contains 
             the coefficients of the intermediate matrix V(s). 
             vcoeff(i,j,k) is defined as for pcoeff(i,j,k).
-        info : int
-            = 0: successful exit;
-            < 0: if info = -i, the i-th argument had an illegal value;
-            = 1: if a singular matrix was encountered during the computation of V(s);
-            = 2: if a singular matrix was encountered during the computation of P(s).
 	"""
+	hidden = ' (hidden by the wrapper)'
+	arg_list = ['leri', 'equil', 'n', 'm', 'P', 'A', 'LDA'+hidden, 'B', 
+	    'LDB'+hidden, 'C', 'LDC'+hidden, 'D', 'LDD'+hidden, 'nr', 'index', 
+	    'pcoeff', 'LDPCO1'+hidden, 'LDPCO2'+hidden, 'qcoeff', 'LDQCO1'+hidden, 
+	    'LDQCO2'+hidden, 'vcoeff', 'LDVCO1'+hidden, 'LDVCO2'+hidden, 'tol', 
+	    'IWORK'+hidden, 'DWORK'+hidden, 'ldwork', 'INFO'+hidden]
 	if leri == 'L':
 	    if ldwork is None:
-		    out = _wrapper.tb03ad_l(n,m,p,A,B,C,D,equil=equil,tol=tol)
-        else:
-            out = _wrapper.tb03ad_l(n,m,p,A,B,C,D,equil=equil,tol=tol,ldwork=ldwork)
-        return out
+		    ldwork = max( 2*n + 3*max(m,p), p*(p+2))
+        out = _wrapper.tb03ad_l(n,m,p,A,B,C,D,equil=equil,tol=tol,ldwork=ldwork)
+        if out[-1] < 0:
+            error_text = "The following argument had an illegal value: "+arg_list[-out[-1]-1]
+            raise ValueError(error_text)
+        if out[-1] > 0:
+            raise ArithmeticError('a singular matrix was encountered during the computation')
+        return out[:-1]
 	if leri == 'R':
 		if ldwork is None:
-		    out = _wrapper.tb03ad_r(n,m,p,A,B,C,D,equil=equil,tol=tol)
-        else:
-            out = _wrapper.tb03ad_r(n,m,p,A,B,C,D,equil=equil,tol=tol,ldwork=ldwork)
-        return out
+		    ldwork = max( 2*n + 3*max(m,p), m*(m+2))
+        out = _wrapper.tb03ad_r(n,m,p,A,B,C,D,equil=equil,tol=tol,ldwork=ldwork)
+        if out[-1] < 0:
+            error_text = "The following argument had an illegal value: "+arg_list[-out[-1]-1]
+            raise ValueError(error_text)
+        if out[-1] > 0:
+            raise ArithmeticError('a singular matrix was encountered during the computation')
+        return out[:-1]
 	raise ValueError('leri must be either L or R')
 
 def tc04ad(m,p,index,pcoeff,qcoeff,leri,ldwork=None):
@@ -215,21 +224,31 @@ def tc04ad(m,p,index,pcoeff,qcoeff,leri,ldwork=None):
             The leading p-by-m part of this array contains the direct transmission 
             matrix D; the remainder of the leading max(m,p)-by-max(m,p) part is 
             used as internal workspace.
-        info : int
-            = 0:  successful exit;
-            < 0:  if info = -i, the i-th argument had an illegal value;
-            = 1:  if P(s) is not row (if leri = 'L') or column  (if leri = 'R') 
-                proper. Consequently, no state-space representation is calculated.
     """
+    hidden = ' (hidden by the wrapper)'
+    arg_list = ['leri', 'm', 'P', 'index', 'pcoeff', 'LDPCO1'+hidden, 
+    'LDPCO2'+hidden, 'qcoeff', 'LDQCO1'+hidden, 'LDQCO2'+hidden, 'N', 'rcond', 
+    'A', 'LDA'+hidden, 'B', 'LDB'+hidden, 'C', 'LDC'+hidden, 'D', 'LDD'+hidden, 
+    'IWORK'+hidden, 'DWORK'+hidden, 'ldwork', 'INFO'+hidden]
     if ldwork is None:
         ldwork = max(m,p)*(max(m,p)+4)
     n = sum(index)
     if leri == 'L':
         out = _wrapper.tc04ad_l(m,p,index,pcoeff,qcoeff,n)
-        return out
+        if out[-1] < 0:
+            error_text = "The following argument had an illegal value: "+arg_list[-out[-1]-1]
+            raise ValueError(error_text)
+        if out[-1] == 1:
+            raise ArithmeticError('P(s) is not row proper')
+        return out[:-1]
     if leri == 'R':
         out = _wrapper.tc04ad_r(m,p,index,pcoeff,qcoeff,n)
-        return out
+        if out[-1] < 0:
+            error_text = "The following argument had an illegal value: "+arg_list[-out[-1]-1]
+            raise ValueError(error_text)
+        if out[-1] == 1:
+            raise ArithmeticError('P(s) is not column proper')
+        return out[:-1]
 	raise ValueError('leri must be either L or R')
 	
 def tc01od(m,p,indlin,pcoeff,qcoeff,leri):
@@ -274,12 +293,22 @@ def tc01od(m,p,indlin,pcoeff,qcoeff,leri):
             = 0:  successful exit;
             < 0:  if info = -i, the i-th argument had an illegal value.
     """
+	hidden = ' (hidden by the wrapper)'
+	arg_list = ['leri', 'M', 'P', 'indlim', 'pcoeff', 'LDPCO1'+hidden, 
+	    'LDPCO2'+hidden, 'qcoeff', 'LDQCO1'+hidden, 'LDQCO2'+hidden, 
+	    'INFO'+hidden]
 	if leri == 'L':
 		out = _wrapper.tc01od_l(m,p,indlin,pcoeff,qcoeff)
-		return out
+        if out[-1] < 0:
+            error_text = "The following argument had an illegal value: "+arg_list[-out[-1]-1]
+            raise ValueError(error_text)
+        return out[:-1]
 	if leri == 'R':
 		out = _wrapper.tc01od_r(m,p,indlin,pcoeff,qcoeff)
-		return out
+        if out[-1] < 0:
+            error_text = "The following argument had an illegal value: "+arg_list[-out[-1]-1]
+            raise ValueError(error_text)
+        return out[:-1]
 	raise ValueError('leri must be either L or R')
 	
 # to be replaced by python wrappers
