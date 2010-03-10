@@ -93,9 +93,8 @@ def sb02od_example():
 				[0, 1],
 				[0, 0]])
 	Q = dot(C.T,C)
-	R = zeros((1,1))
-	L = zeros((2,1))
-	out = slycot.sb02od('D',2,1,A,B,Q,R,L)
+	R = ones((1,1))
+	out = slycot.sb02od(2,1,A,B,Q,R,'C')
 	print '--- Example for sb01od ...'
 	print 'The solution X is'
 	print out[1]

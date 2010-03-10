@@ -21,6 +21,7 @@
 
 
 from slycot import _wrapper
+import numpy as _np
 
 def sb02md(n,A,G,Q,dico,hinv='D',uplo='U',scal='N',sort='S',ldwork=None):
     """  X,rcond,wr,wi,S,U = sb02md(dico,n,A,G,Q,[hinv,uplo,scal,sort,ldwork])
@@ -98,9 +99,9 @@ def sb02md(n,A,G,Q,dico,hinv='D',uplo='U',scal='N',sort='S',ldwork=None):
             the Schur form, as follows:
             = 'S':  Stable   eigenvalues come first;
             = 'U':  Unstable eigenvalues come first.
-        ldwork := max(3,6*n) input int
-            The length of the cache array. ldwork >= max(3, 6*n).
-            For optimum performance it should be larger.
+        ldwork := None input int
+            The length of the cache array. The default value is max(3, 6*n),
+            for optimum performance it should be larger.
     Return objects:
         X : rank-2 array('d') with bounds (n,n)
             The leading n-by-n part of this array contains the solution matrix 
@@ -171,6 +172,173 @@ def sb02md(n,A,G,Q,dico,hinv='D',uplo='U',scal='N',sort='S',ldwork=None):
         raise ArithmeticError('if the N-th order system of linear algebraic equations is singular to working precision')
     return out[:-1]
 
+def sb02od(n,m,A,B,Q,R,dico,p=None,L=None,fact='N',uplo='U',sort='S',tol=0.0,ldwork=None):
+    """ rcond,x,alfar,alfai,beta,s,t = sb02od(n,m,A,B,Q,R,dico,[p,L,fact,uplo,sort,tol,ldwork])
+    
+    To solve for X either the continuous-time algebraic Riccati
+    equation
+                              -1
+        Q + A'X + XA - (L+XB)R  (L+XB)' = 0                       (1)
+
+    or the discrete-time algebraic Riccati equation
+                                     -1
+        X = A'XA - (L+A'XB)(R + B'XB)  (L+A'XB)' + Q              (2)
+
+    where A, B, Q, R, and L are n-by-n, n-by-m, n-by-n, m-by-m and
+    N-by-M matrices, respectively, such that Q = C'C, R = D'D and
+    L = C'D; X is an n-by-n symmetric matrix.
+    The routine also returns the computed values of the closed-loop
+    spectrum of the system, i.e., the stable eigenvalues lambda(1),
+    ..., lambda(n) of the corresponding Hamiltonian or symplectic
+    pencil, in the continuous-time case or discrete-time case,
+    respectively.
+
+    Optionally, Q and/or R may be given in a factored form, Q = C'C, 
+    R = D'D, and L may be treated as a zero matrix.
+
+    The routine uses the method of deflating subspaces, based on
+    reordering the eigenvalues in a generalized Schur matrix pair.
+    
+    Required arguments:
+        n : input int
+            The actual state dimension, i.e. the order of the matrices A, Q, 
+            and X, and the number of rows of the matrices B and L.  n > 0.
+        m : input int
+            The number of system inputs, the order of the matrix R, and the 
+            number of columns of the matrix B.  m > 0.
+        A : input rank-2 array('d') with bounds (n,n)
+            The leading n-by-n part of this array must contain the state matrix 
+            A of the system.
+        B : input rank-2 array('d') with bounds (n,m)
+            The leading n-by-m part of this array must contain the input matrix 
+            B of the system.
+        Q : input rank-2 array('d') with bounds (n,n) or (p,n)
+            If fact = 'N' or 'D', the leading n-by-n upper/lower triangular part 
+            (depending on uplo) of this array must contain the upper/lower 
+            triangular part of the symmetric state weighting matrix Q. 
+            If fact = 'C' or 'B', the leading p-by-n part of this array must 
+            contain the output matrix C of the system.
+        R : input rank-2 array('d') with bounds (m,m) or (p,m)
+            If fact = 'N' or 'C', the leading m-by-m upper/lower triangular part 
+            (depending on uplo) of this array must contain the upper/lower 
+            triangular part of the symmetric input weighting matrix R.
+            If FACT = 'D' or 'B', the leading P-by-M part of this array must 
+            contain the direct transmission matrix D of the system.
+        dico : input string(len=1)
+            Specifies the type of Riccati equation to be solved as follows:
+            = 'C':  Equation (1), continuous-time case;
+            = 'D':  Equation (2), discrete-time case.
+    Optional arguments:
+        p : input int
+            The number of system outputs. If fact = 'C' or 'D' or 'B',
+            p is the number of rows of the matrices C and/or D. p > 0.
+        L := None input rank-2 array('d') with bounds (n,m)
+            If L is None it will considered as a zero matrix of the appropriate
+            dimensions. Otherwise the leading n-by-m part of this array must 
+            contain the cross weighting matrix L.
+        fact := 'N' input string(len=1)
+            Specifies whether or not the matrices Q and/or R are factored, 
+            as follows:
+            = 'N':  Not factored, Q and R are given;
+            = 'C':  C is given, and Q = C'C;
+            = 'D':  D is given, and R = D'D;
+            = 'B':  Both factors C and D are given, Q = C'C, R = D'D.
+        uplo := 'U' input string(len=1)
+            If fact = 'N', specifies which triangle of Q and R is stored, 
+            as follows:
+            = 'U':  Upper triangle is stored;
+            = 'L':  Lower triangle is stored.
+        sort := 'S' input string(len=1)
+            Specifies which eigenvalues should be obtained in the top of 
+            the generalized Schur form, as follows:
+            = 'S':  Stable   eigenvalues come first;
+            = 'U':  Unstable eigenvalues come first.
+        tol := 0 input float
+            The tolerance to be used in rank determination of the original 
+            matrix pencil, specifically of the triangular factor obtained during 
+            the reduction process. If tol <= 0 a default value is used.
+        ldwork := None input int
+            The length of the cache array. The default value is 
+            max(7*(2*n+1)+16,16*n,2*n+m,3*m), for optimum performance it should 
+            be larger.
+    Return objects:
+        rcond : float
+            An estimate of the reciprocal of the condition number (in 
+            the 1-norm) of the N-th order system of algebraic equations 
+            from which the solution matrix X is obtained.
+        X : rank-2 array('d') with bounds (n,n)
+            The leading N-by-N part of this array contains the solution matrix 
+            of the problem.
+        alfar : rank-1 array('d') with bounds (2 * n)
+        alfai : rank-1 array('d') with bounds (2 * n)
+        beta : rank-1 array('d') with bounds (2 * n)
+            The generalized eigenvalues of the 2n-by-2n matrix pair, ordered as 
+            specified by sort. For instance, if sort = 'S', the leading n 
+            elements of these arrays contain the closed-loop spectrum of the 
+            system matrix A - BF, where F is the optimal feedback matrix computed
+            based on the solution matrix X. Specifically,
+            lambda(k) = [alfar(k)+j*alfai(k)]/beta(k) for k = 1,2,...,n.
+        S : rank-2 array('d') with bounds (2*n+m,2 * n)
+            ???
+        T : rank-2 array('d') with bounds (2*n+m+1,2 * n)
+            The leading 2n-by-2n part of this array contains the ordered upper 
+            triangular form T of the second matrix in the reduced matrix pencil 
+            associated to the optimal problem. That is,
+
+                    (T   T  )
+                    ( 11  12)
+                T = (       ),
+                    (0   T  )
+                    (     22)
+
+            where T  , T   and T   are n-by-n matrices.
+                   11   12      22
+    """
+    hidden = ' (hidden by the wrapper)'
+    arg_list = ['dico', 'jobb'+hidden, 'fact', 'uplo', 'jobl', 'sort', 'n', 
+        'm', 'p', 'A', 'LDA'+hidden, 'B', 'LDB'+hidden, 'Q', 'LDQ'+hidden, 
+        'R', 'LDR'+hidden, 'L', 'LDL'+hidden, 'rcond', 'X', 'LDX'+hidden, 
+        'alfar', 'alfai', 'beta', 'S', 'LDS'+hidden, 'T', 'LDT'+hidden, 
+        'U', 'LDU'+hidden, 'tol', 'IWORK'+hidden, 'DWORK'+hidden, 'ldwork', 
+        'BWORK'+hidden, 'INFO'+hidden]
+    if ldwork is None:
+        ldwork = max([7*(2*n+1)+16,16*n,2*n+m,3*m])
+    jobl = 'N'
+    if L is None:
+            L = _np.zeros((n,m))
+            jobl = 'Z'
+    out = None
+    if fact == 'N':
+        out = _wrapper.sb02od_n(dico,n,m,A,B,Q,R,L,uplo=uplo,jobl=jobl,sort=sort,tol=tol,ldwork=ldwork)
+    if fact == 'C':
+        if p is None:
+            p = shape(Q)[0]
+        out = _wrapper.sb02od_n(dico,n,m,p,A,B,Q,R,L,uplo=uplo,jobl=jobl,sort=sort,tol=tol,ldwork=ldwork)
+    if fact == 'D':
+        if p is None:
+            p = shape(R)[0]
+        out = _wrapper.sb02od_n(dico,n,m,p,A,B,Q,R,L,uplo=uplo,jobl=jobl,sort=sort,tol=tol,ldwork=ldwork)
+    if fact == 'B':
+        if p is None:
+            p = shape(Q)[0]
+        out = _wrapper.sb02od_n(dico,n,m,p,A,B,Q,R,L,uplo=uplo,jobl=jobl,sort=sort,tol=tol,ldwork=ldwork)
+    if out[-1] < 0:
+        error_text = "The following argument had an illegal value: "+arg_list[-out[-1]-1]
+        raise ValueError(error_text)
+    if out[-1] == 1:
+        raise ArithmeticError('the computed extended matrix pencil is singular, possibly due to rounding errors')
+    if out[-1] == 2:
+        raise ArithmeticError('the QZ (or QR) algorithm failed')  
+    if out[-1] == 3:
+        raise ArithmeticError('reordering of the (generalized) eigenvalues failed')
+    if out[-1] == 4:
+        raise ArithmeticError('stability condition failed due to roudoff errors')
+    if out[-1] == 5:
+        raise ArithmeticError('the computed dimension of the solution does not equal N') 
+    if out[-1] == 6:
+        raise ArithmeticError('a singular matrix was encountered during the computation')
+    return out[:-1]
+
 def sb03md(n,C,A,U,dico,job='X',fact='N',trana='N',ldwork=None):
     """  X,scale,sep,ferr,wr,wi = sb03md(dico,n,C,A,U,[job,fact,trana,ldwork])
     
@@ -231,9 +399,9 @@ def sb03md(n,C,A,U,dico,job='X',fact='N',trana='N',ldwork=None):
             = 'N':  op(A) = A    (No transpose);
             = 'T':  op(A) = A**T (Transpose);
             = 'C':  op(A) = A**T (Conjugate transpose = Transpose).
-        ldwork := max(2*n*n,3*n) input int
-            The length of the cache array. ldwork >= max(2*n*n,3*n).
-            For optimum performance it should be larger.
+        ldwork := None input int
+            The length of the cache array. The default value is max(2*n*n,3*n),
+            for optimum performance it should be larger.
     Return objects:
         X : rank-2 array('d') with bounds (n,n)
             If job = 'X' or 'B', the leading n-by-n part contains the symmetric 
@@ -271,15 +439,14 @@ def sb03md(n,C,A,U,dico,job='X',fact='N',trana='N',ldwork=None):
         if dico == 'D':
             warnings.warn('The matrix A has eigenvalues that are almost reciprocal.')
         else:
-            warnings.warn('The matrix A and -A have common or veru close eigenvalues.')
+            warnings.warn('The matrix A and -A have common or very close eigenvalues.')
     else:
         if out[-1] > 0:
             warn_text = """The QR algorithm failed to compute all the eigenvalues 
-(see LAPACK Library routine DGEES); elements %i:%i or wr and wi 
+(see LAPACK Library routine DGEES); elements %i:%i of wr and wi 
 contains eigenvalues which have converged, A contains the partially 
 converged Shur form'""" %(out[-1],n) # not sure about the indenting here
             warnings.warn(warn_text)
     return out[:-1]
 
 # to be replaced by python wrappers
-sb02od = _wrapper.sb02od

@@ -48,27 +48,27 @@ subroutine sb03md(dico,job,fact,trana,n,c,ldc,a,lda,u,ldu,scale,sep,ferr,wr,wi,i
 	integer optional,check(ldwork>=max(2*n*n,3*n)),depend(n) :: ldwork=max(2*n*n,3*n)
 	integer intent(out) :: info
 end subroutine sb03md
-subroutine sb02od(dico,jobb,fact,uplo,jobl,sort,n,m,p,a,lda,b,ldb,q,ldq,r,ldr,l,ldl,rcond,x,ldx,alfar,alfai,beta,s,lds,t,ldt,u,ldu,tol,iwork,dwork,ldwork,bwork,info) ! in :new:SB02OD.f
+subroutine sb02od_n(dico,jobb,fact,uplo,jobl,sort,n,m,p,a,lda,b,ldb,q,ldq,r,ldr,l,ldl,rcond,x,ldx,alfar,alfai,beta,s,lds,t,ldt,u,ldu,tol,iwork,dwork,ldwork,bwork,info) ! in :new:SB02OD.f
 	fortranname sb02od
 	character :: dico
 	character intent(hide) :: jobb = 'B' ! fixed for simplicity reasons, for 'G' use sb02md instead
-	character intent(hide) :: fact = 'N' ! idem
+	character intent(hide) :: fact = 'N'
 	character :: uplo = 'U'
 	character :: jobl = 'Z'
 	character :: sort = 'S'
-	integer check(n>0) :: n
-	integer check(m>0) :: m
+	integer required,check(n>0) :: n
+	integer required,check(m>0) :: m
 	integer intent(hide) :: p=0 ! this is not needed as fact = 'N' 
-	double precision check(shape(a,1)==n),dimension(lda,*),depend(n) :: a
-	integer intent(hide),check(lda>=n),depend(a) :: lda=shape(a,0)
-	double precision check(shape(b,1)==m),dimension(ldb,*),depend(m) :: b
-	integer intent(hide),check(ldb>=n),depend(b) :: ldb=shape(b,0)
-	double precision check(shape(q,1)==n),dimension(ldq,*),depend(n) :: q
-	integer intent(hide),check(ldq>=n),depend(q) :: ldq=shape(q,0)
-	double precision check(shape(r,1)==m),dimension(ldr,*),depend(m) :: r
-	integer intent(hide),check(ldr>=m),depend(r) :: ldr=shape(r,0)
-	double precision check(shape(l,1)==m),dimension(ldl,m),depend(m) :: l
-	integer intent(hide),check(ldl>=n),depend(l) :: ldl=shape(l,0)
+	double precision dimension(n,n),depend(n) :: a
+	integer intent(hide),depend(a) :: lda=shape(a,0)
+	double precision dimension(n,m),depend(m,n) :: b
+	integer intent(hide),depend(b) :: ldb=shape(b,0)
+	double precision dimension(n,n),depend(n) :: q
+	integer intent(hide),depend(q) :: ldq=shape(q,0)
+	double precision dimension(m,m),depend(m) :: r
+	integer intent(hide),depend(r) :: ldr=shape(r,0)
+	double precision dimension(n,m),depend(m,n) :: l
+	integer intent(hide),depend(l) :: ldl=shape(l,0)
 	double precision intent(out) :: rcond
 	double precision intent(out),dimension(n,n) :: x
 	integer intent(hide),depend(x) :: ldx=shape(x,0)
@@ -87,4 +87,124 @@ subroutine sb02od(dico,jobb,fact,uplo,jobl,sort,n,m,p,a,lda,b,ldb,q,ldq,r,ldr,l,
 	integer optional :: ldwork=16*n+3*m+16
 	logical intent(hide,cache),dimension(2*n),depend(n) :: bwork
 	integer intent(out) :: info
-end subroutine sb02od
+end subroutine sb02od_n
+subroutine sb02od_c(dico,jobb,fact,uplo,jobl,sort,n,m,p,a,lda,b,ldb,q,ldq,r,ldr,l,ldl,rcond,x,ldx,alfar,alfai,beta,s,lds,t,ldt,u,ldu,tol,iwork,dwork,ldwork,bwork,info) ! in :new:SB02OD.f
+	fortranname sb02od
+	character :: dico
+	character intent(hide) :: jobb = 'B' ! fixed for simplicity reasons, for 'G' use sb02md instead
+	character intent(hide) :: fact = 'C'
+	character :: uplo = 'U'
+	character :: jobl = 'Z'
+	character :: sort = 'S'
+	integer required,check(n>0) :: n
+	integer required,check(m>0) :: m
+	integer required,check(p>0) :: p 
+	double precision dimension(n,n),depend(n) :: a
+	integer intent(hide),depend(a) :: lda=shape(a,0)
+	double precision dimension(n,m),depend(m,n) :: b
+	integer intent(hide),depend(b) :: ldb=shape(b,0)
+	double precision dimension(p,n),depend(n,p) :: q
+	integer intent(hide),depend(q) :: ldq=shape(q,0)
+	double precision dimension(m,m),depend(m) :: r
+	integer intent(hide),depend(r) :: ldr=shape(r,0)
+	double precision dimension(n,m),depend(m,n) :: l
+	integer intent(hide),depend(l) :: ldl=shape(l,0)
+	double precision intent(out) :: rcond
+	double precision intent(out),dimension(n,n) :: x
+	integer intent(hide),depend(x) :: ldx=shape(x,0)
+	double precision intent(out),dimension(2*n) :: alfar
+	double precision intent(out),dimension(2*n) :: alfai
+	double precision intent(out),dimension(2*n) :: beta
+	double precision intent(out),dimension(2*n+m,2*n) :: s
+	integer intent(hide),depend(s) :: lds=shape(s,0)
+	double precision intent(out),dimension(2*n+m+1,2*n) :: t
+	integer intent(hide),depend(t) :: ldt=shape(t,0)
+	double precision intent(hide),dimension(2*n,2*n) :: u ! not needed as jobb = 'B'
+	integer intent(hide),depend(u) :: ldu=shape(u,0)
+	double precision :: tol=0
+	integer intent(hide,cache),dimension(max(2*n,m)),depend(n,m) :: iwork
+	double precision intent(hide,cache),dimension(ldwork) :: dwork
+	integer optional :: ldwork=16*n+3*m+16
+	logical intent(hide,cache),dimension(2*n),depend(n) :: bwork
+	integer intent(out) :: info
+end subroutine sb02od_c
+subroutine sb02od_d(dico,jobb,fact,uplo,jobl,sort,n,m,p,a,lda,b,ldb,q,ldq,r,ldr,l,ldl,rcond,x,ldx,alfar,alfai,beta,s,lds,t,ldt,u,ldu,tol,iwork,dwork,ldwork,bwork,info) ! in :new:SB02OD.f
+	fortranname sb02od
+	character :: dico
+	character intent(hide) :: jobb = 'B' ! fixed for simplicity reasons, for 'G' use sb02md instead
+	character intent(hide) :: fact = 'D'
+	character :: uplo = 'U'
+	character :: jobl = 'Z'
+	character :: sort = 'S'
+	integer required,check(n>0) :: n
+	integer required,check(m>0) :: m
+	integer required,check(p>0) :: p 
+	double precision dimension(n,n),depend(n) :: a
+	integer intent(hide),depend(a) :: lda=shape(a,0)
+	double precision dimension(n,m),depend(m,n) :: b
+	integer intent(hide),depend(b) :: ldb=shape(b,0)
+	double precision dimension(n,n),depend(n) :: q
+	integer intent(hide),depend(q) :: ldq=shape(q,0)
+	double precision dimension(p,m),depend(m,p) :: r
+	integer intent(hide),depend(r) :: ldr=shape(r,0)
+	double precision dimension(n,m),depend(m,n) :: l
+	integer intent(hide),depend(l) :: ldl=shape(l,0)
+	double precision intent(out) :: rcond
+	double precision intent(out),dimension(n,n) :: x
+	integer intent(hide),depend(x) :: ldx=shape(x,0)
+	double precision intent(out),dimension(2*n) :: alfar
+	double precision intent(out),dimension(2*n) :: alfai
+	double precision intent(out),dimension(2*n) :: beta
+	double precision intent(out),dimension(2*n+m,2*n) :: s
+	integer intent(hide),depend(s) :: lds=shape(s,0)
+	double precision intent(out),dimension(2*n+m+1,2*n) :: t
+	integer intent(hide),depend(t) :: ldt=shape(t,0)
+	double precision intent(hide),dimension(2*n,2*n) :: u ! not needed as jobb = 'B'
+	integer intent(hide),depend(u) :: ldu=shape(u,0)
+	double precision :: tol=0
+	integer intent(hide,cache),dimension(max(2*n,m)),depend(n,m) :: iwork
+	double precision intent(hide,cache),dimension(ldwork) :: dwork
+	integer optional :: ldwork=16*n+3*m+16
+	logical intent(hide,cache),dimension(2*n),depend(n) :: bwork
+	integer intent(out) :: info
+end subroutine sb02od_d
+subroutine sb02od_b(dico,jobb,fact,uplo,jobl,sort,n,m,p,a,lda,b,ldb,q,ldq,r,ldr,l,ldl,rcond,x,ldx,alfar,alfai,beta,s,lds,t,ldt,u,ldu,tol,iwork,dwork,ldwork,bwork,info) ! in :new:SB02OD.f
+	fortranname sb02od
+	character :: dico
+	character intent(hide) :: jobb = 'B' ! fixed for simplicity reasons, for 'G' use sb02md instead
+	character intent(hide) :: fact = 'B'
+	character :: uplo = 'U'
+	character :: jobl = 'Z'
+	character :: sort = 'S'
+	integer required,check(n>0) :: n
+	integer required,check(m>0) :: m
+	integer required,check(p>0) :: p 
+	double precision dimension(n,n),depend(n) :: a
+	integer intent(hide),depend(a) :: lda=shape(a,0)
+	double precision dimension(n,m),depend(m,n) :: b
+	integer intent(hide),depend(b) :: ldb=shape(b,0)
+	double precision dimension(p,n),depend(n,p) :: q
+	integer intent(hide),depend(q) :: ldq=shape(q,0)
+	double precision dimension(p,m),depend(m,p) :: r
+	integer intent(hide),depend(r) :: ldr=shape(r,0)
+	double precision dimension(n,m),depend(m,n) :: l
+	integer intent(hide),depend(l) :: ldl=shape(l,0)
+	double precision intent(out) :: rcond
+	double precision intent(out),dimension(n,n) :: x
+	integer intent(hide),depend(x) :: ldx=shape(x,0)
+	double precision intent(out),dimension(2*n) :: alfar
+	double precision intent(out),dimension(2*n) :: alfai
+	double precision intent(out),dimension(2*n) :: beta
+	double precision intent(out),dimension(2*n+m,2*n) :: s
+	integer intent(hide),depend(s) :: lds=shape(s,0)
+	double precision intent(out),dimension(2*n+m+1,2*n) :: t
+	integer intent(hide),depend(t) :: ldt=shape(t,0)
+	double precision intent(hide),dimension(2*n,2*n) :: u ! not needed as jobb = 'B'
+	integer intent(hide),depend(u) :: ldu=shape(u,0)
+	double precision :: tol=0
+	integer intent(hide,cache),dimension(max(2*n,m)),depend(n,m) :: iwork
+	double precision intent(hide,cache),dimension(ldwork) :: dwork
+	integer optional :: ldwork=16*n+3*m+16
+	logical intent(hide,cache),dimension(2*n),depend(n) :: bwork
+	integer intent(out) :: info
+end subroutine sb02od_b
