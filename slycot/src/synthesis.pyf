@@ -1,3 +1,28 @@
+subroutine sb01bd(dico,n,m,np,alpha,a,lda,b,ldb,wr,wi,nfp,nap,nup,f,ldf,z,ldz,tol,dwork,ldwork,iwarn,info) ! in SB01BD.f
+    character :: dico
+    integer required,check(n>=0) :: n
+    integer required,check(m>=0) :: m
+    integer required,check(np>=0 && np<=n),depend(n) :: np
+    double precision :: alpha
+    double precision intent(in,out,copy),dimension(n,n),depend(n) :: a
+    integer intent(hide),depend(a) :: lda=shape(a,0)
+    double precision dimension(n,m),depend(n,m) :: b
+    integer intent(hide),depend(b) :: ldb=shape(b,0)
+    double precision intent(in,out,copy),dimension(np),depend(np) :: wr
+    double precision intent(in,out,copy),dimension(np),depend(np) :: wi
+    integer intent(out) :: nfp
+    integer intent(out) :: nap
+    integer intent(out) :: nup
+    double precision intent(out),dimension(m,n) :: f
+    integer intent(hide),depend(f) :: ldf=shape(f,0)
+    double precision intent(out),dimension(n,n) :: z
+    integer intent(hide),depend(z) :: ldz=shape(z,0)
+    double precision :: tol = 0
+    double precision intent(hide,cache),dimension(ldwork),depend(ldwork) :: dwork
+    integer :: ldwork = max(5*n,2*n+5*m)+1
+    integer intent(out) :: iwarn
+    integer intent(out) :: info
+end subroutine sb01bd
 subroutine sb02md(dico,hinv,uplo,scal,sort,n,a,lda,g,ldg,q,ldq,rcond,wr,wi,s,lds,u,ldu,iwork,dwork,ldwork,bwork,info) ! in :slycot:SB02MD.f
 	fortranname sb02md
 	character :: dico
