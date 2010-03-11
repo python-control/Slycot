@@ -13,7 +13,7 @@ from analysis import ab01nd,ab05md,ab05nd,ab07nd,ab08nd
 from math import mc01td
 
 # Synthesis routines (3/50 wrapped)
-from synthesis import sb02md,sb02od,sb03md
+from synthesis import sb01bd,sb02md,sb02od,sb03md
 
 # Transformation routines (4/40 wrapped)
 from transform import tb01id,tb03ad

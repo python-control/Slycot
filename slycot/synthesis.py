@@ -23,6 +23,107 @@
 from slycot import _wrapper
 import numpy as _np
 
+def sb01bd(n,m,np,alpha,A,B,wr,wi,dico,tol=0.0,ldwork=None):
+    """ A_z,wr,wi,nfp,nap,nup,F,Z = sb01bd(n,m,np,alpha,A,B,wr,wi,dico,[tol,ldwork])
+    
+    To determine the state feedback matrix F for a given system (A,B) such that 
+    the closed-loop state matrix A+B*F has specified eigenvalues.
+    
+    Required arguments:
+        n : input int
+            The dimension of the state vector, i.e. the order of the matrix A, 
+            and also the number of rows of the matrix B and the number of columns 
+            of the matrix F.  n >= 0.
+        m : input int
+            The dimension of input vector, i.e. the number of columns of the 
+            matrix B and the number of rows of the matrix F. m >= 0.
+        np : input int
+            The number of given eigenvalues. At most n eigenvalues can be 
+            assigned.  0 <= np <= n.
+        alpha : input float
+            Specifies the maximum admissible value, either for real parts, 
+            if dico = 'C', or for moduli, if dico = 'D', of the eigenvalues of 
+            A which will not be modified by the eigenvalue assignment algorithm.
+            alpha >= 0 if dico = 'D'.
+        A : input rank-2 array('d') with bounds (n,n)
+            The leading n-by-n part of this array must contain the state dynamics 
+            matrix A.
+        B : input rank-2 array('d') with bounds (n,m)
+            The leading n-by-m part of this array must contain the input/state 
+            matrix.
+        wr : input rank-1 array('d') with bounds (np)
+        wi : input rank-1 array('d') with bounds (np)
+            On entry, these arrays must contain the real and imaginary parts, 
+            respectively, of the desired eigenvalues of the closed-loop system 
+            state-matrix A+B*F. The eigenvalues can be unordered, except that 
+            complex conjugate pairs must appear consecutively in these arrays.
+        dico : input string(len=1)
+            Specifies the type of the original system as follows:
+            = 'C':  continuous-time system;
+            = 'D':  discrete-time system.
+    Optional arguments:
+        tol := 0 input float
+            The absolute tolerance level below which the elements of A or B are 
+            considered zero (used for controllability tests).
+            If tol <= 0 a default value is used.
+        ldwork := max(5*n,2*n+5*m)+1 input int
+            The length of the cache array. The default value is 
+            max(1,5*m,5*n,2*n+4*m), for optimum performance it should be larger.
+    Return objects:
+        A_z : rank-2 array('d') with bounds (n,n)
+            The leading n-by-n part of this array contains the matrix 
+            Z'*(A+B*F)*Z in a real Schur form. The leading NFP-by-NFP diagonal 
+            block of A corresponds to the fixed (unmodified) eigenvalues having 
+            real parts less than ALPHA, if DICO = 'C', or moduli less than ALPHA,
+            if DICO = 'D'. The trailing NUP-by-NUP diagonal block of A corresponds 
+            to the uncontrollable eigenvalues detected by the eigenvalue assignment 
+            algorithm. The elements under the first subdiagonal are set to zero.
+        wr : rank-1 array('d') with bounds (np)
+        wi : rank-1 array('d') with bounds (np)
+            The leading NAP elements of these arrays contain the real and 
+            imaginary parts, respectively, of the assigned eigenvalues. 
+            The trailing np-nap elements contain the unassigned eigenvalues.
+        nfp : int
+            The number of eigenvalues of A having real parts less than ALPHA, 
+            if DICO = 'C', or moduli less than ALPHA, if DICO = 'D'. These 
+            eigenvalues are not modified by the eigenvalue assignment algorithm.
+        nap : int
+            The number of assigned eigenvalues.
+        nup : int
+            The number of uncontrollable eigenvalues detected by the eigenvalue 
+            assignment algorithm.
+        F : rank-2 array('d') with bounds (m,n)
+            The leading m-by-n part of this array contains the state feedback F, 
+            which assigns nap closed-loop eigenvalues and keeps unaltered n-nap 
+            open-loop eigenvalues.
+        Z : rank-2 array('d') with bounds (n,n)
+            The leading n-by-n part of this array contains the orthogonal matrix 
+            Z which reduces the closed-loop system state matrix A + B*F to upper 
+            real Schur form.
+    """
+    hidden = ' (hidden by the wrapper)'
+    arg_list = ['dico', 'n', 'm', 'np', 'alpha', 'A', 'LDA'+hidden, 'B', 
+        'LDB'+hidden, 'wr', 'wi', 'nfp', 'nap', 'nup', 'F', 'LDF'+hidden, 'Z',
+        'LDZ'+hidden, 'tol', 'DWORK'+hidden, 'ldwork', 'IWARN'+hidden, 
+        'INFO'+hidden]
+    if ldwork is None:
+        ldwork = max(1,5*m,5*n,2*n+4*m)
+    out =  sb01bd(dico,n,m,np,alpha,A,B,wr,wi,tol=tol,ldwork=ldwork)
+    if out[-1] < 0:
+        error_text = "The following argument had an illegal value: "+arg_list[-out[-1]-1]
+        raise ValueError(error_text)
+    if out[-1] == 1:
+        raise ArithmeticError('the reduction of A to a real Schur form failed')
+    if out[-1] == 2:
+        raise ArithmeticError('a failure was detected during the ordering of eigenvalues')
+    if out[-1] == 3:
+        raise ArithmeticError('the number of eigenvalues to be assigned is less than the number of possibly assignable eigenvalues')
+    if out[-1] == 4:
+        warnings.warn('an attempt was made to place a complex conjugate pair on the location of a real eigenvalue')
+    if out[-2] != 0:
+        warnings.warn('%i violations of the numerical stability condition occured during the assignment of eigenvalues' % out[-2])
+    return out[:-2]
+
 def sb02md(n,A,G,Q,dico,hinv='D',uplo='U',scal='N',sort='S',ldwork=None):
     """  X,rcond,wr,wi,S,U = sb02md(dico,n,A,G,Q,[hinv,uplo,scal,sort,ldwork])
     
