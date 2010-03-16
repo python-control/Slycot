@@ -273,6 +273,142 @@ def sb02md(n,A,G,Q,dico,hinv='D',uplo='U',scal='N',sort='S',ldwork=None):
         raise ArithmeticError('if the N-th order system of linear algebraic equations is singular to working precision')
     return out[:-1]
 
+def sb02mt(n,m,B,R,A=None,Q=None,L=None,fact='N',jobl='Z',uplo='U',ldwork=None):
+    """ A_b,B_b,Q_b,R_b,L_b,ipiv,oufact,G = sb02mt(n,m,B,R,[A,Q,L,fact,jobl,uplo,ldwork])
+    
+    To compute the following matrices
+
+               -1
+        G = B*R  *B',
+
+                       -1
+        A_b = A - B*R  *L',
+
+                       -1
+        Q_b = Q - L*R  *L',
+
+    where A, B, Q, R, L, and G are n-by-n, n-by-m, n-by-n, m-by-m, n-by-m, 
+    and n-by-n matrices, respectively, with Q, R and G symmetric matrices.
+
+    When R is well-conditioned with respect to inversion, standard algorithms 
+    for solving linear-quadratic optimization problems will then also solve 
+    optimization problems with coupling weighting matrix L.
+    
+    Required arguments:
+        n : input int
+            The order of the matrices A, Q, and G, and the number of rows of 
+            the matrices B and L.  n >= 0.
+        m : input int
+            The order of the matrix R, and the number of columns of the matrices 
+            B and L.  m >= 0.
+        B : input rank-2 array('d') with bounds (n,m)
+            The leading n-by-n part of this array must contain the matrix B.
+        R : input rank-2 array('d') with bounds (m,m)
+            If fact = 'N', the leading m-by-m upper/lower triangular part 
+            of this array must contain the upper/lower triangular part, of the 
+            symmetric input weighting matrix R.
+            If fact = 'C', the leading m-by-m upper/lower triangular part 
+            of this array must contain the Cholesky factor of the positive 
+            definite input weighting matrix R.
+    Optional arguments:
+        A := None input rank-2 array('d') with bounds (n,n)
+            If jobl = 'Z', this matrix is not needed. Otherwise the leading 
+            n-by-n part of this array must contain the matrix A.
+        Q := None input rank-2 array('d') with bounds (n,n)
+            If jobl = 'Z', this matrix is not needed. Otherwise the leading 
+            n-by-n upper/lower triangular part of this array (depending on uplo) 
+            must contain the matrix Q.
+        L := None input rank-2 array('d') with bounds (n,m)
+            If jobl = 'Z', this matrix is not needed. Otherwise the leading 
+            n-by-m part of this array must contain the matrix L.
+        fact := 'N' input string(len=1)
+            Specifies how the matrix R is given (factored or not), as follows:
+            = 'N':  Array R contains the matrix R;
+            = 'C':  Array R contains the Cholesky factor of R;
+        jobl := 'Z' input string(len=1)
+            When equal to 'Z', L is considered as a zero matrix and A,Q and L are 
+            not needed. A,Q and L are required otherwise.
+        uplo := 'U' input string(len=1)
+            Specifies which triangle of the matrices R and Q (if jobl = 'N') 
+            is stored, as follows:
+            = 'U':  Upper triangle is stored;
+            = 'L':  Lower triangle is stored.
+        ldwork := None input int
+            The length of the cache array. Whenever fact = 'N' the default value 
+            is max(2,3*m,n*m), for optimum performance it should be larger.
+            Not cache is needed if fact = 'C', defauts at 1.
+    Return objects:
+        A_b : rank-2 array('d') with bounds (n,n)
+            If jobl = 'Z', this is None. Otherwise the leading n-by-n part of 
+            this array contain the matrix A_b.
+        B_b : rank-2 array('d') with bounds (n,m)
+            If oufact = 1 the leading n-by-n part of this array contains
+                                -1
+            the matrix B*chol(R)  . It is a copy of input B if oufact = 2.
+        Q_b : rank-2 array('d') with bounds (n,n)
+            If jobl = 'Z', this is None. Otherwise the leading n-by-n upper/lower 
+            triangular part of this array contain the upper/lower triangular part 
+            of matrix Q_b (depending on uplo).
+        R_b : rank-2 array('d') with bounds (m,m)
+            If oufact = 1, the leading m-by-m upper/lower triangular part 
+            of this array contains the Cholesky factor of the given input 
+            weighting matrix.
+            If oufact = 2, the leading m-by-m upper/lower triangular part 
+            of this array contains the factors of the UdU' or LdL' factorization,
+            respectively, of the given input weighting matrix.
+            If fact = 'C' it is a copy of input R.
+        L_b : rank-2 array('d') with bounds (n,m)
+            If jobl = 'Z', this is None. If oufact = 1, the leading n-by-n part 
+                                                       -1
+            of this array contains the matrix L*chol(R)  . If oufact = 2 this
+            contains a copy of input L.
+        ipiv : rank-1 array('i') with bounds (m)
+            If oufact = 2, this array contains details of the interchanges 
+            performed and the block structure of the d factor in the UdU' or 
+            LdL' factorization of matrix R, as produced by LAPACK routine DSYTRF.
+            Otherwise it is None.
+        oufact : int
+            Information about the factorization finally used.
+            oufact = 1:  Cholesky factorization of R has been used;
+            oufact = 2:  UdU' (if uplo = 'U') or LdL' (if uplo = 'L')
+                         factorization of R has been used.
+        G : rank-2 array('d') with bounds (n,n)
+            The leading n-by-n upper/lower triangular part of this array contains
+            the upper/lower triangular part of the matrix G.
+    """
+    hidden = ' (hidden by the wrapper)'
+    arg_list = ['JOBG'+hidden, 'jobl', 'fact', 'uplo', 'n', 'm', 'A', 
+    'LDA'+hidden, 'B', 'LDB'+hidden, 'Q', 'LDQ'+hidden, 'R', 'LDR'+hidden, 'L', 
+    'LDL'+hidden, 'ipiv', 'oufact', 'G', 'LDG'+hidden, 'IWORK'+hidden, 
+    'DWORK'+hidden, 'ldwork', 'INFO'+hidden]
+    out = None
+    if fact == 'N' and ldwork is None:
+        ldwork = max(2,3*m,n*m)
+    if jobl == 'Z':
+        if fact == 'C':
+            out = _wrapper.sb02mt_c(n,m,B,R,uplo=uplo)
+        if fact == 'N':
+            out = _wrapper.sb02mt_n(n,m,B,R,uplo=uplo,ldwork=ldwork)
+        if out is None:
+            raise ValueError('fact must be either C or N.')
+    else:
+        if A is None or Q is None or L is None:
+            raise ValueError('matrices A,Q and L are required if jobl is not Z.')
+        if fact == 'C':
+            out = _wrapper.sb02mt_cl(n,m,A,B,Q,R,L,uplo=uplo)
+        if fact == 'N':
+            out = _wrapper.sb02mt_nl(n,m,A,B,Q,R,L,uplo=uplo,ldwork=ldwork)
+        if out is None:
+            raise ValueError('fact must be either C or N.')
+    if out[-1] < 0:
+        error_text = "The following argument had an illegal value: "+arg_list[-out[-1]-1]
+        raise ValueError(error_text)
+    if out[-1] > 0 and out[-1] <= m:
+        raise ArithmeticError('the %i-th elemend of d of UdU (LdL) factorization is zero.'%out[-1])
+    if out[-1] == m+1:
+        raise ArithmeticError('matrix R is numerically singular.')
+    return out[:-1]
+
 def sb02od(n,m,A,B,Q,R,dico,p=None,L=None,fact='N',uplo='U',sort='S',tol=0.0,ldwork=None):
     """ rcond,x,alfar,alfai,beta,s,t = sb02od(n,m,A,B,Q,R,dico,[p,L,fact,uplo,sort,tol,ldwork])
     
