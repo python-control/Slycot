@@ -22,9 +22,9 @@
 
 from slycot import _wrapper
 import numpy as _np
-
-def sb01bd(n,m,np,alpha,A,B,wr,wi,dico,tol=0.0,ldwork=None):
-    """ A_z,wr,wi,nfp,nap,nup,F,Z = sb01bd(n,m,np,alpha,A,B,wr,wi,dico,[tol,ldwork])
+    
+def sb01bd(n,m,np,alpha,A,B,w,dico,tol=0.0,ldwork=None):
+    """ A_z,w,nfp,nap,nup,F,Z = sb01bd(n,m,np,alpha,A,B,w,dico,[tol,ldwork])
     
     To determine the state feedback matrix F for a given system (A,B) such that 
     the closed-loop state matrix A+B*F has specified eigenvalues.
@@ -51,12 +51,11 @@ def sb01bd(n,m,np,alpha,A,B,wr,wi,dico,tol=0.0,ldwork=None):
         B : input rank-2 array('d') with bounds (n,m)
             The leading n-by-m part of this array must contain the input/state 
             matrix.
-        wr : input rank-1 array('d') with bounds (np)
-        wi : input rank-1 array('d') with bounds (np)
-            On entry, these arrays must contain the real and imaginary parts, 
-            respectively, of the desired eigenvalues of the closed-loop system 
-            state-matrix A+B*F. The eigenvalues can be unordered, except that 
-            complex conjugate pairs must appear consecutively in these arrays.
+        w : input rank-1 array('c') with bounds (np)
+            This array must contain the desired eigenvalues of the closed-loop 
+            system state-matrix A+B*F. The eigenvalues can be unordered, except 
+            that complex conjugate pairs must appear consecutively in these 
+            arrays.
         dico : input string(len=1)
             Specifies the type of the original system as follows:
             = 'C':  continuous-time system;
@@ -72,20 +71,18 @@ def sb01bd(n,m,np,alpha,A,B,wr,wi,dico,tol=0.0,ldwork=None):
     Return objects:
         A_z : rank-2 array('d') with bounds (n,n)
             The leading n-by-n part of this array contains the matrix 
-            Z'*(A+B*F)*Z in a real Schur form. The leading NFP-by-NFP diagonal 
+            Z'*(A+B*F)*Z in a real Schur form. The leading nfp-by-nfp diagonal 
             block of A corresponds to the fixed (unmodified) eigenvalues having 
-            real parts less than ALPHA, if DICO = 'C', or moduli less than ALPHA,
-            if DICO = 'D'. The trailing NUP-by-NUP diagonal block of A corresponds 
+            real parts less than alpha, if dico = 'C', or moduli less than alpha,
+            if dico = 'D'. The trailing nup-by-nup diagonal block of A corresponds 
             to the uncontrollable eigenvalues detected by the eigenvalue assignment 
             algorithm. The elements under the first subdiagonal are set to zero.
-        wr : rank-1 array('d') with bounds (np)
-        wi : rank-1 array('d') with bounds (np)
-            The leading NAP elements of these arrays contain the real and 
-            imaginary parts, respectively, of the assigned eigenvalues. 
+        w : rank-1 array('c') with bounds (np)
+            The leading nap elements contain the assigned eigenvalues. 
             The trailing np-nap elements contain the unassigned eigenvalues.
         nfp : int
-            The number of eigenvalues of A having real parts less than ALPHA, 
-            if DICO = 'C', or moduli less than ALPHA, if DICO = 'D'. These 
+            The number of eigenvalues of A having real parts less than alpha, 
+            if dico = 'C', or moduli less than alpha, if dico = 'D'. These 
             eigenvalues are not modified by the eigenvalue assignment algorithm.
         nap : int
             The number of assigned eigenvalues.
@@ -108,24 +105,28 @@ def sb01bd(n,m,np,alpha,A,B,wr,wi,dico,tol=0.0,ldwork=None):
         'INFO'+hidden]
     if ldwork is None:
         ldwork = max(1,5*m,5*n,2*n+4*m)
-    out =  sb01bd(dico,n,m,np,alpha,A,B,wr,wi,tol=tol,ldwork=ldwork)
-    if out[-1] < 0:
+    A_z,wr,wi,nfp,nap,nup,F,Z,warn,info = _wrapper.sb01bd(dico,n,m,np,alpha,A,B,w.real,w.imag,tol=tol,ldwork=ldwork)
+    if info < 0:
         error_text = "The following argument had an illegal value: "+arg_list[-out[-1]-1]
         raise ValueError(error_text)
-    if out[-1] == 1:
+    if info == 1:
         raise ArithmeticError('the reduction of A to a real Schur form failed')
-    if out[-1] == 2:
+    if info == 2:
         raise ArithmeticError('a failure was detected during the ordering of eigenvalues')
-    if out[-1] == 3:
+    if info == 3:
         raise ArithmeticError('the number of eigenvalues to be assigned is less than the number of possibly assignable eigenvalues')
-    if out[-1] == 4:
+    if info == 4:
         warnings.warn('an attempt was made to place a complex conjugate pair on the location of a real eigenvalue')
-    if out[-2] != 0:
+    if warn != 0:
         warnings.warn('%i violations of the numerical stability condition occured during the assignment of eigenvalues' % out[-2])
-    return out[:-2]
+    # put togheter wr and wi into a complex array of eigenvalues
+    w = _np.zeros(np,'complex64')
+    w.real = wr[0:np]
+    w.imag = wi[0:np]
+    return A_z,w,nfp,nap,nup,F,Z
 
 def sb02md(n,A,G,Q,dico,hinv='D',uplo='U',scal='N',sort='S',ldwork=None):
-    """  X,rcond,wr,wi,S,U = sb02md(dico,n,A,G,Q,[hinv,uplo,scal,sort,ldwork])
+    """  X,rcond,w,S,U = sb02md(dico,n,A,G,Q,[hinv,uplo,scal,sort,ldwork])
     
     To solve for X either the continuous-time algebraic Riccati
     equation
@@ -211,18 +212,15 @@ def sb02md(n,A,G,Q,dico,hinv='D',uplo='U',scal='N',sort='S',ldwork=None):
             An estimate of the reciprocal of the condition number (in
             the 1-norm) of the N-th order system of algebraic
             equations from which the solution matrix X is obtained.
-        wr : rank-1 array('d') with bounds (2 * n)
-        wi : rank-1 array('d') with bounds (2 * n)
-            These arrays contain the real and imaginary parts, respectively, 
-            of the eigenvalues of the 2n-by-2n matrix S, ordered as specified 
-            by sort (except for the case hinv = 'D', when the order is opposite 
-            to that specified by sort). The leading n elements of these arrays 
-            contain the closed-loop spectrum of the system
+        w : rank-1 array('c') with bounds (2 * n)
+            This array contain the eigenvalues of the 2n-by-2n matrix S, ordered 
+            as specified by sort (except for the case hinv = 'D', when the order 
+            is opposite to that specified by sort). The leading n elements of 
+            this array contain the closed-loop spectrum of the system
                           -1
             matrix A - B*R  *B'*X, if dico = 'C', or of the matrix
                               -1
-            A - B*(R + B'*X*B)  B'*X*A, if dico = 'D'. Specifically,
-            lambda(k) = wr(k) + j*wi(k), for k = 1,2,...,n.
+            A - B*(R + B'*X*B)  B'*X*A, if dico = 'D'.
         S : rank-2 array('d') with bounds (2 * n,2 * n)
             The leading 2n-by-2n part of this array contains the ordered real 
             Schur form S of the Hamiltonian or symplectic matrix H. That is,
@@ -257,21 +255,24 @@ def sb02md(n,A,G,Q,dico,hinv='D',uplo='U',scal='N',sort='S',ldwork=None):
     'BWORK'+hidden, 'INFO'+hidden]
     if ldwork is None:
 	    ldwork = max(3,6*n)
-    out = _wrapper.sb02md(dico,n,A,G,Q,hinv=hinv,uplo=uplo,scal=scal,sort=sort,ldwork=ldwork)
-    if out[-1] < 0:
+    X,rcond,wr,wi,S,U,info = _wrapper.sb02md(dico,n,A,G,Q,hinv=hinv,uplo=uplo,scal=scal,sort=sort,ldwork=ldwork)
+    if info < 0:
         error_text = "The following argument had an illegal value: "+arg_list[-out[-1]-1]
         raise ValueError(error_text)
-    if out[-1] == 1:
+    if info == 1:
         raise ArithmeticError('matrix A is (numerically) singular in discrete-time case')
-    if out[-1] == 2:
+    if info == 2:
         raise ArithmeticError('the Hamiltonian or symplectic matrix H cannot be reduced to real Schur form')
-    if out[-1] == 3:
+    if info == 3:
         raise ArithmeticError('the real Schur form of the Hamiltonian or symplectic matrix H cannot be appropriately ordered')
-    if out[-1] == 4:
+    if info == 4:
         raise ArithmeticError('the Hamiltonian or symplectic matrix H has less than n stable eigenvalues')
-    if out[-1] == 5:
+    if info == 5:
         raise ArithmeticError('if the N-th order system of linear algebraic equations is singular to working precision')
-    return out[:-1]
+    w = _np.zeros(2*n,'complex64')
+    w.real = wr[0:2*n]
+    w.imag = wi[0:2*n]
+    return X,rcond,w,S,U
 
 def sb02mt(n,m,B,R,A=None,Q=None,L=None,fact='N',jobl='Z',uplo='U',ldwork=None):
     """ A_b,B_b,Q_b,R_b,L_b,ipiv,oufact,G = sb02mt(n,m,B,R,[A,Q,L,fact,jobl,uplo,ldwork])
@@ -410,7 +411,7 @@ def sb02mt(n,m,B,R,A=None,Q=None,L=None,fact='N',jobl='Z',uplo='U',ldwork=None):
     return out[:-1]
 
 def sb02od(n,m,A,B,Q,R,dico,p=None,L=None,fact='N',uplo='U',sort='S',tol=0.0,ldwork=None):
-    """ rcond,x,alfar,alfai,beta,s,t = sb02od(n,m,A,B,Q,R,dico,[p,L,fact,uplo,sort,tol,ldwork])
+    """ rcond,X,w,S,T = sb02od(n,m,A,B,Q,R,dico,[p,L,fact,uplo,sort,tol,ldwork])
     
     To solve for X either the continuous-time algebraic Riccati
     equation
@@ -506,15 +507,12 @@ def sb02od(n,m,A,B,Q,R,dico,p=None,L=None,fact='N',uplo='U',sort='S',tol=0.0,ldw
         X : rank-2 array('d') with bounds (n,n)
             The leading N-by-N part of this array contains the solution matrix 
             of the problem.
-        alfar : rank-1 array('d') with bounds (2 * n)
-        alfai : rank-1 array('d') with bounds (2 * n)
-        beta : rank-1 array('d') with bounds (2 * n)
+        w : rank-1 array('c') with bounds (2 * n)
             The generalized eigenvalues of the 2n-by-2n matrix pair, ordered as 
             specified by sort. For instance, if sort = 'S', the leading n 
             elements of these arrays contain the closed-loop spectrum of the 
             system matrix A - BF, where F is the optimal feedback matrix computed
-            based on the solution matrix X. Specifically,
-            lambda(k) = [alfar(k)+j*alfai(k)]/beta(k) for k = 1,2,...,n.
+            based on the solution matrix X.
         S : rank-2 array('d') with bounds (2*n+m,2 * n)
             ???
         T : rank-2 array('d') with bounds (2*n+m+1,2 * n)
@@ -574,10 +572,14 @@ def sb02od(n,m,A,B,Q,R,dico,p=None,L=None,fact='N',uplo='U',sort='S',tol=0.0,ldw
         raise ArithmeticError('the computed dimension of the solution does not equal N') 
     if out[-1] == 6:
         raise ArithmeticError('a singular matrix was encountered during the computation')
-    return out[:-1]
+    rcond,X,alphar,alphai,beta,S,T = out[:-1]
+    w = _np.zeros(2*n,'complex64')
+    w.real = alphar[0:2*n]/beta[0:2*n]
+    w.imag = alphai[0:2*n]/beta[0:2*n]
+    return rcond,X,w,S,T
 
 def sb03md(n,C,A,U,dico,job='X',fact='N',trana='N',ldwork=None):
-    """  X,scale,sep,ferr,wr,wi = sb03md(dico,n,C,A,U,[job,fact,trana,ldwork])
+    """  X,scale,sep,ferr,w = sb03md(dico,n,C,A,U,[job,fact,trana,ldwork])
     
     To solve for X either the real continuous-time Lyapunov equation
 
@@ -655,10 +657,8 @@ def sb03md(n,C,A,U,dico,job='X',fact='N',trana='N',ldwork=None):
             the solution X. If X_true is the true solution, ferr bounds the 
             relative error in the computed solution, measured in the Frobenius
             norm:  norm(X - X_true)/norm(X_true).
-        wr : rank-1 array('d') with bounds (n)
-        wi : rank-1 array('d') with bounds (n)
-            If fact = 'N', wr and wi contain the real and imaginary parts, 
-            respectively, of the eigenvalues of A.
+        w : rank-1 array('c') with bounds (n)
+            If fact = 'N', this array contain the eigenvalues of A.
     """
     hidden = ' (hidden by the wrapper)'
     arg_list = ['dico', 'job', 'fact', 'trana', 'n', 'A', 'LDA'+hidden, 'U', 
@@ -684,6 +684,10 @@ def sb03md(n,C,A,U,dico,job='X',fact='N',trana='N',ldwork=None):
 contains eigenvalues which have converged, A contains the partially 
 converged Shur form'""" %(out[-1],n) # not sure about the indenting here
             warnings.warn(warn_text)
-    return out[:-1]
+    X,scale,sep,ferr,wr,wi = out[:-1]
+    w = _np.zeros(n,'complex64')
+    w.real = wr[0:n]
+    w.imag = wi[0:n]
+    return X,scale,sep,ferr,w
 
 # to be replaced by python wrappers
