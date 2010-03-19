@@ -100,9 +100,9 @@ def sb01bd(n,m,np,alpha,A,B,w,dico,tol=0.0,ldwork=None):
     """
     hidden = ' (hidden by the wrapper)'
     arg_list = ['dico', 'n', 'm', 'np', 'alpha', 'A', 'LDA'+hidden, 'B', 
-        'LDB'+hidden, 'wr', 'wi', 'nfp', 'nap', 'nup', 'F', 'LDF'+hidden, 'Z',
-        'LDZ'+hidden, 'tol', 'DWORK'+hidden, 'ldwork', 'IWARN'+hidden, 
-        'INFO'+hidden]
+        'LDB'+hidden, 'wr'+hidden, 'wi'+hidden, 'nfp', 'nap', 'nup', 'F', 
+        'LDF'+hidden, 'Z', 'LDZ'+hidden, 'tol', 'DWORK'+hidden, 'ldwork', 
+        'IWARN'+hidden, 'INFO'+hidden]
     if ldwork is None:
         ldwork = max(1,5*m,5*n,2*n+4*m)
     A_z,wr,wi,nfp,nap,nup,F,Z,warn,info = _wrapper.sb01bd(dico,n,m,np,alpha,A,B,w.real,w.imag,tol=tol,ldwork=ldwork)
@@ -250,7 +250,7 @@ def sb02md(n,A,G,Q,dico,hinv='D',uplo='U',scal='N',sort='S',ldwork=None):
     
     hidden = ' (hidden by the wrapper)'
     arg_list = ['dico', 'hinv', 'uplo', 'scal', 'sort', 'n', 'A', 'LDA'+hidden, 
-    'G', 'LDG'+hidden, 'Q', 'LDQ'+hidden, 'rcond', 'wr', 'wi', 'S', 
+    'G', 'LDG'+hidden, 'Q', 'LDQ'+hidden, 'rcond', 'wr'+hidden, 'wi'+hidden, 'S', 
     'LDS'+hidden, 'U', 'LDU'+hidden, 'IWORK'+hidden, 'DWORK'+hidden, 'ldwork', 
     'BWORK'+hidden, 'INFO'+hidden]
     if ldwork is None:
@@ -405,7 +405,7 @@ def sb02mt(n,m,B,R,A=None,Q=None,L=None,fact='N',jobl='Z',uplo='U',ldwork=None):
         error_text = "The following argument had an illegal value: "+arg_list[-out[-1]-1]
         raise ValueError(error_text)
     if out[-1] > 0 and out[-1] <= m:
-        raise ArithmeticError('the %i-th elemend of d of UdU (LdL) factorization is zero.'%out[-1])
+        raise ArithmeticError('the %i-th elemend of d in the UdU (LdL) factorization is zero.'%out[-1])
     if out[-1] == m+1:
         raise ArithmeticError('matrix R is numerically singular.')
     return out[:-1]
@@ -426,8 +426,8 @@ def sb02od(n,m,A,B,Q,R,dico,p=None,L=None,fact='N',uplo='U',sort='S',tol=0.0,ldw
     N-by-M matrices, respectively, such that Q = C'C, R = D'D and
     L = C'D; X is an n-by-n symmetric matrix.
     The routine also returns the computed values of the closed-loop
-    spectrum of the system, i.e., the stable eigenvalues lambda(1),
-    ..., lambda(n) of the corresponding Hamiltonian or symplectic
+    spectrum of the system, i.e., the stable eigenvalues w(1),
+    ..., w(n) of the corresponding Hamiltonian or symplectic
     pencil, in the continuous-time case or discrete-time case,
     respectively.
 
@@ -533,9 +533,9 @@ def sb02od(n,m,A,B,Q,R,dico,p=None,L=None,fact='N',uplo='U',sort='S',tol=0.0,ldw
     arg_list = ['dico', 'jobb'+hidden, 'fact', 'uplo', 'jobl', 'sort', 'n', 
         'm', 'p', 'A', 'LDA'+hidden, 'B', 'LDB'+hidden, 'Q', 'LDQ'+hidden, 
         'R', 'LDR'+hidden, 'L', 'LDL'+hidden, 'rcond', 'X', 'LDX'+hidden, 
-        'alfar', 'alfai', 'beta', 'S', 'LDS'+hidden, 'T', 'LDT'+hidden, 
-        'U', 'LDU'+hidden, 'tol', 'IWORK'+hidden, 'DWORK'+hidden, 'ldwork', 
-        'BWORK'+hidden, 'INFO'+hidden]
+        'alfar'+hidden, 'alfai'+hidden, 'beta'+hidden, 'S', 'LDS'+hidden, 'T', 
+        'LDT'+hidden, 'U', 'LDU'+hidden, 'tol', 'IWORK'+hidden, 'DWORK'+hidden, 
+        'ldwork', 'BWORK'+hidden, 'INFO'+hidden]
     if ldwork is None:
         ldwork = max([7*(2*n+1)+16,16*n,2*n+m,3*m])
     jobl = 'N'
@@ -548,15 +548,15 @@ def sb02od(n,m,A,B,Q,R,dico,p=None,L=None,fact='N',uplo='U',sort='S',tol=0.0,ldw
     if fact == 'C':
         if p is None:
             p = shape(Q)[0]
-        out = _wrapper.sb02od_n(dico,n,m,p,A,B,Q,R,L,uplo=uplo,jobl=jobl,sort=sort,tol=tol,ldwork=ldwork)
+        out = _wrapper.sb02od_c(dico,n,m,p,A,B,Q,R,L,uplo=uplo,jobl=jobl,sort=sort,tol=tol,ldwork=ldwork)
     if fact == 'D':
         if p is None:
             p = shape(R)[0]
-        out = _wrapper.sb02od_n(dico,n,m,p,A,B,Q,R,L,uplo=uplo,jobl=jobl,sort=sort,tol=tol,ldwork=ldwork)
+        out = _wrapper.sb02od_d(dico,n,m,p,A,B,Q,R,L,uplo=uplo,jobl=jobl,sort=sort,tol=tol,ldwork=ldwork)
     if fact == 'B':
         if p is None:
             p = shape(Q)[0]
-        out = _wrapper.sb02od_n(dico,n,m,p,A,B,Q,R,L,uplo=uplo,jobl=jobl,sort=sort,tol=tol,ldwork=ldwork)
+        out = _wrapper.sb02od_b(dico,n,m,p,A,B,Q,R,L,uplo=uplo,jobl=jobl,sort=sort,tol=tol,ldwork=ldwork)
     if out[-1] < 0:
         error_text = "The following argument had an illegal value: "+arg_list[-out[-1]-1]
         raise ValueError(error_text)
@@ -662,8 +662,8 @@ def sb03md(n,C,A,U,dico,job='X',fact='N',trana='N',ldwork=None):
     """
     hidden = ' (hidden by the wrapper)'
     arg_list = ['dico', 'job', 'fact', 'trana', 'n', 'A', 'LDA'+hidden, 'U', 
-        'LDU'+hidden, 'C', 'LDC'+hidden, 'scale', 'sep', 'ferr', 'wr', 'wi', 
-        'IWORK'+hidden, 'DWORK'+hidden, 'ldwork', 'INFO'+hidden]
+        'LDU'+hidden, 'C', 'LDC'+hidden, 'scale', 'sep', 'ferr', 'wr'+hidden, 
+        'wi'+hidden, 'IWORK'+hidden, 'DWORK'+hidden, 'ldwork', 'INFO'+hidden]
     if ldwork is None:
 	    ldwork = max(2*n*n,3*n)
     if dico != 'C' and dico != 'D':
@@ -680,8 +680,8 @@ def sb03md(n,C,A,U,dico,job='X',fact='N',trana='N',ldwork=None):
     else:
         if out[-1] > 0:
             warn_text = """The QR algorithm failed to compute all the eigenvalues 
-(see LAPACK Library routine DGEES); elements %i:%i of wr and wi 
-contains eigenvalues which have converged, A contains the partially 
+(see LAPACK Library routine DGEES); elements %i:%i of w contains 
+eigenvalues which have converged, A contains the partially 
 converged Shur form'""" %(out[-1],n) # not sure about the indenting here
             warnings.warn(warn_text)
     X,scale,sep,ferr,wr,wi = out[:-1]
