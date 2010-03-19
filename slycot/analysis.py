@@ -308,6 +308,65 @@ def ab05nd(n1,m1,p1,n2,A1,B1,C1,D1,A2,B2,C2,D2,alpha=1.0,ldwork=None):
         raise ArithmeticError('The resulting system is not completely controllable.')
     return out[:-1]
 	
+def ab07nd(n,m,A,B,C,D,ldwork=None):
+    """ A_i,B_i,C_i,D_i,rcond = ab07nd(n,m,A,B,C,D,[ldwork])
+    
+    To compute the inverse (A_i,B_i,C_i,D_i) of a given system (A,B,C,D).
+    
+    Required arguments:
+        n : input int
+            The order of the state matrix A.  n >= 0.
+        m : input int
+            The number of system inputs and outputs.  m >= 0.
+        A : input rank-2 array('d') with bounds (n,n)
+            The leading n-by-n part of this array must contain the state matrix 
+            A of the original system.
+        B : input rank-2 array('d') with bounds (n,m)
+            The leading n-by-m part of this array must contain the input matrix 
+            B of the original system.
+        C : input rank-2 array('d') with bounds (m,n)
+            The leading m-by-n part of this array must contain the output matrix 
+            C of the original system.
+        D : input rank-2 array('d') with bounds (m,m)
+            The leading m-by-m part of this array must contain the feedthrough 
+            matrix D of the original system.
+    Optional arguments:
+        ldwork := None input int
+            The length of the cache array. The default value is max(1,4*m),
+            for better performance should be larger.
+    Return objects:
+        A_i : rank-2 array('d') with bounds (n,n)
+            The leading n-by-n part of this array contains the state matrix A_i 
+            of the inverse system.
+        B_i : rank-2 array('d') with bounds (n,m)
+            The leading n-by-m part of this array contains the input matrix B_i 
+            of the inverse system.
+        C_i : rank-2 array('d') with bounds (m,n)
+            The leading m-by-n part of this array contains the output matrix C_i 
+            of the inverse system.
+        D_i : rank-2 array('d') with bounds (m,m)
+            The leading m-by-m part of this array contains the feedthrough 
+            matrix D_i of the inverse system.
+        rcond : float
+            The estimated reciprocal condition number of the feedthrough matrix 
+            D of the original system.
+    """
+    hidden = ' (hidden by the wrapper)' 
+    arg_list = ['n', 'm', 'A', 'LDA'+hidden, 'B', 'LDB'+hidden, 'C', 
+    'LDC'+hidden, 'D', 'LDD'+hidden, 'rcond', 'IWORK'+hidden, 'DWORK'+hidden, 
+    'ldwork', 'INFO'+hidden]
+    if ldwork is None:
+        ldwork = max(1,4*m)
+    out = _wrapper.ab07nd(n,m,A,B,C,D,ldwork=ldwork)
+    if out[-1] < 0:
+        error_text = "The following argument had an illegal value: "+arg_list[-out[-1]-1]
+        raise ValueError(error_text)
+    if out[-1] == m+1:
+        raise ValueError('Entry matrix D is numerically singular.')
+    else:
+        if out[-1] > 0:
+            raise ValueError('Entry matrix D is exactly singular, the (%i,%i) diagonal element is zero.' %(out[-1],out[-1]))
+    return out[:-1]
+    
 # to be replaced by python wrappers
-ab07nd = _wrapper.ab07nd
 ab08nd = _wrapper.ab08nd
