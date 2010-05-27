@@ -103,9 +103,9 @@ subroutine sb02od_n(dico,jobb,fact,uplo,jobl,sort,n,m,p,a,lda,b,ldb,q,ldq,r,ldr,
 	double precision intent(out),dimension(2*n) :: alfar
 	double precision intent(out),dimension(2*n) :: alfai
 	double precision intent(out),dimension(2*n) :: beta
-	double precision intent(out),dimension(2*n+m,2*n) :: s
+	double precision intent(out),dimension(2*n+m,2*n+m) :: s
 	integer intent(hide),depend(s) :: lds=shape(s,0)
-	double precision intent(out),dimension(2*n+m+1,2*n) :: t
+	double precision intent(out),dimension(2*n+m,2*n) :: t
 	integer intent(hide),depend(t) :: ldt=shape(t,0)
 	double precision intent(hide),dimension(2*n,2*n) :: u ! not needed as jobb = 'B'
 	integer intent(hide),depend(u) :: ldu=shape(u,0)
@@ -143,9 +143,9 @@ subroutine sb02od_c(dico,jobb,fact,uplo,jobl,sort,n,m,p,a,lda,b,ldb,q,ldq,r,ldr,
 	double precision intent(out),dimension(2*n) :: alfar
 	double precision intent(out),dimension(2*n) :: alfai
 	double precision intent(out),dimension(2*n) :: beta
-	double precision intent(out),dimension(2*n+m,2*n) :: s
+	double precision intent(out),dimension(2*n+m,2*n+m) :: s
 	integer intent(hide),depend(s) :: lds=shape(s,0)
-	double precision intent(out),dimension(2*n+m+1,2*n) :: t
+	double precision intent(out),dimension(2*n+m,2*n) :: t
 	integer intent(hide),depend(t) :: ldt=shape(t,0)
 	double precision intent(hide),dimension(2*n,2*n) :: u ! not needed as jobb = 'B'
 	integer intent(hide),depend(u) :: ldu=shape(u,0)
@@ -183,9 +183,9 @@ subroutine sb02od_d(dico,jobb,fact,uplo,jobl,sort,n,m,p,a,lda,b,ldb,q,ldq,r,ldr,
 	double precision intent(out),dimension(2*n) :: alfar
 	double precision intent(out),dimension(2*n) :: alfai
 	double precision intent(out),dimension(2*n) :: beta
-	double precision intent(out),dimension(2*n+m,2*n) :: s
+	double precision intent(out),dimension(2*n+m,2*n+m) :: s
 	integer intent(hide),depend(s) :: lds=shape(s,0)
-	double precision intent(out),dimension(2*n+m+1,2*n) :: t
+	double precision intent(out),dimension(2*n+m,2*n) :: t
 	integer intent(hide),depend(t) :: ldt=shape(t,0)
 	double precision intent(hide),dimension(2*n,2*n) :: u ! not needed as jobb = 'B'
 	integer intent(hide),depend(u) :: ldu=shape(u,0)
@@ -223,9 +223,9 @@ subroutine sb02od_b(dico,jobb,fact,uplo,jobl,sort,n,m,p,a,lda,b,ldb,q,ldq,r,ldr,
 	double precision intent(out),dimension(2*n) :: alfar
 	double precision intent(out),dimension(2*n) :: alfai
 	double precision intent(out),dimension(2*n) :: beta
-	double precision intent(out),dimension(2*n+m,2*n) :: s
+	double precision intent(out),dimension(2*n+m,2*n+m) :: s
 	integer intent(hide),depend(s) :: lds=shape(s,0)
-	double precision intent(out),dimension(2*n+m+1,2*n) :: t
+	double precision intent(out),dimension(2*n+m,2*n) :: t
 	integer intent(hide),depend(t) :: ldt=shape(t,0)
 	double precision intent(hide),dimension(2*n,2*n) :: u ! not needed as jobb = 'B'
 	integer intent(hide),depend(u) :: ldu=shape(u,0)
