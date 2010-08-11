@@ -108,7 +108,7 @@ def sb01bd(n,m,np,alpha,A,B,w,dico,tol=0.0,ldwork=None):
         ldwork = max(1,5*m,5*n,2*n+4*m)
     A_z,wr,wi,nfp,nap,nup,F,Z,warn,info = _wrapper.sb01bd(dico,n,m,np,alpha,A,B,w.real,w.imag,tol=tol,ldwork=ldwork)
     if info < 0:
-        error_text = "The following argument had an illegal value: "+arg_list[-out[-1]-1]
+        error_text = "The following argument had an illegal value: "+arg_list[-info-1]
         raise ValueError(error_text)
     if info == 1:
         raise ArithmeticError('the reduction of A to a real Schur form failed')
@@ -119,7 +119,7 @@ def sb01bd(n,m,np,alpha,A,B,w,dico,tol=0.0,ldwork=None):
     if info == 4:
         warnings.warn('an attempt was made to place a complex conjugate pair on the location of a real eigenvalue')
     if warn != 0:
-        warnings.warn('%i violations of the numerical stability condition occured during the assignment of eigenvalues' % out[-2])
+        warnings.warn('%i violations of the numerical stability condition occured during the assignment of eigenvalues' % warn)
     # put togheter wr and wi into a complex array of eigenvalues
     w = _np.zeros(np,'complex64')
     w.real = wr[0:np]
@@ -258,7 +258,7 @@ def sb02md(n,A,G,Q,dico,hinv='D',uplo='U',scal='N',sort='S',ldwork=None):
 	    ldwork = max(3,6*n)
     X,rcond,wr,wi,S,U,info = _wrapper.sb02md(dico,n,A,G,Q,hinv=hinv,uplo=uplo,scal=scal,sort=sort,ldwork=ldwork)
     if info < 0:
-        error_text = "The following argument had an illegal value: "+arg_list[-out[-1]-1]
+        error_text = "The following argument had an illegal value: "+arg_list[-info-1]
         raise ValueError(error_text)
     if info == 1:
         raise ArithmeticError('matrix A is (numerically) singular in discrete-time case')
