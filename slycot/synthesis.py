@@ -691,6 +691,46 @@ converged Shur form'""" %(out[-1],n) # not sure about the indenting here
     w.imag = wi[0:n]
     return X,scale,sep,ferr,w
     
+def sb04md(n,m,A,B,C,ldwork=None):   
+    """X = sb04md(n,m,A,B,C[,ldwork])
+
+    To solve for X the continuous-time Sylvester equation
+
+     AX + XB = C
+
+    where A, B, C and X are general n-by-n, m-by-m, n-by-m and
+    n-by-m matrices respectively.
+     
+    Required arguments:
+        n : input int
+        m : input int
+        A : input rank-2 array('d') with bounds (n,n)
+        B : input rank-2 array('d') with bounds (m,m)
+        C : input rank-2 array('d') with bounds (n,m)
+    Return objects:
+        X : rank-2 array('d') with bounds (n,m)
+    """
+    hidden = ' (hidden by the wrapper)'
+    arg_list = ['n', 'm', 'A', 'LDA'+hidden,  'B', 'LDB'+hidden, 'C', 
+        'LDC'+hidden,  'Z', 'LDZ'+hidden, 'IWORK'+hidden, 'DWORK'+hidden, 
+        'ldwork', 'INFO'+hidden]
+    if ldwork is None:
+        out = _wrapper.sb04md(n,m,A,B,C)
+    else:
+        out = _wrapper.sb04md(n,m,A,B,C,ldwork=ldwork)
+    if out[-1] < 0:
+         error_text = "The following argument had an illegal value:"+arg_list[-out[-1]-1]
+         raise ValueError(error_text)
+    if out[-1] > 0 and out[-1] <= m:
+         warn_text = """The QR algorithm failed to compute all the eigenvalues
+(see LAPACK Library routine DGEES)"""
+         warnings.warn(warn_text)
+    elif out[-1] > m:
+         warn_text = """a singular matrix was encountered whilst solving
+for the %i-th column of matrix X.""" % out[-1]-m
+         warnings.warn(warn_text)
+    return out[2]
+    
 def sb04qd(n,m,A,B,C,ldwork=None):
     """X = sb04qd(n,m,A,B,C[,ldwork])
 
