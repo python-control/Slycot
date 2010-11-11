@@ -690,5 +690,47 @@ converged Shur form'""" %(out[-1],n) # not sure about the indenting here
     w.real = wr[0:n]
     w.imag = wi[0:n]
     return X,scale,sep,ferr,w
+    
+def sb04qd(n,m,A,B,C,ldwork=None):
+    """X = sb04qd(n,m,A,B,C[,ldwork])
+
+    To solve for X the discrete-time Sylvester equation
+
+        AXB + X + C = 0,
+
+    where A, B, C and X are general n-by-n, m-by-m, n-by-m and
+    n-by-m matrices respectively. A Hessenberg-Schur method, which
+    reduces A to upper Hessenberg form, H = U'AU, and B' to real
+    Schur form, S = Z'B'Z (with U, Z orthogonal matrices), is used.
+     
+    Required arguments:
+        n : input int
+        m : input int
+        A : input rank-2 array('d') with bounds (n,n)
+        B : input rank-2 array('d') with bounds (m,m)
+        C : input rank-2 array('d') with bounds (n,m)
+    Return objects:
+        X : rank-2 array('d') with bounds (n,m)
+    """
+    hidden = ' (hidden by the wrapper)'
+    arg_list = ['n', 'm', 'A', 'LDA'+hidden,  'B', 'LDB'+hidden, 'C', 
+        'LDC'+hidden,  'Z', 'LDZ'+hidden, 'IWORK'+hidden, 'DWORK'+hidden, 
+        'ldwork', 'INFO'+hidden]
+    if ldwork is None:
+        out = _wrapper.sb04qd(n,m,A,B,C)
+    else
+        out = _wrapper.sb04qd(n,m,A,B,C,ldwork=ldwork)
+    if out[-1] < 0:
+         error_text = "The following argument had an illegal value:"+arg_list[-out[-1]-1]
+         raise ValueError(error_text)
+    if out[-1] > 0 and out[-1] <= m:
+         warn_text = """The QR algorithm failed to compute all the eigenvalues
+(see LAPACK Library routine DGEES)"""
+         warnings.warn(warn_text)
+    elif out[-1] > m:
+         warn_text = """a singular matrix was encountered whilst solving
+for the %i-th column of matrix X.""" % out[-1]-m
+         warnings.warn(warn_text)
+    return out[2]
 
 # to be replaced by python wrappers
