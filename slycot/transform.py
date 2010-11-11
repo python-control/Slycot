@@ -20,6 +20,7 @@
 #       MA 02110-1301, USA.
 
 from slycot import _wrapper
+import numpy as _np
 
 def tb01id(n,m,p,maxred,a,b,c,job='A'):
     """ s_norm,A,B,C,scale = tb01id(n,m,p,maxred,A,B,C,[job])
@@ -390,5 +391,49 @@ def tc01od(m,p,indlin,pcoeff,qcoeff,leri):
             raise ValueError(error_text)
         return out[:-1]
 	raise ValueError('leri must be either L or R')
+
+def tf01md(n,m,p,N,A,B,C,D,u,x0):
+    """ xf,y = tf01md(n,m,p,N,A,B,C,D,u,x0)
+    
+    To compute the output sequence of a linear time-invariant
+    open-loop system given by its discrete-time state-space model
+    
+    Required arguments:
+        n : input int
+            Order of the State-space representation.
+        m : input int
+            Number of inputs.
+        p : input int
+            Number of outputs.
+        N : input int
+            Number of output samples to be computed. 
+        A : input rank-2 array('d') with bounds (n,n)
+            State dynamics matrix.
+        B : input rank-2 array('d') with bounds (n,m)
+            Input/state matrix.
+        C : input rank-2 array('d') with bounds (p,n)
+            State/output matrix.
+        D : input rank-2 array('d') with bounds (p,m)
+            Direct transmission matrix.
+        u : input rank-2 array('d') with bounds (m,N)
+            Input signal.
+        x0 : input rank-1 array('d') with bounds (n)
+            Initial state, at time 0.
+    Return objects:
+        xf : rank-1 array('d') with bounds (n)
+            Final state, at time N+1.
+        y : rank-2 array('d') with bounds (p,N)
+            Output signal.
+    """
+    hidden = ' (hidden by the wrapper)'
+    arg_list = ['n','m','p','ny','A','lda'+hidden,'B','ldb'+hidden,
+        'C','ldc'+hidden,'D','ldd'+hidden,'u','ldu'+hidden,'x0',
+        'y'+hidden,'ldy'+hidden,'dwork'+hidden,'info'+hidden]
+        
+    out = _wrapper.tf01md(n,m,p,N,A,B,C,D,u,x0)
+    if out[-1] < 0:
+        error_text = "The following argument had an illegal value: "+arg_list[-out[-1]-1]
+        raise ValueError(error_text)
+    return out[:-1]
 	
 # to be replaced by python wrappers

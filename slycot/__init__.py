@@ -15,6 +15,7 @@ from math import mc01td
 # Synthesis routines (5/50 wrapped)
 from synthesis import sb01bd,sb02md,sb02mt,sb02od,sb03md
 
-# Transformation routines (4/40 wrapped)
+# Transformation routines (5/40 wrapped)
 from transform import tb01id,tb03ad
 from transform import tc04ad,tc01od
+from transform import tf01md
