@@ -718,7 +718,7 @@ def sb04qd(n,m,A,B,C,ldwork=None):
         'ldwork', 'INFO'+hidden]
     if ldwork is None:
         out = _wrapper.sb04qd(n,m,A,B,C)
-    else
+    else:
         out = _wrapper.sb04qd(n,m,A,B,C,ldwork=ldwork)
     if out[-1] < 0:
          error_text = "The following argument had an illegal value:"+arg_list[-out[-1]-1]
