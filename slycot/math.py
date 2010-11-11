@@ -64,7 +64,7 @@ def mc01td(dico,dp,p):
         warings.warn('entry P(x) is the zero polynomial.')
     if out[-1] == 2:
         warings.warn('P(x) may have zeros very close to stability boundary.')
-    if ou[-2] > 0:
+    if out[-2] > 0:
         warnings.warn('The degree of P(x) has been reduced to %i' %(dp-k))
     return out[:-2]
 
