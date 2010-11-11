@@ -435,5 +435,52 @@ def tf01md(n,m,p,N,A,B,C,D,u,x0):
         error_text = "The following argument had an illegal value: "+arg_list[-out[-1]-1]
         raise ValueError(error_text)
     return out[:-1]
+    
+def tf01rd(n,m,p,N,A,B,C,ldwork=None): 
+    """ H = tf01rd(n,m,p,N,A,B,C,[ldwork])
+    
+    To compute N Markov parameters M_1, M_2,..., M_N from the
+    parameters (A,B,C) of a linear time-invariant system, where each
+    M_k is an p-by-m matrix and k = 1,2,...,N.
+
+    All matrices are treated as dense, and hence TF01RD is not
+    intended for large sparse problems.
+
+    
+    Required arguments:
+        n : input int
+            Order of the State-space representation.
+        m : input int
+            Number of inputs.
+        p : input int
+            Number of outputs.
+        N : input int
+            Number of Markov parameters to be computed.
+        A : input rank-2 array('d') with bounds (n,n)
+            State dynamics matrix. 
+        B : input rank-2 array('d') with bounds (n,m)
+            Input/state matrix.
+        C : input rank-2 array('d') with bounds (p,n)
+            State/output matrix.
+    Optional arguments:
+        ldwork := 2*na*nc input int
+    Return objects:
+        H : rank-2 array('d') with bounds (p,N*m)
+            H[:,(k-1)*m : k*m] contains the k-th Markov parameter, 
+            for k = 1,2...N.
+    """
+    hidden = ' (hidden by the wrapper)'
+    arg_list = ['n','m','p','N','A','lda'+hidden,'B','ldb'+hidden,'C',
+        'ldc'+hidden,'H','ldh'+hidden,'dwork'+hidden,'ldwork','info'+hidden]
+        
+    if ldwork is None:
+        out = _wrapper.tf01rd(n,m,p,N,A,B,C)
+    else:
+        out = _wrapper.tf01rd(n,m,p,N,A,B,C,ldwork=ldwork)
+    if out[-1] < 0:
+        error_text = "The following argument had an illegal value: "+arg_list[-out[-1]-1]
+        raise ValueError(error_text)
+    return out[0]
+
 	
 # to be replaced by python wrappers
