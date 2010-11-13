@@ -103,15 +103,15 @@ def sb01bd(n,m,np,alpha,A,B,w,dico,tol=0.0,ldwork=None):
     -------
     
     >>> import numpy as np
-    >>> import slycot as sly
+    >>> import slycot
     >>> A = np.array([[0, 1, 0],[0, 0, 1],[-2, 1, 3]])
     >>> B = np.array([[0], [0], [1]])
-    >>> np.linalg.eig(A)[0]
+    >>> np.linalg.eig(A)[0] # open loop eigenvalues
     array([ 3.11490754,  0.74589831, -0.86080585])
     >>> w = np.array([0.5,0.4,0.2])
-    >>> out = sly.sb01bd(3,1,3,1,A,B,w,'D')
+    >>> out = slycot.sb01bd(3,1,3,1,A,B,w,'D')
     >>> A_fb = A + np.dot(B,out[5])
-    >>> np.linalg.eig(A_fb)[0]
+    >>> np.linalg.eig(A_fb)[0] # closed loop eigenvalues
     array([ 0.2       ,  0.40000001,  0.5       ])
     """
     hidden = ' (hidden by the wrapper)'
@@ -142,7 +142,7 @@ def sb01bd(n,m,np,alpha,A,B,w,dico,tol=0.0,ldwork=None):
     return A_z,w,nfp,nap,nup,F,Z
 
 def sb02md(n,A,G,Q,dico,hinv='D',uplo='U',scal='N',sort='S',ldwork=None):
-    """  X,rcond,w,S,U = sb02md(dico,n,A,G,Q,[hinv,uplo,scal,sort,ldwork])
+    """  X,rcond,w,S,U,A_inv = sb02md(dico,n,A,G,Q,[hinv,uplo,scal,sort,ldwork])
     
     To solve for X either the continuous-time algebraic Riccati
     equation
@@ -155,14 +155,14 @@ def sb02md(n,A,G,Q,dico,hinv='D',uplo='U',scal='N',sort='S',ldwork=None):
 
     where A, B, Q and R are n-by-n, n-by-m, n-by-n and m-by-m matrices
     respectively, with Q symmetric and R symmetric nonsingular; X is
-    an N-by-N symmetric matrix.
+    an n-by-n symmetric matrix.
                       -1
     The matrix G = B*R  B' must be provided on input, instead of B and
     R, that is, for instance, the continuous-time equation
 
          Q + A'*X + X*A - X*G*X = 0                                  (3)
 
-    is solved, where G is an N-by-N symmetric matrix. Slycot Library
+    is solved, where G is an n-by-n symmetric matrix. Slycot Library
     routine sb02mt should be used to compute G, given B and R. sb02mt
     also enables to solve Riccati equations corresponding to optimal
     problems with coupling terms.
@@ -172,63 +172,68 @@ def sb02md(n,A,G,Q,dico,hinv='D',uplo='U',scal='N',sort='S',ldwork=None):
     lambda(1),...,lambda(n) of the corresponding Hamiltonian or
     symplectic matrix associated to the optimal problem.
     
-    Required arguments:
-        n : input int
+    Required arguments
+    ------------------
+    
+        n : int
             The order of the matrices A, Q, G and X.  n > 0.
-        A : input rank-2 array('d') with bounds (n,n)
-            On entry, the leading n-by-n part of this array must contain 
-            the coefficient matrix A of the equation. On exit, if dico = 'D',
-                                                                       -1
-            the leading N-by-N part of this array contains the matrix A  .
-            Otherwise, the array A is unchanged on exit.
-        G : input rank-2 array('d') with bounds (n,n)
-            The leading n-by-n upper triangular part (if uplo = 'U')
-            or lower triangular part (if uplo = 'L') of this array
-            must contain the upper triangular part or lower triangular
-            part, respectively, of the symmetric matrix G.
-        Q : input rank-2 array('d') with bounds (n,n)
-            On entry, the leading n-by-n upper triangular part (if
-            uplo = 'U') or lower triangular part (if uplo = 'L') of
-            this array must contain the upper triangular part or lower
-            triangular part, respectively, of the symmetric matrix Q.
-        dico : input string(len=1)
+        A : rank-2 array('d'), shape (n,n)
+        G : rank-2 array('d'), shape (n,n)
+            The upper triangular part (if uplo = 'U') or lower triangular 
+            part (if uplo = 'L') of this array must contain the upper 
+            triangular part or lower triangular part, respectively, of the 
+            symmetric matrix G.
+        Q : rank-2 array('d'), shape (n,n)
+            The upper triangular part (if uplo = 'U') or lower triangular 
+            part (if uplo = 'L') of this array must contain the upper 
+            triangular part or lower triangular part, respectively, 
+            of the symmetric matrix Q.
+        dico : {'C', 'D'}
             Specifies the type of Riccati equation to be solved as follows:
             = 'C':  Equation (3), continuous-time case;
             = 'D':  Equation (2), discrete-time case.
-    Optional arguments:
-        hinv := 'D' input string(len=1)
+            
+    Optional arguments
+    ------------------
+    
+        hinv : {'D', 'I'}
             If dico = 'D', specifies which symplectic matrix is to be 
             constructed, as follows:
-            = 'D':  The matrix H in (5) (see SLICOT reference) is constructed;
-            = 'I':  The inverse of the matrix H in (5) is constructed.
-            hinv is not used if DICO = 'C'.
-        uplo := 'U' input string(len=1)
+            = 'D':  The Hamiltonian or sympletic matrix H is constructed;
+            = 'I':  The inverse of the matrix H is constructed.
+            The default value is 'D'. hinv is not used if DICO = 'C'.
+        uplo : {'U', 'L'}
             Specifies which triangle of the matrices G and Q is stored, 
             as follows:
             = 'U':  Upper triangle is stored;
             = 'L':  Lower triangle is stored.
-        scal := 'N' input string(len=1)
+            The default value is 'U'.
+        scal : {'N', 'G'}
             Specifies whether or not a scaling strategy should be used, 
             as follows:
             = 'G':  General scaling should be used;
             = 'N':  No scaling should be used.
-        sort := 'S' input string(len=1)
+            The default value is 'N'.
+        sort : {'S', 'U'}
             Specifies which eigenvalues should be obtained in the top of 
             the Schur form, as follows:
             = 'S':  Stable   eigenvalues come first;
             = 'U':  Unstable eigenvalues come first.
-        ldwork := None input int
+            The default value is 'S'.
+        ldwork : int
             The length of the cache array. The default value is max(3, 6*n),
             for optimum performance it should be larger.
-    Return objects:
-        X : rank-2 array('d') with bounds (n,n)
-            The leading n-by-n part of this array contains the solution matrix 
-            of the problem.
+            
+    Returns
+    -------
+    
+        X : rank-2 array('d'), shape (n,n)
+            The solution matrix of the problem.
         rcond : float
             An estimate of the reciprocal of the condition number (in
-            the 1-norm) of the N-th order system of algebraic
+            the 1-norm) of the n-th order system of algebraic
             equations from which the solution matrix X is obtained.
-        w : rank-1 array('c') with bounds (2 * n)
+        w : rank-1 array('c'), shape (2 * n)
             This array contain the eigenvalues of the 2n-by-2n matrix S, ordered 
             as specified by sort (except for the case hinv = 'D', when the order 
             is opposite to that specified by sort). The leading n elements of 
@@ -237,32 +242,30 @@ def sb02md(n,A,G,Q,dico,hinv='D',uplo='U',scal='N',sort='S',ldwork=None):
             matrix A - B*R  *B'*X, if dico = 'C', or of the matrix
                               -1
             A - B*(R + B'*X*B)  B'*X*A, if dico = 'D'.
-        S : rank-2 array('d') with bounds (2 * n,2 * n)
-            The leading 2n-by-2n part of this array contains the ordered real 
-            Schur form S of the Hamiltonian or symplectic matrix H. That is,
-
-                    (S   S  )
-                    ( 11  12)
-                S = (       ),
-                    (0   S  )
-                    (     22)
-
-            where S  , S   and S   are n-by-n matrices.
-                   11   12      22
-
-        U : rank-2 array('d') with bounds (2 * n,2 * n)
-            The leading 2n-by-2n part of this array contains the transformation 
-            matrix U which reduces the Hamiltonian or symplectic matrix H to 
-            the ordered real Schur form S. That is,
-
-                    (U   U  )
-                    ( 11  12)
-                U = (       ),
-                    (U   U  )
-                    ( 21  22)
-
-            where U  , U  , U   and U   are n-by-n matrices.
-                   11   12   21      22"""
+        S : rank-2 array('d'), shape (2 * n,2 * n)
+            This array contains the ordered real Schur form S of the Hamiltonian 
+            or symplectic matrix H.
+        U : rank-2 array('d'), shape (2 * n,2 * n)
+            This array contains the transformation matrix U which reduces the 
+            Hamiltonian or symplectic matrix H to the ordered real Schur form S.
+        A_inv : rank-2 array('d'), shape (n,n)
+            The inverse of A if dico = 'D' or a copy of A itself otherwise.
+            
+        Example
+        -------
+        
+            >>> import numpy as np
+            >>> import slycot
+            >>> A = np.array([[0, 1],[0, 0]])
+            >>> Q = np.array([[1, 0],[0, 2]])
+            >>> G = np.array([[0, 0],[0, 1]])
+            >>> out = slycot.sb02md(2,A,G,Q,'C')      
+            >>> out[0] # X
+            array([[ 2.,  1.],
+                   [ 1.,  2.]])
+            >>> out[1] # rcond
+            0.3090169943749475
+        """
     
     hidden = ' (hidden by the wrapper)'
     arg_list = ['dico', 'hinv', 'uplo', 'scal', 'sort', 'n', 'A', 'LDA'+hidden, 
@@ -271,7 +274,7 @@ def sb02md(n,A,G,Q,dico,hinv='D',uplo='U',scal='N',sort='S',ldwork=None):
     'BWORK'+hidden, 'INFO'+hidden]
     if ldwork is None:
 	    ldwork = max(3,6*n)
-    X,rcond,wr,wi,S,U,info = _wrapper.sb02md(dico,n,A,G,Q,hinv=hinv,uplo=uplo,scal=scal,sort=sort,ldwork=ldwork)
+    A_inv,X,rcond,wr,wi,S,U,info = _wrapper.sb02md(dico,n,A,G,Q,hinv=hinv,uplo=uplo,scal=scal,sort=sort,ldwork=ldwork)
     if info < 0:
         error_text = "The following argument had an illegal value: "+arg_list[-info-1]
         raise ValueError(error_text)
@@ -288,7 +291,7 @@ def sb02md(n,A,G,Q,dico,hinv='D',uplo='U',scal='N',sort='S',ldwork=None):
     w = _np.zeros(2*n,'complex64')
     w.real = wr[0:2*n]
     w.imag = wi[0:2*n]
-    return X,rcond,w,S,U
+    return X,rcond,w,S,U,A_inv
 
 def sb02mt(n,m,B,R,A=None,Q=None,L=None,fact='N',jobl='Z',uplo='U',ldwork=None):
     """ A_b,B_b,Q_b,R_b,L_b,ipiv,oufact,G = sb02mt(n,m,B,R,[A,Q,L,fact,jobl,uplo,ldwork])
