@@ -434,7 +434,7 @@ def sb02mt(n,m,B,R,A=None,Q=None,L=None,fact='N',jobl='Z',uplo='U',ldwork=None):
     return out[:-1]
 
 def sb02od(n,m,A,B,Q,R,dico,p=None,L=None,fact='N',uplo='U',sort='S',tol=0.0,ldwork=None):
-    """ rcond,X,w,S,T = sb02od(n,m,A,B,Q,R,dico,[p,L,fact,uplo,sort,tol,ldwork])
+    """ X,rcond,w,S,T = sb02od(n,m,A,B,Q,R,dico,[p,L,fact,uplo,sort,tol,ldwork])
     
     To solve for X either the continuous-time algebraic Riccati
     equation
@@ -446,7 +446,7 @@ def sb02od(n,m,A,B,Q,R,dico,p=None,L=None,fact='N',uplo='U',sort='S',tol=0.0,ldw
         X = A'XA - (L+A'XB)(R + B'XB)  (L+A'XB)' + Q              (2)
 
     where A, B, Q, R, and L are n-by-n, n-by-m, n-by-n, m-by-m and
-    N-by-M matrices, respectively, such that Q = C'C, R = D'D and
+    n-by-m matrices, respectively, such that Q = C'C, R = D'D and
     L = C'D; X is an n-by-n symmetric matrix.
     The routine also returns the computed values of the closed-loop
     spectrum of the system, i.e., the stable eigenvalues w(1),
@@ -460,97 +460,115 @@ def sb02od(n,m,A,B,Q,R,dico,p=None,L=None,fact='N',uplo='U',sort='S',tol=0.0,ldw
     The routine uses the method of deflating subspaces, based on
     reordering the eigenvalues in a generalized Schur matrix pair.
     
-    Required arguments:
-        n : input int
+    Required arguments
+    ------------------
+    
+        n : int
             The actual state dimension, i.e. the order of the matrices A, Q, 
             and X, and the number of rows of the matrices B and L.  n > 0.
-        m : input int
+        m : int
             The number of system inputs, the order of the matrix R, and the 
             number of columns of the matrix B.  m > 0.
-        A : input rank-2 array('d') with bounds (n,n)
-            The leading n-by-n part of this array must contain the state matrix 
-            A of the system.
-        B : input rank-2 array('d') with bounds (n,m)
-            The leading n-by-m part of this array must contain the input matrix 
-            B of the system.
-        Q : input rank-2 array('d') with bounds (n,n) or (p,n)
-            If fact = 'N' or 'D', the leading n-by-n upper/lower triangular part 
-            (depending on uplo) of this array must contain the upper/lower 
-            triangular part of the symmetric state weighting matrix Q. 
-            If fact = 'C' or 'B', the leading p-by-n part of this array must 
+        A : rank-2 array('d'), shape (n,n)
+            The state matrix of the system.
+        B : rank-2 array('d'), shape (n,m)
+            The input matrix of the system.
+        Q : rank-2 array('d'), shape (n,n) or (p,n)
+            If fact = 'N' or 'D', the shape must be (n,n) and the upper/lower 
+            triangular part (depending on uplo) of this array must contain 
+            the corresponding triangular part of the symmetric state weighting 
+            matrix Q. 
+            If fact = 'C' or 'B', the shape must be (p,n) and of this array must 
             contain the output matrix C of the system.
-        R : input rank-2 array('d') with bounds (m,m) or (p,m)
-            If fact = 'N' or 'C', the leading m-by-m upper/lower triangular part 
-            (depending on uplo) of this array must contain the upper/lower 
-            triangular part of the symmetric input weighting matrix R.
-            If FACT = 'D' or 'B', the leading P-by-M part of this array must 
+        R : rank-2 array('d'), shape (m,m) or (p,m)
+            If fact = 'N' or 'C', the shape must be (m,m) and the upper/lower 
+            triangular part (depending on uplo) of this array must contain the 
+            corresponding triangular part of the symmetric input weighting matrix R.
+            If FACT = 'D' or 'B', the shape must be (p,m) and this array must 
             contain the direct transmission matrix D of the system.
-        dico : input string(len=1)
+        dico : {'C', 'D'}
             Specifies the type of Riccati equation to be solved as follows:
             = 'C':  Equation (1), continuous-time case;
             = 'D':  Equation (2), discrete-time case.
-    Optional arguments:
-        p : input int
+            
+    Optional arguments
+    ------------------
+    
+        p : int
             The number of system outputs. If fact = 'C' or 'D' or 'B',
             p is the number of rows of the matrices C and/or D. p > 0.
-        L := None input rank-2 array('d') with bounds (n,m)
-            If L is None it will considered as a zero matrix of the appropriate
-            dimensions. Otherwise the leading n-by-m part of this array must 
-            contain the cross weighting matrix L.
-        fact := 'N' input string(len=1)
+            If fact = 'N' it is not needed.
+        L : rank-2 array('d'), shape (n,m)
+            If L is not specified it will considered as a zero matrix of the 
+            appropriate dimensions.
+        fact : {'N', 'C', 'D', 'B'}
             Specifies whether or not the matrices Q and/or R are factored, 
             as follows:
             = 'N':  Not factored, Q and R are given;
             = 'C':  C is given, and Q = C'C;
             = 'D':  D is given, and R = D'D;
             = 'B':  Both factors C and D are given, Q = C'C, R = D'D.
-        uplo := 'U' input string(len=1)
+            The default value is 'N'.
+        uplo : {'U', 'L'}
             If fact = 'N', specifies which triangle of Q and R is stored, 
             as follows:
             = 'U':  Upper triangle is stored;
             = 'L':  Lower triangle is stored.
-        sort := 'S' input string(len=1)
+            The default value is 'U'.
+        sort : {'S', 'U'}
             Specifies which eigenvalues should be obtained in the top of 
             the generalized Schur form, as follows:
             = 'S':  Stable   eigenvalues come first;
             = 'U':  Unstable eigenvalues come first.
-        tol := 0 input float
+            The default value is 'S'.
+        tol : float
             The tolerance to be used in rank determination of the original 
             matrix pencil, specifically of the triangular factor obtained during 
             the reduction process. If tol <= 0 a default value is used.
-        ldwork := None input int
+        ldwork : int
             The length of the cache array. The default value is 
             max(7*(2*n+1)+16,16*n,2*n+m,3*m), for optimum performance it should 
             be larger.
-    Return objects:
+            
+    Returns
+    -------
+            
+        X : rank-2 array('d'), shape (n,n)
+            The solution matrix of the problem.
         rcond : float
             An estimate of the reciprocal of the condition number (in 
-            the 1-norm) of the N-th order system of algebraic equations 
+            the 1-norm) of the n-th order system of algebraic equations 
             from which the solution matrix X is obtained.
-        X : rank-2 array('d') with bounds (n,n)
-            The leading N-by-N part of this array contains the solution matrix 
-            of the problem.
-        w : rank-1 array('c') with bounds (2 * n)
+        w : rank-1 array('c'), shape (2 * n)
             The generalized eigenvalues of the 2n-by-2n matrix pair, ordered as 
             specified by sort. For instance, if sort = 'S', the leading n 
             elements of these arrays contain the closed-loop spectrum of the 
             system matrix A - BF, where F is the optimal feedback matrix computed
             based on the solution matrix X.
-        S : rank-2 array('d') with bounds (2*n+m,2 * n)
-            ???
-        T : rank-2 array('d') with bounds (2*n+m+1,2 * n)
-            The leading 2n-by-2n part of this array contains the ordered upper 
-            triangular form T of the second matrix in the reduced matrix pencil 
-            associated to the optimal problem. That is,
-
-                    (T   T  )
-                    ( 11  12)
-                T = (       ),
-                    (0   T  )
-                    (     22)
-
-            where T  , T   and T   are n-by-n matrices.
-                   11   12      22
+        S : rank-2 array('d'), shape (2*n+m,2 * n)
+            This array contains the ordered real Schur form S of the first matrix 
+            in the reduced matrix pencil associated to the optimal problem, or of 
+            the corresponding Hamiltonian matrix
+        T : rank-2 array('d'), shape (2*n+m+1,2 * n)
+            This array contains the ordered upper triangular form T of the second 
+            matrix in the reduced matrix pencil associated to the optimal problem.
+            
+    Example
+    -------
+    
+    >>> import numpy as np
+    >>> import slycot
+    >>> A = np.array([[0, 1],[0, 0]])
+    >>> B = np.array([[0],[1]])
+    >>> C = np.array([[1, 0],[0, 1],[0, 0]])
+    >>> Q = np.dot(C.T,C)
+    >>> R = np.ones((1,1))
+    >>> out = slycot.sb02od(2,1,A,B,Q,R,'C')
+    >>> out[0] # X
+    array([[ 1.73205081,  1.        ],
+           [ 1.        ,  1.73205081]])
+    >>> out[1] # rcond
+    0.4713846564431681
     """
     hidden = ' (hidden by the wrapper)'
     arg_list = ['dico', 'jobb'+hidden, 'fact', 'uplo', 'jobl', 'sort', 'n', 
@@ -599,7 +617,7 @@ def sb02od(n,m,A,B,Q,R,dico,p=None,L=None,fact='N',uplo='U',sort='S',tol=0.0,ldw
     w = _np.zeros(2*n,'complex64')
     w.real = alphar[0:2*n]/beta[0:2*n]
     w.imag = alphai[0:2*n]/beta[0:2*n]
-    return rcond,X,w,S,T
+    return X,rcond,w,S,T
 
 def sb03md(n,C,A,U,dico,job='X',fact='N',trana='N',ldwork=None):
     """  X,scale,sep,ferr,w = sb03md(dico,n,C,A,U,[job,fact,trana,ldwork])
