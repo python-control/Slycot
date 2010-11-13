@@ -314,75 +314,79 @@ def sb02mt(n,m,B,R,A=None,Q=None,L=None,fact='N',jobl='Z',uplo='U',ldwork=None):
     for solving linear-quadratic optimization problems will then also solve 
     optimization problems with coupling weighting matrix L.
     
-    Required arguments:
-        n : input int
+    Required arguments
+    ------------------
+    
+        n : int
             The order of the matrices A, Q, and G, and the number of rows of 
             the matrices B and L.  n >= 0.
-        m : input int
+        m : int
             The order of the matrix R, and the number of columns of the matrices 
             B and L.  m >= 0.
-        B : input rank-2 array('d') with bounds (n,m)
-            The leading n-by-n part of this array must contain the matrix B.
-        R : input rank-2 array('d') with bounds (m,m)
-            If fact = 'N', the leading m-by-m upper/lower triangular part 
-            of this array must contain the upper/lower triangular part, of the 
-            symmetric input weighting matrix R.
-            If fact = 'C', the leading m-by-m upper/lower triangular part 
-            of this array must contain the Cholesky factor of the positive 
-            definite input weighting matrix R.
-    Optional arguments:
-        A := None input rank-2 array('d') with bounds (n,n)
-            If jobl = 'Z', this matrix is not needed. Otherwise the leading 
-            n-by-n part of this array must contain the matrix A.
-        Q := None input rank-2 array('d') with bounds (n,n)
-            If jobl = 'Z', this matrix is not needed. Otherwise the leading 
-            n-by-n upper/lower triangular part of this array (depending on uplo) 
-            must contain the matrix Q.
-        L := None input rank-2 array('d') with bounds (n,m)
-            If jobl = 'Z', this matrix is not needed. Otherwise the leading 
-            n-by-m part of this array must contain the matrix L.
-        fact := 'N' input string(len=1)
+        B : rank-2 array('d'), shape (n,m)
+        R : rank-2 array('d'), shape (m,m)
+            If fact = 'N', the upper/lower triangular part of this array must 
+            contain the upper/lower triangular part, of the symmetric input 
+            weighting matrix R.
+            If fact = 'C', the upper/lower triangular part of this array must 
+            contain the Cholesky factor of the positive definite input weighting 
+            matrix R.
+            
+    Optional arguments
+    ------------------
+    
+        A : rank-2 array('d'), shape (n,n)
+            If jobl = 'Z', this matrix is not needed.
+        Q : rank-2 array('d'), shape (n,n)
+            If jobl = 'Z', this matrix is not needed. Otherwise the upper/lower 
+            triangular part of this array (depending on uplo) must contain the 
+            corresponding part of matrix Q.
+        L : rank-2 array('d'), shape (n,m)
+            If jobl = 'Z', this matrix is not needed.
+        fact : {'N', 'C'} 
             Specifies how the matrix R is given (factored or not), as follows:
-            = 'N':  Array R contains the matrix R;
-            = 'C':  Array R contains the Cholesky factor of R;
-        jobl := 'Z' input string(len=1)
+            = 'N':  Array R contains the matrix R,
+            = 'C':  Array R contains the Cholesky factor of R.
+            The default value is 'N'.
+        jobl : {'Z', 'N'}
             When equal to 'Z', L is considered as a zero matrix and A,Q and L are 
-            not needed. A,Q and L are required otherwise.
-        uplo := 'U' input string(len=1)
+            not needed. A,Q and L are required otherwise.The default value is 'Z'.
+        uplo : {'U', 'L'}
             Specifies which triangle of the matrices R and Q (if jobl = 'N') 
             is stored, as follows:
             = 'U':  Upper triangle is stored;
             = 'L':  Lower triangle is stored.
-        ldwork := None input int
+            The default value is 'U'.
+        ldwork : int
             The length of the cache array. Whenever fact = 'N' the default value 
             is max(2,3*m,n*m), for optimum performance it should be larger.
-            Not cache is needed if fact = 'C', defauts at 1.
-    Return objects:
-        A_b : rank-2 array('d') with bounds (n,n)
-            If jobl = 'Z', this is None. Otherwise the leading n-by-n part of 
-            this array contain the matrix A_b.
-        B_b : rank-2 array('d') with bounds (n,m)
-            If oufact = 1 the leading n-by-n part of this array contains
-                                -1
-            the matrix B*chol(R)  . It is a copy of input B if oufact = 2.
-        Q_b : rank-2 array('d') with bounds (n,n)
-            If jobl = 'Z', this is None. Otherwise the leading n-by-n upper/lower 
-            triangular part of this array contain the upper/lower triangular part 
-            of matrix Q_b (depending on uplo).
-        R_b : rank-2 array('d') with bounds (m,m)
-            If oufact = 1, the leading m-by-m upper/lower triangular part 
-            of this array contains the Cholesky factor of the given input 
-            weighting matrix.
-            If oufact = 2, the leading m-by-m upper/lower triangular part 
-            of this array contains the factors of the UdU' or LdL' factorization,
-            respectively, of the given input weighting matrix.
+            No cache is needed if fact = 'C', defaults at 1.
+            
+    Returns
+    -------
+    
+        A_b : rank-2 array('d'), shape (n,n)
+            If jobl = 'Z', this is None.
+        B_b : rank-2 array('d'), shape (n,m)
+                                                                  -1
+            If oufact = 1 this array contains the matrix B*chol(R)  . It is a copy 
+            of input B if oufact = 2.
+        Q_b : rank-2 array('d'), shape (n,n)
+            If jobl = 'Z', this is None. Otherwise the upper/lower triangular part 
+            of this array contain the corresponding triangular part of matrix Q_b 
+            (depending on uplo).
+        R_b : rank-2 array('d'), shape (m,m)
+            If oufact = 1, the upper/lower triangular part of this array contains 
+            the Cholesky factor of the given input weighting matrix.
+            If oufact = 2, the upper/lower triangular part of this array contains 
+            the factors of the UdU' or LdL' factorization, respectively, of the given 
+            input weighting matrix.
             If fact = 'C' it is a copy of input R.
-        L_b : rank-2 array('d') with bounds (n,m)
-            If jobl = 'Z', this is None. If oufact = 1, the leading n-by-n part 
-                                                       -1
-            of this array contains the matrix L*chol(R)  . If oufact = 2 this
-            contains a copy of input L.
-        ipiv : rank-1 array('i') with bounds (m)
+        L_b : rank-2 array('d'), shape (n,m)
+            If jobl = 'Z', this is None. If oufact = 1, this array contains the matrix 
+                     -1
+            L*chol(R)  .If oufact = 2 this contains a copy of input L.
+        ipiv : rank-1 array('i'), shape (m,)
             If oufact = 2, this array contains details of the interchanges 
             performed and the block structure of the d factor in the UdU' or 
             LdL' factorization of matrix R, as produced by LAPACK routine DSYTRF.
@@ -392,9 +396,9 @@ def sb02mt(n,m,B,R,A=None,Q=None,L=None,fact='N',jobl='Z',uplo='U',ldwork=None):
             oufact = 1:  Cholesky factorization of R has been used;
             oufact = 2:  UdU' (if uplo = 'U') or LdL' (if uplo = 'L')
                          factorization of R has been used.
-        G : rank-2 array('d') with bounds (n,n)
-            The leading n-by-n upper/lower triangular part of this array contains
-            the upper/lower triangular part of the matrix G.
+        G : rank-2 array('d'), shape (n,n)
+            The upper/lower triangular part of this array contains the corresponding 
+            triangular part of the matrix G.
     """
     hidden = ' (hidden by the wrapper)'
     arg_list = ['JOBG'+hidden, 'jobl', 'fact', 'uplo', 'n', 'm', 'A', 
