@@ -131,13 +131,17 @@ def ab01nd(n,m,A,B,jobz='N',tol=0,ldwork=None):
 		out = _wrapper.ab01nd_i(n,m,A,B,tol=tol,ldwork=ldwork)
         if out[-1] < 0:
             error_text = "The following argument had an illegal value: "+arg_list[-out[-1]-1]
-            raise ValueError(error_text)
+            e = ValueError(error_text)
+            e.info = out[-1]
+            raise e
         return out[:-1]
 	if jobz == 'F':
 		out = _wrapper.ab01nd_f(n,m,A,B,tol=tol,ldwork=ldwork)
         if out[-1] < 0:
             error_text = "The following argument had an illegal value: "+arg_list[-out[-1]-1]
-            raise ValueError(error_text)
+            e = ValueError(error_text)
+            e.info = out[-1]
+            raise e
         return out[:-1]
 	raise ValueError('jobz must be either N, I or F')
 
@@ -219,7 +223,9 @@ def ab05md(n1,m1,p1,n2,p2,A1,B1,C1,D1,A2,B2,C2,D2,uplo='U'):
     out = _wrapper.ab05md(n1,m1,p1,n2,p2,A1,B1,C1,D1,A2,B2,C2,D2,uplo=uplo)
     if out[-1] < 0:
         error_text = "The following argument had an illegal value: "+arg_list[-out[-1]-1]
-        raise ValueError(error_text)
+        e = ValueError(error_text)
+        e.info = out[-1]
+        raise e
     return out[:-1]
 	
 def ab05nd(n1,m1,p1,n2,A1,B1,C1,D1,A2,B2,C2,D2,alpha=1.0,ldwork=None):
@@ -303,9 +309,13 @@ def ab05nd(n1,m1,p1,n2,A1,B1,C1,D1,A2,B2,C2,D2,alpha=1.0,ldwork=None):
     out = _wrapper.ab05nd(n1,m1,p1,n2,alpha,A1,B1,C1,D1,A2,B2,C2,D2,ldwork=ldwork)
     if out[-1] < 0:
         error_text = "The following argument had an illegal value: "+arg_list[-out[-1]-1]
-        raise ValueError(error_text)
+        e = ValueError(error_text)
+        e.info = out[-1]
+        raise e
     if out[-1] > 0:
-        raise ArithmeticError('The resulting system is not completely controllable.')
+        e = ArithmeticError('The resulting system is not completely controllable.')
+        e.info = out[-1]
+        raise e
     return out[:-1]
 	
 def ab07nd(n,m,A,B,C,D,ldwork=None):
@@ -360,12 +370,17 @@ def ab07nd(n,m,A,B,C,D,ldwork=None):
     out = _wrapper.ab07nd(n,m,A,B,C,D,ldwork=ldwork)
     if out[-1] < 0:
         error_text = "The following argument had an illegal value: "+arg_list[-out[-1]-1]
-        raise ValueError(error_text)
+        e = ValueError(error_text)
+        e.info = out[-1]
+        raise e
     if out[-1] == m+1:
-        raise ValueError('Entry matrix D is numerically singular.')
-    else:
-        if out[-1] > 0:
-            raise ValueError('Entry matrix D is exactly singular, the (%i,%i) diagonal element is zero.' %(out[-1],out[-1]))
+        e = ValueError('Entry matrix D is numerically singular.')
+        e.info = out[-1]
+        raise e
+    if out[-1] > 0:
+        e = ValueError('Entry matrix D is exactly singular, the (%i,%i) diagonal element is zero.' %(out[-1],out[-1]))
+        e.info = out[-1]
+        raise e
     return out[:-1]
     
 def ab08nd(n,m,p,A,B,C,D,equil='N',tol=0,ldwork=None):
@@ -451,7 +466,9 @@ def ab08nd(n,m,p,A,B,C,D,equil='N',tol=0,ldwork=None):
     out = _wrapper.ab08nd(n,m,p,A,B,C,D,equil=equil,tol=tol,ldwork=ldwork)
     if out[-1] < 0:
         error_text = "The following argument had an illegal value: "+arg_list[-out[-1]-1]
-        raise ValueError(error_text)
+        e = ValueError(error_text)
+        e.info = out[-1]
+        raise e
     return out[:-1]
     
 # to be replaced by python wrappers

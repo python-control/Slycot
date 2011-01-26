@@ -99,7 +99,9 @@ def tb01id(n,m,p,maxred,a,b,c,job='A'):
     our = _wrapper.tb01id(n,m,p,maxred,a,b,c,job=job)
     if out[-1] < 0:
         error_text = "The following argument had an illegal value: "+arg_list[-out[-1]-1]
-        raise ValueError(error_text)    
+        e = ValueError(error_text)    
+        e.info = out[-1]
+        raise e
     return out[:-1]
 
 def tb03ad(n,m,p,A,B,C,D,leri,equil='N',tol=0.0,ldwork=None):
@@ -215,9 +217,13 @@ def tb03ad(n,m,p,A,B,C,D,leri,equil='N',tol=0.0,ldwork=None):
         out = _wrapper.tb03ad_l(n,m,p,A,B,C,D,equil=equil,tol=tol,ldwork=ldwork)
         if out[-1] < 0:
             error_text = "The following argument had an illegal value: "+arg_list[-out[-1]-1]
-            raise ValueError(error_text)
+            e = ValueError(error_text)
+            e.info = out[-1]
+            raise e
         if out[-1] > 0:
-            raise ArithmeticError('a singular matrix was encountered during the computation')
+            e = ArithmeticError('a singular matrix was encountered during the computation')
+            e.info = out[-1]
+            raise e
         return out[:-1]
 	if leri == 'R':
 		if ldwork is None:
@@ -225,9 +231,13 @@ def tb03ad(n,m,p,A,B,C,D,leri,equil='N',tol=0.0,ldwork=None):
         out = _wrapper.tb03ad_r(n,m,p,A,B,C,D,equil=equil,tol=tol,ldwork=ldwork)
         if out[-1] < 0:
             error_text = "The following argument had an illegal value: "+arg_list[-out[-1]-1]
-            raise ValueError(error_text)
+            e = ValueError(error_text)
+            e.info = out[-1]
+            raise e
         if out[-1] > 0:
-            raise ArithmeticError('a singular matrix was encountered during the computation')
+            e = ArithmeticError('a singular matrix was encountered during the computation')
+            e.info = out[-1]
+            raise e
         return out[:-1]
 	raise ValueError('leri must be either L or R')
 
@@ -318,17 +328,25 @@ def tc04ad(m,p,index,pcoeff,qcoeff,leri,ldwork=None):
         out = _wrapper.tc04ad_l(m,p,index,pcoeff,qcoeff,n)
         if out[-1] < 0:
             error_text = "The following argument had an illegal value: "+arg_list[-out[-1]-1]
-            raise ValueError(error_text)
+            e = ValueError(error_text)
+            e.info = out[-1]
+            raise e
         if out[-1] == 1:
-            raise ArithmeticError('P(s) is not row proper')
+            e = ArithmeticError('P(s) is not row proper')
+            e.info = out[-1]
+            raise e
         return out[:-1]
     if leri == 'R':
         out = _wrapper.tc04ad_r(m,p,index,pcoeff,qcoeff,n)
         if out[-1] < 0:
             error_text = "The following argument had an illegal value: "+arg_list[-out[-1]-1]
-            raise ValueError(error_text)
+            e = ValueError(error_text)
+            e.info = out[-1]
+            raise e
         if out[-1] == 1:
-            raise ArithmeticError('P(s) is not column proper')
+            e = ArithmeticError('P(s) is not column proper')
+            e.info = out[-1]
+            raise e
         return out[:-1]
 	raise ValueError('leri must be either L or R')
 	
@@ -382,13 +400,17 @@ def tc01od(m,p,indlin,pcoeff,qcoeff,leri):
 		out = _wrapper.tc01od_l(m,p,indlin,pcoeff,qcoeff)
         if out[-1] < 0:
             error_text = "The following argument had an illegal value: "+arg_list[-out[-1]-1]
-            raise ValueError(error_text)
+            e = ValueError(error_text)
+            e.info = out[-1]
+            raise e
         return out[:-1]
 	if leri == 'R':
 		out = _wrapper.tc01od_r(m,p,indlin,pcoeff,qcoeff)
         if out[-1] < 0:
             error_text = "The following argument had an illegal value: "+arg_list[-out[-1]-1]
-            raise ValueError(error_text)
+            e = ValueError(error_text)
+            e.info = out[-1]
+            raise e
         return out[:-1]
 	raise ValueError('leri must be either L or R')
 
@@ -433,7 +455,9 @@ def tf01md(n,m,p,N,A,B,C,D,u,x0):
     out = _wrapper.tf01md(n,m,p,N,A,B,C,D,u,x0)
     if out[-1] < 0:
         error_text = "The following argument had an illegal value: "+arg_list[-out[-1]-1]
-        raise ValueError(error_text)
+        e = ValueError(error_text)
+        e.info = out[-1]
+        raise e
     return out[:-1]
     
 def tf01rd(n,m,p,N,A,B,C,ldwork=None): 
@@ -479,7 +503,9 @@ def tf01rd(n,m,p,N,A,B,C,ldwork=None):
         out = _wrapper.tf01rd(n,m,p,N,A,B,C,ldwork=ldwork)
     if out[-1] < 0:
         error_text = "The following argument had an illegal value: "+arg_list[-out[-1]-1]
-        raise ValueError(error_text)
+        e = ValueError(error_text)
+        e.info = out[-1]
+        raise e
     return out[0]
 
 	

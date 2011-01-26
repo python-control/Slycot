@@ -124,13 +124,21 @@ def sb01bd(n,m,np,alpha,A,B,w,dico,tol=0.0,ldwork=None):
     A_z,wr,wi,nfp,nap,nup,F,Z,warn,info = _wrapper.sb01bd(dico,n,m,np,alpha,A,B,w.real,w.imag,tol=tol,ldwork=ldwork)
     if info < 0:
         error_text = "The following argument had an illegal value: "+arg_list[-info-1]
-        raise ValueError(error_text)
+        e = ValueError(error_text)
+        e.info = info
+        raise e
     if info == 1:
-        raise ArithmeticError('the reduction of A to a real Schur form failed')
+        e = ArithmeticError('the reduction of A to a real Schur form failed')
+        e.info = info
+        raise e
     if info == 2:
-        raise ArithmeticError('a failure was detected during the ordering of eigenvalues')
+        e = ArithmeticError('a failure was detected during the ordering of eigenvalues')
+        e.info = info
+        raise e
     if info == 3:
-        raise ArithmeticError('the number of eigenvalues to be assigned is less than the number of possibly assignable eigenvalues')
+        e = ArithmeticError('the number of eigenvalues to be assigned is less than the number of possibly assignable eigenvalues')
+        e.info = info
+        raise e
     if info == 4:
         warnings.warn('an attempt was made to place a complex conjugate pair on the location of a real eigenvalue')
     if warn != 0:
@@ -277,17 +285,29 @@ def sb02md(n,A,G,Q,dico,hinv='D',uplo='U',scal='N',sort='S',ldwork=None):
     A_inv,X,rcond,wr,wi,S,U,info = _wrapper.sb02md(dico,n,A,G,Q,hinv=hinv,uplo=uplo,scal=scal,sort=sort,ldwork=ldwork)
     if info < 0:
         error_text = "The following argument had an illegal value: "+arg_list[-info-1]
-        raise ValueError(error_text)
+        e = ValueError(error_text)
+        e.info = info
+        raise e
     if info == 1:
-        raise ArithmeticError('matrix A is (numerically) singular in discrete-time case')
+        e = ArithmeticError('matrix A is (numerically) singular in discrete-time case')
+        e.info = info
+        raise e
     if info == 2:
-        raise ArithmeticError('the Hamiltonian or symplectic matrix H cannot be reduced to real Schur form')
+        e = ArithmeticError('the Hamiltonian or symplectic matrix H cannot be reduced to real Schur form')
+        e.info = info
+        raise e
     if info == 3:
-        raise ArithmeticError('the real Schur form of the Hamiltonian or symplectic matrix H cannot be appropriately ordered')
+        e = ArithmeticError('the real Schur form of the Hamiltonian or symplectic matrix H cannot be appropriately ordered')
+        e.info = info
+        raise e
     if info == 4:
-        raise ArithmeticError('the Hamiltonian or symplectic matrix H has less than n stable eigenvalues')
+        e = ArithmeticError('the Hamiltonian or symplectic matrix H has less than n stable eigenvalues')
+        e.info = info
+        raise e
     if info == 5:
-        raise ArithmeticError('if the N-th order system of linear algebraic equations is singular to working precision')
+        e = ArithmeticError('if the N-th order system of linear algebraic equations is singular to working precision')
+        e.info = info
+        raise e
     w = _np.zeros(2*n,'complex64')
     w.real = wr[0:2*n]
     w.imag = wi[0:2*n]
@@ -426,11 +446,17 @@ def sb02mt(n,m,B,R,A=None,Q=None,L=None,fact='N',jobl='Z',uplo='U',ldwork=None):
             raise ValueError('fact must be either C or N.')
     if out[-1] < 0:
         error_text = "The following argument had an illegal value: "+arg_list[-out[-1]-1]
-        raise ValueError(error_text)
+        e = ValueError(error_text)
+        e.info = out[-1]
+        raise e
     if out[-1] > 0 and out[-1] <= m:
-        raise ArithmeticError('the %i-th elemend of d in the UdU (LdL) factorization is zero.'%out[-1])
+        e = ArithmeticError('the %i-th elemend of d in the UdU (LdL) factorization is zero.'%out[-1])
+        e.info = out[-1]
+        raise e
     if out[-1] == m+1:
-        raise ArithmeticError('matrix R is numerically singular.')
+        e = ArithmeticError('matrix R is numerically singular.')
+        e.info = out[-1]
+        raise e
     return out[:-1]
 
 def sb02od(n,m,A,B,Q,R,dico,p=None,L=None,fact='N',uplo='U',sort='S',tol=0.0,ldwork=None):
@@ -600,19 +626,33 @@ def sb02od(n,m,A,B,Q,R,dico,p=None,L=None,fact='N',uplo='U',sort='S',tol=0.0,ldw
         out = _wrapper.sb02od_b(dico,n,m,p,A,B,Q,R,L,uplo=uplo,jobl=jobl,sort=sort,tol=tol,ldwork=ldwork)
     if out[-1] < 0:
         error_text = "The following argument had an illegal value: "+arg_list[-out[-1]-1]
-        raise ValueError(error_text)
+        e = ValueError(error_text)
+        e.info = info
+        raise e
     if out[-1] == 1:
-        raise ArithmeticError('the computed extended matrix pencil is singular, possibly due to rounding errors')
+        e = ArithmeticError('the computed extended matrix pencil is singular, possibly due to rounding errors')
+        e.info = out[-1]
+        raise e
     if out[-1] == 2:
-        raise ArithmeticError('the QZ (or QR) algorithm failed')  
+        e = ArithmeticError('the QZ (or QR) algorithm failed')  
+        e.info = out[-1]
+        raise e
     if out[-1] == 3:
-        raise ArithmeticError('reordering of the (generalized) eigenvalues failed')
+        e = ArithmeticError('reordering of the (generalized) eigenvalues failed')
+        e.info = out[-1]
+        raise e
     if out[-1] == 4:
-        raise ArithmeticError('stability condition failed due to roudoff errors')
+        e = ArithmeticError('stability condition failed due to roudoff errors')
+        e.info = out[-1]
+        raise e
     if out[-1] == 5:
-        raise ArithmeticError('the computed dimension of the solution does not equal N') 
+        e = ArithmeticError('the computed dimension of the solution does not equal N') 
+        e.info = out[-1]
+        raise e
     if out[-1] == 6:
-        raise ArithmeticError('a singular matrix was encountered during the computation')
+        e = ArithmeticError('a singular matrix was encountered during the computation')
+        e.info = out[-1]
+        raise e
     rcond,X,alphar,alphai,beta,S,T = out[:-1]
     w = _np.zeros(2*n,'complex64')
     w.real = alphar[0:2*n]/beta[0:2*n]
@@ -712,7 +752,9 @@ def sb03md(n,C,A,U,dico,job='X',fact='N',trana='N',ldwork=None):
     out = _wrapper.sb03md(dico,n,C,A,U,job=job,fact=fact,trana=trana,ldwork=ldwork)
     if out[-1] < 0:
         error_text = "The following argument had an illegal value: "+arg_list[-out[-1]-1]
-        raise ValueError(error_text)
+        e = ValueError(error_text)
+        e.info = out[-1]
+        raise e
     if out[-1] == n+1:
         if dico == 'D':
             warnings.warn('The matrix A has eigenvalues that are almost reciprocal.')
@@ -759,16 +801,18 @@ def sb04md(n,m,A,B,C,ldwork=None):
     else:
         out = _wrapper.sb04md(n,m,A,B,C,ldwork=ldwork)
     if out[-1] < 0:
-         error_text = "The following argument had an illegal value:"+arg_list[-out[-1]-1]
-         raise ValueError(error_text)
+        error_text = "The following argument had an illegal value:"+arg_list[-out[-1]-1]
+        e = ValueError(error_text)
+        e.info = out[-1]
+        raise e
     if out[-1] > 0 and out[-1] <= m:
-         warn_text = """The QR algorithm failed to compute all the eigenvalues
+        warn_text = """The QR algorithm failed to compute all the eigenvalues
 (see LAPACK Library routine DGEES)"""
-         warnings.warn(warn_text)
+        warnings.warn(warn_text)
     elif out[-1] > m:
-         warn_text = """a singular matrix was encountered whilst solving
+        warn_text = """a singular matrix was encountered whilst solving
 for the %i-th column of matrix X.""" % out[-1]-m
-         warnings.warn(warn_text)
+        warnings.warn(warn_text)
     return out[2]
     
 def sb04qd(n,m,A,B,C,ldwork=None):
@@ -801,16 +845,18 @@ def sb04qd(n,m,A,B,C,ldwork=None):
     else:
         out = _wrapper.sb04qd(n,m,A,B,C,ldwork=ldwork)
     if out[-1] < 0:
-         error_text = "The following argument had an illegal value:"+arg_list[-out[-1]-1]
-         raise ValueError(error_text)
+        error_text = "The following argument had an illegal value:"+arg_list[-out[-1]-1]
+        e = ValueError(error_text)
+        e.info = out[-1]
+        raise e
     if out[-1] > 0 and out[-1] <= m:
-         warn_text = """The QR algorithm failed to compute all the eigenvalues
+        warn_text = """The QR algorithm failed to compute all the eigenvalues
 (see LAPACK Library routine DGEES)"""
-         warnings.warn(warn_text)
+        warnings.warn(warn_text)
     elif out[-1] > m:
-         warn_text = """a singular matrix was encountered whilst solving
+        warn_text = """a singular matrix was encountered whilst solving
 for the %i-th column of matrix X.""" % out[-1]-m
-         warnings.warn(warn_text)
+        warnings.warn(warn_text)
     return out[2]
 
 # to be replaced by python wrappers

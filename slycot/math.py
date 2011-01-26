@@ -59,7 +59,9 @@ def mc01td(dico,dp,p):
     out = _wrapper.mc01td(dico,dp,p)
     if out[-1] < 0:
         error_text = "The following argument had an illegal value: "+arg_list[-out[-1]-1]
-        raise ValueError(error_text)
+        e = ValueError(error_text)
+        e.info = out[-1]
+        raise e
     if out[-1] == 1:
         warings.warn('entry P(x) is the zero polynomial.')
     if out[-1] == 2:
