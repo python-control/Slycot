@@ -471,4 +471,50 @@ def ab08nd(n,m,p,A,B,C,D,equil='N',tol=0,ldwork=None):
         raise e
     return out[:-1]
     
+def ab09ad(dico,job,equil,n,m,p,a,b,c,nr=None,tol=0,ldwork=None):
+    """ nr,A_r,B_r,C_r,hsv = ab09ad(dico,job,equil,n,m,p,nr,A,B,C,[nr,tol,ldwork,overwrite_a,overwrite_b,overwrite_c]) """
+    hidden = ' (hidden by the wrapper)'
+    arg_list = ['dico', 'job', 'equil', 'ordsel', 'n', 'm', 'p', 'nr', 'A', 
+        'lda'+hidden, 'B', 'ldb'+hidden, 'C', 'ldc'+hidden, 'hsv', 'tol', 
+        'iwork'+hidden, 'dwork'+hidden, 'ldwork', 'iwarn', 'info']
+    if ldwork is None:
+        ldwork = max(1,n*(2*n+max(n,max(m,p))+5)+n*(n+1)/2)
+    if nr is None:
+        ordsel = 'A'
+        nr = 0 #order will be computed by the routine
+    else:
+        ordsel = 'F'
+    if dico != 'C' and dico != 'D':
+        raise ValueError('Parameter dico had an illegal value')
+    if job != 'B' and job != 'N':
+        raise ValueError('Parameter job had an illegal value')
+    if equil != 'S' and equil != 'N':
+        raise ValueError('Parameter equil had an illegal value')
+    out = _wrapper.ab09ad(dico,job,equil,ordsel,n,m,p,nr,a,b,c,tol,ldwork)
+    if out[-2] == 1:
+        warnings.warn("The selected order nr is greater\
+                than the order of a minimal realization of the\
+                given system. It was set automatically to a value\
+                corresponding to the order of a minimal realization\
+                of the system")
+    if out[-1] < 0:
+        error_text = "The following argument had an illegal value: "+arg_list[-out[-1]-1]
+        e = ValueError(error_text)
+        e.info = out[-1]
+        raise e
+    if out[-1] == 1:
+        e = ArithmeticError('The reduction of A to the real Schur form failed')
+        e.info = out[-1]
+        raise e
+    if out[-1] == 2:
+        e = ArithmeticError('The state matrix A is not stable or not convergent')
+        e.info = out[-1]
+        raise e
+    if out[-1] == 3:
+        e = ArithmeticError('The computation of Hankel singular values failed')
+        e.info = out[-1]
+        raise e
+    Nr,A,B,C,hsv = out[:-2]   
+    return Nr, A[:Nr,:Nr], B[:Nr,:], C[:,:Nr], hsv
+    
 # to be replaced by python wrappers
