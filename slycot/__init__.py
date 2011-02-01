@@ -1,7 +1,7 @@
 import examples
 
-# Analysis routines (5/40 wrapped)
-from analysis import ab01nd,ab05md,ab05nd,ab07nd,ab08nd
+# Analysis routines (6/40 wrapped)
+from analysis import ab01nd,ab05md,ab05nd,ab07nd,ab08nd, ab09ad
 
 # Data analysis routines (0/7 wrapped)
 
