@@ -1011,5 +1011,383 @@ for the %i-th column of matrix X.""" % out[-1]-m
         raise e
     return out[2]
 
+def sb10ad(n,m,np,ncon,nmeas,gamma,A,B,C,D,job=3,gtol=0.0,actol=0.0,liwork=None,ldwork=None):
+    """ gamma_est, Ak, Bk, Ck, Dk, Ac, Bc, Cc, Dc, rcond = sb10ad(n,m,np,ncon,nmeas,gamma,A,B,C,D,[job,gtol,actol,liwork,ldwork])
+    
+    To compute the matrices of an H-infinity optimal n-state
+    controller
 
-# to be replaced by python wrappers
+           | Ak | Bk |
+       K = |----|----|,
+           | Ck | Dk |
+
+    using modified Glover's and Doyle's 1988 formulas, for the system
+
+           | A  | B1  B2  |   | A | B |
+       P = |----|---------| = |---|---|
+           | C1 | D11 D12 |   | C | D |
+           | C2 | D21 D22 |
+
+    and for the estimated minimal possible value of gamma with respect
+    to gtol, where B2 has as column size the number of control inputs
+    (ncon) and C2 has as row size the number of measurements (nmeas)
+    being provided to the controller, and then to compute the matrices
+    of the closed-loop system
+
+           | AC | BC |
+       G = |----|----|,
+           | CC | DC |
+
+    if the stabilizing controller exists.
+
+    It is assumed that
+
+    (A1) (A,B2) is stabilizable and (C2,A) is detectable,
+
+    (A2) D12 is full column rank and D21 is full row rank,
+
+    (A3) | A-j*omega*I  B2  | has full column rank for all omega,
+         |    C1        D12 |
+
+    (A4) | A-j*omega*I  B1  |  has full row rank for all omega.
+         |    C2        D21 |
+
+    
+    Required arguments
+    ------------------
+    
+        n : int
+            The order of the system. (size of matrix A).
+        m : int
+            The column size of the matrix B.
+        np : int
+            The row size of the matrix C.
+        ncon : int
+            The number of control inputs.  m >= ncon >= 0, np-nmeas >= ncon.
+        nmeas : int
+            The number of measurements.  np >= nmeas >= 0, m-ncon >= nmeas.
+        gamma : double
+            The initial value of gamma on input.  It is assumed that gamma 
+            is sufficiently large so that the controller is admissible.  gamma >= 0.
+        A : rank-2 array('d'), shape (n,n)
+        B : rank-2 array('d'), shape (n,m)
+        C : rank-2 array('d'), shape (np,n)
+        D : rank-2 array('d'), shape (np,m)  
+        
+    Optional arguments
+    ------------------
+    
+        job := 3 int
+            Specifies the computation to be performed, as follows:
+            = 1: Use bisection method for decreasing gamma until the closed-loop 
+                system leaves stability
+            = 2: Scan from gamma to 0 trying to find the minimal gamma for which 
+                the closed-loop system retains stability
+            = 3: First bisection, then scanning.
+            = 4: Find suboptimal controller only.
+        gtol : double
+            Tolerance used for controlling the accuracy of gamma
+            and its distance to the estimated minimal possible
+            value of gamma.
+            If gtol <= 0, then a default value equal to sqrt(eps)
+            is used, where eps is the relative machine precision.
+        actol : double
+            Upper bound for the poles of the closed-loop system used for determining 
+            if it is stable.  actol <= 0 for stable systems
+        liwork : int
+            The dimension of the integer cache array.
+        ldwork : int
+            The dimension of the double cache array.
+            
+    Return objects
+    --------------
+    
+        gamma_est : double
+            The minimal estimated gamma.
+        Ak : rank-2 array('d'), shape (n,n)
+            The controller state matrix Ak.
+        Bk : rank-2 array('d') with bound s(n,nmeas)
+            The controller input matrix Bk.
+        Ck : rank-2 array('d'), shape  (ncon,n)
+            The controller output matrix Ck.
+        Dk : rank-2 array('d'), shape  (ncon,nmeas)
+            The controller input/output matrix DK.
+        Ac : rank-2 array('d'), shape  (2n,2n)
+            The closed-loop system state matrix AC.
+        Bc : rank-2 array('d'), shape  (2n,m-ncon)
+            The closed-loop system input matrix BC.
+        Cc : rank-2 array('d'), shape  (np-nmeas,2n)
+            The closed-loop system output matrix CC.
+        Dc : rank-2 array('d'), shape  (np-nmeas,m-ncon)
+            The the closed-loop system input/output matrix DC.
+        rcond : rank-1 array('d'), shape  (4)
+           For the last successful step:
+           rcond(1) contains the reciprocal condition number of the
+                control transformation matrix;
+           rcond(2) contains the reciprocal condition number of the
+                measurement transformation matrix;
+           rcond(3) contains an estimate of the reciprocal condition
+                number of the X-Riccati equation;
+           rcond(4) contains an estimate of the reciprocal condition
+                number of the Y-Riccati equation.
+        
+    Raises
+    ------
+    
+        ValueError : e
+            e.info contains information about the exact type of exception
+             < 0:  if info = -i, the i-th argument had an illegal
+                   value;
+             = 1:  if the matrix | A-j*omega*I  B2  | had not full
+                                 |    C1        D12 |
+                   column rank in respect to the tolerance eps;
+             = 2:  if the matrix | A-j*omega*I  B1  |  had not full row
+                                 |    C2        D21 |
+                   rank in respect to the tolerance eps;
+             = 3:  if the matrix D12 had not full column rank in
+                   respect to the tolerance SQRT(eps);
+             = 4:  if the matrix D21 had not full row rank in respect
+                   to the tolerance SQRT(eps);
+             = 5:  if the singular value decomposition (SVD) algorithm
+                   did not converge (when computing the SVD of one of
+                   the matrices |A   B2 |, |A   B1 |, D12 or D21);
+                                |C1  D12|  |C2  D21|
+             = 6:  if the controller is not admissible (too small value
+                   of gamma);
+             = 7:  if the X-Riccati equation was not solved
+                   successfully (the controller is not admissible or
+                   there are numerical difficulties);
+             = 8:  if the Y-Riccati equation was not solved
+                   successfully (the controller is not admissible or
+                   there are numerical difficulties);
+             = 9:  if the determinant of Im2 + Tu*D11HAT*Ty*D22 is
+                   zero [3];
+             = 10: if there are numerical problems when estimating
+                   singular values of D1111, D1112, D1111', D1121';
+             = 11: if the matrices Inp2 - D22*DK or Im2 - DK*D22
+                   are singular to working precision;
+             = 12: if a stabilizing controller cannot be found.
+
+    """
+    hidden = ' (hidden by the wrapper)'
+    arg_list = ['job', 'n', 'm', 'np', 'ncon', 'nmeas', 'gamma', 
+        'A', 'LDA'+hidden, 'B', 'LDB'+hidden, 'C', 'LDC'+hidden, 
+        'D', 'LDD'+hidden, 'AK', 'LDAK'+hidden, 'BK', 'LDBK'+hidden, 
+        'CK', 'LDCK'+hidden, 'DK', 'LDDK'+hidden, 'AC', 'LDAC'+hidden, 
+        'BC', 'LDBC'+hidden, 'CC', 'LDCC'+hidden, 'DC', 'LDDC'+hidden, 
+        'rcond', 'gtol', 'actol', 'IWORK'+hidden, 'liwork', 
+        'DWORK'+hidden, 'ldwork', 'BWORK'+hidden, 'LBWORK'+hidden, 'info']
+    if liwork is None:
+        liwork = max(2*max(n,m-ncon,np-nmeas,ncon,nmeas),n*n)
+    if ldwork is None:
+        m2 = ncon
+        np2 = nmeas
+        m1 = m - m2
+        np1 = np - np2
+        nd1 = np1 - m2
+        nd2 = m1 - np2
+        LW1 = n*m + np*n + np*m + m2*m2 + np2*np2
+        LW2 = max((n + np1 + 1)*(n + m2) + max(3*(n + m2) + n + np1, 5*(n + m2)),\
+            (n + np2)*(n + m1 + 1) + max(3*(n + np2) + n + m1, 5*(n + np2)),\
+            m2 + np1*np1 + max(np1*max(n, m1), 3*m2 + np1, 5*m2),\
+            np2 + m1*m1 + max(max(n, np1)*m1, 3*np2 + m1, 5*np2))
+        LW3 = max(nd1*m1 + max(4*min(nd1, m1) + max(nd1, m1), 6*min(nd1, m1)),\
+            np1*nd2 + max(4*min(np1, nd2) + max(np1, nd2), 6*min(np1, nd2)))
+        LW4 = 2*m*m + np*np + 2*m*n + m*np + 2*n*np
+        LW5 = 2*n*n + m*n + n*np
+        LW6 = max(m*m + max(2*m1, 3*n*n + max(n*m, 10*n*n + 12*n + 5)),\
+            np*np + max(2*np1, 3*n*n + max(n*np, 10*n*n + 12*n +5)))
+        LW7 = m2*np2 + np2*np2 + m2*m2 + max(nd1*nd1 + max(2*nd1, (nd1 + nd2)*np2),\
+            nd2*nd2 + max(2*nd2, nd2*m2), 3*n, n*(2*np2 + m2) +\
+            max(2*n*m2, m2*np2 + max(m2*m2 + 3*m2, np2*(2*np2 + m2 + max(np2, n))))) 
+        ldwork = LW1 + max(1, LW2, LW3, LW4, LW5 + max(LW6,LW7))
+    out = _wrapper.sb10ad(job,n,m,np,ncon,nmeas,gamma,A,B,C,D,gtol,actol,liwork,ldwork)
+    
+    if out[-1] != 0:
+        if out[-1] < 0: 
+            error_text = "The following argument had an illegal value: "\
+                +arg_list[-out[-1]-1]
+        if out[-1] == 1:
+            error_text = "The matrix [A-j*omega*I,  B2 ; C1,  D12] does not\
+                have full column rank with respect to the tolerance eps."
+        if out[-1] == 2:
+            error_text = "The matrix [A-j*omega*I,  B1 ; C2,  D21] does not\
+                have full row rank with respect to the tolerance eps."
+        if out[-1] == 3: 
+            error_text = "The matrix D12 does not have full column rank with\
+                respect to tolerance sqrt(eps)."
+        if out[-1] == 4: 
+            error_text = "The matrix D21 does not have full column rank with\
+                respect to tolerance sqrt(eps)."
+        if out[-1] == 5:
+            error_text = "The singular value decomposition (SVD) algorithm did\
+                not converge (when computing the SVD of one of the matrices\
+                [A,  B2; C1,  D12], [A,  B1; C2,  D21] , D12 or D21."
+        if out[-1] == 6:
+            error_text = "The controller is not admissible (too small value of\
+                gamma)."
+        if out[-1] == 7:
+            error_text = "The X-Riccati equation was not solved successfully\
+                (the controller is not admissible or there are numerical\
+                difficulties)."
+        if out[-1] == 8:
+            error_text = "The Y-Riccati equation was not solved successfully\
+                (the controller is not admissible or there are numerical\
+                difficulties)."
+        if out[-1] == 9: 
+            error_text = "The determinant of Im2 + Tu*D11Hat*Ty*D22 is zero,\
+                see ref [3] in SLICOT doc."
+        if out[-1] == 10:
+            error_text = "There are numerical problems when estimating singular\
+                values of D1111, D1112, D1111', D1121'."
+        if out[-1] == 11:
+            error_text = "The matrices Inp2 - D22*DK or Im2 - DK*D22 are singular\
+                to working precision."
+        if out[-1] == 12:
+            error_text = "A stabilizing controller cannot be found."
+        e = ValueError(error_text)
+        e.info = out[-1]
+        raise e
+
+    return out[:-1]
+
+def sb10hd(n,m,np,ncon,nmeas,A,B,C,D,tol=0.0,ldwork=None):
+    """ Ak, Bk, Ck, Dk, rcond = sb10hd(n,m,np,ncon,nmeas,a,b,c,d,[tol,ldwork])
+    
+    To compute the matrices of the H2 optimal n-state controller
+
+           | AK | BK |
+       K = |----|----|
+           | CK | DK |
+
+    for the system
+
+                | A  | B1  B2  |   | A | B |
+            P = |----|---------| = |---|---| ,
+                | C1 |  0  D12 |   | C | D |
+                | C2 | D21 D22 |
+
+    where B2 has as column size the number of control inputs (ncon)
+    and C2 has as row size the number of measurements (nmeas) being
+    provided to the controller.
+
+    It is assumed that
+
+    (A1) (A,B2) is stabilizable and (C2,A) is detectable,
+
+    (A2) The block D11 of D is zero,
+
+    (A3) D12 is full column rank and D21 is full row rank.
+
+    Required arguments
+    ------------------
+    
+        n : int
+            The order of the system. (size of matrix A).
+        m : int
+            The column size of the matrix B
+        np : int
+            The row size of the matrix C
+        ncon : int
+            The number of control inputs.  m >= ncon >= 0, np-nmeas >= ncon.
+        nmeas : int
+            The number of measurements.  np >= nmeas >= 0, m-ncon >= nmeas.
+        A : rank-2 array('d'), shape (n,n)
+        B : rank-2 array('d'), shape (n,m)
+        C : rank-2 array('d'), shape (np,n)
+        D : rank-2 array('d'), shape (np,m)      
+    
+    Optional arguments
+    ------------------
+    
+        tol : double
+            Tolerance used for controlling the accuracy of the applied
+            transformations for computing the normalized form in
+            SLICOT Library routine SB10UD. Transformation matrices
+            whose reciprocal condition numbers are less than tol are
+            not allowed. If tol <= 0, then a default value equal to
+            sqrt(eps) is used, where eps is the relative machine
+            precision.
+        ldwork : int
+            The dimension of the cache array.
+    
+    Return objects
+    --------------
+    
+        Ak : rank-2 array('d'), shape (n,n)
+            The controller state matrix Ak.
+        Bk : rank-2 array('d'), shape (n,nmeas)
+            The controller input matrix Bk.
+        Ck : rank-2 array('d'), shape (ncon,n)
+            The controller output matrix Ck.
+        Dk : rank-2 array('d'), shape (ncon,nmeas)
+            The controller input/output matrix Dk.
+        rcond : rank-1 array('d'), shape (4)
+           For the last successful step:
+           rcond(1) contains the reciprocal condition number of the
+                control transformation matrix;
+           rcond(2) contains the reciprocal condition number of the
+                measurement transformation matrix;
+           rcond(3) contains an estimate of the reciprocal condition
+                number of the X-Riccati equation;
+           rcond(4) contains an estimate of the reciprocal condition
+                number of the Y-Riccati equation.
+    
+    Raises
+    ------
+
+        ValueError : e
+            e.info contains information about the exact type of exception
+             < 0:  if info = -i, the i-th argument had an illegal
+                   value;
+             = 1:  if the matrix D12 had not full column rank in
+                   respect to the tolerance tol;
+             = 2:  if the matrix D21 had not full row rank in respect
+                   to the tolerance tol;
+             = 3:  if the singular value decomposition (SVD) algorithm
+                   did not converge (when computing the SVD of one of
+                   the matrices D12 or D21).
+             = 4:  if the X-Riccati equation was not solved
+                   successfully;
+             = 5:  if the Y-Riccati equation was not solved
+                   successfully.
+    """
+    
+    hidden = ' (hidden by the wrapper)'
+    arg_list = ['n', 'm', 'np', 'ncon', 'nmeas', 'A', 'LDA'+hidden, 
+        'B', 'LDB'+hidden, 'C', 'LDC'+hidden, 'D', 'LDD'+hidden, 'Ak', 
+        'LDAK'+hidden, 'Bk', 'LDBK'+hidden, 'Ck', 'LDCK'+hidden, 'Dk', 
+        'LDDK'+hidden, 'rcond', 'tol', 'IWORK'+hidden, 'DWORK'+hidden, 
+        'LDWORK', 'BWORK'+hidden, 'INFO'] 
+    if ldwork is None:
+        Q = max(m-ncon,ncon,np-nmeas,nmeas)
+        ldwork = 2*Q*(3*Q+2*n)+max(1,Q*(Q+max(n,5)+1),n*(14*n+12+2*Q)+5)
+    out = _wrapper.sb10hd(n,m,np,ncon,nmeas,A,B,C,D,tol,ldwork)
+    
+    if out[-1] != 0:
+        if out[-1] < 0: 
+            error_text = "The following argument had an illegal value: "\
+                +arg_list[-out[-1]-1]
+        if out[-1] == 1:
+            error_text = "The matrix D12 does not have full column rank with\
+                respect to the tolerance tol."
+        if out[-1] == 2:
+            error_text = "The matrix D21 does not have full row rank with\
+                respect to the tolerance tol."
+        if out[-1] == 3:
+            error_text = "The singular value decomposition (SVD) algorithm\
+                did not converge (when computing the SVD of one of the matrices\
+                D12 or D21.)"
+        if out[-1] == 4:
+            error_text = "The X-Riccati equation was not solved successfully\
+                (the controller is not admissible or there are numerical difficulties)."
+        if out[-1] == 5:
+            error_text = "The Y-Riccati equation was not solved successfully\
+                (the controller is not admissible or there are numerical\
+                difficulties)."
+        e = ValueError(error_text)
+        e.info = out[-1]
+        raise e
+
+    return out[:-1]
+
