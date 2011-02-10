@@ -99,6 +99,29 @@ def sb01bd(n,m,np,alpha,A,B,w,dico,tol=0.0,ldwork=None):
             The orthogonal matrix Z which reduces the closed-loop system state 
             matrix A + B*F to upper real Schur form.
             
+    Raises
+    ------
+
+        ValueError : e
+            e.info contains information about the exact type of exception
+             < 0:  if info = -i, the i-th argument had an illegal value;
+             = 1:  the reduction of A to a real Schur form failed;
+             = 2:  a failure was detected during the ordering of the
+                real Schur form of A, or in the iterative process
+                for reordering the eigenvalues of Z'*(A + B*F)*Z
+                along the diagonal.
+             = 3:  the number of eigenvalues to be assigned is less
+                than the number of possibly assignable eigenvalues;
+                nap eigenvalues have been properly assigned,
+                but some assignable eigenvalues remain unmodified.
+             = 4:  an attempt is made to place a complex conjugate
+                pair on the location of a real eigenvalue. This
+                situation can only appear when n-nfp is odd,
+                np > n-nfp-nup is even, and for the last real
+                eigenvalue to be modified there exists no available
+                real eigenvalue to be assigned. However, nap
+                eigenvalues have been already properly assigned.
+        
     Example
     -------
     
@@ -128,21 +151,25 @@ def sb01bd(n,m,np,alpha,A,B,w,dico,tol=0.0,ldwork=None):
         e.info = info
         raise e
     if info == 1:
-        e = ArithmeticError('the reduction of A to a real Schur form failed')
+        e = ValueError('the reduction of A to a real Schur form failed')
         e.info = info
         raise e
     if info == 2:
-        e = ArithmeticError('a failure was detected during the ordering of eigenvalues')
+        e = ValueError('a failure was detected during the ordering of eigenvalues')
         e.info = info
         raise e
     if info == 3:
-        e = ArithmeticError('the number of eigenvalues to be assigned is less than the number of possibly assignable eigenvalues')
+        e = ValueError('the number of eigenvalues to be assigned is less than the number of possibly assignable eigenvalues')
         e.info = info
         raise e
     if info == 4:
-        warnings.warn('an attempt was made to place a complex conjugate pair on the location of a real eigenvalue')
+        e = ValueError('an attempt was made to place a complex conjugate pair on the location of a real eigenvalue')
+        e.info = info
+        raise e
     if warn != 0:
-        warnings.warn('%i violations of the numerical stability condition occured during the assignment of eigenvalues' % warn)
+        e = ValueError('%i violations of the numerical stability condition occured during the assignment of eigenvalues' % warn)
+        e.info = info
+        raise e
     # put togheter wr and wi into a complex array of eigenvalues
     w = _np.zeros(np,'complex64')
     w.real = wr[0:np]
@@ -259,6 +286,25 @@ def sb02md(n,A,G,Q,dico,hinv='D',uplo='U',scal='N',sort='S',ldwork=None):
         A_inv : rank-2 array('d'), shape (n,n)
             The inverse of A if dico = 'D' or a copy of A itself otherwise.
             
+    Raises
+    ------
+
+        ValueError : e
+            e.info contains information about the exact type of exception
+             < 0:  if info = -i, the i-th argument had an illegal value;
+             = 1:  if matrix A is (numerically) singular in discrete-
+                time case;
+             = 2:  if the Hamiltonian or symplectic matrix H cannot be
+                reduced to real Schur form;
+             = 3:  if the real Schur form of the Hamiltonian or
+                symplectic matrix H cannot be appropriately ordered;
+             = 4:  if the Hamiltonian or symplectic matrix H has less
+                than n stable eigenvalues;
+             = 5:  if the n-th order system of linear algebraic
+                equations, from which the solution matrix X would
+                be obtained, is singular to working precision.
+    
+            
         Example
         -------
         
@@ -289,23 +335,23 @@ def sb02md(n,A,G,Q,dico,hinv='D',uplo='U',scal='N',sort='S',ldwork=None):
         e.info = info
         raise e
     if info == 1:
-        e = ArithmeticError('matrix A is (numerically) singular in discrete-time case')
+        e = ValueError('matrix A is (numerically) singular in discrete-time case')
         e.info = info
         raise e
     if info == 2:
-        e = ArithmeticError('the Hamiltonian or symplectic matrix H cannot be reduced to real Schur form')
+        e = ValueError('the Hamiltonian or symplectic matrix H cannot be reduced to real Schur form')
         e.info = info
         raise e
     if info == 3:
-        e = ArithmeticError('the real Schur form of the Hamiltonian or symplectic matrix H cannot be appropriately ordered')
+        e = ValueError('the real Schur form of the Hamiltonian or symplectic matrix H cannot be appropriately ordered')
         e.info = info
         raise e
     if info == 4:
-        e = ArithmeticError('the Hamiltonian or symplectic matrix H has less than n stable eigenvalues')
+        e = ValueError('the Hamiltonian or symplectic matrix H has less than n stable eigenvalues')
         e.info = info
         raise e
     if info == 5:
-        e = ArithmeticError('if the N-th order system of linear algebraic equations is singular to working precision')
+        e = ValueError('if the N-th order system of linear algebraic equations is singular to working precision')
         e.info = info
         raise e
     w = _np.zeros(2*n,'complex64')
@@ -419,6 +465,18 @@ def sb02mt(n,m,B,R,A=None,Q=None,L=None,fact='N',jobl='Z',uplo='U',ldwork=None):
         G : rank-2 array('d'), shape (n,n)
             The upper/lower triangular part of this array contains the corresponding 
             triangular part of the matrix G.
+            
+    Raises
+    ------
+
+        ValueError : e
+            e.info contains information about the exact type of exception
+             < 0:  if info = -i, the i-th argument had an illegal value;
+             = i:  if the i-th element (1 <= i <= m) of the d factor is
+                exactly zero; the UdU' (or LdL') factorization has
+                been completed, but the block diagonal matrix d is
+                exactly singular;
+             = m+1:  if the matrix R is numerically singular.
     """
     hidden = ' (hidden by the wrapper)'
     arg_list = ['JOBG'+hidden, 'jobl', 'fact', 'uplo', 'n', 'm', 'A', 
@@ -450,11 +508,11 @@ def sb02mt(n,m,B,R,A=None,Q=None,L=None,fact='N',jobl='Z',uplo='U',ldwork=None):
         e.info = out[-1]
         raise e
     if out[-1] > 0 and out[-1] <= m:
-        e = ArithmeticError('the %i-th elemend of d in the UdU (LdL) factorization is zero.'%out[-1])
+        e = ValueError('the %i-th elemend of d in the UdU (LdL) factorization is zero.'%out[-1])
         e.info = out[-1]
         raise e
     if out[-1] == m+1:
-        e = ArithmeticError('matrix R is numerically singular.')
+        e = ValueError('matrix R is numerically singular.')
         e.info = out[-1]
         raise e
     return out[:-1]
@@ -578,7 +636,27 @@ def sb02od(n,m,A,B,Q,R,dico,p=None,L=None,fact='N',uplo='U',sort='S',tol=0.0,ldw
         T : rank-2 array('d'), shape (2*n+m+1,2 * n)
             This array contains the ordered upper triangular form T of the second 
             matrix in the reduced matrix pencil associated to the optimal problem.
-            
+
+    Raises
+    ------
+
+        ValueError : e
+            e.info contains information about the exact type of exception
+             < 0:  if info = -i, the i-th argument had an illegal value;
+             = 1:  if the computed extended matrix pencil is singular,
+                possibly due to rounding errors;
+             = 2:  if the QZ (or QR) algorithm failed;
+             = 3:  if reordering of the (generalized) eigenvalues failed;
+             = 4:  if after reordering, roundoff changed values of
+                some complex eigenvalues so that leading eigenvalues
+                in the (generalized) Schur form no longer satisfy
+                the stability condition; this could also be caused
+                due to scaling;
+             = 5:  if the computed dimension of the solution does not
+                equal n;
+             = 6:  if a singular matrix was encountered during the
+                computation of the solution matrix X.
+
     Example
     -------
     
@@ -630,27 +708,27 @@ def sb02od(n,m,A,B,Q,R,dico,p=None,L=None,fact='N',uplo='U',sort='S',tol=0.0,ldw
         e.info = info
         raise e
     if out[-1] == 1:
-        e = ArithmeticError('the computed extended matrix pencil is singular, possibly due to rounding errors')
+        e = ValueError('the computed extended matrix pencil is singular, possibly due to rounding errors')
         e.info = out[-1]
         raise e
     if out[-1] == 2:
-        e = ArithmeticError('the QZ (or QR) algorithm failed')  
+        e = ValueError('the QZ (or QR) algorithm failed')  
         e.info = out[-1]
         raise e
     if out[-1] == 3:
-        e = ArithmeticError('reordering of the (generalized) eigenvalues failed')
+        e = ValueError('reordering of the (generalized) eigenvalues failed')
         e.info = out[-1]
         raise e
     if out[-1] == 4:
-        e = ArithmeticError('stability condition failed due to roudoff errors')
+        e = ValueError('stability condition failed due to roudoff errors')
         e.info = out[-1]
         raise e
     if out[-1] == 5:
-        e = ArithmeticError('the computed dimension of the solution does not equal N') 
+        e = ValueError('the computed dimension of the solution does not equal N') 
         e.info = out[-1]
         raise e
     if out[-1] == 6:
-        e = ArithmeticError('a singular matrix was encountered during the computation')
+        e = ValueError('a singular matrix was encountered during the computation')
         e.info = out[-1]
         raise e
     rcond,X,alphar,alphai,beta,S,T = out[:-1]
@@ -676,13 +754,15 @@ def sb03md(n,C,A,U,dico,job='X',fact='N',trana='N',ldwork=None):
     hand side C and the solution X are n-by-n, and scale is an output
     scale factor, set less than or equal to 1 to avoid overflow in X.
     
-    Required arguments:
+    Required arguments
+    ------------------
+    
         n : input int
             The order of the matrices A, X, and C.  n > 0.
-        C : input rank-2 array('d') with bounds (n,n)
+        C : input rank-2 array('d'), shape  (n,n)
             If job = 'X' or 'B', the leading n-by-n part of this array must 
             contain the symmetric matrix C. If job = 'S', C is not referenced.
-        A : input rank-2 array('d') with bounds (n,n)
+        A : input rank-2 array('d'), shape  (n,n)
             On entry, the leading n-by-n part of this array must contain the 
             matrix A. If fact = 'F', then A contains an upper quasi-triangular 
             matrix in Schur canonical form; the elements below the upper 
@@ -691,7 +771,7 @@ def sb03md(n,C,A,U,dico,job='X',fact='N',trana='N',ldwork=None):
             contains the upper quasi-triangular matrix in Schur canonical form 
             from the Schur factorization of A. The contents of array A is not
             modified if fact = 'F'.
-        U : input rank-2 array('d') with bounds (n,n)
+        U : input rank-2 array('d'), shape  (n,n)
             If fact = 'F', then U is an input argument and on entry the leading 
             n-by-n part of this array must contain the orthogonal matrix U of 
             the real Schur factorization of A.
@@ -701,7 +781,10 @@ def sb03md(n,C,A,U,dico,job='X',fact='N',trana='N',ldwork=None):
             Specifies the equation from which X is to be determined as follows:
             = 'C':  Equation (1), continuous-time case;
             = 'D':  Equation (2), discrete-time case.
-    Optional arguments:
+    
+    Optional arguments
+    ------------------
+    
         job := 'X' input string(len=1)
             Specifies the computation to be performed, as follows:
             = 'X':  Compute the solution only;
@@ -722,8 +805,11 @@ def sb03md(n,C,A,U,dico,job='X',fact='N',trana='N',ldwork=None):
         ldwork := None input int
             The length of the cache array. The default value is max(2*n*n,3*n),
             for optimum performance it should be larger.
-    Return objects:
-        X : rank-2 array('d') with bounds (n,n)
+            
+    Return objects
+    --------------
+    
+        X : rank-2 array('d'), shape  (n,n)
             If job = 'X' or 'B', the leading n-by-n part contains the symmetric 
             solution matrix.
         scale : float
@@ -738,8 +824,27 @@ def sb03md(n,C,A,U,dico,job='X',fact='N',trana='N',ldwork=None):
             the solution X. If X_true is the true solution, ferr bounds the 
             relative error in the computed solution, measured in the Frobenius
             norm:  norm(X - X_true)/norm(X_true).
-        w : rank-1 array('c') with bounds (n)
+        w : rank-1 array('c'), shape  (n)
             If fact = 'N', this array contain the eigenvalues of A.
+            
+    Raises
+    ------
+
+        ValueError : e
+            e.info contains information about the exact type of exception
+             < 0:  if info = -i, the i-th argument had an illegal value;
+             > 0:  if info = i, the QR algorithm failed to compute all
+                the eigenvalues (see LAPACK Library routine DGEES);
+                elements i+1:n of w contain eigenvalues which have converged, 
+                and A contains the partially converged Schur form;
+             = N+1:  if dico = 'C', and the matrices A and -A' have
+                common or very close eigenvalues, or
+                if dico = 'D', and matrix A has almost reciprocal
+                eigenvalues (that is, lambda(i) = 1/lambda(j) for
+                some i and j, where lambda(i) and lambda(j) are
+                eigenvalues of A and i <> j); perturbed values were
+                used to solve the equation (but the matrix A is
+                unchanged).
     """
     hidden = ' (hidden by the wrapper)'
     arg_list = ['dico', 'job', 'fact', 'trana', 'n', 'A', 'LDA'+hidden, 'U', 
@@ -757,16 +862,21 @@ def sb03md(n,C,A,U,dico,job='X',fact='N',trana='N',ldwork=None):
         raise e
     if out[-1] == n+1:
         if dico == 'D':
-            warnings.warn('The matrix A has eigenvalues that are almost reciprocal.')
+            error_text = 'The matrix A has eigenvalues that are almost reciprocal.'
         else:
-            warnings.warn('The matrix A and -A have common or very close eigenvalues.')
+            error_text = 'The matrix A and -A have common or very close eigenvalues.'
+        e = ValueError(error_text)
+        e.info = out[-1]
+        raise e
     else:
         if out[-1] > 0:
-            warn_text = """The QR algorithm failed to compute all the eigenvalues 
+            error_text = """The QR algorithm failed to compute all the eigenvalues 
 (see LAPACK Library routine DGEES); elements %i:%i of w contains 
 eigenvalues which have converged, A contains the partially 
 converged Shur form'""" %(out[-1],n) # not sure about the indenting here
-            warnings.warn(warn_text)
+            e = ValueError(error_text)
+            e.info = out[-1]
+            raise e
     X,scale,sep,ferr,wr,wi = out[:-1]
     w = _np.zeros(n,'complex64')
     w.real = wr[0:n]
@@ -783,14 +893,31 @@ def sb04md(n,m,A,B,C,ldwork=None):
     where A, B, C and X are general n-by-n, m-by-m, n-by-m and
     n-by-m matrices respectively.
      
-    Required arguments:
+    Required arguments
+    ------------------
+    
         n : input int
         m : input int
-        A : input rank-2 array('d') with bounds (n,n)
-        B : input rank-2 array('d') with bounds (m,m)
-        C : input rank-2 array('d') with bounds (n,m)
-    Return objects:
-        X : rank-2 array('d') with bounds (n,m)
+        A : input rank-2 array('d'), shape  (n,n)
+        B : input rank-2 array('d'), shape  (m,m)
+        C : input rank-2 array('d'), shape  (n,m)
+    
+    Return objects
+    --------------
+    
+        X : rank-2 array('d'), shape  (n,m)
+    
+    Raises
+    ------
+
+        ValueError : e
+            e.info contains information about the exact type of exception
+             < 0:  if info = -i, the i-th argument had an illegal value;
+             > 0:  if info = i, 1 <= i <= m, the QR algorithm failed to
+                compute all the eigenvalues of B (see LAPACK Library
+                routine DGEES)
+             > m:  if a singular matrix was encountered whilst solving
+                for the (info-m)-th column of matrix X.
     """
     hidden = ' (hidden by the wrapper)'
     arg_list = ['n', 'm', 'A', 'LDA'+hidden,  'B', 'LDB'+hidden, 'C', 
@@ -806,13 +933,17 @@ def sb04md(n,m,A,B,C,ldwork=None):
         e.info = out[-1]
         raise e
     if out[-1] > 0 and out[-1] <= m:
-        warn_text = """The QR algorithm failed to compute all the eigenvalues
+        error_text = """The QR algorithm failed to compute all the eigenvalues
 (see LAPACK Library routine DGEES)"""
-        warnings.warn(warn_text)
+        e = ValueError(error_text)
+        e.info = out[-1]
+        raise e
     elif out[-1] > m:
-        warn_text = """a singular matrix was encountered whilst solving
+        error_text = """a singular matrix was encountered whilst solving
 for the %i-th column of matrix X.""" % out[-1]-m
-        warnings.warn(warn_text)
+        e = ValueError(error_text)
+        e.info = out[-1]
+        raise e
     return out[2]
     
 def sb04qd(n,m,A,B,C,ldwork=None):
@@ -827,14 +958,31 @@ def sb04qd(n,m,A,B,C,ldwork=None):
     reduces A to upper Hessenberg form, H = U'AU, and B' to real
     Schur form, S = Z'B'Z (with U, Z orthogonal matrices), is used.
      
-    Required arguments:
+    Required arguments
+    ------------------
+    
         n : input int
         m : input int
-        A : input rank-2 array('d') with bounds (n,n)
-        B : input rank-2 array('d') with bounds (m,m)
-        C : input rank-2 array('d') with bounds (n,m)
-    Return objects:
-        X : rank-2 array('d') with bounds (n,m)
+        A : input rank-2 array('d'), shape  (n,n)
+        B : input rank-2 array('d'), shape  (m,m)
+        C : input rank-2 array('d'), shape  (n,m)
+    
+    Return objects
+    --------------
+    
+        X : rank-2 array('d'), shape  (n,m)
+    
+    Raises
+    ------
+
+        ValueError : e
+            e.info contains information about the exact type of exception
+             < 0:  if info = -i, the i-th argument had an illegal value
+             > 0:  if info = i, 1 <= i <= m, the QR algorithm failed to
+                compute all the eigenvalues of B (see LAPACK Library
+                routine DGEES)
+             > m:  if a singular matrix was encountered whilst solving
+                for the (info-m)-th column of matrix X.
     """
     hidden = ' (hidden by the wrapper)'
     arg_list = ['n', 'm', 'A', 'LDA'+hidden,  'B', 'LDB'+hidden, 'C', 
@@ -850,13 +998,18 @@ def sb04qd(n,m,A,B,C,ldwork=None):
         e.info = out[-1]
         raise e
     if out[-1] > 0 and out[-1] <= m:
-        warn_text = """The QR algorithm failed to compute all the eigenvalues
+        error_text = """The QR algorithm failed to compute all the eigenvalues
 (see LAPACK Library routine DGEES)"""
-        warnings.warn(warn_text)
+        e = ValueError(error_text)
+        e.info = out[-1]
+        raise e
     elif out[-1] > m:
-        warn_text = """a singular matrix was encountered whilst solving
+        error_text = """a singular matrix was encountered whilst solving
 for the %i-th column of matrix X.""" % out[-1]-m
-        warnings.warn(warn_text)
+        e = ValueError(error_text)
+        e.info = out[-1]
+        raise e
     return out[2]
+
 
 # to be replaced by python wrappers
