@@ -104,8 +104,8 @@ def tb01id(n,m,p,maxred,a,b,c,job='A'):
     return out[:-1]
 
 def tb03ad(n,m,p,A,B,C,D,leri,equil='N',tol=0.0,ldwork=None):
-	""" A_min,b_min,C_min,nr,index,pcoeff,qcoeff,vcoeff = tb03ad_l(n,m,p,A,B,C,D,leri,[equil,tol,ldwork])
-	
+    """ A_min,b_min,C_min,nr,index,pcoeff,qcoeff,vcoeff = tb03ad_l(n,m,p,A,B,C,D,leri,[equil,tol,ldwork])
+    
     To find a relatively prime left or right polynomial matrix representation
     with the same transfer matrix as that of a given state-space representation, 
     i.e. if leri = 'L'
@@ -203,16 +203,16 @@ def tb03ad(n,m,p,A,B,C,D,leri,equil='N',tol=0.0,ldwork=None):
             The leading porm-by-nr-by-kpcoef part of this array contains 
             the coefficients of the intermediate matrix V(s). 
             vcoeff(i,j,k) is defined as for pcoeff(i,j,k).
-	"""
-	hidden = ' (hidden by the wrapper)'
-	arg_list = ['leri', 'equil', 'n', 'm', 'P', 'A', 'LDA'+hidden, 'B', 
-	    'LDB'+hidden, 'C', 'LDC'+hidden, 'D', 'LDD'+hidden, 'nr', 'index', 
-	    'pcoeff', 'LDPCO1'+hidden, 'LDPCO2'+hidden, 'qcoeff', 'LDQCO1'+hidden, 
-	    'LDQCO2'+hidden, 'vcoeff', 'LDVCO1'+hidden, 'LDVCO2'+hidden, 'tol', 
-	    'IWORK'+hidden, 'DWORK'+hidden, 'ldwork', 'INFO'+hidden]
-	if leri == 'L':
-	    if ldwork is None:
-		    ldwork = max( 2*n + 3*max(m,p), p*(p+2))
+    """
+    hidden = ' (hidden by the wrapper)'
+    arg_list = ['leri', 'equil', 'n', 'm', 'P', 'A', 'LDA'+hidden, 'B', 
+        'LDB'+hidden, 'C', 'LDC'+hidden, 'D', 'LDD'+hidden, 'nr', 'index', 
+        'pcoeff', 'LDPCO1'+hidden, 'LDPCO2'+hidden, 'qcoeff', 'LDQCO1'+hidden, 
+        'LDQCO2'+hidden, 'vcoeff', 'LDVCO1'+hidden, 'LDVCO2'+hidden, 'tol', 
+        'IWORK'+hidden, 'DWORK'+hidden, 'ldwork', 'INFO'+hidden]
+    if leri == 'L':
+        if ldwork is None:
+            ldwork = max( 2*n + 3*max(m,p), p*(p+2))
         out = _wrapper.tb03ad_l(n,m,p,A,B,C,D,equil=equil,tol=tol,ldwork=ldwork)
         if out[-1] < 0:
             error_text = "The following argument had an illegal value: "+arg_list[-out[-1]-1]
@@ -224,9 +224,9 @@ def tb03ad(n,m,p,A,B,C,D,leri,equil='N',tol=0.0,ldwork=None):
             e.info = out[-1]
             raise e
         return out[:-1]
-	if leri == 'R':
-		if ldwork is None:
-		    ldwork = max( 2*n + 3*max(m,p), m*(m+2))
+    if leri == 'R':
+        if ldwork is None:
+            ldwork = max( 2*n + 3*max(m,p), m*(m+2))
         out = _wrapper.tb03ad_r(n,m,p,A,B,C,D,equil=equil,tol=tol,ldwork=ldwork)
         if out[-1] < 0:
             error_text = "The following argument had an illegal value: "+arg_list[-out[-1]-1]
@@ -238,7 +238,7 @@ def tb03ad(n,m,p,A,B,C,D,leri,equil='N',tol=0.0,ldwork=None):
             e.info = out[-1]
             raise e
         return out[:-1]
-	raise ValueError('leri must be either L or R')
+    raise ValueError('leri must be either L or R')
 
 def tc04ad(m,p,index,pcoeff,qcoeff,leri,ldwork=None):
     """ n,rcond,a,b,c,d = tc04ad_l(m,p,index,pcoeff,qcoeff,leri,[ldwork])
@@ -347,38 +347,38 @@ def tc04ad(m,p,index,pcoeff,qcoeff,leri,ldwork=None):
             e.info = out[-1]
             raise e
         return out[:-1]
-	raise ValueError('leri must be either L or R')
-	
+    raise ValueError('leri must be either L or R')
+    
 def tc01od(m,p,indlin,pcoeff,qcoeff,leri):
-	""" pcoeff,qcoeff = tc01od_l(m,p,indlim,pcoeff,qcoeff,leri)
-	
-	To find the dual right (left) polynomial matrix representation of a given 
-	left (right) polynomial matrix representation, where the right and left 
-	polynomial matrix representations are of the form Q(s)*inv(P(s)) and 
-	inv(P(s))*Q(s) respectively.
-	
-	Required arguments:
-	    m : input int
-	        The number of system inputs.  m > 0.
-	    p : input int
-	        The number of system outputs.  p > 0.
-	    indlim : input int
-	        The highest value of k for which pcoeff(.,.,k) and qcoeff(.,.,k) 
-	        are to be transposed.
+    """ pcoeff,qcoeff = tc01od_l(m,p,indlim,pcoeff,qcoeff,leri)
+    
+    To find the dual right (left) polynomial matrix representation of a given 
+    left (right) polynomial matrix representation, where the right and left 
+    polynomial matrix representations are of the form Q(s)*inv(P(s)) and 
+    inv(P(s))*Q(s) respectively.
+    
+    Required arguments:
+        m : input int
+            The number of system inputs.  m > 0.
+        p : input int
+            The number of system outputs.  p > 0.
+        indlim : input int
+            The highest value of k for which pcoeff(.,.,k) and qcoeff(.,.,k) 
+            are to be transposed.
             k = kpcoef + 1, where kpcoef is the maximum degree of the polynomials 
             in P(s).  indlim > 0.
-	    pcoeff : input rank-3 array('d') with bounds (p,p,indlim) or (m,m,indlim)
+        pcoeff : input rank-3 array('d') with bounds (p,p,indlim) or (m,m,indlim)
             If leri = 'L' then porm = p, otherwise porm = m. 
             On entry, the leading porm-by-porm-by-indlim part of this array 
             must contain the coefficients of the denominator matrix P(s).
             pcoeff(i,j,k) is the coefficient in s**(indlim-k) of polynomial 
             (i,j) of P(s), where k = 1,2,...,indlim.
-	    qcoeff : input rank-3 array('d') with bounds (max(m,p),max(m,p),indlim)
-	        On entry, the leading p-by-m-by-indlim part of this array must 
-	        contain the coefficients of the numerator matrix Q(s).
+        qcoeff : input rank-3 array('d') with bounds (max(m,p),max(m,p),indlim)
+            On entry, the leading p-by-m-by-indlim part of this array must 
+            contain the coefficients of the numerator matrix Q(s).
             qcoeff(i,j,k) is the coefficient in s**(indlim-k) of polynomial 
             (i,j) of Q(s), where k = 1,2,...,indlim.
-	    leri : input string(len=1)
+        leri : input string(len=1)
     Return objects:
         pcoeff : rank-3 array('d') with bounds (p,p,indlim)
             On exit, the leading porm-by-porm-by-indlim part of this array 
@@ -391,27 +391,27 @@ def tc01od(m,p,indlin,pcoeff,qcoeff,leri):
             = 0:  successful exit;
             < 0:  if info = -i, the i-th argument had an illegal value.
     """
-	hidden = ' (hidden by the wrapper)'
-	arg_list = ['leri', 'M', 'P', 'indlim', 'pcoeff', 'LDPCO1'+hidden, 
-	    'LDPCO2'+hidden, 'qcoeff', 'LDQCO1'+hidden, 'LDQCO2'+hidden, 
-	    'INFO'+hidden]
-	if leri == 'L':
-		out = _wrapper.tc01od_l(m,p,indlin,pcoeff,qcoeff)
+    hidden = ' (hidden by the wrapper)'
+    arg_list = ['leri', 'M', 'P', 'indlim', 'pcoeff', 'LDPCO1'+hidden, 
+        'LDPCO2'+hidden, 'qcoeff', 'LDQCO1'+hidden, 'LDQCO2'+hidden, 
+        'INFO'+hidden]
+    if leri == 'L':
+        out = _wrapper.tc01od_l(m,p,indlin,pcoeff,qcoeff)
         if out[-1] < 0:
             error_text = "The following argument had an illegal value: "+arg_list[-out[-1]-1]
             e = ValueError(error_text)
             e.info = out[-1]
             raise e
         return out[:-1]
-	if leri == 'R':
-		out = _wrapper.tc01od_r(m,p,indlin,pcoeff,qcoeff)
+    if leri == 'R':
+        out = _wrapper.tc01od_r(m,p,indlin,pcoeff,qcoeff)
         if out[-1] < 0:
             error_text = "The following argument had an illegal value: "+arg_list[-out[-1]-1]
             e = ValueError(error_text)
             e.info = out[-1]
             raise e
         return out[:-1]
-	raise ValueError('leri must be either L or R')
+    raise ValueError('leri must be either L or R')
 
 def tf01md(n,m,p,N,A,B,C,D,u,x0):
     """ xf,y = tf01md(n,m,p,N,A,B,C,D,u,x0)
@@ -507,5 +507,5 @@ def tf01rd(n,m,p,N,A,B,C,ldwork=None):
         raise e
     return out[0]
 
-	
+    
 # to be replaced by python wrappers

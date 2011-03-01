@@ -326,7 +326,7 @@ def sb02md(n,A,G,Q,dico,hinv='D',uplo='U',scal='N',sort='S',ldwork=None):
     'LDS'+hidden, 'U', 'LDU'+hidden, 'IWORK'+hidden, 'DWORK'+hidden, 'ldwork', 
     'BWORK'+hidden, 'INFO'+hidden]
     if ldwork is None:
-	    ldwork = max(3,6*n)
+        ldwork = max(3,6*n)
     A_inv,X,rcond,wr,wi,S,U,info = _wrapper.sb02md(dico,n,A,G,Q,hinv=hinv,uplo=uplo,scal=scal,sort=sort,ldwork=ldwork)
     if info < 0:
         error_text = "The following argument had an illegal value: "+arg_list[-info-1]
@@ -850,7 +850,7 @@ def sb03md(n,C,A,U,dico,job='X',fact='N',trana='N',ldwork=None):
         'LDU'+hidden, 'C', 'LDC'+hidden, 'scale', 'sep', 'ferr', 'wr'+hidden, 
         'wi'+hidden, 'IWORK'+hidden, 'DWORK'+hidden, 'ldwork', 'INFO'+hidden]
     if ldwork is None:
-	    ldwork = max(2*n*n,3*n)
+        ldwork = max(2*n*n,3*n)
     if dico != 'C' and dico != 'D':
         raise ValueError('dico must be either D or C')
     out = _wrapper.sb03md(dico,n,C,A,U,job=job,fact=fact,trana=trana,ldwork=ldwork)
