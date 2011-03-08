@@ -15,8 +15,8 @@ from slycot.math import mc01td
 # Synthesis routines (9/50 wrapped)
 from slycot.synthesis import sb01bd,sb02md,sb02mt,sb02od,sb03md,sb04md,sb04qd,sb10ad,sb10hd
 
-# Transformation routines (7/40 wrapped)
-from slycot.transform import tb01id,tb03ad
+# Transformation routines (8/40 wrapped)
+from slycot.transform import tb01id,tb03ad, tb04ad
 from slycot.transform import tc04ad,tc01od
 from slycot.transform import tf01md,tf01rd
 from slycot.transform import td04ad
