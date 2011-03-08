@@ -415,11 +415,7 @@ def td04ad(rowcol,m,p,index,dcoeff,ucoeff,tol=0.0,ldwork=None):
             
     Raises
     ------
-    
-        TypeError : e
-            e.info contains information about the exact type of exception
-             = 1:  if ucoeff has an incompatible shape
-             = 2:  if dcoeff has an incompatible shape
+
         ValueError : e
             e.info contains information about the exact type of exception
              < 0:  if info = -i, the i-th argument had an illegal value;
@@ -442,31 +438,31 @@ def td04ad(rowcol,m,p,index,dcoeff,ucoeff,tol=0.0,ldwork=None):
     if rowcol == 'R':
         porm = p
         if (ucoeff.ndim != 3):
-            e = TypeError("The numerator is not a 3D array!")
-            e.info = 1
+            e = ValueError("The numerator is not a 3D array!")
+            e.info = -7
             raise e
         if (ucoeff.shape != (max(1,p),max(1,m),kdcoef)):
-            e = TypeError("The numerator shape is ("+str(ucoeff.shape[0])+","+str(ucoeff.shape[1])+","+str(ucoeff.shape[2])+"), but expected ("+str(max(1,p))+","+str(max(1,m))+","+str(kdcoef)+")")
-            e.info = 1
+            e = ValueError("The numerator shape is ("+str(ucoeff.shape[0])+","+str(ucoeff.shape[1])+","+str(ucoeff.shape[2])+"), but expected ("+str(max(1,p))+","+str(max(1,m))+","+str(kdcoef)+")")
+            e.info = -7
             raise e
         if (dcoeff.shape != (max(1,p),kdcoef)):
-            e = TypeError("The denominator shape is ("+str(dcoeff.shape[0])+","+str(dcoeff.shape[1])+"), but expected ("+str(max(1,p))+","+str(kdcoef)+")")
-            e.info = 2
+            e = ValueError("The denominator shape is ("+str(dcoeff.shape[0])+","+str(dcoeff.shape[1])+"), but expected ("+str(max(1,p))+","+str(kdcoef)+")")
+            e.info = -5
             raise e
         out = _wrapper.td04ad_r(m,p,index,dcoeff,ucoeff,n,tol,ldwork)
     elif rowcol == 'C':
         porm = m
         if (ucoeff.ndim != 3):
-            e = TypeError("The numerator is not a 3D array!")
-            e.info = 1
+            e = ValueError("The numerator is not a 3D array!")
+            e.info = -7
             raise e
         if (ucoeff.shape != (max([1,m,p]),max([1,m,p]),kdcoef)):
-            e = TypeError("The numerator shape is ("+str(ucoeff.shape[0])+","+str(ucoeff.shape[1])+","+str(ucoeff.shape[2])+"), but expected ("+str(max([1,m,p]))+","+str(max([1,m,p]))+","+str(kdcoef)+")")
-            e.info = 1
+            e = ValueError("The numerator shape is ("+str(ucoeff.shape[0])+","+str(ucoeff.shape[1])+","+str(ucoeff.shape[2])+"), but expected ("+str(max([1,m,p]))+","+str(max([1,m,p]))+","+str(kdcoef)+")")
+            e.info = -7
             raise e
         if (dcoeff.shape != (max(1,m),kdcoef)):
-            e = TypeError("The denominator shape is ("+str(dcoeff.shape[0])+","+str(dcoeff.shape[1])+"), but expected ("+str(max(1,m))+","+str(kdcoef)+")")
-            e.info = 2
+            e = ValueError("The denominator shape is ("+str(dcoeff.shape[0])+","+str(dcoeff.shape[1])+"), but expected ("+str(max(1,m))+","+str(kdcoef)+")")
+            e.info = -5
             raise e
         out = _wrapper.td04ad_c(m,p,index,dcoeff,ucoeff,n,tol,ldwork)
     else:
