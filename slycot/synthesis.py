@@ -2,7 +2,7 @@
 #
 #       synthesis.py
 #       
-#       Copyright 2010 Enrico Avventi <avventi@Lonewolf>
+#       Copyright 2010-2011 Enrico Avventi <avventi@Lonewolf>
 #       
 #       This program is free software; you can redistribute it and/or modify
 #       it under the terms of the GNU General Public License version 2 as 
@@ -166,9 +166,7 @@ def sb01bd(n,m,np,alpha,A,B,w,dico,tol=0.0,ldwork=None):
         e.info = info
         raise e
     if warn != 0:
-        e = ValueError('%i violations of the numerical stability condition occured during the assignment of eigenvalues' % warn)
-        e.info = info
-        raise e
+        warnings.warn('%i violations of the numerical stability condition occured during the assignment of eigenvalues' % warn)
     # put togheter wr and wi into a complex array of eigenvalues
     w = _np.zeros(np,'complex64')
     w.real = wr[0:np]
