@@ -2,7 +2,7 @@
 #
 #       transform.py
 #       
-#       Copyright 2010 Enrico Avventi <avventi@kth.se>
+#       Copyright 2010-2011 Enrico Avventi <avventi@kth.se>
 #       
 #       This program is free software; you can redistribute it and/or modify
 #       it under the terms of the GNU General Public License version 2 as 
@@ -239,6 +239,130 @@ def tb03ad(n,m,p,A,B,C,D,leri,equil='N',tol=0.0,ldwork=None):
             raise e
         return out[:-1]
     raise ValueError('leri must be either L or R')
+
+def td04ad(rowcol,m,p,index,dcoeff,ucoeff,tol=0.0,ldwork=None):
+    """ nr,A,B,C,D = td04ad(m,p,index,dcoeff,ucoeff,[tol,ldwork])
+
+    Convert a tranfer function or matrix of transfer functions to 
+    a minimum state space realization.
+    
+    Required arguments
+    ------------------
+    
+        rowcol : character 
+            indicates whether the transfer matrix T(s) is given 
+            as rows ('R') or colums ('C') over common denominators.
+        m : integer 
+            input dimension
+        p : integer 
+            output dimension
+        index : rank-1 array, shape (p) or (m) 
+            array of orders of the denomenator polynomials. Different 
+            shapes corresponding to rowcol=='R' and rowcol=='C' 
+            respectively.
+        dcoeff : rank-2 array, shape (p,max(index)+1) or (m,max(index)+1)
+            array of denomenator coefficients. Different shapes 
+            corresponding to rowcol=='R' and 
+            rowcol=='C' respectively.
+        ucoeff : rank-3 array, shape (p,m,max(index)+1) or (max(p,m),max(p,m),max(index)+1)
+            array of numerator coefficients. Different shapes 
+            corresponding to rowcol=='R' and rowcol=='C' respectively.
+
+    Optional arguments
+    ------------------
+    
+        tol : float 
+            tolerance in determining the state space system, 
+            when set to 0, a default value is used.
+        ldwork : int
+            The length of the cache array. The default values is 
+            max(1,sum(index)+max(sum(index),max(3*m,3*p)))
+     
+    Returns
+    -------
+    
+        nr : int
+            minimal state dimension
+        A :  rank-2 array, shape(nr,nr)
+            state dynamics matrix.
+        B : rank-2 array, shape (nr,m) 
+            input matrix
+        C : rank-2 array, shape (p,nr) 
+            output matri
+        D : rank-2 array, shape (p,m) 
+            direct transmission matrix
+            
+    Raises
+    ------
+        TypeError : e
+            e.info contains information about the exact type of exception
+             = 1:  if ucoeff has an incompatible shape
+             = 2:  if dcoeff has an incompatible shape
+        ValueError : e
+            e.info contains information about the exact type of exception
+             < 0:  if info = -i, the i-th argument had an illegal value;
+             > 0:  if info = i, then i is the first integer for which
+                abs( dcoeff(i,1) ) is so small that the calculations
+                would overflow (see SLICOT Library routine TD03AY);
+                that is, the leading coefficient of a polynomial is
+                nearly zero; no state-space representation is
+                calculated.
+    """
+    hidden = ' (hidden by the wrapper)'
+    arg_list = ['rowcol','m','p','index','dcoeff','lddcoe'+hidden, 'ucoeff', 'lduco1'+hidden,'lduco2'+hidden,
+        'nr','A','lda'+hidden,'B','ldb'+hidden,'C','ldc'+hidden,'D', 'ldd'+hidden,
+        'tol','iwork'+hidden,'dwork'+hidden,'ldwork','info'+hidden]
+    if ldwork is None:
+        n = sum(index)
+        ldwork = max(1,n+max(n,max(3*m,3*p)))
+    
+    kdcoef = max(index)+1
+    if rowcol == 'R':
+        porm = p
+        if (ucoeff.ndim != 3):
+            e = TypeError("The numerator is not a 3D array!")
+            e.info = 1
+            raise e
+        if (ucoeff.shape != (max(1,p),max(1,m),kdcoef)):
+            e = TypeError("The numerator shape is ("+str(ucoeff.shape[0])+","+str(ucoeff.shape[1])+","+str(ucoeff.shape[2])+"), but expected ("+str(max(1,p))+","+str(max(1,m))+","+str(kdcoef)+")")
+            e.info = 1
+            raise e
+        if (dcoeff.shape != (max(1,p),kdcoef)):
+            e = TypeError("The denominator shape is ("+str(dcoeff.shape[0])+","+str(dcoeff.shape[1])+"), but expected ("+str(max(1,p))+","+str(kdcoef)+")")
+            e.info = 2
+            raise e
+        out = _wrapper.td04ad_r(m,p,index,dcoeff,ucoeff,n,tol,ldwork)
+    elif rowcol == 'C':
+        porm = m
+        if (ucoeff.ndim != 3):
+            e = TypeError("The numerator is not a 3D array!")
+            e.info = 1
+            raise e
+        if (ucoeff.shape != (max([1,m,p]),max([1,m,p]),kdcoef)):
+            e = TypeError("The numerator shape is ("+str(ucoeff.shape[0])+","+str(ucoeff.shape[1])+","+str(ucoeff.shape[2])+"), but expected ("+str(max([1,m,p]))+","+str(max([1,m,p]))+","+str(kdcoef)+")")
+            e.info = 1
+            raise e
+        if (dcoeff.shape != (max(1,m),kdcoef)):
+            e = TypeError("The denominator shape is ("+str(dcoeff.shape[0])+","+str(dcoeff.shape[1])+"), but expected ("+str(max(1,m))+","+str(kdcoef)+")")
+            e.info = 2
+            raise e
+        out = _wrapper.td04ad_c(m,p,index,dcoeff,ucoeff,n,tol,ldwork)
+    else:
+        e = ValueError("Parameter rowcol had an illegal value")
+        e.info = -1
+        raise e
+
+    if out[-1] < 0:
+        error_text = "The following argument had an illegal value: "+arg_list[-out[-1]-1]
+        e = ValueError(error_text)
+        e.info = out[-1]
+        raise e
+    if out[-1] > 0:
+        error_text = "The leading coefficient of a denominator polynomial is nearly zero; calculations would overflow; no state-space representation was calculated. ABS(DCOEFF("+str(out[-1])+",1))="+str(abs(dcoeff(out[-1],1)))+" is too small."    
+        e.info = out[-1]
+        raise e
+    Nr, A, B, C, D = out[:-1]    
+    return Nr, A[:Nr,:Nr], B[:Nr,:m], C[:p,:Nr], D[:p,:m] 
 
 def tc04ad(m,p,index,pcoeff,qcoeff,leri,ldwork=None):
     """ n,rcond,a,b,c,d = tc04ad_l(m,p,index,pcoeff,qcoeff,leri,[ldwork])
