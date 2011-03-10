@@ -316,15 +316,15 @@ def tb04ad(rowcol,n,m,p,A,B,C,D,tol1=0.0,tol2=0.0,ldwork=None):
         porm, porp = p, m
         if ldwork is None:
             ldwork = max(1,n*(n+1)+max(n*mp+2*n+max(n,mp),max(3*mp,pm)))
-        if (B.shape != (n,m)):
+        if B.shape != (n,m):
             e = ValueError("The shape of B is ("+str(B.shape[0])+","+str(B.shape[1])+"), but expected ("+str(n)+","+str(m)+")")
             e.info = -7
             raise e
-        if (C.shape != (p,n)):
+        if C.shape != (p,n):
             e = ValueError("The shape of C is ("+str(C.shape[0])+","+str(C.shape[1])+"), but expected ("+str(p)+","+str(n)+")")
             e.info = -9
             raise e
-        if (D.shape != (max(1,p),m)):
+        if D.shape != (max(1,p),m):
             e = ValueError("The shape of D is ("+str(B.shape[0])+","+str(B.shape[1])+"), but expected ("+str(max(1,p))+","+str(m)+")")
             e.info = -11
             raise e
@@ -334,19 +334,25 @@ def tb04ad(rowcol,n,m,p,A,B,C,D,tol1=0.0,tol2=0.0,ldwork=None):
         porm, porp = m, p
         if ldwork is None:
             ldwork = max(1,n*(n+1)+max(n*mp+2*n+max(n,mp),max(3*mp,pm)))
-        if (B.shape != (n,max(m,p))):
+        if B.shape != (n,m):
             e = ValueError("The shape of B is ("+str(B.shape[0])+","+str(B.shape[1])+"), but expected ("+str(n)+","+str(max(m,p))+")")
             e.info = -7
             raise e
-        if (C.shape != (max([1,m,p]),n)):
+        _B = _np.zeros((n,max(m,p)))
+        _B[:n,:m] = B
+        if C.shape != (p,n):
             e = ValueError("The shape of C is ("+str(C.shape[0])+","+str(C.shape[1])+"), but expected ("+str(max([1,m,p]))+","+str(n)+")")
             e.info = -9
             raise e
-        if (D.shape != (max([1,m,p]),max(m,p))):
+        _C = _np.zeros((max(1,m,p),n))
+        _C[:p,:n] = C
+        if D.shape != (p,m):
             e = ValueError("The shape of D is ("+str(B.shape[0])+","+str(B.shape[1])+"), but expected ("+str(max([1,m,p]))+","+str(max(m,p))+")")
             e.info = -11
             raise e
-        out = _wrapper.tb04ad_c(n,m,p,A,B,C,D,tol1,tol2,ldwork)
+        _D = _np.zeros((max(1,m,p),max(m,p)))
+        _D[:p,:m] = D
+        out = _wrapper.tb04ad_c(n,m,p,A,_B,_C,_D,tol1,tol2,ldwork)
     else:
         e = ValueError("Parameter rowcol had an illegal value")
         e.info = -1
@@ -437,30 +443,30 @@ def td04ad(rowcol,m,p,index,dcoeff,ucoeff,tol=0.0,ldwork=None):
     kdcoef = max(index)+1
     if rowcol == 'R':
         porm = p
-        if (ucoeff.ndim != 3):
+        if ucoeff.ndim != 3:
             e = ValueError("The numerator is not a 3D array!")
             e.info = -7
             raise e
-        if (ucoeff.shape != (max(1,p),max(1,m),kdcoef)):
+        if ucoeff.shape != (max(1,p),max(1,m),kdcoef):
             e = ValueError("The numerator shape is ("+str(ucoeff.shape[0])+","+str(ucoeff.shape[1])+","+str(ucoeff.shape[2])+"), but expected ("+str(max(1,p))+","+str(max(1,m))+","+str(kdcoef)+")")
             e.info = -7
             raise e
-        if (dcoeff.shape != (max(1,p),kdcoef)):
+        if dcoeff.shape != (max(1,p),kdcoef):
             e = ValueError("The denominator shape is ("+str(dcoeff.shape[0])+","+str(dcoeff.shape[1])+"), but expected ("+str(max(1,p))+","+str(kdcoef)+")")
             e.info = -5
             raise e
         out = _wrapper.td04ad_r(m,p,index,dcoeff,ucoeff,n,tol,ldwork)
     elif rowcol == 'C':
         porm = m
-        if (ucoeff.ndim != 3):
+        if ucoeff.ndim != 3:
             e = ValueError("The numerator is not a 3D array!")
             e.info = -7
             raise e
-        if (ucoeff.shape != (max([1,m,p]),max([1,m,p]),kdcoef)):
+        if ucoeff.shape != (max([1,m,p]),max([1,m,p]),kdcoef):
             e = ValueError("The numerator shape is ("+str(ucoeff.shape[0])+","+str(ucoeff.shape[1])+","+str(ucoeff.shape[2])+"), but expected ("+str(max([1,m,p]))+","+str(max([1,m,p]))+","+str(kdcoef)+")")
             e.info = -7
             raise e
-        if (dcoeff.shape != (max(1,m),kdcoef)):
+        if dcoeff.shape != (max(1,m),kdcoef):
             e = ValueError("The denominator shape is ("+str(dcoeff.shape[0])+","+str(dcoeff.shape[1])+"), but expected ("+str(max(1,m))+","+str(kdcoef)+")")
             e.info = -5
             raise e
