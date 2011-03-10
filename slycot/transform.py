@@ -315,7 +315,7 @@ def tb04ad(rowcol,n,m,p,A,B,C,D,tol1=0.0,tol2=0.0,ldwork=None):
         mp, pm = m, p
         porm, porp = p, m
         if ldwork is None:
-            ldwork = max(1,n*(n+1)+max(n*mp+2*n+max(n,mp),max(3*mp,pm)))
+            ldwork = max(1,n*(n+1)+max(n*mp+2*n+max(n,mp),3*mp,pm))
         if B.shape != (n,m):
             e = ValueError("The shape of B is ("+str(B.shape[0])+","+str(B.shape[1])+"), but expected ("+str(n)+","+str(m)+")")
             e.info = -7
@@ -333,7 +333,7 @@ def tb04ad(rowcol,n,m,p,A,B,C,D,tol1=0.0,tol2=0.0,ldwork=None):
         mp, pm = p, m
         porm, porp = m, p
         if ldwork is None:
-            ldwork = max(1,n*(n+1)+max(n*mp+2*n+max(n,mp),max(3*mp,pm)))
+            ldwork = max(1,n*(n+1)+max(n*mp+2*n+max(n,mp),3*mp,pm))
         if B.shape != (n,m):
             e = ValueError("The shape of B is ("+str(B.shape[0])+","+str(B.shape[1])+"), but expected ("+str(n)+","+str(max(m,p))+")")
             e.info = -7
