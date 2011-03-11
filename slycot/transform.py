@@ -240,17 +240,15 @@ def tb03ad(n,m,p,A,B,C,D,leri,equil='N',tol=0.0,ldwork=None):
         return out[:-1]
     raise ValueError('leri must be either L or R')
 
-def tb04ad(rowcol,n,m,p,A,B,C,D,tol1=0.0,tol2=0.0,ldwork=None):
-    """ Ar,Br,Cr,nr,denom_degs,denom_coeffs,num_coeffs = tb04ad(n,m,p,A,B,C,D,lddcoe,lduco1,lduco2,[tol1,tol2,ldwork])
+def tb04ad(n,m,p,A,B,C,D,tol1=0.0,tol2=0.0,ldwork=None):
+    """ Ar,Br,Cr,nr,denom_degs,denom_coeffs,num_coeffs = tb04ad(n,m,p,A,B,C,D,[tol1,tol2,ldwork])
 
     Convert a state-space system to a tranfer function or matrix of transfer functions.
+    The transfer function is given as rows over common denominators.
     
     Required arguments
     ------------------
     
-        rowcol : character
-            indicates whether the transfer matrix T(s) is output as rows ('R')
-            or colums ('C') over common denominators 
         n : integer 
             state dimension
         m : integer 
@@ -283,24 +281,19 @@ def tb04ad(rowcol,n,m,p,A,B,C,D,tol1=0.0,tol2=0.0,ldwork=None):
      -------
      
         nr : int
-            state dimension of the controllable subsystem for rowcol = 'R', 
-            observable subsystem dimension for rowcol = 'C'
+            state dimension of the controllable subsystem
         Ar :  rank-2 array, shape(nr,nr)
-            state dynamics matrix of the controllable/observable subsystem
+            state dynamics matrix of the controllable subsystem
         Br : rank-2 array, shape (nr,m) 
-            input matrix of the controllable/observable subsystem
+            input matrix of the controllable subsystem
         Cr : rank-2 array, shape (p,nr) 
-            output matri of the controllable/observable subsystem
-        index : rank-1 array, shape (p) or (m)
-            array of orders of the denomenator polynomials. Different 
-            shapes corresponding to rowcol=='R' and rowcol=='C' 
-            respectively.
-        dcoeff : rank-2 array, shape (p,max(index)+1) or (m,max(index)+1)
-            array of denomenator coefficients. Different shapes 
-            corresponding to rowcol=='R' and rowcol=='C' respectively.
-        ucoeff : rank-3 array, shape (p,m,max(index)+1) or (max(p,m),max(p,m),max(index)+1)
-            array of numerator coefficients. Different shapes 
-            corresponding to rowcol=='R' and rowcol=='C' respectively.
+            output matri of the controllable subsystem
+        index : rank-1 array, shape (p)
+            array of orders of the denomenator polynomials
+        dcoeff : rank-2 array, shape (p,max(index)+1)
+            array of denomenator coefficients
+        ucoeff : rank-3 array, shape (p,m,max(index)+1)
+            array of numerator coefficients
             
     Raises
     ------
@@ -311,52 +304,24 @@ def tb04ad(rowcol,n,m,p,A,B,C,D,tol1=0.0,tol2=0.0,ldwork=None):
     hidden = ' (hidden by the wrapper)'
     arg_list = ['rowcol','n','m','p','A','lda'+hidden,'B','ldb'+hidden,'C','ldc'+hidden,'D', 'ldd'+hidden,
         'nr','index','dcoeff','lddcoe'+hidden, 'ucoeff','lduco1'+hidden,'lduco2'+hidden,'tol1','tol2','iwork'+hidden,'dwork'+hidden,'ldwork','info'+hidden]
-    if rowcol == 'R':
-        mp, pm = m, p
-        porm, porp = p, m
-        if ldwork is None:
-            ldwork = max(1,n*(n+1)+max(n*mp+2*n+max(n,mp),3*mp,pm))
-        if B.shape != (n,m):
-            e = ValueError("The shape of B is ("+str(B.shape[0])+","+str(B.shape[1])+"), but expected ("+str(n)+","+str(m)+")")
-            e.info = -7
-            raise e
-        if C.shape != (p,n):
-            e = ValueError("The shape of C is ("+str(C.shape[0])+","+str(C.shape[1])+"), but expected ("+str(p)+","+str(n)+")")
-            e.info = -9
-            raise e
-        if D.shape != (max(1,p),m):
-            e = ValueError("The shape of D is ("+str(B.shape[0])+","+str(B.shape[1])+"), but expected ("+str(max(1,p))+","+str(m)+")")
-            e.info = -11
-            raise e
-        out = _wrapper.tb04ad_r(n,m,p,A,B,C,D,tol1,tol2,ldwork)
-    elif rowcol == 'C':
-        mp, pm = p, m
-        porm, porp = m, p
-        if ldwork is None:
-            ldwork = max(1,n*(n+1)+max(n*mp+2*n+max(n,mp),3*mp,pm))
-        if B.shape != (n,m):
-            e = ValueError("The shape of B is ("+str(B.shape[0])+","+str(B.shape[1])+"), but expected ("+str(n)+","+str(max(m,p))+")")
-            e.info = -7
-            raise e
-        _B = _np.zeros((n,max(m,p)))
-        _B[:n,:m] = B
-        if C.shape != (p,n):
-            e = ValueError("The shape of C is ("+str(C.shape[0])+","+str(C.shape[1])+"), but expected ("+str(max([1,m,p]))+","+str(n)+")")
-            e.info = -9
-            raise e
-        _C = _np.zeros((max(1,m,p),n))
-        _C[:p,:n] = C
-        if D.shape != (p,m):
-            e = ValueError("The shape of D is ("+str(B.shape[0])+","+str(B.shape[1])+"), but expected ("+str(max([1,m,p]))+","+str(max(m,p))+")")
-            e.info = -11
-            raise e
-        _D = _np.zeros((max(1,m,p),max(m,p)))
-        _D[:p,:m] = D
-        out = _wrapper.tb04ad_c(n,m,p,A,_B,_C,_D,tol1,tol2,ldwork)
-    else:
-        e = ValueError("Parameter rowcol had an illegal value")
-        e.info = -1
+        
+    mp, pm = m, p
+    porm, porp = p, m
+    if ldwork is None:
+        ldwork = max(1,n*(n+1)+max(n*mp+2*n+max(n,mp),3*mp,pm))
+    if B.shape != (n,m):
+        e = ValueError("The shape of B is ("+str(B.shape[0])+","+str(B.shape[1])+"), but expected ("+str(n)+","+str(m)+")")
+        e.info = -7
         raise e
+    if C.shape != (p,n):
+        e = ValueError("The shape of C is ("+str(C.shape[0])+","+str(C.shape[1])+"), but expected ("+str(p)+","+str(n)+")")
+        e.info = -9
+        raise e
+    if D.shape != (max(1,p),m):
+        e = ValueError("The shape of D is ("+str(B.shape[0])+","+str(B.shape[1])+"), but expected ("+str(max(1,p))+","+str(m)+")")
+        e.info = -11
+        raise e
+    out = _wrapper.tb04ad_r(n,m,p,A,B,C,D,tol1,tol2,ldwork)
 
     if out[-1] < 0:
         error_text = "The following argument had an illegal value: "+arg_list[-out[-1]-1]
