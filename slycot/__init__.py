@@ -12,7 +12,7 @@ from slycot.analysis import ab01nd,ab05md,ab05nd,ab07nd,ab08nd, ab09ad
 # Mathematical routines (1/81 wrapped)
 from slycot.math import mc01td
 
-# Synthesis routines (10/50 wrapped)
+# Synthesis routines (11/50 wrapped)
 from slycot.synthesis import sb01bd,sb02md,sb02mt,sb02od,sb03md,sb04md,sb04qd,sb10ad,sb10hd,sg03ad,sg02ad
 
 # Transformation routines (8/40 wrapped)

@@ -1286,7 +1286,7 @@ def sb10hd(n,m,np,ncon,nmeas,A,B,C,D,tol=0.0,ldwork=None):
             The column size of the matrix B
         np : int
             The row size of the matrix C
-        ncon : intdico,job,fact,trans,uplo,N,A,E,Q,Z,X,ldwork=None
+        ncon : int
             The number of control inputs.  m >= ncon >= 0, np-nmeas >= ncon.
         nmeas : int
             The number of measurements.  np >= nmeas >= 0, m-ncon >= nmeas.
