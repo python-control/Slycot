@@ -3,7 +3,8 @@
 #       synthesis.py
 #       
 #       Copyright 2010-2011 Enrico Avventi <avventi@Lonewolf>
-#       
+#       Copyright 2011 Jerker Nordh <jerker.nordh@control.lth.se>
+#
 #       This program is free software; you can redistribute it and/or modify
 #       it under the terms of the GNU General Public License version 2 as 
 #       published by the Free Software Foundation.
@@ -1388,3 +1389,654 @@ def sb10hd(n,m,np,ncon,nmeas,A,B,C,D,tol=0.0,ldwork=None):
 
     return out[:-1]
 
+def sg03ad(dico,job,fact,trans,uplo,N,A,E,Q,Z,X,ldwork=None):
+    """ A,E,Q,Z,X,scale,sep,ferr,alphar,alphai,beta =
+            sg03ad(dico,job,fact,trans,uplo,N,A,E,Q,Z,X,[ldwork])
+
+    To solve for X either the generalized continuous-time Lyapunov
+    equation
+
+          T                T
+     op(A)  X op(E) + op(E)  X op(A) = SCALE * Y,                (1)
+
+    or the generalized discrete-time Lyapunov equation
+
+          T                T
+     op(A)  X op(A) - op(E)  X op(E) = SCALE * Y,                (2)
+
+    where op(M) is either M or M**T for M = A, E and the right hand
+    side Y is symmetric. A, E, Y, and the solution X are N-by-N
+    matrices. SCALE is an output scale factor, set to avoid overflow
+    in X.
+
+    Estimates of the separation and the relative forward error norm
+    are provided.
+
+    Required arguments
+    ------------------
+
+        dico : input string(len=1)
+            Specifies which type of the equation is considered:
+              = 'C':  Continuous-time equation (1);
+              = 'D':  Discrete-time equation (2).
+
+        job : input string(len=1)
+            Specifies if the solution is to be computed and if the
+            separation is to be estimated:
+              = 'X':  Compute the solution only;
+              = 'S':  Estimate the separation only;
+              = 'B':  Compute the solution and estimate the separation.
+
+        fact : input string(len=1)
+            Specifies whether the generalized real Schur
+            factorization of the pencil A - lambda * E is supplied
+            on entry or not:
+              = 'N':  Factorization is not supplied;
+              = 'F':  Factorization is supplied.
+
+        trans : input string(len=1)
+            Specifies whether the transposed equation is to be solved
+            or not:
+              = 'N':  op(A) = A,    op(E) = E;
+              = 'T':  op(A) = A**T, op(E) = E**T.
+
+        uplo : input string(len=1)
+            Specifies whether the lower or the upper triangle of the
+            array X is needed on input:
+              = 'L':  Only the lower triangle is needed on input;
+              = 'U':  Only the upper triangle is needed on input.
+
+        A : input rank-2 array('d') with bounds (n,n)
+            On entry, if FACT = 'F', then the leading N-by-N upper
+            Hessenberg part of this array must contain the
+            generalized Schur factor A_s of the matrix A (see
+            definition (3) in section METHOD). A_s must be an upper
+            quasitriangular matrix. The elements below the upper
+            Hessenberg part of the array A are not referenced.
+            If FACT = 'N', then the leading N-by-N part of this
+            array must contain the matrix A.
+            On exit, the leading N-by-N part of this array contains
+            the generalized Schur factor A_s of the matrix A. (A_s is
+            an upper quasitriangular matrix.)
+
+        E : input rank-2 array('d') with bounds (n,n)
+            On entry, if FACT = 'F', then the leading N-by-N upper
+            triangular part of this array must contain the
+            generalized Schur factor E_s of the matrix E (see
+            definition (4) in section METHOD). The elements below the
+            upper triangular part of the array E are not referenced.
+            If FACT = 'N', then the leading N-by-N part of this
+            array must contain the coefficient matrix E of the
+            equation.
+            On exit, the leading N-by-N part of this array contains
+            the generalized Schur factor E_s of the matrix E. (E_s is
+            an upper triangular matrix.)
+
+        Q : input rank-2 array('d') with bounds (n,n)
+            On entry, if FACT = 'F', then the leading N-by-N part of
+            this array must contain the orthogonal matrix Q from
+            the generalized Schur factorization (see definitions (3)
+            and (4) in section METHOD).
+            If FACT = 'N', Q need not be set on entry.
+            On exit, the leading N-by-N part of this array contains
+            the orthogonal matrix Q from the generalized Schur
+            factorization.
+
+        Z : input rank-2 array('d') with bounds (n,n)
+            On entry, if FACT = 'F', then the leading N-by-N part of
+            this array must contain the orthogonal matrix Z from
+            the generalized Schur factorization (see definitions (3)
+            and (4) in section METHOD).
+            If FACT = 'N', Z need not be set on entry.
+            On exit, the leading N-by-N part of this array contains
+            the orthogonal matrix Z from the generalized Schur
+            factorization.
+
+        X : input rank-2 array('d') with bounds (n,n)
+            On entry, if JOB = 'B' or 'X', then the leading N-by-N
+            part of this array must contain the right hand side matrix
+            Y of the equation. Either the lower or the upper
+            triangular part of this array is needed (see mode
+            parameter UPLO).
+            If JOB = 'S', X is not referenced.
+            On exit, if JOB = 'B' or 'X', and INFO = 0, 3, or 4, then
+            the leading N-by-N part of this array contains the
+            solution matrix X of the equation.
+            If JOB = 'S', X is not referenced.
+
+
+    Optional arguments
+    ------------------
+
+        ldwork := max(1,max(2*n*n,4*n)) input int
+            The length of the array DWORK. The following table
+              contains the minimal work space requirements depending
+              on the choice of JOB and FACT.
+
+                     JOB        FACT    |  LDWORK
+                     -------------------+-------------------
+                     'X'        'F'     |  MAX(1,N)
+                     'X'        'N'     |  MAX(1,4*N)
+                     'B', 'S'   'F'     |  MAX(1,2*N**2)
+                     'B', 'S'   'N'     |  MAX(1,2*N**2,4*N)
+
+              For optimum performance, LDWORK should be larger.
+
+
+    Return objects
+    --------------
+
+        A : rank-2 array('d') with bounds (n,n)
+            On exit, the leading N-by-N part of this array contains
+            the generalized Schur factor A_s of the matrix A. (A_s is
+            an upper quasitriangular matrix.)
+
+        E : rank-2 array('d') with bounds (n,n)
+            On exit, the leading N-by-N part of this array contains
+            the generalized Schur factor E_s of the matrix E. (E_s is
+            an upper triangular matrix.)
+
+        Q : rank-2 array('d') with bounds (n,n)
+            On exit, the leading N-by-N part of this array contains
+            the orthogonal matrix Q from the generalized Schur
+            factorization.
+
+        Z : rank-2 array('d') with bounds (n,n)
+            On exit, the leading N-by-N part of this array contains
+            the orthogonal matrix Z from the generalized Schur
+            factorization.
+
+        X : rank-2 array('d') with bounds (n,n)
+            On exit, if JOB = 'B' or 'X', and INFO = 0, 3, or 4, then
+            the leading N-by-N part of this array contains the
+            solution matrix X of the equation.
+            If JOB = 'S', X is not referenced.
+
+        scale : float
+            The scale factor set to avoid overflow in X.
+            (0 < SCALE <= 1)
+        sep : float
+            If JOB = 'S' or JOB = 'B', and INFO = 0, 3, or 4, then
+            SEP contains an estimate of the separation of the
+            Lyapunov operator.
+        ferr : float
+            If JOB = 'B', and INFO = 0, 3, or 4, then FERR contains an
+            estimated forward error bound for the solution X. If XTRUE
+            is the true solution, FERR estimates the relative error
+            in the computed solution, measured in the Frobenius norm:
+            norm(X - XTRUE) / norm(XTRUE)
+
+        alphar : rank-1 array('d') with bounds (n)
+        alphai : rank-1 array('d') with bounds (n)
+        beta : rank-1 array('d') with bounds (n)
+            If FACT = 'N' and INFO = 0, 3, or 4, then
+            (ALPHAR(j) + ALPHAI(j)*i)/BETA(j), j=1,...,N, are the
+            eigenvalues of the matrix pencil A - lambda * E.
+            If FACT = 'F', ALPHAR, ALPHAI, and BETA are not
+            referenced.
+
+    Raises
+    ------
+
+        ValueError : e
+            e.info contains information about the exact type of exception
+             < 0:  if info = -i, the i-th argument had an illegal
+                   value;
+             = 1:  FACT = 'F' and the matrix contained in the upper
+                   Hessenberg part of the array A is not in upper
+                   quasitriangular form;
+             = 2:  FACT = 'N' and the pencil A - lambda * E cannot be
+                   reduced to generalized Schur form: LAPACK routine
+                   DGEGS has failed to converge;
+             = 3:  DICO = 'D' and the pencil A - lambda * E has a
+                   pair of reciprocal eigenvalues. That is, lambda_i =
+                   1/lambda_j for some i and j, where lambda_i and
+                   lambda_j are eigenvalues of A - lambda * E. Hence,
+                   equation (2) is singular;  perturbed values were
+                   used to solve the equation (but the matrices A and
+                   E are unchanged);
+             = 4:  DICO = 'C' and the pencil A - lambda * E has a
+                   degenerate pair of eigenvalues. That is, lambda_i =
+                   -lambda_j for some i and j, where lambda_i and
+                   lambda_j are eigenvalues of A - lambda * E. Hence,
+                   equation (1) is singular;  perturbed values were
+                   used to solve the equation (but the matrices A and
+                   E are unchanged).
+    """
+
+    hidden = ' (hidden by the wrapper)'
+    arg_list = ['dico', 'job', 'fact', 'trans', 'uplo', 'N'+hidden, 'A', 'LDA'+hidden, 'E',
+                'LDE'+hidden, 'Q', 'LDQ'+hidden, 'Z', 'LDZ'+hidden, 'X', 'LDX'+hidden,
+                'scale', 'sep', 'ferr', 'alphar', 'alphai', 'beta', 'IWORK'+hidden,
+                'DWORK'+hidden, 'ldwork', 'info' ]
+
+    if ldwork is None:
+        if job == 'X' and fact == 'F':
+            ldwork = max(1,N)
+        elif job == 'X' and fact == 'N':
+            ldwork = max(1,4*N)
+        elif (job == 'B' or job == 'S') and fact == 'F':
+            ldwork = max(1,2*N**2)
+        elif (job == 'B' or job == 'S') and fact == 'N':
+            ldwork = max(1,2*N**2,4*N)
+
+    out = _wrapper.sg03ad(dico,job,fact,trans,uplo,N,A,E,Q,Z,X,ldwork)
+
+    if out[-1] != 0:
+        if out[-1] < 0:
+            error_text = "The following argument had an illegal value: "\
+                +arg_list[-out[-1]-1]
+        elif out[-1] == 1:
+            error_text = "FACT = 'F' and the matrix contained in the upper \
+                        Hessenberg part of the array A is not in upper \
+                        quasitriangular form"
+        elif out[-1] == 2:
+            error_text = "FACT = 'N' and the pencil A - lambda * E cannot be \
+                        reduced to generalized Schur form: LAPACK routine \
+                        DGEGS has failed to converge"
+        elif out[-1] == 3:
+            error_text = "DICO = 'D' and the pencil A - lambda * E has a \
+                        pair of reciprocal eigenvalues. That is, lambda_i = \
+                        1/lambda_j for some i and j, where lambda_i and \
+                        lambda_j are eigenvalues of A - lambda * E. Hence, \
+                        equation (2) is singular;  perturbed values were \
+                        used to solve the equation (but the matrices A and \
+                        E are unchanged)"
+        elif out[-1] == 4:
+            error_text = "TDICO = 'C' and the pencil A - lambda * E has a \
+                        degenerate pair of eigenvalues. That is, lambda_i = \
+                        -lambda_j for some i and j, where lambda_i and \
+                        lambda_j are eigenvalues of A - lambda * E. Hence, \
+                        equation (1) is singular;  perturbed values were \
+                        used to solve the equation (but the matrices A and \
+                        E are unchanged)"
+
+        e = ValueError(error_text)
+        e.info = out[-1]
+        raise e
+
+    return out[:-1]
+
+def sg02ad(dico,jobb,fact,uplo,jobl,scal,sort,acc,N,M,P,A,E,B,Q,R,L,ldwork=None,tol=-1):
+    """rcondu,x,alfar,alfai,beta,s,t,u,iwarn,info =
+    sg02ad(dico,jobb,fact,uplo,jobl,scal,sort,acc,N,M,P,A,E,B,Q,R,L,[ldwork,tol=-1])
+
+    To solve for X either the continuous-time algebraic Riccati
+    equation
+                                -1
+     Q + A'XE + E'XA - (L+E'XB)R  (L+E'XB)' = 0 ,              (1)
+
+    or the discrete-time algebraic Riccati equation
+                                     -1
+     E'XE = A'XA - (L+A'XB)(R + B'XB)  (L+A'XB)' + Q ,         (2)
+
+    where A, E, B, Q, R, and L are N-by-N, N-by-N, N-by-M, N-by-N,
+    M-by-M and N-by-M matrices, respectively, such that Q = C'C,
+    R = D'D and L = C'D; X is an N-by-N symmetric matrix.
+    The routine also returns the computed values of the closed-loop
+    spectrum of the system, i.e., the stable eigenvalues
+    lambda(1),...,lambda(N) of the pencil (A - BF,E), where F is
+    the optimal gain matrix,
+          -1
+     F = R  (L+E'XB)' ,        for (1),
+
+    and
+                 -1
+     F = (R+B'XB)  (L+A'XB)' , for (2).
+                           -1
+    Optionally, matrix G = BR  B' may be given instead of B and R.
+    Other options include the case with Q and/or R given in a
+    factored form, Q = C'C, R = D'D, and with L a zero matrix.
+
+    The routine uses the method of deflating subspaces, based on
+    reordering the eigenvalues in a generalized Schur matrix pair.
+
+    It is assumed that E is nonsingular, but this condition is not
+    checked. Note that the definition (1) of the continuous-time
+    algebraic Riccati equation, and the formula for the corresponding
+    optimal gain matrix, require R to be nonsingular, but the
+    associated linear quadratic optimal problem could have a unique
+    solution even when matrix R is singular, under mild assumptions
+    (see METHOD). The routine SG02AD works accordingly in this case.
+
+
+
+
+    Required arguments
+    ------------------
+
+        dico : input string(len=1)
+            Specifies the type of Riccati equation to be solved as
+            follows:
+              = 'C':  Equation (1), continuous-time case;
+              = 'D':  Equation (2), discrete-time case.
+
+        jobb : input string(len=1)
+            Specifies whether or not the matrix G is given, instead
+            of the matrices B and R, as follows:
+              = 'B':  B and R are given;
+              = 'G':  G is given.
+
+        fact : input string(len=1)
+            Specifies whether or not the matrices Q and/or R (if
+            JOBB = 'B') are factored, as follows:
+              = 'N':  Not factored, Q and R are given;
+              = 'C':  C is given, and Q = C'C;
+              = 'D':  D is given, and R = D'D;
+              = 'B':  Both factors C and D are given, Q = C'C, R = D'D.
+
+        uplo : input string(len=1)
+            If JOBB = 'G', or FACT = 'N', specifies which triangle of
+            the matrices G, or Q and R, is stored, as follows:
+              = 'U':  Upper triangle is stored;
+              = 'L':  Lower triangle is stored.
+
+        jobl : input string(len=1)
+            Specifies whether or not the matrix L is zero, as follows:
+              = 'Z':  L is zero;
+              = 'N':  L is nonzero.
+              JOBL is not used if JOBB = 'G' and JOBL = 'Z' is assumed.
+              SLICOT Library routine SB02MT should be called just before
+              SG02AD, for obtaining the results when JOBB = 'G' and
+              JOBL = 'N'.
+
+        scal : input string(len=1)
+            If JOBB = 'B', specifies whether or not a scaling strategy
+            should be used to scale Q, R, and L, as follows:
+              = 'G':  General scaling should be used;
+              = 'N':  No scaling should be used.
+              SCAL is not used if JOBB = 'G'.
+
+        sort : input string(len=1)
+            Specifies which eigenvalues should be obtained in the top
+            of the generalized Schur form, as follows:
+              = 'S':  Stable   eigenvalues come first;
+              = 'U':  Unstable eigenvalues come first.
+
+        acc : input string(len=1)
+            Specifies whether or not iterative refinement should be
+            used to solve the system of algebraic equations giving
+            the solution matrix X, as follows:
+              = 'R':  Use iterative refinement;
+              = 'N':  Do not use iterative refinement.
+
+        N : input int
+            The actual state dimension, i.e., the order of the
+            matrices A, E, Q, and X, and the number of rows of the
+            matrices B and L.  N > 0.
+        M : input int
+            The number of system inputs. If JOBB = 'B', M is the
+            order of the matrix R, and the number of columns of the
+            matrix B.  M >= 0.
+            M is not used if JOBB = 'G'.
+
+        P : input int            out = _wrapper.sg02ad_bn(dico,uplo,jobl,scal,sort,acc,N,M,A,E,B,Q,R,L,tol,ldwork)
+            The number of system outputs. If FACT = 'C' or 'D' or 'B',
+            P is the number of rows of the matrices C and/or D.
+            P >= 0.
+            Otherwise, P is not used.
+
+        A : input rank-2 array('d') with bounds (max(1,N),N)
+            The leading N-by-N part of this array must contain the
+            state matrix A of the descriptor system.
+
+        E : input rank-2 array('d') with bounds (max(1,N),N)
+            The leading N-by-N part of this array must contain the
+            matrix E of the descriptor system.
+
+        B : input rank-2 array('d') with bounds (max(1,N),*)
+            If JOBB = 'B', the leading N-by-M part of this array must
+            contain the input matrix B of the system.
+            If JOBB = 'G', the leading N-by-N upper triangular part
+            (if UPLO = 'U') or lower triangular part (if UPLO = 'L')
+            of this array must contain the upper triangular part or
+            lower triangular part, respectively, of the matrix
+                -1
+            G = BR  B'. The stricly lower triangular part (if
+            UPLO = 'U') or stricly upper triangular part (if
+            UPLO = 'L') is not referenced.
+
+
+        Q : input rank-2 array('d') with bounds (ldq,N)
+            If FACT = 'N' or 'D', the leading N-by-N upper triangular
+            part (if UPLO = 'U') or lower triangular part (if UPLO =
+            'L') of this array must contain the upper triangular part
+            or lower triangular part, respectively, of the symmetric
+            state weighting matrix Q. The stricly lower triangular
+            part (if UPLO = 'U') or stricly upper triangular part (if
+            UPLO = 'L') is not referenced.
+            If FACT = 'C' or 'B', the leading P-by-N part of this
+            array must contain the output matrix C of the system.
+            If JOBB = 'B' and SCAL = 'G', then Q is modified
+            internally, but is restored on exit.
+
+            The leading dimension of array Q.
+            LDQ >= MAX(1,N) if FACT = 'N' or 'D';
+            LDQ >= MAX(1,P) if FACT = 'C' or 'B'.
+
+        R : input rank-2 array('d') with bounds (ldr,M)
+            If FACT = 'N' or 'C', the leading M-by-M upper triangular
+            part (if UPLO = 'U') or lower triangular part (if UPLO =
+            'L') of this array must contain the upper triangular part
+            or lower triangular part, respectively, of the symmetric
+            input weighting matrix R. The stricly lower triangular
+            part (if UPLO = 'U') or stricly upper triangular part (if
+            UPLO = 'L') is not referenced.
+            If FACT = 'D' or 'B', the leading P-by-M part of this
+            array must contain the direct transmission matrix D of the
+            system.
+            If JOBB = 'B' and SCAL = 'G', then R is modified
+            internally, but is restored on exit.
+            If JOBB = 'G', this array is not referenced.
+
+            The leading dimension of array R.
+            LDR >= MAX(1,M) if JOBB = 'B' and FACT = 'N' or 'C';
+            LDR >= MAX(1,P) if JOBB = 'B' and FACT = 'D' or 'B';
+            LDR >= 1        if JOBB = 'G'.
+
+
+        L : input rank-2 array('d') with bounds (n,M)
+            If JOBL = 'N' and JOBB = 'B', the leading N-by-M part of
+            this array must contain the cross weighting matrix L.
+            If JOBB = 'B' and SCAL = 'G', then L is modified
+            internally, but is restored on exit.
+            If JOBL = 'Z' or JOBB = 'G', this array is not referenced.
+
+
+    Optional arguments
+    ------------------
+
+        ldwork := max(7*(2*n+1)+16,16*n) input int
+            The length of the array DWORK.
+              LDWORK >= MAX(7*(2*N+1)+16,16*N),           if JOBB = 'G';
+              LDWORK >= MAX(7*(2*N+1)+16,16*N,2*N+M,3*M), if JOBB = 'B'.
+            For optimum performance LDWORK should be larger.
+
+        tol := -1 input float
+            The tolerance to be used to test for near singularity of
+            the original matrix pencil, specifically of the triangular
+            M-by-M factor obtained during the reduction process. If
+            the user sets TOL > 0, then the given value of TOL is used
+            as a lower bound for the reciprocal condition number of
+            that matrix; a matrix whose estimated condition number is
+            less than 1/TOL is considered to be nonsingular. If the
+            user sets TOL <= 0, then a default tolerance, defined by
+            TOLDEF = EPS, is used instead, where EPS is the machine
+            precision (see LAPACK Library routine DLAMCH).
+            This parameter is not referenced if JOBB = 'G'.
+
+
+
+
+    Return objects
+    --------------
+        rcondu : float
+            If N > 0 and INFO = 0 or INFO = 7, an estimate of the
+            reciprocal of the condition number (in the 1-norm) of
+            the N-th order system of algebraic equations from which
+            the solution matrix X is obtained.
+
+        X : rank-2 array('d') with bounds (n,n)
+            If INFO = 0, the leading N-by-N part of this array
+            contains the solution matrix X of the problem.
+
+        alfar : rank-1 array('d') with bounds (2 * n)
+
+        alfai : rank-1 array('d') with bounds (2 * n)
+
+        beta : rank-1 array('d') with bounds (2 * n)
+            The generalized eigenvalues of the 2N-by-2N matrix pair,
+            ordered as specified by SORT (if INFO = 0, or INFO >= 5).
+            For instance, if SORT = 'S', the leading N elements of
+            these arrays contain the closed-loop spectrum of the
+            system. Specifically,
+             lambda(k) = [ALFAR(k)+j*ALFAI(k)]/BETA(k) for
+            k = 1,2,...,N.
+
+        S : rank-2 array('d') with bounds (2 * n,2 * n)
+            The leading 2N-by-2N part of this array contains the
+            ordered real Schur form S of the first matrix in the
+            reduced matrix pencil associated to the optimal problem,
+            corresponding to the scaled Q, R, and L, if JOBB = 'B'
+            and SCAL = 'G'. That is,
+
+                 (S   S  )
+                 ( 11  12)
+             S = (       ),
+                 (0   S  )
+                 (     22)
+
+            where S  , S   and S   are N-by-N matrices.
+                 11   12      22
+            Array S must have 2*N+M columns if JOBB = 'B', and 2*N
+            columns, otherwise.
+
+
+        T : rank-2 array('d') with bounds (2 * n,2 * n)
+            The leading 2N-by-2N part of this array contains the
+            ordered upper triangular form T of the second matrix in
+            the reduced matrix pencil associated to the optimal
+            problem, corresponding to the scaled Q, R, and L, if
+            JOBB = 'B' and SCAL = 'G'. That is,
+
+                 (T   T  )
+                 ( 11  12)
+             T = (       ),
+                 (0   T  )
+                 (     22)
+
+            where T  , T   and T   are N-by-N matrices.
+                 11   12      22
+
+        U : rank-2 array('d') with bounds (2 * n,2 * n)
+            The leading 2N-by-2N part of this array contains the right
+            transformation matrix U which reduces the 2N-by-2N matrix
+            pencil to the ordered generalized real Schur form (S,T).
+            That is,
+
+                 (U   U  )
+                 ( 11  12)
+             U = (       ),
+                 (U   U  )
+                 ( 21  22)
+
+            where U  , U  , U   and U   are N-by-N matrices.
+                 11   12   21      22
+            If JOBB = 'B' and SCAL = 'G', then U corresponds to the
+            scaled pencil. If a basis for the stable deflating
+            subspace of the original problem is needed, then the
+            submatrix U   must be multiplied by the scaling factor
+                     21
+            contained in DWORK(4).
+
+        iwarn : int
+            = 0:  no warning;
+            = 1:  the computed solution may be inaccurate due to poor
+                  scaling or eigenvalues too close to the boundary of
+                  the stability domain (the imaginary axis, if
+                  DICO = 'C', or the unit circle, if DICO = 'D').
+
+
+    Raises
+    ------
+
+        ValueError : e
+            e.info contains information about the exact type of exception
+              < 0:  if INFO = -i, the i-th argument had an illegal
+                    value;
+              = 1:  if the computed extended matrix pencil is singular,
+                    possibly due to rounding errors;
+              = 2:  if the QZ algorithm failed;
+              = 3:  if reordering of the generalized eigenvalues failed;
+              = 4:  if after reordering, roundoff changed values of
+                    some complex eigenvalues so that leading eigenvalues
+                    in the generalized Schur form no longer satisfy the
+                    stability condition; this could also be caused due
+                    to scaling;
+              = 5:  if the computed dimension of the solution does not
+                    equal N;
+              = 6:  if the spectrum is too close to the boundary of
+                    the stability domain;
+              = 7:  if a singular matrix was encountered during the
+                    computation of the solution matrix X.
+    """
+
+    hidden = ' (hidden by the wrapper)'
+    arg_list = ['dico', 'jobb', 'fact', 'uplo', 'jobl',
+                'scal', 'sort', 'acc', 'N', 'M', 'P',
+                'A', 'LDA'+hidden, 'E', 'LDE'+hidden, 'B', 'LDB'+hidden,
+                'Q', 'LDQ'+hidden, 'R', 'LDR'+hidden, 'L', 'LDL'+hidden,
+                'rcondu', 'X', 'LDX'+hidden, 'alfar', 'alfai',
+                'beta', 'S', 'LDS'+hidden, 'T', 'LDT'+hidden, 'U',
+                'LDU'+hidden, 'tol', 'IWORK'+hidden, 'DWORK'+hidden,
+                'ldwork', 'BWORK'+hidden, 'iwarn', 'INFO'+hidden ]
+
+    if ldwork is None:
+        if (jobb == 'G'):
+            ldwork = max(7*(2*N+1)+16,16*N)
+        elif (jobb == 'B'):
+            ldwork = max(7*(2*N+1)+16,16*N,2*N+M,3*M)
+
+    if (jobb == 'G'):
+        out = _wrapper.sg02ad_g(dico,uplo,sort,acc,N,A,E,B,Q,ldwork)
+    elif (jobb == 'B'):
+        if (fact == 'N'):
+            out = _wrapper.sg02ad_bn(dico,uplo,jobl,scal,sort,acc,N,M,A,E,B,Q,R,L,tol,ldwork)
+        elif (fact == 'C'):
+            out = _wrapper.sg02ad_bc(dico,jobl,scal,sort,acc,N,M,P,A,E,B,Q,R,L,tol,ldwork)
+        elif (fact == 'D'):
+            out = _wrapper.sg02ad_bc(dico,jobl,scal,sort,acc,N,M,P,A,E,B,Q,R,L,tol,ldwork)
+        elif (fact == 'B'):
+            out = _wrapper.sg02ad_bb(dico,jobl,scal,sort,acc,N,M,P,A,E,B,Q,R,L,tol,ldwork)
+
+    if out[-1] != 0:
+        if out[-1] < 0:
+            error_text = "The following argument had an illegal value: "\
+                +arg_list[-out[-1]-1]
+        elif out[-1] == 1:
+            error_text = "The computed extended matrix pencil is singular,\
+                possibly due to rounding errors"
+        elif out[-1] == 2:
+            error_text = "The QZ algorithm failed"
+        elif out[-1] == 3:
+            error_text = "Reordering of the generalized eigenvalues failed"
+        elif out[-1] == 4:
+            error_text = "After reordering, roundoff changed values of\
+                some complex eigenvalues so that leading eigenvalues\
+                in the generalized Schur form no longer satisfy the\
+                stability condition; this could also be caused due\
+                to scaling"
+        elif out[-1] == 5:
+            error_text = "The computed dimension of the solution does not\
+                equal N"
+        elif out[-1] == 6:
+            error_text = "The spectrum is too close to the boundary of\
+                the stability domain"
+        elif out[-1] == 7:
+            error_text = "A singular matrix was encountered during the\
+                computation of the solution matrix X"
+        e = ValueError(error_text)
+        e.info = out[-1]
+        raise e
+
+    return out[:-1]
