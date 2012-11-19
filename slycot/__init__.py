@@ -19,4 +19,4 @@ from slycot.synthesis import sb01bd,sb02md,sb02mt,sb02od,sb03md,sb04md,sb04qd,sb
 from slycot.transform import tb01id,tb03ad, tb04ad
 from slycot.transform import tc04ad,tc01od
 from slycot.transform import tf01md,tf01rd
-from slycot.transform import td04ad
+from slycot.transform import td04ad,tb01pd
