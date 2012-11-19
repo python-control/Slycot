@@ -708,7 +708,7 @@ def tf01rd(n,m,p,N,A,B,C,ldwork=None):
     hidden = ' (hidden by the wrapper)'
     arg_list = ['n','m','p','N','A','lda'+hidden,'B','ldb'+hidden,'C',
         'ldc'+hidden,'H','ldh'+hidden,'dwork'+hidden,'ldwork','info'+hidden]
-        
+    
     if ldwork is None:
         out = _wrapper.tf01rd(n,m,p,N,A,B,C)
     else:
@@ -720,5 +720,86 @@ def tf01rd(n,m,p,N,A,B,C,ldwork=None):
         raise e
     return out[0]
 
+def tb01pd(n, m, p, A, B, C, job='M', equil='S', tol=1e-8, ldwork=None):
+    """Ar, Br, Cr, nr = tb01pd(n,m,p,A,B,C,[job,equil,tol,ldwork])
     
+    To find a reduced (controllable, observable, or minimal) state-
+    space representation (Ar,Br,Cr) for any original state-space
+    representation (A,B,C). The matrix Ar is in upper block
+    Hessenberg form.
+
+    Required arguments:
+        n : input int
+            Order of the State-space representation.
+        m : input int
+            Number of inputs.
+        p : input int
+            Number of outputs.
+        A : input rank-2 array('d') with bounds (n,n)
+            State dynamics matrix. 
+        B : input rank-2 array('d') with bounds (n,m)
+            Input/state matrix.
+        C : input rank-2 array('d') with bounds (p,n)
+            State/output matrix.
+    Optional arguments:
+        job : input char*1
+            Indicates whether the user wishes to remove the
+            uncontrollable and/or unobservable parts as follows:
+            = 'M':  Remove both the uncontrollable and unobservable
+                    parts to get a minimal state-space representation;
+            = 'C':  Remove the uncontrollable part only to get a
+                    controllable state-space representation;
+            = 'O':  Remove the unobservable part only to get an
+                    observable state-space representation.
+        equil : input char*1
+            Specifies whether the user wishes to preliminarily balance
+            the triplet (A,B,C) as follows:
+            = 'S':  Perform balancing (scaling);
+            = 'N':  Do not perform balancing.
+    Return objects:
+        Ar : output rank-2 array('d') with bounds (nr,nr)
+            Contains the upper block Hessenberg state dynamics matrix
+            Ar of a minimal, controllable, or observable realization
+            for the original system, depending on the value of JOB,
+            JOB = 'M', JOB = 'C', or JOB = 'O', respectively.
+        Br : output rank-2 array('d') with bounds (nr,m)
+            Contains the transformed input/state matrix Br of a
+            minimal, controllable, or observable realization for the
+            original system, depending on the value of JOB, JOB = 'M',
+            JOB = 'C', or JOB = 'O', respectively.  If JOB = 'C', only
+            the first IWORK(1) rows of B are nonzero.
+        Cr : output rank-2 array('d') with bounds (p,nr)
+
+            Contains the transformed state/output matrix Cr of a
+            minimal, C controllable, or observable realization for the
+            original C system, depending on the value of JOB, JOB =
+            'M', C JOB = 'C', or JOB = 'O', respectively.  C If JOB =
+            'M', or JOB = 'O', only the last IWORK(1) columns C (in
+            the first NR columns) of C are nonzero.
+        nr : output int
+            The order of the reduced state-space representation
+            (Ar,Br,Cr) of a minimal, controllable, or observable
+            realization for the original system, depending on
+            JOB = 'M', JOB = 'C', or JOB = 'O'.
+    """
+    hidden = ' (hidden by the wrapper)'
+    arg_list = ['job', 'equil', 'n','m','p','A','lda'+hidden,'B','ldb'+hidden,
+                'C','ldc'+hidden,'nr','tol','iwork'+hidden,'dwork'+hidden,
+                'ldwork','info'+hidden]
+    if ldwork is None:
+        ldwork = max(1, n+max(n,3*m,3*p))
+    elif ldwork < max(1, n+max(n,3*m,3*p)):
+        raise ValueError("ldwork is too small")
+    out = _wrapper.tb01pd(n=n,m=m,p=p,a=A,b=B,c=C,
+                          job=job,equil=equil,tol=tol,ldwork=ldwork)
+        
+    if out[-1] < 0:
+        error_text = "The following argument had an illegal value: " + \
+            arg_list[-out[-1]-1]
+        e = ValueError(error_text)
+        e.info = out[-1]
+        raise e
+    return out[:-1]
+
+
 # to be replaced by python wrappers

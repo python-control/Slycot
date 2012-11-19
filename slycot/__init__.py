@@ -1,7 +1,7 @@
 import slycot.examples
 
 # Analysis routines (6/40 wrapped)
-from slycot.analysis import ab01nd,ab05md,ab05nd,ab07nd,ab08nd, ab09ad
+from slycot.analysis import ab01nd,ab05md,ab05nd,ab07nd,ab08nd,ab09ad
 
 # Data analysis routines (0/7 wrapped)
 
@@ -19,4 +19,4 @@ from slycot.synthesis import sb01bd,sb02md,sb02mt,sb02od,sb03md,sb04md,sb04qd,sb
 from slycot.transform import tb01id,tb03ad, tb04ad
 from slycot.transform import tc04ad,tc01od
 from slycot.transform import tf01md,tf01rd
-from slycot.transform import td04ad
+from slycot.transform import td04ad,tb01pd
