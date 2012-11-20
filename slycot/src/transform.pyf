@@ -307,7 +307,7 @@ subroutine tf01rd(na,nb,nc,n,a,lda,b,ldb,c,ldc,h,ldh,dwork,ldwork,info) ! in TF0
 end subroutine tf01rd
 subroutine tb01pd(job,equil,n,m,p,a,lda,b,ldb,c,ldc,nr,tol,iwork,dwork,ldwork,info) ! in TB01PD.f
     character:: job='M'
-    character check(equil=='S' || equil=='N'):: equil='S'
+    character:: equil='S'
     integer check(n>=0) :: n
     integer check(m>=0) :: m
     integer check(p>=0) :: p

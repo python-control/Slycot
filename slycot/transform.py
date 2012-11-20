@@ -786,7 +786,7 @@ def tb01pd(n, m, p, A, B, C, job='M', equil='S', tol=0.0, ldwork=None):
     arg_list = ['job', 'equil', 'n','m','p','A','lda'+hidden,'B','ldb'+hidden,
                 'C','ldc'+hidden,'nr','tol','iwork'+hidden,'dwork'+hidden,
                 'ldwork','info'+hidden]
-    out = _wrapper.tb01pd(n, m, p, A, B, C, job, tol)
+    out = _wrapper.tb01pd(n, m, p, A, B, C, job, equil, tol)
     if out[-1] < 0:
         error_text = "The following argument had an illegal value: " + \
             arg_list[-out[-1]-1]

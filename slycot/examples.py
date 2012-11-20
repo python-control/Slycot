@@ -17,7 +17,7 @@
 #       along with this program; if not, write to the Free Software
 #       Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 #       MA 02110-1301, USA.
-from numpy import array
+from numpy import array, ones
 import slycot
 
 def sb02md_example():
@@ -157,3 +157,23 @@ def tc04ad_example():
     print(out2[3])
     print('D =')
     print(out2[4])
+
+def example_tb01pd():
+    A = array([[-1, 0],[0,-1]])
+    B = ones((2,1))
+    C = array([[-1,1]])
+    out = slycot.tb01pd(2, 1, 1, A, B, C)
+    print('--- Example for tb01pd ...')
+    print('Minimal realization for A, B, C')
+    print('reduced order', out[-2])
+    print out
+
+
+A = array([[-1, 0],[0,-1]])
+B = ones((2,1))
+C = array([[-1,1]])
+out = slycot.tb01pd(2, 1, 1, A, B, C)
+print('--- Example for tb01pd ...')
+print('Minimal realization for A, B, C')
+print('reduced order', out[-2])
+print out
