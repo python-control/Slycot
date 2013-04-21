@@ -306,11 +306,11 @@ subroutine tf01rd(na,nb,nc,n,a,lda,b,ldb,c,ldc,h,ldh,dwork,ldwork,info) ! in TF0
     integer intent(out) :: info
 end subroutine tf01rd
 subroutine tb01pd(job,equil,n,m,p,a,lda,b,ldb,c,ldc,nr,tol,iwork,dwork,ldwork,info) ! in TB01PD.f
-    character:: job='M'
-    character:: equil='S'
-    integer check(n>=0) :: n
-    integer check(m>=0) :: m
-    integer check(p>=0) :: p
+    character intent(in) :: job = 'M'
+    character intent(in) :: equil = 'S'
+    integer intent(in), check(n>=0) :: n
+    integer intent(in), check(m>=0) :: m
+    integer intent(in), check(p>=0) :: p
     double precision intent(in,out,copy),dimension(n,n),depend(n) :: a
     integer, intent(hide), depend(a) :: lda=shape(a,0)
     double precision intent(in,out,copy),dimension(n,m),depend(n,m) :: b
@@ -320,7 +320,8 @@ subroutine tb01pd(job,equil,n,m,p,a,lda,b,ldb,c,ldc,nr,tol,iwork,dwork,ldwork,in
     integer, intent(out) :: nr
     double precision, intent(in) :: tol = 0.0
     integer intent(hide,cache),dimension(n+max(m,p)),depend(n,m,p) :: iwork
-    double precision intent(hide,cache),dimension(ldwork) :: dwork
-    integer optional,depend(n,m,p):: ldwork = n+max(m,p)
-    integer intent(out):: info
+    double precision intent(hide,cache),dimension(ldwork),depend(ldwork) :: dwork
+    integer optional,depend(n,m,p) :: ldwork = n+max(m,p)
+    integer intent(out) :: info
 end subroutine tb01pd
+

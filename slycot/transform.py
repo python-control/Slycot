@@ -720,7 +720,7 @@ def tf01rd(n,m,p,N,A,B,C,ldwork=None):
         raise e
     return out[0]
 
-def tb01pd(n, m, p, A, B, C, job='M', equil='S', tol=0.0, ldwork=None):
+def tb01pd(n, m, p, A, B, C, job='M', equil='S', tol=1e-8, ldwork=None):
     """Ar, Br, Cr, nr = tb01id(n,m,p,A,B,C,[job,equil,tol,ldwork])
     
     To find a reduced (controllable, observable, or minimal) state-
@@ -786,7 +786,11 @@ def tb01pd(n, m, p, A, B, C, job='M', equil='S', tol=0.0, ldwork=None):
     arg_list = ['job', 'equil', 'n','m','p','A','lda'+hidden,'B','ldb'+hidden,
                 'C','ldc'+hidden,'nr','tol','iwork'+hidden,'dwork'+hidden,
                 'ldwork','info'+hidden]
-    out = _wrapper.tb01pd(n, m, p, A, B, C, job, equil, tol)
+    if ldwork is None:
+        ldwork = n+max(m,p)
+    out = _wrapper.tb01pd(n=n,m=m,p=p,a=A,b=B,c=C,
+                          job=job,equil=equil,tol=tol,ldwork=ldwork)
+        
     if out[-1] < 0:
         error_text = "The following argument had an illegal value: " + \
             arg_list[-out[-1]-1]
