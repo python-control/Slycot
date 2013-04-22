@@ -161,7 +161,7 @@ def tc04ad_example():
 def tb01pd_example():
     A = array([[-1, 0],[0,-1]])
     B = ones((2,1))
-    C = array([[-1,1]])
+    C = array([[0,1]])
     out = slycot.tb01pd(2, 1, 1, A, B, C)
     print('--- Example for tb01pd ...')
     print('Minimal realization for A, B, C')

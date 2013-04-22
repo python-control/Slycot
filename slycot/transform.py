@@ -787,7 +787,9 @@ def tb01pd(n, m, p, A, B, C, job='M', equil='S', tol=1e-8, ldwork=None):
                 'C','ldc'+hidden,'nr','tol','iwork'+hidden,'dwork'+hidden,
                 'ldwork','info'+hidden]
     if ldwork is None:
-        ldwork = n+max(m,p)
+        ldwork = max(1, n+max(n,3*m,3*p))
+    elif ldwork < max(1, n+max(n,3*m,3*p)):
+        raise ValueError("ldwork is too small")
     out = _wrapper.tb01pd(n=n,m=m,p=p,a=A,b=B,c=C,
                           job=job,equil=equil,tol=tol,ldwork=ldwork)
         
