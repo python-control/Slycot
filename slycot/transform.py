@@ -721,7 +721,7 @@ def tf01rd(n,m,p,N,A,B,C,ldwork=None):
     return out[0]
 
 def tb01pd(n, m, p, A, B, C, job='M', equil='S', tol=1e-8, ldwork=None):
-    """Ar, Br, Cr, nr = tb01id(n,m,p,A,B,C,[job,equil,tol,ldwork])
+    """Ar, Br, Cr, nr = tb01pd(n,m,p,A,B,C,[job,equil,tol,ldwork])
     
     To find a reduced (controllable, observable, or minimal) state-
     space representation (Ar,Br,Cr) for any original state-space
