@@ -18,15 +18,23 @@
 #       Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 #       MA 02110-1301, USA.
 
+#       Modification RvP: for Windows, select liblapack and libblas
 
 from glob import glob
 import os
+import sys
 
 if __name__ == '__main__':
     from numpy.distutils.core import setup,Extension
+    if sys.platform == 'win32':
+        liblist = ['liblapack', 'libblas']
+    else:
+        liblist = ['lapack']
+
     wrappers = Extension('_wrapper', 
-              libraries=['lapack'],
-              sources=['slycot/src/_wrapper.pyf'] + glob(os.path.join('slycot','src','*.f')))
+                         libraries=liblist,
+                         sources=['slycot/src/_wrapper.pyf'] + 
+                         glob(os.path.join('slycot','src','*.f')))
     setup(name = 'Slycot',
     	  author = 'Enrico Avventi',
     	  license = 'GPLv2',
