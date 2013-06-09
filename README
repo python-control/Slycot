@@ -13,7 +13,7 @@ On Debian derivates you can install all the above with a single command:
 # apt-get build-dep python-scipy
 
 On Windows, I suggest installing on top of the Python(x,y) distribution, and
-grabing BLAS and LAPACK libraries from: 
+grabbing BLAS and LAPACK libraries from: 
 
 http://icl.cs.utk.edu/lapack-for-windows/libraries/VisualStudio/3.4.1/Dynamic-MINGW/Win32/
 
@@ -37,12 +37,14 @@ $ python setup.py config_fc --arch="-march=x86-64" build
 # python setup.py install
 
 For Windows, and using Python(x,y), specify that you are using the
-mingw compiler. The saveopts option saves the compiler option; add -g to 
-change the global distutils.cfg file
+mingw compiler. Create a file  
+C:\Python27\Lib\distutils\distutils.cfg
 
-python setup.py build --compiler=mingw32 saveopts
-python setup.py install
-
+with as contents:
+-------------------cut-here--------------------
+[build]
+compiler=mingw32
+-------------------cut-here--------------------
 
 To-Do:
 ------
