@@ -737,10 +737,14 @@ def tb01pd(n, m, p, A, B, C, job='M', equil='S', tol=1e-8, ldwork=None):
             Number of outputs.
         A : input rank-2 array('d') with bounds (n,n)
             State dynamics matrix. 
-        B : input rank-2 array('d') with bounds (n,m)
-            Input/state matrix.
+        B : input rank-2 array('d') with bounds (n,max(m,p))
+            The leading n-by-m part of this array must contain the original 
+            input/state matrix B; the remainder of the leading n-by-max(m,p) 
+            part is used as internal workspace.
         C : input rank-2 array('d') with bounds (p,n)
-            State/output matrix.
+            The leading p-by-n part of this array must contain the original 
+            state/output matrix C; the remainder of the leading max(1,m,p)-by-n 
+            part is used as internal workspace.
     Optional arguments:
         job : input char*1
             Indicates whether the user wishes to remove the
