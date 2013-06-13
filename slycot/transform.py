@@ -95,7 +95,7 @@ def tb01id(n,m,p,maxred,a,b,c,job='A'):
     hidden = ' (hidden by the wrapper)'
     arg_list = ['job', 'N', 'M', 'P', 'maxred', 'A', 'LDA'+hidden, 'B', 
         'LDB'+hidden, 'C', 'LDC'+hidden, 'scale', 'INFO'+hidden]
-    our = _wrapper.tb01id(n,m,p,maxred,a,b,c,job=job)
+    out = _wrapper.tb01id(n,m,p,maxred,a,b,c,job=job)
     if out[-1] < 0:
         error_text = "The following argument had an illegal value: "+arg_list[-out[-1]-1]
         e = ValueError(error_text)    
