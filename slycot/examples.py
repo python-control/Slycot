@@ -94,10 +94,10 @@ def sb02od_example():
     Q = dot(C.T,C)
     R = ones((1,1))
     out = slycot.sb02od(2,1,A,B,Q,R,'C')
-    print('--- Example for sb01od ...')
+    print('--- Example for sb02od ...')
     print('The solution X is')
-    print(out[1])
-    print('rcond =', out[0])
+    print(out[0])
+    print('rcond =', out[1])
     
 def tb03ad_example():
     A = array([ [1, 2, 0],
