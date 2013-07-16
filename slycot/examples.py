@@ -166,5 +166,5 @@ def tb01pd_example():
     print('--- Example for tb01pd ...')
     print('Minimal realization for A, B, C')
     print('reduced order', out[-2])
-    print out
+    print(out)
 
