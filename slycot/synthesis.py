@@ -1,48 +1,48 @@
 #!/usr/bin/env python
 #
 #       synthesis.py
-#       
+#
 #       Copyright 2010-2011 Enrico Avventi <avventi@Lonewolf>
 #       Copyright 2011 Jerker Nordh <jerker.nordh@control.lth.se>
 #
 #       This program is free software; you can redistribute it and/or modify
-#       it under the terms of the GNU General Public License version 2 as 
+#       it under the terms of the GNU General Public License version 2 as
 #       published by the Free Software Foundation.
-#       
+#
 #       This program is distributed in the hope that it will be useful,
 #       but WITHOUT ANY WARRANTY; without even the implied warranty of
 #       MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #       GNU General Public License for more details.
-#       
+#
 #       You should have received a copy of the GNU General Public License
 #       along with this program; if not, write to the Free Software
 #       Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 #       MA 02110-1301, USA.
 
 
-from slycot import _wrapper
+from . import _wrapper
 import numpy as _np
 import warnings
-    
+
 def sb01bd(n,m,np,alpha,A,B,w,dico,tol=0.0,ldwork=None):
     """ A_z,w,nfp,nap,nup,F,Z = sb01bd(n,m,np,alpha,A,B,w,dico,[tol,ldwork])
-    
-    To determine the state feedback matrix F for a given system (A,B) such that 
+
+    To determine the state feedback matrix F for a given system (A,B) such that
     the closed-loop state matrix A+B*F has specified eigenvalues.
-    
+
     Required arguments
     ------------------
-    
+
         n : int
             The dimension of the state vector, n >= 0.
         m : int
             The dimension of input vector, m >= 0.
         np : int
-            The number of given eigenvalues. At most n eigenvalues can be 
+            The number of given eigenvalues. At most n eigenvalues can be
             assigned.  0 <= np <= n.
         alpha : float
-            Specifies the maximum admissible value, either for real parts, 
-            if dico = 'C', or for moduli, if dico = 'D', of the eigenvalues of 
+            Specifies the maximum admissible value, either for real parts,
+            if dico = 'C', or for moduli, if dico = 'D', of the eigenvalues of
             A which will not be modified by the eigenvalue assignment algorithm.
             alpha >= 0 if dico = 'D'.
         A : rank-2 array('d'), shape (n,n)
@@ -50,55 +50,55 @@ def sb01bd(n,m,np,alpha,A,B,w,dico,tol=0.0,ldwork=None):
         B : rank-2 array('d'), shape (n,m)
             Input/state matrix.
         w : rank-1 array('c'), shape (np,)
-            Array of the desired eigenvalues of the closed-loop system state-matrix 
-            A+B*F. The eigenvalues can be unordered, except that complex conjugate 
+            Array of the desired eigenvalues of the closed-loop system state-matrix
+            A+B*F. The eigenvalues can be unordered, except that complex conjugate
             pairs must appear consecutively.
         dico : {'C', 'D'}
             Specifies the type of the original system as follows:
             = 'C':  continuous-time system;
             = 'D':  discrete-time system.
-            
+
     Optional arguments
     ------------------
-    
+
         tol : float
-            The absolute tolerance level below which the elements of A or B are 
+            The absolute tolerance level below which the elements of A or B are
             considered zero (used for controllability tests).
             If tol <= 0 the default value is used.
         ldwork : int
-            The length of the cache array. The default value is 
+            The length of the cache array. The default value is
             max(1,5*m,5*n,2*n+4*m), for optimum performance it should be larger.
-    
+
     Returns
     -------
-    
+
         A_z : rank-2 array('d'), shape (n,n)
-            This array contains the matrix Z'*(A+B*F)*Z in a real Schur form. 
-            The diagonal block A[:nfp,:nfp] corresponds to the fixed (unmodified) 
-            eigenvalues having real parts less than alpha, if dico = 'C', or moduli 
-            less than alpha if dico = 'D'. 
-            The diagonal block A[n-nup:,n-nup:] corresponds to the uncontrollable 
-            eigenvalues detected by the eigenvalue assignment algorithm. 
+            This array contains the matrix Z'*(A+B*F)*Z in a real Schur form.
+            The diagonal block A[:nfp,:nfp] corresponds to the fixed (unmodified)
+            eigenvalues having real parts less than alpha, if dico = 'C', or moduli
+            less than alpha if dico = 'D'.
+            The diagonal block A[n-nup:,n-nup:] corresponds to the uncontrollable
+            eigenvalues detected by the eigenvalue assignment algorithm.
             The elements under the first subdiagonal are set to zero.
         w : rank-1 array('c'), shape (np,)
-            The first part w[:nap] contain the assigned eigenvalues. 
+            The first part w[:nap] contain the assigned eigenvalues.
             The rest w[np-nap:] contain the unassigned eigenvalues.
         nfp : int
-            The number of eigenvalues of A having real parts less than alpha, 
-            if dico = 'C', or moduli less than alpha, if dico = 'D'. These 
+            The number of eigenvalues of A having real parts less than alpha,
+            if dico = 'C', or moduli less than alpha, if dico = 'D'. These
             eigenvalues are not modified by the eigenvalue assignment algorithm.
         nap : int
             The number of assigned eigenvalues.
         nup : int
-            The number of uncontrollable eigenvalues detected by the eigenvalue 
+            The number of uncontrollable eigenvalues detected by the eigenvalue
             assignment algorithm.
         F : rank-2 array('d'), shape (m,n)
-            The state feedback F, which assigns nap closed-loop eigenvalues and 
+            The state feedback F, which assigns nap closed-loop eigenvalues and
             keeps unaltered n-nap open-loop eigenvalues.
         Z : rank-2 array('d'), shape (n,n)
-            The orthogonal matrix Z which reduces the closed-loop system state 
+            The orthogonal matrix Z which reduces the closed-loop system state
             matrix A + B*F to upper real Schur form.
-            
+
     Raises
     ------
 
@@ -121,10 +121,10 @@ def sb01bd(n,m,np,alpha,A,B,w,dico,tol=0.0,ldwork=None):
                 eigenvalue to be modified there exists no available
                 real eigenvalue to be assigned. However, nap
                 eigenvalues have been already properly assigned.
-        
+
     Example
     -------
-    
+
     >>> import numpy as np
     >>> import slycot
     >>> A = np.array([[0, 1, 0],[0, 0, 1],[-2, 1, 3]])
@@ -138,9 +138,9 @@ def sb01bd(n,m,np,alpha,A,B,w,dico,tol=0.0,ldwork=None):
     array([ 0.2       ,  0.40000001,  0.5       ])
     """
     hidden = ' (hidden by the wrapper)'
-    arg_list = ['dico', 'n', 'm', 'np', 'alpha', 'A', 'LDA'+hidden, 'B', 
-        'LDB'+hidden, 'wr'+hidden, 'wi'+hidden, 'nfp', 'nap', 'nup', 'F', 
-        'LDF'+hidden, 'Z', 'LDZ'+hidden, 'tol', 'DWORK'+hidden, 'ldwork', 
+    arg_list = ['dico', 'n', 'm', 'np', 'alpha', 'A', 'LDA'+hidden, 'B',
+        'LDB'+hidden, 'wr'+hidden, 'wi'+hidden, 'nfp', 'nap', 'nup', 'F',
+        'LDF'+hidden, 'Z', 'LDZ'+hidden, 'tol', 'DWORK'+hidden, 'ldwork',
         'IWARN'+hidden, 'INFO'+hidden]
     if ldwork is None:
         ldwork = max(1,5*m,5*n,2*n+4*m)
@@ -176,7 +176,7 @@ def sb01bd(n,m,np,alpha,A,B,w,dico,tol=0.0,ldwork=None):
 
 def sb02md(n,A,G,Q,dico,hinv='D',uplo='U',scal='N',sort='S',ldwork=None):
     """  X,rcond,w,S,U,A_inv = sb02md(dico,n,A,G,Q,[hinv,uplo,scal,sort,ldwork])
-    
+
     To solve for X either the continuous-time algebraic Riccati
     equation
                                -1
@@ -204,51 +204,51 @@ def sb02md(n,A,G,Q,dico,hinv='D',uplo='U',scal='N',sort='S',ldwork=None):
     spectrum of the optimal system, i.e., the stable eigenvalues
     lambda(1),...,lambda(n) of the corresponding Hamiltonian or
     symplectic matrix associated to the optimal problem.
-    
+
     Required arguments
     ------------------
-    
+
         n : int
             The order of the matrices A, Q, G and X.  n > 0.
         A : rank-2 array('d'), shape (n,n)
         G : rank-2 array('d'), shape (n,n)
-            The upper triangular part (if uplo = 'U') or lower triangular 
-            part (if uplo = 'L') of this array must contain the upper 
-            triangular part or lower triangular part, respectively, of the 
+            The upper triangular part (if uplo = 'U') or lower triangular
+            part (if uplo = 'L') of this array must contain the upper
+            triangular part or lower triangular part, respectively, of the
             symmetric matrix G.
         Q : rank-2 array('d'), shape (n,n)
-            The upper triangular part (if uplo = 'U') or lower triangular 
-            part (if uplo = 'L') of this array must contain the upper 
-            triangular part or lower triangular part, respectively, 
+            The upper triangular part (if uplo = 'U') or lower triangular
+            part (if uplo = 'L') of this array must contain the upper
+            triangular part or lower triangular part, respectively,
             of the symmetric matrix Q.
         dico : {'C', 'D'}
             Specifies the type of Riccati equation to be solved as follows:
             = 'C':  Equation (3), continuous-time case;
             = 'D':  Equation (2), discrete-time case.
-            
+
     Optional arguments
     ------------------
-    
+
         hinv : {'D', 'I'}
-            If dico = 'D', specifies which symplectic matrix is to be 
+            If dico = 'D', specifies which symplectic matrix is to be
             constructed, as follows:
             = 'D':  The Hamiltonian or sympletic matrix H is constructed;
             = 'I':  The inverse of the matrix H is constructed.
             The default value is 'D'. hinv is not used if DICO = 'C'.
         uplo : {'U', 'L'}
-            Specifies which triangle of the matrices G and Q is stored, 
+            Specifies which triangle of the matrices G and Q is stored,
             as follows:
             = 'U':  Upper triangle is stored;
             = 'L':  Lower triangle is stored.
             The default value is 'U'.
         scal : {'N', 'G'}
-            Specifies whether or not a scaling strategy should be used, 
+            Specifies whether or not a scaling strategy should be used,
             as follows:
             = 'G':  General scaling should be used;
             = 'N':  No scaling should be used.
             The default value is 'N'.
         sort : {'S', 'U'}
-            Specifies which eigenvalues should be obtained in the top of 
+            Specifies which eigenvalues should be obtained in the top of
             the Schur form, as follows:
             = 'S':  Stable   eigenvalues come first;
             = 'U':  Unstable eigenvalues come first.
@@ -256,10 +256,10 @@ def sb02md(n,A,G,Q,dico,hinv='D',uplo='U',scal='N',sort='S',ldwork=None):
         ldwork : int
             The length of the cache array. The default value is max(3, 6*n),
             for optimum performance it should be larger.
-            
+
     Returns
     -------
-    
+
         X : rank-2 array('d'), shape (n,n)
             The solution matrix of the problem.
         rcond : float
@@ -267,23 +267,23 @@ def sb02md(n,A,G,Q,dico,hinv='D',uplo='U',scal='N',sort='S',ldwork=None):
             the 1-norm) of the n-th order system of algebraic
             equations from which the solution matrix X is obtained.
         w : rank-1 array('c'), shape (2 * n)
-            This array contain the eigenvalues of the 2n-by-2n matrix S, ordered 
-            as specified by sort (except for the case hinv = 'D', when the order 
-            is opposite to that specified by sort). The leading n elements of 
+            This array contain the eigenvalues of the 2n-by-2n matrix S, ordered
+            as specified by sort (except for the case hinv = 'D', when the order
+            is opposite to that specified by sort). The leading n elements of
             this array contain the closed-loop spectrum of the system
                           -1
             matrix A - B*R  *B'*X, if dico = 'C', or of the matrix
                               -1
             A - B*(R + B'*X*B)  B'*X*A, if dico = 'D'.
         S : rank-2 array('d'), shape (2 * n,2 * n)
-            This array contains the ordered real Schur form S of the Hamiltonian 
+            This array contains the ordered real Schur form S of the Hamiltonian
             or symplectic matrix H.
         U : rank-2 array('d'), shape (2 * n,2 * n)
-            This array contains the transformation matrix U which reduces the 
+            This array contains the transformation matrix U which reduces the
             Hamiltonian or symplectic matrix H to the ordered real Schur form S.
         A_inv : rank-2 array('d'), shape (n,n)
             The inverse of A if dico = 'D' or a copy of A itself otherwise.
-            
+
     Raises
     ------
 
@@ -301,28 +301,28 @@ def sb02md(n,A,G,Q,dico,hinv='D',uplo='U',scal='N',sort='S',ldwork=None):
              = 5:  if the n-th order system of linear algebraic
                 equations, from which the solution matrix X would
                 be obtained, is singular to working precision.
-    
-            
+
+
         Example
         -------
-        
+
             >>> import numpy as np
             >>> import slycot
             >>> A = np.array([[0, 1],[0, 0]])
             >>> Q = np.array([[1, 0],[0, 2]])
             >>> G = np.array([[0, 0],[0, 1]])
-            >>> out = slycot.sb02md(2,A,G,Q,'C')      
+            >>> out = slycot.sb02md(2,A,G,Q,'C')
             >>> out[0] # X
             array([[ 2.,  1.],
                    [ 1.,  2.]])
             >>> out[1] # rcond
             0.3090169943749475
         """
-    
+
     hidden = ' (hidden by the wrapper)'
-    arg_list = ['dico', 'hinv', 'uplo', 'scal', 'sort', 'n', 'A', 'LDA'+hidden, 
-    'G', 'LDG'+hidden, 'Q', 'LDQ'+hidden, 'rcond', 'wr'+hidden, 'wi'+hidden, 'S', 
-    'LDS'+hidden, 'U', 'LDU'+hidden, 'IWORK'+hidden, 'DWORK'+hidden, 'ldwork', 
+    arg_list = ['dico', 'hinv', 'uplo', 'scal', 'sort', 'n', 'A', 'LDA'+hidden,
+    'G', 'LDG'+hidden, 'Q', 'LDQ'+hidden, 'rcond', 'wr'+hidden, 'wi'+hidden, 'S',
+    'LDS'+hidden, 'U', 'LDU'+hidden, 'IWORK'+hidden, 'DWORK'+hidden, 'ldwork',
     'BWORK'+hidden, 'INFO'+hidden]
     if ldwork is None:
         ldwork = max(3,6*n)
@@ -359,7 +359,7 @@ def sb02md(n,A,G,Q,dico,hinv='D',uplo='U',scal='N',sort='S',ldwork=None):
 
 def sb02mt(n,m,B,R,A=None,Q=None,L=None,fact='N',jobl='Z',uplo='U',ldwork=None):
     """ A_b,B_b,Q_b,R_b,L_b,ipiv,oufact,G = sb02mt(n,m,B,R,[A,Q,L,fact,jobl,uplo,ldwork])
-    
+
     To compute the following matrices
 
                -1
@@ -371,88 +371,88 @@ def sb02mt(n,m,B,R,A=None,Q=None,L=None,fact='N',jobl='Z',uplo='U',ldwork=None):
                        -1
         Q_b = Q - L*R  *L',
 
-    where A, B, Q, R, L, and G are n-by-n, n-by-m, n-by-n, m-by-m, n-by-m, 
+    where A, B, Q, R, L, and G are n-by-n, n-by-m, n-by-n, m-by-m, n-by-m,
     and n-by-n matrices, respectively, with Q, R and G symmetric matrices.
 
-    When R is well-conditioned with respect to inversion, standard algorithms 
-    for solving linear-quadratic optimization problems will then also solve 
+    When R is well-conditioned with respect to inversion, standard algorithms
+    for solving linear-quadratic optimization problems will then also solve
     optimization problems with coupling weighting matrix L.
-    
+
     Required arguments
     ------------------
-    
+
         n : int
-            The order of the matrices A, Q, and G, and the number of rows of 
+            The order of the matrices A, Q, and G, and the number of rows of
             the matrices B and L.  n >= 0.
         m : int
-            The order of the matrix R, and the number of columns of the matrices 
+            The order of the matrix R, and the number of columns of the matrices
             B and L.  m >= 0.
         B : rank-2 array('d'), shape (n,m)
         R : rank-2 array('d'), shape (m,m)
-            If fact = 'N', the upper/lower triangular part of this array must 
-            contain the upper/lower triangular part, of the symmetric input 
+            If fact = 'N', the upper/lower triangular part of this array must
+            contain the upper/lower triangular part, of the symmetric input
             weighting matrix R.
-            If fact = 'C', the upper/lower triangular part of this array must 
-            contain the Cholesky factor of the positive definite input weighting 
+            If fact = 'C', the upper/lower triangular part of this array must
+            contain the Cholesky factor of the positive definite input weighting
             matrix R.
-            
+
     Optional arguments
     ------------------
-    
+
         A : rank-2 array('d'), shape (n,n)
             If jobl = 'Z', this matrix is not needed.
         Q : rank-2 array('d'), shape (n,n)
-            If jobl = 'Z', this matrix is not needed. Otherwise the upper/lower 
-            triangular part of this array (depending on uplo) must contain the 
+            If jobl = 'Z', this matrix is not needed. Otherwise the upper/lower
+            triangular part of this array (depending on uplo) must contain the
             corresponding part of matrix Q.
         L : rank-2 array('d'), shape (n,m)
             If jobl = 'Z', this matrix is not needed.
-        fact : {'N', 'C'} 
+        fact : {'N', 'C'}
             Specifies how the matrix R is given (factored or not), as follows:
             = 'N':  Array R contains the matrix R,
             = 'C':  Array R contains the Cholesky factor of R.
             The default value is 'N'.
         jobl : {'Z', 'N'}
-            When equal to 'Z', L is considered as a zero matrix and A,Q and L are 
+            When equal to 'Z', L is considered as a zero matrix and A,Q and L are
             not needed. A,Q and L are required otherwise.The default value is 'Z'.
         uplo : {'U', 'L'}
-            Specifies which triangle of the matrices R and Q (if jobl = 'N') 
+            Specifies which triangle of the matrices R and Q (if jobl = 'N')
             is stored, as follows:
             = 'U':  Upper triangle is stored;
             = 'L':  Lower triangle is stored.
             The default value is 'U'.
         ldwork : int
-            The length of the cache array. Whenever fact = 'N' the default value 
+            The length of the cache array. Whenever fact = 'N' the default value
             is max(2,3*m,n*m), for optimum performance it should be larger.
             No cache is needed if fact = 'C', defaults at 1.
-            
+
     Returns
     -------
-    
+
         A_b : rank-2 array('d'), shape (n,n)
             If jobl = 'Z', this is None.
         B_b : rank-2 array('d'), shape (n,m)
                                                                   -1
-            If oufact = 1 this array contains the matrix B*chol(R)  . It is a copy 
+            If oufact = 1 this array contains the matrix B*chol(R)  . It is a copy
             of input B if oufact = 2.
         Q_b : rank-2 array('d'), shape (n,n)
-            If jobl = 'Z', this is None. Otherwise the upper/lower triangular part 
-            of this array contain the corresponding triangular part of matrix Q_b 
+            If jobl = 'Z', this is None. Otherwise the upper/lower triangular part
+            of this array contain the corresponding triangular part of matrix Q_b
             (depending on uplo).
         R_b : rank-2 array('d'), shape (m,m)
-            If oufact = 1, the upper/lower triangular part of this array contains 
+            If oufact = 1, the upper/lower triangular part of this array contains
             the Cholesky factor of the given input weighting matrix.
-            If oufact = 2, the upper/lower triangular part of this array contains 
-            the factors of the UdU' or LdL' factorization, respectively, of the given 
+            If oufact = 2, the upper/lower triangular part of this array contains
+            the factors of the UdU' or LdL' factorization, respectively, of the given
             input weighting matrix.
             If fact = 'C' it is a copy of input R.
         L_b : rank-2 array('d'), shape (n,m)
-            If jobl = 'Z', this is None. If oufact = 1, this array contains the matrix 
+            If jobl = 'Z', this is None. If oufact = 1, this array contains the matrix
                      -1
             L*chol(R)  .If oufact = 2 this contains a copy of input L.
         ipiv : rank-1 array('i'), shape (m,)
-            If oufact = 2, this array contains details of the interchanges 
-            performed and the block structure of the d factor in the UdU' or 
+            If oufact = 2, this array contains details of the interchanges
+            performed and the block structure of the d factor in the UdU' or
             LdL' factorization of matrix R, as produced by LAPACK routine DSYTRF.
             Otherwise it is None.
         oufact : int
@@ -461,9 +461,9 @@ def sb02mt(n,m,B,R,A=None,Q=None,L=None,fact='N',jobl='Z',uplo='U',ldwork=None):
             oufact = 2:  UdU' (if uplo = 'U') or LdL' (if uplo = 'L')
                          factorization of R has been used.
         G : rank-2 array('d'), shape (n,n)
-            The upper/lower triangular part of this array contains the corresponding 
+            The upper/lower triangular part of this array contains the corresponding
             triangular part of the matrix G.
-            
+
     Raises
     ------
 
@@ -477,9 +477,9 @@ def sb02mt(n,m,B,R,A=None,Q=None,L=None,fact='N',jobl='Z',uplo='U',ldwork=None):
              = m+1:  if the matrix R is numerically singular.
     """
     hidden = ' (hidden by the wrapper)'
-    arg_list = ['JOBG'+hidden, 'jobl', 'fact', 'uplo', 'n', 'm', 'A', 
-    'LDA'+hidden, 'B', 'LDB'+hidden, 'Q', 'LDQ'+hidden, 'R', 'LDR'+hidden, 'L', 
-    'LDL'+hidden, 'ipiv', 'oufact', 'G', 'LDG'+hidden, 'IWORK'+hidden, 
+    arg_list = ['JOBG'+hidden, 'jobl', 'fact', 'uplo', 'n', 'm', 'A',
+    'LDA'+hidden, 'B', 'LDB'+hidden, 'Q', 'LDQ'+hidden, 'R', 'LDR'+hidden, 'L',
+    'LDL'+hidden, 'ipiv', 'oufact', 'G', 'LDG'+hidden, 'IWORK'+hidden,
     'DWORK'+hidden, 'ldwork', 'INFO'+hidden]
     out = None
     if fact == 'N' and ldwork is None:
@@ -517,7 +517,7 @@ def sb02mt(n,m,B,R,A=None,Q=None,L=None,fact='N',jobl='Z',uplo='U',ldwork=None):
 
 def sb02od(n,m,A,B,Q,R,dico,p=None,L=None,fact='N',uplo='U',sort='S',tol=0.0,ldwork=None):
     """ X,rcond,w,S,T = sb02od(n,m,A,B,Q,R,dico,[p,L,fact,uplo,sort,tol,ldwork])
-    
+
     To solve for X either the continuous-time algebraic Riccati
     equation
                               -1
@@ -536,55 +536,55 @@ def sb02od(n,m,A,B,Q,R,dico,p=None,L=None,fact='N',uplo='U',sort='S',tol=0.0,ldw
     pencil, in the continuous-time case or discrete-time case,
     respectively.
 
-    Optionally, Q and/or R may be given in a factored form, Q = C'C, 
+    Optionally, Q and/or R may be given in a factored form, Q = C'C,
     R = D'D, and L may be treated as a zero matrix.
 
     The routine uses the method of deflating subspaces, based on
     reordering the eigenvalues in a generalized Schur matrix pair.
-    
+
     Required arguments
     ------------------
-    
+
         n : int
-            The actual state dimension, i.e. the order of the matrices A, Q, 
+            The actual state dimension, i.e. the order of the matrices A, Q,
             and X, and the number of rows of the matrices B and L.  n > 0.
         m : int
-            The number of system inputs, the order of the matrix R, and the 
+            The number of system inputs, the order of the matrix R, and the
             number of columns of the matrix B.  m > 0.
         A : rank-2 array('d'), shape (n,n)
             The state matrix of the system.
         B : rank-2 array('d'), shape (n,m)
             The input matrix of the system.
         Q : rank-2 array('d'), shape (n,n) or (p,n)
-            If fact = 'N' or 'D', the shape must be (n,n) and the upper/lower 
-            triangular part (depending on uplo) of this array must contain 
-            the corresponding triangular part of the symmetric state weighting 
-            matrix Q. 
-            If fact = 'C' or 'B', the shape must be (p,n) and of this array must 
+            If fact = 'N' or 'D', the shape must be (n,n) and the upper/lower
+            triangular part (depending on uplo) of this array must contain
+            the corresponding triangular part of the symmetric state weighting
+            matrix Q.
+            If fact = 'C' or 'B', the shape must be (p,n) and of this array must
             contain the output matrix C of the system.
         R : rank-2 array('d'), shape (m,m) or (p,m)
-            If fact = 'N' or 'C', the shape must be (m,m) and the upper/lower 
-            triangular part (depending on uplo) of this array must contain the 
+            If fact = 'N' or 'C', the shape must be (m,m) and the upper/lower
+            triangular part (depending on uplo) of this array must contain the
             corresponding triangular part of the symmetric input weighting matrix R.
-            If FACT = 'D' or 'B', the shape must be (p,m) and this array must 
+            If FACT = 'D' or 'B', the shape must be (p,m) and this array must
             contain the direct transmission matrix D of the system.
         dico : {'C', 'D'}
             Specifies the type of Riccati equation to be solved as follows:
             = 'C':  Equation (1), continuous-time case;
             = 'D':  Equation (2), discrete-time case.
-            
+
     Optional arguments
     ------------------
-    
+
         p : int
             The number of system outputs. If fact = 'C' or 'D' or 'B',
             p is the number of rows of the matrices C and/or D. p > 0.
             If fact = 'N' it is not needed.
         L : rank-2 array('d'), shape (n,m)
-            If L is not specified it will considered as a zero matrix of the 
+            If L is not specified it will considered as a zero matrix of the
             appropriate dimensions.
         fact : {'N', 'C', 'D', 'B'}
-            Specifies whether or not the matrices Q and/or R are factored, 
+            Specifies whether or not the matrices Q and/or R are factored,
             as follows:
             = 'N':  Not factored, Q and R are given;
             = 'C':  C is given, and Q = C'C;
@@ -592,47 +592,47 @@ def sb02od(n,m,A,B,Q,R,dico,p=None,L=None,fact='N',uplo='U',sort='S',tol=0.0,ldw
             = 'B':  Both factors C and D are given, Q = C'C, R = D'D.
             The default value is 'N'.
         uplo : {'U', 'L'}
-            If fact = 'N', specifies which triangle of Q and R is stored, 
+            If fact = 'N', specifies which triangle of Q and R is stored,
             as follows:
             = 'U':  Upper triangle is stored;
             = 'L':  Lower triangle is stored.
             The default value is 'U'.
         sort : {'S', 'U'}
-            Specifies which eigenvalues should be obtained in the top of 
+            Specifies which eigenvalues should be obtained in the top of
             the generalized Schur form, as follows:
             = 'S':  Stable   eigenvalues come first;
             = 'U':  Unstable eigenvalues come first.
             The default value is 'S'.
         tol : float
-            The tolerance to be used in rank determination of the original 
-            matrix pencil, specifically of the triangular factor obtained during 
+            The tolerance to be used in rank determination of the original
+            matrix pencil, specifically of the triangular factor obtained during
             the reduction process. If tol <= 0 a default value is used.
         ldwork : int
-            The length of the cache array. The default value is 
-            max(7*(2*n+1)+16,16*n,2*n+m,3*m), for optimum performance it should 
+            The length of the cache array. The default value is
+            max(7*(2*n+1)+16,16*n,2*n+m,3*m), for optimum performance it should
             be larger.
-            
+
     Returns
     -------
-            
+
         X : rank-2 array('d'), shape (n,n)
             The solution matrix of the problem.
         rcond : float
-            An estimate of the reciprocal of the condition number (in 
-            the 1-norm) of the n-th order system of algebraic equations 
+            An estimate of the reciprocal of the condition number (in
+            the 1-norm) of the n-th order system of algebraic equations
             from which the solution matrix X is obtained.
         w : rank-1 array('c'), shape (2 * n)
-            The generalized eigenvalues of the 2n-by-2n matrix pair, ordered as 
-            specified by sort. For instance, if sort = 'S', the leading n 
-            elements of these arrays contain the closed-loop spectrum of the 
+            The generalized eigenvalues of the 2n-by-2n matrix pair, ordered as
+            specified by sort. For instance, if sort = 'S', the leading n
+            elements of these arrays contain the closed-loop spectrum of the
             system matrix A - BF, where F is the optimal feedback matrix computed
             based on the solution matrix X.
         S : rank-2 array('d'), shape (2*n+m,2 * n)
-            This array contains the ordered real Schur form S of the first matrix 
-            in the reduced matrix pencil associated to the optimal problem, or of 
+            This array contains the ordered real Schur form S of the first matrix
+            in the reduced matrix pencil associated to the optimal problem, or of
             the corresponding Hamiltonian matrix
         T : rank-2 array('d'), shape (2*n+m+1,2 * n)
-            This array contains the ordered upper triangular form T of the second 
+            This array contains the ordered upper triangular form T of the second
             matrix in the reduced matrix pencil associated to the optimal problem.
 
     Raises
@@ -657,7 +657,7 @@ def sb02od(n,m,A,B,Q,R,dico,p=None,L=None,fact='N',uplo='U',sort='S',tol=0.0,ldw
 
     Example
     -------
-    
+
     >>> import numpy as np
     >>> import slycot
     >>> A = np.array([[0, 1],[0, 0]])
@@ -673,11 +673,11 @@ def sb02od(n,m,A,B,Q,R,dico,p=None,L=None,fact='N',uplo='U',sort='S',tol=0.0,ldw
     0.4713846564431681
     """
     hidden = ' (hidden by the wrapper)'
-    arg_list = ['dico', 'jobb'+hidden, 'fact', 'uplo', 'jobl', 'sort', 'n', 
-        'm', 'p', 'A', 'LDA'+hidden, 'B', 'LDB'+hidden, 'Q', 'LDQ'+hidden, 
-        'R', 'LDR'+hidden, 'L', 'LDL'+hidden, 'rcond', 'X', 'LDX'+hidden, 
-        'alfar'+hidden, 'alfai'+hidden, 'beta'+hidden, 'S', 'LDS'+hidden, 'T', 
-        'LDT'+hidden, 'U', 'LDU'+hidden, 'tol', 'IWORK'+hidden, 'DWORK'+hidden, 
+    arg_list = ['dico', 'jobb'+hidden, 'fact', 'uplo', 'jobl', 'sort', 'n',
+        'm', 'p', 'A', 'LDA'+hidden, 'B', 'LDB'+hidden, 'Q', 'LDQ'+hidden,
+        'R', 'LDR'+hidden, 'L', 'LDL'+hidden, 'rcond', 'X', 'LDX'+hidden,
+        'alfar'+hidden, 'alfai'+hidden, 'beta'+hidden, 'S', 'LDS'+hidden, 'T',
+        'LDT'+hidden, 'U', 'LDU'+hidden, 'tol', 'IWORK'+hidden, 'DWORK'+hidden,
         'ldwork', 'BWORK'+hidden, 'INFO'+hidden]
     if ldwork is None:
         ldwork = max([7*(2*n+1)+16,16*n,2*n+m,3*m])
@@ -710,7 +710,7 @@ def sb02od(n,m,A,B,Q,R,dico,p=None,L=None,fact='N',uplo='U',sort='S',tol=0.0,ldw
         e.info = out[-1]
         raise e
     if out[-1] == 2:
-        e = ValueError('the QZ (or QR) algorithm failed')  
+        e = ValueError('the QZ (or QR) algorithm failed')
         e.info = out[-1]
         raise e
     if out[-1] == 3:
@@ -722,7 +722,7 @@ def sb02od(n,m,A,B,Q,R,dico,p=None,L=None,fact='N',uplo='U',sort='S',tol=0.0,ldw
         e.info = out[-1]
         raise e
     if out[-1] == 5:
-        e = ValueError('the computed dimension of the solution does not equal N') 
+        e = ValueError('the computed dimension of the solution does not equal N')
         e.info = out[-1]
         raise e
     if out[-1] == 6:
@@ -737,7 +737,7 @@ def sb02od(n,m,A,B,Q,R,dico,p=None,L=None,fact='N',uplo='U',sort='S',tol=0.0,ldw
 
 def sb03md(n,C,A,U,dico,job='X',fact='N',trana='N',ldwork=None):
     """  X,scale,sep,ferr,w = sb03md(dico,n,C,A,U,[job,fact,trana,ldwork])
-    
+
     To solve for X either the real continuous-time Lyapunov equation
 
        op(A)'*X + X*op(A) = scale*C                             (1)
@@ -751,49 +751,49 @@ def sb03md(n,C,A,U,dico,job='X',fact='N',trana='N',ldwork=None):
     (A' denotes the transpose of the matrix A.) A is n-by-n, the right
     hand side C and the solution X are n-by-n, and scale is an output
     scale factor, set less than or equal to 1 to avoid overflow in X.
-    
+
     Required arguments
     ------------------
-    
+
         n : input int
             The order of the matrices A, X, and C.  n > 0.
         C : input rank-2 array('d'), shape  (n,n)
-            If job = 'X' or 'B', the leading n-by-n part of this array must 
+            If job = 'X' or 'B', the leading n-by-n part of this array must
             contain the symmetric matrix C. If job = 'S', C is not referenced.
         A : input rank-2 array('d'), shape  (n,n)
-            On entry, the leading n-by-n part of this array must contain the 
-            matrix A. If fact = 'F', then A contains an upper quasi-triangular 
-            matrix in Schur canonical form; the elements below the upper 
+            On entry, the leading n-by-n part of this array must contain the
+            matrix A. If fact = 'F', then A contains an upper quasi-triangular
+            matrix in Schur canonical form; the elements below the upper
             Hessenberg part of the array A are not referenced.
-            On exit, the leading n-by-n upper Hessenberg part of this array 
-            contains the upper quasi-triangular matrix in Schur canonical form 
+            On exit, the leading n-by-n upper Hessenberg part of this array
+            contains the upper quasi-triangular matrix in Schur canonical form
             from the Schur factorization of A. The contents of array A is not
             modified if fact = 'F'.
         U : input rank-2 array('d'), shape  (n,n)
-            If fact = 'F', then U is an input argument and on entry the leading 
-            n-by-n part of this array must contain the orthogonal matrix U of 
+            If fact = 'F', then U is an input argument and on entry the leading
+            n-by-n part of this array must contain the orthogonal matrix U of
             the real Schur factorization of A.
-            If fact = 'N', then U is an output argument and on exit, it contains 
+            If fact = 'N', then U is an output argument and on exit, it contains
             the orthogonal n-by-n matrix from the real Schur factorization of A.
         dico : input string(len=1)
             Specifies the equation from which X is to be determined as follows:
             = 'C':  Equation (1), continuous-time case;
             = 'D':  Equation (2), discrete-time case.
-    
+
     Optional arguments
     ------------------
-    
+
         job := 'X' input string(len=1)
             Specifies the computation to be performed, as follows:
             = 'X':  Compute the solution only;
             = 'S':  Compute the separation only;
             = 'B':  Compute both the solution and the separation.
         fact := 'N' input string(len=1)
-            Specifies whether or not the real Schur factorization of the matrix 
+            Specifies whether or not the real Schur factorization of the matrix
             A is supplied on entry, as follows:
-            = 'F':  On entry, A and U contain the factors from the real Schur 
+            = 'F':  On entry, A and U contain the factors from the real Schur
             factorization of the matrix A;
-            = 'N':  The Schur factorization of A will be computed and the factors 
+            = 'N':  The Schur factorization of A will be computed and the factors
             will be stored in A and U.
         trana := 'N' input string(len=1)
             Specifies the form of op(A) to be used, as follows:
@@ -803,28 +803,28 @@ def sb03md(n,C,A,U,dico,job='X',fact='N',trana='N',ldwork=None):
         ldwork := None input int
             The length of the cache array. The default value is max(2*n*n,3*n),
             for optimum performance it should be larger.
-            
+
     Return objects
     --------------
-    
+
         X : rank-2 array('d'), shape  (n,n)
-            If job = 'X' or 'B', the leading n-by-n part contains the symmetric 
+            If job = 'X' or 'B', the leading n-by-n part contains the symmetric
             solution matrix.
         scale : float
-            The scale factor, scale, set less than or equal to 1 to prevent 
+            The scale factor, scale, set less than or equal to 1 to prevent
             the solution from overflowing.
         sep : float
-            If job = 'S' or 'B', sep contains the estimated separation of 
-            the matrices op(A) and -op(A)', if dico = 'C' or of op(A) and op(A)', 
+            If job = 'S' or 'B', sep contains the estimated separation of
+            the matrices op(A) and -op(A)', if dico = 'C' or of op(A) and op(A)',
             if dico = 'D'.
         ferr : float
-            If job = 'B', ferr contains an estimated forward error bound for 
-            the solution X. If X_true is the true solution, ferr bounds the 
+            If job = 'B', ferr contains an estimated forward error bound for
+            the solution X. If X_true is the true solution, ferr bounds the
             relative error in the computed solution, measured in the Frobenius
             norm:  norm(X - X_true)/norm(X_true).
         w : rank-1 array('c'), shape  (n)
             If fact = 'N', this array contain the eigenvalues of A.
-            
+
     Raises
     ------
 
@@ -833,7 +833,7 @@ def sb03md(n,C,A,U,dico,job='X',fact='N',trana='N',ldwork=None):
              < 0:  if info = -i, the i-th argument had an illegal value;
              > 0:  if info = i, the QR algorithm failed to compute all
                 the eigenvalues (see LAPACK Library routine DGEES);
-                elements i+1:n of w contain eigenvalues which have converged, 
+                elements i+1:n of w contain eigenvalues which have converged,
                 and A contains the partially converged Schur form;
              = N+1:  if dico = 'C', and the matrices A and -A' have
                 common or very close eigenvalues, or
@@ -845,8 +845,8 @@ def sb03md(n,C,A,U,dico,job='X',fact='N',trana='N',ldwork=None):
                 unchanged).
     """
     hidden = ' (hidden by the wrapper)'
-    arg_list = ['dico', 'job', 'fact', 'trana', 'n', 'A', 'LDA'+hidden, 'U', 
-        'LDU'+hidden, 'C', 'LDC'+hidden, 'scale', 'sep', 'ferr', 'wr'+hidden, 
+    arg_list = ['dico', 'job', 'fact', 'trana', 'n', 'A', 'LDA'+hidden, 'U',
+        'LDU'+hidden, 'C', 'LDC'+hidden, 'scale', 'sep', 'ferr', 'wr'+hidden,
         'wi'+hidden, 'IWORK'+hidden, 'DWORK'+hidden, 'ldwork', 'INFO'+hidden]
     if ldwork is None:
         ldwork = max(2*n*n,3*n)
@@ -868,9 +868,9 @@ def sb03md(n,C,A,U,dico,job='X',fact='N',trana='N',ldwork=None):
         raise e
     else:
         if out[-1] > 0:
-            error_text = """The QR algorithm failed to compute all the eigenvalues 
-(see LAPACK Library routine DGEES); elements %i:%i of w contains 
-eigenvalues which have converged, A contains the partially 
+            error_text = """The QR algorithm failed to compute all the eigenvalues
+(see LAPACK Library routine DGEES); elements %i:%i of w contains
+eigenvalues which have converged, A contains the partially
 converged Shur form'""" %(out[-1],n) # not sure about the indenting here
             e = ValueError(error_text)
             e.info = out[-1]
@@ -880,8 +880,8 @@ converged Shur form'""" %(out[-1],n) # not sure about the indenting here
     w.real = wr[0:n]
     w.imag = wi[0:n]
     return X,scale,sep,ferr,w
-    
-def sb04md(n,m,A,B,C,ldwork=None):   
+
+def sb04md(n,m,A,B,C,ldwork=None):
     """X = sb04md(n,m,A,B,C[,ldwork])
 
     To solve for X the continuous-time Sylvester equation
@@ -890,21 +890,21 @@ def sb04md(n,m,A,B,C,ldwork=None):
 
     where A, B, C and X are general n-by-n, m-by-m, n-by-m and
     n-by-m matrices respectively.
-     
+
     Required arguments
     ------------------
-    
+
         n : input int
         m : input int
         A : input rank-2 array('d'), shape  (n,n)
         B : input rank-2 array('d'), shape  (m,m)
         C : input rank-2 array('d'), shape  (n,m)
-    
+
     Return objects
     --------------
-    
+
         X : rank-2 array('d'), shape  (n,m)
-    
+
     Raises
     ------
 
@@ -918,8 +918,8 @@ def sb04md(n,m,A,B,C,ldwork=None):
                 for the (info-m)-th column of matrix X.
     """
     hidden = ' (hidden by the wrapper)'
-    arg_list = ['n', 'm', 'A', 'LDA'+hidden,  'B', 'LDB'+hidden, 'C', 
-        'LDC'+hidden,  'Z', 'LDZ'+hidden, 'IWORK'+hidden, 'DWORK'+hidden, 
+    arg_list = ['n', 'm', 'A', 'LDA'+hidden,  'B', 'LDB'+hidden, 'C',
+        'LDC'+hidden,  'Z', 'LDZ'+hidden, 'IWORK'+hidden, 'DWORK'+hidden,
         'ldwork', 'INFO'+hidden]
     if ldwork is None:
         out = _wrapper.sb04md(n,m,A,B,C)
@@ -943,7 +943,7 @@ for the %i-th column of matrix X.""" % out[-1]-m
         e.info = out[-1]
         raise e
     return out[2]
-    
+
 def sb04qd(n,m,A,B,C,ldwork=None):
     """X = sb04qd(n,m,A,B,C[,ldwork])
 
@@ -955,21 +955,21 @@ def sb04qd(n,m,A,B,C,ldwork=None):
     n-by-m matrices respectively. A Hessenberg-Schur method, which
     reduces A to upper Hessenberg form, H = U'AU, and B' to real
     Schur form, S = Z'B'Z (with U, Z orthogonal matrices), is used.
-     
+
     Required arguments
     ------------------
-    
+
         n : input int
         m : input int
         A : input rank-2 array('d'), shape  (n,n)
         B : input rank-2 array('d'), shape  (m,m)
         C : input rank-2 array('d'), shape  (n,m)
-    
+
     Return objects
     --------------
-    
+
         X : rank-2 array('d'), shape  (n,m)
-    
+
     Raises
     ------
 
@@ -983,8 +983,8 @@ def sb04qd(n,m,A,B,C,ldwork=None):
                 for the (info-m)-th column of matrix X.
     """
     hidden = ' (hidden by the wrapper)'
-    arg_list = ['n', 'm', 'A', 'LDA'+hidden,  'B', 'LDB'+hidden, 'C', 
-        'LDC'+hidden,  'Z', 'LDZ'+hidden, 'IWORK'+hidden, 'DWORK'+hidden, 
+    arg_list = ['n', 'm', 'A', 'LDA'+hidden,  'B', 'LDB'+hidden, 'C',
+        'LDC'+hidden,  'Z', 'LDZ'+hidden, 'IWORK'+hidden, 'DWORK'+hidden,
         'ldwork', 'INFO'+hidden]
     if ldwork is None:
         out = _wrapper.sb04qd(n,m,A,B,C)
@@ -1011,7 +1011,7 @@ for the %i-th column of matrix X.""" % out[-1]-m
 
 def sb10ad(n,m,np,ncon,nmeas,gamma,A,B,C,D,job=3,gtol=0.0,actol=0.0,liwork=None,ldwork=None):
     """ gamma_est, Ak, Bk, Ck, Dk, Ac, Bc, Cc, Dc, rcond = sb10ad(n,m,np,ncon,nmeas,gamma,A,B,C,D,[job,gtol,actol,liwork,ldwork])
-    
+
     To compute the matrices of an H-infinity optimal n-state
     controller
 
@@ -1050,10 +1050,10 @@ def sb10ad(n,m,np,ncon,nmeas,gamma,A,B,C,D,job=3,gtol=0.0,actol=0.0,liwork=None,
     (A4) | A-j*omega*I  B1  |  has full row rank for all omega.
          |    C2        D21 |
 
-    
+
     Required arguments
     ------------------
-    
+
         n : int
             The order of the system. (size of matrix A).
         m : int
@@ -1065,21 +1065,21 @@ def sb10ad(n,m,np,ncon,nmeas,gamma,A,B,C,D,job=3,gtol=0.0,actol=0.0,liwork=None,
         nmeas : int
             The number of measurements.  np >= nmeas >= 0, m-ncon >= nmeas.
         gamma : double
-            The initial value of gamma on input.  It is assumed that gamma 
+            The initial value of gamma on input.  It is assumed that gamma
             is sufficiently large so that the controller is admissible.  gamma >= 0.
         A : rank-2 array('d'), shape (n,n)
         B : rank-2 array('d'), shape (n,m)
         C : rank-2 array('d'), shape (np,n)
-        D : rank-2 array('d'), shape (np,m)  
-        
+        D : rank-2 array('d'), shape (np,m)
+
     Optional arguments
     ------------------
-    
+
         job := 3 int
             Specifies the computation to be performed, as follows:
-            = 1: Use bisection method for decreasing gamma until the closed-loop 
+            = 1: Use bisection method for decreasing gamma until the closed-loop
                 system leaves stability
-            = 2: Scan from gamma to 0 trying to find the minimal gamma for which 
+            = 2: Scan from gamma to 0 trying to find the minimal gamma for which
                 the closed-loop system retains stability
             = 3: First bisection, then scanning.
             = 4: Find suboptimal controller only.
@@ -1090,16 +1090,16 @@ def sb10ad(n,m,np,ncon,nmeas,gamma,A,B,C,D,job=3,gtol=0.0,actol=0.0,liwork=None,
             If gtol <= 0, then a default value equal to sqrt(eps)
             is used, where eps is the relative machine precision.
         actol : double
-            Upper bound for the poles of the closed-loop system used for determining 
+            Upper bound for the poles of the closed-loop system used for determining
             if it is stable.  actol <= 0 for stable systems
         liwork : int
             The dimension of the integer cache array.
         ldwork : int
             The dimension of the double cache array.
-            
+
     Return objects
     --------------
-    
+
         gamma_est : double
             The minimal estimated gamma.
         Ak : rank-2 array('d'), shape (n,n)
@@ -1128,10 +1128,10 @@ def sb10ad(n,m,np,ncon,nmeas,gamma,A,B,C,D,job=3,gtol=0.0,actol=0.0,liwork=None,
                 number of the X-Riccati equation;
            rcond(4) contains an estimate of the reciprocal condition
                 number of the Y-Riccati equation.
-        
+
     Raises
     ------
-    
+
         ValueError : e
             e.info contains information about the exact type of exception
              < 0:  if info = -i, the i-th argument had an illegal
@@ -1168,12 +1168,12 @@ def sb10ad(n,m,np,ncon,nmeas,gamma,A,B,C,D,job=3,gtol=0.0,actol=0.0,liwork=None,
 
     """
     hidden = ' (hidden by the wrapper)'
-    arg_list = ['job', 'n', 'm', 'np', 'ncon', 'nmeas', 'gamma', 
-        'A', 'LDA'+hidden, 'B', 'LDB'+hidden, 'C', 'LDC'+hidden, 
-        'D', 'LDD'+hidden, 'AK', 'LDAK'+hidden, 'BK', 'LDBK'+hidden, 
-        'CK', 'LDCK'+hidden, 'DK', 'LDDK'+hidden, 'AC', 'LDAC'+hidden, 
-        'BC', 'LDBC'+hidden, 'CC', 'LDCC'+hidden, 'DC', 'LDDC'+hidden, 
-        'rcond', 'gtol', 'actol', 'IWORK'+hidden, 'liwork', 
+    arg_list = ['job', 'n', 'm', 'np', 'ncon', 'nmeas', 'gamma',
+        'A', 'LDA'+hidden, 'B', 'LDB'+hidden, 'C', 'LDC'+hidden,
+        'D', 'LDD'+hidden, 'AK', 'LDAK'+hidden, 'BK', 'LDBK'+hidden,
+        'CK', 'LDCK'+hidden, 'DK', 'LDDK'+hidden, 'AC', 'LDAC'+hidden,
+        'BC', 'LDBC'+hidden, 'CC', 'LDCC'+hidden, 'DC', 'LDDC'+hidden,
+        'rcond', 'gtol', 'actol', 'IWORK'+hidden, 'liwork',
         'DWORK'+hidden, 'ldwork', 'BWORK'+hidden, 'LBWORK'+hidden, 'info']
     if liwork is None:
         liwork = max(2*max(n,m-ncon,np-nmeas,ncon,nmeas),n*n)
@@ -1197,12 +1197,12 @@ def sb10ad(n,m,np,ncon,nmeas,gamma,A,B,C,D,job=3,gtol=0.0,actol=0.0,liwork=None,
             np*np + max(2*np1, 3*n*n + max(n*np, 10*n*n + 12*n +5)))
         LW7 = m2*np2 + np2*np2 + m2*m2 + max(nd1*nd1 + max(2*nd1, (nd1 + nd2)*np2),\
             nd2*nd2 + max(2*nd2, nd2*m2), 3*n, n*(2*np2 + m2) +\
-            max(2*n*m2, m2*np2 + max(m2*m2 + 3*m2, np2*(2*np2 + m2 + max(np2, n))))) 
+            max(2*n*m2, m2*np2 + max(m2*m2 + 3*m2, np2*(2*np2 + m2 + max(np2, n)))))
         ldwork = LW1 + max(1, LW2, LW3, LW4, LW5 + max(LW6,LW7))
     out = _wrapper.sb10ad(job,n,m,np,ncon,nmeas,gamma,A,B,C,D,gtol,actol,liwork,ldwork)
-    
+
     if out[-1] != 0:
-        if out[-1] < 0: 
+        if out[-1] < 0:
             error_text = "The following argument had an illegal value: "\
                 +arg_list[-out[-1]-1]
         if out[-1] == 1:
@@ -1211,10 +1211,10 @@ def sb10ad(n,m,np,ncon,nmeas,gamma,A,B,C,D,job=3,gtol=0.0,actol=0.0,liwork=None,
         if out[-1] == 2:
             error_text = "The matrix [A-j*omega*I,  B1 ; C2,  D21] does not\
                 have full row rank with respect to the tolerance eps."
-        if out[-1] == 3: 
+        if out[-1] == 3:
             error_text = "The matrix D12 does not have full column rank with\
                 respect to tolerance sqrt(eps)."
-        if out[-1] == 4: 
+        if out[-1] == 4:
             error_text = "The matrix D21 does not have full column rank with\
                 respect to tolerance sqrt(eps)."
         if out[-1] == 5:
@@ -1232,7 +1232,7 @@ def sb10ad(n,m,np,ncon,nmeas,gamma,A,B,C,D,job=3,gtol=0.0,actol=0.0,liwork=None,
             error_text = "The Y-Riccati equation was not solved successfully\
                 (the controller is not admissible or there are numerical\
                 difficulties)."
-        if out[-1] == 9: 
+        if out[-1] == 9:
             error_text = "The determinant of Im2 + Tu*D11Hat*Ty*D22 is zero,\
                 see ref [3] in SLICOT doc."
         if out[-1] == 10:
@@ -1251,7 +1251,7 @@ def sb10ad(n,m,np,ncon,nmeas,gamma,A,B,C,D,job=3,gtol=0.0,actol=0.0,liwork=None,
 
 def sb10hd(n,m,np,ncon,nmeas,A,B,C,D,tol=0.0,ldwork=None):
     """ Ak, Bk, Ck, Dk, rcond = sb10hd(n,m,np,ncon,nmeas,a,b,c,d,[tol,ldwork])
-    
+
     To compute the matrices of the H2 optimal n-state controller
 
            | AK | BK |
@@ -1279,7 +1279,7 @@ def sb10hd(n,m,np,ncon,nmeas,A,B,C,D,tol=0.0,ldwork=None):
 
     Required arguments
     ------------------
-    
+
         n : int
             The order of the system. (size of matrix A).
         m : int
@@ -1293,11 +1293,11 @@ def sb10hd(n,m,np,ncon,nmeas,A,B,C,D,tol=0.0,ldwork=None):
         A : rank-2 array('d'), shape (n,n)
         B : rank-2 array('d'), shape (n,m)
         C : rank-2 array('d'), shape (np,n)
-        D : rank-2 array('d'), shape (np,m)      
-    
+        D : rank-2 array('d'), shape (np,m)
+
     Optional arguments
     ------------------
-    
+
         tol : double
             Tolerance used for controlling the accuracy of the applied
             transformations for computing the normalized form in
@@ -1308,10 +1308,10 @@ def sb10hd(n,m,np,ncon,nmeas,A,B,C,D,tol=0.0,ldwork=None):
             precision.
         ldwork : int
             The dimension of the cache array.
-    
+
     Return objects
     --------------
-    
+
         Ak : rank-2 array('d'), shape (n,n)
             The controller state matrix Ak.
         Bk : rank-2 array('d'), shape (n,nmeas)
@@ -1330,7 +1330,7 @@ def sb10hd(n,m,np,ncon,nmeas,A,B,C,D,tol=0.0,ldwork=None):
                 number of the X-Riccati equation;
            rcond(4) contains an estimate of the reciprocal condition
                 number of the Y-Riccati equation.
-    
+
     Raises
     ------
 
@@ -1350,20 +1350,20 @@ def sb10hd(n,m,np,ncon,nmeas,A,B,C,D,tol=0.0,ldwork=None):
              = 5:  if the Y-Riccati equation was not solved
                    successfully.
     """
-    
+
     hidden = ' (hidden by the wrapper)'
-    arg_list = ['n', 'm', 'np', 'ncon', 'nmeas', 'A', 'LDA'+hidden, 
-        'B', 'LDB'+hidden, 'C', 'LDC'+hidden, 'D', 'LDD'+hidden, 'Ak', 
-        'LDAK'+hidden, 'Bk', 'LDBK'+hidden, 'Ck', 'LDCK'+hidden, 'Dk', 
-        'LDDK'+hidden, 'rcond', 'tol', 'IWORK'+hidden, 'DWORK'+hidden, 
-        'LDWORK', 'BWORK'+hidden, 'INFO'] 
+    arg_list = ['n', 'm', 'np', 'ncon', 'nmeas', 'A', 'LDA'+hidden,
+        'B', 'LDB'+hidden, 'C', 'LDC'+hidden, 'D', 'LDD'+hidden, 'Ak',
+        'LDAK'+hidden, 'Bk', 'LDBK'+hidden, 'Ck', 'LDCK'+hidden, 'Dk',
+        'LDDK'+hidden, 'rcond', 'tol', 'IWORK'+hidden, 'DWORK'+hidden,
+        'LDWORK', 'BWORK'+hidden, 'INFO']
     if ldwork is None:
         Q = max(m-ncon,ncon,np-nmeas,nmeas)
         ldwork = 2*Q*(3*Q+2*n)+max(1,Q*(Q+max(n,5)+1),n*(14*n+12+2*Q)+5)
     out = _wrapper.sb10hd(n,m,np,ncon,nmeas,A,B,C,D,tol,ldwork)
-    
+
     if out[-1] != 0:
-        if out[-1] < 0: 
+        if out[-1] < 0:
             error_text = "The following argument had an illegal value: "\
                 +arg_list[-out[-1]-1]
         if out[-1] == 1:

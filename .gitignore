@@ -1,0 +1,9 @@
+MANIFEST
+dist/
+build/
+*.pyc
+*.so
+slycot/version.py
+.ropeproject/
+build.log
+*.egg-info/
