@@ -74,5 +74,5 @@ with as contents::
 To-Do
 ------
  
-- write unit tests
+- write unit tests, already added test script, and simple test
 - add examples in the doc-strings
