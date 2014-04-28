@@ -1,18 +1,18 @@
 #!/usr/bin/env python
 #
 #       mathematical.py
-#       
+#
 #       Copyright 2013 René van Paassen <rene.vanpaassen@gmail.com>
-#       
+#
 #       This program is free software; you can redistribute it and/or modify
 #       it under the terms of the GNU General Public License version 2 as
 #       published by the Free Software Foundation.
-#       
+#
 #       This program is distributed in the hope that it will be useful,
 #       but WITHOUT ANY WARRANTY; without even the implied warranty of
 #       MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #       GNU General Public License for more details.
-#       
+#
 #       You should have received a copy of the GNU General Public License
 #       along with this program; if not, write to the Free Software
 #       Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
@@ -21,7 +21,7 @@
 # current website with overview:
 # http://www.icm.tu-bs.de/NICONET/
 
-from slycot import _wrapper
+from . import _wrapper
 
 def mb05md(n, A, delta, balanc='N')
     """Ar, Vr, Yr, VALRr, VALDr = mb05md(n, a, delta, balanc='N')
