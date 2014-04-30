@@ -522,51 +522,80 @@ def ab09bd(dico,job,equil,n,m,p,a,b,c,d,nr=None,tol1=0,tol2=0,ldwork=None):
     square-root or the balancing-free square-root Singular
     Perturbation Approximation (SPA) model reduction method.
 
-
     Arguments
         Mode Parameters
-    
-            DICO
+            dico
                 Specifies the type of the original system as follows:
                 = 'C':  continuous-time system;
                 = 'D':  discrete-time system.
-    
-            JOB
+            job
                 Specifies the model reduction approach to be used
                 as follows:
                 = 'B':  use the square-root SPA method;
                 = 'N':  use the balancing-free square-root SPA method.
-    
-            EQUIL
+            equil
                 Specifies whether the user wishes to preliminarily
                 equilibrate the triplet (A,B,C) as follows:
                 = 'S':  perform equilibration (scaling);
                 = 'N':  do not perform equilibration.
-    
-            ORDSEL
+            ordsel
                 Specifies the order selection method as follows:
                 = 'F':  the resulting order NR is fixed;
                 = 'A':  the resulting order NR is automatically determined
                         on basis of the given tolerance TOL1.
     
         Input/Output Parameters
-    
-            N INTEGER
+            n : input int
                 The order of the original state-space representation, i.e.
-                the order of the matrix A.  N >= 0.
-    
-            M (input) INTEGER
-                The number of system inputs.  M >= 0.
-    
-            P (input) INTEGER
-                The number of system outputs.  P >= 0.
-    
-            NR (input/output) INTEGER
-                On entry with ORDSEL = 'F', NR is the desired order of
-                the resulting reduced order system.  0 <= NR <= N.
-                On exit, if INFO = 0, NR is the order of the resulting
-                reduced order model. NR is set as follows:
-                if ORDSEL = 'F', NR is equal to MIN(NR,NMIN), where NR
+                the order of the matrix A.  n >= 0.
+            m : input int
+                The number of system inputs.  m >= 0.
+            p : input int
+                The number of system outputs.  p >= 0.
+            A : input rank-2 array('d') with bounds (n,n)
+                On entry, the leading n-by-n part of this array must
+                contain the state dynamics matrix A.
+                
+            B : input rank-2 array('d') with bounds (n,m)
+                On entry, the leading n-by-m part of this array must
+                contain the original input/state matrix B.
+                
+            C : input rank-2 array('d') with bounds (p,n)
+                On entry, the leading p-by-n part of this array must
+                contain the original state/output matrix C.
+                
+            D : input rank-2 array('d') with bounds (p,m)
+                On entry, the leading p-by-m part of this array must
+                contain the original input/output matrix D.
+                
+        Optional arguments :
+            nr : input int
+                On entry with ordsel = 'F', nr is the desired order of
+                the resulting reduced order system.  0 <= nr <= n.
+            tol1 : input double precision
+                If ORDSEL = 'A', TOL1 contains the tolerance for
+                determining the order of reduced system.
+                For model reduction, the recommended value is
+                TOL1 = c*HNORM(A,B,C), where c is a constant in the
+                interval [0.00001,0.001], and HNORM(A,B,C) is the
+                Hankel-norm of the given system (computed in HSV(1)).
+                For computing a minimal realization, the recommended
+                value is TOL1 = n*EPS*HNORM(A,B,C), where EPS is the
+                machine precision (see LAPACK Library Routine DLAMCH).
+                This value is used by default if TOL1 <= 0 on entry.
+                If ORDSEL = 'F', the value of TOL1 is ignored.
+            tol2 : input double precision
+                The tolerance for determining the order of a minimal
+                realization of the given system. The recommended value is
+                tol2 = n*EPS*HNORM(A,B,C). This value is used by default
+                if tol2 <= 0 on entry.
+                If tol2 > 0, then tol2 <= tol1.
+
+        Return objects
+            nr : output int
+                nr is the order of the resulting reduced order model. 
+                nr is set as follows:
+                if ordsel = 'F', nr is equal to MIN(nr,NMIN), where nr
                 is the desired order on entry and NMIN is the order of a
                 minimal realization of the given system; NMIN is
                 determined as the number of Hankel singular values greater
@@ -574,50 +603,21 @@ def ab09bd(dico,job,equil,n,m,p,a,b,c,d,nr=None,tol1=0,tol2=0,ldwork=None):
                 precision (see LAPACK Library Routine DLAMCH) and
                 HNORM(A,B,C) is the Hankel norm of the system (computed
                 in HSV(1));
-                if ORDSEL = 'A', NR is equal to the number of Hankel
+                if ordsel = 'A', nr is equal to the number of Hankel
                 singular values greater than MAX(TOL1,N*EPS*HNORM(A,B,C)).
-    
-            A (input/output) DOUBLE PRECISION array, dimension (LDA,N)
-                On entry, the leading N-by-N part of this array must
-                contain the state dynamics matrix A.
-                On exit, if INFO = 0, the leading NR-by-NR part of this
-                array contains the state dynamics matrix Ar of the
-                reduced order system.
-    
-            LDA INTEGER
-                The leading dimension of array A.  LDA >= MAX(1,N).
-    
-            B (input/output) DOUBLE PRECISION array, dimension (LDB,M)
-                On entry, the leading N-by-M part of this array must
-                contain the original input/state matrix B.
-                On exit, if INFO = 0, the leading NR-by-M part of this
-                array contains the input/state matrix Br of the reduced
-                order system.
-    
-            LDB INTEGER
-                The leading dimension of array B.  LDB >= MAX(1,N).
-    
-            C (input/output) DOUBLE PRECISION array, dimension (LDC,N)
-                On entry, the leading P-by-N part of this array must
-                contain the original state/output matrix C.
-                On exit, if INFO = 0, the leading P-by-NR part of this
-                array contains the state/output matrix Cr of the reduced
-                order system.
-    
-            LDC INTEGER
-                The leading dimension of array C.  LDC >= MAX(1,P).
-    
-            D (input/output) DOUBLE PRECISION array, dimension (LDD,M)
-                On entry, the leading P-by-M part of this array must
-                contain the original input/output matrix D.
-                On exit, if INFO = 0, the leading P-by-M part of this
-                array contains the input/output matrix Dr of the reduced
-                order system.
-    
-            LDD INTEGER
-                The leading dimension of array D.  LDD >= MAX(1,P).
-    
-            HSV (output) DOUBLE PRECISION array, dimension (N)
+            Ar : rank-2 array('d') with bounds (nr,nr)
+                the leading nr-by-nr part of this array contains the
+                state dynamics matrix Ar of the reduced order system.
+            Br : rank-2 array('d') with bounds (nr,m)
+                the leading nr-by-m part of this array contains the
+                input/state matrix Br of the reduced order system.
+            Cr : rank-2 array('d') with bounds (p,nr)
+                the leading p-by-nr part of this array contains the 
+                state/output matrix Cr of the reduced order system.
+            Dr : rank-2 array('d') with bounds (p,m)
+                the leading p-by-m part of this array contains the
+                input/output matrix Dr of the reduced order system.
+            hsv : output double precision array, dimension (n)
                 If INFO = 0, it contains the Hankel singular values of
                 the original system ordered decreasingly. HSV(1) is the
                 Hankel norm of the system.
@@ -657,14 +657,14 @@ def ab09bd(dico,job,equil,n,m,p,a,b,c,d,nr=None,tol1=0,tol2=0,ldwork=None):
         e.info = out[-1]
         raise e
     if out[-1] == 2:
-        e = ArithmeticError('The state matrix A is not stable (if DICO = C) or not convergent (if DICO = D)')
+        e = ArithmeticError('The state matrix A is not stable (if dico = C) or not convergent (if dico = D)')
         e.info = out[-1]
         raise e
     if out[-1] == 3:
         e = ArithmeticError('The computation of Hankel singular values failed')
         e.info = out[-1]
         raise e
-    Nr,A,B,C,D,hsv = out[:-2]   
-    return Nr, A[:Nr,:Nr], B[:Nr,:], C[:,:Nr],D[:,:], hsv
+    nr,A,B,C,D,hsv = out[:-2]   
+    return nr, A[:Nr,:Nr], B[:Nr,:], C[:,:Nr],D[:,:], hsv
     
 # to be replaced by python wrappers
