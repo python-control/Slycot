@@ -515,7 +515,7 @@ def ab09ad(dico,job,equil,n,m,p,a,b,c,nr=None,tol=0,ldwork=None):
         raise e
     Nr,A,B,C,hsv = out[:-2]   
     return Nr, A[:Nr,:Nr], B[:Nr,:], C[:,:Nr], hsv
-def ab09bd(dico,job,equil,n,m,p,a,b,c,d,nr=None,tol1=0,tol2=0,ldwork=None):
+def ab09bd(dico,job,equil,n,m,p,A,B,C,D,nr=None,tol1=0,tol2=0,ldwork=None):
     """ nr,A_r,B_r,C_r,hsv = ab09bd(dico,job,equil,n,m,p,nr,A,B,C,D,[nr,tol1,tol2,ldwork])
     To compute a reduced order model (Ar,Br,Cr,Dr) for a stable
     original state-space representation (A,B,C,D) by using either the
@@ -548,19 +548,19 @@ def ab09bd(dico,job,equil,n,m,p,a,b,c,d,nr=None,tol1=0,tol2=0,ldwork=None):
                 The number of system inputs.  m >= 0.
             p : input int
                 The number of system outputs.  p >= 0.
-            a : input rank-2 array('d') with bounds (n,n)
+            A : input rank-2 array('d') with bounds (n,n)
                 On entry, the leading n-by-n part of this array must
                 contain the state dynamics matrix A.
                 
-            b : input rank-2 array('d') with bounds (n,m)
+            B : input rank-2 array('d') with bounds (n,m)
                 On entry, the leading n-by-m part of this array must
                 contain the original input/state matrix B.
                 
-            c : input rank-2 array('d') with bounds (p,n)
+            C : input rank-2 array('d') with bounds (p,n)
                 On entry, the leading p-by-n part of this array must
                 contain the original state/output matrix C.
                 
-            d : input rank-2 array('d') with bounds (p,m)
+            D : input rank-2 array('d') with bounds (p,m)
                 On entry, the leading p-by-m part of this array must
                 contain the original input/output matrix D.
                 
@@ -604,16 +604,16 @@ def ab09bd(dico,job,equil,n,m,p,a,b,c,d,nr=None,tol1=0,tol2=0,ldwork=None):
                 in HSV(1));
                 if ordsel = 'A', nr is equal to the number of Hankel
                 singular values greater than MAX(TOL1,N*EPS*HNORM(A,B,C)).
-            ar : rank-2 array('d') with bounds (nr,nr)
+            Ar : rank-2 array('d') with bounds (nr,nr)
                 the leading nr-by-nr part of this array contains the
                 state dynamics matrix Ar of the reduced order system.
-            br : rank-2 array('d') with bounds (nr,m)
+            Br : rank-2 array('d') with bounds (nr,m)
                 the leading nr-by-m part of this array contains the
                 input/state matrix Br of the reduced order system.
-            cr : rank-2 array('d') with bounds (p,nr)
+            Cr : rank-2 array('d') with bounds (p,nr)
                 the leading p-by-nr part of this array contains the 
                 state/output matrix Cr of the reduced order system.
-            dr : rank-2 array('d') with bounds (p,m)
+            Dr : rank-2 array('d') with bounds (p,m)
                 the leading p-by-m part of this array contains the
                 input/output matrix Dr of the reduced order system.
             hsv : output double precision array, dimension (n)
@@ -639,7 +639,7 @@ def ab09bd(dico,job,equil,n,m,p,a,b,c,d,nr=None,tol1=0,tol2=0,ldwork=None):
         raise ValueError('Parameter job had an illegal value')
     if equil != 'S' and equil != 'N':
         raise ValueError('Parameter equil had an illegal value')
-    out = _wrapper.ab09bd(dico,job,equil,ordsel,n,m,p,nr,a,b,c,d,tol1,tol2,ldwork)
+    out = _wrapper.ab09bd(dico,job,equil,ordsel,n,m,p,nr,A,B,C,D,tol1,tol2,ldwork)
     if out[-2] == 1:
         warnings.warn("The selected order nr is greater\
                 than the order of a minimal realization of the\
