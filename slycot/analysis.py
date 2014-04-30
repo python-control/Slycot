@@ -516,7 +516,7 @@ def ab09ad(dico,job,equil,n,m,p,a,b,c,nr=None,tol=0,ldwork=None):
     Nr,A,B,C,hsv = out[:-2]   
     return Nr, A[:Nr,:Nr], B[:Nr,:], C[:,:Nr], hsv
 def ab09bd(dico,job,equil,n,m,p,A,B,C,D,nr=None,tol1=0,tol2=0,ldwork=None):
-    """ nr,A_r,B_r,C_r,hsv = ab09bd(dico,job,equil,n,m,p,nr,A,B,C,D,[nr,tol1,tol2,ldwork])
+    """ nr,Ar,Br,Cr,Dr,hsv = ab09bd(dico,job,equil,n,m,p,A,B,C,D,[nr,tol1,tol2,ldwork])
     To compute a reduced order model (Ar,Br,Cr,Dr) for a stable
     original state-space representation (A,B,C,D) by using either the
     square-root or the balancing-free square-root Singular
