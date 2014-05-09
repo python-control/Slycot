@@ -23,7 +23,7 @@
 
 from . import _wrapper
 
-def mb05md(n, A, delta, balanc='N')
+def mb05md(n, a, delta, balanc='N'):
     """Ar, Vr, Yr, VALRr, VALDr = mb05md(n, a, delta, balanc='N')
 
     Matrix exponential for a real non-defective matrix
@@ -38,8 +38,7 @@ def mb05md(n, A, delta, balanc='N')
     improve the conditioning of the eigenvalues and eigenvectors.
 
     Required arguments:
-        n : input int
-            The order of the matrix a.  n >= 0.
+        n : order of matrix A
         A : input rank-2 array('d') with bounds (n,n)
             Square matrix
         delta : input 'd'
@@ -93,10 +92,27 @@ def mb05md(n, A, delta, balanc='N')
     arg_list = [ 'balanc', 'n', 'delta', 'a', 'lda'+hidden, 'v', 'ldv'+hidden,
                  'y','ldy'+hidden,'valr','vali',
                  'iwork'+hidden,'dwork'+hidden,'ldwork'+hidden,'info'+hidden]
-    out = _wrapper.mb05md(balanc=balanc,n=n,delta=delta,a=a,
-    
+    out = _wrapper.mb05md(balanc=balanc,n=n,delta=delta,a=a)
+    if out[-1] == 0:
+        return out[:-1]
+    elif out[-1] < 0:
+        error_text = "The following argument had an illegal value: "+arg_list[-out[-1]-1]
+    elif out[-1] > 0 and out[-1] <= n:
+        error_text = "Incomplete eigenvalue calculation, missing %i eigenvalues" % out[-1]
+    elif out[-1] == n+1:
+        error_text = "Eigenvector matrix singular"
+    elif out[-1] == n+2:
+        error_text = "A matrix defective"
+    e = ValueError(error_text)
+    e.info = out[-1]
+    raise e
 
-
+"""
+from slycot import mb05nd
+import numpy as np
+a = np.mat('[-2. 0; 0.1 -3.]')
+mb05nd(a.shape[0], a, 
+"""
 
 def mb05nd(N, DELTA, A, LDA, EX, LDEX, EXINT, LDEXIN,
            TOL, IWORK, DWORK, LDWORK, INFO):

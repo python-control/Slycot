@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 """Slycot: a wrapper for the SLICOT control and systems library
 
 Slycot wraps the SLICOT library which is used for control and systems analysis.

@@ -20,14 +20,16 @@ else:
 
     # Identification routines (0/5 wrapped)
 
-    # Mathematical routines (1/81 wrapped)
-    from .math import mc01td
+    # Mathematical routines (3/81 wrapped)
+    from .math import mc01td, mb05md, mb05nd
 
     # Synthesis routines (11/50 wrapped)
-    from .synthesis import sb01bd,sb02md,sb02mt,sb02od,sb03md,sb04md,sb04qd,sb10ad,sb10hd,sg03ad,sg02ad
+    from .synthesis import sb01bd,sb02md,sb02mt,sb02od,sb03md
+    from .synthesis import sb04md,sb04qd,sb10ad,sb10hd,sg03ad
+    from .synthesis import sg02ad
 
-    # Transformation routines (8/40 wrapped)
-    from .transform import tb01id,tb03ad, tb04ad
+    # Transformation routines (9/40 wrapped)
+    from .transform import tb01id,tb03ad,tb04ad
     from .transform import tc04ad,tc01od
     from .transform import tf01md,tf01rd
     from .transform import td04ad,tb01pd
