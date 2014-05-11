@@ -19,6 +19,7 @@
 #       MA 02110-1301, USA.
 
 from slycot import _wrapper
+import warnings
 
 def ab01nd(n,m,A,B,jobz='N',tol=0,ldwork=None):
     """ Ac,Bc,ncont,indcon,nblk,Z,tau = ab01nd_i(n,m,A,B,[jobz,tol,ldwork]) 
