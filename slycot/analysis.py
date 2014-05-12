@@ -212,6 +212,11 @@ def ab05md(n1,m1,p1,n2,p2,A1,B1,C1,D1,A2,B2,C2,D2,uplo='U'):
         D : rank-2 array('d') with bounds (p2,m1)
             The leading p2-by-m1 part of this array contains the input/output 
             matrix D for the cascaded system.
+
+    Notes:
+        The implemented methods rely on accuracy enhancing square-root or
+        balancing-free square-root techniques.
+        The algorithms require less than 30N  floating point operations.
     """
     hidden = ' (hidden by the wrapper)'
     arg_list = ['uplo', 'OVER'+hidden, 'n1', 'm1', 'p1', 'n2', 'p2', 'A1', 
