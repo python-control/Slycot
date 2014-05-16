@@ -1,3 +1,6 @@
+!    -*- f90 -*-
+! Note: the context of this file is case sensitive.
+
 subroutine mc01td(dico,dp,p,stable,nz,dwork,iwarn,info) ! in :new:MC01TD.f
 	character :: dico
 	integer intent(in,out),check(dp>0) :: dp
@@ -8,3 +11,37 @@ subroutine mc01td(dico,dp,p,stable,nz,dwork,iwarn,info) ! in :new:MC01TD.f
 	integer intent(out) :: iwarn
 	integer intent(out) :: info
 end subroutine mc01td
+
+subroutine mb05md(balanc,n,delta,a,lda,v,ldv,y,ldy,valr,vali,iwork,dwork,ldwork,info) ! in MB05MD.f
+    character intent(in):: balanc
+    integer intent(in),check(n>=0) :: n
+    double precision intent(in):: delta
+    double precision intent(in,out,copy),dimension(lda,*) :: a
+    integer intent(hide),depend(a) :: lda=shape(a,0)
+    double precision intent(out),depend(n),dimension(n,n) :: v
+    integer, intent(hide),depend(v) :: ldv=shape(v,0)
+    double precision intent(out),depend(n),dimension(n,n) :: y
+    integer, intent(hide),depend(y) :: ldy=shape(y,0)
+    double precision intent(out),depend(n),dimension(n) :: valr
+    double precision intent(out),depend(n),dimension(n) :: vali
+    integer intent(cache,hide),depend(n),dimension(n) :: iwork
+    double precision intent(cache,hide),depend(n),dimension(4*n) :: dwork
+    integer intent(hide),depend(dwork) :: ldwork=shape(dwork,0)
+    integer intent(out) :: info
+end subroutine mb05md
+
+subroutine mb05nd(n,delta,a,lda,ex,ldex,exint,ldexin,tol,iwork,dwork,ldwork,info) ! in :mb05nd:MB05ND.f
+  integer required,check(n>=0):: n
+  double precision required:: delta
+  double precision intent(in),dimension(n,n),depend(n) :: a
+  integer intent(hide),check(shape(a,0)==lda),depend(a) :: lda=shape(a,0)
+  double precision intent(out,copy),dimension(n,n) :: ex
+  integer intent(hide),check(shape(ex,0)==ldex),depend(ex) :: ldex=shape(ex,0)
+  double precision intent(out,copy),dimension(n,n) :: exint
+  integer intent(hide),check(shape(exint,0)==ldexin),depend(exint) :: ldexin=shape(exint,0)
+  double precision required :: tol
+  integer intent(cache,hide),dimension(n),depend(n) :: iwork
+  double precision intent(cache,hide),dimension(max(2*n*n,1)),depend(n) :: dwork
+  integer intent(hide),depend(dwork):: ldwork=shape(dwork,0)
+  integer intent(out) :: info
+end subroutine mb05nd
