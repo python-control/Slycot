@@ -1,8 +1,8 @@
 Slycot
 =============
 
-.. image:: https://travis-ci.org/jgoppert/Slycot.svg?branch=master
-        :target: https://travis-ci.org/jgoppert/Slycot
+.. image:: https://travis-ci.org/johannes-scharlach/Slycot.svg?branch=master
+        :target: https://travis-ci.org/johannes-scharlach/Slycot
 
 Python wrapper for selected SLICOT routines, notably including solvers for
 Riccati, Lyapunov and Sylvester equations.
