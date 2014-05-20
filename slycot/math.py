@@ -92,47 +92,46 @@ def mb05md(a, delta, balanc='N'):
      
     Optional arguments:
         balanc : input char*1
-           Indicates how the input matrix should be diagonally scaled
-             to improve the conditioning of its eigenvalues as follows:
-             = 'N':  Do not diagonally scale;
-             = 'S':  Diagonally scale the matrix, i.e. replace A by
-                     D*A*D**(-1), where D is a diagonal matrix chosen
-                     to make the rows and columns of A more equal in
-           The order of the matrix A.  N >= 0.
+            Indicates how the input matrix should be diagonally scaled
+            to improve the conditioning of its eigenvalues as follows:
+            = 'N':  Do not diagonally scale;
+            = 'S':  Diagonally scale the matrix, i.e. replace A by
+                    D*A*D**(-1), where D is a diagonal matrix chosen
+                    to make the rows and columns of A more equal in
+                    norm. Do not permute.
 
     Return objects:
         Ar : output rank-2 array('d') with bounds (n,n)
-           Contains the solution matrix exp(A*delta)
+            Contains the solution matrix exp(A*delta)
         Vr : output rank-2 array('d') with bounds (n,n)
-           Contains the eigenvector matrix for A.  If the k-th
-           eigenvalue is real the k-th column of the eigenvector
-           matrix holds the eigenvector corresponding to the k-th
-           eigenvalue.  Otherwise, the k-th and (k+1)-th eigenvalues
-           form a complex conjugate pair and the k-th and (k+1)-th
-           columns of the eigenvector matrix hold the real and
-           imaginary parts of the eigenvectors corresponding to these
-           eigenvalues as follows.  If p and q denote the k-th and
-           (k+1)-th columns of the eigenvector matrix, respectively,
-           then the eigenvector corresponding to the complex
-           eigenvalue with positive (negative) imaginary value is
-           given by 
-                                       2
-              p + q*j (p - q*j), where j  = -1.
+            Contains the eigenvector matrix for A.  If the k-th
+            eigenvalue is real the k-th column of the eigenvector
+            matrix holds the eigenvector corresponding to the k-th
+            eigenvalue.  Otherwise, the k-th and (k+1)-th eigenvalues
+            form a complex conjugate pair and the k-th and (k+1)-th
+            columns of the eigenvector matrix hold the real and
+            imaginary parts of the eigenvectors corresponding to these
+            eigenvalues as follows.  If p and q denote the k-th and
+            (k+1)-th columns of the eigenvector matrix, respectively,
+            then the eigenvector corresponding to the complex
+            eigenvalue with positive (negative) imaginary value is
+            given by 
+              p + q*j (p - q*j), where j^2  = -1.
         Yr : output rank-2 array('d') with bounds (n,n)
-           contains an intermediate result for computing the matrix
-           exponential.  Specifically, exp(A*delta) is obtained as the
-           product V*Y, where V is the matrix stored in the leading
-           N-by-N part of the array V. If all eigenvalues of A are
-           real, then the leading N-by-N part of this array contains
-           the matrix product exp(Lambda*delta) times the inverse of
-           the (right) eigenvector matrix of A, where Lambda is the
-           diagonal matrix of eigenvalues.
+            contains an intermediate result for computing the matrix
+            exponential.  Specifically, exp(A*delta) is obtained as the
+            product V*Y, where V is the matrix stored in the leading
+            N-by-N part of the array V. If all eigenvalues of A are
+            real, then the leading N-by-N part of this array contains
+            the matrix product exp(Lambda*delta) times the inverse of
+            the (right) eigenvector matrix of A, where Lambda is the
+            diagonal matrix of eigenvalues.
 
         VALr : output rank-1 array('c') with bounds (n)
-           Contains the eigenvalues of the matrix A. The eigenvalues
-           are unordered except that complex conjugate pairs of values
-           appear consecutively with the eigenvalue having positive
-           imaginary part first.
+            Contains the eigenvalues of the matrix A. The eigenvalues
+            are unordered except that complex conjugate pairs of values
+            appear consecutively with the eigenvalue having positive
+            imaginary part first.
     """
     hidden = ' (hidden by the wrapper)'
     arg_list = [ 'balanc', 'n', 'delta', 'a', 'lda'+hidden, 'v', 'ldv'+hidden,
