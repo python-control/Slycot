@@ -15,6 +15,7 @@ before_install:
 # minumum for dependencies
 install:
   - while [[ 1 ]]; do echo "building deps"; sleep 300; done &
+  - msg_pid=$!
   - pip install -q scipy
   - kill $msg_pid
 
