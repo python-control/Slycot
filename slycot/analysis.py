@@ -515,7 +515,7 @@ def ab09ad(dico,job,equil,n,m,p,A,B,C,nr=None,tol=0,ldwork=None):
             If ``nr is None``, `tol`contains the tolerance for determining the
             order of the reduced system. For model reduction, th recommended
             value is ``tol = c * HNORM(A, B, C)``, where `c` is a constan in the
-            interval :math:``[0.00001, 0.001]`` and ``HNORM(A, B, C)`` is the
+            interval ``[0.00001, 0.001]`` and ``HNORM(A, B, C)`` is the
             Hankel-Norm of the given sysstem (computed in ``HSV(1)``). For
             computing a minimal realization, the recommended value is
             ``tol = n * eps * HNORM(A, B, C)``, where `eps` is the machine
@@ -524,7 +524,7 @@ def ab09ad(dico,job,equil,n,m,p,A,B,C,nr=None,tol=0,ldwork=None):
             the value of `tol` is ignored.
         ldwork := None input int
             The length of the cache array. The default value is
-            :math:``n*(2*n+max(n,m,p)+5) + n*(n+1)/2 ~= 3.5*n**2 + 5*n``,
+            ``n*(2*n+max(n,m,p)+5) + n*(n+1)/2 ~= 3.5*n**2 + 5*n``,
             a larger value should lead to better performance.
 
     Return objects :
@@ -611,7 +611,7 @@ def ab09ax(dico,job,n,m,p,A,B,C,nr=None,tol=0.0,ldwork=None):
     form.* The matrices of the reduced order system are computed using
     the truncation formulas:
 
-        :math:``Ar = TI * A * T ,  Br = TI * B ,  Cr = C * T`` .
+        ``Ar = TI * A * T ,  Br = TI * B ,  Cr = C * T`` .
 
     Required arguments :
         dico : {'D', 'C'} input string(len=1)
@@ -641,10 +641,10 @@ def ab09ax(dico,job,n,m,p,A,B,C,nr=None,tol=0.0,ldwork=None):
             ``nr is None`` and returned. See return object `nr`.
         tol := 0 input double precision
             If ``nr is None``, `tol`contains the tolerance for determining the
-            order of the reduced system. For model reduction, th recommended
-            value is ``tol = c * HNORM(A, B, C)``, where `c` is a constan in the
-            interval :math:``[0.00001, 0.001]`` and ``HNORM(A, B, C)`` is the
-            Hankel-Norm of the given sysstem (computed in ``HSV(1)``). For
+            order of the reduced system. For model reduction, the recommended
+            value is ``tol = c * HNORM(A, B, C)``, where `c` is a constant in 
+            the interval ``[0.00001, 0.001]`` and ``HNORM(A, B, C)`` is
+            the Hankel-Norm of the given sysstem (computed in ``HSV(1)``). For
             computing a minimal realization, the recommended value is
             ``tol = n * eps * HNORM(A, B, C)``, where `eps` is the machine
             precision (see LAPACK Library Routine `DLAMCH`). This value is
@@ -652,7 +652,7 @@ def ab09ax(dico,job,n,m,p,A,B,C,nr=None,tol=0.0,ldwork=None):
             the value of `tol` is ignored.
         ldwork := None input int
             The length of the cache array. The default value is
-            :math:``n*(2*n+max(n,m,p)+5) + n*(n+1)/2 ~= 3.5*n**2 + 5*n``,
+            ``n*(2*n+max(n,m,p)+5) + n*(n+1)/2 ~= 3.5*n**2 + 5*n``,
             a larger value should lead to better performance.
 
     Return objects :
