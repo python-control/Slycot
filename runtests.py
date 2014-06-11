@@ -71,9 +71,11 @@ def main(argv):
                         help="just build, do not run any tests")
     parser.add_argument("--doctests", action="store_true", default=False,
                         help="Run doctests in module")
-    parser.add_argument("--coverage", action="store_true", default=False,
+    parser.add_argument("--coverage_html", action="store_true", default=False,
                         help=("report coverage of project code. HTML output goes "
                               "under build/coverage"))
+    parser.add_argument("--coverage", action="store_true", default=False,
+                        help=("report coverage of project code."))
     parser.add_argument("--gcov", action="store_true", default=False,
                         help=("enable C code coverage via gcov (requires GCC). "
                               "gcov output goes to build/**/*.gc*"))
@@ -153,13 +155,17 @@ def main(argv):
         os.execv(shell, [shell] + extra_argv)
         sys.exit(1)
 
-    if args.coverage:
+    if args.coverage_html:
         dst_dir = os.path.join(ROOT_DIR, 'build', 'coverage')
         fn = os.path.join(dst_dir, 'coverage_html.js')
         if os.path.isdir(dst_dir) and os.path.isfile(fn):
             shutil.rmtree(dst_dir)
         extra_argv += ['--cover-html',
                        '--cover-html-dir='+dst_dir]
+
+    if args.coverage:
+        extra_argv += ['--cover-erase', '--with-coverage',
+                       '--cover-package=slycot']
 
     test_dir = os.path.join(ROOT_DIR, 'build', 'test')
 
