@@ -1,4 +1,6 @@
 import unittest
+from .. import synthesis
+from .. import math
 
 
 class Test(unittest.TestCase):
@@ -7,11 +9,9 @@ class Test(unittest.TestCase):
         pass
 
     def test_1(self):
-        import slycot
-        slycot.sb02mt(1,1,1,1)
+        synthesis.sb02mt(1,1,1,1)
 
     def test_2(self):
-        import slycot
         from scipy import matrix
         a = matrix("-2 0.5;-1.6 -5")
-        Ar, Vr, Yr, VALRr, VALDr = slycot.mb05md(a, 0.1)
+        Ar, Vr, Yr, VALRr, VALDr = math.mb05md(a, 0.1)

@@ -23,6 +23,6 @@ install:
   - kill $msg_pid
 
 # command to run tests
-script: coverage run runtests.py
+script: runtests.py --coverage
 after_success:
   - coveralls
