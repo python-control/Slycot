@@ -938,7 +938,7 @@ def sb04md(n,m,A,B,C,ldwork=None):
         raise e
     elif out[-1] > m:
         error_text = """a singular matrix was encountered whilst solving
-for the %i-th column of matrix X.""" % out[-1]-m
+for the %i-th column of matrix X.""" % (out[-1]-m)
         e = ValueError(error_text)
         e.info = out[-1]
         raise e
@@ -1003,7 +1003,7 @@ def sb04qd(n,m,A,B,C,ldwork=None):
         raise e
     elif out[-1] > m:
         error_text = """a singular matrix was encountered whilst solving
-for the %i-th column of matrix X.""" % out[-1]-m
+for the %i-th column of matrix X.""" % (out[-1]-m)
         e = ValueError(error_text)
         e.info = out[-1]
         raise e
