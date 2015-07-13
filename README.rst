@@ -89,7 +89,7 @@ If the build fails and you are on a 64bit OS you may want to try::
 For Windows, and using Python(x,y), specify that you are using the
 mingw compiler. Create a file
 
-C:\Python27\Lib\distutils\distutils.cfg
+C:\\Python27\\Lib\\distutils\\distutils.cfg
 
 with as contents::
 
