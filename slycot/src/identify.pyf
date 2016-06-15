@@ -1,0 +1,373 @@
+!    -*- f90 -*-
+! Note: the context of this file is case sensitive.
+
+subroutine ib01ad(meth,alg,jobd,batch,conct,ctrl,nobr,m,l,nsmp,u,ldu,y,ldy,n,r,ldr,sv,rcond,tol,iwork,dwork,ldwork,iwarn,info) ! in IB01AD.f
+    character :: meth
+    character :: alg
+    character :: jobd
+    character :: batch
+    character :: conct
+    character :: ctrl
+    integer required,check(nobr>0) :: nobr
+    integer intent(hide),depend(u) :: m=shape(u,1)
+    integer intent(hide),depend(y) :: l=shape(y,1)
+    integer required,check(nsmp>=2*nobr),depend(nobr): nsmp
+    double precision dimension(ldu,m) :: u
+    integer intent(hide),depend(u) :: ldu=shape(u,0)
+    double precision dimension(ldy,l) :: y
+    integer intent(hide),depend(y) :: ldy=shape(y,0)
+    integer intent(out) :: n
+    double precision intent(in,out,copy),dimension(ldr,2*(m+l)*nobr),depend(m,l,nobr) :: r
+    integer intent(hide),depend(r) :: ldr=shape(r,0)
+    double precision intent(out),dimension(l,nobr),depend(l,nobr) :: sv
+    double precision optional:: rcond=-1
+    double precision optional:: tol=0
+    integer intent(hide,cache),dimension((m+l)*nobr + 1),depend(m,l,nobr) :: iwork
+    double precision intent(hide,chache),dimension(ldwork) :: dwork
+    integer :: ldwork
+    integer intent(out):: iwarn
+    integer intent(out):: info
+end subroutine ib01ad
+subroutine ib01bd(meth,job,jobck,nobr,n,m,l,nsmpl,r,ldr,a,lda,c,ldc,b,ldb,d,ldd,q,ldq,ry,ldry,s,lds,k,ldk,tol,iwork,dwork,ldwork,bwork,iwarn,info) ! in IB01BD.f
+    character :: meth
+    character :: job
+    character :: jobck
+    integer :: nobr
+    integer :: n
+    integer :: m
+    integer :: l
+    integer :: nsmpl
+    double precision dimension(ldr,*) :: r
+    integer, optional,check(shape(r,0)==ldr),depend(r) :: ldr=shape(r,0)
+    double precision dimension(lda,*) :: a
+    integer, optional,check(shape(a,0)==lda),depend(a) :: lda=shape(a,0)
+    double precision dimension(ldc,*) :: c
+    integer, optional,check(shape(c,0)==ldc),depend(c) :: ldc=shape(c,0)
+    double precision dimension(ldb,*) :: b
+    integer, optional,check(shape(b,0)==ldb),depend(b) :: ldb=shape(b,0)
+    double precision dimension(ldd,*) :: d
+    integer, optional,check(shape(d,0)==ldd),depend(d) :: ldd=shape(d,0)
+    double precision dimension(ldq,*) :: q
+    integer, optional,check(shape(q,0)==ldq),depend(q) :: ldq=shape(q,0)
+    double precision dimension(ldry,*) :: ry
+    integer, optional,check(shape(ry,0)==ldry),depend(ry) :: ldry=shape(ry,0)
+    double precision dimension(lds,*) :: s
+    integer, optional,check(shape(s,0)==lds),depend(s) :: lds=shape(s,0)
+    double precision dimension(ldk,*) :: k
+    integer, optional,check(shape(k,0)==ldk),depend(k) :: ldk=shape(k,0)
+    double precision :: tol
+    integer dimension(*) :: iwork
+    double precision dimension(*) :: dwork
+    integer :: ldwork
+    logical dimension(*) :: bwork
+    integer :: iwarn
+    integer :: info
+end subroutine ib01bd
+subroutine ib01cd(jobx0,comuse,job,n,m,l,nsmp,a,lda,b,ldb,c,ldc,d,ldd,u,ldu,y,ldy,x0,v,ldv,tol,iwork,dwork,ldwork,iwarn,info) ! in IB01CD.f
+    character :: jobx0
+    character :: comuse
+    character :: job
+    integer :: n
+    integer :: m
+    integer :: l
+    integer :: nsmp
+    double precision dimension(lda,*) :: a
+    integer, optional,check(shape(a,0)==lda),depend(a) :: lda=shape(a,0)
+    double precision dimension(ldb,*) :: b
+    integer, optional,check(shape(b,0)==ldb),depend(b) :: ldb=shape(b,0)
+    double precision dimension(ldc,*) :: c
+    integer, optional,check(shape(c,0)==ldc),depend(c) :: ldc=shape(c,0)
+    double precision dimension(ldd,*) :: d
+    integer, optional,check(shape(d,0)==ldd),depend(d) :: ldd=shape(d,0)
+    double precision dimension(ldu,*) :: u
+    integer, optional,check(shape(u,0)==ldu),depend(u) :: ldu=shape(u,0)
+    double precision dimension(ldy,*) :: y
+    integer, optional,check(shape(y,0)==ldy),depend(y) :: ldy=shape(y,0)
+    double precision dimension(*) :: x0
+    double precision dimension(ldv,*) :: v
+    integer, optional,check(shape(v,0)==ldv),depend(v) :: ldv=shape(v,0)
+    double precision :: tol
+    integer dimension(*) :: iwork
+    double precision dimension(*) :: dwork
+    integer :: ldwork
+    integer :: iwarn
+    integer :: info
+end subroutine ib01cd
+subroutine ib01md(meth,alg,batch,conct,nobr,m,l,nsmp,u,ldu,y,ldy,r,ldr,iwork,dwork,ldwork,iwarn,info) ! in IB01MD.f
+    character :: meth
+    character :: alg
+    character :: batch
+    character :: conct
+    integer :: nobr
+    integer :: m
+    integer :: l
+    integer :: nsmp
+    double precision dimension(ldu,*) :: u
+    integer, optional,check(shape(u,0)==ldu),depend(u) :: ldu=shape(u,0)
+    double precision dimension(ldy,*) :: y
+    integer, optional,check(shape(y,0)==ldy),depend(y) :: ldy=shape(y,0)
+    double precision dimension(ldr,*) :: r
+    integer, optional,check(shape(r,0)==ldr),depend(r) :: ldr=shape(r,0)
+    integer dimension(*) :: iwork
+    double precision dimension(*) :: dwork
+    integer :: ldwork
+    integer :: iwarn
+    integer :: info
+end subroutine ib01md
+subroutine ib01my(meth,batch,conct,nobr,m,l,nsmp,u,ldu,y,ldy,r,ldr,iwork,dwork,ldwork,iwarn,info) ! in IB01MY.f
+    character :: meth
+    character :: batch
+    character :: conct
+    integer :: nobr
+    integer :: m
+    integer :: l
+    integer :: nsmp
+    double precision dimension(ldu,*) :: u
+    integer, optional,check(shape(u,0)==ldu),depend(u) :: ldu=shape(u,0)
+    double precision dimension(ldy,*) :: y
+    integer, optional,check(shape(y,0)==ldy),depend(y) :: ldy=shape(y,0)
+    double precision dimension(ldr,*) :: r
+    integer, optional,check(shape(r,0)==ldr),depend(r) :: ldr=shape(r,0)
+    integer dimension(*) :: iwork
+    double precision dimension(*) :: dwork
+    integer :: ldwork
+    integer :: iwarn
+    integer :: info
+end subroutine ib01my
+subroutine ib01nd(meth,jobd,nobr,m,l,r,ldr,sv,tol,iwork,dwork,ldwork,iwarn,info) ! in IB01ND.f
+    character :: meth
+    character :: jobd
+    integer :: nobr
+    integer :: m
+    integer :: l
+    double precision dimension(ldr,*) :: r
+    integer, optional,check(shape(r,0)==ldr),depend(r) :: ldr=shape(r,0)
+    double precision dimension(*) :: sv
+    double precision :: tol
+    integer dimension(*) :: iwork
+    double precision dimension(*) :: dwork
+    integer :: ldwork
+    integer :: iwarn
+    integer :: info
+end subroutine ib01nd
+subroutine ib01od(ctrl,nobr,l,sv,n,tol,iwarn,info) ! in IB01OD.f
+    character :: ctrl
+    integer :: nobr
+    integer :: l
+    double precision dimension(*) :: sv
+    integer :: n
+    double precision :: tol
+    integer :: iwarn
+    integer :: info
+end subroutine ib01od
+subroutine ib01oy(ns,nmax,n,sv,info) ! in IB01OY.f
+    integer :: ns
+    integer :: nmax
+    integer :: n
+    double precision dimension(*) :: sv
+    integer :: info
+end subroutine ib01oy
+subroutine ib01pd(meth,job,jobcv,nobr,n,m,l,nsmpl,r,ldr,a,lda,c,ldc,b,ldb,d,ldd,q,ldq,ry,ldry,s,lds,o,ldo,tol,iwork,dwork,ldwork,iwarn,info) ! in IB01PD.f
+    character :: meth
+    character :: job
+    character :: jobcv
+    integer :: nobr
+    integer :: n
+    integer :: m
+    integer :: l
+    integer :: nsmpl
+    double precision dimension(ldr,*) :: r
+    integer, optional,check(shape(r,0)==ldr),depend(r) :: ldr=shape(r,0)
+    double precision dimension(lda,*) :: a
+    integer, optional,check(shape(a,0)==lda),depend(a) :: lda=shape(a,0)
+    double precision dimension(ldc,*) :: c
+    integer, optional,check(shape(c,0)==ldc),depend(c) :: ldc=shape(c,0)
+    double precision dimension(ldb,*) :: b
+    integer, optional,check(shape(b,0)==ldb),depend(b) :: ldb=shape(b,0)
+    double precision dimension(ldd,*) :: d
+    integer, optional,check(shape(d,0)==ldd),depend(d) :: ldd=shape(d,0)
+    double precision dimension(ldq,*) :: q
+    integer, optional,check(shape(q,0)==ldq),depend(q) :: ldq=shape(q,0)
+    double precision dimension(ldry,*) :: ry
+    integer, optional,check(shape(ry,0)==ldry),depend(ry) :: ldry=shape(ry,0)
+    double precision dimension(lds,*) :: s
+    integer, optional,check(shape(s,0)==lds),depend(s) :: lds=shape(s,0)
+    double precision dimension(ldo,*) :: o
+    integer, optional,check(shape(o,0)==ldo),depend(o) :: ldo=shape(o,0)
+    double precision :: tol
+    integer dimension(*) :: iwork
+    double precision dimension(*) :: dwork
+    integer :: ldwork
+    integer :: iwarn
+    integer :: info
+end subroutine ib01pd
+subroutine ib01px(job,nobr,n,m,l,uf,lduf,un,ldun,ul,ldul,pgal,ldpgal,k,ldk,r,ldr,x,b,ldb,d,ldd,tol,iwork,dwork,ldwork,iwarn,info) ! in IB01PX.f
+    character :: job
+    integer :: nobr
+    integer :: n
+    integer :: m
+    integer :: l
+    double precision dimension(lduf,*) :: uf
+    integer, optional,check(shape(uf,0)==lduf),depend(uf) :: lduf=shape(uf,0)
+    double precision dimension(ldun,*) :: un
+    integer, optional,check(shape(un,0)==ldun),depend(un) :: ldun=shape(un,0)
+    double precision dimension(ldul,*) :: ul
+    integer, optional,check(shape(ul,0)==ldul),depend(ul) :: ldul=shape(ul,0)
+    double precision dimension(ldpgal,*) :: pgal
+    integer, optional,check(shape(pgal,0)==ldpgal),depend(pgal) :: ldpgal=shape(pgal,0)
+    double precision dimension(ldk,*) :: k
+    integer, optional,check(shape(k,0)==ldk),depend(k) :: ldk=shape(k,0)
+    double precision dimension(ldr,*) :: r
+    integer, optional,check(shape(r,0)==ldr),depend(r) :: ldr=shape(r,0)
+    double precision dimension(*) :: x
+    double precision dimension(ldb,*) :: b
+    integer, optional,check(shape(b,0)==ldb),depend(b) :: ldb=shape(b,0)
+    double precision dimension(ldd,*) :: d
+    integer, optional,check(shape(d,0)==ldd),depend(d) :: ldd=shape(d,0)
+    double precision :: tol
+    integer dimension(*) :: iwork
+    double precision dimension(*) :: dwork
+    integer :: ldwork
+    integer :: iwarn
+    integer :: info
+end subroutine ib01px
+subroutine ib01py(meth,job,nobr,n,m,l,rankr1,ul,ldul,r1,ldr1,tau1,pgal,ldpgal,k,ldk,r,ldr,h,ldh,b,ldb,d,ldd,tol,iwork,dwork,ldwork,iwarn,info) ! in IB01PY.f
+    character :: meth
+    character :: job
+    integer :: nobr
+    integer :: n
+    integer :: m
+    integer :: l
+    integer :: rankr1
+    double precision dimension(ldul,*) :: ul
+    integer, optional,check(shape(ul,0)==ldul),depend(ul) :: ldul=shape(ul,0)
+    double precision dimension(ldr1,*) :: r1
+    integer, optional,check(shape(r1,0)==ldr1),depend(r1) :: ldr1=shape(r1,0)
+    double precision dimension(*) :: tau1
+    double precision dimension(ldpgal,*) :: pgal
+    integer, optional,check(shape(pgal,0)==ldpgal),depend(pgal) :: ldpgal=shape(pgal,0)
+    double precision dimension(ldk,*) :: k
+    integer, optional,check(shape(k,0)==ldk),depend(k) :: ldk=shape(k,0)
+    double precision dimension(ldr,*) :: r
+    integer, optional,check(shape(r,0)==ldr),depend(r) :: ldr=shape(r,0)
+    double precision dimension(ldh,*) :: h
+    integer, optional,check(shape(h,0)==ldh),depend(h) :: ldh=shape(h,0)
+    double precision dimension(ldb,*) :: b
+    integer, optional,check(shape(b,0)==ldb),depend(b) :: ldb=shape(b,0)
+    double precision dimension(ldd,*) :: d
+    integer, optional,check(shape(d,0)==ldd),depend(d) :: ldd=shape(d,0)
+    double precision :: tol
+    integer dimension(*) :: iwork
+    double precision dimension(*) :: dwork
+    integer :: ldwork
+    integer :: iwarn
+    integer :: info
+end subroutine ib01py
+subroutine ib01qd(jobx0,job,n,m,l,nsmp,a,lda,c,ldc,u,ldu,y,ldy,x0,b,ldb,d,ldd,tol,iwork,dwork,ldwork,iwarn,info) ! in IB01QD.f
+    character :: jobx0
+    character :: job
+    integer :: n
+    integer :: m
+    integer :: l
+    integer :: nsmp
+    double precision dimension(lda,*) :: a
+    integer, optional,check(shape(a,0)==lda),depend(a) :: lda=shape(a,0)
+    double precision dimension(ldc,*) :: c
+    integer, optional,check(shape(c,0)==ldc),depend(c) :: ldc=shape(c,0)
+    double precision dimension(ldu,*) :: u
+    integer, optional,check(shape(u,0)==ldu),depend(u) :: ldu=shape(u,0)
+    double precision dimension(ldy,*) :: y
+    integer, optional,check(shape(y,0)==ldy),depend(y) :: ldy=shape(y,0)
+    double precision dimension(*) :: x0
+    double precision dimension(ldb,*) :: b
+    integer, optional,check(shape(b,0)==ldb),depend(b) :: ldb=shape(b,0)
+    double precision dimension(ldd,*) :: d
+    integer, optional,check(shape(d,0)==ldd),depend(d) :: ldd=shape(d,0)
+    double precision :: tol
+    integer dimension(*) :: iwork
+    double precision dimension(*) :: dwork
+    integer :: ldwork
+    integer :: iwarn
+    integer :: info
+end subroutine ib01qd
+subroutine ib01rd(job,n,m,l,nsmp,a,lda,b,ldb,c,ldc,d,ldd,u,ldu,y,ldy,x0,tol,iwork,dwork,ldwork,iwarn,info) ! in IB01RD.f
+    character :: job
+    integer :: n
+    integer :: m
+    integer :: l
+    integer :: nsmp
+    double precision dimension(lda,*) :: a
+    integer, optional,check(shape(a,0)==lda),depend(a) :: lda=shape(a,0)
+    double precision dimension(ldb,*) :: b
+    integer, optional,check(shape(b,0)==ldb),depend(b) :: ldb=shape(b,0)
+    double precision dimension(ldc,*) :: c
+    integer, optional,check(shape(c,0)==ldc),depend(c) :: ldc=shape(c,0)
+    double precision dimension(ldd,*) :: d
+    integer, optional,check(shape(d,0)==ldd),depend(d) :: ldd=shape(d,0)
+    double precision dimension(ldu,*) :: u
+    integer, optional,check(shape(u,0)==ldu),depend(u) :: ldu=shape(u,0)
+    double precision dimension(ldy,*) :: y
+    integer, optional,check(shape(y,0)==ldy),depend(y) :: ldy=shape(y,0)
+    double precision dimension(*) :: x0
+    double precision :: tol
+    integer dimension(*) :: iwork
+    double precision dimension(*) :: dwork
+    integer :: ldwork
+    integer :: iwarn
+    integer :: info
+end subroutine ib01rd
+subroutine ib03ad(init,alg,stor,nobr,m,l,nsmp,n,nn,itmax1,itmax2,nprint,u,ldu,y,ldy,x,lx,tol1,tol2,iwork,dwork,ldwork,iwarn,info) ! in IB03AD.f
+    character :: init
+    character :: alg
+    character :: stor
+    integer :: nobr
+    integer :: m
+    integer :: l
+    integer :: nsmp
+    integer :: n
+    integer :: nn
+    integer :: itmax1
+    integer :: itmax2
+    integer :: nprint
+    double precision dimension(ldu,*) :: u
+    integer, optional,check(shape(u,0)==ldu),depend(u) :: ldu=shape(u,0)
+    double precision dimension(ldy,*) :: y
+    integer, optional,check(shape(y,0)==ldy),depend(y) :: ldy=shape(y,0)
+    double precision dimension(*) :: x
+    integer :: lx
+    double precision :: tol1
+    double precision :: tol2
+    integer dimension(*) :: iwork
+    double precision dimension(*) :: dwork
+    integer :: ldwork
+    integer :: iwarn
+    integer :: info
+end subroutine ib03ad
+subroutine ib03bd(init,nobr,m,l,nsmp,n,nn,itmax1,itmax2,nprint,u,ldu,y,ldy,x,lx,tol1,tol2,iwork,dwork,ldwork,iwarn,info) ! in IB03BD.f
+    character :: init
+    integer :: nobr
+    integer :: m
+    integer :: l
+    integer :: nsmp
+    integer :: n
+    integer :: nn
+    integer :: itmax1
+    integer :: itmax2
+    integer :: nprint
+    double precision dimension(ldu,*) :: u
+    integer, optional,check(shape(u,0)==ldu),depend(u) :: ldu=shape(u,0)
+    double precision dimension(ldy,*) :: y
+    integer, optional,check(shape(y,0)==ldy),depend(y) :: ldy=shape(y,0)
+    double precision dimension(*) :: x
+    integer :: lx
+    double precision :: tol1
+    double precision :: tol2
+    integer dimension(*) :: iwork
+    double precision dimension(*) :: dwork
+    integer :: ldwork
+    integer :: iwarn
+    integer :: info
+end subroutine ib03bd
+
+! This file was auto-generated with f2py (version:2).
+! See http://cens.ioc.ee/projects/f2py2e/
