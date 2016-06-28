@@ -8,23 +8,23 @@ subroutine ib01ad(meth,alg,jobd,batch,conct,ctrl,nobr,m,l,nsmp,u,ldu,y,ldy,n,r,l
     character :: batch
     character :: conct
     character :: ctrl
-    integer required,check(nobr>0) :: nobr
-    integer intent(hide),depend(u) :: m=shape(u,1)
-    integer intent(hide),depend(y) :: l=shape(y,1)
-    integer required,check(nsmp>=2*nobr),depend(nobr): nsmp
+    integer :: nobr
+    integer :: m
+    integer :: l
+    integer :: nsmp
     double precision dimension(ldu,m) :: u
-    integer intent(hide),depend(u) :: ldu=shape(u,0)
+    integer, optional,check(shape(u,0)==ldu),depend(u) :: ldu=shape(u,0)
     double precision dimension(ldy,l) :: y
-    integer intent(hide),depend(y) :: ldy=shape(y,0)
-    integer intent(out) :: n
-    double precision intent(in,out,copy),dimension(ldr,2*(m+l)*nobr),depend(m,l,nobr) :: r
-    integer intent(hide),depend(r) :: ldr=shape(r,0)
-    double precision intent(out),dimension(l,nobr),depend(l,nobr) :: sv
-    double precision optional:: rcond=-1
-    double precision optional:: tol=0
-    integer intent(hide,cache),dimension((m+l)*nobr + 1),depend(m,l,nobr) :: iwork
-    double precision intent(hide,chache),dimension(ldwork) :: dwork
-    integer :: ldwork
+    integer, optional,check(shape(y,0)==ldy),depend(y) :: ldy=shape(y,0)
+    integer intent(out):: n
+    double precision intent(inout), dimension(ldr,2*(m+l)*nobr) :: r
+    integer, optional,check(shape(r,0)==ldr),depend(r) :: ldr=shape(r,0)
+    double precision intent(out), dimension(l*nobr) :: sv
+    double precision :: rcond
+    double precision :: tol
+    integer dimension(*) :: iwork
+    double precision dimension(ldwork) :: dwork
+    integer, optional,check(shape(dwork,0)==ldwork),depend(dwork) :: ldwork=shape(dwork,0)
     integer intent(out):: iwarn
     integer intent(out):: info
 end subroutine ib01ad
