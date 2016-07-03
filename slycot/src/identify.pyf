@@ -28,7 +28,7 @@ subroutine ib01ad(meth,alg,jobd,batch,conct,ctrl,nobr,m,l,nsmp,u,ldu,y,ldy,n,r,l
     integer intent(out):: iwarn
     integer intent(out):: info
 end subroutine ib01ad
-subroutine ib01bd(meth,job,jobck,nobr,n,m,l,nsmpl,r,ldr,a,lda,c,ldc,b,ldb,d,ldd,q,ldq,ry,ldry,s,lds,k,ldk,tol,iwork,dwork,ldwork,bwork,iwarn,info) ! in IB01BD.f
+subroutine ib01bd(meth,job,jobck,nobr,n,m,l,nsmpl,r,ldr,a,lda,c,ldc,b,ldb,d,ldd,q,ldq,ry,ldry,s,lds,k,ldk,tol,iwork,liwork,dwork,ldwork,bwork,iwarn,info) ! in IB01BD.f
     character :: meth
     character :: job
     character :: jobck
@@ -37,31 +37,32 @@ subroutine ib01bd(meth,job,jobck,nobr,n,m,l,nsmpl,r,ldr,a,lda,c,ldc,b,ldb,d,ldd,
     integer :: m
     integer :: l
     integer :: nsmpl
-    double precision dimension(ldr,*) :: r
+    double precision intent(inout),dimension(ldr,2*(m+l)*nobr) :: r
     integer, optional,check(shape(r,0)==ldr),depend(r) :: ldr=shape(r,0)
-    double precision dimension(lda,*) :: a
-    integer, optional,check(shape(a,0)==lda),depend(a) :: lda=shape(a,0)
-    double precision dimension(ldc,*) :: c
-    integer, optional,check(shape(c,0)==ldc),depend(c) :: ldc=shape(c,0)
-    double precision dimension(ldb,*) :: b
-    integer, optional,check(shape(b,0)==ldb),depend(b) :: ldb=shape(b,0)
-    double precision dimension(ldd,*) :: d
-    integer, optional,check(shape(d,0)==ldd),depend(d) :: ldd=shape(d,0)
-    double precision dimension(ldq,*) :: q
-    integer, optional,check(shape(q,0)==ldq),depend(q) :: ldq=shape(q,0)
-    double precision dimension(ldry,*) :: ry
-    integer, optional,check(shape(ry,0)==ldry),depend(ry) :: ldry=shape(ry,0)
-    double precision dimension(lds,*) :: s
-    integer, optional,check(shape(s,0)==lds),depend(s) :: lds=shape(s,0)
-    double precision dimension(ldk,*) :: k
-    integer, optional,check(shape(k,0)==ldk),depend(k) :: ldk=shape(k,0)
-    double precision :: tol
-    integer dimension(*) :: iwork
-    double precision dimension(*) :: dwork
-    integer :: ldwork
-    logical dimension(*) :: bwork
-    integer :: iwarn
-    integer :: info
+    double precision ,intent(in,out),dimension(lda,n),depend(lda, n) :: a
+    integer :: lda
+    double precision intent(in,out),dimension(ldc,n),depend(ldc,n) :: c
+    integer :: ldc
+    double precision intent(out),dimension(ldb,m) :: b
+    integer :: ldb
+    double precision intent(out),dimension(ldd,m) :: d
+    integer :: ldd
+    double precision intent(out),dimension(ldq,n) :: q
+    integer  :: ldq
+    double precision intent(out),dimension(ldry,l) :: ry
+    integer  :: ldry
+    double precision intent(out),dimension(lds,l) :: s
+    integer  :: lds
+    double precision intent(out),dimension(ldk,l) :: k
+    integer  :: ldk
+    double precision ,optional:: tol=0
+    integer dimension(liwork) :: iwork
+    integer ,intent(hide),depend(iwork) :: liwork=shape(iwork,0)
+    double precision intent(inout),dimension(ldwork) :: dwork
+    integer, optional,check(shape(dwork,0)==ldwork),depend(dwork) :: ldwork=shape(dwork,0)
+    logical intent(inout),dimension(2*n) :: bwork
+    integer intent(out):: iwarn
+    integer intent(out):: info
 end subroutine ib01bd
 subroutine ib01cd(jobx0,comuse,job,n,m,l,nsmp,a,lda,b,ldb,c,ldc,d,ldd,u,ldu,y,ldy,x0,v,ldv,tol,iwork,dwork,ldwork,iwarn,info) ! in IB01CD.f
     character :: jobx0

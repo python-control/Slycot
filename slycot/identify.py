@@ -115,10 +115,6 @@ def ib01ad(meth, alg, jobd, conct, ctrl, nobr, data, rcond=-1, tol=-1):
               logarithmic gap to its successor.
     Outputs:
 
-         N       (output) int
-                 The estimated order of the system.
-                 If  CTRL = 'C',  the estimated order has been reset to a
-                 value specified by the user.
         R       (output) rank-2 array('d'), dimension
                 ( LDR,2*(M+L)*NOBR )
                 On exit, if ALG = 'C' and BATCH = 'F' or 'I', the leading
@@ -160,6 +156,10 @@ def ib01ad(meth, alg, jobd, conct, ctrl, nobr, data, rcond=-1, tol=-1):
                 triangular matrix R computed at the previous call of this
                 routine in sequential data processing. The array R need
                 not be set on entry if ALG = 'F' or if BATCH = 'F' or 'O'.
+         N       (output) int
+                 The estimated order of the system.
+                 If  CTRL = 'C',  the estimated order has been reset to a
+                 value specified by the user.
        sv      (output) rank-1 rray('d'), dimension ( L*NOBR )
                The singular values used to estimate the system order.
        iwarn :  int
@@ -340,6 +340,7 @@ def ib01ad(meth, alg, jobd, conct, ctrl, nobr, data, rcond=-1, tol=-1):
 
         out = _wrapper.ib01ad(meth, alg, jobd, batch, conct, ctrl, nobr,
                               nsmp, u, y, r, rcond, tol, iwork, dwork)
+        out = (r,) + out
 
         if out[-1] < 0:
             error_text = '''The following argument had an illegal
@@ -361,3 +362,353 @@ def ib01ad(meth, alg, jobd, conct, ctrl, nobr, data, rcond=-1, tol=-1):
             raise e
 
     return out[:-1]
+
+
+def ib01bd(meth, job, jobck, nobr, n, m, l, nsmpl, r, A, C, tol=0):
+    '''
+     PURPOSE
+
+     To estimate the system matrices A, C, B, and D, the noise
+     covariance matrices Q, Ry, and S, and the Kalman gain matrix K
+     of a linear time-invariant state space model, using the
+     processed triangular factor R of the concatenated block Hankel
+     matrices, provided by SLICOT Library routine IB01AD.
+
+     METHOD
+
+     In the MOESP approach, the matrices  A  and  C  are first
+     computed from an estimated extended observability matrix [1],
+     and then, the matrices  B  and  D  are obtained by solving an
+     extended linear system in a least squares sense.
+     In the N4SID approach, besides the estimated extended
+     observability matrix, the solutions of two least squares problems
+     are used to build another least squares problem, whose solution
+     is needed to compute the system matrices  A,  C,  B,  and  D.  The
+     solutions of the two least squares problems are also optionally
+     used by both approaches to find the covariance matrices.
+     The Kalman gain matrix is obtained by solving a discrete-time
+     algebraic Riccati equation.
+
+     INPUTS
+     -------
+
+     Mode Parameters
+
+     meth    CHARACTER*1
+             Specifies the subspace identification method to be used,
+             as follows:
+             = 'M':  MOESP  algorithm with past inputs and outputs;
+             = 'N':  N4SID  algorithm;
+             = 'C':  combined method:  MOESP  algorithm for finding the
+                     matrices A and C, and  N4SID  algorithm for
+                     finding the matrices B and D.
+
+     job     CHARACTER*1
+             Specifies which matrices should be computed, as follows:
+             = 'A':  compute all system matrices, A, B, C, and D;
+             = 'C':  compute the matrices A and C only;
+             = 'B':  compute the matrix B only;
+             = 'D':  compute the matrices B and D only.
+
+     jobck   CHARACTER*1
+             Specifies whether or not the covariance matrices and the
+             Kalman gain matrix are to be computed, as follows:
+             = 'C':  the covariance matrices only should be computed;
+             = 'K':  the covariance matrices and the Kalman gain
+                     matrix should be computed;
+             = 'N':  the covariance matrices and the Kalman gain matrix
+                     should not be computed.
+
+     nobr    INTEGER
+             The number of block rows,  s,  in the input and output
+             Hankel matrices processed by other routines.  NOBR > 1.
+
+     n       INTEGER
+             The order of the system.  NOBR > N > 0.
+
+     m       INTEGER
+             The number of system inputs.  M >= 0.
+
+     l       INTEGER
+             The number of system outputs.  L > 0.
+
+     nsmpl   INTEGER
+             If  JOBCK = 'C' or 'K',  the total number of samples used
+             for calculating the covariance matrices.
+             NSMPL >= 2*(M+L)*NOBR.
+             This parameter is not meaningful if  JOBCK = 'N'.
+
+     r       rank-2 array type-d, dimension
+             ( LDR,2*(M+L)*NOBR )
+             On entry, the leading  2*(M+L)*NOBR-by-2*(M+L)*NOBR  part
+             of this array must contain the relevant data for the MOESP
+             or N4SID algorithms, as constructed by SLICOT Library
+             routine IB01AD. Let  R_ij,  i,j = 1:4,  be the
+             ij submatrix of  R  (denoted  S  in IB01AD),  partitioned
+             by  M*NOBR,  L*NOBR,  M*NOBR,  and  L*NOBR  rows and
+             columns. The submatrix  R_22  contains the matrix of left
+             singular vectors used. Also needed, for  METH = 'N'  or
+             JOBCK <> 'N',  are the submatrices  R_11,  R_14 : R_44,
+             and, for  METH = 'M' or 'C'  and  JOB <> 'C', the
+             submatrices  R_31  and  R_12,  containing the processed
+             matrices  R_1c  and  R_2c,  respectively, as returned by
+             SLICOT Library routine IB01AD.
+             Moreover, if  METH = 'N'  and  JOB = 'A' or 'C',  the
+             block-row  R_41 : R_43  must contain the transpose of the
+             block-column  R_14 : R_34  as returned by SLICOT Library
+             routine IB01AD.
+             The remaining part of  R  is used as workspace.
+             On exit, part of this array is overwritten. Specifically,
+             if  METH = 'M',  R_22  and  R_31  are overwritten if
+                 JOB = 'B' or 'D',  and  R_12,  R_22,  R_14 : R_34,
+                 and possibly  R_11  are overwritten if  JOBCK <> 'N';
+             if  METH = 'N',  all needed submatrices are overwritten.
+             The details of the contents of  R  need not be known if
+             this routine is called once just after calling the SLICOT
+             Library routine IB01AD.
+
+     A       (input or output) DOUBLE PRECISION array, dimension
+             (LDA,N)
+             On entry, if  METH = 'N' or 'C'  and  JOB = 'B' or 'D',
+             the leading N-by-N part of this array must contain the
+             system state matrix.
+             If  METH = 'M'  or  (METH = 'N' or 'C'  and JOB = 'A'
+             or 'C'),  this array need not be set on input.
+             On exit, if  JOB = 'A' or 'C'  and  INFO = 0,  the
+             leading N-by-N part of this array contains the system
+             state matrix.
+
+     C       (input or output) DOUBLE PRECISION array, dimension
+             (LDC,N)
+             On entry, if  METH = 'N' or 'C'  and  JOB = 'B' or 'D',
+             the leading L-by-N part of this array must contain the
+             system output matrix.
+             If  METH = 'M'  or  (METH = 'N' or 'C'  and JOB = 'A'
+             or 'C'),  this array need not be set on input.
+             On exit, if  JOB = 'A' or 'C'  and  INFO = 0,  or
+             INFO = 3  (or  INFO >= 0,  for  METH = 'M'),  the leading
+             L-by-N part of this array contains the system output
+             matrix.
+
+     Tolerances
+
+     TOL     DOUBLE
+             The tolerance to be used for estimating the rank of
+             matrices. If the user sets  TOL > 0,  then the given value
+             of  TOL  is used as a lower bound for the reciprocal
+             condition number;  an m-by-n matrix whose estimated
+             condition number is less than  1/TOL  is considered to
+             be of full rank.  If the user sets  TOL <= 0,  then an
+             implicitly computed, default tolerance, defined by
+             TOLDEF = m*n*EPS,  is used instead, where  EPS  is the
+             relative machine precision (see LAPACK Library routine
+             DLAMCH).
+
+     OUTPUTS
+     --------
+     B       (output) rank-2 type('d') array, dimension (LDB,M)
+             If  M > 0,  JOB = 'A', 'B', or 'D'  and  INFO = 0,  the
+             leading N-by-M part of this array contains the system
+             input matrix. If  M = 0  or  JOB = 'C',  this array is
+             not referenced.
+
+     D       (output) rank-2 type('d') array, dimension (LDD,M)
+             If  M > 0,  JOB = 'A' or 'D'  and  INFO = 0,  the leading
+             L-by-M part of this array contains the system input-output
+             matrix. If  M = 0  or  JOB = 'C' or 'B',  this array is
+             not referenced.
+
+     Q       (output) rank-2 type('d') array, dimension (LDQ,N)
+             If  JOBCK = 'C' or 'K',  the leading N-by-N part of this
+             array contains the positive semidefinite state covariance
+             matrix. If  JOBCK = 'K',  this matrix has been used as
+             state weighting matrix for computing the Kalman gain.
+             This parameter is not referenced if JOBCK = 'N'.
+
+     RY      (output) rank-2 type('d') array, dimension (LDRY,L)
+             If  JOBCK = 'C' or 'K',  the leading L-by-L part of this
+             array contains the positive (semi)definite output
+             covariance matrix. If  JOBCK = 'K',  this matrix has been
+             used as output weighting matrix for computing the Kalman
+             gain.
+             This parameter is not referenced if JOBCK = 'N'.
+
+     S       (output) rank-2 type('d') array, dimension (LDS,L)
+             If  JOBCK = 'C' or 'K',  the leading N-by-L part of this
+             array contains the state-output cross-covariance matrix.
+             If  JOBCK = 'K',  this matrix has been used as state-
+             output weighting matrix for computing the Kalman gain.
+             This parameter is not referenced if JOBCK = 'N'.
+
+     K       (output) rank-2 type('d') array, dimension ( LDK,L )
+             If  JOBCK = 'K',  the leading  N-by-L  part of this array
+             contains the estimated Kalman gain matrix.
+             If  JOBCK = 'C' or 'N',  this array is not referenced.
+
+     Warning Indicator
+
+     iwarn   INTEGER
+             = 0:  no warning;
+             = 4:  a least squares problem to be solved has a
+                   rank-deficient coefficient matrix;
+             = 5:  the computed covariance matrices are too small.
+                   The problem seems to be a deterministic one; the
+                   gain matrix is set to zero.
+
+     Error Indicator
+
+     info    INTEGER
+             = 0:  successful exit;
+             < 0:  if INFO = -i, the i-th argument had an illegal
+                   value;
+             = 2:  the singular value decomposition (SVD) algorithm did
+                   not converge;
+             = 3:  a singular upper triangular matrix was found;
+             = 3+i:  if  JOBCK = 'K'  and the associated Riccati
+                   equation could not be solved, where i = 1,...,6;
+                   (see the description of the parameter INFO for the
+                   SLICOT Library routine SB02RD for the meaning of
+                   the i values);
+             = 10: the QR algorithm did not converge.
+
+    '''
+    if (nsmpl < 2*(m+l)*nobr):
+        raise ValueError("identify : nsmpl (%d) < 2*(m+l)*nobr (%d)",
+                         nsmpl, nobr)
+
+    # arguments out
+
+    lda = max(1, n)
+    ldc = max(1, l)
+    ldb = max(1, n)
+    ldd = max(1, l)
+    if jobck == 'C' or jobck == 'K':
+        ldq = n            # if JOBCK = 'C' or 'K'
+        ldry = l           # if JOBCK = 'C' or 'K'
+        lds = n            # if JOBCK = 'C' or 'K'
+    else:
+        ldq = 1
+        ldry = 1
+        lds = 1
+    if jobck == 'K':
+        ldk = n            # if JOBCK = 'K'
+    else:
+        ldk = 1
+
+    if (meth == 'N' or meth == 'C') and (job == 'B' or job == 'D'):
+        if A.shape[0] < n or A.shape[1] < n:
+            raise ValueError('''identify_ib01bd : Matrix A input shape not
+                             correct''')
+        if C.shape[0] < l or C.shape[1] < n:
+            raise ValueError('''identify_ib01bd : Matrix C input shape not
+                             correct''')
+    else:
+        A = _np.zeros((lda, n), order='F')
+        C = _np.zeros((ldc, n), order='F')
+
+    # workspace
+
+    liw1 = max(n, m*nobr+n, l*nobr, m*(n+l))
+    liw2 = n*n
+    liwork = max(liw1, liw2)
+
+    if (meth == 'M'):
+
+        ldw1a = max(2*(l*nobr-l)*n+2*n, (l*nobr-l)*n+n*n+7*n)
+        ldw1b = max(2*(l*nobr-l)*n+n*n+7*n, (l*nobr-l)*n+n+6*m*nobr,
+                    (l*nobr-l)*n+n+max(l+m*nobr, l*nobr + max(3*l*nobr+1, m)))
+        ldw1 = max(ldw1a, ldw1b)
+
+        if (m == 0 or job == 'C'):
+            aw = n + n*n
+        else:
+            aw = 0
+
+        ldw2 = l*nobr*n + max((l*nobr-l)*n+aw+2*n+max(5*n, (2*m+l)*nobr+l),
+                              4*(m*nobr+n)+1, m*nobr+2*n+l)
+
+    elif(meth == 'N'):
+        ldw1 = l*nobr*n + max((l*nobr-l)*n+2*n+(2*m+l)*nobr+l,
+                              2*(l*nobr-l)*n+n*n+8*n, n+4*(m*nobr+n)+1,
+                              m*nobr+3*n+l)
+
+        if (m == 0 or job == 'C'):
+            ldw2 = 0
+        else:
+            ldw2 = l*nobr*n+m*nobr*(n+l)*(m*(n+l)+1) + max((n+l)*(n+l),
+                                                           4*m*(n+l)+1)
+
+    else:    # (meth == 'C')
+        ldw1a = max(2*(l*nobr-l)*n+2*n, (l*nobr-l)*n+n*n+7*n)
+        ldw1b = l*nobr*n + max((l*nobr-l)*n+2*n+(2*m+l)*nobr+l,
+                               2*(l*nobr-l)*n+n*n+8*n,
+                               n+4*(m*nobr+n)+1,
+                               m*nobr+3*n+l)
+
+        ldw1 = max(ldw1a, ldw1b)
+
+        ldw2 = l*nobr*n+m*nobr*(n+l)*(m*(n+l)+1) + max((n+l)*(n+l), 4*m*(n+l)+1)
+
+    ldw3 = max(4*n*n + 2*n*l + l*l + max(3*l, n*l), 14*n*n + 12*n + 5)
+    ldwork = max(ldw1, ldw2, ldw3)
+
+    iwork = _np.zeros((liwork,), dtype=_np.int, order='F')
+    dwork = _np.zeros((ldwork,), dtype='d', order='F')
+    bwork = _np.zeros((2*n,), dtype=_np.int32, order='F')
+
+    # error indicators
+
+    # SLICOT routine IB01BD
+    out = _wrapper.ib01bd(meth, job, jobck, nobr, m, l, nsmpl, r, A, lda, C,
+                          ldc, ldb, ldd, ldq, ldry, lds, ldk, iwork, dwork,
+                          bwork)
+
+    err_msg = (
+        "0: OK",
+        "1: error message not specified",
+        "2: the singular value decomposition (SVD) algorithm did not converge",
+        "3: a singular upper triangular matrix was found",
+        "4: matrix A is (numerically) singular in discrete-time case",
+        "5: the Hamiltonian or symplectic matrix H cannot be reduced to real"
+        "Schur form",
+        "6: the real Schur form of the Hamiltonian or "
+        "symplectic matrix H cannot be appropriately ordered",
+        "7: the Hamiltonian or symplectic matrix H has less "
+        "than N stable eigenvalues",
+        "8: the N-th order system of linear algebraic "
+        "equations, from which the solution matrix X would "
+        "be obtained, is singular to working precision",
+        "9: the QR algorithm failed to complete the reduction "
+        "of the matrix Ac to Schur canonical form, T",
+        "10: the QR algorithm did not converge")
+
+    '''warn_msg = (
+        "0: OK",
+        "1: warning message not specified",
+        "2: warning message not specified",
+        "3: warning message not specified",
+        "4: a least squares problem to be solved has a "
+            "rank-deficient coefficient matrix",
+        "5: the computed covariance matrices are too small. "
+            "The problem seems to be a deterministic one; the "
+            "gain matrix is set to zero")
+    '''
+    args_list = ['meth', 'job', 'jobck', 'nobr', 'n', 'm', 'l', 'nsmpl', 'r',
+                 'ldr', 'a', 'lda', 'c', 'ldc', 'b', 'ldb', 'd', 'ldd', 'q',
+                 'ldq', 'ry', 'ldry', 's', 'lds', 'k', 'ldk', 'tol', 'iwork',
+                 'dwork', 'ldwork', 'bwork', 'iwarn', 'info']
+
+    if out[-1] < 0:
+        error_text = '''The following argument had an illegal
+        value: ''' + args_list[-out[-1]-1]
+        e = ValueError(error_text)
+        e.info = out[-1]
+        raise e
+    elif out[-1] > 0:
+        e = ValueError(err_msg[out[-1]])
+        raise e
+
+    # error_msg ("ident: IB01BD", info_b, 10, err_msg_b);
+    # warning_msg ("ident: IB01BD", iwarn_b, 5, warn_msg_b);
+
+    return out
