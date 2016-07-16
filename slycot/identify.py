@@ -603,8 +603,8 @@ def ib01bd(meth, job, jobck, nobr, n, m, l, nsmpl, r, A, C, tol=0):
             raise ValueError('''identify_ib01bd : Matrix C input shape not
                              correct''')
     else:
-        A = _np.zeros((lda, n), order='F')
-        C = _np.zeros((ldc, n), order='F')
+        A = _np.zeros((lda, n))
+        C = _np.zeros((ldc, n))
 
     # workspace
 
@@ -618,7 +618,9 @@ def ib01bd(meth, job, jobck, nobr, n, m, l, nsmpl, r, A, C, tol=0):
         ldw1b = max(2*(l*nobr-l)*n+n*n+7*n, (l*nobr-l)*n+n+6*m*nobr,
                     (l*nobr-l)*n+n+max(l+m*nobr, l*nobr + max(3*l*nobr+1, m)))
         ldw1 = max(ldw1a, ldw1b)
-
+        #THE FOLLOWING LINE IS NOT THERE IN THE DOC OF IB01BD BUT CODE DOES
+        #NOT WORK WITOUT THIS
+        ldw1 = ldw1 + l*nobr*n
         if (m == 0 or job == 'C'):
             aw = n + n*n
         else:
@@ -652,9 +654,9 @@ def ib01bd(meth, job, jobck, nobr, n, m, l, nsmpl, r, A, C, tol=0):
     ldw3 = max(4*n*n + 2*n*l + l*l + max(3*l, n*l), 14*n*n + 12*n + 5)
     ldwork = max(ldw1, ldw2, ldw3)
 
-    iwork = _np.zeros((liwork,), dtype=_np.int, order='F')
-    dwork = _np.zeros((ldwork,), dtype='d', order='F')
-    bwork = _np.zeros((2*n,), dtype=_np.int32, order='F')
+    iwork = _np.zeros((liwork, ), dtype=_np.int)
+    dwork = _np.zeros((ldwork, ))
+    bwork = _np.zeros((2*n, ), dtype=_np.int32)
 
     # error indicators
 
