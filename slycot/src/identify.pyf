@@ -74,27 +74,27 @@ subroutine ib01cd(jobx0,comuse,job,n,m,l,nsmp,a,lda,b,ldb,c,ldc,d,ldd,u,ldu,y,ld
     integer :: m
     integer :: l
     integer :: nsmp
-    double precision dimension(lda,*) :: a
+    double precision dimension(lda,n) :: a
     integer, optional,check(shape(a,0)==lda),depend(a) :: lda=shape(a,0)
-    double precision dimension(ldb,*) :: b
+    double precision intent(in,out),dimension(ldb,m) :: b
     integer, optional,check(shape(b,0)==ldb),depend(b) :: ldb=shape(b,0)
-    double precision dimension(ldc,*) :: c
+    double precision dimension(ldc,n) :: c
     integer, optional,check(shape(c,0)==ldc),depend(c) :: ldc=shape(c,0)
-    double precision dimension(ldd,*) :: d
+    double precision intent(in, out), dimension(ldd,m) :: d
     integer, optional,check(shape(d,0)==ldd),depend(d) :: ldd=shape(d,0)
-    double precision dimension(ldu,*) :: u
+    double precision dimension(ldu,m) :: u
     integer, optional,check(shape(u,0)==ldu),depend(u) :: ldu=shape(u,0)
-    double precision dimension(ldy,*) :: y
+    double precision dimension(ldy,l) :: y
     integer, optional,check(shape(y,0)==ldy),depend(y) :: ldy=shape(y,0)
-    double precision dimension(*) :: x0
-    double precision dimension(ldv,*) :: v
-    integer, optional,check(shape(v,0)==ldv),depend(v) :: ldv=shape(v,0)
-    double precision :: tol
+    double precision intent(out), dimension(n) :: x0
+    double precision intent(out),dimension(ldv,n) :: v
+    integer :: ldv
+    double precision, optional :: tol=0
     integer dimension(*) :: iwork
-    double precision dimension(*) :: dwork
-    integer :: ldwork
-    integer :: iwarn
-    integer :: info
+    double precision dimension(ldwork) :: dwork
+    integer, optional,check(shape(dwork,0)==ldwork),depend(dwork) :: ldwork=shape(dwork,0)
+    integer intent(out) :: iwarn
+    integer intent(out) :: info
 end subroutine ib01cd
 subroutine ib01md(meth,alg,batch,conct,nobr,m,l,nsmp,u,ldu,y,ldy,r,ldr,iwork,dwork,ldwork,iwarn,info) ! in IB01MD.f
     character :: meth

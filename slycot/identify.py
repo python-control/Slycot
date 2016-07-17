@@ -307,13 +307,13 @@ def ib01ad(meth, alg, jobd, conct, ctrl, nobr, data, rcond=-1, tol=-1):
         '''
         IB01AD.f Lines 438-445
         C     FURTHER COMMENTS
-        C
+
         C     For ALG = 'Q', BATCH = 'O' and LDR < NS, or BATCH <> 'O', the
-        C     calculations could be rather inefficient if only minimal workspace
-        C     (see argument LDWORK) is provided. It is advisable to provide as
-        C     much workspace as possible. Almost optimal efficiency can be
-        C     obtained for  LDWORK = (NS+2)*(2*(M+L)*NOBR),  assuming that the
-        C     cache size is large enough to accommodate R, U, Y, and DWORK.
+              calculations could be rather inefficient if only minimal workspace
+              (see argument LDWORK) is provided. It is advisable to provide as
+              much workspace as possible. Almost optimal efficiency can be
+              obtained for  LDWORK = (NS+2)*(2*(M+L)*NOBR),  assuming that the
+              cache size is large enough to accommodate R, U, Y, and DWORK.
         */'''
 
         ldwork = max(ldwork, (ns+2)*(2*(m+l)*nobr))
@@ -467,28 +467,21 @@ def ib01bd(meth, job, jobck, nobr, n, m, l, nsmpl, r, A, C, tol=0):
              this routine is called once just after calling the SLICOT
              Library routine IB01AD.
 
-     A       (input or output) DOUBLE PRECISION array, dimension
+     A       (input) rank-2 array type-d, dimension
              (LDA,N)
              On entry, if  METH = 'N' or 'C'  and  JOB = 'B' or 'D',
              the leading N-by-N part of this array must contain the
              system state matrix.
              If  METH = 'M'  or  (METH = 'N' or 'C'  and JOB = 'A'
              or 'C'),  this array need not be set on input.
-             On exit, if  JOB = 'A' or 'C'  and  INFO = 0,  the
-             leading N-by-N part of this array contains the system
-             state matrix.
 
-     C       (input or output) DOUBLE PRECISION array, dimension
+     C       (input) rank-2 array type-d, dimension
              (LDC,N)
              On entry, if  METH = 'N' or 'C'  and  JOB = 'B' or 'D',
              the leading L-by-N part of this array must contain the
              system output matrix.
              If  METH = 'M'  or  (METH = 'N' or 'C'  and JOB = 'A'
              or 'C'),  this array need not be set on input.
-             On exit, if  JOB = 'A' or 'C'  and  INFO = 0,  or
-             INFO = 3  (or  INFO >= 0,  for  METH = 'M'),  the leading
-             L-by-N part of this array contains the system output
-             matrix.
 
      Tolerances
 
@@ -506,11 +499,24 @@ def ib01bd(meth, job, jobck, nobr, n, m, l, nsmpl, r, A, C, tol=0):
 
      OUTPUTS
      --------
+     A       ( output) rank-2 array type-d, dimension
+             (LDA,N)
+             On exit, if  JOB = 'A' or 'C'  and  INFO = 0,  the
+             leading N-by-N part of this array contains the system
+             state matrix.
+
      B       (output) rank-2 type('d') array, dimension (LDB,M)
              If  M > 0,  JOB = 'A', 'B', or 'D'  and  INFO = 0,  the
              leading N-by-M part of this array contains the system
              input matrix. If  M = 0  or  JOB = 'C',  this array is
              not referenced.
+
+     C       (output) rank-2 array type-d, dimension
+             (LDC,N)
+             On exit, if  JOB = 'A' or 'C'  and  INFO = 0,  or
+             INFO = 3  (or  INFO >= 0,  for  METH = 'M'),  the leading
+             L-by-N part of this array contains the system output
+             matrix.
 
      D       (output) rank-2 type('d') array, dimension (LDD,M)
              If  M > 0,  JOB = 'A' or 'D'  and  INFO = 0,  the leading
@@ -618,8 +624,10 @@ def ib01bd(meth, job, jobck, nobr, n, m, l, nsmpl, r, A, C, tol=0):
         ldw1b = max(2*(l*nobr-l)*n+n*n+7*n, (l*nobr-l)*n+n+6*m*nobr,
                     (l*nobr-l)*n+n+max(l+m*nobr, l*nobr + max(3*l*nobr+1, m)))
         ldw1 = max(ldw1a, ldw1b)
-        #THE FOLLOWING LINE IS NOT THERE IN THE DOC OF IB01BD BUT CODE DOES
-        #NOT WORK WITOUT THIS
+
+        '''THE FOLLOWING LINE IS NOT THERE IN THE DOC OF IB01BD BUT CODE DOES
+        NOT WORK WITOUT THIS'''
+
         ldw1 = ldw1 + l*nobr*n
         if (m == 0 or job == 'C'):
             aw = n + n*n
@@ -664,6 +672,12 @@ def ib01bd(meth, job, jobck, nobr, n, m, l, nsmpl, r, A, C, tol=0):
     out = _wrapper.ib01bd(meth, job, jobck, nobr, m, l, nsmpl, r, A, lda, C,
                           ldc, ldb, ldd, ldq, ldry, lds, ldk, iwork, dwork,
                           bwork)
+    out = list(out)
+    # change the order of out parameters to A, B, C, D rather than A, C, B, D
+    temp = out[1]
+    out[1] = out[2]
+    out[2] = temp
+    out = tuple(out)   # convert back to tuple
 
     err_msg = (
         "0: OK",
@@ -713,4 +727,271 @@ def ib01bd(meth, job, jobck, nobr, n, m, l, nsmpl, r, A, C, tol=0):
     # error_msg ("ident: IB01BD", info_b, 10, err_msg_b);
     # warning_msg ("ident: IB01BD", iwarn_b, 5, warn_msg_b);
 
+    return out
+
+
+def ib01cd(jobx0, comuse, job, A, B, C, D, data):
+    '''
+    PURPOSE
+
+    To estimate the initial state and, optionally, the system matrices
+    B  and  D  of a linear time-invariant (LTI) discrete-time system,
+    given the system matrices  (A,B,C,D),  or (when  B  and  D  are
+    estimated) only the matrix pair  (A,C),  and the input and output
+    trajectories of the system. The model structure is :
+
+        x(k+1) = Ax(k) + Bu(k),   k >= 0,
+        y(k)   = Cx(k) + Du(k),
+
+    where  x(k)  is the  n-dimensional state vector (at time k),
+        u(k)  is the  m-dimensional input vector,
+        y(k)  is the  l-dimensional output vector,
+    and  A, B, C, and D  are real matrices of appropriate dimensions.
+    The input-output data can internally be processed sequentially.
+
+    NOTE: THIS IS NOT MORE EFFICIENT THAN CALLING THIS FUNCTION SEPERATELY FOR
+    EACH DATA EXPERIMENT
+
+    REQUIRED INPUTS
+    ---------------
+
+    Mode Parameters
+
+    JOBX0   {'X', 'N'}
+            Specifies whether or not the initial state should be
+            computed, as follows:
+            = 'X':  compute the initial state x(0);
+            = 'N':  do not compute the initial state (possibly,
+                    because x(0) is known to be zero).
+
+    COMUSE  {'C', 'U', 'N'}
+            Specifies whether the system matrices B and D should be
+            computed or used, as follows:
+            = 'C':  compute the system matrices B and D, as specified
+                    by JOB;
+            = 'U':  use the system matrices B and D, as specified by
+                    JOB;
+            = 'N':  do not compute/use the matrices B and D.
+            If  JOBX0 = 'N'  and  COMUSE <> 'N',  then  x(0)  is set
+            to zero.
+            If  JOBX0 = 'N'  and  COMUSE =  'N',  then  x(0)  is
+            neither computed nor set to zero.
+
+    JOB     {'B', 'D'}
+            If  COMUSE = 'C'  or  'U',  specifies which of the system
+            matrices  B and D  should be computed or used, as follows:
+            = 'B':  compute/use the matrix B only (D is known to be
+                    zero);
+            = 'D':  compute/use the matrices B and D.
+            The value of  JOB  is irrelevant if  COMUSE = 'N'  or if
+            JOBX0 = 'N'  and  COMUSE = 'U'.
+            The combinations of options, the data used, and the
+            returned results, are given in the table below, where
+            '*'  denotes an irrelevant value.
+
+            JOBX0   COMUSE    JOB     Data used    Returned results
+            ----------------------------------------------------------
+            X       C        B       A,C,u,y          x,B
+            X       C        D       A,C,u,y          x,B,D
+            N       C        B       A,C,u,y          x=0,B
+            N       C        D       A,C,u,y          x=0,B,D
+            ----------------------------------------------------------
+            X       U        B      A,B,C,u,y            x
+            X       U        D      A,B,C,D,u,y          x
+            N       U        *          -               x=0
+            ----------------------------------------------------------
+            X       N        *        A,C,y              x
+            N       N        *          -                -
+            ----------------------------------------------------------
+
+            For  JOBX0 = 'N'  and  COMUSE = 'N',  the routine just
+            sets  DWORK(1)  to 2 and  DWORK(2)  to 1, and returns
+            (see the parameter DWORK).
+
+    Parameters
+
+
+    A       (input) rank-2 array('d'), dimension (LDA,N)
+            If  JOBX0 = 'X'  or  COMUSE = 'C',  the leading N-by-N
+            part of this array must contain the system state matrix A.
+            If  N = 0,  or  JOBX0 = 'N'  and  COMUSE <> 'C',  this
+            array is not referenced.
+
+    B       (input)  rank-2 array('d'), dimension
+            (LDB,M)
+            If  JOBX0 = 'X'  and  COMUSE = 'U',  B  is an input
+            parameter and, on entry, the leading N-by-M part of this
+            array must contain the system input matrix  B.
+            If  COMUSE = 'C',  B  is an output parameter and, on exit,
+            if  INFO = 0,  the leading N-by-M part of this array
+            contains the estimated system input matrix  B.
+            If  min(N,M) = 0,  or  JOBX0 = 'N'  and  COMUSE = 'U',
+            or  COMUSE = 'N',  this array is not referenced.
+
+    C       (input) rank-2 array('d'), dimension (LDC,N)
+            If  JOBX0 = 'X'  or  COMUSE = 'C',  the leading L-by-N
+            part of this array must contain the system output
+            matrix  C.
+            If  N = 0,  or  JOBX0 = 'N'  and  COMUSE <> 'C',  this
+            array is not referenced.
+
+    D       (input) rank-2 array('d'), dimension
+            (LDD,M)
+            If  JOBX0 = 'X',  COMUSE = 'U',  and  JOB = 'D',  D  is an
+            input parameter and, on entry, the leading L-by-M part of
+            this array must contain the system input-output matrix  D.
+            If  COMUSE = 'C'  and  JOB = 'D',  D  is an output
+            parameter and, on exit, if  INFO = 0,  the leading
+            L-by-M part of this array contains the estimated system
+            input-output matrix  D.
+            If  M = 0,  or  JOBX0 = 'N'  and  COMUSE = 'U',  or
+            COMUSE = 'N',  or  JOB = 'B',  this array is not
+            referenced.
+
+    data : [(u1, y1), (u2, y2)...]. A list of tuples containing experiment
+            data of inputs and outputs. The number of inputs and number of
+            outputs should be the same in every tuple. u1 has dimension
+            (n1 x nu). y1 has dimension (n1 x ny). u2 has dimension (n2 x nu)
+
+
+    OUTPUTS
+    --------
+
+    B       (output)  rank-2 array('d'), dimension
+            (LDB,M)
+            If  COMUSE = 'C',  B  is an output parameter and, on exit,
+            if  INFO = 0,  the leading N-by-M part of this array
+            contains the estimated system input matrix  B.
+            If  min(N,M) = 0,  or  JOBX0 = 'N'  and  COMUSE = 'U',
+            or  COMUSE = 'N',  this array is not referenced.
+
+    D       (output) rank-2 array('d'), dimension
+            (LDD,M)
+            If  COMUSE = 'C'  and  JOB = 'D',  D  is an output
+            parameter and, on exit, if  INFO = 0,  the leading
+            L-by-M part of this array contains the estimated system
+            input-output matrix  D.
+            If  M = 0,  or  JOBX0 = 'N'  and  COMUSE = 'U',  or
+            COMUSE = 'N',  or  JOB = 'B',  this array is not
+            referenced.
+
+    X0      (output) rank-2 array('d'), dimension (N*nexp)
+            If  INFO = 0  and  JOBX0 = 'X',  each column contains the
+            estimated initial state of the system,  x(0). for each experiment
+            If  JOBX0 = 'N'  and  COMUSE = 'C',  this array is used as
+            workspace and finally it is set to zero.
+            If  JOBX0 = 'N'  and  COMUSE = 'U',  then  x(0)  is set to
+            zero without any calculations.
+            If  JOBX0 = 'N'  and  COMUSE = 'N',  this array is not
+            referenced.
+
+    V       (output) rank-2 array('d'), dimension (LDV,N)
+            On exit, if  INFO = 0  or 2,  JOBX0 = 'X'  or
+            COMUSE = 'C',  the leading N-by-N part of this array
+            contains the orthogonal matrix V of a real Schur
+            factorization of the matrix  A.
+            If  JOBX0 = 'N'  and  COMUSE <> 'C',  this array is not
+            referenced.
+
+
+    IWARN   INTEGER
+            = 0:  no warning;
+            = 4:  the least squares problem to be solved has a
+                rank-deficient coefficient matrix;
+            = 6:  the matrix  A  is unstable;  the estimated  x(0)
+                and/or  B and D  could be inaccurate.
+            NOTE: the value 4 of  IWARN  has no significance for the
+                identification problem.
+
+    Error Indicator
+
+    INFO    INTEGER
+            = 0:  successful exit;
+            < 0:  if INFO = -i, the i-th argument had an illegal
+                value;
+            = 1:  if the QR algorithm failed to compute all the
+                eigenvalues of the matrix A (see LAPACK Library
+                routine DGEES); the locations  DWORK(i),  for
+                i = g+1:g+N*N,  contain the partially converged
+                Schur form;
+            = 2:  the singular value decomposition (SVD) algorithm did
+                not converge.
+
+
+    '''
+
+    n_exp = len(data)     # number of experiments
+    n = A.shape[1]
+    m = data[0][0].shape[1]   # m: number of inputs
+    l = data[0][1].shape[1]   # l: number of outputs
+
+    # arguments out
+    x0 = _np.zeros((n, n_exp))    # cell of initial state vectors x0
+
+    # repeat for every experiment in the dataset
+    # compute individual initial state vector x0 for every experiment
+    for i in range(0, n_exp):
+
+        y = data[i][1]
+        u = data[i][0]
+
+        nsmp = y.shape[0]   # nsmp: number of samples in the current experiment
+
+        # workspace
+        liwork = n     # if  JOBX0 = 'X'  and  COMUSE <> 'C'
+        t = nsmp
+
+        ldw1 = 2
+        ldw2 = t*l*(n + 1) + 2*n + max(2*n*n, 4*n)
+        ldw3 = n*(n + 1) + 2*n + max(n*l*(n + 1) + 2*n*n + l*n, 4*n)
+
+        ldwork = ldw1 + n*(n + m + l) + max(5*n, ldw1, min(ldw2, ldw3))
+
+        iwork = _np.zeros((liwork,), dtype=_np.int)
+        dwork = _np.zeros((ldwork,))
+        ldv = max(1, n)
+        out = _wrapper.ib01cd(jobx0, comuse, job, nsmp, A, B, C, D, u, y, ldv,
+                              iwork, dwork)
+
+        args_list = ['JOBX0', 'COMUSE', 'JOB', 'N', 'M', 'L', 'NSMP', 'A',
+                     'LDA', 'B', 'LDB', 'C', 'LDC', 'D', 'LDD', 'U', 'LDU',
+                     'Y', 'LDY', 'X0', 'V', 'LDV', 'TOL', 'IWORK', 'DWORK',
+                     'LDWORK', 'IWARN', 'INFO']
+        err_msg = ("0: OK",
+                   "1: the QR algorithm failed to compute all the "
+                   "eigenvalues of the matrix A (see LAPACK Library "
+                   "routine DGEES); the locations  DWORK(i),  for "
+                   "i = g+1:g+N*N,  contain the partially converged "
+                   "Schur form",
+                   "2: the singular value decomposition (SVD) algorithm did "
+                   "not converge")
+
+        if out[-1] < 0:
+            error_text = '''The following argument had an illegal
+            value: ''' + args_list[-out[-1]-1]
+            e = ValueError(error_text)
+            e.info = out[-1]
+            raise e
+        elif out[-1] > 0:
+            e = ValueError(err_msg[out[-1]])
+            raise e
+
+        '''warn_msg = (
+            "0: OK",
+            "1: warning message not specified",
+            "2: warning message not specified",
+            "3: warning message not specified",
+            "4: the least squares problem to be solved has a "
+                "rank-deficient coefficient matrix",
+            "5: warning message not specified",
+            "6: the matrix  A  is unstable;  the estimated  x(0) "
+                "and/or  B and D  could be inaccurate")
+
+        '''
+        x0[:, i] = out[2]       # add x0 from the current experiment to cell
+        # of initial state vectors
+
+    out = list(out)
+    out[2] = x0
+    out = tuple(out)
     return out
