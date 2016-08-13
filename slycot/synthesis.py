@@ -881,6 +881,252 @@ converged Shur form'""" %(out[-1],n) # not sure about the indenting here
     w.imag = wi[0:n]
     return X,scale,sep,ferr,w
 
+def sb03od(n,m,A,Q,B,dico,fact='N',trans='N',ldwork=None):
+    """  U,scale,w = sb03od(dico,n,n,A,Q,B,[fact,trans,ldwork])
+
+    To solve for X = op(U)'*op(U) either the stable non-negative
+    definite continuous-time Lyapunov equation
+                                 2
+      op(A)'*X + X*op(A) = -scale *op(B)'*op(B)                   (1)
+
+    or the convergent non-negative definite discrete-time Lyapunov
+    equation
+                                 2
+      op(A)'*X*op(A) - X = -scale *op(B)'*op(B)                   (2)
+
+    where op(K) = K or K' (i.e., the transpose of the matrix K), A is
+    an N-by-N matrix, op(B) is an M-by-N matrix, U is an upper
+    triangular matrix containing the Cholesky factor of the solution
+    matrix X, X = op(U)'*op(U), and scale is an output scale factor,
+    set less than or equal to 1 to avoid overflow in X. If matrix B
+    has full rank then the solution matrix X will be positive-definite
+    and hence the Cholesky factor U will be nonsingular, but if B is
+    rank deficient then X may be only positive semi-definite and U
+    will be singular.
+
+    In the case of equation (1) the matrix A must be stable (that
+    is, all the eigenvalues of A must have negative real parts),
+    and for equation (2) the matrix A must be convergent (that is,
+    all the eigenvalues of A must lie inside the unit circle).
+
+    Required arguments
+    ------------------
+
+        n : input int
+            The order of the matrix A and the number of columns in
+            matrix op(B).  n >= 0.
+        m : input int
+            The number of rows in matrix op(B).  m >= 0.
+        A : input rank-2 array('d'), shape  (n,n)
+            On entry, the leading n-by-n part of this array must
+            contain the matrix A. If fact = 'F', then A contains
+            an upper quasi-triangular matrix S in Schur canonical
+            form; the elements below the upper Hessenberg part of the
+            array A are not referenced.
+            On exit, the leading n-by-n upper Hessenberg part of this
+            array contains the upper quasi-triangular matrix S in
+            Schur canonical form from the Shur factorization of A.
+            The contents of array A is not modified if fact = 'F'.
+        Q : input rank-2 array('d'), shape  (n,n)
+            On entry, if fact = 'F', then the leading n-by-n part of
+            this array must contain the orthogonal matrix Q of the
+            Schur factorization of A.
+            Otherwise, Q need not be set on entry.
+            On exit, the leading n-by-n part of this array contains
+            the orthogonal matrix Q of the Schur factorization of A.
+            The contents of array Q is not modified if fact = 'F'.
+        B : input rank-2 array('d'), shape  (m,n)
+            On entry, if trans = 'N', the leading m-by-n part of this
+            array must contain the coefficient matrix B of the
+            equation.
+            On entry, if trans = 'T', the leading N-by-m part of this
+            array must contain the coefficient matrix B of the
+            equation.
+            On exit, the leading n-by-n part of this array contains
+            the upper triangular Cholesky factor U of the solution
+            matrix X of the problem, X = op(U)'*op(U).
+            If m = 0 and n > 0, then U is set to zero.
+        dico : input string(len=1)
+            Specifies the type of Lyapunov equation to be solved as
+            follows:
+            = 'C':  Equation (1), continuous-time case;
+            = 'D':  Equation (2), discrete-time case.
+
+    Optional arguments
+    ------------------
+
+        fact := 'N' input string(len=1)
+            Specifies whether or not the real Schur factorization
+            of the matrix A is supplied on entry, as follows:
+            = 'F':  On entry, A and Q contain the factors from the
+            real Schur factorization of the matrix A;
+            = 'N':  The Schur factorization of A will be computed
+            and the factors will be stored in A and Q.
+        trans := 'N' input string(len=1)
+            Specifies the form of op(K) to be used, as follows:
+            = 'N':  op(K) = K    (No transpose);
+            = 'T':  op(K) = K**T (Transpose).
+        ldwork := None input int
+            The length of the array DWORK.
+            If m > 0, ldwork >= max(1,4*n + min(m,n));
+            If m = 0, ldwork >= 1.
+            For optimum performance ldwork should sometimes be larger.
+
+    Return objects
+    ______________
+
+        U : rank-2 array('d'), shape  (n,n)
+            The leading n-by-n part of this array contains
+            the upper triangular Cholesky factor U of the solution
+            matrix X of the problem, X = op(U)'*op(U).
+        scale : float
+            The scale factor, scale, set less than or equal to 1 to
+            prevent the solution overflowing.
+        w : rank-1 array('c'), shape (n)
+            If fact = 'N', this array contains the eigenvalues of A.
+
+    Raises
+    ______
+
+        ValueError : e
+            e.info contains information about the exact type of exception
+             < 0:  if info = -i, the i-th argument had an illegal value;
+             = 1:  if the Lyapunov equation is (nearly) singular
+                (warning indicator);
+                if DICO = 'C' this means that while the matrix A
+                (or the factor S) has computed eigenvalues with
+                negative real parts, it is only just stable in the
+                sense that small perturbations in A can make one or
+                more of the eigenvalues have a non-negative real
+                part;
+                if DICO = 'D' this means that while the matrix A
+                (or the factor S) has computed eigenvalues inside
+                the unit circle, it is nevertheless only just
+                convergent, in the sense that small perturbations
+                in A can make one or more of the eigenvalues lie
+                outside the unit circle;
+                perturbed values were used to solve the equation;
+             = 2:  if FACT = 'N' and DICO = 'C', but the matrix A is
+                not stable (that is, one or more of the eigenvalues
+                of A has a non-negative real part), or DICO = 'D',
+                but the matrix A is not convergent (that is, one or
+                more of the eigenvalues of A lies outside the unit
+                circle); however, A will still have been factored
+                and the eigenvalues of A returned in WR and WI.
+             = 3:  if FACT = 'F' and DICO = 'C', but the Schur factor S
+                supplied in the array A is not stable (that is, one
+                or more of the eigenvalues of S has a non-negative
+                real part), or DICO = 'D', but the Schur factor S
+                supplied in the array A is not convergent (that is,
+                one or more of the eigenvalues of S lies outside the
+                unit circle);
+             = 4:  if FACT = 'F' and the Schur factor S supplied in
+                the array A has two or more consecutive non-zero
+                elements on the first sub-diagonal, so that there is
+                a block larger than 2-by-2 on the diagonal;
+             = 5:  if FACT = 'F' and the Schur factor S supplied in
+                the array A has a 2-by-2 diagonal block with real
+                eigenvalues instead of a complex conjugate pair;
+             = 6:  if FACT = 'N' and the LAPACK Library routine DGEES
+                has failed to converge. This failure is not likely
+                to occur. The matrix B will be unaltered but A will
+                be destroyed.
+    """
+    hidden = ' (hidden by the wrapper)'
+    arg_list = ['dico','fact', 'trans', 'n', 'm', 'A', 'LDA'+hidden, 'Q',
+        'LDQ'+hidden, 'B', 'LDB'+hidden, 'scale', 'wr'+hidden,
+        'wi'+hidden, 'DWORK'+hidden, 'ldwork', 'INFO'+hidden]
+    if ldwork is None:
+        if m > 0:
+            ldwork = max(1,4*n + min(m,n))
+        elif m == 0:
+            ldwork = 1
+    if dico != 'C' and dico != 'D':
+        raise ValueError('dico must be either D or C')
+    out = _wrapper.sb03od(dico,n,m,A,Q,B,fact=fact,trans=trans,ldwork=ldwork)
+    if out[-1] < 0:
+        error_text = "The following argument had an illegal value: "+arg_list[-out[-1]-1]
+        e = ValueError(error_text)
+        e.info = out[-1]
+        raise e
+    if out[-1] == 1:
+        if dico == 'D':
+            error_text = """this means that while the matrix A
+                (or the factor S) has computed eigenvalues inside
+                the unit circle, it is nevertheless only just
+                convergent, in the sense that small perturbations
+                in A can make one or more of the eigenvalues lie
+                outside the unit circle;
+                perturbed values were used to solve the equation;"""
+        else:
+            error_text = """this means that while the matrix A
+                (or the factor S) has computed eigenvalues with
+                negative real parts, it is only just stable in the
+                sense that small perturbations in A can make one or
+                more of the eigenvalues have a non-negative real
+                part;"""
+        e = ValueError(error_text)
+        e.info = out[-1]
+        raise e
+    if out[-1] == 2:
+        if dico == 'D':
+            error_text = """the matrix A is not convergent (that is, one or
+                more of the eigenvalues of A lies outside the unit
+                circle); however, A will still have been factored
+                and the eigenvalues of A returned in WR and WI."""
+        else:
+            error_text = """the matrix A is
+                not stable (that is, one or more of the eigenvalues
+                of A has a non-negative real part)."""
+        e = ValueError(error_text)
+        e.info = out[-1]
+        raise e
+    if out[-1] == 3:
+        if dico == 'D':
+            error_text = """the Schur factor S
+                supplied in the array A is not convergent (that is,
+                one or more of the eigenvalues of S lies outside the
+                unit circle)."""
+        else:
+            error_text = """the Schur factor S
+                supplied in the array A is not stable (that is, one
+                or more of the eigenvalues of S has a non-negative
+                real part)."""
+        e = ValueError(error_text)
+        e.info = out[-1]
+        raise e
+    if out[-1] == 4:
+        if fact == 'F':
+            error_text = """the Schur factor S supplied in
+                the array A has two or more consecutive non-zero
+                elements on the first sub-diagonal, so that there is
+                a block larger than 2-by-2 on the diagonal."""
+        e = ValueError(error_text)
+        e.info = out[-1]
+        raise e
+    if out[-1] == 5:
+        if fact == 'F':
+            error_text = """the Schur factor S supplied in
+                the array A has a 2-by-2 diagonal block with real
+                eigenvalues instead of a complex conjugate pair."""
+        e = ValueError(error_text)
+        e.info = out[-1]
+        raise e
+    if out[-1] == 6:
+        if fact == 'N':
+            error_text = """the LAPACK Library routine DGEES
+                has failed to converge. This failure is not likely
+                to occur. The matrix B will be unaltered but A will
+                be destroyed."""
+        e = ValueError(error_text)
+        e.info = out[-1]
+        raise e
+    U,scale,wr,wi = out[-1]
+    w = _np.zeros(n,'complex64')
+    w.real = wr[0:n]
+    w.imag = wi[0:n]
+    return U,scale,w
+
 def sb04md(n,m,A,B,C,ldwork=None):
     """X = sb04md(n,m,A,B,C[,ldwork])
 
