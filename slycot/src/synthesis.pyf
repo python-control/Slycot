@@ -347,7 +347,11 @@ subroutine sb03md(dico,job,fact,trana,n,c,ldc,a,lda,u,ldu,scale,sep,ferr,wr,wi,i
     integer optional,check(ldwork>=max(2*n*n,3*n)),depend(n) :: ldwork=max(2*n*n,3*n)
     integer intent(out) :: info
 end subroutine sb03md
+<<<<<<< HEAD
 subroutine sb03od(dico,fact,trans,n,m,a,lda,q,ldq,b,ldb,scale,wr,wi,dwork,ldwork,info) ! in SB03OD.f
+=======
+subroutine sb03od(dico,fact,trans,n,m,a,lda,q,ldq,b,ldb,scale,wr,wi,dwork,ldwork,info)
+>>>>>>> f1b51c5... Fixed sb03od bug in synthesis.pyf.
     fortranname sb03od
     character :: dico
     character :: fact='N'
