@@ -348,7 +348,7 @@ subroutine sb03md(dico,job,fact,trana,n,c,ldc,a,lda,u,ldu,scale,sep,ferr,wr,wi,i
     integer intent(out) :: info
 end subroutine sb03md
 subroutine sb03od(dico,fact,trans,n,m,a,lda,q,ldq,b,ldb,scale,wr,wi,dwork,ldwork,info)
-    fortranname sb030d
+    fortranname sb03od
     character :: dico
     character :: fact='N'
     character :: trans='N'
