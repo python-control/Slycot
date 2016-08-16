@@ -348,10 +348,14 @@ subroutine sb03md(dico,job,fact,trana,n,c,ldc,a,lda,u,ldu,scale,sep,ferr,wr,wi,i
     integer intent(out) :: info
 end subroutine sb03md
 <<<<<<< HEAD
+<<<<<<< HEAD
 subroutine sb03od(dico,fact,trans,n,m,a,lda,q,ldq,b,ldb,scale,wr,wi,dwork,ldwork,info) ! in SB03OD.f
 =======
 subroutine sb03od(dico,fact,trans,n,m,a,lda,q,ldq,b,ldb,scale,wr,wi,dwork,ldwork,info)
 >>>>>>> f1b51c5... Fixed sb03od bug in synthesis.pyf.
+=======
+subroutine sb03od(dico,fact,trans,n,m,a,lda,q,ldq,b,ldb,scale,wr,wi,dwork,ldwork,info) ! in SB03OD.f
+>>>>>>> 47a3169... Added wrapper to SLICOT routine SB03OD.
     fortranname sb03od
     character :: dico
     character :: fact='N'
