@@ -347,24 +347,24 @@ subroutine sb03md(dico,job,fact,trana,n,c,ldc,a,lda,u,ldu,scale,sep,ferr,wr,wi,i
     integer optional,check(ldwork>=max(2*n*n,3*n)),depend(n) :: ldwork=max(2*n*n,3*n)
     integer intent(out) :: info
 end subroutine sb03md
-subroutine sb03od(dico,fact,trans,n,m,a,lda,q,ldq,b,ldb,scale,wr,wi,dwork,ldwork,info)
+subroutine sb03od(dico,fact,trans,n,m,a,lda,q,ldq,b,ldb,scale,wr,wi,dwork,ldwork,info) ! in SB03OD.f
     fortranname sb03od
     character :: dico
     character :: fact='N'
     character :: trans='N'
     integer check(n>0) :: n
-    double precision dimension(n,n),depend(n) :: a
     integer check(m>0) :: m
+    double precision dimension(n,n),depend(n) :: a
     integer intent(hide),depend(a) :: lda=shape(a,0)
     double precision dimension(n,n),depend(n) :: q
     integer intent(hide),depend(q) :: ldq=shape(q,0)
-    double precision dimension(n,n),depend(n) :: b
+    double precision intent(in,out,copy),dimension(n,n),depend(n) :: b
     integer intent(hide),depend(b) :: ldb=shape(b,0)
     double precision intent(out) :: scale
     double precision intent(out),dimension(n),depend(n) :: wr
     double precision intent(out),dimension(n),depend(n) :: wi
     double precision intent(hide,cache),dimension(ldwork) :: dwork
-    integer optional,check(ldwork>=max(2*n*n,3*n)),depend(n) :: ldwork=max(2*n*n,3*n)
+    integer optional,check(ldwork>=max(1,4*n + min(m,n))),depend(n,m) :: ldwork=max(1,4*n + min(m,n))
     integer intent(out) :: info    
 end subroutine sb03od
 subroutine sb04md(n,m,a,lda,b,ldb,c,ldc,z,ldz,iwork,dwork,ldwork,info) ! in SB04MD.f

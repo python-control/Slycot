@@ -1033,9 +1033,9 @@ def sb03od(n,m,A,Q,B,dico,fact='N',trans='N',ldwork=None):
                 be destroyed.
     """
     hidden = ' (hidden by the wrapper)'
-    arg_list = ['dico','fact', 'trans', 'n', 'm', 'A', 'LDA'+hidden, 'Q',
-        'LDQ'+hidden, 'B', 'LDB'+hidden, 'scale', 'wr'+hidden,
-        'wi'+hidden, 'DWORK'+hidden, 'ldwork', 'INFO'+hidden]
+    arg_list = ['dico','fact', 'trans', 'n', 'm', 'a', 'lda'+hidden, 'q',
+        'ldq'+hidden, 'b', 'ldb'+hidden, 'scale', 'wr'+hidden,
+        'wi'+hidden, 'dwork'+hidden, 'ldwork', 'info'+hidden]
     if ldwork is None:
         if m > 0:
             ldwork = max(1,4*n + min(m,n))
@@ -1121,7 +1121,7 @@ def sb03od(n,m,A,Q,B,dico,fact='N',trans='N',ldwork=None):
         e = ValueError(error_text)
         e.info = out[-1]
         raise e
-    U,scale,wr,wi = out[-1]
+    U,scale,wr,wi = out[:-1]
     w = _np.zeros(n,'complex64')
     w.real = wr[0:n]
     w.imag = wi[0:n]
