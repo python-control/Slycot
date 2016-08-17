@@ -876,7 +876,7 @@ def ab09bd(dico,job,equil,n,m,p,A,B,C,D,nr=None,tol1=0,tol2=0,ldwork=None):
         e = ArithmeticError('The computation of Hankel singular values failed')
         e.info = out[-1]
         raise e
-    nr,A,B,C,D,hsv = out[:-2]
+    Nr,A,B,C,D,hsv = out[:-2]
     return nr, A[:Nr,:Nr], B[:Nr,:], C[:,:Nr],D[:,:], hsv
 
 # to be replaced by python wrappers
