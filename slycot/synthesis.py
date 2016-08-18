@@ -882,7 +882,7 @@ converged Shur form'""" %(out[-1],n) # not sure about the indenting here
     return X,scale,sep,ferr,w
 
 def sb03od(n,m,A,Q,B,dico,fact='N',trans='N',ldwork=None):
-    """  U,scale,w = sb03od(dico,n,n,A,Q,B,[fact,trans,ldwork])
+    """  U,scale,w = sb03od(dico,n,m,A,Q,B,[fact,trans,ldwork])
 
     To solve for X = op(U)'*op(U) either the stable non-negative
     definite continuous-time Lyapunov equation
