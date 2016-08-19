@@ -430,13 +430,13 @@ subroutine sb10ad(job,n,m,np,ncon,nmeas,gamma,a,lda,b,ldb,c,ldc,d,ldd,ak,ldak,bk
     double precision intent(out), dimension(ncon,nmeas), depend(ncon,nmeas) :: dk
     integer intent(hide), depend(dk) :: lddk=shape(dk,0)
     double precision intent(out), dimension(2*n,2*n), depend(n) :: ac
-    integer intent(hide), depend(ac) :: ldak=shape(ac,0)
+    integer intent(hide), depend(ac) :: ldac=shape(ac,0)
     double precision intent(out), dimension(2*n,m-ncon), depend(n,m,ncon) :: bc
-    integer intent(hide), depend(bc) :: ldbk=shape(bc,0)
+    integer intent(hide), depend(bc) :: ldbc=shape(bc,0)
     double precision intent(out), dimension(np-nmeas,2*n), depend(np,nmeas,n) :: cc
-    integer intent(hide), depend(cc) :: ldck=shape(cc,0)
+    integer intent(hide), depend(cc) :: ldcc=shape(cc,0)
     double precision intent(out), dimension(np-nmeas,m-ncon), depend(np,nmeas,m,ncon) :: dc
-    integer intent(hide), depend(dc) :: lddk=shape(dc,0)
+    integer intent(hide), depend(dc) :: lddc=shape(dc,0)
     double precision intent(out), dimension(4) :: rcond
     double precision optional :: gtol=0.0
     double precision optional :: actol=0.0
