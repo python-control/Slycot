@@ -25,8 +25,8 @@ else:
     # Mathematical routines (3/81 wrapped)
     from .math import mc01td, mb05md, mb05nd
 
-    # Synthesis routines (11/50 wrapped)
-    from .synthesis import sb01bd,sb02md,sb02mt,sb02od,sb03md
+    # Synthesis routines (12/50 wrapped)
+    from .synthesis import sb01bd,sb02md,sb02mt,sb02od,sb03md,sb03od
     from .synthesis import sb04md,sb04qd,sb10ad,sb10hd,sg03ad
     from .synthesis import sg02ad
 
