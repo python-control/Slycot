@@ -232,3 +232,29 @@ subroutine ab09ax(dico,job,ordsel,n,m,p,nr,a,lda,b,ldb,c,ldc,hsv,t,ldt,ti,ldti,t
     integer intent(out) :: iwarn
     integer intent(out) :: info
 end subroutine ab09ax
+subroutine ab09bd(dico,job,equil,ordsel,n,m,p,nr,a,lda,b,ldb,c,ldc,d,ldd,hsv,tol1,tol2,iwork,dwork,ldwork,iwarn,info) !in :balred:AB09BD.f
+    character intent(in) :: dico
+    character intent(in) :: job
+    character intent(in) :: equil
+    character intent(in) :: ordsel
+    integer check(n>=0) :: n
+    integer check(m>=0) :: m
+    integer check(p>=0) :: p
+    integer intent(in,out) :: nr
+    double precision intent(in,out,copy),dimension(n,n),depend(n) :: a
+    integer intent(hide),depend(a) :: lda=shape(a,0)
+    double precision intent(in,out,copy),dimension(n,m),depend(n,m) :: b
+    integer intent(hide),depend(b) :: ldb=shape(b,0)
+    double precision intent(in,out,copy),dimension(p,n),depend(n,p) :: c
+    integer intent(hide),depend(c) :: ldc=shape(c,0)
+    double precision intent(in,out,copy),dimension(p,m),depend(m,p) :: d
+    integer intent(hide),depend(d) :: ldd=shape(d,0)
+    double precision intent(out),dimension(n),depend(n) :: hsv
+    double precision :: tol1 =0.0
+    double precision :: tol2 =0.0
+    integer intent(hide,cache),dimension(max(m,p)) :: iwork
+    double precision intent(hide,cache),dimension(ldwork) :: dwork
+    integer optional :: ldwork = max(1,n*(2*n+max(n,max(m,p))+5)+n*(n+1)/2)
+    integer intent(out) :: iwarn
+    integer intent(out) :: info
+end subroutine ab09bd
