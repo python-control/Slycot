@@ -736,3 +736,28 @@ subroutine sg02ad_bb(dico,jobb,fact,uplo,jobl,scal,sort,acc,n,m,p,a,lda,e,lde,b,
     integer intent(out) :: iwarn
     integer intent(out) :: info
 end subroutine sg02ad_bb
+subroutine sg03bd(dico,fact,trans,n,m,a,lda,e,lde,q,ldq,z,ldz,b,ldb,scale,alphar,alphai,beta,dwork,ldwork,info) ! in SG03BD.f
+    fortranname sg03bd
+    character :: dico
+    character :: fact='N'
+    character :: trans='N'
+    integer check(n>0) :: n
+    integer check(m>0) :: m
+    double precision dimension(n,n),depend(n) :: a
+    integer intent(hide),depend(a) :: lda=shape(a,0)
+    double precision dimension(n,n),depend(n) :: e
+    integer intent(hide),depend(e) :: lde=shape(e,0)
+    double precision dimension(n,n),depend(n) :: q
+    integer intent(hide),depend(q) :: ldq=shape(q,0)
+    double precision dimension(n,n),depend(n) :: z
+    integer intent(hide),depend(z) :: ldz=shape(z,0)
+    double precision intent(in,out,copy),dimension(max(m,n),n),depend(m,n) :: b
+    integer intent(hide),depend(b) :: ldb=shape(b,0)
+    double precision intent(out) :: scale
+    double precision intent(out),dimension(n),depend(n) :: alphar
+    double precision intent(out),dimension(n),depend(n) :: alphai
+    double precision intent(out),dimension(n),depend(n) :: beta
+    double precision intent(hide,cache),dimension(ldwork) :: dwork
+    integer optional,check(ldwork>=max(4*n,6*n-6)),depend(n,m) :: ldwork=max(4*n,6*n-6)
+    integer intent(out) :: info    
+end subroutine sg03bd

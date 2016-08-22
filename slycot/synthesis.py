@@ -2286,3 +2286,242 @@ def sg02ad(dico,jobb,fact,uplo,jobl,scal,sort,acc,N,M,P,A,E,B,Q,R,L,ldwork=None,
         raise e
 
     return out[:-1]
+
+def sg03bd(n,m,A,E,Q,Z,B,dico,fact='N',trans='N',ldwork=None):
+    """U,scale,alpha = sg03bd(dico,n,m,A,E,Q,Z,B,[fact,trans,ldwork])
+
+     To compute the Cholesky factor U of the matrix X,
+
+                 T
+        X = op(U)  * op(U),
+
+     which is the solution of either the generalized
+     c-stable continuous-time Lyapunov equation
+
+             T                    T
+        op(A)  * X * op(E) + op(E)  * X * op(A)
+
+                 2        T
+        = - SCALE  * op(B)  * op(B),                                (1)
+
+     or the generalized d-stable discrete-time Lyapunov equation
+
+             T                    T
+        op(A)  * X * op(A) - op(E)  * X * op(E)
+
+                 2        T
+        = - SCALE  * op(B)  * op(B),                                (2)
+
+     without first finding X and without the need to form the matrix
+     op(B)**T * op(B).
+
+     op(K) is either K or K**T for K = A, B, E, U. A and E are N-by-N
+     matrices, op(B) is an M-by-N matrix. The resulting matrix U is an
+     N-by-N upper triangular matrix with non-negative entries on its
+     main diagonal. SCALE is an output scale factor set to avoid
+     overflow in U.
+
+     In the continuous-time case (1) the pencil A - lambda * E must be
+     c-stable (that is, all eigenvalues must have negative real parts).
+     In the discrete-time case (2) the pencil A - lambda * E must be
+     d-stable (that is, the moduli of all eigenvalues must be smaller
+     than one).
+
+     Required arguments
+     __________________
+
+         n : input int
+             The order of the matrix A.  n >= 0.
+         m : input int
+             The number of rows in the matrix op(B).  m >= 0.
+         A : input rank-2 array('d'), shape  (n,n)
+             On entry, if fact = 'F', then the leading n-by-n upper
+             Hessenberg part of this array must contain the
+             generalized Schur factor A_s of the matrix A (see
+             definition (3) in section METHOD). A_s must be an upper
+             quasitriangular matrix. The elements below the upper
+             Hessenberg part of the array A are not referenced.
+             If fact = 'N', then the leading n-by-n part of this
+             array must contain the matrix A.
+             On exit, the leading n-by-n part of this array contains
+             the generalized Schur factor A_s of the matrix A. (A_s is
+             an upper quasitriangular matrix.)
+         E : input rank-2 array('d'), shape  (n,n)
+             On entry, if fact = 'F', then the leading n-by-n upper
+             triangular part of this array must contain the
+             generalized Schur factor E_s of the matrix E (see
+             definition (4) in section METHOD). The elements below the
+             upper triangular part of the array E are not referenced.
+             If fact = 'N', then the leading n-by-n part of this
+             array must contain the coefficient matrix E of the
+             equation.
+             On exit, the leading n-by-n part of this array contains
+             the generalized Schur factor E_s of the matrix E. (E_s is
+             an upper triangular matrix.)
+         Q : input rank-2 array('d'), shape  (n,n)
+             On entry, if fact = 'F', then the leading n-by-n part of
+             this array must contain the orthogonal matrix Q from
+             the generalized Schur factorization (see definitions (3)
+             and (4) in section METHOD).
+             If fact = 'N', Q need not be set on entry.
+             On exit, the leading n-by-n part of this array contains
+             the orthogonal matrix Q from the generalized Schur
+             factorization.
+         Z : input rank-2 array('d'), shape  (n,n)
+             On entry, if fact = 'F', then the leading n-by-n part of
+             this array must contain the orthogonal matrix Z from
+             the generalized Schur factorization (see definitions (3)
+             and (4) in section METHOD).
+             If fact = 'N', Z need not be set on entry.
+             On exit, the leading n-by-n part of this array contains
+             the orthogonal matrix Z from the generalized Schur
+             factorization.
+         B : input rank-2 array('d'), shape  (n,n1)
+             On entry, if trans = 'T', the leading n-by-m part of this
+             array must contain the matrix B and n1 >= max(m,n).
+             If trans = 'N', the leading m-by-n part of this array
+             must contain the matrix B and n1 >= n.
+             On exit, the leading n-by-n part of this array contains
+             the Cholesky factor U of the solution matrix X of the
+             problem, X = op(U)**T * op(U).
+             If m = 0 and n > 0, then U is set to zero.
+         dico : input string(len=1)
+             Specifies which type of the equation is considered:
+             = 'C':  Continuous-time equation (1);
+             = 'D':  Discrete-time equation (2).
+
+     Optional arguments
+     __________________
+
+         fact := 'N' input string(len=1)
+             Specifies whether the generalized real Schur
+             factorization of the pencil A - lambda * E is supplied
+             on entry or not:
+             = 'N':  Factorization is not supplied;
+             = 'F':  Factorization is supplied.
+         trans := 'N' input string(len=1)
+             Specifies whether the transposed equation is to be solved
+             or not:
+             = 'N':  op(A) = A,    op(E) = E;
+             = 'T':  op(A) = A**T, op(E) = E**T.
+         ldwork := None input int
+             The dimension of the array dwork.
+             ldwork >= max(1,4*n,6*n-6),  if fact = 'N';
+             ldwork >= max(1,2*n,6*n-6),  if fact = 'F'.
+             For good performance, ldwork should be larger.
+
+     Return objects
+     ______________
+    
+         U : rank-2 array('d'), shape  (n,n)
+             The leading n-by-b part of this array contains
+             the Cholesky factor U of the solution matrix X of the
+             problem, X = op(U)**T * op(U).
+             If m = 0 and m > 0, then U is set to zero.
+         scale : float
+             The scale factor set to avoid overflow in U.
+             0 < scale <= 1.
+         alpha : rank-1 array('c'), shape (n)
+             If INFO = 0, 3, 5, 6, or 7, then
+             (alpha(j), j=1,...,n, are the
+             eigenvalues of the matrix pencil A - lambda * E.
+
+     Raises
+     ______
+
+         ValueError : e
+             e.info contains information about the exact type of exception
+              = 0:  successful exit;
+              < 0:  if info = -i, the i-th argument had an illegal
+                 value;
+              = 1:  the pencil A - lambda * E is (nearly) singular;
+                 perturbed values were used to solve the equation
+                 (but the reduced (quasi)triangular matrices A and E
+                 are unchanged);
+              = 2:  fact = 'F' and the matrix contained in the upper
+                 Hessenberg part of the array A is not in upper
+                 quasitriangular form;
+              = 3:  fact = 'F' and there is a 2-by-2 block on the main
+                 diagonal of the pencil A_s - lambda * E_s whose
+                 eigenvalues are not conjugate complex;
+              = 4:  fact = 'N' and the pencil A - lambda * E cannot be
+                 reduced to generalized Schur form: LAPACK routine
+                 DGEGS (or DGGES) has failed to converge;
+              = 5:  dico = 'C' and the pencil A - lambda * E is not
+                 c-stable;
+              = 6:  dico = 'D' and the pencil A - lambda * E is not
+                 d-stable;
+              = 7:  the LAPACK routine DSYEVX utilized to factorize M3
+                 failed to converge in the discrete-time case (see
+                 section METHOD for SLICOT Library routine SG03BU).
+                 This error is unlikely to occur.
+    """
+    hidden = ' (hidden by the wrapper)'
+    arg_list = ['dico', 'fact', 'trans', 'n', 'm', 'A', 'LDA'+hidden, 'E',
+        'LDE'+hidden, 'Q', 'LDQ'+hidden, 'Z', 'LDZ'+hidden, 'B', 'LDB'+hidden,
+        'scale', 'alphar'+hidden, 'alphai'+hidden, 'IWORK'+hidden, 'DWORK'+hidden,
+        'ldwork', 'INFO'+hidden]
+    if ldwork is None:
+        ldwork = max(1,4*n,6*n-6)
+    if dico != 'C' and dico != 'D':
+        raise ValueError('dico must be either D or C')
+    out = _wrapper.sg03bd(dico,n,m,A,E,Q,Z,B,fact=fact,trans=trans,ldwork=ldwork)
+    if out[-1] < 0:
+        error_text = "The following argument had an illegal value: "+arg_list[-out[-1]-1]
+        e = ValueError(error_text)
+        e.info = out[-1]
+        raise e
+    if out[-1] == 1:
+        error_text = """the pencil A - lambda * E is (nearly) singular;
+                 perturbed values were used to solve the equation
+                 (but the reduced (quasi)triangular matrices A and E
+                 are unchanged)."""
+        e = ValueError(error_text)
+        e.info = out[-1]
+        raise e
+    if out[-1] == 2:
+        error_text = """the matrix contained in the upper
+                 Hessenberg part of the array A is not in upper
+                 quasitriangular form."""
+        e = ValueError(error_text)
+        e.info = out[-1]
+        raise e
+    if out[-1] == 3:
+        error_text = """there is a 2-by-2 block on the main
+                 diagonal of the pencil A_s - lambda * E_s whose
+                 eigenvalues are not conjugate complex."""
+        e = ValueError(error_text)
+        e.info = out[-1]
+        raise e
+    if out[-1] == 4:
+        error_text = """the pencil A - lambda * E cannot be
+                 reduced to generalized Schur form: LAPACK routine
+                 DGEGS (or DGGES) has failed to converge."""
+        e = ValueError(error_text)
+        e.info = out[-1]
+        raise e
+    if out[-1] == 5:
+        error_text = """the pencil A - lambda * E is not
+                 c-stable."""
+        e = ValueError(error_text)
+        e.info = out[-1]
+        raise e
+    if out[-1] == 6:
+        error_text = """the pencil A - lambda * E is not
+                 d-stable."""
+        e = ValueError(error_text)
+        e.info = out[-1]
+        raise e
+    if out[-1] == 7:
+        error_text = """the LAPACK routine DSYEVX utilized to factorize M3
+                 failed to converge in the discrete-time case (see
+                 section METHOD for SLICOT Library routine SG03BU).
+                 This error is unlikely to occur."""
+        e = ValueError(error_text)
+        e.info = out[-1]
+        raise e
+    U,scale,alphar,alphai,beta = out[:-1]
+    alpha = _np.zeros(n,'complex64')
+    alpha.real = alphar[0:n]
+    alpha.imag = alphai[0:n]
+    return U,scale,alpha/beta
