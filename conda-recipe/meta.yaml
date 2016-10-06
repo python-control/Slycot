@@ -2,11 +2,6 @@ package:
   name: slycot
   version: "0.2.0"
 
-#source:
-#  fn: slycot-0.1.1.tar.gz
-#  url: https://pypi.python.org/packages/source/s/slycot/slycot-0.1.1.tar.gz
-#  md5: 125aac075d539d36004cc3baf3626bc7
-
 build:
   number: 1
 
@@ -30,10 +25,6 @@ test:
     - slycot
 
 about:
-  home: https://pypi.python.org/pypi/slycot
-  license:  BSD License
+  home: https://github.com/python-control/slycot
+  license:  GPLv2
   summary: 'A wrapper for the SLICOT control and systems library'
-
-# See
-# http://docs.continuum.io/conda/build.html for
-# more information about meta.yaml
