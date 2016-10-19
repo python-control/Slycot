@@ -12,9 +12,9 @@ else:
 
     # import slycot.examples
 
-    # Analysis routines (6/40 wrapped)
-    from .analysis import ab01nd,ab05md,ab05nd,ab07nd,ab08nd, ab09ad, \
-                          ab09ax, ab09bd
+    # Analysis routines (10/40 wrapped)
+    from .analysis import ab01nd,ab05md,ab05nd,ab07nd,ab08nd, \
+         ab09ad, ab09ax, ab09bd, ab09md, ab09nd
 
     # Data analysis routines (0/7 wrapped)
 
