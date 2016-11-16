@@ -1495,6 +1495,210 @@ def sb10ad(n,m,np,ncon,nmeas,gamma,A,B,C,D,job=3,gtol=0.0,actol=0.0,liwork=None,
 
     return out[:-1]
 
+def sb10dd(n,m,np,ncon,nmeas,gamma,A,B,C,D,tol=0.0,ldwork=None):
+    """ gamma_est, Ak, Bk, Ck, Dk, rcond = sb10dd(n,m,np,ncon,nmeas,gamma,A,B,C,D,[tol,ldwork])
+
+    To compute the matrices of an H-infinity (sub)optimal n-state
+    controller
+
+            | AK | BK |
+        K = |----|----|,
+            | CK | DK |
+
+     for the discrete-time system
+
+            | A  | B1  B2  |   | A | B |
+        P = |----|---------| = |---|---|
+            | C1 | D11 D12 |   | C | D |
+            | C2 | D21 D22 |
+
+     and for a given value of gamma, where B2 has as column size the
+     number of control inputs (NCON) and C2 has as row size the number
+     of measurements (NMEAS) being provided to the controller.
+
+     It is assumed that
+
+     (A1) (A,B2) is stabilizable and (C2,A) is detectable,
+
+     (A2) D12 is full column rank and D21 is full row rank,
+
+               j*Theta
+     (A3) | A-e       *I  B2  | has full column rank for all
+          |    C1         D12 |
+
+          0 <= Theta < 2*Pi ,
+
+               j*Theta
+     (A4) | A-e       *I  B1  |  has full row rank for all
+          |    C2         D21 |
+
+          0 <= Theta < 2*Pi .
+
+     Required arguments
+     ------------------
+
+        n : int
+            The order of the system. (size of matrix A).
+        m : int
+            The column size of the matrix B.
+        np : int
+            The row size of the matrix C.
+        ncon : int
+            The number of control inputs.  m >= ncon >= 0, np-nmeas >= ncon.
+        nmeas : int
+            The number of measurements.  np >= nmeas >= 0, m-ncon >= nmeas.
+        gamma : double
+            The initial value of gamma on input.  It is assumed that gamma
+            is sufficiently large so that the controller is admissible.  gamma >= 0.
+        A : rank-2 array('d'), shape (n,n)
+        B : rank-2 array('d'), shape (n,m)
+        C : rank-2 array('d'), shape (np,n)
+        D : rank-2 array('d'), shape (np,m)
+
+    Optional arguments
+    ------------------
+
+        tol : double
+          Tolerance used in neglecting the small singular values
+          in rank determination. If tol <= 0, then a default value
+          equal to 1000*eps is used, where eps is the relative
+          machine precision.
+
+        ldwork : int
+          The dimension of the array dwork.
+
+    Return objects
+    --------------
+
+        gamma_est : double
+            The minimal estimated gamma.
+        Ak : rank-2 array('d'), shape (n,n)
+            The controller state matrix Ak.
+        Bk : rank-2 array('d') with bound s(n,nmeas)
+            The controller input matrix Bk.
+        Ck : rank-2 array('d'), shape  (ncon,n)
+            The controller output matrix Ck.
+        Dk : rank-2 array('d'), shape  (ncon,nmeas)
+            The controller input/output matrix DK.
+        X  : rank-2 array('d'), shape (n,n)
+            The matrix X, solution of the X-Riccati equation.
+        Z  : rank-2 array('d'), shape (n,n)
+            The matrix Z, solution of the Z-Riccati equation.
+        rcond : rank-1 array('d'), shape  (8)
+            rcond contains estimates of the reciprocal condition
+            numbers of the matrices which are to be inverted and
+            estimates of the reciprocal condition numbers of the
+            Riccati equations which have to be solved during the
+            computation of the controller. (See the description of
+            the algorithm in [2].)
+            rcond(1) contains the reciprocal condition number of the
+                   matrix R3;
+            rcond(2) contains the reciprocal condition number of the
+                   matrix R1 - R2'*inv(R3)*R2;
+            rcond(3) contains the reciprocal condition number of the
+                   matrix V21;
+            rcond(4) contains the reciprocal condition number of the
+                   matrix St3;
+            rcond(5) contains the reciprocal condition number of the
+                   matrix V12;
+            rcond(6) contains the reciprocal condition number of the
+                   matrix Im2 + dkhat*D22
+            rcond(7) contains the reciprocal condition number of the
+                   X-Riccati equation;
+            rcond(8) contains the reciprocal condition number of the
+                   Z-Riccati equation.
+
+
+    Raises
+    ------
+
+        ValueError : e
+            e.info contains information about the exact type of exception
+             < 0:  if INFO = -i, the i-th argument had an illegal
+                   value;
+                                      j*Theta
+             = 1:  if the matrix | A-e       *I  B2  | had not full
+                                 |      C1       D12 |
+                   column rank;
+                                      j*Theta
+             = 2:  if the matrix | A-e       *I  B1  | had not full
+                                 |      C2       D21 |
+                   row rank;
+             = 3:  if the matrix D12 had not full column rank;
+             = 4:  if the matrix D21 had not full row rank;
+             = 5:  if the controller is not admissible (too small value
+                   of gamma);
+             = 6:  if the X-Riccati equation was not solved
+                   successfully (the controller is not admissible or
+                   there are numerical difficulties);
+             = 7:  if the Z-Riccati equation was not solved
+                   successfully (the controller is not admissible or
+                   there are numerical difficulties);
+             = 8:  if the matrix Im2 + DKHAT*D22 is singular.
+             = 9:  if the singular value decomposition (SVD) algorithm
+                   did not converge (when computing the SVD of one of
+                   the matrices |A   B2 |, |A   B1 |, D12 or D21).
+                                |C1  D12|  |C2  D21|
+
+    """
+    hidden = ' (hidden by the wrapper)'
+    arg_list = ['n', 'm', 'np', 'ncon', 'nmeas', 'gamma',
+        'A', 'LDA'+hidden, 'B', 'LDB'+hidden, 'C', 'LDC'+hidden,
+        'D', 'LDD'+hidden, 'AK', 'LDAK'+hidden, 'BK', 'LDBK'+hidden,
+        'CK', 'LDCK'+hidden, 'DK', 'LDDK'+hidden, 'X', 'LDX'+hidden, 'Z', 'LDZ'+hidden,
+        'rcond', 'tol', 'IWORK'+hidden,
+        'DWORK'+hidden, 'ldwork', 'BWORK'+hidden, 'info']
+    if ldwork is None:
+        m1 = m - ncon
+        m2 = ncon
+        np1 = np - nmeas
+        np2 = nmeas
+        LW1 = (n+np1+1)*(n+m2) + max(3*(n+m2)+n+np1,5*(n+m2))
+        LW2 = (n+np2)*(n+m1+1) + max(3*(n+np2)+n+m1,5*(n+np2))
+        LW3 = 13*n*n + 2*m*m + n*(8*m+np2) + m1*(m2+np2) + 6*n + max(14*n+23,16*n,2*n+m,3*m)
+        LW4 = 13*n*n + m*m + (8*n+m+m2+2*np2)*(m2+np2) + 6*n + n*(m+np2) + max(14*n+23,16*n,2*n+m2+np2,3*(m2+np2))
+        ldwork = max(LW1,LW2,LW3,LW4)
+    out = _wrapper.sb10dd(n,m,np,ncon,nmeas,gamma,A,B,C,D,tol,ldwork)
+    
+    if out[-1] != 0:
+        if out[-1] < 0:
+            error_text = "The following argument had an illegal value: "\
+                +arg_list[-out[-1]-1]
+        if out[-1] == 1:
+            error_text = "  j*Theta\
+            The matrix | A-e       *I  B2  | had not full column rank.\
+                       |      C1       D12 |"
+        if out[-1] == 2:
+            error_text = "  j*Theta\
+            The matrix | A-e       *I  B2  | had not full row rank.\
+                       |      C1       D12 |"
+        if out[-1] == 3:
+            error_text = "The matrix D12 had not full column rank."
+        if out[-1] == 4:
+            error_text = "The matrix D21 had not full row rank."
+        if out[-1] == 5:
+            error_text = "The controller is not admissible (too small value of gamma)"
+        if out[-1] == 6:
+            error_text = "The X-Riccati equation was not solved\
+                successfully (the controller is not admissible or\
+                there are numerical difficulties)."
+        if out[-1] == 7:
+            error_text = "The Z-Riccati equation was not solved\
+                successfully (the controller is not admissible or\
+                there are numerical difficulties)."
+        if out[-1] == 8:
+            error_text = "The matrix Im2 + DKHAT*D22 is singular."
+        if out[-1] == 9:
+            error_text = "the singular value decomposition (SVD) algorithm\
+                did not converge (when computing the SVD of one of\
+                the matrices |A   B2 |, |A   B1 |, D12 or D21).\
+                             |C1  D12|  |C2  D21|"
+        e = ValueError(error_text)
+        e.info = out[-1]
+        raise e
+
+    return out[:-1]
+
 def sb10hd(n,m,np,ncon,nmeas,A,B,C,D,tol=0.0,ldwork=None):
     """ Ak, Bk, Ck, Dk, rcond = sb10hd(n,m,np,ncon,nmeas,a,b,c,d,[tol,ldwork])
 

@@ -1,3 +1,4 @@
+!    -*- f90 -*-
 subroutine ab01nd_i(jobz,n,m,a,lda,b,ldb,ncont,indcon,nblk,z,ldz,tau,tol,iwork,dwork,ldwork,info) ! in AB01ND.f
     fortranname ab01nd
     character intent(hide) :: jobz = 'I'
