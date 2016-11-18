@@ -12,9 +12,9 @@ else:
 
     # import slycot.examples
 
-    # Analysis routines (6/40 wrapped)
-    from .analysis import ab01nd,ab05md,ab05nd,ab07nd,ab08nd, ab09ad, \
-                          ab09ax, ab09bd
+    # Analysis routines (10/40 wrapped)
+    from .analysis import ab01nd,ab05md,ab05nd,ab07nd,ab08nd, \
+         ab09ad, ab09ax, ab09bd, ab09md, ab09nd
 
     # Data analysis routines (0/7 wrapped)
 
@@ -25,10 +25,10 @@ else:
     # Mathematical routines (3/81 wrapped)
     from .math import mc01td, mb05md, mb05nd
 
-    # Synthesis routines (11/50 wrapped)
-    from .synthesis import sb01bd,sb02md,sb02mt,sb02od,sb03md
-    from .synthesis import sb04md,sb04qd,sb10ad,sb10hd,sg03ad
-    from .synthesis import sg02ad
+    # Synthesis routines (14/50 wrapped)
+    from .synthesis import sb01bd,sb02md,sb02mt,sb02od,sb03md,sb03od
+    from .synthesis import sb04md,sb04qd,sb10ad,sb10dd,sb10hd,sg03ad
+    from .synthesis import sg02ad, sg03bd
 
     # Transformation routines (9/40 wrapped)
     from .transform import tb01id,tb03ad,tb04ad

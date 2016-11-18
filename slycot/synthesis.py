@@ -881,6 +881,252 @@ converged Shur form'""" %(out[-1],n) # not sure about the indenting here
     w.imag = wi[0:n]
     return X,scale,sep,ferr,w
 
+def sb03od(n,m,A,Q,B,dico,fact='N',trans='N',ldwork=None):
+    """  U,scale,w = sb03od(dico,n,m,A,Q,B,[fact,trans,ldwork])
+
+    To solve for X = op(U)'*op(U) either the stable non-negative
+    definite continuous-time Lyapunov equation
+                                 2
+      op(A)'*X + X*op(A) = -scale *op(B)'*op(B)                   (1)
+
+    or the convergent non-negative definite discrete-time Lyapunov
+    equation
+                                 2
+      op(A)'*X*op(A) - X = -scale *op(B)'*op(B)                   (2)
+
+    where op(K) = K or K' (i.e., the transpose of the matrix K), A is
+    an N-by-N matrix, op(B) is an M-by-N matrix, U is an upper
+    triangular matrix containing the Cholesky factor of the solution
+    matrix X, X = op(U)'*op(U), and scale is an output scale factor,
+    set less than or equal to 1 to avoid overflow in X. If matrix B
+    has full rank then the solution matrix X will be positive-definite
+    and hence the Cholesky factor U will be nonsingular, but if B is
+    rank deficient then X may be only positive semi-definite and U
+    will be singular.
+
+    In the case of equation (1) the matrix A must be stable (that
+    is, all the eigenvalues of A must have negative real parts),
+    and for equation (2) the matrix A must be convergent (that is,
+    all the eigenvalues of A must lie inside the unit circle).
+
+    Required arguments
+    ------------------
+
+        n : input int
+            The order of the matrix A and the number of columns in
+            matrix op(B).  n >= 0.
+        m : input int
+            The number of rows in matrix op(B).  m >= 0.
+        A : input rank-2 array('d'), shape  (n,n)
+            On entry, the leading n-by-n part of this array must
+            contain the matrix A. If fact = 'F', then A contains
+            an upper quasi-triangular matrix S in Schur canonical
+            form; the elements below the upper Hessenberg part of the
+            array A are not referenced.
+            On exit, the leading n-by-n upper Hessenberg part of this
+            array contains the upper quasi-triangular matrix S in
+            Schur canonical form from the Shur factorization of A.
+            The contents of array A is not modified if fact = 'F'.
+        Q : input rank-2 array('d'), shape  (n,n)
+            On entry, if fact = 'F', then the leading n-by-n part of
+            this array must contain the orthogonal matrix Q of the
+            Schur factorization of A.
+            Otherwise, Q need not be set on entry.
+            On exit, the leading n-by-n part of this array contains
+            the orthogonal matrix Q of the Schur factorization of A.
+            The contents of array Q is not modified if fact = 'F'.
+        B : input rank-2 array('d'), shape  (m,n)
+            On entry, if trans = 'N', the leading m-by-n part of this
+            array must contain the coefficient matrix B of the
+            equation.
+            On entry, if trans = 'T', the leading N-by-m part of this
+            array must contain the coefficient matrix B of the
+            equation.
+            On exit, the leading n-by-n part of this array contains
+            the upper triangular Cholesky factor U of the solution
+            matrix X of the problem, X = op(U)'*op(U).
+            If m = 0 and n > 0, then U is set to zero.
+        dico : input string(len=1)
+            Specifies the type of Lyapunov equation to be solved as
+            follows:
+            = 'C':  Equation (1), continuous-time case;
+            = 'D':  Equation (2), discrete-time case.
+
+    Optional arguments
+    ------------------
+
+        fact := 'N' input string(len=1)
+            Specifies whether or not the real Schur factorization
+            of the matrix A is supplied on entry, as follows:
+            = 'F':  On entry, A and Q contain the factors from the
+            real Schur factorization of the matrix A;
+            = 'N':  The Schur factorization of A will be computed
+            and the factors will be stored in A and Q.
+        trans := 'N' input string(len=1)
+            Specifies the form of op(K) to be used, as follows:
+            = 'N':  op(K) = K    (No transpose);
+            = 'T':  op(K) = K**T (Transpose).
+        ldwork := None input int
+            The length of the array DWORK.
+            If m > 0, ldwork >= max(1,4*n + min(m,n));
+            If m = 0, ldwork >= 1.
+            For optimum performance ldwork should sometimes be larger.
+
+    Return objects
+    ______________
+
+        U : rank-2 array('d'), shape  (n,n)
+            The leading n-by-n part of this array contains
+            the upper triangular Cholesky factor U of the solution
+            matrix X of the problem, X = op(U)'*op(U).
+        scale : float
+            The scale factor, scale, set less than or equal to 1 to
+            prevent the solution overflowing.
+        w : rank-1 array('c'), shape (n)
+            If fact = 'N', this array contains the eigenvalues of A.
+
+    Raises
+    ______
+
+        ValueError : e
+            e.info contains information about the exact type of exception
+             < 0:  if info = -i, the i-th argument had an illegal value;
+             = 1:  if the Lyapunov equation is (nearly) singular
+                (warning indicator);
+                if DICO = 'C' this means that while the matrix A
+                (or the factor S) has computed eigenvalues with
+                negative real parts, it is only just stable in the
+                sense that small perturbations in A can make one or
+                more of the eigenvalues have a non-negative real
+                part;
+                if DICO = 'D' this means that while the matrix A
+                (or the factor S) has computed eigenvalues inside
+                the unit circle, it is nevertheless only just
+                convergent, in the sense that small perturbations
+                in A can make one or more of the eigenvalues lie
+                outside the unit circle;
+                perturbed values were used to solve the equation;
+             = 2:  if FACT = 'N' and DICO = 'C', but the matrix A is
+                not stable (that is, one or more of the eigenvalues
+                of A has a non-negative real part), or DICO = 'D',
+                but the matrix A is not convergent (that is, one or
+                more of the eigenvalues of A lies outside the unit
+                circle); however, A will still have been factored
+                and the eigenvalues of A returned in WR and WI.
+             = 3:  if FACT = 'F' and DICO = 'C', but the Schur factor S
+                supplied in the array A is not stable (that is, one
+                or more of the eigenvalues of S has a non-negative
+                real part), or DICO = 'D', but the Schur factor S
+                supplied in the array A is not convergent (that is,
+                one or more of the eigenvalues of S lies outside the
+                unit circle);
+             = 4:  if FACT = 'F' and the Schur factor S supplied in
+                the array A has two or more consecutive non-zero
+                elements on the first sub-diagonal, so that there is
+                a block larger than 2-by-2 on the diagonal;
+             = 5:  if FACT = 'F' and the Schur factor S supplied in
+                the array A has a 2-by-2 diagonal block with real
+                eigenvalues instead of a complex conjugate pair;
+             = 6:  if FACT = 'N' and the LAPACK Library routine DGEES
+                has failed to converge. This failure is not likely
+                to occur. The matrix B will be unaltered but A will
+                be destroyed.
+    """
+    hidden = ' (hidden by the wrapper)'
+    arg_list = ['dico','fact', 'trans', 'n', 'm', 'a', 'lda'+hidden, 'q',
+        'ldq'+hidden, 'b', 'ldb'+hidden, 'scale', 'wr'+hidden,
+        'wi'+hidden, 'dwork'+hidden, 'ldwork', 'info'+hidden]
+    if ldwork is None:
+        if m > 0:
+            ldwork = max(1,4*n + min(m,n))
+        elif m == 0:
+            ldwork = 1
+    if dico != 'C' and dico != 'D':
+        raise ValueError('dico must be either D or C')
+    out = _wrapper.sb03od(dico,n,m,A,Q,B,fact=fact,trans=trans,ldwork=ldwork)
+    if out[-1] < 0:
+        error_text = "The following argument had an illegal value: "+arg_list[-out[-1]-1]
+        e = ValueError(error_text)
+        e.info = out[-1]
+        raise e
+    if out[-1] == 1:
+        if dico == 'D':
+            error_text = """this means that while the matrix A
+                (or the factor S) has computed eigenvalues inside
+                the unit circle, it is nevertheless only just
+                convergent, in the sense that small perturbations
+                in A can make one or more of the eigenvalues lie
+                outside the unit circle;
+                perturbed values were used to solve the equation;"""
+        else:
+            error_text = """this means that while the matrix A
+                (or the factor S) has computed eigenvalues with
+                negative real parts, it is only just stable in the
+                sense that small perturbations in A can make one or
+                more of the eigenvalues have a non-negative real
+                part;"""
+        e = ValueError(error_text)
+        e.info = out[-1]
+        raise e
+    if out[-1] == 2:
+        if dico == 'D':
+            error_text = """the matrix A is not convergent (that is, one or
+                more of the eigenvalues of A lies outside the unit
+                circle); however, A will still have been factored
+                and the eigenvalues of A returned in WR and WI."""
+        else:
+            error_text = """the matrix A is
+                not stable (that is, one or more of the eigenvalues
+                of A has a non-negative real part)."""
+        e = ValueError(error_text)
+        e.info = out[-1]
+        raise e
+    if out[-1] == 3:
+        if dico == 'D':
+            error_text = """the Schur factor S
+                supplied in the array A is not convergent (that is,
+                one or more of the eigenvalues of S lies outside the
+                unit circle)."""
+        else:
+            error_text = """the Schur factor S
+                supplied in the array A is not stable (that is, one
+                or more of the eigenvalues of S has a non-negative
+                real part)."""
+        e = ValueError(error_text)
+        e.info = out[-1]
+        raise e
+    if out[-1] == 4:
+        if fact == 'F':
+            error_text = """the Schur factor S supplied in
+                the array A has two or more consecutive non-zero
+                elements on the first sub-diagonal, so that there is
+                a block larger than 2-by-2 on the diagonal."""
+        e = ValueError(error_text)
+        e.info = out[-1]
+        raise e
+    if out[-1] == 5:
+        if fact == 'F':
+            error_text = """the Schur factor S supplied in
+                the array A has a 2-by-2 diagonal block with real
+                eigenvalues instead of a complex conjugate pair."""
+        e = ValueError(error_text)
+        e.info = out[-1]
+        raise e
+    if out[-1] == 6:
+        if fact == 'N':
+            error_text = """the LAPACK Library routine DGEES
+                has failed to converge. This failure is not likely
+                to occur. The matrix B will be unaltered but A will
+                be destroyed."""
+        e = ValueError(error_text)
+        e.info = out[-1]
+        raise e
+    U,scale,wr,wi = out[:-1]
+    w = _np.zeros(n,'complex64')
+    w.real = wr[0:n]
+    w.imag = wi[0:n]
+    return U,scale,w
+
 def sb04md(n,m,A,B,C,ldwork=None):
     """X = sb04md(n,m,A,B,C[,ldwork])
 
@@ -1243,6 +1489,210 @@ def sb10ad(n,m,np,ncon,nmeas,gamma,A,B,C,D,job=3,gtol=0.0,actol=0.0,liwork=None,
                 to working precision."
         if out[-1] == 12:
             error_text = "A stabilizing controller cannot be found."
+        e = ValueError(error_text)
+        e.info = out[-1]
+        raise e
+
+    return out[:-1]
+
+def sb10dd(n,m,np,ncon,nmeas,gamma,A,B,C,D,tol=0.0,ldwork=None):
+    """ gamma_est, Ak, Bk, Ck, Dk, rcond = sb10dd(n,m,np,ncon,nmeas,gamma,A,B,C,D,[tol,ldwork])
+
+    To compute the matrices of an H-infinity (sub)optimal n-state
+    controller
+
+            | AK | BK |
+        K = |----|----|,
+            | CK | DK |
+
+     for the discrete-time system
+
+            | A  | B1  B2  |   | A | B |
+        P = |----|---------| = |---|---|
+            | C1 | D11 D12 |   | C | D |
+            | C2 | D21 D22 |
+
+     and for a given value of gamma, where B2 has as column size the
+     number of control inputs (NCON) and C2 has as row size the number
+     of measurements (NMEAS) being provided to the controller.
+
+     It is assumed that
+
+     (A1) (A,B2) is stabilizable and (C2,A) is detectable,
+
+     (A2) D12 is full column rank and D21 is full row rank,
+
+               j*Theta
+     (A3) | A-e       *I  B2  | has full column rank for all
+          |    C1         D12 |
+
+          0 <= Theta < 2*Pi ,
+
+               j*Theta
+     (A4) | A-e       *I  B1  |  has full row rank for all
+          |    C2         D21 |
+
+          0 <= Theta < 2*Pi .
+
+     Required arguments
+     ------------------
+
+        n : int
+            The order of the system. (size of matrix A).
+        m : int
+            The column size of the matrix B.
+        np : int
+            The row size of the matrix C.
+        ncon : int
+            The number of control inputs.  m >= ncon >= 0, np-nmeas >= ncon.
+        nmeas : int
+            The number of measurements.  np >= nmeas >= 0, m-ncon >= nmeas.
+        gamma : double
+            The initial value of gamma on input.  It is assumed that gamma
+            is sufficiently large so that the controller is admissible.  gamma >= 0.
+        A : rank-2 array('d'), shape (n,n)
+        B : rank-2 array('d'), shape (n,m)
+        C : rank-2 array('d'), shape (np,n)
+        D : rank-2 array('d'), shape (np,m)
+
+    Optional arguments
+    ------------------
+
+        tol : double
+          Tolerance used in neglecting the small singular values
+          in rank determination. If tol <= 0, then a default value
+          equal to 1000*eps is used, where eps is the relative
+          machine precision.
+
+        ldwork : int
+          The dimension of the array dwork.
+
+    Return objects
+    --------------
+
+        gamma_est : double
+            The minimal estimated gamma.
+        Ak : rank-2 array('d'), shape (n,n)
+            The controller state matrix Ak.
+        Bk : rank-2 array('d') with bound s(n,nmeas)
+            The controller input matrix Bk.
+        Ck : rank-2 array('d'), shape  (ncon,n)
+            The controller output matrix Ck.
+        Dk : rank-2 array('d'), shape  (ncon,nmeas)
+            The controller input/output matrix DK.
+        X  : rank-2 array('d'), shape (n,n)
+            The matrix X, solution of the X-Riccati equation.
+        Z  : rank-2 array('d'), shape (n,n)
+            The matrix Z, solution of the Z-Riccati equation.
+        rcond : rank-1 array('d'), shape  (8)
+            rcond contains estimates of the reciprocal condition
+            numbers of the matrices which are to be inverted and
+            estimates of the reciprocal condition numbers of the
+            Riccati equations which have to be solved during the
+            computation of the controller. (See the description of
+            the algorithm in [2].)
+            rcond(1) contains the reciprocal condition number of the
+                   matrix R3;
+            rcond(2) contains the reciprocal condition number of the
+                   matrix R1 - R2'*inv(R3)*R2;
+            rcond(3) contains the reciprocal condition number of the
+                   matrix V21;
+            rcond(4) contains the reciprocal condition number of the
+                   matrix St3;
+            rcond(5) contains the reciprocal condition number of the
+                   matrix V12;
+            rcond(6) contains the reciprocal condition number of the
+                   matrix Im2 + dkhat*D22
+            rcond(7) contains the reciprocal condition number of the
+                   X-Riccati equation;
+            rcond(8) contains the reciprocal condition number of the
+                   Z-Riccati equation.
+
+
+    Raises
+    ------
+
+        ValueError : e
+            e.info contains information about the exact type of exception
+             < 0:  if INFO = -i, the i-th argument had an illegal
+                   value;
+                                      j*Theta
+             = 1:  if the matrix | A-e       *I  B2  | had not full
+                                 |      C1       D12 |
+                   column rank;
+                                      j*Theta
+             = 2:  if the matrix | A-e       *I  B1  | had not full
+                                 |      C2       D21 |
+                   row rank;
+             = 3:  if the matrix D12 had not full column rank;
+             = 4:  if the matrix D21 had not full row rank;
+             = 5:  if the controller is not admissible (too small value
+                   of gamma);
+             = 6:  if the X-Riccati equation was not solved
+                   successfully (the controller is not admissible or
+                   there are numerical difficulties);
+             = 7:  if the Z-Riccati equation was not solved
+                   successfully (the controller is not admissible or
+                   there are numerical difficulties);
+             = 8:  if the matrix Im2 + DKHAT*D22 is singular.
+             = 9:  if the singular value decomposition (SVD) algorithm
+                   did not converge (when computing the SVD of one of
+                   the matrices |A   B2 |, |A   B1 |, D12 or D21).
+                                |C1  D12|  |C2  D21|
+
+    """
+    hidden = ' (hidden by the wrapper)'
+    arg_list = ['n', 'm', 'np', 'ncon', 'nmeas', 'gamma',
+        'A', 'LDA'+hidden, 'B', 'LDB'+hidden, 'C', 'LDC'+hidden,
+        'D', 'LDD'+hidden, 'AK', 'LDAK'+hidden, 'BK', 'LDBK'+hidden,
+        'CK', 'LDCK'+hidden, 'DK', 'LDDK'+hidden, 'X', 'LDX'+hidden, 'Z', 'LDZ'+hidden,
+        'rcond', 'tol', 'IWORK'+hidden,
+        'DWORK'+hidden, 'ldwork', 'BWORK'+hidden, 'info']
+    if ldwork is None:
+        m1 = m - ncon
+        m2 = ncon
+        np1 = np - nmeas
+        np2 = nmeas
+        LW1 = (n+np1+1)*(n+m2) + max(3*(n+m2)+n+np1,5*(n+m2))
+        LW2 = (n+np2)*(n+m1+1) + max(3*(n+np2)+n+m1,5*(n+np2))
+        LW3 = 13*n*n + 2*m*m + n*(8*m+np2) + m1*(m2+np2) + 6*n + max(14*n+23,16*n,2*n+m,3*m)
+        LW4 = 13*n*n + m*m + (8*n+m+m2+2*np2)*(m2+np2) + 6*n + n*(m+np2) + max(14*n+23,16*n,2*n+m2+np2,3*(m2+np2))
+        ldwork = max(LW1,LW2,LW3,LW4)
+    out = _wrapper.sb10dd(n,m,np,ncon,nmeas,gamma,A,B,C,D,tol,ldwork)
+    
+    if out[-1] != 0:
+        if out[-1] < 0:
+            error_text = "The following argument had an illegal value: "\
+                +arg_list[-out[-1]-1]
+        if out[-1] == 1:
+            error_text = "  j*Theta\
+            The matrix | A-e       *I  B2  | had not full column rank.\
+                       |      C1       D12 |"
+        if out[-1] == 2:
+            error_text = "  j*Theta\
+            The matrix | A-e       *I  B2  | had not full row rank.\
+                       |      C1       D12 |"
+        if out[-1] == 3:
+            error_text = "The matrix D12 had not full column rank."
+        if out[-1] == 4:
+            error_text = "The matrix D21 had not full row rank."
+        if out[-1] == 5:
+            error_text = "The controller is not admissible (too small value of gamma)"
+        if out[-1] == 6:
+            error_text = "The X-Riccati equation was not solved\
+                successfully (the controller is not admissible or\
+                there are numerical difficulties)."
+        if out[-1] == 7:
+            error_text = "The Z-Riccati equation was not solved\
+                successfully (the controller is not admissible or\
+                there are numerical difficulties)."
+        if out[-1] == 8:
+            error_text = "The matrix Im2 + DKHAT*D22 is singular."
+        if out[-1] == 9:
+            error_text = "the singular value decomposition (SVD) algorithm\
+                did not converge (when computing the SVD of one of\
+                the matrices |A   B2 |, |A   B1 |, D12 or D21).\
+                             |C1  D12|  |C2  D21|"
         e = ValueError(error_text)
         e.info = out[-1]
         raise e
@@ -2040,3 +2490,242 @@ def sg02ad(dico,jobb,fact,uplo,jobl,scal,sort,acc,N,M,P,A,E,B,Q,R,L,ldwork=None,
         raise e
 
     return out[:-1]
+
+def sg03bd(n,m,A,E,Q,Z,B,dico,fact='N',trans='N',ldwork=None):
+    """U,scale,alpha = sg03bd(dico,n,m,A,E,Q,Z,B,[fact,trans,ldwork])
+
+     To compute the Cholesky factor U of the matrix X,
+
+                 T
+        X = op(U)  * op(U),
+
+     which is the solution of either the generalized
+     c-stable continuous-time Lyapunov equation
+
+             T                    T
+        op(A)  * X * op(E) + op(E)  * X * op(A)
+
+                 2        T
+        = - SCALE  * op(B)  * op(B),                                (1)
+
+     or the generalized d-stable discrete-time Lyapunov equation
+
+             T                    T
+        op(A)  * X * op(A) - op(E)  * X * op(E)
+
+                 2        T
+        = - SCALE  * op(B)  * op(B),                                (2)
+
+     without first finding X and without the need to form the matrix
+     op(B)**T * op(B).
+
+     op(K) is either K or K**T for K = A, B, E, U. A and E are N-by-N
+     matrices, op(B) is an M-by-N matrix. The resulting matrix U is an
+     N-by-N upper triangular matrix with non-negative entries on its
+     main diagonal. SCALE is an output scale factor set to avoid
+     overflow in U.
+
+     In the continuous-time case (1) the pencil A - lambda * E must be
+     c-stable (that is, all eigenvalues must have negative real parts).
+     In the discrete-time case (2) the pencil A - lambda * E must be
+     d-stable (that is, the moduli of all eigenvalues must be smaller
+     than one).
+
+     Required arguments
+     __________________
+
+         n : input int
+             The order of the matrix A.  n >= 0.
+         m : input int
+             The number of rows in the matrix op(B).  m >= 0.
+         A : input rank-2 array('d'), shape  (n,n)
+             On entry, if fact = 'F', then the leading n-by-n upper
+             Hessenberg part of this array must contain the
+             generalized Schur factor A_s of the matrix A (see
+             definition (3) in section METHOD). A_s must be an upper
+             quasitriangular matrix. The elements below the upper
+             Hessenberg part of the array A are not referenced.
+             If fact = 'N', then the leading n-by-n part of this
+             array must contain the matrix A.
+             On exit, the leading n-by-n part of this array contains
+             the generalized Schur factor A_s of the matrix A. (A_s is
+             an upper quasitriangular matrix.)
+         E : input rank-2 array('d'), shape  (n,n)
+             On entry, if fact = 'F', then the leading n-by-n upper
+             triangular part of this array must contain the
+             generalized Schur factor E_s of the matrix E (see
+             definition (4) in section METHOD). The elements below the
+             upper triangular part of the array E are not referenced.
+             If fact = 'N', then the leading n-by-n part of this
+             array must contain the coefficient matrix E of the
+             equation.
+             On exit, the leading n-by-n part of this array contains
+             the generalized Schur factor E_s of the matrix E. (E_s is
+             an upper triangular matrix.)
+         Q : input rank-2 array('d'), shape  (n,n)
+             On entry, if fact = 'F', then the leading n-by-n part of
+             this array must contain the orthogonal matrix Q from
+             the generalized Schur factorization (see definitions (3)
+             and (4) in section METHOD).
+             If fact = 'N', Q need not be set on entry.
+             On exit, the leading n-by-n part of this array contains
+             the orthogonal matrix Q from the generalized Schur
+             factorization.
+         Z : input rank-2 array('d'), shape  (n,n)
+             On entry, if fact = 'F', then the leading n-by-n part of
+             this array must contain the orthogonal matrix Z from
+             the generalized Schur factorization (see definitions (3)
+             and (4) in section METHOD).
+             If fact = 'N', Z need not be set on entry.
+             On exit, the leading n-by-n part of this array contains
+             the orthogonal matrix Z from the generalized Schur
+             factorization.
+         B : input rank-2 array('d'), shape  (n,n1)
+             On entry, if trans = 'T', the leading n-by-m part of this
+             array must contain the matrix B and n1 >= max(m,n).
+             If trans = 'N', the leading m-by-n part of this array
+             must contain the matrix B and n1 >= n.
+             On exit, the leading n-by-n part of this array contains
+             the Cholesky factor U of the solution matrix X of the
+             problem, X = op(U)**T * op(U).
+             If m = 0 and n > 0, then U is set to zero.
+         dico : input string(len=1)
+             Specifies which type of the equation is considered:
+             = 'C':  Continuous-time equation (1);
+             = 'D':  Discrete-time equation (2).
+
+     Optional arguments
+     __________________
+
+         fact := 'N' input string(len=1)
+             Specifies whether the generalized real Schur
+             factorization of the pencil A - lambda * E is supplied
+             on entry or not:
+             = 'N':  Factorization is not supplied;
+             = 'F':  Factorization is supplied.
+         trans := 'N' input string(len=1)
+             Specifies whether the transposed equation is to be solved
+             or not:
+             = 'N':  op(A) = A,    op(E) = E;
+             = 'T':  op(A) = A**T, op(E) = E**T.
+         ldwork := None input int
+             The dimension of the array dwork.
+             ldwork >= max(1,4*n,6*n-6),  if fact = 'N';
+             ldwork >= max(1,2*n,6*n-6),  if fact = 'F'.
+             For good performance, ldwork should be larger.
+
+     Return objects
+     ______________
+    
+         U : rank-2 array('d'), shape  (n,n)
+             The leading n-by-b part of this array contains
+             the Cholesky factor U of the solution matrix X of the
+             problem, X = op(U)**T * op(U).
+             If m = 0 and m > 0, then U is set to zero.
+         scale : float
+             The scale factor set to avoid overflow in U.
+             0 < scale <= 1.
+         alpha : rank-1 array('c'), shape (n)
+             If INFO = 0, 3, 5, 6, or 7, then
+             (alpha(j), j=1,...,n, are the
+             eigenvalues of the matrix pencil A - lambda * E.
+
+     Raises
+     ______
+
+         ValueError : e
+             e.info contains information about the exact type of exception
+              = 0:  successful exit;
+              < 0:  if info = -i, the i-th argument had an illegal
+                 value;
+              = 1:  the pencil A - lambda * E is (nearly) singular;
+                 perturbed values were used to solve the equation
+                 (but the reduced (quasi)triangular matrices A and E
+                 are unchanged);
+              = 2:  fact = 'F' and the matrix contained in the upper
+                 Hessenberg part of the array A is not in upper
+                 quasitriangular form;
+              = 3:  fact = 'F' and there is a 2-by-2 block on the main
+                 diagonal of the pencil A_s - lambda * E_s whose
+                 eigenvalues are not conjugate complex;
+              = 4:  fact = 'N' and the pencil A - lambda * E cannot be
+                 reduced to generalized Schur form: LAPACK routine
+                 DGEGS (or DGGES) has failed to converge;
+              = 5:  dico = 'C' and the pencil A - lambda * E is not
+                 c-stable;
+              = 6:  dico = 'D' and the pencil A - lambda * E is not
+                 d-stable;
+              = 7:  the LAPACK routine DSYEVX utilized to factorize M3
+                 failed to converge in the discrete-time case (see
+                 section METHOD for SLICOT Library routine SG03BU).
+                 This error is unlikely to occur.
+    """
+    hidden = ' (hidden by the wrapper)'
+    arg_list = ['dico', 'fact', 'trans', 'n', 'm', 'A', 'LDA'+hidden, 'E',
+        'LDE'+hidden, 'Q', 'LDQ'+hidden, 'Z', 'LDZ'+hidden, 'B', 'LDB'+hidden,
+        'scale', 'alphar'+hidden, 'alphai'+hidden, 'IWORK'+hidden, 'DWORK'+hidden,
+        'ldwork', 'INFO'+hidden]
+    if ldwork is None:
+        ldwork = max(1,4*n,6*n-6)
+    if dico != 'C' and dico != 'D':
+        raise ValueError('dico must be either D or C')
+    out = _wrapper.sg03bd(dico,n,m,A,E,Q,Z,B,fact=fact,trans=trans,ldwork=ldwork)
+    if out[-1] < 0:
+        error_text = "The following argument had an illegal value: "+arg_list[-out[-1]-1]
+        e = ValueError(error_text)
+        e.info = out[-1]
+        raise e
+    if out[-1] == 1:
+        error_text = """the pencil A - lambda * E is (nearly) singular;
+                 perturbed values were used to solve the equation
+                 (but the reduced (quasi)triangular matrices A and E
+                 are unchanged)."""
+        e = ValueError(error_text)
+        e.info = out[-1]
+        raise e
+    if out[-1] == 2:
+        error_text = """the matrix contained in the upper
+                 Hessenberg part of the array A is not in upper
+                 quasitriangular form."""
+        e = ValueError(error_text)
+        e.info = out[-1]
+        raise e
+    if out[-1] == 3:
+        error_text = """there is a 2-by-2 block on the main
+                 diagonal of the pencil A_s - lambda * E_s whose
+                 eigenvalues are not conjugate complex."""
+        e = ValueError(error_text)
+        e.info = out[-1]
+        raise e
+    if out[-1] == 4:
+        error_text = """the pencil A - lambda * E cannot be
+                 reduced to generalized Schur form: LAPACK routine
+                 DGEGS (or DGGES) has failed to converge."""
+        e = ValueError(error_text)
+        e.info = out[-1]
+        raise e
+    if out[-1] == 5:
+        error_text = """the pencil A - lambda * E is not
+                 c-stable."""
+        e = ValueError(error_text)
+        e.info = out[-1]
+        raise e
+    if out[-1] == 6:
+        error_text = """the pencil A - lambda * E is not
+                 d-stable."""
+        e = ValueError(error_text)
+        e.info = out[-1]
+        raise e
+    if out[-1] == 7:
+        error_text = """the LAPACK routine DSYEVX utilized to factorize M3
+                 failed to converge in the discrete-time case (see
+                 section METHOD for SLICOT Library routine SG03BU).
+                 This error is unlikely to occur."""
+        e = ValueError(error_text)
+        e.info = out[-1]
+        raise e
+    U,scale,alphar,alphai,beta = out[:-1]
+    alpha = _np.zeros(n,'complex64')
+    alpha.real = alphar[0:n]
+    alpha.imag = alphai[0:n]
+    return U,scale,alpha/beta

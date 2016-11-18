@@ -477,7 +477,7 @@ def ab08nd(n,m,p,A,B,C,D,equil='N',tol=0,ldwork=None):
     return out[:-1]
 
 def ab09ad(dico,job,equil,n,m,p,A,B,C,nr=None,tol=0,ldwork=None):
-    """ nr,Ar,Br,Cr,hsv = ab09ad(dico,job,equil,n,m,p,nr,A,B,C,[nr,tol,ldwork])
+    """ nr,Ar,Br,Cr,hsv = ab09ad(dico,job,equil,n,m,p,A,B,C,[nr,tol,ldwork])
 
     Compute reduced order State-Space-Model (Ar, Br, Cr) for a stable system
     (A, B, C) by using either the square-root or the balancing-free square-
@@ -730,6 +730,7 @@ def ab09ax(dico,job,n,m,p,A,B,C,nr=None,tol=0.0,ldwork=None):
 
 def ab09bd(dico,job,equil,n,m,p,A,B,C,D,nr=None,tol1=0,tol2=0,ldwork=None):
     """ nr,Ar,Br,Cr,Dr,hsv = ab09bd(dico,job,equil,n,m,p,A,B,C,D,[nr,tol1,tol2,ldwork])
+    
     To compute a reduced order model (Ar,Br,Cr,Dr) for a stable
     original state-space representation (A,B,C,D) by using either the
     square-root or the balancing-free square-root Singular
@@ -764,15 +765,12 @@ def ab09bd(dico,job,equil,n,m,p,A,B,C,D,nr=None,tol1=0,tol2=0,ldwork=None):
             A : input rank-2 array('d') with bounds (n,n)
                 On entry, the leading n-by-n part of this array must
                 contain the state dynamics matrix A.
-
             B : input rank-2 array('d') with bounds (n,m)
                 On entry, the leading n-by-m part of this array must
                 contain the original input/state matrix B.
-
             C : input rank-2 array('d') with bounds (p,n)
                 On entry, the leading p-by-n part of this array must
                 contain the original state/output matrix C.
-
             D : input rank-2 array('d') with bounds (p,m)
                 On entry, the leading p-by-m part of this array must
                 contain the original input/output matrix D.
@@ -782,21 +780,21 @@ def ab09bd(dico,job,equil,n,m,p,A,B,C,D,nr=None,tol1=0,tol2=0,ldwork=None):
                 nr is the desired order of
                 the resulting reduced order system.  0 <= nr <= n.
             tol1 :=0 input double precision
-                If ORDSEL = 'A', tol1 contains the tolerance for
+                If ordsel = 'A', tol1 contains the tolerance for
                 determining the order of reduced system.
                 For model reduction, the recommended value is
-                tol1 = c*HNORM(A,B,C), where c is a constant in the
-                interval [0.00001,0.001], and HNORM(A,B,C) is the
-                Hankel-norm of the given system (computed in HSV(1)).
+                tol1 = c*hnorm(A,B,C), where c is a constant in the
+                interval [0.00001,0.001], and hnorm(A,B,C) is the
+                Hankel-norm of the given system (computed in hsv(1)).
                 For computing a minimal realization, the recommended
-                value is tol1 = n*EPS*HNORM(A,B,C), where EPS is the
+                value is tol1 = n*eps*hnorm(A,B,C), where eps is the
                 machine precision (see LAPACK Library Routine DLAMCH).
                 This value is used by default if tol1 <= 0 on entry.
-                If ORDSEL = 'F', the value of tol1 is ignored.
+                If ordsel = 'F', the value of tol1 is ignored.
             tol2 :=0 input double precision
                 The tolerance for determining the order of a minimal
                 realization of the given system. The recommended value is
-                tol2 = n*EPS*HNORM(A,B,C). This value is used by default
+                tol2 = n*eps*hnorm(A,B,C). This value is used by default
                 if tol2 <= 0 on entry.
                 If tol2 > 0, then tol2 <= tol1.
             ldwork := None input int
@@ -807,16 +805,16 @@ def ab09bd(dico,job,equil,n,m,p,A,B,C,D,nr=None,tol1=0,tol2=0,ldwork=None):
             nr : output int
                 nr is the order of the resulting reduced order model.
                 nr is set as follows:
-                if ordsel = 'F', nr is equal to MIN(nr,NMIN), where nr
-                is the desired order on entry and NMIN is the order of a
-                minimal realization of the given system; NMIN is
+                if ordsel = 'F', nr is equal to min(nr,nmin), where nr
+                is the desired order on entry and nmin is the order of a
+                minimal realization of the given system; nmin is
                 determined as the number of Hankel singular values greater
-                than N*EPS*HNORM(A,B,C), where EPS is the machine
+                than n*eps*hnorm(A,B,C), where eps is the machine
                 precision (see LAPACK Library Routine DLAMCH) and
-                HNORM(A,B,C) is the Hankel norm of the system (computed
-                in HSV(1));
+                hnorm(A,B,C) is the Hankel norm of the system (computed
+                in hsv(1));
                 if ordsel = 'A', nr is equal to the number of Hankel
-                singular values greater than MAX(TOL1,N*EPS*HNORM(A,B,C)).
+                singular values greater than max(tol1,n*eps*hnorm(A,B,C)).
             Ar : rank-2 array('d') with bounds (nr,nr)
                 the leading nr-by-nr part of this array contains the
                 state dynamics matrix Ar of the reduced order system.
@@ -830,8 +828,8 @@ def ab09bd(dico,job,equil,n,m,p,A,B,C,D,nr=None,tol1=0,tol2=0,ldwork=None):
                 the leading p-by-m part of this array contains the
                 input/output matrix Dr of the reduced order system.
             hsv : output double precision array, dimension (n)
-                If INFO = 0, it contains the Hankel singular values of
-                the original system ordered decreasingly. HSV(1) is the
+                If info = 0, it contains the Hankel singular values of
+                the original system ordered decreasingly. hsv(1) is the
                 Hankel norm of the system.
     """
 
@@ -876,7 +874,358 @@ def ab09bd(dico,job,equil,n,m,p,A,B,C,D,nr=None,tol1=0,tol2=0,ldwork=None):
         e = ArithmeticError('The computation of Hankel singular values failed')
         e.info = out[-1]
         raise e
-    nr,A,B,C,D,hsv = out[:-2]
-    return nr, A[:Nr,:Nr], B[:Nr,:], C[:,:Nr],D[:,:], hsv
+    Nr,A,B,C,D,hsv = out[:-2]
+    return Nr, A[:Nr,:Nr], B[:Nr,:], C[:,:Nr],D[:,:], hsv
 
+def ab09md(dico,job,equil,n,m,p,A,B,C,alpha=None,nr=None,tol=0,ldwork=None):
+    """ nr,Ar,Br,Cr,ns,hsv = ab09md(dico,job,equil,n,m,p,A,B,C,[alpha,nr,tol,ldwork])
+
+    To compute a reduced order model (Ar,Br,Cr) for an original
+    state-space representation (A,B,C) by using either the square-root
+    or the balancing-free square-root Balance & Truncate (B & T)
+    model reduction method for the ALPHA-stable part of the system.
+
+    Arguments
+        Mode Parameters
+            dico
+                Specifies the type of the original system as follows:
+                = 'C':  continuous-time system;
+                = 'D':  discrete-time system.
+            job
+                Specifies the model reduction approach to be used
+                as follows:
+                = 'B':  use the square-root Balance & Truncate method;
+                = 'N':  use the balancing-free square-root
+                        Balance & Truncate method.
+            equil
+                Specifies whether the user wishes to preliminarily
+                equilibrate the triplet (A,B,C) as follows:
+                = 'S':  perform equilibration (scaling);
+                = 'N':  do not perform equilibration.
+
+        Required arguments
+            n : input int
+                The order of the original state-space representation, i.e.
+                the order of the matrix A.  n >= 0.
+            m : input int
+                The number of system inputs.  m >= 0.
+            p : input int
+                The number of system outputs.  p >= 0.
+            A : input rank-2 array('d'), dimension (n,n)
+                On entry, the leading N-by-N part of this array must
+                contain the state dynamics matrix A.                
+            B : input rank-2 array('d'), dimension (n,m)
+                On entry, the leading N-by-M part of this array must
+                contain the original input/state matrix B.
+            C : input rank-2 array('d'), dimension (p,n)
+                On entry, the leading P-by-N part of this array must
+                contain the original state/output matrix C.
+
+         Optional arguments
+            alpha :=None input double precision
+                Specifies the alpha-stability boundary for the eigenvalues
+                of the state dynamics matrix A. For a continuous-time
+                system (dico = 'C'), alpha <= 0 is the boundary value for
+                the real parts of eigenvalues, while for a discrete-time
+                system (dico = 'D'), 0 <= alpha <= 1 represents the
+                boundary value for the moduli of eigenvalues.
+                The alpha-stability domain does not include the boundary.
+            nr := None input int
+                On entry with ordsel = 'F', nr is the desired order of the
+                resulting reduced order system.  0 <= nr <= n.
+            tol :=0 input double precision
+                If ordsel = 'A', tol contains the tolerance for
+                determining the order of reduced system.
+                For model reduction, the recommended value is
+                tol = c*hnorm(As,Bs,Cs), where c is a constant in the
+                interval [0.00001,0.001], and hnorm(As,Bs,Cs) is the
+                Hankel-norm of the alpha-stable part of the given system
+                (computed in hsv(1)).
+                If tol <= 0 on entry, the used default value is
+                tol = ns*eps*hnorm(As,Bs,Cs), where ns is the number of
+                alpha-stable eigenvalues of A and eps is the machine
+                precision (see LAPACK Library Routine DLAMCH).
+                This value is appropriate to compute a minimal realization
+                of the alpha-stable part.
+                If ordsel = 'F', the value of tol is ignored.
+            ldwork :=None input int
+                The length of the array dwork.
+                ldwork >= max(1,n*(2*n+max(n,m,p)+5) + n*(n+1)/2).
+                For optimum performance ldwork should be larger.
+
+         Return objects
+            nr : output int
+                On exit, if info = 0, nr is the order of the resulting
+                reduced order model. For a system with nu alpha-unstable
+                eigenvalues and ns alpha-stable eigenvalues (nu+ns = n),
+                nr is set as follows: if ordsel = 'F', nr is equal to
+                nu+min(max(0,nr-nu),nmin), where nr is the desired order
+                on entry, and nmin is the order of a minimal realization
+                of the alpha-stable part of the given system; nmin is
+                determined as the number of Hankel singular values greater
+                than ns*eps*hnorm(As,Bs,Cs), where eps is the machine
+                precision (see LAPACK Library Routine DLAMCH) and
+                hnorm(As,Bs,Cs) is the Hankel norm of the alpha-stable
+                part of the given system (computed in hsv(1));
+                if ordsel = 'A', nr is the sum of nu and the number of
+                Hankel singular values greater than
+                max(tol,ns*eps*hnorm(As,Bs,Cs)).
+            Ar : rank-2 array('d') with bounds (nr,nr)
+                On exit, if info = 0, the leading nr-by-nr part of this
+                array contains the state dynamics matrix Ar of the reduced
+                order system.
+                The resulting A has a block-diagonal form with two blocks.
+                For a system with nu alpha-unstable eigenvalues and
+                ns alpha-stable eigenvalues (nu+ns = n), the leading
+                nu-by-nu block contains the unreduced part of A
+                corresponding to alpha-unstable eigenvalues in an
+                upper real Schur form.
+                The trailing (nr+ns-n)-by-(nr+ns-n) block contains
+                the reduced part of A corresponding to alpha-stable
+                eigenvalues.
+            Br : rank-2 array('d') with bounds (nr,m)
+                On exit, if info = 0, the leading nr-by-m part of this
+                array contains the input/state matrix Br of the reduced
+                order system.
+            Cr : rank-2 array('d') with bounds (p,nr)
+                On exit, if info = 0, the leading p-by-nr part of this
+                array contains the state/output matrix Cr of the reduced
+                order system.
+            ns : output int
+                The dimension of the alpha-stable subsystem.
+            hsv : output double precision array, dimension (n)
+                If info = 0, the leading ns elements of hsv contain the
+                Hankel singular values of the alpha-stable part of the
+                original system ordered decreasingly.
+                hsv(1) is the Hankel norm of the alpha-stable subsystem.
+    """
+    hidden = ' (hidden by the wrapper)'
+    arg_list = ['dico', 'job', 'equil', 'ordsel', 'n', 'm', 'p', 'nr', 'alpha', 'A',
+        'lda'+hidden, 'B', 'ldb'+hidden, 'C', 'ldc'+hidden, 'ns', 'hsv', 'tol1', 'tol2',
+        'iwork'+hidden, 'dwork'+hidden, 'ldwork', 'iwarn', 'info']
+    if ldwork is None:
+        ldwork = max(1,n*(2*n+max(n,max(m,p))+5)+n*(n+1)/2)
+    if nr is None:
+        ordsel = 'A'
+        nr = 0 #order will be computed by the routine
+    else:
+        ordsel = 'F'
+    if dico != 'C' and dico != 'D':
+        raise ValueError('Parameter dico had an illegal value')
+    if alpha is None:
+        if dico == 'C':
+            alpha = 0.
+        elif dico == 'D':
+            alpha = 1.
+    if job != 'B' and job != 'N':
+        raise ValueError('Parameter job had an illegal value')
+    if equil != 'S' and equil != 'N':
+        raise ValueError('Parameter equil had an illegal value')
+    out = _wrapper.ab09md(dico,job,equil,ordsel,n,m,p,nr,alpha,A,B,C,tol,ldwork)
+    if out[-2] == 1:
+        warnings.warn("with ordsel = 'F', the selected order nr is greater\
+                than nsmin, the sum of the order of the\
+                alpha-unstable part and the order of a minimal\
+                realization of the alpha-stable part of the given\
+                system. In this case, the resulting nr is set equal\
+                to nsmin.")
+    if out[-2] == 2:
+        warnings.warn("with ordsel = 'F', the selected order nr is less\
+                than the order of the alpha-unstable part of the\
+                given system. In this case nr is set equal to the\
+                order of the alpha-unstable part.")
+    if out[-1] < 0:
+        error_text = "The following argument had an illegal value: "+arg_list[-out[-1]-1]
+        e = ValueError(error_text)
+        e.info = out[-1]
+        raise e
+    if out[-1] == 1:
+        e = ArithmeticError('The reduction of A to the real Schur form failed')
+        e.info = out[-1]
+        raise e
+    if out[-1] == 2:
+        e = ArithmeticError('the separation of the alpha-stable/unstable diagonal\
+                blocks failed because of very close eigenvalues;')
+        e.info = out[-1]
+        raise e
+    if out[-1] == 3:
+        e = ArithmeticError('The computation of Hankel singular values failed')
+        e.info = out[-1]
+        raise e
+    Nr,A,B,C,Ns,hsv = out[:-2]
+    return Nr, A[:Nr,:Nr], B[:Nr,:], C[:,:Nr], Ns, hsv
+
+def ab09nd(dico,job,equil,n,m,p,A,B,C,D,alpha=None,nr=None,tol1=0,tol2=0,ldwork=None):
+    """ nr,Ar,Br,Cr,Dr,ns,hsv = ab09nd(dico,job,equil,n,m,p,A,B,C,D,[alpha,nr,tol1,tol2,ldwork])
+    
+    To compute a reduced order model (Ar,Br,Cr,Dr) for an original
+    state-space representation (A,B,C,D) by using either the
+    square-root or the balancing-free square-root Singular
+    Perturbation Approximation (SPA) model reduction method for the
+    alpha-stable part of the system.
+
+    Arguments
+        Mode Parameters
+            dico
+                Specifies the type of the original system as follows:
+                = 'C':  continuous-time system;
+                = 'D':  discrete-time system.
+            job
+                Specifies the model reduction approach to be used
+                as follows:
+                = 'B':  use the square-root SPA method;
+                = 'N':  use the balancing-free square-root SPA method.
+            equil
+                Specifies whether the user wishes to preliminarily
+                equilibrate the triplet (A,B,C) as follows:
+                = 'S':  perform equilibration (scaling);
+                = 'N':  do not perform equilibration.
+
+        Required arguments
+            n : input int
+                The order of the original state-space representation, i.e.
+                the order of the matrix A.  n >= 0.
+            m : input int
+                The number of system inputs.  m >= 0.
+            p : input int
+                The number of system outputs.  p >= 0.
+            A : input rank-2 array('d') with bounds (n,n)
+                On entry, the leading n-by-n part of this array must
+                contain the state dynamics matrix A.
+            B : input rank-2 array('d') with bounds (n,m)
+                On entry, the leading n-by-m part of this array must
+                contain the original input/state matrix B.
+            C : input rank-2 array('d') with bounds (p,n)
+                On entry, the leading p-by-n part of this array must
+                contain the original state/output matrix C.
+            D : input rank-2 array('d') with bounds (p,m)
+                On entry, the leading p-by-m part of this array must
+                contain the original input/output matrix D.
+
+        Optional arguments
+            alpha :=None input double precision
+                Specifies the alpha-stability boundary for the eigenvalues
+                of the state dynamics matrix A. For a continuous-time
+                system (dico = 'C'), alpha <= 0 is the boundary value for
+                the real parts of eigenvalues, while for a discrete-time
+                system (dico = 'D'), 0 <= alpha <= 1 represents the
+                boundary value for the moduli of eigenvalues.
+                The alpha-stability domain does not include the boundary.
+            nr :=None input int
+                nr is the desired order of
+                the resulting reduced order system.  0 <= nr <= n.
+            tol1 :=0 input double precision
+                If ordsel = 'A', tol1 contains the tolerance for
+                determining the order of reduced system.
+                For model reduction, the recommended value is
+                tol1 = c*hnorm(As,Bs,Cs), where c is a constant in the
+                interval [0.00001,0.001], and hnorm(As,Bs,Cs) is the
+                Hankel-norm of the alpha-stable part of the given system
+                (computed in hsv(1)).
+                If tol1 <= 0 on entry, the used default value is
+                tol1 = ns*eps*hnorm(As,Bs,Cs), where NS is the number of
+                alpha-stable eigenvalues of A and eps is the machine
+                precision (see LAPACK Library Routine DLAMCH).
+                This value is appropriate to compute a minimal realization
+                of the alpha-stable part.
+                If ordsel = 'F', the value of tol1 is ignored.
+            tol2 :=0 input double precision
+                The tolerance for determining the order of a minimal
+                realization of the alpha-stable part of the given system.
+                The recommended value is tol2 = ns*eps*hnorm(As,Bs,Cs).
+                This value is used by default if tol2 <= 0 on entry.
+                If tol2 > 0, then tol2 <= tol1.
+            ldwork := None input int
+                The length of the array dwork.
+                ldwork >= max(1,n*(2*n+max(n,m,p)+5) + n*(n+1)/2).
+                For optimum performance ldwork should be larger.
+
+        Return objects
+            nr : output int
+                nr is the order of the resulting reduced order model.
+                nr is set as follows:
+                if ordsel = 'F', nr is equal to min(nr,nmin), where nr
+                is the desired order on entry and nmin is the order of a
+                minimal realization of the given system; nmin is
+                determined as the number of Hankel singular values greater
+                than n*eps*hnorm(A,B,C), where eps is the machine
+                precision (see LAPACK Library Routine DLAMCH) and
+                hnorm(A,B,C) is the Hankel norm of the system (computed
+                in hsv(1));
+                if ordsel = 'A', nr is equal to the number of Hankel
+                singular values greater than max(TOL1,n*eps*hnorm(A,B,C)).
+            Ar : rank-2 array('d') with bounds (nr,nr)
+                the leading nr-by-nr part of this array contains the
+                state dynamics matrix Ar of the reduced order system.
+            Br : rank-2 array('d') with bounds (nr,m)
+                the leading nr-by-m part of this array contains the
+                input/state matrix Br of the reduced order system.
+            Cr : rank-2 array('d') with bounds (p,nr)
+                the leading p-by-nr part of this array contains the
+                state/output matrix Cr of the reduced order system.
+            Dr : rank-2 array('d') with bounds (p,m)
+                the leading p-by-m part of this array contains the
+                input/output matrix Dr of the reduced order system.
+            ns : output int
+                The dimension of the alpha-stable subsystem.
+            hsv : output double precision array, dimension (n)
+                If info = 0, it contains the Hankel singular values of
+                the original system ordered decreasingly. hsv(1) is the
+                Hankel norm of the system.
+    """
+    hidden = ' (hidden by the wrapper)'
+    arg_list = ['dico', 'job', 'equil', 'ordsel', 'n', 'm', 'p', 'nr', 'alpha', 'A',
+        'lda'+hidden, 'B', 'ldb'+hidden, 'C', 'ldc'+hidden, 'D', 'ldd'+hidden, 'ns', 'hsv', 'tol1', 'tol2',
+        'iwork'+hidden, 'dwork'+hidden, 'ldwork', 'iwarn', 'info']
+    if ldwork is None:
+        ldwork = max(1,n*(2*n+max(n,max(m,p))+5)+n*(n+1)/2)
+    if nr is None:
+        ordsel = 'A'
+        nr = 0 #order will be computed by the routine
+    else:
+        ordsel = 'F'
+    if dico != 'C' and dico != 'D':
+        raise ValueError('Parameter dico had an illegal value')
+    if alpha is None:
+        if dico == 'C':
+            alpha = 0.
+        elif dico == 'D':
+            alpha = 1.
+    if job != 'B' and job != 'N':
+        raise ValueError('Parameter job had an illegal value')
+    if equil != 'S' and equil != 'N':
+        raise ValueError('Parameter equil had an illegal value')
+    out = _wrapper.ab09nd(dico,job,equil,ordsel,n,m,p,nr,alpha,A,B,C,D,tol1,tol2,ldwork)
+    if out[-2] == 1:
+        warnings.warn("with ordsel = 'F', the selected order nr is greater\
+                than nsmin, the sum of the order of the\
+                alpha-unstable part and the order of a minimal\
+                realization of the alpha-stable part of the given\
+                system. In this case, the resulting nr is set equal\
+                to nsmin.")
+    if out[-2] == 2:
+        warnings.warn("with ordsel = 'F', the selected order nr is less\
+                than the order of the alpha-unstable part of the\
+                given system. In this case nr is set equal to the\
+                order of the alpha-unstable part.")
+    if out[-1] < 0:
+        error_text = "The following argument had an illegal value: "+arg_list[-out[-1]-1]
+        e = ValueError(error_text)
+        e.info = out[-1]
+        raise e
+    if out[-1] == 1:
+        e = ArithmeticError('The reduction of A to the real Schur form failed')
+        e.info = out[-1]
+        raise e
+    if out[-1] == 2:
+        e = ArithmeticError('the separation of the alpha-stable/unstable diagonal\
+                 blocks failed because of very close eigenvalues;')
+        e.info = out[-1]
+        raise e
+    if out[-1] == 3:
+        e = ArithmeticError('The computation of Hankel singular values failed')
+        e.info = out[-1]
+        raise e
+    Nr,A,B,C,D,Ns,hsv = out[:-2]
+    return Nr, A[:Nr,:Nr], B[:Nr,:], C[:,:Nr], D, Ns, hsv
 # to be replaced by python wrappers

@@ -22,6 +22,9 @@ if sys.version_info[0] >= 3:
 else:
     import __builtin__ as builtins
 
+# Fix a bug in python v3.4 installation
+if (sys.version_info[0:2] == (3,4)):
+    import importlib.machinery
 
 CLASSIFIERS = """\
 Development Status :: 3 - Alpha
