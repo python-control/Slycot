@@ -9,3 +9,4 @@ slycot/version.py
 build.log
 *.egg-info/
 .coverage
+*~
