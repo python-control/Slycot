@@ -43,7 +43,7 @@ Operating System :: MacOS
 """
 
 MAJOR = 0
-MINOR = 2
+MINOR = 3
 MICRO = 0
 POST = 0
 ISRELEASED = True
