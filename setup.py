@@ -44,7 +44,7 @@ Operating System :: MacOS
 
 MAJOR = 0
 MINOR = 3
-MICRO = 0
+MICRO = 1
 POST = 0
 ISRELEASED = True
 VERSION = '%d.%d.%d' % (MAJOR, MINOR, MICRO)
