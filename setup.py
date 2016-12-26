@@ -201,7 +201,7 @@ def setup_package():
         author='Enrico Avventi',
         author_email='james.goppert@gmail.com',
         download_url='https://github.com/jgoppert/Slycot',
-        license='BSD',
+        license='GPLv2',
         classifiers=[_f for _f in CLASSIFIERS.split('\n') if _f],
         platforms=["Windows", "Linux", "Solaris", "Mac OS-X", "Unix"],
         cmdclass={"sdist": sdist_checked},
