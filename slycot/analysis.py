@@ -1228,4 +1228,332 @@ def ab09nd(dico,job,equil,n,m,p,A,B,C,D,alpha=None,nr=None,tol1=0,tol2=0,ldwork=
         raise e
     Nr,A,B,C,D,Ns,hsv = out[:-2]
     return Nr, A[:Nr,:Nr], B[:Nr,:], C[:,:Nr], D, Ns, hsv
+
+def ab13bd(dico, jobn, n, m, p, A, B, C, D, tol = 1e-10):
+    """norm = ab13bd(dico, jobn, n, m, p, A, B, C, D, [tol])
+
+    To compute the H2 or L2 norm of the transfer-function matrix G
+    of the system (A,B,C,D). G must not have poles on the imaginary
+    axis, for a continuous-time system, or on the unit circle, for
+    a discrete-time system. If the H2-norm is computed, the system
+    must be stable.
+
+    Required arguments:
+        dico : {'D', 'C'} input string(len=1)
+               Indicate whether the system is discrete 'D' or continuous 'C'.
+        jobn : {'H', 'L'} input string(len=1)
+               H2-norm 'H' or L2-norm 'L' to be computed.
+        n : input int
+            The number of state variables.  n >= 0.
+        m : input int
+            The number of system inputs.  m >= 0.
+        p : input int
+            The number of system outputs.  p >= 0.
+        A : input rank-2 array('d') with bounds (n,n)
+            The leading n-by-n part of this array must contain the state
+            dynamics matrix A of the system.
+        B : input rank-2 array('d') with bounds (n,m)
+            The leading n-by-m part of this array must contain the input/state
+            matrix B of the system.
+        C : input rank-2 array('d') with bounds (p,n)
+            The leading p-by-n part of this array must contain the state/output
+            matrix C of the system.
+        D : input rank-2 array('d') with bounds (p,m)
+            The leading p-by-m part of this array must contain the direct
+            transmission matrix D of the system.
+
+    Optional arguments:
+        tol : The absolute tolerance level below which the elements of
+              B are considered zero (used for controllability tests).
+              If the user sets tol <= 0, then an implicitly computed,
+              default tolerance, defined by  toldef = n*eps*norm(B),
+              is used instead, where eps is the machine precision
+              (see LAPACK Library routine DLAMCH) and norm(B) denotes
+              the 1-norm of B.
+    """
+
+    if dico != 'C' and dico != 'D':
+        raise ValueError('dico must be "C" or "D"')
+    if jobn != 'H' and jobn != 'L':
+        raise ValueError('jobn must be "H" or "L"')
+    out = _wrapper.ab13bd(dico, jobn, n, m, p, A, B, C, D, tol)
+    if out[-1] == 0:
+        # success
+        return out[0]
+    elif out[-1] < 0:
+        hidden = ' (hidden by the wrapper)'
+        arg_list = ['dico', 'jobn', 'n', 'm', 'p',
+                    'A', 'lda'+hidden, 'B', 'ldb'+hidden, 'C', 'ldc'+hidden, 'D', 'ldd'+hidden,
+                    'nq'+hidden,'tol', 'dwork'+hidden, 'ldwork'+hidden, 'iwarn'+hidden, 'info'+hidden]
+        error_text = "The following argument had an illegal value: " + arg_list[-out[-1]-1]
+        e = ValueError(error_text)
+        e.info = out[-1]
+        raise e
+    elif out[-1] == 1:
+        e = ArithmeticError("the reduction of A to a real Schur form failed")
+        e.info = out[-1]
+        raise e
+    elif out[-1] == 2:
+        e = ArithmeticError("a failure was detected during the reordering of the real Schur form of A, "
+                            "or in the iterative process for reordering the eigenvalues of "
+                            "Z'*(A + B*F)*Z along the diagonal")
+        e.info = out[-1]
+        raise e
+    elif out[-1] == 3:
+        e = ArithmeticError("the matrix A has a controllable eigenvalue on the " +
+                            ( "imaginary axis" if dico == 'C' else "unit circle" ))
+        e.info = out[-1]
+        raise e
+    elif out[-1] == 4:
+        e = ArithmeticError("the solution of Lyapunov equation failed because the equation is singular")
+        e.info = out[-1]
+        raise e
+    elif out[-1] == 5:
+        e = ArithmeticError("DICO = 'C' and D is a nonzero matrix")
+        e.info = out[-1]
+        raise e
+    elif out[-1] == 6:
+        e = ArithmeticError("JOBN = 'H' and the system is unstable")
+        e.info = out[-1]
+        raise e
+    else:
+        raise RuntimeError("unknown error code %r" % out[-1])
+
+def ab13dd(dico, jobe, equil, jobd, n, m, p, A, E, B, C, D, tol = 1e-10):
+    """gpeak, fpeak = ab13dd(dico, jobe, equil, jobd, n, m, p, A, E, B, C, D, [tol])
+
+    To compute the L-infinity norm of a continuous-time or
+    discrete-time system, either standard or in the descriptor form,
+
+                                  -1
+     G(lambda) = C*( lambda*E - A ) *B + D .
+
+    The norm is finite if and only if the matrix pair (A,E) has no
+    eigenvalue on the boundary of the stability domain, i.e., the
+    imaginary axis, or the unit circle, respectively. It is assumed
+    that the matrix E is nonsingular.
+
+    Required arguments:
+        dico : {'D', 'C'} input string(len=1)
+               Indicate whether the system is discrete 'D' or continuous 'C'.
+        jobe : {'G', 'I'} input string(len=1)
+               Specifies whether E is a general square or an identity
+               matrix, as follows:
+               = 'G':  E is a general square matrix;
+               = 'I':  E is the identity matrix.
+        equil : {'S', 'N'} input string(len=1)
+                Specifies whether the user wishes to preliminarily
+                equilibrate the system (A,E,B,C) or (A,B,C), as follows:
+                = 'S':  perform equilibration (scaling);
+                = 'N':  do not perform equilibration.
+        jobd : {'D', 'Z'} input string(len=1)
+               Specifies whether or not a non-zero matrix D appears in
+               the given state space model:
+               = 'D':  D is present;
+               = 'Z':  D is assumed a zero matrix.
+        n : input int
+            The number of state variables.  n >= 0.
+        m : input int
+            The number of system inputs.  m >= 0.
+        p : input int
+            The number of system outputs.  p >= 0.
+        A : input rank-2 array('d') with bounds (n,n)
+            The leading n-by-n part of this array must contain the state
+            dynamics matrix A of the system.
+        E : input rank-2 array('d') with bounds (n,n)
+            If jobe = 'G', the leading N-by-N part of this array must
+            contain the descriptor matrix E of the system.
+            If jobe = 'I', then E is assumed to be the identity
+            matrix and is not referenced.
+        B : input rank-2 array('d') with bounds (n,m)
+            The leading n-by-m part of this array must contain the input/state
+            matrix B of the system.
+        C : input rank-2 array('d') with bounds (p,n)
+            The leading p-by-n part of this array must contain the state/output
+            matrix C of the system.
+        D : input rank-2 array('d') with bounds (p,m)
+            The leading p-by-m part of this array must contain the direct
+            transmission matrix D of the system.
+
+    Optional arguments:
+        tol : Tolerance used to set the accuracy in determining the
+              norm.  0 <= tol < 1.
+
+    Return objects:
+        gpeak : float
+                The L-infinity norm of the system, i.e., the peak gain
+                of the frequency response (as measured by the largest
+                singular value in the MIMO case).
+        fpeak : float
+                The frequency where the gain of the frequency response
+                achieves its peak value gpeak, i.e.,
+
+                  || G ( j*fpeak ) || = gpeak ,  if dico = 'C', or
+
+                          j*fpeak
+                  || G ( e       ) || = gpeak ,  if dico = 'D'.
+    """
+
+    if dico != 'C' and dico != 'D':
+        raise ValueError('dico must be "C" or "D"')
+    if jobe != 'G' and jobe != 'I':
+        raise ValueError('jobe must be "G" or "I"')
+    if equil != 'S' and equil != 'N':
+        raise ValueError('equil must be "S" or "N"')
+    if jobd != 'D' and jobd != 'Z':
+        raise ValueError('jobd must be "D" or "Z"')
+    out = _wrapper.ab13dd(dico, jobe, equil, jobd, n, m, p, [0.0, 1.0], A, E, B, C, D, tol)
+    if out[-1] == 0:
+        # success
+        fpeak = out[0][0] if out[0][1] > 0 else float('inf')
+        gpeak = out[1][0] if out[1][1] > 0 else float('inf')
+        return gpeak, fpeak
+    elif out[-1] < 0:
+        hidden = ' (hidden by the wrapper)'
+        arg_list = ['dico', 'jobe', 'equil', 'jobd', 'n', 'm', 'p', 'fpeak'+hidden,
+                    'A', 'lda'+hidden, 'E', 'lde'+hidden, 'B', 'ldb'+hidden, 'C', 'ldc'+hidden, 'D', 'ldd'+hidden,
+                    'gpeak'+hidden, 'tol', 'iwork'+hidden, 'dwork'+hidden, 'ldwork'+hidden,
+                    'cwork'+hidden, 'lcwork'+hidden, 'info'+hidden]
+        error_text = "The following argument had an illegal value: " + arg_list[-out[-1]-1]
+        e = ValueError(error_text)
+        e.info = out[-1]
+        raise e
+    elif out[-1] == 1:
+        e = ArithmeticError("the matrix E is (numerically) singular")
+        e.info = out[-1]
+        raise e
+    elif out[-1] == 2:
+        e = ArithmeticError("the (periodic) QR (or QZ) algorithm for computing eigenvalues did not converge")
+        e.info = out[-1]
+        raise e
+    elif out[-1] == 3:
+        e = ArithmeticError("the SVD algorithm for computing singular values did not converge")
+        e.info = out[-1]
+        raise e
+    elif out[-1] == 4:
+        e = ArithmeticError("the tolerance is too small and the algorithm did not converge")
+        e.info = out[-1]
+        raise e
+    else:
+        raise RuntimeError("unknown error code %r" % out[-1])
+
+def ab13ed(n, A, tol = 9.0):
+    """low, high = ab13ed(n, A, [tol])
+
+    To estimate beta(A), the 2-norm distance from a real matrix A to
+    the nearest complex matrix with an eigenvalue on the imaginary
+    axis. The estimate is given as
+
+         low <= beta(A) <= high,
+
+    where either
+
+         (1 + tol) * low >= high,
+
+    or
+
+         low = 0   and   high = delta,
+
+    and delta is a small number approximately equal to the square root
+    of machine precision times the Frobenius norm (Euclidean norm)
+    of A. If A is stable in the sense that all eigenvalues of A lie
+    in the open left half complex plane, then beta(A) is the distance
+    to the nearest unstable complex matrix, i.e., the complex
+    stability radius.
+
+    Required arguments:
+        n : input int
+            The order of the matrix A.  n >= 0.
+        A : input rank-2 array('d') with bounds (n,n)
+            The leading n-by-n part of this array must contain the matrix A.
+
+    Optional arguments:
+        tol : Specifies the accuracy with which low and high approximate
+              beta(A). If the user sets tol to be less than sqrt(eps),
+              where eps is the machine precision (see LAPACK Library
+              Routine DLAMCH), then the tolerance is taken to be
+              sqrt(eps).
+              The recommended value is tol = 9, which gives an estimate
+              of beta(A) correct to within an order of magnitude.
+
+    Return objects:
+        low : float
+              A lower bound for beta(A).
+        high : float
+               An upper bound for beta(A).
+    """
+    out = _wrapper.ab13ed(n, A, tol)
+    if out[-1] == 0:
+        # success
+        return out[0], out[1]
+    elif out[-1] < 0:
+        hidden = ' (hidden by the wrapper)'
+        arg_list = ['n', 'A', 'lda'+hidden, 'low'+hidden, 'high'+hidden, 'tol',
+                    'dwork'+hidden, 'ldwork'+hidden, 'info'+hidden]
+        error_text = "The following argument had an illegal value: " + arg_list[-out[-1]-1]
+        e = ValueError(error_text)
+        e.info = out[-1]
+        raise e
+    elif out[-1] == 1:
+        e = ArithmeticError("the QR algorithm fails to converge")
+        e.info = out[-1]
+        raise e
+    else:
+        raise RuntimeError("unknown error code %r" % out[-1])
+
+def ab13fd(n, A, tol = 0.0):
+    """beta, omega = ab13fd(n, A, [tol])
+
+    To compute beta(A), the 2-norm distance from a real matrix A to
+    the nearest complex matrix with an eigenvalue on the imaginary
+    axis. If A is stable in the sense that all eigenvalues of A lie
+    in the open left half complex plane, then beta(A) is the complex
+    stability radius, i.e., the distance to the nearest unstable
+    complex matrix. The value of beta(A) is the minimum of the
+    smallest singular value of (A - jwI), taken over all real w.
+    The value of w corresponding to the minimum is also computed.
+
+    Required arguments:
+        n : input int
+            The order of the matrix A.  n >= 0.
+        A : input rank-2 array('d') with bounds (n,n)
+            The leading n-by-n part of this array must contain the matrix A.
+
+    Optional arguments:
+        tol : Specifies the accuracy with which beta(A) is to be
+              calculated. (See the Numerical Aspects section below.)
+              If the user sets tol to be less than eps, where eps is the
+              machine precision (see LAPACK Library Routine DLAMCH),
+              then the tolerance is taken to be eps.
+
+    Return objects:
+        beta : float
+               The computed value of beta(A), which actually is an upper
+               bound.
+        omega : float
+                The value of w such that the smallest singular value of
+                (A - jwI) equals beta(A).
+    """
+    out = _wrapper.ab13fd(n, A, tol)
+    if out[-1] == 0:
+        # success
+        return out[0], out[1]
+    elif out[-1] < 0:
+        hidden = ' (hidden by the wrapper)'
+        arg_list = ['n', 'A', 'lda'+hidden, 'beta'+hidden, 'omega'+hidden, 'tol',
+                    'dwork'+hidden, 'ldwork'+hidden, 'cwork'+hidden, 'lcwork'+hidden, 'info'+hidden]
+        error_text = "The following argument had an illegal value: " + arg_list[-out[-1]-1]
+        e = ValueError(error_text)
+        e.info = out[-1]
+        raise e
+    elif out[-1] == 1:
+        warnings.warn("the routine fails to compute beta(A) within the specified tolerance")
+        return out[0], out[1]  # the returned value is an upper bound on beta(A)
+    elif out[-1] == 2:
+        e = ArithmeticError("either the QR or SVD algorithm fails to converge")
+        e.info = out[-1]
+        raise e
+    else:
+        raise RuntimeError("unknown error code %r" % out[-1])
+
 # to be replaced by python wrappers
