@@ -1229,7 +1229,7 @@ def ab09nd(dico,job,equil,n,m,p,A,B,C,D,alpha=None,nr=None,tol1=0,tol2=0,ldwork=
     Nr,A,B,C,D,Ns,hsv = out[:-2]
     return Nr, A[:Nr,:Nr], B[:Nr,:], C[:,:Nr], D, Ns, hsv
 
-def ab13bd(dico, jobn, n, m, p, A, B, C, D, tol = 1e-10):
+def ab13bd(dico, jobn, n, m, p, A, B, C, D, tol = 0.0):
     """norm = ab13bd(dico, jobn, n, m, p, A, B, C, D, [tol])
 
     To compute the H2 or L2 norm of the transfer-function matrix G
