@@ -1533,6 +1533,21 @@ def ab13fd(n, A, tol = 0.0):
         omega : float
                 The value of w such that the smallest singular value of
                 (A - jwI) equals beta(A).
+
+    Numerical Aspects:
+        In the presence of rounding errors, the computed function value
+        beta satisfies
+              beta(A) <= beta + epsilon,
+              beta/(1+tol) - delta <= max(beta(A), sqrt(2*n*eps)*norm(A)),
+        where norm(A) is the Frobenius norm of A,
+              epsilon = p(n) * eps * norm(A),
+        and
+              delta   = p(n) * sqrt(eps) * norm(A),
+        and p(n) is a low degree polynomial. It is recommended to choose
+        tol greater than sqrt(eps). Although rounding errors can cause
+        AB13FD to fail for smaller values of tol, nevertheless, it usually
+        succeeds. Regardless of success or failure, the first inequality
+        holds.
     """
     out = _wrapper.ab13fd(n, A, tol)
     if out[-1] == 0:
