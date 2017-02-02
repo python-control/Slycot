@@ -193,14 +193,12 @@ def setup_package():
 
     metadata = dict(
         name='slycot',
-        maintainer="James Goppert",
-        maintainer_email="james.goppert@gmail.com",
+        maintainer="Slycot developers",
+        maintainer_email="python-control-discuss@lists.sourceforge.net",
         description=DOCLINES[0],
         long_description="\n".join(DOCLINES[2:]),
-        url='https://github.com/jgoppert/Slycot',
-        author='Enrico Avventi',
-        author_email='james.goppert@gmail.com',
-        download_url='https://github.com/jgoppert/Slycot',
+        url='https://github.com/python-control/Slycot',
+        author='Enrico Avventi et al.',
         license='GPLv2',
         classifiers=[_f for _f in CLASSIFIERS.split('\n') if _f],
         platforms=["Windows", "Linux", "Solaris", "Mac OS-X", "Unix"],
