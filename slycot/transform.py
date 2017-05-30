@@ -333,6 +333,249 @@ def tb04ad(n,m,p,A,B,C,D,tol1=0.0,tol2=0.0,ldwork=None):
     kdcoef = max(index)+1
     return A[:Nr,:Nr],B[:Nr,:m],C[:p,:Nr],Nr,index,dcoeff[:porm,:kdcoef],ucoeff[:porm,:porp,:kdcoef]
 
+
+def tb05ad(n, m, p, jomega, A, B, C, job='NG'):
+    """tb05ad(n, m, p, jomega, A, B, C, job='NG')
+
+    To find the complex frequency response matrix (transfer matrix)
+    G(freq) of the state-space representation (A,B,C) given by
+                                   -1
+       G(freq) = C * ((freq*I - A)  ) * B
+
+    where A, B and C are real N-by-N, N-by-M and P-by-N matrices
+    respectively and freq is a complex scalar.
+
+    Required Arguments
+    ------------------
+
+      n :   integer
+            The number of states, i.e. the order of the state
+            transition matrix A.
+
+      m :   integer
+            The number of inputs, i.e. the number of columns in the
+            matrix B.
+
+      p :   integer
+            The number of outputs, i.e. the number of rows in the
+            matrix C.
+
+      freq  complex
+            The frequency freq at which the frequency response matrix
+            (transfer matrix) is to be evaluated. For continuous time
+            systems, this is j*omega, where omega is the frequency to
+            be evaluated. For discrete time systems,
+            freq = exp(j*omega*Ts)
+
+      A :   double precision array, dimension (n,n).
+            On entry, this array must contain the state transition
+            matrix A.
+
+
+      B :   double precision array, dimension (n,m).
+            On entry, this array must contain the input/state matrix B.
+
+
+      C :   double precision array, dimension (p,n)
+            On entry, of this array must contain the state/output matrix C.
+
+
+      job : string, 'AG', 'NG', or 'NH'
+            If job = 'AG' (i.e., 'all', 'general matrix'), the A matrix is
+            first balanced. The balancing transformation
+            is then appropriately applied to matrices B and C. The A matrix
+            is (again) transformed to an upper Hessenberg representation and
+            the B and C matrices are also transformed. In addition,
+            the condition number of the problem is calculated as well as the
+            eigenvalues of A.
+
+            If job='NG' (i.e., 'none', 'general matrix'), no balancing is done.
+            Neither the condition number nor the eigenvalues are calculated.
+            The routine still transforms A into upper Hessenberg form. The
+            matrices B and C are also appropriately transformed.
+
+            If job = 'NH' (i.e., 'none', 'hessenberg matrix'), the function
+            assumes the matrices have already been transformed into Hessenberg
+            form, i.e., by a previous function call tb05ad. If this not the
+            case, the routine will return a wrong result without warning.
+
+    Returns
+    -------
+    if job = 'AG':
+    --------------
+      At:  The A matrix which has been both balanced and
+           transformed to upper Hessenberg form. The balancing
+           transforms A according to
+                      A1 =   P^-1 * A * P.
+           The transformation to upper Hessenberg form then yields
+                      At = Q^T * (P^-1 * A * P ) * Q.
+           Note that the lower triangle of At is in general not zero.
+           Rather, it contains information on the orthogonal matrix Q
+           used to transform A1 to Hessenberg form. See docs for lappack
+           DGEHRD():
+           http://www.netlib.org/lapack/explore-3.1.1-html/dgehrd.f.html
+           However, it does not apparently contain information on P, the
+           matrix used in the balancing procedure.
+
+      Bt:  The matrix B transformed according to
+                      Bt = Q^T * P^-1 * B.
+
+      Ct:  The matrix C transformed according to
+                      Ct = C * P * Q
+
+      rcond: RCOND contains an estimate of the reciprocal of the
+             condition number of matrix H with respect to inversion, where
+                     H = (j*freq * I - A)
+
+      g_jw: complex p-by-m array, which contains the frequency response
+            matrix G(freq).
+
+      ev:   Eigenvalues of the matrix A.
+
+      hinvb : complex n-by-m array, which  contains the product
+               -1
+              H  B.
+
+    if job = 'NG':
+    --------------
+      At:    The matrix A transformed to upper Hessenberg form according
+             to
+                      At = Q^T  * A  * Q.
+             The lower triangle is not zero. It containts info on the
+             orthoganal transformation. See docs for linpack DGEHRD()
+             http://www.netlib.org/lapack/explore-3.1.1-html/dgehrd.f.html
+
+      Bt:    The matrix B transformed according to
+                      Bt = Q^T * B.
+
+      Ct:    The matrix C transformed according to
+                      Ct = C * Q
+      g_jw:  complex array with dim p-by-m which contains the frequency
+             response matrix G(freq).
+
+      hinvb : complex array with dimension p-by-m.
+              This array contains the
+                      -1
+             product H  B.
+
+    if job = 'NH'
+    --------------
+      g_jw:  complex p-by-m array which contains the frequency
+             response matrix G(freq).
+
+      hinvb : complex p-by-m array which contains the
+                      -1
+             product H  B.
+
+
+    Raises
+    ------
+      ValueError : e
+        e.info contains information about the exact type of exception.
+         < 0 : if info = -i, the ith argument had an illegal value;
+         = 1 : More than 30 iterations were required to isolate the
+               eigenvalues of A. The computation is continued ?.
+         = 2 : Either FREQ is too near to an eigenvalue of A, or RCOND
+               is less than the machine precision EPS.
+
+    Example
+    -------
+    >>> A = np.array([[0.0, 1.0],
+                [-100.0,   -20.1]])
+    >>> B = np.array([[0.],[100]])
+    >>> C = np.array([[1., 0.]])
+    >>> n = np.shape(A)[0]
+    >>> m = np.shape(B)[1]
+    >>> p = np.shape(C)[0]
+    >>> jw_s = [1j*10, 1j*15]
+    >>> at, bt, ct, g_1, hinvb, info = slycot.tb05ad(n, m, p, jw_s[0],
+                                                    A, B, C, job='NG')
+    >>> g_2, hinv2,info = slycot.tb05ad(n, m, p, jw_s[1], at, bt, ct, job='NH')
+
+    """
+    def error_handler(out, arg_list):
+        if out[-1] < 0:
+            # Conform fortran 1-based argument indexing to
+            # to python zero indexing.
+            error_text = ("The following argument had an illegal value: "
+                          + arg_list[-out[-1]-1])
+            e = ValueError(error_text)
+            e.info = out[-1]
+            raise e
+        if out[-1] == 1:
+            error_text = ("More than 30 iterations are required "
+                          "to isolate the eigenvalue of A; the computations "
+                          "are continued.")
+            e = ValueError(error_text)
+            e.info = out[-1]
+            raise e
+        if out[-1] == 2:
+            error_text = ("Either FREQ is too near to an eigenvalue of A, or "
+                          "RCOND is less than the machine precision EPS.")
+            e = ValueError(error_text)
+            e.info = out[-1]
+            raise e
+
+    hidden = ' (hidden by the wrapper)'
+    arg_list = ['baleig'+hidden, 'inita'+hidden, 'n', 'm', 'p', 'freq', 'a',
+                'lda'+hidden, 'b', 'ldb'+hidden, 'c', 'ldc'+hidden, 'rcond',
+                'g', 'ldg'+hidden, 'evre', 'evim', 'hinvb', 'ldhinv'+hidden,
+                'iwork'+hidden, 'dwork'+hidden, 'ldwork'+hidden,
+                'zwork'+hidden, 'lzwork'+hidden, 'info'+hidden]
+    # Fortran function prototype:
+    # TB05AD(baleig,inita,n,m,p,freq,a,lda,b,ldb,c,ldc,rcond,g,ldg,evre,evim,hinvb,ldhinv,
+    # iwork,dwork,ldwork,zwork,lzwork,info)
+
+    # Sanity check on matrix dimensions
+    if A.shape != (n, n):
+        e = ValueError("The shape of A is (" + str(A.shape[0]) + "," +
+                       str(A.shape[1]) + "), but expected (" + str(n) +
+                       "," + str(n) + ")")
+        raise e
+
+    if B.shape != (n, m):
+        e = ValueError("The shape of B is (" + str(B.shape[0]) + "," +
+                       str(B.shape[1]) + "), but expected (" + str(n) +
+                       "," + str(m) + ")")
+        raise e
+    if C.shape != (p, n):
+        e = ValueError("The shape of C is (" + str(C.shape[0]) + "," +
+                       str(C.shape[1]) + "), but expected (" + str(p) +
+                       "," + str(n) + ")")
+        raise e
+
+    # ----------------------------------------------------
+    # Checks done, do computation.
+    if job == 'AG':
+        out = _wrapper.tb05ad_ag(n, m, p, jomega, A, B, C)
+        error_handler(out, arg_list)
+        At, Bt, Ct, rcond, g_jw, evre, evim, hinvb = out[:-1]
+        ev = _np.zeros(n, 'complex64')
+        ev.real = evre
+        ev.imag = evim
+        info = out[-1]
+        return At, Bt, Ct, g_jw, rcond, ev, hinvb, info
+    elif job == 'NG':
+        # use tb05ad_ng, for 'NONE' , and 'General', because balancing
+        # (option 'A' for 'ALL') seems to have  a bug.
+        out = _wrapper.tb05ad_ng(n, m, p, jomega, A, B, C)
+        error_handler(out, arg_list)
+        At, Bt, Ct, g_jw, hinvb = out[:-1]
+        info = out[-1]
+        return At, Bt, Ct, g_jw, hinvb, info
+    elif job == 'NH':
+        out = _wrapper.tb05ad_nh(n, m, p, jomega, A, B, C)
+        error_handler(out, arg_list)
+        g_i, hinvb = out[:-1]
+        info = out[-1]
+        return g_i, hinvb, info
+    else:
+        error_text = ("Unrecognized job. Expected job = 'AG' or "
+                      "job='NG' or job = 'NH' but received job=%s"%job)
+        e = ValueError(error_text)
+        raise e
+
+
 def td04ad(rowcol,m,p,index,dcoeff,ucoeff,tol=0.0,ldwork=None):
     """ nr,A,B,C,D = td04ad(m,p,index,dcoeff,ucoeff,[tol,ldwork])
 

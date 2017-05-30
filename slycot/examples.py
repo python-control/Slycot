@@ -240,3 +240,31 @@ def tb01pd_example():
     print('reduced order', out[-2])
     print(out)
 
+
+def tb05ad_example():
+    """
+    Example of calculating the frequency response using tb05ad
+    on a second-order system with a natural frequency of 10 rad/s
+    and damping ratio of 1.05.
+    """
+    import numpy as np
+    A = np.array([[0.0, 1.0],
+                  [-100.0,   -20.1]])
+    B = np.array([[0.],[100]])
+    C = np.array([[1., 0.]])
+    n = np.shape(A)[0]
+    m = np.shape(B)[1]
+    p = np.shape(C)[0]
+
+    jw_s = [1j*11, 1j*15]
+    at, bt, ct, g_1, hinvb,info = slycot.tb05ad(n, m, p, jw_s[0],
+                                               A, B, C, job='NG')
+    g_2, hinv2, info = slycot.tb05ad(n, m, p, jw_s[1], at, bt, ct, job='NH')
+    print('--- Example for tb05ad...')
+    print('Frequency response for (A, B, C)')
+    print('-------------------------')
+    print('Frequency  |     Response')
+    print('%s        | %s '%(jw_s[0], g_1[0, 0]))
+    print('%s        | %s '%(jw_s[1], g_2[0, 0]))
+
+

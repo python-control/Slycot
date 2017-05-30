@@ -31,10 +31,11 @@ else:
     from .synthesis import sg02ad, sg03bd
 
     # Transformation routines (9/40 wrapped)
-    from .transform import tb01id,tb03ad,tb04ad
-    from .transform import tc04ad,tc01od
-    from .transform import tf01md,tf01rd
-    from .transform import td04ad,tb01pd
+    from .transform import tb01id, tb03ad, tb04ad
+    from .transform import tb05ad
+    from .transform import tc04ad, tc01od
+    from .transform import tf01md, tf01rd
+    from .transform import td04ad, tb01pd
 
     from numpy.testing import Tester
     test = Tester().test
