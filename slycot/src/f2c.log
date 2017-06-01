@@ -1,0 +1,947 @@
+AB01MD.f:
+   ab01md:
+AB01ND.f:
+   ab01nd:
+AB01OD.f:
+   ab01od:
+AB04MD.f:
+   ab04md:
+AB05MD.f:
+   ab05md:
+AB05ND.f:
+   ab05nd:
+AB05OD.f:
+   ab05od:
+AB05PD.f:
+   ab05pd:
+AB05QD.f:
+   ab05qd:
+AB05RD.f:
+   ab05rd:
+AB05SD.f:
+   ab05sd:
+AB07MD.f:
+   ab07md:
+AB07ND.f:
+   ab07nd:
+AB08MD.f:
+   ab08md:
+Warning on line 299 of AB08MD.f: local variable nb never used
+AB08MZ.f:
+   ab08mz:
+Warning on line 303 of AB08MZ.f: local variable nb never used
+AB08ND.f:
+   ab08nd:
+AB08NX.f:
+   ab08nx:
+AB08NZ.f:
+   ab08nz:
+AB09AD.f:
+   ab09ad:
+AB09AX.f:
+   ab09ax:
+AB09BD.f:
+   ab09bd:
+AB09BX.f:
+   ab09bx:
+AB09CD.f:
+   ab09cd:
+AB09CX.f:
+   ab09cx:
+AB09DD.f:
+   ab09dd:
+AB09ED.f:
+   ab09ed:
+AB09FD.f:
+   ab09fd:
+AB09GD.f:
+   ab09gd:
+AB09HD.f:
+   ab09hd:
+AB09HX.f:
+   ab09hx:
+AB09HY.f:
+   ab09hy:
+AB09ID.f:
+   ab09id:
+AB09IX.f:
+   ab09ix:
+AB09IY.f:
+   ab09iy:
+AB09JD.f:
+   ab09jd:
+AB09JV.f:
+   ab09jv:
+AB09JW.f:
+   ab09jw:
+AB09JX.f:
+   ab09jx:
+AB09KD.f:
+   ab09kd:
+AB09KX.f:
+   ab09kx:
+AB09MD.f:
+   ab09md:
+AB09ND.f:
+   ab09nd:
+AB13AD.f:
+   ab13ad:
+AB13AX.f:
+   ab13ax:
+AB13BD.f:
+   ab13bd:
+AB13CD.f:
+   ab13cd:
+AB13DD.f:
+   ab13dd:
+AB13DX.f:
+   ab13dx:
+AB13ED.f:
+   ab13ed:
+AB13FD.f:
+   ab13fd:
+AB13MD.f:
+   ab13md:
+AB8NXZ.f:
+   ab8nxz:
+AG07BD.f:
+   ag07bd:
+AG08BD.f:
+   ag08bd:
+AG08BY.f:
+   ag08by:
+AG08BZ.f:
+   ag08bz:
+AG8BYZ.f:
+   ag8byz:
+BB01AD.f:
+   bb01ad:
+BB02AD.f:
+   bb02ad:
+BB03AD.f:
+   bb03ad:
+BB04AD.f:
+   bb04ad:
+BD01AD.f:
+   bd01ad:
+BD02AD.f:
+   bd02ad:
+DE01OD.f:
+   de01od:
+DE01PD.f:
+   de01pd:
+delctg.f:
+   delctg:
+DF01MD.f:
+   df01md:
+DG01MD.f:
+   dg01md:
+DG01ND.f:
+   dg01nd:
+DG01NY.f:
+   dg01ny:
+DG01OD.f:
+   dg01od:
+DK01MD.f:
+   dk01md:
+FB01QD.f:
+   fb01qd:
+FB01RD.f:
+   fb01rd:
+FB01SD.f:
+   fb01sd:
+FB01TD.f:
+   fb01td:
+FB01VD.f:
+   fb01vd:
+FD01AD.f:
+   fd01ad:
+IB01AD.f:
+   ib01ad:
+IB01BD.f:
+   ib01bd:
+IB01CD.f:
+   ib01cd:
+Warning on line 823 of IB01CD.f: dlamch declared EXTERNAL but never used.
+IB01MD.f:
+   ib01md:
+IB01MY.f:
+   ib01my:
+IB01ND.f:
+   ib01nd:
+IB01OD.f:
+   ib01od:
+IB01OY.f:
+   ib01oy:
+IB01PD.f:
+   ib01pd:
+IB01PX.f:
+   ib01px:
+IB01PY.f:
+   ib01py:
+IB01QD.f:
+   ib01qd:
+IB01RD.f:
+   ib01rd:
+IB03AD.f:
+   ib03ad:
+IB03BD.f:
+   ib03bd:
+MA01AD.f:
+   ma01ad:
+MA02AD.f:
+   ma02ad:
+MA02BD.f:
+   ma02bd:
+MA02BZ.f:
+   ma02bz:
+MA02CD.f:
+   ma02cd:
+MA02CZ.f:
+   ma02cz:
+MA02DD.f:
+   ma02dd:
+MA02ED.f:
+   ma02ed:
+MA02FD.f:
+   ma02fd:
+MA02GD.f:
+   ma02gd:
+MA02HD.f:
+   ma02hd:
+MA02ID.f:
+   ma02id:
+MA02JD.f:
+   ma02jd:
+MB01MD.f:
+   mb01md:
+MB01ND.f:
+   mb01nd:
+MB01PD.f:
+   mb01pd:
+MB01QD.f:
+   mb01qd:
+MB01RD.f:
+   mb01rd:
+MB01RU.f:
+   mb01ru:
+MB01RW.f:
+   mb01rw:
+MB01RX.f:
+   mb01rx:
+MB01RY.f:
+   mb01ry:
+MB01SD.f:
+   mb01sd:
+MB01TD.f:
+   mb01td:
+MB01UD.f:
+   mb01ud:
+MB01UW.f:
+   mb01uw:
+MB01UX.f:
+   mb01ux:
+MB01VD.f:
+   mb01vd:
+MB01WD.f:
+   mb01wd:
+MB01XD.f:
+   mb01xd:
+MB01XY.f:
+   mb01xy:
+MB01YD.f:
+   mb01yd:
+MB01ZD.f:
+   mb01zd:
+MB02CD.f:
+   mb02cd:
+MB02CU.f:
+   mb02cu:
+MB02CV.f:
+   mb02cv:
+MB02CX.f:
+   mb02cx:
+MB02CY.f:
+   mb02cy:
+MB02DD.f:
+   mb02dd:
+MB02ED.f:
+   mb02ed:
+MB02FD.f:
+   mb02fd:
+MB02GD.f:
+   mb02gd:
+MB02HD.f:
+   mb02hd:
+MB02ID.f:
+   mb02id:
+MB02JD.f:
+   mb02jd:
+MB02JX.f:
+   mb02jx:
+MB02KD.f:
+   mb02kd:
+MB02MD.f:
+   mb02md:
+MB02ND.f:
+   mb02nd:
+Warning on line 889 of MB02ND.f: lsame declared EXTERNAL but never used.
+MB02NY.f:
+   mb02ny:
+MB02OD.f:
+   mb02od:
+MB02PD.f:
+   mb02pd:
+MB02QD.f:
+   mb02qd:
+MB02QY.f:
+   mb02qy:
+MB02RD.f:
+   mb02rd:
+MB02RZ.f:
+   mb02rz:
+MB02SD.f:
+   mb02sd:
+MB02SZ.f:
+   mb02sz:
+MB02TD.f:
+   mb02td:
+MB02TZ.f:
+   mb02tz:
+MB02UD.f:
+   mb02ud:
+MB02UU.f:
+   mb02uu:
+MB02UV.f:
+   mb02uv:
+MB02VD.f:
+   mb02vd:
+MB02WD.f:
+   mb02wd:
+MB02XD.f:
+   mb02xd:
+MB02YD.f:
+   mb02yd:
+MB03MD.f:
+   mb03md:
+MB03MY.f:
+   mb03my:
+MB03ND.f:
+   mb03nd:
+MB03NY.f:
+   mb03ny:
+MB03OD.f:
+   mb03od:
+MB03OY.f:
+   mb03oy:
+MB03PD.f:
+   mb03pd:
+MB03PY.f:
+   mb03py:
+MB03QD.f:
+   mb03qd:
+MB03QX.f:
+   mb03qx:
+MB03QY.f:
+   mb03qy:
+MB03RD.f:
+   mb03rd:
+MB03RX.f:
+   mb03rx:
+MB03RY.f:
+   mb03ry:
+MB03SD.f:
+   mb03sd:
+MB03TD.f:
+   mb03td:
+MB03TS.f:
+   mb03ts:
+MB03UD.f:
+   mb03ud:
+MB03VD.f:
+   mb03vd:
+MB03VY.f:
+   mb03vy:
+MB03WA.f:
+   mb03wa:
+MB03WD.f:
+   mb03wd:
+MB03WX.f:
+   mb03wx:
+MB03XD.f:
+   mb03xd:
+MB03XP.f:
+   mb03xp:
+MB03XU.f:
+   mb03xu:
+MB03YA.f:
+   mb03ya:
+MB03YD.f:
+   mb03yd:
+MB03YT.f:
+   mb03yt:
+MB03ZA.f:
+   mb03za:
+   lfdum:
+MB03ZD.f:
+   mb03zd:
+MB04DD.f:
+   mb04dd:
+MB04DI.f:
+   mb04di:
+MB04DS.f:
+   mb04ds:
+MB04DY.f:
+   mb04dy:
+MB04GD.f:
+   mb04gd:
+MB04ID.f:
+   mb04id:
+MB04IY.f:
+   mb04iy:
+MB04IZ.f:
+   mb04iz:
+MB04JD.f:
+   mb04jd:
+MB04KD.f:
+   mb04kd:
+MB04LD.f:
+   mb04ld:
+MB04MD.f:
+   mb04md:
+MB04ND.f:
+   mb04nd:
+MB04NY.f:
+   mb04ny:
+MB04OD.f:
+   mb04od:
+MB04OW.f:
+   mb04ow:
+MB04OX.f:
+   mb04ox:
+MB04OY.f:
+   mb04oy:
+MB04PA.f:
+   mb04pa:
+MB04PB.f:
+   mb04pb:
+MB04PU.f:
+   mb04pu:
+MB04PY.f:
+   mb04py:
+MB04QB.f:
+   mb04qb:
+MB04QC.f:
+   mb04qc:
+MB04QF.f:
+   mb04qf:
+MB04QU.f:
+   mb04qu:
+MB04TB.f:
+   mb04tb:
+MB04TS.f:
+   mb04ts:
+MB04TT.f:
+   mb04tt:
+MB04TU.f:
+   mb04tu:
+MB04TV.f:
+   mb04tv:
+MB04TW.f:
+   mb04tw:
+MB04TX.f:
+   mb04tx:
+MB04TY.f:
+   mb04ty:
+MB04UD.f:
+   mb04ud:
+MB04VD.f:
+   mb04vd:
+MB04VX.f:
+   mb04vx:
+MB04WD.f:
+   mb04wd:
+MB04WP.f:
+   mb04wp:
+MB04WR.f:
+   mb04wr:
+MB04WU.f:
+   mb04wu:
+MB04XD.f:
+   mb04xd:
+MB04XY.f:
+   mb04xy:
+MB04YD.f:
+   mb04yd:
+MB04YW.f:
+   mb04yw:
+MB04ZD.f:
+   mb04zd:
+MB05MD.f:
+   mb05md:
+MB05MY.f:
+   mb05my:
+MB05ND.f:
+   mb05nd:
+Warning on line 377 of MB05ND.f: lsame declared EXTERNAL but never used.
+MB05OD.f:
+   mb05od:
+MB05OY.f:
+   mb05oy:
+MB3OYZ.f:
+   mb3oyz:
+MB3PYZ.f:
+   mb3pyz:
+MC01MD.f:
+   mc01md:
+MC01ND.f:
+   mc01nd:
+MC01OD.f:
+   mc01od:
+MC01PD.f:
+   mc01pd:
+MC01PY.f:
+   mc01py:
+MC01QD.f:
+   mc01qd:
+MC01RD.f:
+   mc01rd:
+MC01SD.f:
+   mc01sd:
+MC01SW.f:
+   mc01sw:
+MC01SX.f:
+   mc01sx:
+MC01SY.f:
+   mc01sy:
+MC01TD.f:
+   mc01td:
+MC01VD.f:
+   mc01vd:
+MC01WD.f:
+   mc01wd:
+MC03MD.f:
+   mc03md:
+MC03ND.f:
+   mc03nd:
+MC03NX.f:
+   mc03nx:
+MC03NY.f:
+   mc03ny:
+MD03AD.f:
+   md03ad:
+MD03BA.f:
+   md03ba:
+MD03BB.f:
+   md03bb:
+MD03BD.f:
+   md03bd:
+MD03BF.f:
+   md03bf:
+MD03BX.f:
+   md03bx:
+MD03BY.f:
+   md03by:
+NF01AD.f:
+   nf01ad:
+NF01AY.f:
+   nf01ay:
+NF01BA.f:
+   nf01ba:
+NF01BB.f:
+   nf01bb:
+NF01BD.f:
+   nf01bd:
+NF01BE.f:
+   nf01be:
+NF01BF.f:
+   nf01bf:
+NF01BP.f:
+   nf01bp:
+NF01BQ.f:
+   nf01bq:
+NF01BR.f:
+   nf01br:
+NF01BS.f:
+   nf01bs:
+NF01BU.f:
+   nf01bu:
+NF01BV.f:
+   nf01bv:
+NF01BW.f:
+   nf01bw:
+NF01BX.f:
+   nf01bx:
+NF01BY.f:
+   nf01by:
+SB01BD.f:
+   sb01bd:
+SB01BX.f:
+   sb01bx:
+SB01BY.f:
+   sb01by:
+SB01DD.f:
+   sb01dd:
+SB01FY.f:
+   sb01fy:
+SB01MD.f:
+   sb01md:
+SB02CX.f:
+   sb02cx:
+SB02MD.f:
+   sb02md:
+SB02MR.f:
+   sb02mr:
+SB02MS.f:
+   sb02ms:
+SB02MT.f:
+   sb02mt:
+SB02MU.f:
+   sb02mu:
+SB02MV.f:
+   sb02mv:
+SB02MW.f:
+   sb02mw:
+SB02ND.f:
+   sb02nd:
+SB02OD.f:
+   sb02od:
+SB02OU.f:
+   sb02ou:
+SB02OV.f:
+   sb02ov:
+SB02OW.f:
+   sb02ow:
+SB02OX.f:
+   sb02ox:
+SB02OY.f:
+   sb02oy:
+SB02PD.f:
+   sb02pd:
+SB02QD.f:
+   sb02qd:
+SB02RD.f:
+   sb02rd:
+Warning on line 1133 of SB02RD.f: dlamch declared EXTERNAL but never used.
+Warning on line 1133 of SB02RD.f: dlange declared EXTERNAL but never used.
+SB02RU.f:
+   sb02ru:
+SB02SD.f:
+   sb02sd:
+SB03MD.f:
+   sb03md:
+SB03MU.f:
+   sb03mu:
+SB03MV.f:
+   sb03mv:
+SB03MW.f:
+   sb03mw:
+SB03MX.f:
+   sb03mx:
+SB03MY.f:
+   sb03my:
+SB03OD.f:
+   sb03od:
+SB03OR.f:
+   sb03or:
+SB03OT.f:
+   sb03ot:
+SB03OU.f:
+   sb03ou:
+SB03OV.f:
+   sb03ov:
+SB03OY.f:
+   sb03oy:
+SB03PD.f:
+   sb03pd:
+SB03QD.f:
+   sb03qd:
+SB03QX.f:
+   sb03qx:
+SB03QY.f:
+   sb03qy:
+SB03RD.f:
+   sb03rd:
+SB03SD.f:
+   sb03sd:
+SB03SX.f:
+   sb03sx:
+SB03SY.f:
+   sb03sy:
+SB03TD.f:
+   sb03td:
+SB03UD.f:
+   sb03ud:
+SB04MD.f:
+   sb04md:
+SB04MR.f:
+   sb04mr:
+SB04MU.f:
+   sb04mu:
+SB04MW.f:
+   sb04mw:
+SB04MY.f:
+   sb04my:
+SB04ND.f:
+   sb04nd:
+SB04NV.f:
+   sb04nv:
+SB04NW.f:
+   sb04nw:
+SB04NX.f:
+   sb04nx:
+SB04NY.f:
+   sb04ny:
+SB04OD.f:
+   sb04od:
+SB04OW.f:
+   sb04ow:
+SB04PD.f:
+   sb04pd:
+SB04PX.f:
+   sb04px:
+SB04PY.f:
+   sb04py:
+SB04QD.f:
+   sb04qd:
+SB04QR.f:
+   sb04qr:
+SB04QU.f:
+   sb04qu:
+SB04QY.f:
+   sb04qy:
+SB04RD.f:
+   sb04rd:
+SB04RV.f:
+   sb04rv:
+SB04RW.f:
+   sb04rw:
+SB04RX.f:
+   sb04rx:
+SB04RY.f:
+   sb04ry:
+SB06ND.f:
+   sb06nd:
+SB08CD.f:
+   sb08cd:
+SB08DD.f:
+   sb08dd:
+SB08ED.f:
+   sb08ed:
+SB08FD.f:
+   sb08fd:
+SB08GD.f:
+   sb08gd:
+SB08HD.f:
+   sb08hd:
+SB08MD.f:
+   sb08md:
+SB08MY.f:
+   sb08my:
+SB08ND.f:
+   sb08nd:
+SB08NY.f:
+   sb08ny:
+SB09MD.f:
+   sb09md:
+SB10AD.f:
+   sb10ad:
+SB10DD.f:
+   sb10dd:
+SB10ED.f:
+   sb10ed:
+SB10FD.f:
+   sb10fd:
+SB10HD.f:
+   sb10hd:
+SB10ID.f:
+   sb10id:
+SB10JD.f:
+   sb10jd:
+SB10KD.f:
+   sb10kd:
+SB10LD.f:
+   sb10ld:
+SB10MD.f:
+   sb10md:
+SB10PD.f:
+   sb10pd:
+SB10QD.f:
+   sb10qd:
+SB10RD.f:
+   sb10rd:
+SB10SD.f:
+   sb10sd:
+SB10TD.f:
+   sb10td:
+SB10UD.f:
+   sb10ud:
+SB10VD.f:
+   sb10vd:
+Warning on line 393 of SB10VD.f: dlansy declared EXTERNAL but never used.
+SB10WD.f:
+   sb10wd:
+SB10YD.f:
+   sb10yd:
+SB10ZD.f:
+   sb10zd:
+SB10ZP.f:
+   sb10zp:
+SB16AD.f:
+   sb16ad:
+SB16AY.f:
+   sb16ay:
+SB16BD.f:
+   sb16bd:
+SB16CD.f:
+   sb16cd:
+SB16CY.f:
+   sb16cy:
+select.f:
+   select:
+SG02AD.f:
+   sg02ad:
+SG03AD.f:
+   sg03ad:
+SG03AX.f:
+   sg03ax:
+SG03AY.f:
+   sg03ay:
+SG03BD.f:
+   sg03bd:
+SG03BU.f:
+   sg03bu:
+SG03BV.f:
+   sg03bv:
+SG03BW.f:
+   sg03bw:
+SG03BX.f:
+   sg03bx:
+SG03BY.f:
+   sg03by:
+TB01ID.f:
+   tb01id:
+TB01IZ.f:
+   tb01iz:
+TB01KD.f:
+   tb01kd:
+TB01LD.f:
+   tb01ld:
+TB01MD.f:
+   tb01md:
+TB01ND.f:
+   tb01nd:
+TB01PD.f:
+   tb01pd:
+TB01TD.f:
+   tb01td:
+TB01TY.f:
+   tb01ty:
+TB01UD.f:
+   tb01ud:
+TB01VD.f:
+   tb01vd:
+TB01VY.f:
+   tb01vy:
+TB01WD.f:
+   tb01wd:
+Warning on line 259 of TB01WD.f: lsame declared EXTERNAL but never used.
+TB01XD.f:
+   tb01xd:
+TB01XZ.f:
+   tb01xz:
+TB01YD.f:
+   tb01yd:
+TB01ZD.f:
+   tb01zd:
+TB03AD.f:
+   tb03ad:
+TB03AY.f:
+   tb03ay:
+TB04AD.f:
+   tb04ad:
+TB04AY.f:
+   tb04ay:
+TB04BD.f:
+   tb04bd:
+TB04BV.f:
+   tb04bv:
+TB04BW.f:
+   tb04bw:
+TB04BX.f:
+   tb04bx:
+TB04CD.f:
+   tb04cd:
+TB05AD.f:
+   tb05ad:
+TC01OD.f:
+   tc01od:
+TC04AD.f:
+   tc04ad:
+TC05AD.f:
+   tc05ad:
+TD03AD.f:
+   td03ad:
+TD03AY.f:
+   td03ay:
+TD04AD.f:
+   td04ad:
+TD05AD.f:
+   td05ad:
+TF01MD.f:
+   tf01md:
+TF01MX.f:
+   tf01mx:
+TF01MY.f:
+   tf01my:
+TF01ND.f:
+   tf01nd:
+TF01OD.f:
+   tf01od:
+TF01PD.f:
+   tf01pd:
+TF01QD.f:
+   tf01qd:
+TF01RD.f:
+   tf01rd:
+TG01AD.f:
+   tg01ad:
+TG01AZ.f:
+   tg01az:
+TG01BD.f:
+   tg01bd:
+TG01CD.f:
+   tg01cd:
+TG01DD.f:
+   tg01dd:
+TG01ED.f:
+   tg01ed:
+TG01FD.f:
+   tg01fd:
+TG01FZ.f:
+   tg01fz:
+TG01HD.f:
+   tg01hd:
+TG01HX.f:
+   tg01hx:
+TG01ID.f:
+   tg01id:
+TG01JD.f:
+   tg01jd:
+TG01WD.f:
+   tg01wd:
+Warning on line 319 of TG01WD.f: lsame declared EXTERNAL but never used.
+UD01BD.f:
+   ud01bd:
+UD01CD.f:
+   ud01cd:
+UD01DD.f:
+   ud01dd:
+UD01MD.f:
+   ud01md:
+UD01MZ.f:
+   ud01mz:
+UD01ND.f:
+   ud01nd:
+UE01MD.f:
+   ue01md:
