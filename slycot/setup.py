@@ -22,11 +22,16 @@ def configuration(parent_package='', top_path=None):
     f2py_sources = ['src/_wrapper.pyf']
 
     pyver = sysconfig.get_config_var('VERSION')
-    
+
     if sys.platform == 'win32':
         liblist = ['liblapack', 'libblas']
     else:
-        liblist = ['lapack', 'python'+pyver+sys.abiflags]
+        # this is needed on Py 3.x, and fails on Py 2.7
+        try:
+            abiflags = sys.abiflags
+        except AttributeError:
+            abiflags = ''
+        liblist = ['lapack', 'python'+pyver+abiflags]
 
     config.add_extension(
         name='_wrapper',
