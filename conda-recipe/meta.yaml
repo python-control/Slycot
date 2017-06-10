@@ -7,7 +7,7 @@ build:
 
   script:
     - cd $RECIPE_DIR/..
-    - DFLAGS="-shared" FFLAGS=-fPIC $PYTHON setup.py install # [not win]
+    - LDFLAGS="-shared" FFLAGS=-fPIC $PYTHON setup.py install # [not win]
 
 requirements:
   build:
