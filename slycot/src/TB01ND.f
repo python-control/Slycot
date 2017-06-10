@@ -195,7 +195,7 @@ C     .. External Functions ..
       LOGICAL           LSAME
       EXTERNAL          LSAME
 C     .. External Subroutines ..
-      EXTERNAL          DLARFG, DLASET, DLATZM, XERBLA
+      EXTERNAL          DLARFG, DLASET, SLCT_DLATZM, XERBLA
 C     .. Intrinsic Functions ..
       INTRINSIC         MAX, MIN
 C     .. Executable Statements ..
@@ -269,16 +269,16 @@ C
 C
 C        Update A.
 C
-         CALL DLATZM( 'Left', NJ+1, N, C(PAR1,PAR3), LDC, DZ, A(PAR2,1),
-     $                A(PAR3,1), LDA, DWORK )
-         CALL DLATZM( 'Right', N, NJ+1, C(PAR1,PAR3), LDC, DZ,
+         CALL SLCT_DLATZM( 'Left', NJ+1, N, C(PAR1,PAR3), LDC, DZ,
+     $                A(PAR2,1), A(PAR3,1), LDA, DWORK )
+         CALL SLCT_DLATZM( 'Right', N, NJ+1, C(PAR1,PAR3), LDC, DZ,
      $                A(1,PAR2), A(1,PAR3), LDA, DWORK )
 C
          IF ( LJOBA ) THEN
 C
 C           Update U.
 C
-            CALL DLATZM( 'Right', N, NJ+1, C(PAR1,PAR3), LDC, DZ,
+            CALL SLCT_DLATZM( 'Right', N, NJ+1, C(PAR1,PAR3), LDC, DZ,
      $                   U(1,PAR2), U(1,PAR3), LDU, DWORK )
          END IF
 C
@@ -286,7 +286,8 @@ C
 C
 C           Update C.
 C
-            CALL DLATZM( 'Right', PAR4-PAR3+1, NJ+1, C(PAR1,PAR3), LDC,
+            CALL SLCT_DLATZM( 'Right', PAR4-PAR3+1, NJ+1,
+     $                   C(PAR1,PAR3), LDC,
      $                   DZ, C(PAR3,PAR2), C(PAR3,PAR3), LDC, DWORK )
          END IF
 C
@@ -323,16 +324,18 @@ C
 C
 C           Update A.
 C
-            CALL DLATZM( 'Left', NJ+1, N, A(PAR1,PAR3), LDA, DZ,
+            CALL SLCT_DLATZM( 'Left', NJ+1, N, A(PAR1,PAR3), LDA, DZ,
      $                   A(PAR2,1), A(PAR3,1), LDA, DWORK )
-            CALL DLATZM( 'Right', PAR6-PAR5+1, NJ+1, A(PAR1,PAR3), LDA,
+            CALL SLCT_DLATZM( 'Right', PAR6-PAR5+1, NJ+1, A(PAR1,PAR3),
+     $                    LDA,
      $                    DZ, A(PAR5,PAR2), A(PAR5,PAR3), LDA, DWORK )
 C
             IF ( LJOBA ) THEN
 C
 C              Update U.
 C
-               CALL DLATZM( 'Right', N, NJ+1, A(PAR1,PAR3), LDA, DZ,
+               CALL SLCT_DLATZM( 'Right', N, NJ+1, A(PAR1,PAR3),
+     $                      LDA, DZ,
      $                      U(1,PAR2), U(1,PAR3), LDU, DWORK )
             END IF
 C

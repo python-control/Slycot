@@ -264,7 +264,7 @@ C     .. Local Scalars ..
      $                   MNTAU, MP1, MPM, MUI, MUIM1, N1, NB, NBLCKS,
      $                   PN, RANK, RO, RO1, SIGMA, TAUI, WRKOPT
       DOUBLE PRECISION   C, RCOND, SMAX, SMAXPR, SMIN, SMINPR, T, TT
-      COMPLEX*16         C1, C2, S, S1, S2, TC
+      COMPLEX*16         C1, C2, S, S1, S2, TC, TCCONJ
 C     .. Local Arrays ..
       DOUBLE PRECISION   SVAL(3)
       COMPLEX*16         DUM(1)
@@ -274,7 +274,7 @@ C     .. External Functions ..
       EXTERNAL           DLAMCH, DZNRM2, IDAMAX, ILAENV
 C     .. External Subroutines ..
       EXTERNAL           MB3OYZ, XERBLA, ZCOPY, ZLAIC1, ZLAPMT, ZLARFG,
-     $                   ZLARTG, ZLASET, ZLATZM, ZROT, ZSWAP, ZUNMQR
+     $                   ZLARTG, ZLASET, ZUNMRZ, ZROT, ZSWAP, ZUNMQR
 C     .. Intrinsic Functions ..
       INTRINSIC          ABS, DBLE, DCONJG, INT, MAX, MIN, SQRT
 C     .. Executable Statements ..
@@ -406,9 +406,15 @@ C
             IROW = IROW + 1
             CALL ZLARFG( RO+1, ABCD(IROW,ICOL), ABCD(IROW+1,ICOL), 1,
      $                   TC )
-            CALL ZLATZM( 'L', RO+1, MNR-ICOL, ABCD(IROW+1,ICOL), 1,
-     $                   DCONJG( TC ), ABCD(IROW,ICOL+1),
-     $                   ABCD(IROW+1,ICOL+1), LDABCD, ZWORK )
+c$$$            CALL ZLATZM( 'L', RO+1, MNR-ICOL, ABCD(IROW+1,ICOL), 1,
+c$$$     $                   DCONJG( TC ), ABCD(IROW,ICOL+1),
+c$$$     $                   ABCD(IROW+1,ICOL+1), LDABCD, ZWORK )
+C     RvP replacing by ZUNMRZ
+            TCCONJ = DCONJG( TC )
+            CALL ZUNMRZ( 'L','N', RO+1, MNR-ICOL, 1, RO+1,
+     $                   ABCD(IROW+1,ICOL), LDABCD,
+     $                   TCCONJ, ABCD(IROW,ICOL+1), LDABCD,
+     $                   ZWORK, LZWORK, INFO )
             CALL ZCOPY( PR-ICOL, DUM, 0, ABCD(IROW+1,ICOL), 1 )
    20    CONTINUE
          WRKOPT = MAX( WRKOPT, MN - 1 )

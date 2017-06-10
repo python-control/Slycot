@@ -3,7 +3,7 @@ from __future__ import division, print_function
 import glob
 import os
 import sys
-
+import sysconfig
 
 def configuration(parent_package='', top_path=None):
     from numpy.distutils.misc_util import Configuration
@@ -21,10 +21,12 @@ def configuration(parent_package='', top_path=None):
 
     f2py_sources = ['src/_wrapper.pyf']
 
+    pyver = sysconfig.get_config_var('VERSION')
+    
     if sys.platform == 'win32':
         liblist = ['liblapack', 'libblas']
     else:
-        liblist = ['lapack']
+        liblist = ['lapack', 'python'+pyver+sys.abiflags]
 
     config.add_extension(
         name='_wrapper',

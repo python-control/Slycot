@@ -128,8 +128,8 @@ C     .. External Functions ..
       DOUBLE PRECISION  DLAPY2, DLAPY3
       EXTERNAL          DLAPY2, DLAPY3
 C     .. External Subroutines ..
-      EXTERNAL          DLARFG, DLASET, DLATZM, DROTG, DTRTRI, MA02AD,
-     $                  MB04OX, SB03OY
+      EXTERNAL          DLARFG, DLASET, SLCT_DLATZM, DROTG, DTRTRI,
+     $                  MA02AD, MB04OX, SB03OY
 C     .. Intrinsic Functions ..
       INTRINSIC         ABS, SQRT
 C     .. Executable Statements ..
@@ -180,7 +180,7 @@ C        The N = 2 case.
 C
          IF( M.GT.1 ) THEN
             CALL DLARFG( M, F(1,1), F(2,1), 1, TEMP )
-            CALL DLATZM( 'Left', M, N-1, F(2,1), 1, TEMP, F(1,2),
+            CALL SLCT_DLATZM( 'Left', M, N-1, F(2,1), 1, TEMP, F(1,2),
      $                   F(2,2), LDF, V )
          END IF
          R11 = F(1,1)

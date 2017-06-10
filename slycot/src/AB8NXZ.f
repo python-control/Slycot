@@ -197,7 +197,7 @@ C     .. Local Scalars ..
       LOGICAL           LQUERY
       INTEGER           I1, IK, IROW, ITAU, IZ, JWORK, MM1, MNTAU, MNU,
      $                  MPM, NB, NP, RANK, RO1, TAU, WRKOPT
-      COMPLEX*16        TC
+      COMPLEX*16        TC, TCCONJ
 C     .. Local Arrays ..
       DOUBLE PRECISION  SVAL(3)
 C     .. External Functions ..
@@ -205,7 +205,7 @@ C     .. External Functions ..
       EXTERNAL          ILAENV
 C     .. External Subroutines ..
       EXTERNAL          MB3OYZ, MB3PYZ, XERBLA, ZLAPMT, ZLARFG, ZLASET,
-     $                  ZLATZM, ZUNMQR, ZUNMRQ
+     $                  ZUNMRZ, ZUNMQR, ZUNMRQ
 C     .. Intrinsic Functions ..
       INTRINSIC         DCONJG, INT, MAX, MIN
 C     .. Executable Statements ..
@@ -315,9 +315,26 @@ C
             DO 40 I1 = 1, SIGMA
                CALL ZLARFG( RO+1, ABCD(IROW,I1), ABCD(IROW+1,I1), 1,
      $                      TC )
-               CALL ZLATZM( 'L', RO+1, MNU-I1, ABCD(IROW+1,I1), 1,
-     $                      DCONJG( TC ), ABCD(IROW,I1+1),
-     $                      ABCD(IROW+1,I1+1), LDABCD, ZWORK )
+C               CALL zlatzm( 'L', RO+1, MNU-I1, ABCD(IROW+1,I1), 1,
+C     $                      DCONJG( TC ), ABCD(IROW,I1+1),
+C     $                      ABCD(IROW+1,I1+1), LDABCD, ZWORK )
+C     RvP 170608. replacing zlatzm by ZUNMRZ.
+C     SIDE: 'L'
+C     TRANS: 'N' (new, do not transpose/conj)
+C     M, N: dimensions as before, RO+1 and MNU-I1
+C     K=1, only one reflector applied,
+C     L=M  all columns define the reflector?
+C     A=ABCD(IROW+1,I1), former V
+C     LDA=LDABCD, not relevant since K=1, only one row used 
+C     TAU=TCCONJ, treated as vector of length 1 (K)
+C     C, now the complete matrix?
+C       will this work, since reflector at ABCD(IROW+1,I1) overlaps
+C       with result  ABCD(IROW+1,I1+1)? Judging from looking at the code
+C       reflector A / V will be restored before result is written        
+               TCCONJ = DCONJG( TC )
+               CALL ZUNMRZ( 'L', 'N', RO+1, MNU-I1, 1, RO+1,
+     $                     ABCD(IROW+1,I1), LDABCD, TCCONJ,
+     $                     ABCD(IROW,I1+1), LDABCD, ZWORK, LZWORK, INFO)
                IROW = IROW + 1
    40       CONTINUE
             CALL ZLASET( 'Lower', RO+SIGMA-1, SIGMA, ZERO, ZERO,
