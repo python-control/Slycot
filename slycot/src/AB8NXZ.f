@@ -325,12 +325,12 @@ C     M, N: dimensions as before, RO+1 and MNU-I1
 C     K=1, only one reflector applied,
 C     L=M  all columns define the reflector?
 C     A=ABCD(IROW+1,I1), former V
-C     LDA=LDABCD, not relevant since K=1, only one row used 
+C     LDA=LDABCD, not relevant since K=1, only one row used
 C     TAU=TCCONJ, treated as vector of length 1 (K)
 C     C, now the complete matrix?
 C       will this work, since reflector at ABCD(IROW+1,I1) overlaps
 C       with result  ABCD(IROW+1,I1+1)? Judging from looking at the code
-C       reflector A / V will be restored before result is written        
+C       reflector A / V will be restored before result is written
                TCCONJ = DCONJG( TC )
                CALL ZUNMRZ( 'L', 'N', RO+1, MNU-I1, 1, RO+1,
      $                     ABCD(IROW+1,I1), LDABCD, TCCONJ,

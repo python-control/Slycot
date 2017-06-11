@@ -569,7 +569,7 @@ C     $                  LDQ, DWORK(3*M+1), LDWORK-3*M, INFO )
          CALL DGGES( 'Vectors left', 'Vectors right', 'N', 0, N, A, LDA,
      $               D, LDD, SDIM, DWORK, DWORK(M+1), DWORK(2*M+1), P, LDP, Q,
      $               LDQ, DWORK(3*M+1), LDWORK-3*M, 0, INFO )
-            
+
 C
 C           Undo scaling
 C

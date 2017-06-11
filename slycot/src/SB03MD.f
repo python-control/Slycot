@@ -1,4 +1,4 @@
-      SUBROUTINE SB03MD( DICO, JOB, FACT, TRANA, N, C, LDC, A, LDA, U, 
+      SUBROUTINE SB03MD( DICO, JOB, FACT, TRANA, N, C, LDC, A, LDA, U,
      $                   LDU, SCALE, SEP, FERR, WR, WI, IWORK, DWORK,
      $                   LDWORK, INFO )
 C
