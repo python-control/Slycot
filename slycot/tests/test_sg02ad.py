@@ -7,7 +7,7 @@ from __future__ import print_function
 import unittest
 from slycot import synthesis
 import numpy as np
-from scipy import linalg
+from numpy import linalg
 
 from numpy.testing import assert_raises, assert_almost_equal
 
