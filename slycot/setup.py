@@ -31,7 +31,7 @@ def configuration(parent_package='', top_path=None):
             abiflags = sys.abiflags
         except AttributeError:
             abiflags = ''
-        liblist = ['lapack', 'python'+pyver+abiflags]
+        liblist = ['lapack', 'blas', 'python'+pyver+abiflags]
 
     config.add_extension(
         name='_wrapper',
