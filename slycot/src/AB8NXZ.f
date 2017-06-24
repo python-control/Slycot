@@ -205,7 +205,7 @@ C     .. External Functions ..
       EXTERNAL          ILAENV
 C     .. External Subroutines ..
       EXTERNAL          MB3OYZ, MB3PYZ, XERBLA, ZLAPMT, ZLARFG, ZLASET,
-     $                  ZUNMRZ, ZUNMQR, ZUNMRQ
+     $                  SLCT_ZLATZM, ZUNMQR, ZUNMRQ
 C     .. Intrinsic Functions ..
       INTRINSIC         DCONJG, INT, MAX, MIN
 C     .. Executable Statements ..
@@ -315,11 +315,11 @@ C
             DO 40 I1 = 1, SIGMA
                CALL ZLARFG( RO+1, ABCD(IROW,I1), ABCD(IROW+1,I1), 1,
      $                      TC )
-C     RvP 170608. replacing zlatzm by ZUNMRZ.
+C     RvP 170623 slicot-specific ZLATZM
                TCCONJ = DCONJG( TC )
-               CALL ZUNMRZ( 'L', 'N', RO+1, MNU-I1, 1, RO+1,
-     $                     ABCD(IROW+1,I1), LDABCD, TCCONJ,
-     $                     ABCD(IROW,I1+1), LDABCD, ZWORK, LZWORK, INFO)
+               CALL SLCT_ZLATZM( 'L', RO+1, MNU-I1, ABCD(IROW+1,I1), 1,
+     $                      DCONJG( TC ), ABCD(IROW,I1+1),
+     $                      ABCD(IROW+1,I1+1), LDABCD, ZWORK )
                IROW = IROW + 1
    40       CONTINUE
             CALL ZLASET( 'Lower', RO+SIGMA-1, SIGMA, ZERO, ZERO,
