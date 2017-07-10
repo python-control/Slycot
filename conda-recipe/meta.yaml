@@ -13,12 +13,13 @@ requirements:
   build:
     - python
     - numpy
-    - openblas
+    - lapack 
+
 
   run:
     - python
     - numpy
-    - openblas
+    - lapack
 
 test:
   imports:
