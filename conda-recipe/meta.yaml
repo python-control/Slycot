@@ -3,7 +3,7 @@ package:
   version: "0.3.2"
 
 build:
-  number: 6
+  number: 1
 
   script:
     - cd $RECIPE_DIR/..
@@ -13,8 +13,7 @@ requirements:
   build:
     - python
     - numpy
-    - lapack 
-
+    - lapack
 
   run:
     - python

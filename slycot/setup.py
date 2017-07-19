@@ -24,18 +24,7 @@ def configuration(parent_package='', top_path=None):
     pyver = sysconfig.get_config_var('VERSION')
 
     if sys.platform == 'win32':
-        ppath = os.sep.join(sys.executable.split(os.sep)[:-1])
-
-        xxxliblist = [
-			ppath+r'/Library/mingw-w64/x86_64-w64-mingw32/lib/libpthread.dll.a',
-                      ppath+r'\Library\mingw-w64\lib\libopenblas.dll.a',
-		      ppath+r'\Library\mingw-w64\lib\gcc\x86_64-w64-mingw32\5.3.0\libgfortran.a',
-		      ppath+r'/Library/mingw-w64/x86_64-w64-mingw32/lib/libmingwex.a',
-		      ppath+r'/Library/mingw-w64/lib/gcc/x86_64-w64-mingw32/5.3.0/libquadmath.dll.a',
-		      ppath+r'\Library\mingw-w64\lib\gcc\x86_64-w64-mingw32\5.3.0\libgcc.a',
-		      ppath+r'\Library\mingw-w64\x86_64-w64-mingw32\lib\libmingw32.a',
-		      ]
-        liblist = [ ]
+        liblist = ['liblapack', 'libblas']
     else:
         # this is needed on Py 3.x, and fails on Py 2.7
         try:
@@ -43,12 +32,10 @@ def configuration(parent_package='', top_path=None):
         except AttributeError:
             abiflags = ''
         liblist = ['lapack', 'blas', 'python'+pyver+abiflags]
-        xxxliblist = []
 
     config.add_extension(
         name='_wrapper',
         libraries=liblist,
-	extra_objects=xxxliblist,
         sources=fortran_sources + f2py_sources)
 
     config.make_config_py()  # installs __config__.py
