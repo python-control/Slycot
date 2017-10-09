@@ -1,6 +1,6 @@
 :: Uncoment following two lines for local test build
-cd %RECIPE_DIR%
-cd ..
+:: cd %RECIPE_DIR%
+:: cd ..
 
 "%PYTHON%" setup.py install --compiler=mingw32
 if errorlevel 1 exit 1
