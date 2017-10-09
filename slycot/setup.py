@@ -24,7 +24,16 @@ def configuration(parent_package='', top_path=None):
     pyver = sysconfig.get_config_var('VERSION')
 
     if sys.platform == 'win32':
-        liblist = ['liblapack', 'libblas']
+        liblist = [
+	    'lapack', 'lapacke', 'blas', 'gfortran' 
+	]
+        extra_objects = [
+			 ]
+        ppath = os.sep.join(sys.executable.split(os.sep)[:-1])
+        library_dirs = [r'\Library\lib', ]
+        library_dirs = [ppath + l for l in library_dirs]
+        extra_link_args = [ ] 
+        extra_compile_args = [ ] 
     else:
         # this is needed on Py 3.x, and fails on Py 2.7
         try:
@@ -32,10 +41,18 @@ def configuration(parent_package='', top_path=None):
         except AttributeError:
             abiflags = ''
         liblist = ['lapack', 'blas', 'python'+pyver+abiflags]
+        extra_objects = []
+        library_dirs = []
+        extra_link_args = []
+        extra_compile_args = []
 
     config.add_extension(
         name='_wrapper',
         libraries=liblist,
+	extra_objects=extra_objects,
+	extra_link_args=extra_link_args,
+	library_dirs=library_dirs,
+	extra_compile_args=extra_compile_args,
         sources=fortran_sources + f2py_sources)
 
     config.make_config_py()  # installs __config__.py
