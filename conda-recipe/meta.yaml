@@ -5,15 +5,12 @@ package:
 build:
   number: 1
 
-  script:
-    - cd $RECIPE_DIR/..
-    - LDFLAGS="-shared" FFLAGS=-fPIC $PYTHON setup.py install # [not win]
-
 requirements:
   build:
     - python
-    - numpy
+    - numpy >=1.13.3
     - lapack
+    - m2w64-gcc-fortran # [win]
 
   run:
     - python
