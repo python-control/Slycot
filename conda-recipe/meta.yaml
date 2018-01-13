@@ -8,7 +8,7 @@ build:
 requirements:
   build:
     - python
-    - numpy >=1.13.3
+    - numpy
     - lapack
     - m2w64-gcc-fortran # [win]
 
