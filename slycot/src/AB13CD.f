@@ -237,13 +237,17 @@ C
          INFO = -17
       END IF
       IF( INFO.NE.0 ) THEN
+         AB13CD   = ZERO
          CALL XERBLA( 'AB13CD', -INFO )
          RETURN
       END IF
 C
 C     Quick return if possible.
 C
-      IF( M.EQ.0 .OR. NP.EQ.0 ) RETURN
+      IF( M.EQ.0 .OR. NP.EQ.0 ) THEN
+         AB13CD   = ZERO
+         RETURN
+      END IF
 C
 C     Workspace usage.
 C
@@ -262,6 +266,7 @@ C
      $             INFO2 )
       IF( INFO2.GT.0 ) THEN
          INFO = 4
+         AB13CD   = ZERO
          RETURN
       END IF
       GAMMAL = DWORK( IW6+1 )

@@ -155,6 +155,7 @@ C
 C
 C        Error return.
 C
+         MB03NY   = ZERO
          CALL XERBLA( 'MB03NY', -INFO )
          RETURN
       END IF
@@ -177,6 +178,7 @@ C
      $                1, DUMMY, 1, DWORK, LDWORK, INFO )
          IF ( INFO.NE.0 ) THEN
             INFO = 2
+            MB03NY   = ZERO
             RETURN
          END IF
       ELSE
@@ -196,6 +198,7 @@ C
      $                DWORK, INFO )
          IF ( INFO.NE.0 ) THEN
             INFO = 2
+            MB03NY   = ZERO
             RETURN
          END IF
          CWORK(1) = CWORK(N*N+1) + DBLE( N*N ) * CONE

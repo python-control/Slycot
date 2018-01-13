@@ -199,8 +199,8 @@ C     .. External Functions ..
       INTEGER           ILAENV
       EXTERNAL          ILAENV
 C     .. External Subroutines ..
-      EXTERNAL          DLAPMT, DLARFG, DLASET, DLATZM, DORMQR, DORMRQ,
-     $                  MB03OY, MB03PY, XERBLA
+      EXTERNAL          DLAPMT, DLARFG, DLASET, SLCT_DLATZM, DORMQR,
+     $                  DORMRQ, MB03OY, MB03PY, XERBLA
 C     .. Intrinsic Functions ..
       INTRINSIC         INT, MAX, MIN
 C     .. Executable Statements ..
@@ -308,7 +308,8 @@ C           Workspace: need   M+N-1.
 C
             DO 40 I1 = 1, SIGMA
                CALL DLARFG( RO+1, ABCD(IROW,I1), ABCD(IROW+1,I1), 1, T )
-               CALL DLATZM( 'L', RO+1, MNU-I1, ABCD(IROW+1,I1), 1, T,
+               CALL SLCT_DLATZM( 'L', RO+1, MNU-I1, ABCD(IROW+1,I1),
+     $                          1, T,
      $                      ABCD(IROW,I1+1), ABCD(IROW+1,I1+1), LDABCD,
      $                      DWORK )
                IROW = IROW + 1

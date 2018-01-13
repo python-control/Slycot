@@ -405,7 +405,7 @@ C     .. Local Scalars ..
       LOGICAL           ILASCL, ILBSCL, ILDSCL, ILESCL, LJOB1, LJOB2,
      $                  LJOBD, LJOBDF, LJOBF, LREDRA, LREDRB, LREDUA,
      $                  LREDUB, LREDUC, LREDUR, LTRANN, SUFWRK
-      INTEGER           I, IERR, IJOB, MINWRK, MN, WRKOPT
+      INTEGER           I, IERR, IJOB, MINWRK, MN, WRKOPT, SDIM
       DOUBLE PRECISION  ANRM, ANRMTO, BIGNUM, BNRM, BNRMTO, DNRM,
      $                  DNRMTO, ENRM, ENRMTO, SAFMAX, SAFMIN, SMLNUM
 C     .. External Functions ..
@@ -413,7 +413,7 @@ C     .. External Functions ..
       DOUBLE PRECISION  DLAMCH, DLANGE
       EXTERNAL          DLAMCH, DLANGE, LSAME
 C     .. External Subroutines ..
-      EXTERNAL          DCOPY, DGEGS, DGEMM, DGEMV, DLABAD, DLACPY,
+      EXTERNAL          DCOPY, DGGES, DGEMM, DGEMV, DLABAD, DLACPY,
      $                  DLASCL, DTGSYL, XERBLA
 C     .. Intrinsic Functions ..
       INTRINSIC         INT, MAX, SQRT
@@ -563,9 +563,13 @@ C           Reduce (A,D) to generalized Schur form.
 C           Workspace:  need   7*M;
 C                       prefer 5*M + M*(NB+1).
 C
-            CALL DGEGS( 'Vectors left', 'Vectors right', M, A, LDA, D,
-     $                  LDD, DWORK, DWORK(M+1), DWORK(2*M+1), P, LDP, Q,
-     $                  LDQ, DWORK(3*M+1), LDWORK-3*M, INFO )
+C            CALL DGEGS( 'Vectors left', 'Vectors right', M, A, LDA, D,
+C     $                  LDD, DWORK, DWORK(M+1), DWORK(2*M+1), P, LDP, Q,
+C     $                  LDQ, DWORK(3*M+1), LDWORK-3*M, INFO )
+         CALL DGGES( 'Vectors left', 'Vectors right', 'N', 0, N, A, LDA,
+     $               D, LDD, SDIM, DWORK, DWORK(M+1), DWORK(2*M+1), P, LDP, Q,
+     $               LDQ, DWORK(3*M+1), LDWORK-3*M, 0, INFO )
+
 C
 C           Undo scaling
 C
@@ -619,9 +623,12 @@ C           Reduce (B,E) to generalized Schur form.
 C           Workspace:  need   7*N;
 C                       prefer 5*N + N*(NB+1).
 C
-            CALL DGEGS( 'Vectors left', 'Vectors right', N, B, LDB, E,
-     $                  LDE, DWORK, DWORK(N+1), DWORK(2*N+1), U, LDU, V,
-     $                  LDV, DWORK(3*N+1), LDWORK-3*N, INFO )
+C            CALL DGEGS( 'Vectors left', 'Vectors right', N, B, LDB, E,
+C     $                  LDE, DWORK, DWORK(N+1), DWORK(2*N+1), U, LDU, V,
+C     $                  LDV, DWORK(3*N+1), LDWORK-3*N, INFO )
+            CALL DGGES( 'Vectors left', 'Vectors right', 'N', 0, N, B, LDB, E,
+     $                  LDE, SDIM, DWORK, DWORK(N+1), DWORK(2*N+1), U, LDU, V,
+     $                  LDV, DWORK(3*N+1), LDWORK-3*N, 0, INFO )
 C
 C           Undo scaling
 C

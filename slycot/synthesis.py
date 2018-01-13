@@ -2064,11 +2064,11 @@ def sg03ad(dico,job,fact,trans,uplo,N,A,E,Q,Z,X,ldwork=None):
         if job == 'X' and fact == 'F':
             ldwork = max(1,N)
         elif job == 'X' and fact == 'N':
-            ldwork = max(1,4*N)
+            ldwork = max(1,8*N+16)
         elif (job == 'B' or job == 'S') and fact == 'F':
             ldwork = max(1,2*N**2)
         elif (job == 'B' or job == 'S') and fact == 'N':
-            ldwork = max(1,2*N**2,4*N)
+            ldwork = max(1,2*N**2,8*N+16)
 
     out = _wrapper.sg03ad(dico,job,fact,trans,uplo,N,A,E,Q,Z,X,ldwork)
 
