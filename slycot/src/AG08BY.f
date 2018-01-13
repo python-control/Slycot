@@ -266,7 +266,8 @@ C     .. External Functions ..
       EXTERNAL           DLAMCH, DNRM2, IDAMAX, ILAENV
 C     .. External Subroutines ..
       EXTERNAL           DCOPY, DLAIC1, DLAPMT, DLARFG, DLARTG, DLASET,
-     $                   DLATZM, DORMQR, DROT, DSWAP, MB03OY, XERBLA
+     $                   SLCT_DLATZM, DORMQR, DROT, DSWAP, MB03OY,
+     $                   XERBLA
 C     .. Intrinsic Functions ..
       INTRINSIC          ABS, DBLE, INT, MAX, MIN, SQRT
 C     .. Executable Statements ..
@@ -398,7 +399,8 @@ C
             IROW = IROW + 1
             CALL DLARFG( RO+1, ABCD(IROW,ICOL), ABCD(IROW+1,ICOL), 1,
      $                   T )
-            CALL DLATZM( 'L', RO+1, MNR-ICOL, ABCD(IROW+1,ICOL), 1, T,
+            CALL SLCT_DLATZM( 'L', RO+1, MNR-ICOL, ABCD(IROW+1,ICOL),
+     $                   1, T,
      $                   ABCD(IROW,ICOL+1), ABCD(IROW+1,ICOL+1),
      $                   LDABCD, DWORK )
             CALL DCOPY( PR-ICOL, DUM, 0, ABCD(IROW+1,ICOL), 1 )

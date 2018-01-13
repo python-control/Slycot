@@ -274,7 +274,8 @@ C     .. External Functions ..
       EXTERNAL           DLAMCH, DZNRM2, IDAMAX, ILAENV
 C     .. External Subroutines ..
       EXTERNAL           MB3OYZ, XERBLA, ZCOPY, ZLAIC1, ZLAPMT, ZLARFG,
-     $                   ZLARTG, ZLASET, ZLATZM, ZROT, ZSWAP, ZUNMQR
+     $                   ZLARTG, ZLASET, SLCT_ZLATZM, ZROT, ZSWAP,
+     $                   ZUNMQR
 C     .. Intrinsic Functions ..
       INTRINSIC          ABS, DBLE, DCONJG, INT, MAX, MIN, SQRT
 C     .. Executable Statements ..
@@ -406,7 +407,8 @@ C
             IROW = IROW + 1
             CALL ZLARFG( RO+1, ABCD(IROW,ICOL), ABCD(IROW+1,ICOL), 1,
      $                   TC )
-            CALL ZLATZM( 'L', RO+1, MNR-ICOL, ABCD(IROW+1,ICOL), 1,
+C           RvP, replaced by slicot replacement for obsolete lapack routine
+            CALL SLCT_ZLATZM( 'L', RO+1, MNR-ICOL, ABCD(IROW+1,ICOL), 1,
      $                   DCONJG( TC ), ABCD(IROW,ICOL+1),
      $                   ABCD(IROW+1,ICOL+1), LDABCD, ZWORK )
             CALL ZCOPY( PR-ICOL, DUM, 0, ABCD(IROW+1,ICOL), 1 )

@@ -195,6 +195,7 @@ C
 C
 C        Error return.
 C
+         AB13AX = ZERO
          CALL XERBLA( 'AB13AX', -INFO )
          RETURN
       END IF

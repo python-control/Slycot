@@ -122,7 +122,7 @@ C     .. External Functions ..
       DOUBLE PRECISION  DLAMC3, DLAMCH
       EXTERNAL          DLAMC3, DLAMCH
 C     .. External Subroutines ..
-      EXTERNAL          DLANV2, DLARFG, DLASET, DLASV2, DLATZM, DROT
+      EXTERNAL          DLANV2, DLARFG, DLASET, DLASV2, SLCT_DLATZM, DROT
 C     .. Intrinsic Functions ..
       INTRINSIC         ABS, MIN
 C     .. Executable Statements ..
@@ -148,7 +148,8 @@ C
          F(1,1) = ( S - A(1,1) )/B1
          IF( M.GT.1 ) THEN
             CALL DLASET( 'Full', M-1, 1, ZERO, ZERO, F(2,1), M )
-            CALL DLATZM( 'Left', M, N, B(1,2), N, TAU1, F(1,1), F(2,1),
+            CALL SLCT_DLATZM( 'Left', M, N, B(1,2), N, TAU1,
+     $                   F(1,1), F(2,1),
      $                   M, DWORK )
          END IF
          RETURN
@@ -185,7 +186,8 @@ C        Postmultiply B with elementary Householder reflectors H1
 C        and H2.
 C
          CALL DLARFG( M, B(1,1), B(1,2), N, TAU1 )
-         CALL DLATZM( 'Right', N-1, M, B(1,2), N, TAU1, B(2,1), B(2,2),
+         CALL SLCT_DLATZM( 'Right', N-1, M, B(1,2), N, TAU1,
+     $                B(2,1), B(2,2),
      $                N, DWORK )
          B1  = B(1,1)
          B21 = B(2,1)
@@ -322,10 +324,10 @@ C
 C     Compute H1*H2*F.
 C
       IF( M.GT.2 )
-     $   CALL DLATZM( 'Left', M-1, N, B(2,3), N, TAU2, F(2,1), F(3,1),
-     $                M, DWORK )
-      CALL DLATZM( 'Left', M, N, B(1,2), N, TAU1, F(1,1), F(2,1), M,
-     $             DWORK )
+     $     CALL SLCT_DLATZM( 'Left', M-1, N, B(2,3), N, TAU2,
+     $                F(2,1), F(3,1), M, DWORK )
+      CALL SLCT_DLATZM( 'Left', M, N, B(1,2), N, TAU1,
+     $                  F(1,1), F(2,1), M, DWORK )
 C
       RETURN
 C *** Last line of SB01BY ***

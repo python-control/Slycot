@@ -461,9 +461,10 @@ C     .. Scalar Arguments ..
 C     .. Array Arguments ..
       DOUBLE PRECISION  A(LDA,*), ALPHAI(*), ALPHAR(*), B(LDB,*),
      $                  BETA(*), DWORK(*), E(LDE,*), Q(LDQ,*), Z(LDZ,*)
+      LOGICAL           BWORK
 C     .. Local Scalars ..
       DOUBLE PRECISION  S1, S2, SAFMIN, WI, WR1, WR2
-      INTEGER           I, INFO1, MINMN, MINWRK, OPTWRK
+      INTEGER           I, INFO1, MINMN, MINWRK, OPTWRK, SDIM
       LOGICAL           ISDISC, ISFACT, ISTRAN
 C     .. Local Arrays ..
       DOUBLE PRECISION  E1(2,2)
@@ -472,7 +473,7 @@ C     .. External Functions ..
       LOGICAL           LSAME
       EXTERNAL          DLAMCH, DLAPY2, LSAME
 C     .. External Subroutines ..
-      EXTERNAL          DCOPY, DGEGS, DGEMM, DGEMV, DGEQRF, DGERQF,
+      EXTERNAL          DCOPY, DGGES, DGEMM, DGEMV, DGEQRF, DGERQF,
      $                  DLACPY, DLAG2, DLASET, DSCAL, DTRMM, SG03BU,
      $                  SG03BV, XERBLA
 C     .. Intrinsic Functions ..
@@ -559,9 +560,12 @@ C           E := Q**T * E * Z   (upper triangular)
 C
 C        ( Workspace: >= MAX(1,4*N) )
 C
-         CALL DGEGS( 'Vectors', 'Vectors', N, A, LDA, E, LDE, ALPHAR,
-     $               ALPHAI, BETA, Q, LDQ, Z, LDZ, DWORK, LDWORK,
-     $               INFO1 )
+C         CALL DGEGS( 'Vectors', 'Vectors', N, A, LDA, E, LDE, ALPHAR,
+C     $               ALPHAI, BETA, Q, LDQ, Z, LDZ, DWORK, LDWORK,
+C     $               INFO1 )
+         CALL DGGES( 'Vectors', 'Vectors', 'N', 0, N, A, LDA,
+     $               E, LDE, SDIM, ALPHAR, ALPHAI, BETA, Q, LDQ, Z, LDZ,
+     $               DWORK, LDWORK, 0, INFO)
          IF ( INFO1 .NE. 0 ) THEN
             INFO = 4
             RETURN

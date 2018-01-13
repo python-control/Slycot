@@ -324,6 +324,7 @@ C
       END IF
 C
       IF( INFO.NE.0 ) THEN
+         AB13DX = ZERO
          CALL XERBLA( 'AB13DX', -INFO )
          RETURN
       END IF
@@ -360,6 +361,7 @@ C
      $                   LDWORK-IWRK+1, IERR )
             IF( IERR.GT.0 ) THEN
                INFO = N + 1
+               AB13DX = ZERO
                RETURN
             END IF
             AB13DX = DWORK( IS )
@@ -391,6 +393,7 @@ C
             INFO = IERR
             DWORK( 1 ) = ONE
             CWORK( 1 ) = ONE
+            AB13DX = ZERO
             RETURN
          END IF
          CALL MB02RD( 'No Transpose', N, M, A, LDA, IWORK, B, LDB,
@@ -415,6 +418,7 @@ C
          END IF
          IF( IERR.GT.0 ) THEN
             INFO = N + 1
+            AB13DX = ZERO
             RETURN
          END IF
 C
@@ -515,6 +519,7 @@ C
          INFO = IERR
          DWORK( 1 ) = ONE
          CWORK( 1 ) = ICWK - 1
+         AB13DX = ZERO
          RETURN
       END IF
       CALL MB02RZ( 'No Transpose', N, M, CWORK, N, IWORK,

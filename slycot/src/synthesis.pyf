@@ -550,7 +550,7 @@ subroutine sg03ad(dico,job,fact,trans,uplo,n,a,lda,e,lde,q,ldq,z,ldz,x,ldx,scale
     double precision intent(out), dimension(n), depend(n) :: beta
     integer intent(hide,cache),dimension(n*n),depend(n) :: iwork
     double precision intent(hide,cache),dimension(ldwork) :: dwork
-    integer optional,check(ldwork>=max(1,n)),depend(n) :: ldwork=max(1,max(2*n*n,4*n))
+    integer optional,check(ldwork>=max(1,max(2*n*n,8*n+16))),depend(n) :: ldwork=max(1,max(2*n*n,8*n+16))
     integer intent(out) :: info
 end subroutine sg03ad
 subroutine sg02ad_g(dico,jobb,fact,uplo,jobl,scal,sort,acc,n,m,p,a,lda,e,lde,b,ldb,q,ldq,r,ldr,l,ldl,rcondu,x,ldx,alfar,alfai,beta,s,lds,t,ldt,u,ldu,tol,iwork,dwork,ldwork,bwork,iwarn,info) ! in SG02AD.f
@@ -593,7 +593,7 @@ subroutine sg02ad_g(dico,jobb,fact,uplo,jobl,scal,sort,acc,n,m,p,a,lda,e,lde,b,l
     double precision intent(hide) :: tol = 0 ! Unused for jobb = 'G'
     integer intent(hide,cache), dimension(2*n), depend(n) :: iwork ! Since jobb = 'G'
     double precision intent(hide,cache), dimension(ldwork) :: dwork
-    integer optional,check(ldwork>=max(7*(2*n+1)+16,16*n)),depend(n) :: ldwork=max(7*(2*n+1)+16,16*n)
+    integer optional,check(ldwork>=max(7*(2*n+1)+16,max(16*n,8*n+16))),depend(n) :: ldwork=max(7*(2*n+1)+16,max(16*n,8*n+16))
     logical intent(hide,cache), dimension(2*n), depend(n) :: bwork
     integer intent(out) :: iwarn
     integer intent(out) :: info
@@ -638,7 +638,7 @@ subroutine sg02ad_bn(dico,jobb,fact,uplo,jobl,scal,sort,acc,n,m,p,a,lda,e,lde,b,
     double precision optional :: tol = -1
     integer intent(hide,cache), dimension(max(m,2*n)), depend(n,m) :: iwork ! Since jobb = 'B'
     double precision intent(hide,cache), dimension(ldwork) :: dwork
-    integer optional,check(ldwork>=max(3*m,max(2*n+m,max(7*(2*n+1)+16,16*n)))),depend(n,m) :: ldwork=max(3*m,max(2*n+m,max(7*(2*n+1)+16,16*n)))
+    integer optional,check(ldwork>=max(3*m,max(2*n+m,max(7*(2*n+1)+16,max(16*n,8*n+16))))),depend(n,m) :: ldwork=max(3*m,max(2*n+m,max(7*(2*n+1)+16,max(16*n,8*n+16))))
     logical intent(hide,cache), dimension(2*n), depend(n) :: bwork
     integer intent(out) :: iwarn
     integer intent(out) :: info
@@ -683,7 +683,7 @@ subroutine sg02ad_bc(dico,jobb,fact,uplo,jobl,scal,sort,acc,n,m,p,a,lda,e,lde,b,
     double precision optional :: tol = -1
     integer intent(hide,cache), dimension(max(m,2*n)), depend(n,m) :: iwork ! Since jobb = 'B'
     double precision intent(hide,cache), dimension(ldwork) :: dwork
-    integer optional,check(ldwork>=max(3*m,max(2*n+m,max(7*(2*n+1)+16,16*n)))),depend(n,m) :: ldwork=max(3*m,max(2*n+m,max(7*(2*n+1)+16,16*n)))
+    integer optional,check(ldwork>=max(3*m,max(2*n+m,max(7*(2*n+1)+16,max(16*n,8*n+16))))),depend(n,m) :: ldwork=max(3*m,max(2*n+m,max(7*(2*n+1)+16,max(16*n,8*n+16))))
     logical intent(hide,cache), dimension(2*n), depend(n) :: bwork
     integer intent(out) :: iwarn
     integer intent(out) :: info
@@ -728,7 +728,7 @@ subroutine sg02ad_bd(dico,jobb,fact,uplo,jobl,scal,sort,acc,n,m,p,a,lda,e,lde,b,
     double precision optional :: tol = -1
     integer intent(hide,cache), dimension(max(m,2*n)), depend(n,m) :: iwork ! Since jobb = 'B'
     double precision intent(hide,cache), dimension(ldwork) :: dwork
-    integer optional,check(ldwork>=max(3*m,max(2*n+m,max(7*(2*n+1)+16,16*n)))),depend(n,m) :: ldwork=max(3*m,max(2*n+m,max(7*(2*n+1)+16,16*n)))
+    integer optional,check(ldwork>=max(3*m,max(2*n+m,max(7*(2*n+1)+16,max(16*n,8*n+16))))),depend(n,m) :: ldwork=max(3*m,max(2*n+m,max(7*(2*n+1)+16,max(16*n,8*n+16))))
     logical intent(hide,cache), dimension(2*n), depend(n) :: bwork
     integer intent(out) :: iwarn
     integer intent(out) :: info
@@ -773,7 +773,7 @@ subroutine sg02ad_bb(dico,jobb,fact,uplo,jobl,scal,sort,acc,n,m,p,a,lda,e,lde,b,
     double precision optional :: tol = -1
     integer intent(hide,cache), dimension(max(m,2*n)), depend(n) :: iwork ! Since jobb = 'B'
     double precision intent(hide,cache), dimension(ldwork) :: dwork
-    integer optional,check(ldwork>=max(3*m,max(2*n+m,max(7*(2*n+1)+16,16*n)))),depend(n,m) :: ldwork=max(3*m,max(2*n+m,max(7*(2*n+1)+16,16*n)))
+    integer optional,check(ldwork>=max(3*m,max(2*n+m,max(7*(2*n+1)+16,max(16*n,8*n+16))))),depend(n,m) :: ldwork=max(3*m,max(2*n+m,max(7*(2*n+1)+16,max(8*n+16,16*n))))
     logical intent(hide,cache), dimension(2*n), depend(n) :: bwork
     integer intent(out) :: iwarn
     integer intent(out) :: info
