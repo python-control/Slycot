@@ -18,6 +18,8 @@ requirements:
     - python
     - numpy
     - openblas
+    - gfortran_linux-64	# [linux]
+    - libgfortran
 
 test:
   imports:
