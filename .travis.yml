@@ -11,13 +11,12 @@ env:
   - TEST_CONDA=1
 
 before_install:
+  - sudo apt-get install gfortran
   #
-  # If not using conda, then install gfortran.  Also need to include
-  # liblapack here and set up library paths
+  # If not using conda, then install liblapack here (conda version
+  # will handle this through the build recipe)
   #
-  - if [[ $TEST_CONDA == 0 ]]; then
-      sudo apt-get install gfortran liblapack-dev;
-    fi
+  - if [[ $TEST_CONDA == 0 ]]; then sudo apt-get install liblapack-dev; fi
 
 install:
   #
@@ -44,12 +43,19 @@ install:
   - conda create -q -n test-environment python="$TRAVIS_PYTHON_VERSION" pip coverage nose numpy
   - source activate test-environment
   #
-  # Install the slycot package (two ways, to improve robustness)
+  # Make sure that fortran compiler can find conda libraries
+  #
+  - export LIBRARY_PATH="$HOME/miniconda/envs/test-environment/lib";
+  #
+  # Install the slycot package (two ways, to improve robustness).  For the 
+  # conda version, need to install lapack from conda-forge (no way to specify 
+  # this in the recipe).
+  #
   - if [[ $TEST_CONDA == 1 ]]; then
-      conda build conda-recipe;
+      conda install -c conda-forge lapack;
+      conda build --python "$TRAVIS_PYTHON_VERSION" conda-recipe;
       conda install slycot --use-local;
     else
-      export LIBRARY_PATH="$HOME/miniconda/envs/test-environment/lib";
       python setup.py install;
     fi
 
