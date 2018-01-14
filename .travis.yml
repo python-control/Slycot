@@ -1,4 +1,4 @@
-# cargo-culted from python-control's .travis.yml
+# Travis configuration file for slycot
 language: python
 
 python:
@@ -6,12 +6,24 @@ python:
   - "3.5"
   - "3.6"
 
+env:
+  - TEST_CONDA=0
+  - TEST_CONDA=1
+
 before_install:
-  # Install gfortran for testing slycot; use apt-get instead of conda in
-  # order to include the proper CXXABI dependency (updated in GCC 4.9)
-  # Also need to include liblapack here, to make sure paths are right
-  - sudo apt-get install gfortran liblapack-dev
-  # use miniconda to install numpy
+  #
+  # If not using conda, then install gfortran.  Also need to include
+  # liblapack here and set up library paths
+  #
+  - if [[ $TEST_CONDA == 0 ]]; then
+      sudo apt-get install gfortran liblapack-dev;
+    fi
+
+install:
+  #
+  # Install miniconda to allow quicker installation of dependencies
+  # See https://conda.io/docs/user-guide/tasks/use-conda-with-travis-ci.html
+  #
   - if [[ "$TRAVIS_PYTHON_VERSION" == "2.7" ]]; then
       wget http://repo.continuum.io/miniconda/Miniconda-latest-Linux-x86_64.sh -O miniconda.sh;
     else
@@ -22,23 +34,30 @@ before_install:
   - hash -r
   - conda config --set always_yes yes --set changeps1 no
   - conda update -q conda
+  - if [[ $TEST_CONDA == 1 ]]; then conda install conda-build; fi
   - conda info -a
-  - conda create -q -n test-environment python="$TRAVIS_PYTHON_VERSION" pip coverage nose
-  - source activate test-environment
-  # Make sure to look in the right place for python libraries 
-  - export LIBRARY_PATH="$HOME/miniconda/envs/test-environment/lib"
+  #
   # coveralls not in conda repos :-(
   - pip install coveralls
-
-install:
-  - conda install numpy
-  - python setup.py install
+  #
+  # Set up a test environment for testing everything out
+  - conda create -q -n test-environment python="$TRAVIS_PYTHON_VERSION" pip coverage nose numpy
+  - source activate test-environment
+  #
+  # Install the slycot package (two ways, to improve robustness)
+  - if [[ $TEST_CONDA == 1 ]]; then
+      conda build conda-recipe;
+      conda install slycot --use-local;
+    else
+      export LIBRARY_PATH="$HOME/miniconda/envs/test-environment/lib";
+      python setup.py install;
+    fi
 
 script:
   # Local unit tests
   # TODO: replace with nose?
   - python runtests.py --coverage
-  # 
+  #
   # As a deeper set of tests, get test against python-control as well
   #
   # Additional packages required for python-control

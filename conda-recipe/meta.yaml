@@ -9,13 +9,13 @@ requirements:
   build:
     - python
     - numpy
-    - lapack
+    - openblas
     - m2w64-gcc-fortran # [win]
 
   run:
     - python
     - numpy
-    - lapack
+    - openblas
 
 test:
   imports:
