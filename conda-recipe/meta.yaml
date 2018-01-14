@@ -11,6 +11,8 @@ requirements:
     - numpy
     - openblas
     - m2w64-gcc-fortran # [win]
+    - gfortran_linux-64	# [linux]
+    - gfortran_osx-64	# [osx]
 
   run:
     - python
