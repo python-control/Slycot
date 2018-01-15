@@ -11,6 +11,9 @@ env:
   - TEST_CONDA=1
 
 before_install:
+  #
+  # Install fortran compiler
+  #
   - sudo apt-get install gfortran
   #
   # If not using conda, then install liblapack here (conda version
@@ -36,9 +39,6 @@ install:
   - if [[ $TEST_CONDA == 1 ]]; then conda install conda-build; fi
   - conda info -a
   #
-  # coveralls not in conda repos :-(
-  - pip install coveralls
-  #
   # Set up a test environment for testing everything out
   - conda create -q -n test-environment python="$TRAVIS_PYTHON_VERSION" pip coverage nose numpy
   - source activate test-environment
@@ -58,6 +58,9 @@ install:
     else
       python setup.py install;
     fi
+  #
+  # coveralls not in conda repos :-(
+  - pip install coveralls
 
 script:
   # Local unit tests
