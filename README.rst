@@ -1,42 +1,48 @@
 Slycot
-=============
+======
+
+.. image:: https://img.shields.io/pypi/v/slycot.svg
+   :target: https://pypi.org/project/slycot/
+
+.. image:: https://anaconda.org/conda-forge/slycot/badges/version.svg
+   :target: https://anaconda.org/conda-forge/slycot
 
 .. image:: https://travis-ci.org/python-control/Slycot.svg?branch=master
-        :target: https://travis-ci.org/python-control/Slycot
+   :target: https://travis-ci.org/python-control/Slycot
+
 .. image:: https://coveralls.io/repos/python-control/Slycot/badge.png
-        :target: https://coveralls.io/r/python-control/Slycot
+   :target: https://coveralls.io/r/python-control/Slycot
 
 Python wrapper for selected SLICOT routines, notably including solvers for
 Riccati, Lyapunov and Sylvester equations.
 
+Dependencies
+------------
 
-Prerequisite:
--------------
+Slycot depends primarily on NumPy, and if you are installing a binary
+distribution, NumPy is the only dependency.
 
-Slycot depends on Numpy, and if you are installing a binary distribution, Numpy
-is the only prerequisite.
+If you are installing Slycot from source, you will need a Fortran compiler,
+such as gfortran, and BLAS/LAPACK libraries.
 
-If you are installing Slycot from source, you will need a fortran
-compiler such as gfortran, and BLAS/LAPACK libraries.
+On Debian Linux operating system derivates you can install all the necessary
+build dependencies with a single command::
 
-On Debian derivates you can install all the above with a single command::
-
-        sudo apt-get build-dep python-scipy
+   sudo apt-get build-dep python-scipy
 
 On Mac, you will first need to install the `developer tools
-<https://developer.apple.com/xcode/>`_.  You can then install gfortran using
+<https://developer.apple.com/xcode/>`_. You can then install gfortran using
 `homebrew <http://brew.sh>`_ with::
 
-        brew install gcc
+   brew install gcc
 
-On Windows, I suggest installing on top of the Python(x,y) distribution, and
-grabbing BLAS and LAPACK libraries from: 
+On Windows, we suggest installing on top of the Python(x,y) distribution, and
+grabbing BLAS and LAPACK libraries from:
 
 http://icl.cs.utk.edu/lapack-for-windows/libraries/VisualStudio/3.4.1/Dynamic-MINGW/Win32/
 
 * install dll files in C:\Python27\DLLs
 * install lib files in C:\Python27\libs
-
 
 Installing
 -----------
@@ -44,60 +50,55 @@ Installing
 Using pip
 ~~~~~~~~~
 
-Slycot supports the pip packaging system. You must first have
-pip installed.
+Slycot supports the pip packaging system. You must first have pip installed.
 
-On debian linux based systems you can install pip with the command::
+On Debian Linux based systems you can install pip alongside your system Python
+with the command::
 
         sudo apt-get install pip
 
-Pip can then be used to install Slycot wih the command::
+Pip can then be used to install Slycot with the command::
 
-        sudo pip install slycot
+        pip install slycot
 
-There are some binary "wheels" available on PyPI, so if those versions match
-with your system, you may be able to avoid installing from source.
+Note that installing with pip may or may not require having the build
+dependencies installed. There are some binary "wheels" available on PyPI, so if
+those versions match with your system, you may be able to avoid installing from
+source.
 
 Using conda
 ~~~~~~~~~~~
 
-If you use `Anaconda or conda <http://continuum.io/downloads>`_ on Linux or Mac,
-it should be straighforward to install Slycot, without needing any compilers or
-other prerequisites.  Slycot is not included in the standard conda package
-repository, but there are packages available on http://binstar.org for Linux and
-Mac.  You can install with the following command::
+Slycot can be installed for Linux or Mac via the conda package manager from the
+Conda Forge channel with the following command::
 
-  conda install -c http://conda.binstar.org/cwrowley slycot
+  conda install -c conda-forge slycot
 
+Note that there may be other versions for different operating systems available
+on `other Anaconda channels <https://anaconda.org/search?q=slycot>`_, if the
+Conda Forge version is not suitable for your needs.
 
 From Source
 ~~~~~~~~~~~
 
-Unpack to a directory of your choice, say /path/to/slycot_src/, and execute::
+Unpack the source code to a directory of your choice, e.g.
+``/path/to/slycot_src/``, and execute::
 
-        cd /path/to/slycot_src/
-        # python setup.py install
-
-Where # is for commands that needs to be executed as root/administrator. 
+   cd /path/to/slycot_src/
+   python setup.py install
 
 If the build fails and you are on a 64bit OS you may want to try::
 
-        cd /path/to/slycot_src/
-        python setup.py config_fc --arch="-march=x86-64" build
-        # python setup.py install
+   cd /path/to/slycot_src/
+   python setup.py config_fc --arch="-march=x86-64" build
+   python setup.py install
 
 For Windows, and using Python(x,y), specify that you are using the
-mingw compiler. Create a file
+mingw compiler. Create a file::
 
-C:\\Python27\\Lib\\distutils\\distutils.cfg
+   C:\\Python27\\Lib\\distutils\\distutils.cfg
 
 with as contents::
 
         [build]
         compiler=mingw32
-
-To-Do
-------
- 
-- write unit tests, already added test script, and simple test
-- add examples in the doc-strings
