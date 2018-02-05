@@ -1,7 +1,7 @@
 Slycot
 ======
 
-.. image:: https://img.shields.io/pypi/v/nine.svg
+.. image:: https://img.shields.io/pypi/v/slycot.svg
    :target: https://pypi.org/project/slycot/
 
 .. image:: https://anaconda.org/conda-forge/slycot/badges/version.svg
