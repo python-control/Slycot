@@ -1,0 +1,27 @@
+package:
+  name: slycot
+  version: "0.3.2"
+
+build:
+  number: 1
+
+requirements:
+  build:
+    - python
+    - numpy >=1.13.3
+    - lapack
+    - m2w64-gcc-fortran # [win]
+
+  run:
+    - python
+    - numpy
+    - lapack
+
+test:
+  imports:
+    - slycot
+
+about:
+  home: https://github.com/python-control/Slycot
+  license:  GPLv2
+  summary: 'A wrapper for the SLICOT control and systems library'

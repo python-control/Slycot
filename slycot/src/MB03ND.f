@@ -182,6 +182,7 @@ C
 C
 C        Error return.
 C
+         MB03ND = ZERO
          CALL XERBLA( 'MB03ND', -INFO )
          RETURN
       END IF

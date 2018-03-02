@@ -1,14 +1,17 @@
+!    -*- f90 -*-
+! Note: the context of this file is case sensitive.
+
 subroutine tb01id(job,n,m,p,maxred,a,lda,b,ldb,c,ldc,scale,info) ! in TB01ID.f
-    character :: job = 'A'
-    integer check(n>0) :: n
-    integer check(m>0) :: m
-    integer check(p>0) :: p
+    character intent(in) :: job = 'A'
+    integer required,check(n>0) :: n
+    integer required,check(m>0) :: m
+    integer required,check(p>0) :: p
     double precision intent(in,out),check(maxred<=0 || maxred>1) :: maxred
-    double precision intent(in,out),dimension(n,n),depend(n) :: a
+    double precision intent(in,out,copy),dimension(n,n),depend(n) :: a
     integer intent(hide),depend(a) :: lda=shape(a,0)
-    double precision intent(in,out),dimension(n,m),depend(n,m) :: b
+    double precision intent(in,out,copy),dimension(n,m),depend(n,m) :: b
     integer intent(hide),depend(b) :: ldb=shape(b,0)
-    double precision intent(in,out),dimension(p,n),depend(n,p) :: c
+    double precision intent(in,out,copy),dimension(p,n),depend(n,p) :: c
     integer intent(hide),depend(c) :: ldc=shape(c,0)
     double precision intent(out),dimension(n),depend(n) :: scale
     integer intent(out) :: info
@@ -133,6 +136,100 @@ subroutine tb04ad_c(rowcol,n,m,p,a,lda,b,ldb,c,ldc,d,ldd,nr,index_bn,dcoeff,lddc
     integer optional :: ldwork = max(1,n*(n+1)+max(n*p+2*n+max(n,p),max(3*p,m)))
     integer intent(out) :: info
 end subroutine tb04ad_c
+subroutine tb05ad_ag(baleig,inita,n,m,p,freq,a,lda,b,ldb,c,ldc,rcond,g,ldg,evre,evim,hinvb,ldhinv,iwork,dwork,ldwork,zwork,lzwork,info)
+  ! The case where A is is a general matrix that should be balanced
+  ! and converted to upper Hessenberg form.
+  fortranname tb05ad
+  character intent(hide) :: baleig = 'A'
+  character intent(hide) :: inita = 'G'
+  integer check(n>0) :: n
+  integer check(m>0) :: m
+  integer check(p>0) :: p
+  complex*16 intent(in) :: freq
+  double precision intent(in,out,copy),dimension(n,n),depend(n) :: a
+  integer intent(hide),depend(a) :: lda=shape(a,0)
+  double precision intent(in,out,copy),dimension(n,m),depend(n,m) :: b
+  integer intent(hide),depend(b) :: ldb=shape(b,0)
+  double precision intent(in,out,copy),dimension(p,n),depend(n,p) :: c
+  integer intent(hide),depend(c) :: ldc=shape(c,0)
+  double precision intent(out) :: rcond
+  complex*16 intent(out),dimension(ldg,m),depend(ldg,m) :: g
+  integer intent(hide),depend(p) :: ldg = p
+  double precision intent(out),dimension(n),depend(n):: evre
+  double precision intent(out),dimension(n),depend(n):: evim
+  complex*16 intent(out),dimension(ldhinv,m),depend(ldhinv,m) :: hinvb
+  integer intent(hide),depend(n) :: ldhinv = n
+  ! cache variables
+  integer intent(hide,cache),dimension(n) :: iwork
+  double precision intent(hide,cache),dimension(ldwork),depend(ldwork) :: dwork
+  integer optional,depend(n) :: ldwork = 2*n
+  complex*16 intent(hide,cache),dimension(lzwork),depend(lzwork) :: zwork
+  integer optional,depend(n) :: lzwork = n*n+2*n
+  integer intent(out) :: info
+end subroutine tb05ad_ag
+subroutine tb05ad_ng(baleig,inita,n,m,p,freq,a,lda,b,ldb,c,ldc,rcond,g,ldg,evre,evim,hinvb,ldhinv,iwork,dwork,ldwork,zwork,lzwork,info)
+  ! The case where A is is a general matrix that should not be
+  ! balanced but is only converted to upper Hessenberg form.
+  fortranname tb05ad
+  character intent(hide) :: baleig = 'N'
+  character intent(hide) :: inita = 'G'
+  integer check(n>0) :: n
+  integer check(m>0) :: m
+  integer check(p>0) :: p
+  complex*16 intent(in) :: freq
+  double precision intent(in,out,copy),dimension(n,n),depend(n) :: a
+  integer intent(hide),depend(a) :: lda=shape(a,0)
+  double precision intent(in,out,copy),dimension(n,m),depend(n,m) :: b
+  integer intent(hide),depend(b) :: ldb=shape(b,0)
+  double precision intent(in,out,copy),dimension(p,n),depend(n,p) :: c
+  integer intent(hide),depend(c) :: ldc=shape(c,0)
+  double precision intent(hide) :: rcond
+  complex*16 intent(out),dimension(ldg,m),depend(ldg,m) :: g
+  integer intent(hide),depend(p) :: ldg = p
+  double precision intent(hide),dimension(n),depend(n):: evre
+  double precision intent(hide),dimension(n),depend(n):: evim
+  complex*16 intent(out),dimension(ldhinv,m),depend(ldhinv,m) :: hinvb
+  integer intent(hide),depend(n) :: ldhinv = n
+  ! cache variables
+  integer intent(hide,cache),dimension(n) :: iwork
+  double precision intent(hide,cache),dimension(ldwork),depend(ldwork) :: dwork
+  integer optional,depend(n) :: ldwork = 2*n
+  complex*16 intent(hide,cache),dimension(lzwork),depend(lzwork) :: zwork
+  integer optional,depend(n) :: lzwork = n*n+2*n
+  integer intent(out) :: info
+end subroutine tb05ad_ng
+
+subroutine tb05ad_nh(baleig,inita,n,m,p,freq,a,lda,b,ldb,c,ldc,rcond,g,ldg,evre,evim,hinvb,ldhinv,iwork,dwork,ldwork,zwork,lzwork,info)
+  ! The case where A is already balanced and hessenberg
+  fortranname tb05ad
+  character intent(hide) :: baleig = 'N'
+  character intent(hide) :: inita = 'H'
+  integer check(n>0) :: n
+  integer check(m>0) :: m
+  integer check(p>0) :: p
+  complex*16 intent(in) :: freq
+  double precision intent(in),dimension(n,n),depend(n) :: a
+  integer intent(hide),depend(a) :: lda=shape(a,0)
+  double precision intent(in),dimension(n,m),depend(n,m) :: b
+  integer intent(hide),depend(b) :: ldb=shape(b,0)
+  double precision intent(in),dimension(p,n),depend(n,p) :: c
+  integer intent(hide),depend(c) :: ldc=shape(c,0)
+  double precision intent(hide) :: rcond
+  complex*16 intent(out),dimension(ldg,m),depend(ldg,m) :: g
+  integer intent(hide),depend(p) :: ldg = p
+  double precision intent(hide),dimension(n),depend(n):: evre
+  double precision intent(hide),dimension(n),depend(n):: evim
+  complex*16 intent(out),dimension(ldhinv,m),depend(ldhinv,m) :: hinvb
+  integer intent(hide),depend(n) :: ldhinv = n
+  ! cache variables
+  integer intent(hide,cache),dimension(n) :: iwork
+  double precision intent(hide,cache),dimension(ldwork),depend(ldwork) :: dwork
+  integer optional,depend(n) :: ldwork = 2*n
+  complex*16 intent(hide,cache),dimension(lzwork),depend(lzwork) :: zwork
+  integer optional,depend(n) :: lzwork = n*n+2*n
+  integer intent(out) :: info
+end subroutine tb05ad_h
+
 subroutine tc01od_l(leri,m,p,indlim,pcoeff,ldpco1,ldpco2,qcoeff,ldqco1,ldqco2,info) ! in TC01OD.f
 	fortranname tc01od
 	character intent(hide) :: leri = 'L'
@@ -227,11 +324,11 @@ subroutine td04ad_r(rowcol,m,p,index_bn,dcoeff,lddcoe,ucoeff,lduco1,lduco2,nr,a,
     integer intent(hide),depend(ucoeff) :: lduco1=shape(ucoeff,0)
     integer intent(hide),depend(ucoeff) :: lduco2=shape(ucoeff,1)
     integer intent(in,out) :: nr !=sum(index_bn)
-    double precision intent(out),dimension(max(1,nr),nr),depend(nr) :: a
+    double precision intent(out),dimension(max(1,nr),max(1,nr)),depend(nr) :: a
     integer intent(hide),depend(a) :: lda = shape(a,0) 
     double precision intent(out),dimension(max(1,nr),max(m,p)),depend(nr,m,p) :: b
     integer intent(hide),depend(b) :: ldb = shape(b,0)
-    double precision intent(out),dimension(max(1,max(m,p)),nr),depend(nr,m,p) :: c
+    double precision intent(out),dimension(max(1,max(m,p)),max(1,nr)),depend(nr,m,p) :: c
     integer intent(hide),depend(c) :: ldc = shape(c,0)
     double precision intent(out),dimension(max(1,p),m),depend(p,m) :: d
     integer intent(hide),depend(d) :: ldd = shape(d,0)
@@ -305,3 +402,23 @@ subroutine tf01rd(na,nb,nc,n,a,lda,b,ldb,c,ldc,h,ldh,dwork,ldwork,info) ! in TF0
     integer optional,depend(na,nc) :: ldwork = 2*na*nc
     integer intent(out) :: info
 end subroutine tf01rd
+subroutine tb01pd(job,equil,n,m,p,a,lda,b,ldb,c,ldc,nr,tol,iwork,dwork,ldwork,info) ! in TB01PD.f
+    character intent(in) :: job = 'M'
+    character intent(in) :: equil = 'S'
+    integer required,check(n>=0) :: n
+    integer required,check(m>=0) :: m
+    integer required,check(p>=0) :: p
+    double precision intent(in,out,copy),dimension(n,n),depend(n) :: a
+    integer, intent(hide), depend(a) :: lda=shape(a,0)
+    double precision intent(in,out,copy),dimension(n,max(m,p)),depend(n,m,p) :: b
+    integer, intent(hide), depend(b) :: ldb=shape(b,0)
+    double precision intent(in,out,copy),dimension(max(p,m),n),depend(p,n,m) :: c
+    integer, intent(hide), depend(c) :: ldc=shape(c,0)
+    integer, intent(out) :: nr
+    double precision, intent(in) :: tol = 0.0
+    integer intent(hide,cache),dimension(n+max(m,p)),depend(n,m,p) :: iwork
+    double precision intent(hide,cache),dimension(ldwork),depend(ldwork) :: dwork
+    integer optional,depend(n,m,p) :: ldwork=max(1,n+max(n,max(3*m,3*p)))
+    integer intent(out) :: info
+end subroutine tb01pd
+

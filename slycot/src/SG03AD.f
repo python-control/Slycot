@@ -197,9 +197,9 @@ C
 C                    JOB        FACT    |  LDWORK
 C                    -------------------+-------------------
 C                    'X'        'F'     |  MAX(1,N)
-C                    'X'        'N'     |  MAX(1,4*N)
+C                    'X'        'N'     |  MAX(1,4*N,8*N+16)
 C                    'B', 'S'   'F'     |  MAX(1,2*N**2)
-C                    'B', 'S'   'N'     |  MAX(1,2*N**2,4*N)
+C                    'B', 'S'   'N'     |  MAX(1,2*N**2,4*N,8*N+16)
 C
 C             For optimum performance, LDWORK should be larger.
 C
@@ -214,7 +214,7 @@ C                   Hessenberg part of the array A is not in upper
 C                   quasitriangular form;
 C             = 2:  FACT = 'N' and the pencil A - lambda * E cannot be
 C                   reduced to generalized Schur form: LAPACK routine
-C                   DGEGS has failed to converge;
+C                   DGGES has failed to converge;
 C             = 3:  DICO = 'D' and the pencil A - lambda * E has a
 C                   pair of reciprocal eigenvalues. That is, lambda_i =
 C                   1/lambda_j for some i and j, where lambda_i and
@@ -392,7 +392,7 @@ C     .. External Functions ..
       LOGICAL           LSAME
       EXTERNAL          DLAMCH, DNRM2, LSAME
 C     .. External Subroutines ..
-      EXTERNAL          DCOPY, DGEGS, DLACON, MB01RD, MB01RW, SG03AX,
+      EXTERNAL          DCOPY, DGGES, DLACON, MB01RD, MB01RW, SG03AX,
      $                  SG03AY, XERBLA
 C     .. Intrinsic Functions ..
       INTRINSIC         DBLE, INT, MAX, MIN
@@ -443,13 +443,13 @@ C
             IF ( ISFACT ) THEN
                MINWRK = MAX( N, 1 )
             ELSE
-               MINWRK = MAX( 4*N, 1 )
+               MINWRK = MAX( 8*N+16, 1 )
             END IF
          ELSE
             IF ( ISFACT ) THEN
                MINWRK = MAX( 2*N*N, 1 )
             ELSE
-               MINWRK = MAX( 2*N*N, 4*N, 1 )
+               MINWRK = MAX( 2*N*N, 8*N+16, 1 )
             END IF
          END IF
          IF ( MINWRK .GT. LDWORK ) THEN
@@ -492,9 +492,10 @@ C           E := Q**T * E * Z   (upper triangular)
 C
 C        ( Workspace: >= MAX(1,4*N) )
 C
-         CALL DGEGS( 'Vectors', 'Vectors', N, A, LDA, E, LDE, ALPHAR,
+         CALL DGGES( 'Vectors', 'Vectors', 'N', 0, N, A, LDA, E, LDE,
+     $               SDIM, ALPHAR,
      $               ALPHAI, BETA, Q, LDQ, Z, LDZ, DWORK, LDWORK,
-     $               INFO1 )
+     $               0, INFO1 )
          IF ( INFO1 .NE. 0 ) THEN
             INFO = 2
             RETURN

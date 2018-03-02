@@ -197,6 +197,7 @@ C
 C     Nov. 1998, V. Sima, Research Institute for Informatics, Bucharest.
 C     Dec. 1998, V. Sima, Katholieke Univ. Leuven, Leuven.
 C     Oct. 2001, V. Sima, Research Institute for Informatics, Bucharest.
+C     Jun. 2017, RvP, made 1st error return value zero
 C
 C     KEYWORDS
 C
@@ -260,8 +261,10 @@ C
 C
       IF( INFO.NE.0 ) THEN
 C
-C        Error return.
+C     Error return.
 C
+C
+         AB13AD = ZERO
          CALL XERBLA( 'AB13AD', -INFO )
          RETURN
       END IF
