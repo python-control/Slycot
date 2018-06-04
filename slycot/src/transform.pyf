@@ -324,7 +324,7 @@ subroutine td04ad_r(rowcol,m,p,index_bn,dcoeff,lddcoe,ucoeff,lduco1,lduco2,nr,a,
     integer intent(hide),depend(ucoeff) :: lduco1=shape(ucoeff,0)
     integer intent(hide),depend(ucoeff) :: lduco2=shape(ucoeff,1)
     integer intent(in,out) :: nr !=sum(index_bn)
-    double precision intent(out),dimension(max(1,nr),max(1,nr)),depend(nr) :: a
+    double precision intent(out),dimension(max(1,nr),nr),depend(nr) :: a
     integer intent(hide),depend(a) :: lda = shape(a,0) 
     double precision intent(out),dimension(max(1,nr),max(m,p)),depend(nr,m,p) :: b
     integer intent(hide),depend(b) :: ldb = shape(b,0)
@@ -344,13 +344,13 @@ subroutine td04ad_c(rowcol,m,p,index_bn,dcoeff,lddcoe,ucoeff,lduco1,lduco2,nr,a,
     integer check(m>=0) :: m
     integer check(p>=0) :: p
     integer dimension(m),depend(m) :: index_bn
-    double precision intent(in,copy),dimension(max(1,m),*),depend(p) :: dcoeff
+    double precision intent(in,copy),dimension(max(1,m),*),depend(m) :: dcoeff
     integer intent(hide),depend(dcoeff) :: lddcoe=shape(dcoeff,0)
     double precision intent(in,copy),dimension(max(1,max(m,p)),max(1,max(m,p)),*),depend(p,m) :: ucoeff
     integer intent(hide),depend(ucoeff) :: lduco1=shape(ucoeff,0)
     integer intent(hide),depend(ucoeff) :: lduco2=shape(ucoeff,1)
     integer intent(in,out) :: nr != sum(index_bn)
-    double precision intent(out),dimension(max(1,nr),nr),depend(nr) :: a
+    double precision intent(out),dimension(max(1,nr),max(1,nr)),depend(nr) :: a
     integer intent(hide),depend(a) :: lda = shape(a,0) 
     double precision intent(out),dimension(max(1,nr),max(m,p)),depend(nr,m,p) :: b
     integer intent(hide),depend(b) :: ldb = shape(b,0)
