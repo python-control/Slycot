@@ -14,14 +14,24 @@ from numpy.testing import assert_raises, assert_almost_equal
 class test_td04ad(unittest.TestCase):
 
     def test_td04ad_case1(self):
+        # for octave:
+        """
+        num = { [0.0,  0.0, 1.0 ], [ 1.0, 0.0 ];
+                [3.0, -1.0, 1.0 ], [ 0.0, 1.0 ];
+                [0.0, 0.0, 1.0],   [ 0.0, 2.0 ] };
+        den = { [1.0,  0.4, 3.0],  [ 1.0, 1.0 ];
+                [1.0,  0.4, 3.0],  [ 1.0, 1.0 ];
+                [1.0,  0.4, 3.0],  [ 1.0, 1.0 ]};
+        """
+        
         # common denominators for the inputs
         n = 2
         m = 2
         p = 3
         num = np.array([
-            [ [0.0,  0.0, 1.0 ], [ 0.0, 1.0, 0.0 ] ],
-            [ [3.0, -1.0, 1.0 ], [ 0.0, 0.0, 1.0 ] ],
-            [ [0.0, 0.0, 1.0],   [ 0.0, 0.0, 2.0 ] ] ])
+            [ [0.0,  0.0, 1.0 ], [ 1.0, 0.0, 0.0 ] ],
+            [ [3.0, -1.0, 1.0 ], [ 0.0, 1.0, 0.0 ] ],
+            [ [0.0, 0.0, 1.0],   [ 0.0, 2.0, 0.0 ] ] ])
         numc = np.zeros((3, 3, 3),dtype=float)
         numc[:,:2,:] = num
         denc = np.array(
