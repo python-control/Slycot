@@ -103,6 +103,157 @@ def tb01id(n,m,p,maxred,a,b,c,job='A'):
         raise e
     return out[:-1]
 
+def tb01kd(dico,stdom,joba,alpha,A,B,C):
+    """To compute an additive spectral decomposition of the transfer-
+     function matrix of the system (A,B,C) by reducing the system
+     state-matrix A to a block-diagonal form.
+     The system matrices are transformed as
+     A <-- inv(U)*A*U, B <--inv(U)*B and C <-- C*U.
+     The leading diagonal block of the resulting A has eigenvalues
+     in a suitably defined domain of interest.
+
+     ARGUMENTS
+
+     Mode Parameters
+
+     dico    CHARACTER*1
+             Specifies the type of the system as follows:
+             = 'C':  continuous-time system;
+             = 'D':  discrete-time system.
+
+     stdom   CHARACTER*1
+             Specifies whether the domain of interest is of stability
+             type (left part of complex plane or inside of a circle)
+             or of instability type (right part of complex plane or
+             outside of a circle) as follows:
+             = 'S':  stability type domain;
+             = 'U':  instability type domain.
+
+     joba    CHARACTER*1
+             Specifies the shape of the state dynamics matrix on entry
+             as follows:
+             = 'S':  A is in an upper real Schur form;
+             = 'G':  A is a general square dense matrix.
+
+     
+     ALPHA   DOUBLE
+             Specifies the boundary of the domain of interest for the
+             eigenvalues of A. For a continuous-time system
+             (DICO = 'C'), ALPHA is the boundary value for the real
+             parts of eigenvalues, while for a discrete-time system
+             (DICO = 'D'), ALPHA >= 0 represents the boundary value for
+             the moduli of eigenvalues.
+
+     A       rank-2 array('d'), dimension (N,N)
+             On entry, the leading N-by-N part of this array must
+             contain the unreduced state dynamics matrix A.
+             If JOBA = 'S' then A must be a matrix in real Schur form.
+
+     B       rank-2 array('d'), dimension (N,M)
+             On entry, the leading N-by-M part of this array must
+             contain the input matrix B.
+     
+     C       rank-2 array('d'), dimension (P,N)
+             On entry, the leading P-by-N part of this array must
+             contain the output matrix C.
+     
+     
+     Returns
+    
+     Aout    The leading N-by-N part of this array contains a
+             block diagonal matrix inv(U) * A * U with two diagonal
+             blocks in real Schur form with the elements below the
+             first subdiagonal set to zero.
+             The leading NDIM-by-NDIM block of A has eigenvalues in the
+             domain of interest and the trailing (N-NDIM)-by-(N-NDIM)
+             block has eigenvalues outside the domain of interest.
+             The domain of interest for lambda(A), the eigenvalues
+             of A, is defined by the parameters ALPHA, DICO and STDOM
+             as follows:
+             For a continuous-time system (DICO = 'C'):
+               Real(lambda(A)) < ALPHA if STDOM = 'S';
+               Real(lambda(A)) > ALPHA if STDOM = 'U';
+             For a discrete-time system (DICO = 'D'):
+               Abs(lambda(A)) < ALPHA if STDOM = 'S';
+               Abs(lambda(A)) > ALPHA if STDOM = 'U'.
+     
+     Bout    The leading N-by-M part of this array contains
+             the transformed input matrix inv(U) * B.
+                  
+     Cout    the leading P-by-N part of this array contains
+             the transformed output matrix C * U.
+             
+     ndim    int
+             The number of eigenvalues of A lying inside the domain of
+             interest for eigenvalues.
+
+     U       rank-2 array('d'), dimension (ldu,n)
+             The leading N-by-N part of this array contains the
+             transformation matrix used to reduce A to the block-
+             diagonal form. The first NDIM columns of U span the
+             invariant subspace of A corresponding to the eigenvalues
+             of its leading diagonal block. The last N-NDIM columns
+             of U span the reducing subspace of A corresponding to
+             the eigenvalues of the trailing diagonal block of A.
+             
+     WR, WI  (output) rank-2 array('d'), dimension (n)
+             WR and WI contain the real and imaginary parts,
+             respectively, of the computed eigenvalues of A. The
+             eigenvalues will be in the same order that they appear on
+             the diagonal of the output real Schur form of A. Complex
+             conjugate pairs of eigenvalues will appear consecutively
+             with the eigenvalue having the positive imaginary part
+             first.
+    
+    info    int
+             = 0: successful exit;
+             < 0: if INFO = -i, the i-th argument had an illegal
+                  value;
+             = 1: the QR algorithm failed to compute all the
+                  eigenvalues of A;
+             = 2: a failure occured during the ordering of the real
+                  Schur form of A;
+             = 3: the separation of the two diagonal blocks failed
+                  because of very close eigenvalues.
+
+     METHOD
+
+     A similarity transformation U is determined that reduces the
+     system state-matrix A to a block-diagonal form (with two diagonal
+     blocks), so that the leading diagonal block of the resulting A has
+     eigenvalues in a specified domain of the complex plane. The
+     determined transformation is applied to the system (A,B,C) as
+       A <-- inv(U)*A*U, B <-- inv(U)*B and C <-- C*U.
+
+     REFERENCES
+
+     [1] Safonov, M.G., Jonckheere, E.A., Verma, M., Limebeer, D.J.N.
+         Synthesis of positive real multivariable feedback systems.
+         Int. J. Control, pp. 817-842, 1987.
+
+     NUMERICAL ASPECTS
+                                     3
+     The algorithm requires about 14N  floating point operations.
+
+    
+    """
+    
+    n = A.shape[1]
+    m = B.shape[1]
+    p = C.shape[0]
+    hidden = ' (hidden by the wrapper)'
+    arg_list = ['dico','stdom','joba','n','m','p','alpha','a','lda'+hidden,'b','ldb'+hidden,'c','ldc'+hidden,'ndim','u','ldu'+hidden,'wr','wi','dwork','ldwork'+hidden,'info']
+    
+    ldwork = max( 1,4*n)
+    out = _wrapper.tb01kd(dico,stdom,joba,n,m,p,alpha,A,B,C)
+    if out[-1] < 0:
+        error_text = "The following argument had an illegal value: "+arg_list[-out[-1]-1]
+        e = ValueError(error_text)
+        e.info = out[-1]
+        raise e
+    
+    return out
+
 def tb03ad(n,m,p,A,B,C,D,leri,equil='N',tol=0.0,ldwork=None):
     """ A_min,b_min,C_min,nr,index,pcoeff,qcoeff,vcoeff = tb03ad_l(n,m,p,A,B,C,D,leri,[equil,tol,ldwork])
 

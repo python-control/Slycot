@@ -16,6 +16,29 @@ subroutine tb01id(job,n,m,p,maxred,a,lda,b,ldb,c,ldc,scale,info) ! in TB01ID.f
     double precision intent(out),dimension(n),depend(n) :: scale
     integer intent(out) :: info
 end subroutine tb01id
+subroutine tb01kd(dico,stdom,joba,n,m,p,alpha,a,lda,b,ldb,c,ldc,ndim,u,ldu,wr,wi,dwork,ldwork,info) ! in TB01KD.f
+    character :: dico
+    character :: stdom
+    character :: joba
+    integer check(n>0) :: n
+    integer check(m>0) :: m
+    integer check(p>0) :: p
+    double precision :: alpha
+    double precision intent(in,out,copy),dimension(n,n),depend(n) :: a
+    integer intent(hide),depend(a) :: lda=shape(a,0)
+    double precision intent(in,out,copy),dimension(n,m),depend(n,m) :: b
+    integer intent(hide),depend(b) :: ldb=shape(b,0)
+    double precision intent(in,out,copy),dimension(p,n),depend(n,p) :: c
+    integer intent(hide),depend(c) :: ldc=shape(c,0)
+    integer intent(out) :: ndim
+    double precision intent(out),dimension(n,n),depend(n) :: u
+    integer intent(hide),depend(u) :: ldu=shape(u,0)
+    double precision intent(out),dimension(n),depend(n) :: wr
+    double precision intent(out),dimension(n),depend(n) :: wi
+    double precision intent(hide,cache),dimension(ldwork),depend(ldwork) :: dwork
+    integer :: ldwork = max(max(1,n), max(1,3*n))
+    integer intent(out) :: info
+end subroutine tb01kd
 subroutine tb03ad_l(leri,equil,n,m,p,a,lda,b,ldb,c,ldc,d,ldd,nr,index_bn,pcoeff,ldpco1,ldpco2,qcoeff,ldqco1,ldqco2,vcoeff,ldvco1,ldvco2,tol,iwork,dwork,ldwork,info) ! in :new:TB03AD.f
 	fortranname tb03ad
 	character intent(hide) :: leri = 'L'
