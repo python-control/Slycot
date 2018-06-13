@@ -6,19 +6,16 @@ build:
   number: 1
 
 requirements:
-  build:
+  host:
     - python
     - numpy
-    - lapack
-    - m2w64-gcc-fortran # [win]
-    - gfortran_linux-64	# [linux]
-    - gfortran_osx-64	# [osx]
+    - {{ compiler('fortran') }}
+    - openblas
 
   run:
     - python
     - numpy
-    - lapack
-    - libgfortran
+    - libopenblas
 
 test:
   imports:
