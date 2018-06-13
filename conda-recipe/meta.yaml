@@ -8,20 +8,23 @@ build:
 requirements:
   build:
     - python
-    - numpy >=1.13.3
+    - numpy
     - lapack
     - m2w64-gcc-fortran # [win]
+    - gfortran_linux-64	# [linux]
+    - gfortran_osx-64	# [osx]
 
   run:
     - python
     - numpy
     - lapack
+    - libgfortran
 
 test:
   imports:
     - slycot
 
 about:
-  home: https://github.com/python-control/Slycot
+  home: https://github.com/python-control/slycot
   license:  GPLv2
   summary: 'A wrapper for the SLICOT control and systems library'
