@@ -691,6 +691,8 @@ def td04ad(rowcol,m,p,index,dcoeff,ucoeff,tol=0.0,ldwork=None):
         raise e
     if out[-1] > 0:
         error_text = "The leading coefficient of a denominator polynomial is nearly zero; calculations would overflow; no state-space representation was calculated. ABS(DCOEFF("+str(out[-1])+",1))="+str(abs(dcoeff[out[-1],1]))+" is too small."
+        print(dcoeff)
+        e = ValueError(error_text)
         e.info = out[-1]
         raise e
     Nr, A, B, C, D = out[:-1]
