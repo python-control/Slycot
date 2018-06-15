@@ -402,7 +402,10 @@ C        If T(s) originally factorized by columns, find dual of minimal
 C        state-space representation, and reorder the rows and columns
 C        to get an upper block Hessenberg state dynamics matrix.
 C
-         K = IWORK(1)+IWORK(2)-1
+         K = IWORK(1) - 1
+         IF ( N.GT.1 ) THEN
+            K = K + IWORK(2)
+         END IF
 C
 C        RvP 180615 Try to protect against re-working an empty [] A
 C        matrix, failed with K < 0
