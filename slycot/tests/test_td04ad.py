@@ -14,6 +14,8 @@ from numpy.testing import assert_raises, assert_almost_equal
 class TestTf2SS(unittest.TestCase):
 
     def test_td04ad_case1(self):
+        """td04ad: Convert with both 'C' and 'R' options"""
+        
         # for octave:
         """
         num = { [0.0,  0.0, 1.0 ], [ 1.0, 0.0 ];
@@ -60,7 +62,8 @@ class TestTf2SS(unittest.TestCase):
         #print('A=\n', A, '\nB=\n', B, '\nC=\n', C, '\nD=\n', D)
 
     def test_staticgain(self):
-
+        """td04ad: Convert a transferfunction to SS with only static gain"""
+        
         # 2 inputs, 3 outputs? columns share a denominator
         num = np.array([ [ [1.0], [2.0] ],
                          [ [0.2], [4.3] ],
@@ -97,6 +100,36 @@ class TestTf2SS(unittest.TestCase):
         np.testing.assert_array_almost_equal(D, Dr)
         
 
+    def test_mixfeedthrough(self):
+        """Test case popping up from control testing"""
+        # a mix of feedthrough and dynamics. The problem from the control
+        # package was somewhere else
+        num = np.array([ [ [ 0.0,  0.0 ], [ 0.0, -0.2 ] ],
+                         [ [ -0.1,  0.0 ], [ 0.0,  0.0 ] ] ])
+        p, m, d = num.shape
+        numc = np.zeros((max(1, m, p), max(1, m, p), d), dtype=float)
+        numc[:p,:m,:] = num
+        denc = np.array([ [ 1.0,  1.1 ], [ 1.0, 0.0 ] ])
+        idxc = np.array([ 1, 0 ])
+        n, A, B, C, D = transform.td04ad('C', 2, 2, idxc, denc, numc)
+        np.testing.assert_array_almost_equal(D, np.array([[0,  0],[-0.1, 0]]))
+        
+    def test_toandfrom(self):
+
+        A = np.array([[-3.0]])
+        B = np.array([[0.1, 0.0]])
+        C = np.array([[1.0],[0.0]])
+        D = np.array([[0.0, 0.0],[0.0, 1.0]])
+
+        tfout = transform.tb04ad(1, 2, 2, A, B, C, D)
+
+        num = tfout[6]
+        den = tfout[5]
+        idxc = np.array([1, 0])
+        n, At, Bt, Ct, Dt = transform.td04ad('R', 2, 2, idxc, den, num)
+        np.testing.assert_array_almost_equal(D, Dt)
+        np.testing.assert_array_almost_equal(A, At)
+        
 def suite():
    return unittest.TestLoader().loadTestsFromTestCase(TestTF2SS)
 
