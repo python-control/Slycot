@@ -402,22 +402,19 @@ C        If T(s) originally factorized by columns, find dual of minimal
 C        state-space representation, and reorder the rows and columns
 C        to get an upper block Hessenberg state dynamics matrix.
 C
-         K = IWORK(1) - 1
-         IF ( N.GT.1 ) THEN
-            K = K + IWORK(2)
-         END IF
+C        IWORK contains the orders of the diagnonal blocks
+C        RvP, In TB01PD, IWORK is zeroed from INDCON to N, beyond N it may
+C        contain nonsense?         
+         K = -1 
+         DO 55 I = 1, N
+            K = K + IWORK(I)
+ 55      CONTINUE
 C
 C        RvP 180615 Try to protect against re-working an empty [] A
 C        matrix, failed with K < 0
 C                  
-         IF ( NR.EQ.0 ) THEN
-            K = 0
-            KU = 0
-         ELSE
-            KU = NR - 1
-         END IF
-         CALL TB01XD( 'D', NR, MWORK, PWORK, K, KU, A, LDA, B, LDB,
-     $                C, LDC, D, LDD, INFO )
+         CALL TB01XD( 'D', NR, MWORK, PWORK, MAX(0, K), MAX(0,NR-1),
+     $                A, LDA, B, LDB, C, LDC, D, LDD, INFO )
          IF ( MPLIM.NE.1 ) THEN
 C
 C           Also, retranspose U(s) if this is non-scalar.
