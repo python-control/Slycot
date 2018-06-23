@@ -4,18 +4,25 @@ package:
 
 build:
   number: 1
+  script:
+    - cd {{ environ["RECIPE_DIR"] }}/.. # [not win]
+    - cd {{ environ["RECIPE_DIR"] }}\.. # [win]
+    - {{ environ["PYTHON"] }} setup.py install
 
 requirements:
-  build:
+  host:
     - python
-    - numpy >=1.13.3
+    - numpy
     - lapack
-    - {{ compiler('fortran') }}
 
+  build:
+    - {{ compiler('fortran') }}
+    
   run:
     - python
     - numpy
     - lapack
+    - libgfortran
 
 test:
   imports:

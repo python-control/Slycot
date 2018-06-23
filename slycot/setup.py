@@ -40,19 +40,24 @@ def configuration(parent_package='', top_path=None):
             abiflags = sys.abiflags
         except AttributeError:
             abiflags = ''
-        liblist = ['lapack', 'blas', 'python'+pyver+abiflags]
         extra_objects = []
         library_dirs = []
-        extra_link_args = []
-        extra_compile_args = []
+        if sys.platform == 'darwin':
+            liblist = ['lapack', 'blas' ]
+            extra_link_args = [ '-Wl,-dylib,-undefined,dynamic_lookup' ]
+            extra_compile_args = [ '-fPIC' ]
+        else:
+            liblist = ['lapack', 'blas', 'python'+pyver+abiflags ]
+            extra_link_args = []
+            extra_compile_args = []
 
     config.add_extension(
         name='_wrapper',
         libraries=liblist,
-	extra_objects=extra_objects,
-	extra_link_args=extra_link_args,
-	library_dirs=library_dirs,
-	extra_compile_args=extra_compile_args,
+        extra_objects=extra_objects,
+        extra_link_args=extra_link_args,
+        library_dirs=library_dirs,
+        extra_compile_args=extra_compile_args,
         sources=fortran_sources + f2py_sources)
 
     config.make_config_py()  # installs __config__.py
