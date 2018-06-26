@@ -1,2 +1,2 @@
 cd $RECIPE_DIR/..
-LDFLAGS="-shared" FFLAGS="-fPIC" $PYTHON setup.py install
+$PYTHON setup.py install

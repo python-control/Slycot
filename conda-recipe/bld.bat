@@ -2,8 +2,11 @@
 cd %RECIPE_DIR%
 cd ..
 
-"%PYTHON%" setup.py build --compiler=mingw32
-"%PYTHON%" setup.py install --skip-build
+set F77=%BUILD_PREFIX%\Library\bin\flang.exe
+set F90=%BUILD_PREFIX%\Library\bin\flang.exe
+
+"%PYTHON%" setup.py build 
+"%PYTHON%" setup.py install
 
 if errorlevel 1 exit 1
 
