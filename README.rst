@@ -1,25 +1,27 @@
 Slycot
 =============
 
-.. image:: https://travis-ci.org/python-control/Slycot.svg?branch=master
-        :target: https://travis-ci.org/python-control/Slycot
-.. image:: https://coveralls.io/repos/python-control/Slycot/badge.png
-        :target: https://coveralls.io/r/python-control/Slycot
+.. image:: https://travis-ci.org/python-control/slycot.svg?branch=master
+        :target: https://travis-ci.org/python-control/slycot
+.. image:: https://coveralls.io/repos/python-control/slycot/badge.png
+        :target: https://coveralls.io/r/python-control/slycot
 
 Python wrapper for selected SLICOT routines, notably including solvers for
-Riccati, Lyapunov and Sylvester equations.
+Riccati, Lyapunov, and Sylvester equations.
 
 
-Prerequisite:
--------------
+Prerequisites:
+--------------
 
-Slycot depends on Numpy, and if you are installing a binary distribution, Numpy
-is the only prerequisite.
+Slycot depends on Numpy and, if you are installing a binary distribution,
+Numpy should be the only prerequisite (though you may need the LAPACK
+libraries as well, depending on your particular system configuration).
 
-If you are installing Slycot from source, you will need a fortran
-compiler such as gfortran, and BLAS/LAPACK libraries.
+If you are installing Slycot from source, you will need a FORTRAN
+compiler, such as gfortran, and BLAS/LAPACK libraries.
 
-On Debian derivates you can install all the above with a single command::
+On Debian derivatives you should be able to install all the above with a
+single command::
 
         sudo apt-get build-dep python-scipy
 
@@ -29,7 +31,7 @@ On Mac, you will first need to install the `developer tools
 
         brew install gcc
 
-On Windows, I suggest installing on top of the Python(x,y) distribution, and
+On Windows, we suggest installing on top of the Python(x,y) distribution, and
 grabbing BLAS and LAPACK libraries from: 
 
 http://icl.cs.utk.edu/lapack-for-windows/libraries/VisualStudio/3.4.1/Dynamic-MINGW/Win32/
@@ -64,10 +66,10 @@ Using conda
 If you use `Anaconda or conda <http://continuum.io/downloads>`_ on Linux or Mac,
 it should be straighforward to install Slycot, without needing any compilers or
 other prerequisites.  Slycot is not included in the standard conda package
-repository, but there are packages available on http://binstar.org for Linux and
+repository, but there are packages available on conda-forge for Linux and
 Mac.  You can install with the following command::
 
-  conda install -c http://conda.binstar.org/cwrowley slycot
+  conda install -c conda-forge slycot
 
 
 From Source
@@ -95,6 +97,20 @@ with as contents::
 
         [build]
         compiler=mingw32
+
+Additional tips for how to install slycot from source can be found in the
+.travis.yml (commands used for Travis CI) and conda-recipe/ (conda
+pre-requisities).  The hardest part about installing from source is getting
+a working version of FORTRAN and LAPACK installed on your system and working
+properly with Python.  If you are using conda, you can also get working
+(binary) copies of LAPACK from conda-forge using the command::
+
+	conda install -c conda-forge lapack
+
+Note that in some cases you may need to set the LIBRARY_PATH environment
+variable to pick up dependencies such as -lpythonN.m (where N.m is the
+version of python you are using).
+
 
 To-Do
 ------

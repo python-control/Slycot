@@ -29,6 +29,6 @@ test:
     - slycot
 
 about:
-  home: https://github.com/python-control/Slycot
+  home: https://github.com/python-control/slycot
   license:  GPLv2
   summary: 'A wrapper for the SLICOT control and systems library'
