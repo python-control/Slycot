@@ -13,16 +13,19 @@ requirements:
   host:
     - python
     - numpy
-    - lapack
+    - openblas
 
   build:
-    - {{ compiler('fortran') }}
+    - {{ compiler('fortran') }} # [not win]
+    - {{ compiler('c') }} # [win]
+    - m2w64-gcc-fortran # [win]
     
   run:
     - python
     - numpy
-    - lapack
-    - libgfortran
+    - openblas
+    - libgfortran # [not win]
+    - m2w64-gcc-libgfortran # [win]
 
 test:
   imports:
