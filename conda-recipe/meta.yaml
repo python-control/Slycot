@@ -4,28 +4,25 @@ package:
 
 build:
   number: 1
-  script:
-    - cd {{ environ["RECIPE_DIR"] }}/.. # [not win]
-    - cd {{ environ["RECIPE_DIR"] }}\.. # [win]
-    - {{ environ["PYTHON"] }} setup.py install
-
 requirements:
   host:
-    - python
     - numpy
     - openblas
+    - libflang
+    - python
 
   build:
     - {{ compiler('fortran') }} # [not win]
     - {{ compiler('c') }} # [win]
-    - m2w64-gcc-fortran # [win]
-    
+    - flang # [win]
+   # on Windows, this relies on having visual studio CE 2015
+   # this link needed quite some searching, please do not delete!
+   # https://go.microsoft.com/fwlink/?LinkId=532606&clcid=0x409
   run:
-    - python
     - numpy
     - openblas
     - libgfortran # [not win]
-    - m2w64-gcc-libgfortran # [win]
+    - libflang # [win]
 
 test:
   imports:

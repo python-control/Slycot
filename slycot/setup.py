@@ -24,12 +24,10 @@ def configuration(parent_package='', top_path=None):
     pyver = sysconfig.get_config_var('VERSION')
 
     if sys.platform == 'win32':
-        liblist = [
-	    'lapack', 'lapacke', 'blas', 'gfortran' 
-	]
-        extra_objects = [
-			 ]
+        liblist = [ 'openblas', 'flang' ]
+        extra_objects = [ ]
         ppath = os.sep.join(sys.executable.split(os.sep)[:-1])
+
         library_dirs = [r'\Library\lib', ]
         library_dirs = [ppath + l for l in library_dirs]
         extra_link_args = [ ] 
@@ -43,11 +41,11 @@ def configuration(parent_package='', top_path=None):
         extra_objects = []
         library_dirs = []
         if sys.platform == 'darwin':
-            liblist = ['lapack', 'blas' ]
+            liblist = ['openblas' ]
             extra_link_args = [ '-Wl,-dylib,-undefined,dynamic_lookup' ]
             extra_compile_args = [ '-fPIC' ]
         else:
-            liblist = ['lapack', 'blas', 'python'+pyver+abiflags ]
+            liblist = ['openblas']
             extra_link_args = []
             extra_compile_args = []
 
