@@ -12,14 +12,17 @@ env:
 
 before_install:
   #
-  # Install fortran compiler
+  # Install fortran compiler, if not using Conda's
   #
-  - sudo apt-get install gfortran
+  #- sudo apt-get install gfortran
   #
   # If not using conda, then install liblapack here (conda version
   # will handle this through the build recipe)
   #
-  - if [[ $TEST_CONDA == 0 ]]; then sudo apt-get install liblapack-dev; fi
+  - if [[ $TEST_CONDA == 0 ]]; then
+      sudo apt-get install libopenblas-dev;
+      sudo apt-get install gfortran
+    fi
 
 install:
   #
@@ -52,7 +55,7 @@ install:
   # this in the recipe).
   #
   - if [[ $TEST_CONDA == 1 ]]; then
-      conda install -c conda-forge lapack;
+      conda install -c conda-forge openblas;
       conda build --python "$TRAVIS_PYTHON_VERSION" conda-recipe;
       conda install slycot --use-local;
     else
