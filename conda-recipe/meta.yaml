@@ -8,7 +8,8 @@ requirements:
   host:
     - numpy
     - openblas
-    - libflang
+    - libflang  # [win]
+    - libgfortran # [not win]    
     - python
 
   build:
