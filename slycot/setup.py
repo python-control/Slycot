@@ -46,8 +46,8 @@ def configuration(parent_package='', top_path=None):
             extra_compile_args = [ '-fPIC' ]
         else:
             liblist = ['openblas']
-            extra_link_args = []
-            extra_compile_args = []
+            extra_link_args = [ '-shared', '-Wl,--allow-shlib-undefined' ]
+            extra_compile_args = [ '-fPIC' ]
 
     config.add_extension(
         name='_wrapper',
