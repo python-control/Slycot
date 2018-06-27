@@ -1,0 +1,35 @@
+package:
+  name: slycot
+  version: "0.3.2"
+
+build:
+  number: 1
+requirements:
+  host:
+    - numpy
+    - openblas >=0.3.0
+    - libflang  # [win]
+    - libgfortran # [not win]    
+    - python
+
+  build:
+    - {{ compiler('fortran') }} # [not win]
+    - {{ compiler('c') }} # [win]
+    - flang # [win]
+   # on Windows, this relies on having visual studio CE 2015
+   # this link needed quite some searching, please do not delete!
+   # https://go.microsoft.com/fwlink/?LinkId=532606&clcid=0x409
+  run:
+    - numpy
+    - openblas >=0.3.0
+    - libgfortran # [not win]
+    - libflang # [win]
+
+test:
+  imports:
+    - slycot
+
+about:
+  home: https://github.com/python-control/slycot
+  license:  GPLv2
+  summary: 'A wrapper for the SLICOT control and systems library'
