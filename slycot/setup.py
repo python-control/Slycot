@@ -39,7 +39,9 @@ def configuration(parent_package='', top_path=None):
         except AttributeError:
             abiflags = ''
         extra_objects = []
-        library_dirs = []
+        ppath = os.sep.join(sys.executable.split(os.sep)[:-2])
+        library_dirs = [r'/lib', ]
+        library_dirs = [ppath + l for l in library_dirs]
         if sys.platform == 'darwin':
             liblist = ['openblas' ]
             extra_link_args = [ '-Wl,-dylib,-undefined,dynamic_lookup' ]
