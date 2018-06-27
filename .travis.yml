@@ -21,7 +21,7 @@ before_install:
   #
   - if [[ $TEST_CONDA == 0 ]]; then
       sudo apt-get install libopenblas-dev;
-      sudo apt-get install gfortran
+      sudo apt-get install gfortran;
     fi
 
 install:
