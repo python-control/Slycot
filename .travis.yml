@@ -62,7 +62,7 @@ install:
       conda build --python "$TRAVIS_PYTHON_VERSION" conda-recipe;
       conda install slycot --use-local;
     else
-      python setup.py install;
+      LAPACKLIBS=lapack:blas python setup.py install;
     fi
   #
   # coveralls not in conda repos :-(
