@@ -53,8 +53,11 @@ install:
   # Install the slycot package (two ways, to improve robustness).  For the 
   # conda version, need to install lapack from conda-forge (no way to specify 
   # this in the recipe).
+  # add the conda-forge channel to the config, otherwise openblas cannot
+  # be found in the check
   #
   - if [[ $TEST_CONDA == 1 ]]; then
+      conda config --append channels conda-forge;
       conda install -c conda-forge openblas;
       conda build --python "$TRAVIS_PYTHON_VERSION" conda-recipe;
       conda install slycot --use-local;
