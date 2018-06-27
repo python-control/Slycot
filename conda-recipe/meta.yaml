@@ -4,10 +4,12 @@ package:
 
 build:
   number: 1
+
 requirements:
   host:
     - numpy
-    - openblas >=0.3.0
+    - lapack
+    - blas
     - libflang  # [win]
     - libgfortran # [not win]    
     - python
@@ -21,7 +23,8 @@ requirements:
    # https://go.microsoft.com/fwlink/?LinkId=532606&clcid=0x409
   run:
     - numpy
-    - openblas >=0.3.0
+    - blas
+    - lapack
     - libgfortran # [not win]
     - libflang # [win]
 

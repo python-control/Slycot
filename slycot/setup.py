@@ -51,6 +51,11 @@ def configuration(parent_package='', top_path=None):
             extra_link_args = [ '-shared', '-Wl,--allow-shlib-undefined' ]
             extra_compile_args = [ '-fPIC' ]
 
+    # override when libraries have been specified
+    if os.environ.get("LAPACKLIBS", None):
+        liblist = os.environ.get("LAPACKLIBS").split(':')
+        print("Overriding library list with", liblist)
+
     config.add_extension(
         name='_wrapper',
         libraries=liblist,
