@@ -13,9 +13,6 @@ env:
 before_install:
   #
   # Install fortran compiler, if not using Conda's
-  #
-  #- sudo apt-get install gfortran
-  #
   # If not using conda, then install liblapack here (conda version
   # will handle this through the build recipe)
   #
