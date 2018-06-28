@@ -24,12 +24,10 @@ def configuration(parent_package='', top_path=None):
     pyver = sysconfig.get_config_var('VERSION')
 
     if sys.platform == 'win32':
-        liblist = [
-	    'lapack', 'lapacke', 'blas', 'gfortran' 
-	]
-        extra_objects = [
-			 ]
+        liblist = [ 'openblas', 'flang' ]
+        extra_objects = [ ]
         ppath = os.sep.join(sys.executable.split(os.sep)[:-1])
+
         library_dirs = [r'\Library\lib', ]
         library_dirs = [ppath + l for l in library_dirs]
         extra_link_args = [ ] 
@@ -40,19 +38,31 @@ def configuration(parent_package='', top_path=None):
             abiflags = sys.abiflags
         except AttributeError:
             abiflags = ''
-        liblist = ['lapack', 'blas', 'python'+pyver+abiflags]
         extra_objects = []
-        library_dirs = []
-        extra_link_args = []
-        extra_compile_args = []
+        ppath = os.sep.join(sys.executable.split(os.sep)[:-2])
+        library_dirs = [r'/lib', ]
+        library_dirs = [ppath + l for l in library_dirs]
+        if sys.platform == 'darwin':
+            liblist = ['openblas' ]
+            extra_link_args = [ '-Wl,-dylib,-undefined,dynamic_lookup' ]
+            extra_compile_args = [ '-fPIC' ]
+        else:
+            liblist = ['openblas']
+            extra_link_args = [ '-shared', '-Wl,--allow-shlib-undefined' ]
+            extra_compile_args = [ '-fPIC' ]
+
+    # override when libraries have been specified
+    if os.environ.get("LAPACKLIBS", None):
+        liblist = os.environ.get("LAPACKLIBS").split(':')
+        print("Overriding library list with", liblist)
 
     config.add_extension(
         name='_wrapper',
         libraries=liblist,
-	extra_objects=extra_objects,
-	extra_link_args=extra_link_args,
-	library_dirs=library_dirs,
-	extra_compile_args=extra_compile_args,
+        extra_objects=extra_objects,
+        extra_link_args=extra_link_args,
+        library_dirs=library_dirs,
+        extra_compile_args=extra_compile_args,
         sources=fortran_sources + f2py_sources)
 
     config.make_config_py()  # installs __config__.py

@@ -4,15 +4,14 @@ package:
 
 build:
   number: 1
-
 requirements:
   host:
     - numpy
-    - lapack
+    - openblas >=0.3.0
     - libflang  # [win]
     - libgfortran # [not win]    
-    - python {{PY_VER}}
-    
+    - python
+
   build:
     - {{ compiler('fortran') }} # [not win]
     - {{ compiler('c') }} # [win]
@@ -22,13 +21,11 @@ requirements:
    # https://go.microsoft.com/fwlink/?LinkId=532606&clcid=0x409
   run:
     - numpy
-    - lapack
+    - openblas >=0.3.0
     - libgfortran # [not win]
     - libflang # [win]
 
 test:
-  requires:
-    - python {{PY_VER}}
   imports:
     - slycot
 

@@ -670,7 +670,7 @@ def td04ad(rowcol,m,p,index,dcoeff,ucoeff,tol=0.0,ldwork=None):
             e = ValueError("The numerator is not a 3D array!")
             e.info = -7
             raise e
-        if ucoeff.shape != (max([1,m,p]),max([1,m,p]),kdcoef):
+        if ucoeff.shape != (max(1,m,p),max(1,m,p),kdcoef):
             e = ValueError("The numerator shape is ("+str(ucoeff.shape[0])+","+str(ucoeff.shape[1])+","+str(ucoeff.shape[2])+"), but expected ("+str(max([1,m,p]))+","+str(max([1,m,p]))+","+str(kdcoef)+")")
             e.info = -7
             raise e
@@ -690,7 +690,9 @@ def td04ad(rowcol,m,p,index,dcoeff,ucoeff,tol=0.0,ldwork=None):
         e.info = out[-1]
         raise e
     if out[-1] > 0:
-        error_text = "The leading coefficient of a denominator polynomial is nearly zero; calculations would overflow; no state-space representation was calculated. ABS(DCOEFF("+str(out[-1])+",1))="+str(abs(dcoeff(out[-1],1)))+" is too small."
+        error_text = "The leading coefficient of a denominator polynomial is nearly zero; calculations would overflow; no state-space representation was calculated. ABS(DCOEFF("+str(out[-1])+",1))="+str(abs(dcoeff[out[-1],1]))+" is too small."
+        print(dcoeff)
+        e = ValueError(error_text)
         e.info = out[-1]
         raise e
     Nr, A, B, C, D = out[:-1]
