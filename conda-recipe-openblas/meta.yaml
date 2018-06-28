@@ -4,15 +4,14 @@ package:
 
 build:
   number: 1
-
 requirements:
   host:
     - numpy
-    - lapack
+    - openblas >=0.3.0
     - libflang  # [win]
     - libgfortran # [not win]
-    - python {{PY_VER}}
-    
+    - python
+
   build:
     - {{ compiler('fortran') }} # [not win]
     - {{ compiler('c') }} # [win]
@@ -22,7 +21,7 @@ requirements:
    # https://go.microsoft.com/fwlink/?LinkId=532606&clcid=0x409
   run:
     - numpy
-    - lapack
+    - openblas >=0.3.0
     - libgfortran # [not win]
     - libflang # [win]
 
@@ -33,6 +32,6 @@ test:
     - slycot
 
 about:
-  home: https://github.com/python-control/Slycot
+  home: https://github.com/python-control/slycot
   license:  GPLv2
   summary: 'A wrapper for the SLICOT control and systems library'
