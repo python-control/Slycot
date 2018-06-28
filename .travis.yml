@@ -20,7 +20,7 @@ before_install:
   # will handle this through the build recipe)
   #
   - if [[ $TEST_CONDA == 0 ]]; then
-      sudo apt-get install lapack-dev;
+      sudo apt-get install liblapack-dev libblas-dev;
       sudo apt-get install gfortran;
     fi
 
