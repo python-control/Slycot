@@ -9,7 +9,6 @@ requirements:
   host:
     - numpy
     - lapack
-    - blas
     - libflang  # [win]
     - libgfortran # [not win]    
     - python
@@ -23,7 +22,6 @@ requirements:
    # https://go.microsoft.com/fwlink/?LinkId=532606&clcid=0x409
   run:
     - numpy
-    - blas
     - lapack
     - libgfortran # [not win]
     - libflang # [win]
