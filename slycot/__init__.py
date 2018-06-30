@@ -37,6 +37,9 @@ else:
     from .transform import tf01md, tf01rd
     from .transform import td04ad, tb01pd
 
+    # Version information
+    from .version import version as __version__
+
     from numpy.testing import Tester
     test = Tester().test
     bench = Tester().bench
