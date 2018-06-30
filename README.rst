@@ -38,13 +38,10 @@ On Mac, you will first need to install the `developer tools
 
     brew install gcc
 
-On Windows, we suggest installing on top of the Python(x,y) distribution, and
-grabbing BLAS and LAPACK libraries from: 
+On Windows, the BLAS and LAPACK libraries can be obtained from: 
 
 http://icl.cs.utk.edu/lapack-for-windows/libraries/VisualStudio/3.4.1/Dynamic-MINGW/Win32/
 
-* install dll files in C:\Python27\DLLs
-* install lib files in C:\Python27\libs
 
 Installing
 -----------
@@ -70,8 +67,8 @@ installing from source.
 Using conda
 ~~~~~~~~~~~
 
-Slycot can be installed for Linux or Mac via the conda package manager from
-the conda-forge channel with the following command::
+Slycot can be installed via the conda package manager from the conda-forge
+channel with the following command::
 
     conda install -c conda-forge slycot
 
@@ -94,17 +91,10 @@ If the build fails and you are on a 64bit OS you may want to try::
 You can also use conda to build and install slycot from source::
 
     conda build conda-recipe
-	conda install --use-local slycot
+    conda install --use-local slycot
 
-For Windows, and using Python(x,y), specify that you are using the
-mingw compiler.  Create a file
-
-    C:\\Python27\\Lib\\distutils\\distutils.cfg
-
-with contents::
-
-    [build]
-    compiler=mingw32
+If you prefer to use the OpenBLAS library, a conda recipe is available in
+``conda-recipe-openblas``.
 
 Additional tips for how to install slycot from source can be found in the
 .travis.yml (commands used for Travis CI) and conda-recipe/ (conda
@@ -114,6 +104,8 @@ properly with Python.  If you are using conda, you can also get working
 (binary) copies of LAPACK from conda-forge using the command::
 
 	conda install -c conda-forge lapack
+
+Slycot will also work with the OpenBLAS libraries.
 
 Note that in some cases you may need to set the LIBRARY_PATH environment
 variable to pick up dependencies such as -lpythonN.m (where N.m is the
