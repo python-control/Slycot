@@ -208,6 +208,10 @@ def setup_package():
 	zip_safe=False,
     )
 
+    # Windows builds use Flang.
+    # Flang detection and configuration is not automatic yet; the CMAKE
+    # settings below are to circumvent that; when scikit-build and cmake
+    # tools have improved, most of this might be removed?
     import platform
     if platform.system() == 'Windows':
         pbase = r'/'.join(sys.executable.split(os.sep)[:-1])
