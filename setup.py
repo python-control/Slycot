@@ -5,7 +5,7 @@
 Slycot wraps the SLICOT library which is used for control and systems analysis.
 
 """
-from __future__ import division, print_function
+from skbuild import setup
 
 DOCLINES = __doc__.split("\n")
 
@@ -193,6 +193,7 @@ def setup_package():
 
     metadata = dict(
         name='slycot',
+	version=VERSION,
         maintainer="Slycot developers",
         maintainer_email="python-control-discuss@lists.sourceforge.net",
         description=DOCLINES[0],
@@ -203,32 +204,21 @@ def setup_package():
         classifiers=[_f for _f in CLASSIFIERS.split('\n') if _f],
         platforms=["Windows", "Linux", "Solaris", "Mac OS-X", "Unix"],
         cmdclass={"sdist": sdist_checked},
+	cmake_args=[ '-DSLYCOT_VERSION=' + VERSION ],
+	zip_safe=False,
     )
 
-    # Run build
-    if len(sys.argv) >= 2 and \
-            ('--help' in sys.argv[1:] or
-             sys.argv[1] in ('--help-commands', 'egg_info', '--version',
-             'clean')):
-        # Use setuptools for these commands (they don't work well or at all
-        # with distutils).  For normal builds use distutils.
-        try:
-            from setuptools import setup
-        except ImportError:
-            from distutils.core import setup
-
-        FULLVERSION, GIT_REVISION = get_version_info()
-        metadata['version'] = FULLVERSION
-    elif len(sys.argv) >= 2 and sys.argv[1] == 'bdist_wheel':
-        # bdist_wheel needs setuptools
-        import setuptools
-        setuptools  # reference once for pyflakes
-        from numpy.distutils.core import setup
-        metadata['configuration'] = configuration
-    else:
-        from numpy.distutils.core import setup
-        metadata['configuration'] = configuration
-
+    import platform
+    if platform.system() == 'Windows':
+        pbase = r'/'.join(sys.executable.split(os.sep)[:-1])
+        metadata['cmake_args'].extend([ 
+	    '-DF2PY_EXECUTABLE=' + pbase + r'/Scripts/f2py.bat',
+	    '-DCMAKE_Fortran_COMPILER=' + pbase + r'/Library/bin/flang.exe',
+	    '-DCMAKE_Fortran_COMPILER_ID=Flang',
+	    '-DCMAKE_C_COMPILER_ID=MSVC',
+	    '-DCMAKE_C_COMPILER_VERSION=19.0.0', 
+	    '-DNumPy_INCLUDE_DIR=' + pbase + r'/Include',
+	    '-DCMAKE_VERBOSE_MAKEFILE:BOOL=ON' ])
     try:
         setup(**metadata)
     finally:

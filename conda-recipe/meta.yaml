@@ -10,17 +10,9 @@ requirements:
     - numpy
     - lapack
     - libflang  # [win]
-    - libgfortran # [not win]
+    - libgfortran # [not win]    
     - python {{PY_VER}}
     
-  build:
-    - {{ compiler('fortran') }} # [not win]
-    - {{ compiler('c') }} # [win]
-    - flang # [win]
-   # on Windows, this relies on having visual studio CE 2015
-   # this link needed quite some searching, please do not delete!
-   # https://go.microsoft.com/fwlink/?LinkId=532606&clcid=0x409
-
   build:
     - {{ compiler('fortran') }} # [not win]
     - {{ compiler('c') }} # [win]

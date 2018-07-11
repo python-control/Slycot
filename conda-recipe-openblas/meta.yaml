@@ -10,7 +10,7 @@ requirements:
     - numpy
     - openblas >=0.3.0
     - libflang  # [win]
-    - libgfortran # [not win]
+    - libgfortran # [not win]    
     - python
 
   build:
@@ -27,8 +27,6 @@ requirements:
     - libflang # [win]
 
 test:
-  requires:
-    - python {{PY_VER}}
   imports:
     - slycot
 
