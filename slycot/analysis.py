@@ -1630,7 +1630,7 @@ def ag08bd(l,n,m,p,A,E,B,C,D,equil='N',tol=0.0,ldwork=None):
             (see LAPACK Library routine DLAMCH).  TOL < 1.
         ldwork : input int
             The length of the cache array.
-            ldwork >= max( 4*(lnN), ldw ), if equil = 'S',
+            ldwork >= max( 4*(l,n), ldw ), if equil = 'S',
             ldwork >= ldw,                 if equil = 'N', where
             ldw = max(l+p,m+n)*(m+n) + max(1,5*max(l+p,m+n)).
             For optimum performance ldwork should be larger.
@@ -1666,7 +1666,7 @@ def ag08bd(l,n,m,p,A,E,B,C,D,equil='N',tol=0.0,ldwork=None):
     if ldwork is None:
         ldw = max(l+p,m+n)*(m+n) + max(1,5*max(l+p,m+n))
         if equil == 'S':
-            ldwork = max(l+p, m+n) * (m+n) + max (1, 5 * max (l+p, m+n))
+            ldwork = max(4*(l+n), ldw)
         else: #equil == 'N'
             ldwork = ldw
 
