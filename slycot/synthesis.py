@@ -1840,12 +1840,12 @@ def sb10hd(n,m,np,ncon,nmeas,A,B,C,D,tol=0.0,ldwork=None):
     return out[:-1]
     
 def sb10jd(n,m,np,A,B,C,D,E,ldwork=None):
-    """ A,B,C,D = sl10jd(n,m,np,A,B,C,D,E,[ldwork])
+    """ A,B,C,D = sb10jd(n,m,np,A,B,C,D,E,[ldwork])
     
     To convert the descriptor state-space system
     
     E*dx/dt = A*x + B*u
-            y = C*x + D*u
+          y = C*x + D*u
     
     into regular state-space form
     

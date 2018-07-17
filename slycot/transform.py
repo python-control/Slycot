@@ -1058,16 +1058,16 @@ def tg01fd(l,n,m,p,A,E,B,C,Q=None,Z=None,compq='N',compz='N',joba='N',tol=0.0,ld
     transformed system (Q'*A*Z-lambda Q'*E*Z, Q'*B, C*Z) is
     in a SVD-like coordinate form with
     
-                ( A11  A12 )             ( Er  0 )
+                 ( A11  A12 )             ( Er  0 )
         Q'*A*Z = (          ) ,  Q'*E*Z = (       ) ,
-                ( A21  A22 )             (  0  0 )
+                 ( A21  A22 )             (  0  0 )
     
     where Er is an upper triangular invertible matrix.
     Optionally, the A22 matrix can be further reduced to the form
     
-                ( Ar  X )
+                  ( Ar  X )
             A22 = (       ) ,
-                (  0  0 )
+                  (  0  0 )
     
     with Ar an upper triangular invertible matrix, and X either a full
     or a zero matrix.
@@ -1149,9 +1149,9 @@ def tg01fd(l,n,m,p,A,E,B,C,Q=None,Z=None,compq='N',compz='N',joba='N',tol=0.0,ld
             the transformed matrix Q'*A*Z. If JOBA = 'T', this matrix
             is in the form
     
-                            ( A11  *   *  )
+                         ( A11  *   *  )
                 Q'*A*Z = (  *   Ar  X  ) ,
-                            (  *   0   0  )
+                         (  *   0   0  )
     
             where A11 is a RANKE-by-RANKE matrix and Ar is a
             RNKA22-by-RNKA22 invertible upper triangular matrix.
@@ -1160,9 +1160,9 @@ def tg01fd(l,n,m,p,A,E,B,C,Q=None,Z=None,compq='N',compz='N',joba='N',tol=0.0,ld
             The leading L-by-N part of this array contains
             the transformed matrix Q'*E*Z.
     
-                    ( Er  0 )
+                     ( Er  0 )
             Q'*E*Z = (       ) ,
-                    (  0  0 )
+                     (  0  0 )
     
             where Er is a RANKE-by-RANKE upper triangular invertible
             matrix.
