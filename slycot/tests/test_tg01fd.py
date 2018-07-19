@@ -84,6 +84,8 @@ class test_tg01fd(unittest.TestCase):
         m = 70
         p = 44
         
+        np.random.seed(0)
+
         Ain = np.random.rand(l, n)
         Ein = np.random.rand(l, n)
         Bin = np.random.rand(n, m)
@@ -102,8 +104,8 @@ class test_tg01fd(unittest.TestCase):
         assert_equal(ranke_1, ranke_2)
         assert_equal(rnka22_1, rnka22_2)
 
-        assert_almost_equal(Qin @ Q_1, Q_2)
-        assert_almost_equal(Zin @ Z_1, Z_2)
+        assert_almost_equal(np.dot(Qin, Q_1), Q_2)
+        assert_almost_equal(np.dot(Zin, Z_1), Z_2)
 
 def suite():
    return unittest.TestLoader().loadTestsFromTestCase(TestConvert)
