@@ -39,20 +39,21 @@ test1_C = np.eye(6)
 test1_D = np.zeros((7,1))
 
 # test1 expected results
-test1_Aexp = np.array([[-0.003125]])
-test1_Bexp = np.array([[0.05899985]])
-test1_Cexp = np.array([[-1.17518847e-02],
+
+test1_Aexp = np.array([[-0.00312500]])
+test1_Bexp = np.array([[ 0.05899985]])
+test1_Cexp = np.array([[-1.17518847e-02],   
                        [-1.17518847e-02],
                        [-1.17518847e-02],
-                       [ 5.90449456e-17],
-                       [ 1.47612364e-16],
+                       [ 0.00000000e+00],
+                       [ 0.00000000e+00],
                        [ 3.76060309e-01]])
-test1_Dexp = np.array([[2.2187500e-01],
-                       [2.2187500e-01],
-                       [2.2187500e-01],
-                       [0.0000000e+00],
-                       [7.1000000e+00],
-                       [4.4408921e-16]])
+test1_Dexp = np.array([[ 2.21875000e-01],
+                       [ 2.21875000e-01],
+                       [ 2.21875000e-01],
+                       [ 0.00000000e+00],
+                       [ 7.10000000e+00],
+                       [ 0.00000000e+00]])
 
 class test_sb10jd(unittest.TestCase):
     def test1_sb10jd(self):
