@@ -1572,7 +1572,7 @@ def ab13fd(n, A, tol = 0.0):
         raise RuntimeError("unknown error code %r" % out[-1])
 
 def ag08bd(l,n,m,p,A,E,B,C,D,equil='N',tol=0.0,ldwork=None):
-    """ Af,Ef,nrank,infz,kronr,kronl = ag08bd(l,n,m,p,A,E,B,C,D,[equil,tol,ldwork])
+    """ Af,Ef,nrank,niz,infz,kronr,infe,kronl = ag08bd(l,n,m,p,A,E,B,C,D,[equil,tol,ldwork])
 
     To extract from the system pencil
     
@@ -1682,6 +1682,6 @@ def ag08bd(l,n,m,p,A,E,B,C,D,equil='N',tol=0.0,ldwork=None):
         e.info = info
         raise e
 
-    return Af[:nfz,:nfz],Ef[:nfz,:nfz],nrank,niz,infz[:dinfz],kronr[:nkror],infe[:ninfe], kronl[:nkrol]
+    return Af[:nfz,:nfz],Ef[:nfz,:nfz],nrank,niz,infz[:dinfz],kronr[:nkror],infe[:ninfe],kronl[:nkrol]
 
 # to be replaced by python wrappers
