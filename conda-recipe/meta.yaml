@@ -10,7 +10,7 @@ requirements:
     - numpy
     - lapack
     - libflang  # [win]
-    - libgfortran # [not win]    
+    - libgfortran # [not win]
     - python {{PY_VER}}
     
   build:
