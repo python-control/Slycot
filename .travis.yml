@@ -47,6 +47,9 @@ install:
   # Make sure that fortran compiler can find conda libraries
   #
   - export LIBRARY_PATH="$HOME/miniconda/envs/test-environment/lib";
+
+  # pip install scikit-build, one in conda repos is currently too old
+  - pip install https://github.com/scikit-build/scikit-build/archive/0.7.1.zip
   #
   # Install the slycot package (two ways, to improve robustness).  For the 
   # conda version, need to install lapack from conda-forge (no way to specify 
@@ -67,8 +70,6 @@ install:
   #
   # coveralls not in conda repos :-(
   - pip install coveralls
-  # and scikit-build in conda repos is currently too old
-  - pip install https://github.com/scikit-build/scikit-build/archive/0.7.1.zip
 
 script:
   # Local unit tests
