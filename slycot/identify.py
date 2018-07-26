@@ -210,7 +210,7 @@ def ib01ad(meth, alg, jobd, conct, ctrl, nobr, data, rcond=-1, tol=-1):
     else:
         raise ValueError("ib01ad: could not handle 'ldr' case")
 
-    r = _np.zeros((ldr, 2*(m+l)*nobr), order='F')
+    r = _np.zeros((int(ldr), 2*(m+l)*nobr), order='F')
     for i in range(0, n_exp):
 
         if n_exp == 1:
