@@ -421,4 +421,90 @@ subroutine tb01pd(job,equil,n,m,p,a,lda,b,ldb,c,ldc,nr,tol,iwork,dwork,ldwork,in
     integer optional,depend(n,m,p) :: ldwork=max(1,n+max(n,max(3*m,3*p)))
     integer intent(out) :: info
 end subroutine tb01pd
-
+subroutine tg01fd_nn(compq,compz,joba,l,n,m,p,a,lda,e,lde,b,ldb,c,ldc,q,ldq,z,ldz,ranke,rnka22,tol,iwork,dwork,ldwork,info) ! in TG01FD.f
+    fortranname tg01fd
+    character intent(hide) :: compq = 'N'
+    character intent(hide) :: compz = 'N'
+    character intent(in),required :: joba
+    integer intent(in),required,check(l>=0) :: l
+    integer intent(in),required,check(n>=0) :: n
+    integer intent(in),required,check(m>=0) :: m
+    integer intent(in),required,check(p>=0) :: p
+    double precision intent(in,out,copy),dimension(l,n),depend(l,n) :: a
+    integer intent(hide),depend(a) :: lda=MAX(shape(a,0),1)
+    double precision intent(in,out,copy),dimension(l,n),depend(l,m) :: e
+    integer intent(hide),depend(e) :: lde=MAX(shape(e,0),1)
+    double precision intent(in,out,copy),dimension(l,m),depend(l,m) :: b
+    integer intent(hide),depend(b) :: ldb=MAX(shape(b,0),1)
+    double precision intent(in,out,copy),dimension(p,n),depend(p,n) :: c
+    integer intent(hide),depend(c) :: ldc=MAX(shape(c,0),1)
+    double precision intent(hide),dimension(0,0) :: q
+    integer intent(hide),depend(q) :: ldq=1
+    double precision intent(hide),dimension(0,0) :: z
+    integer intent(hide),depend(z) :: ldz=1
+    integer intent(out) :: ranke
+    integer intent(out) :: rnka22
+    double precision intent(in) :: tol
+    integer intent(cache,hide),dimension(ldwork),depend(ldwork) :: iwork
+    double precision intent(hide,cache),dimension(ldwork),depend(ldwork) :: dwork
+integer required intent(in) :: ldwork
+    integer intent(out) :: info
+end subroutine tg01fd_nn
+subroutine tg01fd_ii(compq,compz,joba,l,n,m,p,a,lda,e,lde,b,ldb,c,ldc,q,ldq,z,ldz,ranke,rnka22,tol,iwork,dwork,ldwork,info) ! in TG01FD.f
+    fortranname tg01fd
+    character intent(hide) :: compq = 'I'
+    character intent(hide) :: compz = 'I'
+    character intent(in),required :: joba
+    integer intent(in),required,check(l>=0) :: l
+    integer intent(in),required,check(n>=0) :: n
+    integer intent(in),required,check(m>=0) :: m
+    integer intent(in),required,check(p>=0) :: p
+    double precision intent(in,out,copy),dimension(l,n),depend(l,n) :: a
+    integer intent(hide),depend(a) :: lda=MAX(shape(a,0),1)
+    double precision intent(in,out,copy),dimension(l,n),depend(l,m) :: e
+    integer intent(hide),depend(e) :: lde=MAX(shape(e,0),1)
+    double precision intent(in,out,copy),dimension(l,m),depend(l,m) :: b
+    integer intent(hide),depend(b) :: ldb=MAX(shape(b,0),1)
+    double precision intent(in,out,copy),dimension(p,n),depend(p,n) :: c
+    integer intent(hide),depend(c) :: ldc=MAX(shape(c,0),1)
+    double precision intent(out),dimension(l,l) :: q
+    integer intent(hide),depend(q) :: ldq=MAX(shape(q,0),1)
+    double precision intent(out),dimension(n,n) :: z
+    integer intent(hide),depend(z) :: ldz=MAX(shape(z,0),1)
+    integer intent(out) :: ranke
+    integer intent(out) :: rnka22
+    double precision intent(in) :: tol
+    integer intent(cache,hide),dimension(ldwork),depend(ldwork) :: iwork
+    double precision intent(hide,cache),dimension(ldwork),depend(ldwork) :: dwork
+integer required intent(in) :: ldwork
+    integer intent(out) :: info
+end subroutine tg01fd_ii
+subroutine tg01fd_uu(compq,compz,joba,l,n,m,p,a,lda,e,lde,b,ldb,c,ldc,q,ldq,z,ldz,ranke,rnka22,tol,iwork,dwork,ldwork,info) ! in TG01FD.f
+    fortranname tg01fd
+    character intent(hide) :: compq = 'U'
+    character intent(hide) :: compz = 'U'
+    character intent(in),required :: joba
+    integer intent(in),required,check(l>=0) :: l
+    integer intent(in),required,check(n>=0) :: n
+    integer intent(in),required,check(m>=0) :: m
+    integer intent(in),required,check(p>=0) :: p
+    double precision intent(in,out,copy),dimension(l,n),depend(l,n) :: a
+    integer intent(hide),depend(a) :: lda=MAX(shape(a,0),1)
+    double precision intent(in,out,copy),dimension(l,n),depend(l,m) :: e
+    integer intent(hide),depend(e) :: lde=MAX(shape(e,0),1)
+    double precision intent(in,out,copy),dimension(l,m),depend(l,m) :: b
+    integer intent(hide),depend(b) :: ldb=MAX(shape(b,0),1)
+    double precision intent(in,out,copy),dimension(p,n),depend(p,n) :: c
+    integer intent(hide),depend(c) :: ldc=MAX(shape(c,0),1)
+    double precision intent(in,out,copy),dimension(l,l) :: q
+    integer intent(hide),depend(q) :: ldq=MAX(shape(q,0),1)
+    double precision intent(in,out,copy),dimension(n,n) :: z
+    integer intent(hide),depend(z) :: ldz=MAX(shape(z,0),1)
+    integer intent(out) :: ranke
+    integer intent(out) :: rnka22
+    double precision intent(in) :: tol
+    integer intent(cache,hide),dimension(ldwork),depend(ldwork) :: iwork
+    double precision intent(hide,cache),dimension(ldwork),depend(ldwork) :: dwork
+integer required intent(in) :: ldwork
+    integer intent(out) :: info
+end subroutine tg01fd_uu

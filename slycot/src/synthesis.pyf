@@ -525,6 +525,25 @@ subroutine sb10hd(n,m,np,ncon,nmeas,a,lda,b,ldb,c,ldc,d,ldd,ak,ldak,bk,ldbk,ck,l
     logical intent(hide), dimension(2*n), depend(n) :: bwork
     integer intent(out) :: info
 end subroutine sb10hd
+subroutine sb10jd(n,m,np,a,lda,b,ldb,c,ldc,d,ldd,e,lde,nsys,dwork,ldwork,info) ! in SB10JD.f
+    integer intent(in),required :: n
+    integer intent(in),required :: m
+    integer intent(in),required :: np
+    double precision intent(in,out,copy),dimension(lda,n) :: a
+    integer intent(hide),depend(a) :: lda=MAX(shape(a,0),1)
+    double precision intent(in,out,copy),dimension(ldb,m) :: b
+    integer intent(hide),depend(b) :: ldb=MAX(shape(b,0),1)
+    double precision intent(in,out,copy),dimension(ldc,n) :: c
+    integer intent(hide),depend(c) :: ldc=MAX(shape(c,0),1)
+    double precision intent(in,out,copy),dimension(ldd,m) :: d
+    integer intent(hide),depend(d) :: ldd=MAX(shape(d,0),1)
+    double precision intent(in,copy),dimension(lde,n) :: e
+    integer intent(hide),depend(e) :: lde=MAX(shape(e,0),1)
+    integer intent(out) :: nsys
+    double precision intent(hide,cache),dimension(ldwork),depend(ldwork) :: dwork
+integer required intent(in) :: ldwork
+    integer intent(out) :: info
+end subroutine sb10jd
 subroutine sg03ad(dico,job,fact,trans,uplo,n,a,lda,e,lde,q,ldq,z,ldz,x,ldx,scale,sep,ferr,alphar,alphai,beta,iwork,dwork,ldwork,info) ! in SG03AD.f
     character :: dico
     character :: job

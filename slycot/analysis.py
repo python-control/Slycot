@@ -1571,4 +1571,117 @@ def ab13fd(n, A, tol = 0.0):
     else:
         raise RuntimeError("unknown error code %r" % out[-1])
 
+def ag08bd(l,n,m,p,A,E,B,C,D,equil='N',tol=0.0,ldwork=None):
+    """ Af,Ef,nrank,niz,infz,kronr,infe,kronl = ag08bd(l,n,m,p,A,E,B,C,D,[equil,tol,ldwork])
+
+    To extract from the system pencil
+    
+                        ( A-lambda*E B )
+            S(lambda) = (              )
+                        (      C     D )
+    
+    a regular pencil Af-lambda*Ef which has the finite Smith zeros of
+    S(lambda) as generalized eigenvalues. The routine also computes
+    the orders of the infinite Smith zeros and determines the singular
+    and infinite Kronecker structure of system pencil, i.e., the right
+    and left Kronecker indices, and the multiplicities of infinite
+    eigenvalues.
+    
+    Required arguments:
+        l : input int
+            The number of rows of matrices A, B, and E.  l >= 0.
+        n : input int
+            The number of columns of matrices A, E, and C.  n >= 0.        
+        m : input int
+            The number of columns of matrix B.  m >= 0.
+        p : input int
+            The number of rows of matrix C.  p >= 0.
+        A : rank-2 array('d') with bounds (l,n)
+            The leading l-by-n part of this array must
+            contain the state dynamics matrix A of the system.
+        E : rank-2 array('d') with bounds (l,n)
+            The leading l-by-n part of this array must
+            contain the descriptor matrix E of the system.
+        B : rank-2 array('d') with bounds (l,m)
+            The leading l-by-m part of this array must
+            contain the input/state matrix B of the system.
+        C : rank-2 array('d') with bounds (p,n)
+            The leading p-by-n part of this array must
+            contain the state/output matrix C of the system.
+        D : rank-2 array('d') with bounds (p,m)
+            The leading p-by-m part of this array must contain the
+            direct transmission matrix D of the system.
+    Optional arguments:
+        equil := 'N' input string(len=1)
+            Specifies whether the user wishes to balance the system
+            matrix as follows:
+            = 'S':  Perform balancing (scaling);
+            = 'N':  Do not perform balancing.
+        tol := 0 input float
+            A tolerance used in rank decisions to determine the
+            effective rank, which is defined as the order of the
+            largest leading (or trailing) triangular submatrix in the
+            QR (or RQ) factorization with column (or row) pivoting
+            whose estimated condition number is less than 1/TOL.
+            If the user sets TOL <= 0, then default tolerances are
+            used instead, as follows: TOLDEF = L*N*EPS in TG01FD
+            (to determine the rank of E) and TOLDEF = (L+P)*(N+M)*EPS
+            in the rest, where EPS is the machine precision
+            (see LAPACK Library routine DLAMCH).  TOL < 1.
+        ldwork : input int
+            The length of the cache array.
+            ldwork >= max( 4*(l,n), ldw ), if equil = 'S',
+            ldwork >= ldw,                 if equil = 'N', where
+            ldw = max(l+p,m+n)*(m+n) + max(1,5*max(l+p,m+n)).
+            For optimum performance ldwork should be larger.
+    Return objects:
+        Af : rank-2 array('d')
+            the leading NFZ-by-NFZ part of this array
+            contains the matrix Af of the reduced pencil.
+        Ef : rank-2 array('d')
+            the leading NFZ-by-NFZ part of this array
+            contains the matrix Ef of the reduced pencil.
+        nrank : output int
+            The normal rank of the system pencil.
+        niz : output int
+            The number of infinite zeros.
+        infz : rank-1 array('i')
+            The leading DINFZ elements of infz contain information
+            on the infinite elementary divisors as follows:
+            the system has infz(i) infinite elementary divisors of
+            degree i in the Smith form, where i = 1,2,...,DINFZ.
+        kronr : rank-1 array('i')
+            The leading NKROR elements of this array contain the
+            right Kronecker (column) indices.
+        infe : rank-1 array('i')
+            The leading NINFE elements of infe contain the
+            multiplicities of infinite eigenvalues.
+    """
+    hidden = ' (hidden by the wrapper)'
+    arg_list = ['equil', 'l', 'n', 'm', 'p', 'A', 'lda'+hidden, 'E', 'lde'+hidden, 'B', 'ldb'+hidden, 'C', 'ldc'+hidden, 'D', 'ldd'+hidden, 'nfz', 'nrank', 'niz', 'dinfz', 'nkror', 'ninfe', 'nkrol', 'infz', 'kronr', 'infe', 'kronl', 'tol', 'iwork'+hidden, 'dwork'+hidden, 'ldwork', 'info']
+    
+    if equil != 'S' and equil != 'N':
+        raise ValueError('Parameter equil had an illegal value')
+    
+    if ldwork is None:
+        ldw = max(l+p,m+n)*(m+n) + max(1,5*max(l+p,m+n))
+        if equil == 'S':
+            ldwork = max(4*(l+n), ldw)
+        else: #equil == 'N'
+            ldwork = ldw
+
+    [Af,Ef,nfz,nrank,niz,dinfz,nkror,ninfe,nkrol,infz,kronr,infe,kronl,info]= _wrapper.ag08bd(equil,l,n,m,p,A,E,B,C,D,tol,ldwork)
+
+    if info < 0:
+        error_text = "The following argument had an illegal value: "+arg_list[-info-1]
+        e = ValueError(error_text)
+        e.info = info
+        raise e
+    if info != 0:
+        e = ArithmeticError('ag08bd failed')
+        e.info = info
+        raise e
+
+    return Af[:nfz,:nfz],Ef[:nfz,:nfz],nrank,niz,infz[:dinfz],kronr[:nkror],infe[:ninfe],kronl[:nkrol]
+
 # to be replaced by python wrappers

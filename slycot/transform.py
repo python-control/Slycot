@@ -1050,5 +1050,199 @@ def tb01pd(n, m, p, A, B, C, job='M', equil='S', tol=1e-8, ldwork=None):
         raise e
     return out[:-1]
 
+def tg01fd(l,n,m,p,A,E,B,C,Q=None,Z=None,compq='N',compz='N',joba='N',tol=0.0,ldwork=None):
+    """ A,E,B,C,ranke,rnka22,Q,Z = tg01fd(l,n,m,p,A,E,B,C,[Q,Z,compq,compz,joba,tol,ldwork])
+
+    To compute for the descriptor system (A-lambda E,B,C)
+    the orthogonal transformation matrices Q and Z such that the
+    transformed system (Q'*A*Z-lambda Q'*E*Z, Q'*B, C*Z) is
+    in a SVD-like coordinate form with
+    
+                 ( A11  A12 )             ( Er  0 )
+        Q'*A*Z = (          ) ,  Q'*E*Z = (       ) ,
+                 ( A21  A22 )             (  0  0 )
+    
+    where Er is an upper triangular invertible matrix.
+    Optionally, the A22 matrix can be further reduced to the form
+    
+                  ( Ar  X )
+            A22 = (       ) ,
+                  (  0  0 )
+    
+    with Ar an upper triangular invertible matrix, and X either a full
+    or a zero matrix.
+    The left and/or right orthogonal transformations performed
+    to reduce E and A22 can be optionally accumulated.
+    
+    Required arguments:
+        l : input int
+            The number of rows of matrices A, B, and E.  l >= 0.
+        n : input int
+            The number of columns of matrices A, E, and C.  n >= 0.
+        m : input int
+            The number of columns of matrix B.  m >= 0.
+        p : input int
+            The number of rows of matrix C.  p >= 0.
+        A : rank-2 array('d') with bounds (l,n)
+            The leading l-by-n part of this array must
+            contain the state dynamics matrix A.
+        E : rank-2 array('d') with bounds (l,n)
+            The leading l-by-n part of this array must
+            contain the descriptor matrix E.
+        B : rank-2 array('d') with bounds (l,m)
+            The leading L-by-M part of this array must
+            contain the input/state matrix B.
+        C : rank-2 array('d') with bounds (p,n)
+            The leading P-by-N part of this array must
+            contain the state/output matrix C.
+    Optional arguments:
+        Q : rank-2 array('d') with bounds (l,l)
+            If COMPQ = 'N':  Q is not referenced.
+            If COMPQ = 'I':  Q need not be set.
+            If COMPQ = 'U':  The leading l-by-l part of this
+                            array must contain an orthogonal matrix
+                            Q1.
+        Z : rank-2 array('d') with bounds (n,n)
+            If COMPZ = 'N':  Z is not referenced.
+            If COMPZ = 'I':  Z need not be set.
+            If COMPZ = 'U':  The leading n-by-n part of this
+                            array must contain an orthogonal matrix
+                            Z1.
+        compq := 'N' input string(len=1)
+            = 'N':  do not compute Q.
+            = 'I':  Q is initialized to the unit matrix, and the
+                    orthogonal matrix Q is returned.
+            = 'U':  Q must contain an orthogonal matrix Q1 on entry,
+                    and the product Q1*Q is returned.
+        compz := 'N' input string(len=1)
+            = 'N':  do not compute Z.
+            = 'I':  Z is initialized to the unit matrix, and the
+                    orthogonal matrix Z is returned.
+            = 'U':  Z must contain an orthogonal matrix Z1 on entry,
+                    and the product Z1*Z is returned.
+        joba := 'N' input string(len=1)
+            = 'N':  do not reduce A22.
+            = 'R':  reduce A22 to a SVD-like upper triangular form.
+            = 'T':  reduce A22 to an upper trapezoidal form.
+        tol := 0 input float
+            The tolerance to be used in determining the rank of E
+            and of A22. If the user sets TOL > 0, then the given
+            value of TOL is used as a lower bound for the
+            reciprocal condition numbers of leading submatrices
+            of R or R22 in the QR decompositions E * P = Q * R of E
+            or A22 * P22 = Q22 * R22 of A22.
+            A submatrix whose estimated condition number is less than
+            1/TOL is considered to be of full rank.  If the user sets
+            TOL <= 0, then an implicitly computed, default tolerance,
+            defined by  TOLDEF = L*N*EPS,  is used instead, where
+            EPS is the machine precision (see LAPACK Library routine
+            DLAMCH). TOL < 1.
+        ldwork : input int
+            The length of the cache array.
+            ldwork >= MAX( 1, n+p, MIN(l,n)+MAX(3*n-1,m,l) ).
+            For optimal performance, ldwork should be larger.
+    Return objects:
+        A : rank-2 array('d') with bounds (l,n)
+            On entry, the leading L-by-N part of this array must
+            contain the state dynamics matrix A.
+            On exit, the leading L-by-N part of this array contains
+            the transformed matrix Q'*A*Z. If JOBA = 'T', this matrix
+            is in the form
+    
+                         ( A11  *   *  )
+                Q'*A*Z = (  *   Ar  X  ) ,
+                         (  *   0   0  )
+    
+            where A11 is a RANKE-by-RANKE matrix and Ar is a
+            RNKA22-by-RNKA22 invertible upper triangular matrix.
+            If JOBA = 'R' then A has the above form with X = 0.
+        E : rank-2 array('d') with bounds (l,n)
+            The leading L-by-N part of this array contains
+            the transformed matrix Q'*E*Z.
+    
+                     ( Er  0 )
+            Q'*E*Z = (       ) ,
+                     (  0  0 )
+    
+            where Er is a RANKE-by-RANKE upper triangular invertible
+            matrix.
+        B : rank-2 array('d') with bounds (l,m)
+            The leading L-by-M part of this array contains
+            the transformed matrix Q'*B.
+        C : rank-2 array('d') with bounds (p,n)
+            The leading P-by-N part of this array contains
+            the transformed matrix C*Z.
+        Q : rank-2 array('d') with bounds (l,l)
+            If COMPQ = 'N':  Q is not referenced.
+            If COMPQ = 'I':  The leading L-by-L part of this
+                            array contains the orthogonal matrix Q,
+                            where Q' is the product of Householder
+                            transformations which are applied to A,
+                            E, and B on the left.
+            If COMPQ = 'U':  The leading L-by-L part of this
+                            array contains the orthogonal matrix
+                            Q1*Q.
+        Z : rank-2 array('d') with bounds (n,n)
+            If COMPZ = 'N':  Z is not referenced.
+            If COMPZ = 'I':  The leading N-by-N part of this
+                            array contains the orthogonal matrix Z,
+                            which is the product of Householder
+                            transformations applied to A, E, and C
+                            on the right.
+            If COMPZ = 'U':  The leading N-by-N part of this
+                            array contains the orthogonal matrix
+                            Z1*Z.
+        ranke : output int
+            The estimated rank of matrix E, and thus also the order
+            of the invertible upper triangular submatrix Er.
+        rnka22 : output int
+            If JOBA = 'R' or 'T', then RNKA22 is the estimated rank of
+            matrix A22, and thus also the order of the invertible
+            upper triangular submatrix Ar.
+            If JOBA = 'N', then RNKA22 is not referenced.
+    """
+
+    hidden = ' (hidden by the wrapper)'
+    arg_list = ['compq', 'compz', 'joba', 'l', 'n', 'm', 'p', 'A', 'lda'+hidden, 'E','lde'+hidden,'B','ldb'+hidden,'C','ldc'+hidden,'Q','ldq'+hidden,'Z','ldz'+hidden,'ranke','rnka22','tol','iwork'+hidden, 'dwork'+hidden, 'ldwork', 'info']
+
+        
+    if compq != 'N' and compq != 'I' and compq != 'U':
+        raise ValueError('Parameter compq had an illegal value')
+
+    if compz != 'N' and compz != 'I' and compz != 'U':
+        raise ValueError('Parameter compz had an illegal value')
+
+    if joba != 'N' and joba != 'R' and joba != 'T':
+        raise ValueError('Parameter joba had an illegal value')
+
+    if ldwork is None:
+        ldwork = max(1, n+p, min(l,n) + max(3*n-1, m, l))
+
+
+    if compq == 'N' and compz == 'N':
+        A,E,B,C,ranke,rnka22,info = _wrapper.tg01fd_nn(joba,l,n,m,p,A,E,B,C,tol,ldwork)
+        Q = None
+        Z = None
+    elif compq == 'I' and compz == 'I':
+        A,E,B,C,Q,Z,ranke,rnka22,info = _wrapper.tg01fd_ii(joba,l,n,m,p,A,E,B,C,tol,ldwork)
+    elif compq == 'U' and compz == 'U':
+        A,E,B,C,Q,Z,ranke,rnka22,info = _wrapper.tg01fd_uu(joba,l,n,m,p,A,E,B,C,Q,Z,tol,ldwork)
+    else:
+        raise ValueError("The combination of compq and compz in not implemented")
+        
+    if info < 0:
+        error_text = "The following argument had an illegal value: "+arg_list[-info-1]
+        e = ValueError(error_text)
+        e.info = info
+        raise e
+    if info != 0:
+        e = ArithmeticError('tg01fd failed')
+        e.info = info
+        raise e
+        
+    if joba == 'N':
+        rnka22 = None
+    
+    return A,E,B,C,ranke,rnka22,Q,Z
 
 # to be replaced by python wrappers
