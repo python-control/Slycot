@@ -69,7 +69,7 @@ test1_rscale_desired = \
 class test_tg01ad(unittest.TestCase):
     """ test1: Verify tg01ad with input parameters according to example in documentation """
 
-    def test1_tg01add(self):
+    def test1_tg01ad(self):
 
         A,E,B,C,lscale,rscale = transform.tg01ad(l=test1_l,n=test1_n,m=test1_m,p=test1_p,A=test1_A,E=test1_E,B=test1_B,C=test1_C,job=test1_job, thresh=test1_thresh)
 
