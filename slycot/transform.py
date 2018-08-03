@@ -1141,7 +1141,7 @@ def tg01ad(l,n,m,p,A,E,B,C,thresh=0.0,job='A'):
     hidden = ' (hidden by the wrapper)'
     arg_list = ['job', 'l', 'n', 'm', 'p', 'thresh', 'A', 'lda'+hidden, 'E','lde'+hidden,'B','ldb'+hidden,'C','ldc'+hidden, 'lscale', 'rscale', 'dwork'+hidden, 'info']
         
-    if job != 'A' and job != 'B' and job != 'C':
+    if job != 'A' and job != 'B' and job != 'C' and job != 'N':
         raise ValueError('Parameter job had an illegal value')
 
     A,E,B,C,lscale,rscale,info = _wrapper.tg01ad(job,l,n,m,p,thresh,A,E,B,C)
