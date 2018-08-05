@@ -1050,6 +1050,114 @@ def tb01pd(n, m, p, A, B, C, job='M', equil='S', tol=1e-8, ldwork=None):
         raise e
     return out[:-1]
 
+def tg01ad(l,n,m,p,A,E,B,C,thresh=0.0,job='A'):
+    """ A,E,B,C,lscale,rscale = tg01ad(l,n,m,p,A,E,B,C,[thresh,job])
+    
+    To balance the matrices of the system pencil
+    
+            S =  ( A  B ) - lambda ( E  0 ) :=  Q - lambda Z,
+                 ( C  0 )          ( 0  0 )
+    
+    corresponding to the descriptor triple (A-lambda E,B,C),
+    by balancing. This involves diagonal similarity transformations
+    (Dl*A*Dr - lambda Dl*E*Dr, Dl*B, C*Dr) applied to the system
+    (A-lambda E,B,C) to make the rows and columns of system pencil
+    matrices
+    
+                diag(Dl,I) * S * diag(Dr,I)
+    
+    as close in norm as possible. Balancing may reduce the 1-norms
+    of the matrices of the system pencil S.
+    
+    The balancing can be performed optionally on the following
+    particular system pencils
+    
+            S = A-lambda E,
+    
+            S = ( A-lambda E  B ),    or
+    
+            S = ( A-lambda E ).
+                (     C      )
+    Required arguments:
+        l : input int
+            The number of rows of matrices A, B, and E.  l >= 0.
+        n : input int
+            The number of columns of matrices A, E, and C.  n >= 0.
+        m : input int
+            The number of columns of matrix B.  m >= 0.
+        p : input int
+            The number of rows of matrix C.  P >= 0.
+        A : rank-2 array('d') with bounds (l,n)
+            The leading L-by-N part of this array must
+            contain the state dynamics matrix A.
+        E : rank-2 array('d') with bounds (l,n)
+            The leading L-by-N part of this array must
+            contain the descriptor matrix E.
+        B : rank-2 array('d') with bounds (l,m)
+            The leading L-by-M part of this array must
+            contain the input/state matrix B.
+            The array B is not referenced if M = 0.
+        C : rank-2 array('d') with bounds (p,n)
+            The leading P-by-N part of this array must
+            contain the state/output matrix C.
+            The array C is not referenced if P = 0.
+    Optional arguments:
+        job := 'A' input string(len=1)
+          Indicates which matrices are involved in balancing, as
+          follows:
+          = 'A':  All matrices are involved in balancing;
+          = 'B':  B, A and E matrices are involved in balancing;
+          = 'C':  C, A and E matrices are involved in balancing;
+          = 'N':  B and C matrices are not involved in balancing.
+        thresh := 0.0 input float
+            Threshold value for magnitude of elements:
+            elements with magnitude less than or equal to
+            THRESH are ignored for balancing. THRESH >= 0.
+    Return objects:
+        A : rank-2 array('d') with bounds (l,n)
+          The leading L-by-N part of this array contains
+          the balanced matrix Dl*A*Dr.
+        E : rank-2 array('d') with bounds (l,n)
+          The leading L-by-N part of this array contains
+          the balanced matrix Dl*E*Dr.
+        B : rank-2 array('d') with bounds (l,m)
+          If M > 0, the leading L-by-M part of this array
+          contains the balanced matrix Dl*B.
+          The array B is not referenced if M = 0.
+        C : rank-2 array('d') with bounds (p,n)
+          If P > 0, the leading P-by-N part of this array
+          contains the balanced matrix C*Dr.
+          The array C is not referenced if P = 0.
+        lscale : rank-1 array('d') with bounds (l)
+          The scaling factors applied to S from left.  If Dl(j) is
+          the scaling factor applied to row j, then
+          SCALE(j) = Dl(j), for j = 1,...,L.
+        rscale : rank-1 array('d') with bounds (n)
+          The scaling factors applied to S from right.  If Dr(j) is
+          the scaling factor applied to column j, then
+          SCALE(j) = Dr(j), for j = 1,...,N.
+    """
+    
+    hidden = ' (hidden by the wrapper)'
+    arg_list = ['job', 'l', 'n', 'm', 'p', 'thresh', 'A', 'lda'+hidden, 'E','lde'+hidden,'B','ldb'+hidden,'C','ldc'+hidden, 'lscale', 'rscale', 'dwork'+hidden, 'info']
+        
+    if job != 'A' and job != 'B' and job != 'C' and job != 'N':
+        raise ValueError('Parameter job had an illegal value')
+
+    A,E,B,C,lscale,rscale,info = _wrapper.tg01ad(job,l,n,m,p,thresh,A,E,B,C)
+        
+    if info < 0:
+        error_text = "The following argument had an illegal value: "+arg_list[-info-1]
+        e = ValueError(error_text)
+        e.info = info
+        raise e
+    if info != 0:
+        e = ArithmeticError('tg01ad failed')
+        e.info = info
+        raise e
+            
+    return A,E,B,C,lscale,rscale
+
 def tg01fd(l,n,m,p,A,E,B,C,Q=None,Z=None,compq='N',compz='N',joba='N',tol=0.0,ldwork=None):
     """ A,E,B,C,ranke,rnka22,Q,Z = tg01fd(l,n,m,p,A,E,B,C,[Q,Z,compq,compz,joba,tol,ldwork])
 
