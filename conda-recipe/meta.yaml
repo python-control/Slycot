@@ -12,6 +12,8 @@ requirements:
     - libflang  # [win]
     - libgfortran # [not win]
     - python {{PY_VER}}
+    - pip
+    - cmake
     
   build:
     - {{ compiler('fortran') }} # [not win]
@@ -28,7 +30,11 @@ requirements:
 
 test:
   requires:
+    - numpy
+    - lapack
     - python {{PY_VER}}
+    - libgfortran # [not win]
+    - libflang # [win]
   imports:
     - slycot
 

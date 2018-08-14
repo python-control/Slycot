@@ -11,7 +11,9 @@ requirements:
     - openblas >=0.3.0
     - libflang  # [win]
     - libgfortran # [not win]
-    - python
+    - python {{PY_VER}}
+    - pip
+    - cmake
 
   build:
     - {{ compiler('fortran') }} # [not win]
@@ -27,6 +29,12 @@ requirements:
     - libflang # [win]
 
 test:
+  requires:
+    - numpy
+    - openblas >=0.3.0
+    - python {{PY_VER}}
+    - libgfortran # [not win]
+    - libflang # [win]
   imports:
     - slycot
 
