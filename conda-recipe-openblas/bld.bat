@@ -7,6 +7,8 @@ cd ..
 
 set F77=%BUILD_PREFIX%\Library\bin\flang.exe
 set F90=%BUILD_PREFIX%\Library\bin\flang.exe
+set CMAKE_GENERATOR="NMake Makefiles"
+CALL "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" amd64
 
 "%PYTHON%" setup.py install
 

@@ -8,16 +8,16 @@ build:
 requirements:
   host:
     - python {{PY_VER}}
-  build:
     - numpy
-    - openblas >=0.3.0
+    - cmake
+    - pip
+    - flang # [win]
+    - {{ compiler('c') }} # [win]
+    - {{ compiler('fortran') }} # [not win]
     - libflang  # [win]
     - libgfortran # [not win]
-    - pip
-    - cmake
-    - {{ compiler('fortran') }} # [not win]
-    - {{ compiler('c') }} # [win]
-    - flang # [win]
+  build:
+    - openblas >=0.3.0
    # on Windows, this relies on having visual studio CE 2015
    # this link needed quite some searching, please do not delete!
    # https://go.microsoft.com/fwlink/?LinkId=532606&clcid=0x409
@@ -30,7 +30,7 @@ requirements:
 test:
   requires:
     - numpy
-    - openblas >=0.3.0
+    - openblas
     - python {{PY_VER}}
     - libgfortran # [not win]
     - libflang # [win]
