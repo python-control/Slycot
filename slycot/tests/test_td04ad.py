@@ -129,6 +129,22 @@ class TestTf2SS(unittest.TestCase):
         n, At, Bt, Ct, Dt = transform.td04ad('R', 2, 2, idxc, den, num)
         np.testing.assert_array_almost_equal(D, Dt)
         np.testing.assert_array_almost_equal(A, At)
+
+    def test_tfm2ss_6(self):
+        """Python version of Fortran test program from
+        -- Bug in TD04AD when ROWCOL='C' #6"""
+        m = 1
+        p = 1
+        index = np.array([0])
+        dcoeff = np.array([[0.5]])
+        ucoeff = np.array([[[32]]])
+        n, A, B, C, D = transform.td04ad('R', m, p, index, dcoeff, ucoeff)
+        self.assertEqual(n, 0)
+        np.testing.assert_array_almost_equal(D, np.array([[64]]))
+        n, A, B, C, D = transform.td04ad('C', m, p, index, dcoeff, ucoeff)
+        self.assertEqual(n, 0)
+        np.testing.assert_array_almost_equal(D, np.array([[64]]))
+        
         
 def suite():
    return unittest.TestLoader().loadTestsFromTestCase(TestTF2SS)
