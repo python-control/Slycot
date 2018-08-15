@@ -118,14 +118,15 @@ set(CMAKE_Fortran_FLAGS )
 
 add_custom_target(wrapper ALL DEPENDS ${FSOURCES})
 add_custom_command(
-  OUTPUT SLYCOTmodule.c
+  OUTPUT SLYCOTmodule.c _wrappermodule.c _wrapper-f2pywrappers.f
   COMMAND ${F2PY_EXECUTABLE} -m SLYCOT
   ${CMAKE_CURRENT_SOURCE_DIR}/${F2PYSOURCE}
   )
 
 add_library(
   ${SLYCOT_MODULE} SHARED
-  SLYCOTmodule.c "${PYTHON_SITE}/numpy/f2py/src/fortranobject.c"
+  SLYCOTmodule.c _wrappermodule.c _wrapper-f2pywrappers.f
+  "${PYTHON_SITE}/numpy/f2py/src/fortranobject.c"
   ${FSOURCES})
 
 set(CMAKE_SHARED_LIBRARY_PREFIX "")
@@ -135,16 +136,21 @@ endif()
 set_target_properties(${SLYCOT_MODULE} PROPERTIES
   OUTPUT_NAME "_wrapper")
 if (WIN32)
-  target_link_libraries(${SLYCOT_MODULE} PRIVATE
+  target_link_libraries(${SLYCOT_MODULE} PUBLIC
     ${PYTHON_LIBRARIES} ${LAPACK_LIBRARIES}) 
 endif()
-if (APPLE)
-  set_target_properties(${SLYCOT_MODULE} PROPERTIES
-    LINK_FLAGS  '-Wl,-dylib,-undefined,dynamic_lookup')
-endif()
-if (LINUX)
-  set_target_properties(${SLYCOT_MODULE} PROPERTIES
-    LINK_FLAGS  '-Wl,--allow-shlib-undefined')
+
+if (UNIX)
+  target_link_libraries(${SLYCOT_MODULE} PUBLIC
+    ${LAPACK_LIBRARIES})
+
+  if (APPLE)
+    set_target_properties(${SLYCOT_MODULE} PROPERTIES
+      LINK_FLAGS  '-Wl,-dylib,-undefined,dynamic_lookup')
+  else()
+    set_target_properties(${SLYCOT_MODULE} PROPERTIES
+      LINK_FLAGS  '-Wl,--allow-shlib-undefined')
+  endif()
 endif()
 
 target_include_directories(

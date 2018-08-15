@@ -12,6 +12,9 @@ set F90=%BUILD_PREFIX%\Library\bin\flang.exe
 "%PYTHON%" setup.py build 
 "%PYTHON%" setup.py install
 
+:: remove scikit-build again, don't want to include that
+"%PYTHON%" -m pip uninstall --yes scikit-build
+
 if errorlevel 1 exit 1
 
 :: Add more build steps here, if they are necessary.

@@ -10,7 +10,11 @@ set F77=%BUILD_PREFIX%\Library\bin\flang.exe
 set F90=%BUILD_PREFIX%\Library\bin\flang.exe
 set LAPACKLIBS=lapack:blas
 
+"%PYTHON%" setup.py build 
 "%PYTHON%" setup.py install
+
+:: remove scikit-build again, don't want to include that
+"%PYTHON%" -m pip uninstall --yes scikit-build
 
 if errorlevel 1 exit 1
 
