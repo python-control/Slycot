@@ -7,15 +7,14 @@ build:
 
 requirements:
   host:
+    - python {{PY_VER}}
+  build:
     - numpy
     - openblas >=0.3.0
     - libflang  # [win]
     - libgfortran # [not win]
-    - python {{PY_VER}}
     - pip
     - cmake
-
-  build:
     - {{ compiler('fortran') }} # [not win]
     - {{ compiler('c') }} # [win]
     - flang # [win]

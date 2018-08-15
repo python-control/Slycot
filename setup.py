@@ -214,7 +214,7 @@ def setup_package():
     # tools have improved, most of this might be removed?
     import platform
     if platform.system() == 'Windows':
-        pbase = r'/'.join(sys.executable.split(os.sep)[:-1])
+        pbase = r'/'.join(sys.executable.split(os.sep)[:-2]) + '/_build_env'
         metadata['cmake_args'].extend([ 
 	    '-DF2PY_EXECUTABLE=' + pbase + r'/Scripts/f2py.bat',
 	    '-DCMAKE_Fortran_COMPILER=' + pbase + r'/Library/bin/flang.exe',

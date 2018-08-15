@@ -1,11 +1,14 @@
 # CMake file for use in conjunction with scikit-build
 
 cmake_minimum_required(VERSION 3.4.0)
+project(slycot VERSION ${SLYCOT_VERSION})
 
 # Fortran detection fails on windows, use the CMAKE_C_SIMULATE flag to
 # force success
 if(WIN32)
-  set(CMAKE_C_SIMULATE_VERSION "19.0")
+  set(CMAKE_Fortran_SIMULATE_VERSION 19.0)
+  set(CMAKE_Fortran_COMPILER_FORCED TRUE)
+  set(CMAKE_C_COMPILER_VERSION 19.0)
 endif()
 enable_language(Fortran)
 
@@ -13,7 +16,6 @@ find_package(PythonLibs REQUIRED)
 find_package(NumPy REQUIRED)
 find_package(LAPACK REQUIRED)
 message(STATUS "LAPACK: ${LAPACK_LIBRARIES}")
-project(slycot VERSION ${SLYCOT_VERSION})
 message(STATUS "Slycot version: ${SLYCOT_VERSION}")
 
 # find python, standard packages, F2PY find flaky on Windows
