@@ -5,6 +5,9 @@ cd ..
 :: until scikit-build on conda-forge is updated to 0.6.1 or higher ...
 "%PYTHON%" -m pip install "https://github.com/scikit-build/scikit-build/archive/0.7.1.zip"
 
+:: indicating fortran compiler is essential
+set FC=%BUILD_PREFIX%\Library\bin\flang.exe
+
 :: The batch file created by conda-build sets a load of environment variables
 :: Building worked fine without conda; apparently one or more of these 
 :: variables produce test & link failures. Resetting most of these here
