@@ -4,6 +4,8 @@ package:
 
 build:
   number: 0
+  script_env:
+    - CMAKE_GENERATOR
 
 requirements:
   host:
@@ -17,6 +19,11 @@ requirements:
     - libflang  # [win]
     - libgfortran # [not win]
   build:
+    - pyparsing
+    - setuptools
+    - wheel
+    - six
+    - packaging
     - openblas >=0.3.0
    # on Windows, this relies on having visual studio CE 2015
    # this link needed quite some searching, please do not delete!

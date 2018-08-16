@@ -10,6 +10,8 @@ if(WIN32)
 #  set(CMAKE_Fortran_COMPILER_FORCED TRUE)
 # set(CMAKE_C_COMPILER_VERSION 19.0)
 endif()
+
+enable_language(C)
 enable_language(Fortran)
 
 find_package(PythonLibs REQUIRED)
