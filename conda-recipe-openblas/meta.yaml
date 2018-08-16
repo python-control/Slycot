@@ -1,11 +1,9 @@
 package:
   name: slycot
-  version: "0.3.3"
+  version: "0.3.4"
 
 build:
   number: 0
-  script_env:
-    - CMAKE_GENERATOR
 
 requirements:
   host:
