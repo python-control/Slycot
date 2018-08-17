@@ -39,6 +39,9 @@ else:
     from .transform import td04ad, tb01pd
     from .transform import tb01kd
 
+    # Version information
+    from .version import version as __version__
+
     from numpy.testing import Tester
     test = Tester().test
     bench = Tester().bench

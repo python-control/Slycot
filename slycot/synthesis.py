@@ -1838,6 +1838,85 @@ def sb10hd(n,m,np,ncon,nmeas,A,B,C,D,tol=0.0,ldwork=None):
         raise e
 
     return out[:-1]
+    
+def sb10jd(n,m,np,A,B,C,D,E,ldwork=None):
+    """ A,B,C,D = sb10jd(n,m,np,A,B,C,D,E,[ldwork])
+    
+    To convert the descriptor state-space system
+    
+    E*dx/dt = A*x + B*u
+          y = C*x + D*u
+    
+    into regular state-space form
+    
+    dx/dt = Ad*x + Bd*u
+        y = Cd*x + Dd*u .
+    
+    Required arguments:
+        n : input int
+            The order of the descriptor system.  n >= 0.
+        m : input int
+            The column size of the matrix B.  m >= 0.        
+        np : input int
+            The row size of the matrix C.  np >= 0.
+        A : rank-2 array('d') with bounds (n,n)
+            The leading n-by-n part of this array must
+            contain the state matrix A of the descriptor system.
+        B : rank-2 array('d') with bounds (l,m)
+            The leading n-by-m part of this array must
+            contain the input matrix B of the descriptor system.
+        C : rank-2 array('d') with bounds (np,n)
+            The leading np-by-n part of this array must
+            contain the output matrix C of the descriptor system.
+        D : rank-2 array('d') with bounds (np,m)
+            The leading np-by-m part of this array must
+            contain the matrix D of the descriptor system.
+        E : rank-2 array('d') with bounds (l,n)
+            The leading n-by-n part of this array must
+            contain the matrix E of the descriptor system.
+    Optional arguments:
+        ldwork : input int
+            The length of the cache array.
+            ldwork >= max( 1, 2*n*n + 2*n + n*MAX( 5, n + m + np ) ).
+            For good performance, ldwork must generally be larger.
+    Return objects:
+        A : rank-2 array('d') with bounds (nsys,nsys)
+            The leading nsys-by-nsys part of this array
+            contains the state matrix Ad of the converted system.
+        B : rank-2 array('d') with bounds (nsys,m)
+            The leading NSYS-by-M part of this array
+            contains the input matrix Bd of the converted system.
+        C : rank-2 array('d') with bounds (np,nsys)
+            The leading NP-by-NSYS part of this array
+            contains the output matrix Cd of the converted system.
+        D : rank-2 array('d') with bounds (np,m)
+            The leading NP-by-M part of this array contains
+            the matrix Dd of the converted system.          
+    """
+
+    hidden = ' (hidden by the wrapper)'
+    arg_list = ['n', 'm', 'np', 'A', 'lda'+hidden, 'B', 'ldb'+hidden, 'C',  'ldc'+hidden, 'D', 'ldd'+hidden, 'E', 'lde'+hidden, 'nsys', 'dwork'+hidden, 'ldwork', 'info']
+
+    if ldwork is None:
+        ldwork = max(1, 2 * n * n + 2 * n + n * max(5, n + m + np))
+
+    A,B,C,D,nsys,info = _wrapper.sb10jd(n,m,np,A,B,C,D,E,ldwork)
+               
+    if info < 0:
+        error_text = "The following argument had an illegal value: "+arg_list[-info-1]
+        e = ValueError(error_text)
+        e.info = info
+        raise e
+    elif info == 1:
+        e = ArithmeticError("The sb10jd algorithm did not converge")
+        e.info = 1
+        raise e
+    elif info != 0:
+        e = ArithmeticError('sb10jd failed')
+        e.info = info
+        raise e
+
+    return A[:nsys,:nsys],B[:nsys,:m],C[:np, :nsys],D[:np, :m]
 
 def sg03ad(dico,job,fact,trans,uplo,N,A,E,Q,Z,X,ldwork=None):
     """ A,E,Q,Z,X,scale,sep,ferr,alphar,alphai,beta =

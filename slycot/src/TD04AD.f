@@ -245,7 +245,8 @@ C     .. Array Arguments ..
      $                  UCOEFF(LDUCO1,LDUCO2,*)
 C     .. Local Scalars ..
       LOGICAL           LROCOC, LROCOR
-      INTEGER           I, J, JSTOP, K, KDCOEF, MPLIM, MWORK, N, PWORK
+      INTEGER           I, J, JSTOP, K, KDCOEF, MPLIM, MWORK, N, PWORK,
+     $                  KU
 C     .. External Functions ..
       LOGICAL           LSAME
       EXTERNAL          LSAME
@@ -401,18 +402,28 @@ C        If T(s) originally factorized by columns, find dual of minimal
 C        state-space representation, and reorder the rows and columns
 C        to get an upper block Hessenberg state dynamics matrix.
 C
-         K = IWORK(1)+IWORK(2)-1
-         CALL TB01XD( 'D', NR, MWORK, PWORK, K, NR-1, A, LDA, B, LDB,
-     $                C, LDC, D, LDD, INFO )
+C        IWORK contains the orders of the diagnonal blocks
+C        RvP, In TB01PD, IWORK is zeroed from INDCON to N, beyond N it may
+C        contain nonsense?         
+         K = -1 
+         DO 55 I = 1, N
+            K = K + IWORK(I)
+ 55      CONTINUE
+C
+C        RvP 180615 Try to protect against re-working an empty [] A
+C        matrix, failed with K < 0
+C                  
+         CALL TB01XD( 'D', NR, MWORK, PWORK, MAX(0, K), MAX(0,NR-1),
+     $                A, LDA, B, LDB, C, LDC, D, LDD, INFO )
          IF ( MPLIM.NE.1 ) THEN
 C
 C           Also, retranspose U(s) if this is non-scalar.
 C
             DO 70 K = 1, KDCOEF
-C
+C 
                DO 60 J = 1, JSTOP
                   CALL DSWAP( MPLIM-J, UCOEFF(J+1,J,K), 1,
-     $                        UCOEFF(J,J+1,K), LDUCO1 )
+     $                           UCOEFF(J,J+1,K), LDUCO1 )
    60          CONTINUE
 C
    70       CONTINUE
