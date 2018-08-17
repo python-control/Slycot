@@ -104,10 +104,12 @@ set(FSOURCES
 
 set(F2PYSOURCE src/_wrapper.pyf)
 
+configure_file(version.py.in version.py @ONLY)
+
 set(PYSOURCE
 
   __init__.py analysis.py examples.py math.py synthesis.py
-  transform.py version.py)
+  transform.py ${CMAKE_CURRENT_BINARY_DIR}/version.py)
 
 set(SLYCOT_MODULE "_wrapper")
 set(GENERATED_MODULE
@@ -147,6 +149,10 @@ if (UNIX)
   if (APPLE)
     set_target_properties(${SLYCOT_MODULE} PROPERTIES
       LINK_FLAGS  '-Wl,-dylib,-undefined,dynamic_lookup')
+    string(REGEX REPLACE "^([0-9]+)\.([0-9]+)\.[0-9]+$" "\\1\\2"
+      PYMAJORMINOR ${PYTHON_VERSION_STRING})
+    set(CMAKE_SHARED_LIBRARY_SUFFIX ".cpython-${PYMAJORMINOR}m-darwin.so")
+    message(STATUS "binary module suffix ${CMAKE_SHARED_LIBRARY_SUFFIX}")
   else()
     set_target_properties(${SLYCOT_MODULE} PROPERTIES
       LINK_FLAGS  '-Wl,--allow-shlib-undefined')

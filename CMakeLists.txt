@@ -1,6 +1,11 @@
 # CMake file for use in conjunction with scikit-build
 
 cmake_minimum_required(VERSION 3.4.0)
+
+if (CMAKE_VERSION VERSION_GREATER "3.11.0")
+  cmake_policy(SET CMP0074 NEW)
+endif()
+
 project(slycot VERSION ${SLYCOT_VERSION})
 
 # Fortran detection fails on windows, use the CMAKE_C_SIMULATE flag to
@@ -16,7 +21,7 @@ enable_language(Fortran)
 
 find_package(PythonLibs REQUIRED)
 find_package(NumPy REQUIRED)
-set(BLA_VENDOR "OpenBLAS")
+#set(BLA_VENDOR "OpenBLAS")
 find_package(LAPACK REQUIRED)
 message(STATUS "LAPACK: ${LAPACK_LIBRARIES}")
 message(STATUS "Slycot version: ${SLYCOT_VERSION}")

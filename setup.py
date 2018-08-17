@@ -52,8 +52,8 @@ if POST != 0:
     VERSION += '-post{:d}'.format(POST)
 
 # Return the git revision as a string
-def git_version():
-    def _minimal_ext_cmd(cmd):
+def git_version(srcdir=None):
+    def _minimal_ext_cmd(cmd, srcdir):
         # construct minimal environment
         env = {}
         for k in ['SYSTEMROOT', 'PATH']:
@@ -66,12 +66,13 @@ def git_version():
         env['LC_ALL'] = 'C'
         out = subprocess.Popen(
             cmd,
+            cwd=srcdir,
             stdout=subprocess.PIPE,
             env=env).communicate()[0]
         return out
 
     try:
-        out = _minimal_ext_cmd(['git', 'rev-parse', 'HEAD'])
+        out = _minimal_ext_cmd(['git', 'rev-parse', 'HEAD'], srcdir)
         GIT_REVISION = out.strip().decode('ascii')
     except OSError:
         GIT_REVISION = "Unknown"
@@ -185,15 +186,16 @@ class sdist_checked(sdist):
 def setup_package():
     src_path = os.path.dirname(os.path.abspath(sys.argv[0]))
     old_path = os.getcwd()
-    os.chdir(src_path)
+    #os.chdir(src_path)
     sys.path.insert(0, src_path)
 
     # Rewrite the version file everytime
-    write_version_py()
-
+    #write_version_py(src_path+'/slycot/version.py')
+    gitrevision = git_version(src_path)
+    
     metadata = dict(
         name='slycot',
-	version=VERSION,
+        version=VERSION,
         maintainer="Slycot developers",
         maintainer_email="python-control-discuss@lists.sourceforge.net",
         description=DOCLINES[0],
@@ -204,8 +206,12 @@ def setup_package():
         classifiers=[_f for _f in CLASSIFIERS.split('\n') if _f],
         platforms=["Windows", "Linux", "Solaris", "Mac OS-X", "Unix"],
         cmdclass={"sdist": sdist_checked},
-	cmake_args=[ '-DSLYCOT_VERSION=' + VERSION ],
-	zip_safe=False,
+        cmake_args=[ '-DSLYCOT_VERSION:STRING=' + VERSION,
+                     '-DGIT_REVISION:STRING=' + gitrevision,
+                     '-DISRELEASE:STRING=' + str(ISRELEASED),
+                     '-DFULL_VERSION=' + VERSION + '.git' + gitrevision[:7] ],
+        #cmake_source_dir=src_path,
+        zip_safe=False,
     )
 
     # Windows builds use Flang.
@@ -228,7 +234,7 @@ def setup_package():
         setup(**metadata)
     finally:
         del sys.path[0]
-        os.chdir(old_path)
+        #os.chdir(old_path)
     return
 
 

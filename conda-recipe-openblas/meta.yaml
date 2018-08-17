@@ -8,20 +8,21 @@ build:
 requirements:
   host:
     - python {{PY_VER}}
-    - numpy
     - cmake
     - pip
     - flang # [win]
     - {{ compiler('c') }} # [win]
     - {{ compiler('fortran') }} # [not win]
     - libflang  # [win]
-    - libgfortran # [not win]
+    - numpy
   build:
+    - numpy
     - pyparsing
     - setuptools
     - wheel
     - six
     - packaging
+    - libgfortran # [not win]
     - openblas >=0.3.0
    # on Windows, this relies on having visual studio CE 2015
    # this link needed quite some searching, please do not delete!

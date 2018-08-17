@@ -65,8 +65,11 @@ set WindowsSDKVersion=
 set WindowsSDKExecutablePath_x64=
 set WindowsSDKExecutablePath_x86=
 
-;; information on remaining variables
+:: information on remaining variables
 set
+
+set BLAS_ROOT=%CONDA_PREFIX%
+set LAPACK_ROOT=%CONDA_PREFIX%
 
 "%PYTHON%" setup.py install
 
