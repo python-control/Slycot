@@ -75,6 +75,11 @@ set LAPACK_ROOT=%CONDA_PREFIX%
 
 :: remove scikit-build again, don't want to include that
 "%PYTHON%" -m pip uninstall --yes scikit-build
+"%PYTHON%" -m pip uninstall --yes packaging
+"%PYTHON%" -m pip uninstall --yes pyparsing
+"%PYTHON%" -m pip uninstall --yes setuptools
+"%PYTHON%" -m pip uninstall --yes six
+"%PYTHON%" -m pip uninstall --yes wheel
 
 if errorlevel 1 exit 1
 
