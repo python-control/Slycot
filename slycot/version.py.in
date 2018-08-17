@@ -1,8 +1,10 @@
-short_version = $VERSION
-version = $VERSION
-full_version = $FULL_VERSION
-git_revision = $GIT_REVISION
-release = $IS_RELEASED
+
+# THIS FILE IS GENERATED FROM SLYCOT SETUP.PY
+short_version = '@SLYCOT_VERSION@'
+version = '@SLYCOT_VERSION@'
+full_version = '@FULL_VERSION@'
+git_revision = '@GIT_REVISION@'
+release = @ISRELEASE@
 
 if not release:
         version = full_version

@@ -1,22 +1,29 @@
 package:
   name: slycot
-  version: "0.3.3"
+  version: "0.3.4"
 
 build:
   number: 0
 
 requirements:
   host:
-    - numpy
-    - openblas >=0.3.0
-    - libflang  # [win]
-    - libgfortran # [not win]
-    - python
-
-  build:
-    - {{ compiler('fortran') }} # [not win]
-    - {{ compiler('c') }} # [win]
+    - python {{PY_VER}}
+    - cmake
+    - pip
     - flang # [win]
+    - {{ compiler('c') }} # [win]
+    - {{ compiler('fortran') }} # [not win]
+    - libflang  # [win]
+    - numpy
+  build:
+    - numpy
+    - pyparsing
+    - setuptools
+    - wheel
+    - six
+    - packaging
+    - libgfortran # [not win]
+    - openblas >=0.3.0
    # on Windows, this relies on having visual studio CE 2015
    # this link needed quite some searching, please do not delete!
    # https://go.microsoft.com/fwlink/?LinkId=532606&clcid=0x409
@@ -28,7 +35,11 @@ requirements:
 
 test:
   requires:
+    - numpy
+    - openblas
     - python {{PY_VER}}
+    - libgfortran # [not win]
+    - libflang # [win]
   imports:
     - slycot
 
