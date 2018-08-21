@@ -19,6 +19,7 @@ before_install:
   - if [[ $TEST_CONDA == 0 ]]; then
       sudo apt-get install liblapack-dev libblas-dev;
       sudo apt-get install gfortran;
+      sudo apt-get install cmake;
     fi
 
 install:
@@ -46,6 +47,11 @@ install:
   # Make sure that fortran compiler can find conda libraries
   #
   - export LIBRARY_PATH="$HOME/miniconda/envs/test-environment/lib";
+
+  # pip install scikit-build, one in conda repos is currently too old
+  - if [[ $TEST_CONDA == 0 ]]; then
+     pip install https://github.com/scikit-build/scikit-build/archive/0.7.1.zip;
+    fi
   #
   # Install the slycot package (two ways, to improve robustness).  For the 
   # conda version, need to install lapack from conda-forge (no way to specify 
@@ -56,11 +62,10 @@ install:
   #
   - if [[ $TEST_CONDA == 1 ]]; then
       conda config --append channels conda-forge;
-      conda build --python "$TRAVIS_PYTHON_VERSION" conda-recipe;
-      conda install -c conda-forge lapack;
+      conda build --python "$TRAVIS_PYTHON_VERSION" conda-recipe-openblas;
       conda install --override-channels -c local slycot;
     else
-      LAPACKLIBS=lapack:blas python setup.py install;
+      python setup.py install;
     fi
   #
   # coveralls not in conda repos :-(
