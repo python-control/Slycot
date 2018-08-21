@@ -34,6 +34,7 @@ install:
     fi
   - bash miniconda.sh -b -p $HOME/miniconda
   - export PATH="$HOME/miniconda/bin:$PATH"
+  - export PYTHONPATH="${HOME}/build/python-control/Slycot/build/testenv/lib/python${TRAVIS_PYTHON_VERSION}/site-packages:${PYTHONPATH}"
   - hash -r
   - conda config --set always_yes yes --set changeps1 no
   - conda update -q conda
@@ -63,6 +64,7 @@ install:
   - if [[ $TEST_CONDA == 1 ]]; then
       conda config --append channels conda-forge;
       conda build --python "$TRAVIS_PYTHON_VERSION" conda-recipe-openblas;
+      conda install -c conda-forge openblas >=0.3.0;
       conda install --override-channels -c local slycot;
     else
       python setup.py install;
