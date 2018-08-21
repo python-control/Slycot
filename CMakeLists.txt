@@ -2,7 +2,7 @@
 
 cmake_minimum_required(VERSION 3.4.0)
 
-if (CMAKE_VERSION VERSION_GREATER "3.11.0")
+if (CMAKE_VERSION VERSION_GREATER "3.11.99")
   cmake_policy(SET CMP0074 NEW)
 endif()
 

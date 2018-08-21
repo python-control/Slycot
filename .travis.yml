@@ -34,7 +34,6 @@ install:
     fi
   - bash miniconda.sh -b -p $HOME/miniconda
   - export PATH="$HOME/miniconda/bin:$PATH"
-  - export PYTHONPATH="${HOME}/build/python-control/Slycot/build/testenv/lib/python${TRAVIS_PYTHON_VERSION}/site-packages:${PYTHONPATH}"
   - hash -r
   - conda config --set always_yes yes --set changeps1 no
   - conda update -q conda
@@ -42,7 +41,7 @@ install:
   - conda info -a
   #
   # Set up a test environment for testing everything out
-  - conda create -q -n test-environment python="$TRAVIS_PYTHON_VERSION" pip coverage nose numpy
+  - conda create -q -n test-environment python="$TRAVIS_PYTHON_VERSION" pip coverage nose numpy openblas
   - source activate test-environment
   
   #
@@ -77,7 +76,8 @@ install:
 script:
   # Local unit tests
   # TODO: replace with nose?
-  - python runtests.py --coverage --no-build
+  - cd ..
+  - python Slycot/runtests.py --coverage --no-build
   #
   # As a deeper set of tests, get test against python-control as well
   #
