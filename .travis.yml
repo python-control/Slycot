@@ -44,6 +44,7 @@ install:
   # Set up a test environment for testing everything out
   - conda create -q -n test-environment python="$TRAVIS_PYTHON_VERSION" pip coverage nose numpy
   - source activate test-environment
+  
   #
   # Make sure that fortran compiler can find conda libraries
   #
@@ -76,7 +77,7 @@ install:
 script:
   # Local unit tests
   # TODO: replace with nose?
-  - python runtests.py --coverage
+  - python runtests.py --coverage --no-build
   #
   # As a deeper set of tests, get test against python-control as well
   #
