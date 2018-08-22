@@ -68,7 +68,7 @@ install:
       conda install -c conda-forge openblas >=0.3.0;
       conda install --override-channels -c local slycot;
     else
-      python setup.py install;
+      CMAKE_GENERATOR="Unix Makefiles" python setup.py install;
     fi
   #
   # coveralls not in conda repos :-(
