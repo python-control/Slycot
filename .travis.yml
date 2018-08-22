@@ -49,9 +49,10 @@ install:
   #
   - export LIBRARY_PATH="$HOME/miniconda/envs/test-environment/lib";
 
-  # pip install scikit-build, one in conda repos is currently too old
+  # install scikit-build
   - if [[ $TEST_CONDA == 0 ]]; then
-     pip install https://github.com/scikit-build/scikit-build/archive/0.7.1.zip;
+      conda config --append channels conda-forge;
+      conda install -c conda-forge scikit-build >=0.8.0 ;
     fi
   #
   # Install the slycot package (two ways, to improve robustness).  For the 

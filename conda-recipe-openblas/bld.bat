@@ -2,9 +2,6 @@
 cd %RECIPE_DIR%
 cd ..
 
-:: until scikit-build on conda-forge is updated to 0.6.1 or higher ...
-"%PYTHON%" -m pip install "https://github.com/scikit-build/scikit-build/archive/0.7.1.zip"
-
 :: indicating fortran compiler is essential
 set FC=%BUILD_PREFIX%\Library\bin\flang.exe
 
@@ -72,14 +69,6 @@ set BLAS_ROOT=%CONDA_PREFIX%
 set LAPACK_ROOT=%CONDA_PREFIX%
 
 "%PYTHON%" setup.py install
-
-:: remove scikit-build again, don't want to include that
-"%PYTHON%" -m pip uninstall --yes scikit-build
-"%PYTHON%" -m pip uninstall --yes packaging
-"%PYTHON%" -m pip uninstall --yes pyparsing
-"%PYTHON%" -m pip uninstall --yes setuptools
-"%PYTHON%" -m pip uninstall --yes six
-"%PYTHON%" -m pip uninstall --yes wheel
 
 if errorlevel 1 exit 1
 

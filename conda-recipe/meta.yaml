@@ -8,20 +8,14 @@ build:
 requirements:
   host:
     - python {{PY_VER}}
-    - cmake
-    - pip
     - numpy
     - flang # [win]
     - {{ compiler('c') }} # [win]
     - {{ compiler('fortran') }} # [not win]
+    - scikit-build >=0.8.0
     
   build:
     - numpy
-    - pyparsing
-    - setuptools
-    - wheel
-    - six
-    - packaging
     - libflang  # [win]
     - libgfortran # [not win]
     - lapack
