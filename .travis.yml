@@ -58,7 +58,7 @@ install:
       conda config --append channels conda-forge;
       conda build --python "$TRAVIS_PYTHON_VERSION" conda-recipe;
       conda install -c conda-forge lapack;
-      conda install --override-channels -c local slycot;
+      conda install --use-local slycot;
     else
       LAPACKLIBS=lapack:blas python setup.py install;
     fi
