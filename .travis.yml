@@ -10,6 +10,14 @@ env:
   - TEST_CONDA=0
   - TEST_CONDA=1
 
+# Install display manager to allow testing of plotting functions
+# Install fortran compiler
+addons:
+  apt:
+    packages:
+      - xvfb
+      - gfortran
+
 before_install:
   #
   # Install fortran compiler, if not using Conda's
