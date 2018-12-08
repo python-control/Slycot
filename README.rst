@@ -25,7 +25,8 @@ Numpy should be the only prerequisite (though you may need the LAPACK
 libraries as well, depending on your particular system configuration).
 
 If you are installing Slycot from source, you will need a FORTRAN
-compiler, such as gfortran, and BLAS/LAPACK libraries.
+compiler, such as gfortran, and BLAS/LAPACK libraries. The build
+system uses skbuild (scikit-buildsystem >= 0.8.1) and cmake.
 
 On Debian derivatives you should be able to install all the above with a
 single command::
