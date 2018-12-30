@@ -21,12 +21,9 @@ class test_sg03ad(unittest.TestCase):
         Xref = np.ones((n,n)) 
         U = np.tril(Xref)
         for t in range(0, 50, 10):
-            A = np.matrix(
-                2.0**(-t) - np.eye(n) + np.diag(range(1,n+1)) + U.T)
-            #print(A)
-            #print(t, n)
-            E = np.matrix(np.eye(n) + 2**(-t)*U)
-            Y = A.T*Xref*E + E.T*Xref*A
+            A = 2.0**(-t) - np.eye(n) + np.diag(range(1,n+1)) + U.T
+            E = np.eye(n) + 2**(-t)*U
+            Y = A.T.dot(Xref).dot(E) + E.T.dot(Xref).dot(A)
             Q = np.zeros((n,n))
             Z = np.zeros((n,n))
             A, E, Q, Z, X, scale, sep, ferr, alphar, alphai, beta = \
@@ -35,20 +32,20 @@ class test_sg03ad(unittest.TestCase):
         
     def test_sg03ad_3(self):
         n = 3
-        A = np.matrix([[3.0, 1.0, 1.0],
+        A = np.array([[3.0, 1.0, 1.0],
                       [1.0, 3.0, 0.0],
                       [1.0, 0.0, 2.0]])
-        E = np.matrix([[1.0, 3.0, 0.0],
+        E = np.array([[1.0, 3.0, 0.0],
                        [3.0, 2.0, 1.0],
                        [1.0, 0.0, 1.0]])
-        Y = np.matrix([[64.0, 73.0, 28.0],
+        Y = np.array([[64.0, 73.0, 28.0],
                        [73.0, 70.0, 25.0],
                        [28.0, 25.0, 18.0]])
         Xref = np.array([[-2.0000, -1.0000, 0.0000],
                           [-1.0000, -3.0000, -1.0000],
                           [0.0000, -1.0000, -3.0000]])
-        Q = np.matrix(np.zeros((3,3)))
-        Z = np.matrix(np.zeros((3,3)))
+        Q = np.zeros((3,3))
+        Z = np.zeros((3,3))
         A, E, Q, Z, X, scale, sep, ferr, alphar, alphai, beta = \
             synthesis.sg03ad('C', 'B', 'N', 'N', 'L', n, A, E, Q, Z, -Y)
         #print(A, E, Q, Z, X, scale, sep)
