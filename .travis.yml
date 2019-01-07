@@ -36,7 +36,7 @@ install:
   - export PATH="$HOME/miniconda/bin:$PATH"
   - hash -r
   - conda config --set always_yes yes --set changeps1 no
-  - conda update -q conda
+  - conda update -q --all
   - if [[ $TEST_CONDA == 1 ]]; then conda install conda-build; fi
   - conda info -a
   #
