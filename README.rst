@@ -7,8 +7,8 @@ Slycot
 .. image:: https://anaconda.org/conda-forge/slycot/badges/version.svg
    :target: https://anaconda.org/conda-forge/slycot
 
-.. image:: https://travis-ci.org/python-control/slycot.svg?branch=master
-   :target: https://travis-ci.org/python-control/slycot
+.. image:: https://travis-ci.org/python-control/Slycot.svg?branch=master
+   :target: https://travis-ci.org/python-control/Slycot
 
 .. image:: https://coveralls.io/repos/python-control/slycot/badge.png
    :target: https://coveralls.io/r/python-control/slycot
