@@ -65,8 +65,8 @@ install:
   - if [[ $TEST_CONDA == 1 ]]; then
       conda config --append channels conda-forge;
       conda build --python "$TRAVIS_PYTHON_VERSION" conda-recipe-openblas;
-      conda install -c conda-forge openblas >=0.3.0;
-      conda install --override-channels -c local slycot;
+      conda install conda-forge::openblas>=0.3.0;
+      conda install local::slycot;
     else
       CMAKE_GENERATOR="Unix Makefiles" python setup.py install;
     fi
