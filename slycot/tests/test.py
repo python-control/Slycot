@@ -12,8 +12,8 @@ class Test(unittest.TestCase):
         synthesis.sb02mt(1,1,1,1)
 
     def test_2(self):
-        from numpy import matrix
-        a = matrix("-2 0.5;-1.6 -5")
+        from numpy import array
+        a = array([[-2, 0.5], [-1.6, -5]])
         Ar, Vr, Yr, VALRr, VALDr = math.mb05md(a, 0.1)
 
     def test_sb02ad(self):
