@@ -1,14 +1,25 @@
 # Travis configuration file for slycot
-language: python
+matrix:
+  include:
+    - name: "Python 2.7, TEST_CONDA=0"
+      env: SLYCOT_PYTHON_VERSION=2.7 TEST_CONDA=0
+    - name: "Python 2.7, TEST_CONDA=1"      
+      env: SLYCOT_PYTHON_VERSION=2.7 TEST_CONDA=1
 
-python:
-  - "2.7"
-  - "3.5"
-  - "3.6"
+    - name: "Python 3.5, TEST_CONDA=0"
+      env: SLYCOT_PYTHON_VERSION=3.7 TEST_CONDA=0
+    - name: "Python 3.5, TEST_CONDA=1"      
+      env: SLYCOT_PYTHON_VERSION=3.7 TEST_CONDA=1
 
-env:
-  - TEST_CONDA=0
-  - TEST_CONDA=1
+    - name: "Python 3.6, TEST_CONDA=0"
+      env: SLYCOT_PYTHON_VERSION=3.7 TEST_CONDA=0
+    - name: "Python 3.6, TEST_CONDA=1"      
+      env: SLYCOT_PYTHON_VERSION=3.7 TEST_CONDA=1
+
+    - name: "Python 3.7, TEST_CONDA=0"
+      env: SLYCOT_PYTHON_VERSION=3.7 TEST_CONDA=0
+    - name: "Python 3.7, TEST_CONDA=1"      
+      env: SLYCOT_PYTHON_VERSION=3.7 TEST_CONDA=1
 
 before_install:
   #
@@ -27,7 +38,7 @@ install:
   # Install miniconda to allow quicker installation of dependencies
   # See https://conda.io/docs/user-guide/tasks/use-conda-with-travis-ci.html
   #
-  - if [[ "$TRAVIS_PYTHON_VERSION" == "2.7" ]]; then
+  - if [[ "$SLYCOT_PYTHON_VERSION" == "2.7" ]]; then
       wget http://repo.continuum.io/miniconda/Miniconda2-latest-Linux-x86_64.sh -O miniconda.sh;
     else
       wget http://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
@@ -41,7 +52,7 @@ install:
   - conda info -a
   #
   # Set up a test environment for testing everything out
-  - conda create -q -n test-environment python="$TRAVIS_PYTHON_VERSION" pip coverage nose numpy openblas
+  - conda create -q -n test-environment python="$SLYCOT_PYTHON_VERSION" pip coverage nose numpy openblas
   - source activate test-environment
   
   #
@@ -64,7 +75,7 @@ install:
   #
   - if [[ $TEST_CONDA == 1 ]]; then
       conda config --append channels conda-forge;
-      conda build --python "$TRAVIS_PYTHON_VERSION" conda-recipe-openblas;
+      conda build --python "$SLYCOT_PYTHON_VERSION" conda-recipe-openblas;
       conda install conda-forge::openblas>=0.3.0;
       conda install local::slycot;
     else
