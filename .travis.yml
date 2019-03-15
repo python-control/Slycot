@@ -1,14 +1,25 @@
 # Travis configuration file for slycot
-language: python
+matrix:
+  include:
+    - name: "Python 2.7, TEST_CONDA=0"
+      env: SLYCOT_PYTHON_VERSION=2.7 TEST_CONDA=0
+    - name: "Python 2.7, TEST_CONDA=1"      
+      env: SLYCOT_PYTHON_VERSION=2.7 TEST_CONDA=1
 
-python:
-  - "2.7"
-  - "3.5"
-  - "3.6"
+    - name: "Python 3.5, TEST_CONDA=0"
+      env: SLYCOT_PYTHON_VERSION=3.7 TEST_CONDA=0
+    - name: "Python 3.5, TEST_CONDA=1"      
+      env: SLYCOT_PYTHON_VERSION=3.7 TEST_CONDA=1
 
-env:
-  - TEST_CONDA=0
-  - TEST_CONDA=1
+    - name: "Python 3.6, TEST_CONDA=0"
+      env: SLYCOT_PYTHON_VERSION=3.7 TEST_CONDA=0
+    - name: "Python 3.6, TEST_CONDA=1"      
+      env: SLYCOT_PYTHON_VERSION=3.7 TEST_CONDA=1
+
+    - name: "Python 3.7, TEST_CONDA=0"
+      env: SLYCOT_PYTHON_VERSION=3.7 TEST_CONDA=0
+    - name: "Python 3.7, TEST_CONDA=1"      
+      env: SLYCOT_PYTHON_VERSION=3.7 TEST_CONDA=1
 
 before_install:
   #
@@ -19,6 +30,7 @@ before_install:
   - if [[ $TEST_CONDA == 0 ]]; then
       sudo apt-get install liblapack-dev libblas-dev;
       sudo apt-get install gfortran;
+      sudo apt-get install cmake;
     fi
 
 install:
@@ -26,8 +38,8 @@ install:
   # Install miniconda to allow quicker installation of dependencies
   # See https://conda.io/docs/user-guide/tasks/use-conda-with-travis-ci.html
   #
-  - if [[ "$TRAVIS_PYTHON_VERSION" == "2.7" ]]; then
-      wget http://repo.continuum.io/miniconda/Miniconda-latest-Linux-x86_64.sh -O miniconda.sh;
+  - if [[ "$SLYCOT_PYTHON_VERSION" == "2.7" ]]; then
+      wget http://repo.continuum.io/miniconda/Miniconda2-latest-Linux-x86_64.sh -O miniconda.sh;
     else
       wget http://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
     fi
@@ -35,17 +47,24 @@ install:
   - export PATH="$HOME/miniconda/bin:$PATH"
   - hash -r
   - conda config --set always_yes yes --set changeps1 no
-  - conda update -q conda
+  - conda update -q --all
   - if [[ $TEST_CONDA == 1 ]]; then conda install conda-build; fi
   - conda info -a
   #
   # Set up a test environment for testing everything out
-  - conda create -q -n test-environment python="$TRAVIS_PYTHON_VERSION" pip coverage nose numpy
+  - conda create -q -n test-environment python="$SLYCOT_PYTHON_VERSION" pip coverage nose numpy openblas
   - source activate test-environment
+  
   #
   # Make sure that fortran compiler can find conda libraries
   #
   - export LIBRARY_PATH="$HOME/miniconda/envs/test-environment/lib";
+
+  # install scikit-build
+  - if [[ $TEST_CONDA == 0 ]]; then
+      conda config --append channels conda-forge;
+      conda install -c conda-forge scikit-build >=0.8.0 ;
+    fi
   #
   # Install the slycot package (two ways, to improve robustness).  For the 
   # conda version, need to install lapack from conda-forge (no way to specify 
@@ -56,11 +75,11 @@ install:
   #
   - if [[ $TEST_CONDA == 1 ]]; then
       conda config --append channels conda-forge;
-      conda build --python "$TRAVIS_PYTHON_VERSION" conda-recipe;
-      conda install -c conda-forge lapack;
-      conda install --override-channels -c local slycot;
+      conda build --python "$SLYCOT_PYTHON_VERSION" conda-recipe-openblas;
+      conda install conda-forge::openblas>=0.3.0;
+      conda install local::slycot;
     else
-      LAPACKLIBS=lapack:blas python setup.py install;
+      CMAKE_GENERATOR="Unix Makefiles" python setup.py install;
     fi
   #
   # coveralls not in conda repos :-(
@@ -69,7 +88,8 @@ install:
 script:
   # Local unit tests
   # TODO: replace with nose?
-  - python runtests.py --coverage
+  - cd ..
+  - python Slycot/runtests.py --coverage --no-build
   #
   # As a deeper set of tests, get test against python-control as well
   #

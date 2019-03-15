@@ -7,8 +7,8 @@ Slycot
 .. image:: https://anaconda.org/conda-forge/slycot/badges/version.svg
    :target: https://anaconda.org/conda-forge/slycot
 
-.. image:: https://travis-ci.org/python-control/slycot.svg?branch=master
-   :target: https://travis-ci.org/python-control/slycot
+.. image:: https://travis-ci.org/python-control/Slycot.svg?branch=master
+   :target: https://travis-ci.org/python-control/Slycot
 
 .. image:: https://coveralls.io/repos/python-control/slycot/badge.png
    :target: https://coveralls.io/r/python-control/slycot
@@ -25,7 +25,8 @@ Numpy should be the only prerequisite (though you may need the LAPACK
 libraries as well, depending on your particular system configuration).
 
 If you are installing Slycot from source, you will need a FORTRAN
-compiler, such as gfortran, and BLAS/LAPACK libraries.
+compiler, such as gfortran, and BLAS/LAPACK libraries. The build
+system uses skbuild (scikit-buildsystem >= 0.8.1) and cmake.
 
 On Debian derivatives you should be able to install all the above with a
 single command::
