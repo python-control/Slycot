@@ -107,10 +107,14 @@ If you prefer to use the OpenBLAS library, a conda recipe is available in
 
 Additional tips for how to install slycot from source can be found in the
 .travis.yml (commands used for Travis CI) and conda-recipe/ (conda
-pre-requisities).  The hardest part about installing from source is getting
+pre-requisities).
+
+The hardest part about installing from source is getting
 a working version of FORTRAN and LAPACK installed on your system and working
 properly with Python. On Windows, the build system currently uses
-flang, which can be installed from conda-forge. 
+flang, which can be installed from conda-forge. Note that flang is
+incompatible with Python 2.7.
+
 If you are using conda, you can also get working
 (binary) copies of LAPACK from conda-forge using the command::
 
