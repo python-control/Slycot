@@ -131,8 +131,9 @@ class TestTf2SS(unittest.TestCase):
         np.testing.assert_array_almost_equal(A, At)
 
     def test_tfm2ss_6(self):
-        """Python version of Fortran test program from
-        -- Bug in TD04AD when ROWCOL='C' #6"""
+        """Python version of Fortran test program from 
+        -- Bug in TD04AD when ROWCOL='C' #6
+           This bug was fixed in PR #27"""
         m = 1
         p = 1
         index = np.array([0])
