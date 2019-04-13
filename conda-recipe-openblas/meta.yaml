@@ -1,41 +1,47 @@
 package:
   name: slycot
-  version: "0.3.3"
+  version: {{ environ.get('GIT_DESCRIBE_TAG', 'v0.0.0')[1:] }}
+
+source:
+  git_url: ../
 
 build:
-  number: 0
+  number: {{ environ.get('GIT_DESCRIBE_NUMBER', 0) }}
+  string: py{{ environ.get('PY_VER').replace('.', '') }}{{ environ.get('GIT_DESCRIBE_HASH', '') }}_obl_{{ environ.get('GIT_DESCRIBE_NUMBER', 0) }}
 
 requirements:
-  host:
-    - python {{PY_VER}}
-    - flang # [win]
-    - {{ compiler('c') }} # [win]
-    - {{ compiler('fortran') }} # [not win]
-    - numpy
-    - scikit-build >=0.8.0
-    
   build:
-    - numpy
-    - libflang  # [win]
-    - libgfortran # [not win]
+    - python {{ PY_VER }}
+    - numpy >=1.16
     - openblas >=0.3.0
+    - {{ compiler('c') }}       # [not osx]
+    - gcc                       # [osx]
+    - {{ compiler('fortran') }} # [linux]
+    - scikit-build >=0.8.0
+
+  host:
+    - python {{ PY_VER }}
+    - flang                     # [win]
+    - numpy >=1.16
+    - openblas >=0.3.0
+    - libgfortran-ng # [not-win]
+    - libgcc-ng      # [linux]
+    - scikit-build >=0.8.0
    # on Windows, this relies on having visual studio CE 2015
    # this link needed quite some searching, please do not delete!
    # https://go.microsoft.com/fwlink/?LinkId=532606&clcid=0x409
    
   run:
-    - numpy
+    - python {{ PY_VER }}
+    - numpy >=1.16
     - openblas >=0.3.0
-    - libgfortran # [not win]
-    - libflang # [win]
+    - libgfortran-ng # [not win]
+    - libgcc-ng      # [linux]
+    - libflang       # [win]
 
 test:
   requires:
-    - numpy
-    - openblas
     - python {{PY_VER}}
-    - libgfortran # [not win]
-    - libflang # [win]
   imports:
     - slycot
 
@@ -43,3 +49,7 @@ about:
   home: https://github.com/python-control/slycot
   license:  GPLv2
   summary: 'A wrapper for the SLICOT control and systems library'
+
+# on OSX, the SDK for 10.9 is currently needed
+# download the 10.9 sdk from https://github.com/phracker/MacOSX-SDKs/releases
+# unpack and set environment variable CONDA_BUILD_SYSROOT to that location

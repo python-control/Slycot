@@ -6,16 +6,16 @@ if (CMAKE_VERSION VERSION_GREATER "3.11.99")
   cmake_policy(SET CMP0074 NEW)
 endif()
 
-project(slycot VERSION ${SLYCOT_VERSION})
+project(slycot VERSION ${SLYCOT_VERSION} LANGUAGES NONE)
 
 # Fortran detection fails on windows, use the CMAKE_C_SIMULATE flag to
 # force success
 if(WIN32)
   set(CMAKE_Fortran_SIMULATE_VERSION 19.0)
-#  set(CMAKE_Fortran_COMPILER_FORCED TRUE)
-# set(CMAKE_C_COMPILER_VERSION 19.0)
 endif()
 
+# this does not seem to work, maybe scikit-build's doing? the cxx compiler is
+# still tested
 enable_language(C)
 enable_language(Fortran)
 

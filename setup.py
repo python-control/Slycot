@@ -42,14 +42,11 @@ Operating System :: Unix
 Operating System :: MacOS
 """
 
-MAJOR = 0
-MINOR = 3
-MICRO = 4
-POST = 0
+# defaults
 ISRELEASED = False
-VERSION = '%d.%d.%d' % (MAJOR, MINOR, MICRO)
-if POST != 0:
-    VERSION += '-post{:d}'.format(POST)
+# assume a version set by conda, next update with git,
+# otherwise count on default
+VERSION = '0.3.3'
 
 # Return the git revision as a string
 def git_version(srcdir=None):
@@ -72,12 +69,19 @@ def git_version(srcdir=None):
         return out
 
     try:
+        GIT_VERSION = VERSION
+        GIT_REVISION = 'Unknown'
+        CIT_CYCLE = 0
         out = _minimal_ext_cmd(['git', 'rev-parse', 'HEAD'], srcdir)
         GIT_REVISION = out.strip().decode('ascii')
+        out = _minimal_ext_cmd(['git', 'tag'], srcdir)
+        GIT_VERSION = out.strip().decode('ascii').split('\n')[-1][1:]
+        out = _minimal_ext_cmd(['git', 'describe', '--tags'], srcdir)
+        GIT_CYCLE = out.strip().decode('ascii').split('-')[1]
     except OSError:
-        GIT_REVISION = "Unknown"
+        pass
 
-    return GIT_REVISION
+    return GIT_VERSION, GIT_REVISION, GIT_CYCLE
 
 # BEFORE importing distutils, remove MANIFEST. distutils doesn't properly
 # update it when the contents of directories change.
@@ -91,13 +95,19 @@ if os.path.exists('MANIFEST'):
 builtins.__SLYCOT_SETUP__ = True
 
 
-def get_version_info():
+def get_version_info(srcdir=None):
+    global ISRELEASED
+    
     # Adding the git rev number needs to be done inside write_version_py(),
     # otherwise the import of slycot.version messes up
     # the build under Python 3.
-    FULLVERSION = VERSION
-    if os.path.exists('.git'):
-        GIT_REVISION = git_version()
+    if os.environ.get('CONDA_BUILD', False):
+        FULLVERSION = os.environ.get('PKG_VERSION', '???')
+        GIT_REVISION = ''
+        GIT_CYCLE = 0
+        ISRELEASED = True
+    elif os.path.exists('.git'):
+        FULLVERSION, GIT_REVISION, GIT_CYCLE = git_version(srcdir)        
     elif os.path.exists('slycot/version.py'):
         # must be a source distribution, use existing version file
         try:
@@ -107,37 +117,13 @@ def get_version_info():
                               "slycot/version.py and the build directory "
                               "before building.")
     else:
+        FULLVERSION = VERSION
         GIT_REVISION = "Unknown"
 
     if not ISRELEASED:
-        FULLVERSION += '.dev-' + GIT_REVISION[:7]
+        FULLVERSION += '.' + str(GIT_CYCLE)
 
     return FULLVERSION, GIT_REVISION
-
-
-def write_version_py(filename='slycot/version.py'):
-    cnt = """
-# THIS FILE IS GENERATED FROM SLYCOT SETUP.PY
-short_version = '%(version)s'
-version = '%(version)s'
-full_version = '%(full_version)s'
-git_revision = '%(git_revision)s'
-release = %(isrelease)s
-
-if not release:
-    version = full_version
-"""
-    FULLVERSION, GIT_REVISION = get_version_info()
-
-    a = open(filename, 'w')
-    try:
-        a.write(cnt % {'version': VERSION,
-                       'full_version': FULLVERSION,
-                       'git_revision': GIT_REVISION,
-                       'isrelease': str(ISRELEASED)})
-    finally:
-        a.close()
-
 
 def configuration(parent_package='', top_path=None):
     from numpy.distutils.misc_util import Configuration
@@ -190,11 +176,11 @@ def setup_package():
     sys.path.insert(0, src_path)
 
     # Rewrite the version file everytime
-    #write_version_py(src_path+'/slycot/version.py')
-    gitrevision = git_version(src_path)
+    VERSION, gitrevision = get_version_info(src_path)
     
     metadata = dict(
         name='slycot',
+        cmake_languages=('C', 'Fortran'),
         version=VERSION,
         maintainer="Slycot developers",
         maintainer_email="python-control-discuss@lists.sourceforge.net",
@@ -220,16 +206,36 @@ def setup_package():
     # tools have improved, most of this might be removed?
     import platform
     if platform.system() == 'Windows':
+        
         pbase = r'/'.join(sys.executable.split(os.sep)[:-1])
+        env2cmakearg = {
+            'FC': ('-DCMAKE_Fortran_COMPILER=',
+                   pbase + r'/Library/bin/flang.exe'),
+            'F2PY': ('-DF2PY_EXECUTABLE=',
+                     pbase + r'/Scripts/f2py.exe'),
+            'NUMPY_INCLUDE': ('-DNumPy_INCLUDE_DIR=',
+                              pbase + r'/Include')
+        }
+            
         metadata['cmake_args'].extend([ 
-	    '-GNMake Makefiles',
-	    '-DF2PY_EXECUTABLE=' + pbase + r'/Scripts/f2py.bat',
-	    '-DCMAKE_Fortran_COMPILER=' + pbase + r'/Library/bin/flang.exe',
+	    '-GNMake Makefiles'])
+
+        for k, v in env2cmakearg.items():
+            print(k, v, os.environ.get(k, ''))
+            envval = os.environ.get(k, None)
+            if envval:
+                # get from environment
+                metadata['cmake_args'].append(
+                    v[0] + envval.replace('\\', '/'))
+            else:
+                # default
+                metadata['cmake_args'].append(v[0] + v[1])
+
+        metadata['cmake_args'].extend([ 
+            '-DCMAKE_Fortran_SIMULATE_VERSION=5.0.0',
 	    '-DCMAKE_Fortran_COMPILER_ID=Flang',
-	    '-DCMAKE_C_COMPILER_ID=MSVC',
-	    '-DCMAKE_C_COMPILER_VERSION=19.0.0', 
-	    '-DNumPy_INCLUDE_DIR=' + pbase + r'/Include',
 	    '-DCMAKE_VERBOSE_MAKEFILE:BOOL=ON' ])
+        print(metadata['cmake_args'])
     try:
         setup(**metadata)
     finally:
