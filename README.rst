@@ -21,18 +21,20 @@ Dependencies
 ------------
 
 Slycot depends on Numpy and, if you are installing a binary distribution,
-Numpy should be the only prerequisite (though you may need the LAPACK
+Numpy should be the only prerequisite (though you may need LAPACK
 libraries as well, depending on your particular system configuration).
 
 If you are installing Slycot from source, you will need a FORTRAN
-compiler, such as gfortran, and BLAS/LAPACK libraries. The build
-system uses skbuild (scikit-buildsystem >= 0.8.1) and cmake.
+compiler, such as gfortran, and BLAS/LAPACK libraries. Openblas is
+also supported. The build system uses skbuild (scikit-buildsystem >=
+0.8.1) and cmake.
 
-On Debian derivatives you should be able to install all the above with a
-single command::
+On Debian derivatives you should be able to install OpenBLAS using::
 
-    sudo apt-get build-dep python-scipy
+    sudo apt-get install libopenblas-dev
 
+Additionally install cmake and install scikit-build with pip or conda.
+    
 On Mac, you will first need to install the `developer tools
 <https://developer.apple.com/xcode/>`_.  You can then install gfortran using
 `homebrew <http://brew.sh>`_ with::
@@ -42,6 +44,8 @@ On Mac, you will first need to install the `developer tools
 On Windows, the BLAS and LAPACK libraries can be obtained from: 
 
 http://icl.cs.utk.edu/lapack-for-windows/libraries/VisualStudio/3.4.1/Dynamic-MINGW/Win32/
+
+Alternatively, use conda to install BLAS and LAPACK or OpenBLAS
 
 
 Installing
@@ -84,10 +88,14 @@ e.g. ``/path/to/slycot_src/``, and execute::
 
 Where # is for commands that needs to be executed as root/administrator. 
 
-If the build fails and you are on a 64bit OS you may want to try::
+If you need to specify a specific compiler, set the environment
+variable FC before running the install::
 
-    python setup.py config_fc --arch="-march=x86-64" build
-    python setup.py install
+    # Linux/OSX:
+    export FC=/path/to/my/fortran
+
+    # Windows:
+    set FC=D:\path\to\my\fortran.exe
 
 You can also use conda to build and install slycot from source::
 
@@ -99,9 +107,15 @@ If you prefer to use the OpenBLAS library, a conda recipe is available in
 
 Additional tips for how to install slycot from source can be found in the
 .travis.yml (commands used for Travis CI) and conda-recipe/ (conda
-pre-requisities).  The hardest part about installing from source is getting
+pre-requisities).
+
+The hardest part about installing from source is getting
 a working version of FORTRAN and LAPACK installed on your system and working
-properly with Python.  If you are using conda, you can also get working
+properly with Python. On Windows, the build system currently uses
+flang, which can be installed from conda-forge. Note that flang is
+incompatible with Python 2.7.
+
+If you are using conda, you can also get working
 (binary) copies of LAPACK from conda-forge using the command::
 
 	conda install -c conda-forge lapack
