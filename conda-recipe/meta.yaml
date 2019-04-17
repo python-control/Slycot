@@ -1,41 +1,51 @@
 package:
   name: slycot
-  version: "0.3.3"
+  version: {{ environ.get('GIT_DESCRIBE_TAG', 'v0.0.0')[1:] }}
+
+source:
+  git_url: ../
 
 build:
-  number: 0
+  number: {{ environ.get('GIT_DESCRIBE_NUMBER', 0) }}
+  string: py{{ environ.get('PY_VER').replace('.', '') }}{{ environ.get('GIT_DESCRIBE_HASH', '') }}_mkl_{{ environ.get('GIT_DESCRIBE_NUMBER', 0) }}
 
 requirements:
-  host:
-    - python {{PY_VER}}
-    - numpy
-    - flang # [win]
-    - {{ compiler('c') }} # [win]
-    - {{ compiler('fortran') }} # [not win]
-    - scikit-build >=0.8.0
-    
+  # note: the osx build is with gcc for now, due to problems with the
+  # conda-supplied clang and library linking see e.g.
+  # https://github.com/conda-forge/mpi-feedstock issue #4
+  # conda-forge might have the configuration in place for clang build and link?
   build:
-    - numpy
-    - libflang  # [win]
-    - libgfortran # [not win]
-    - lapack
+    - python {{PY_VER}}
+    - numpy >=1.16
+    - {{ compiler('c') }}       # [not osx]
+    - gcc                       # [osx]
+    - {{ compiler('fortran') }} # [linux]
+    - scikit-build >=0.8.0      
+    
+  host:
+    - python {{ PY_VER }}
+    - flang                     # [win]
+    - numpy >=1.16
+    - mkl
+    - libgfortran-ng # [not win]
+    - libgcc-ng      # [linux]
+    - libflang       # [win]
+    - scikit-build >=0.8.0
    # on Windows, this relies on having visual studio CE 2015
    # this link needed quite some searching, please do not delete!
    # https://go.microsoft.com/fwlink/?LinkId=532606&clcid=0x409
 
   run:
-    - numpy
-    - lapack
-    - libgfortran # [not win]
-    - libflang # [win]
+    - python {{ PY_VER }}
+    - numpy >=1.16
+    - mkl
+    - libgfortran-ng # [not win]
+    - libgcc-ng      # [linux]
+    - libflang       # [win]
 
 test:
   requires:
-    - numpy
-    - lapack
     - python {{PY_VER}}
-    - libgfortran # [not win]
-    - libflang # [win]
   imports:
     - slycot
 

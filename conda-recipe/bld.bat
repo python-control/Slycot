@@ -2,10 +2,14 @@
 cd %RECIPE_DIR%
 cd ..
 
-set F77=%BUILD_PREFIX%\Library\bin\flang.exe
-set F90=%BUILD_PREFIX%\Library\bin\flang.exe
+:: clean old build attempts
+RD /S /Q _skbuild
 
-"%PYTHON%" setup.py build 
+set BLAS_ROOT=%PREFIX%
+set LAPACK_ROOT=%PREFIX%
+set NUMPY_INCLUDE=%PREFIX%\Include
+set F2PY=%PREFIX%\Scripts\f2py.exe
+
 "%PYTHON%" setup.py install
 
 if errorlevel 1 exit 1
