@@ -16,7 +16,7 @@ requirements:
   # conda-forge might have the configuration in place for clang build and link?
   build:
     - python {{PY_VER}}
-    - numpy >=1.16
+    - numpy
     - {{ compiler('c') }}       # [not osx]
     - gcc                       # [osx]
     - {{ compiler('fortran') }} # [linux]
@@ -25,7 +25,7 @@ requirements:
   host:
     - python {{ PY_VER }}
     - flang                     # [win]
-    - numpy >=1.16
+    - numpy
     - mkl
     - libgfortran-ng # [not win]
     - libgcc-ng      # [linux]
@@ -37,7 +37,7 @@ requirements:
 
   run:
     - python {{ PY_VER }}
-    - numpy >=1.16
+    - {{ pin_compatible('numpy') }}
     - mkl
     - libgfortran-ng # [not win]
     - libgcc-ng      # [linux]

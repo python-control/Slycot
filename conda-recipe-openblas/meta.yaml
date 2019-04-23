@@ -12,7 +12,7 @@ build:
 requirements:
   build:
     - python {{ PY_VER }}
-    - numpy >=1.16
+    - numpy
     - openblas >=0.3.0
     - {{ compiler('c') }}       # [not osx]
     - gcc                       # [osx]
@@ -22,7 +22,7 @@ requirements:
   host:
     - python {{ PY_VER }}
     - flang                     # [win]
-    - numpy >=1.16
+    - numpy
     - openblas >=0.3.0
     - libgfortran-ng # [not-win]
     - libgcc-ng      # [linux]
@@ -33,7 +33,7 @@ requirements:
    
   run:
     - python {{ PY_VER }}
-    - numpy >=1.16
+    - {{ pin_compatible('numpy') }}
     - openblas >=0.3.0
     - libgfortran-ng # [not win]
     - libgcc-ng      # [linux]
