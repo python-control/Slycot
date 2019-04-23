@@ -4,3 +4,10 @@ include CREDITS
 include gpl-2.0.txt
 include README.rst
 include MANIFEST.in
+include CMakeLists.txt
+include slycot/CMakeLists.txt
+include slycot/tests/CMakeLists.txt
+include slycot/*.py
+include slycot/version.py.in
+include slycot/src/*.f
+include slycot/tests/*.py

@@ -1,0 +1,6 @@
+[metadata]
+
+name = slycot
+version = @version@
+gitrevision = @gitrevision@
+release = @release@
