@@ -49,7 +49,11 @@ Operating System :: MacOS
 ISRELEASED = True
 # assume a version set by conda, next update with git,
 # otherwise count on default
-VERSION = 'Unkown'
+VERSION = 'Unknown'
+
+class GitError(RuntimeError):
+    """Exception for git errors occuring in in git_version"""
+    pass
 
 # Return the git version, revision and cycle
 #
@@ -68,11 +72,17 @@ def git_version(srcdir=None):
         env['LANGUAGE'] = 'C'
         env['LANG'] = 'C'
         env['LC_ALL'] = 'C'
-        out = subprocess.Popen(
+        proc = subprocess.Popen(
             cmd,
             cwd=srcdir,
             stdout=subprocess.PIPE,
-            env=env).communicate()[0]
+            stderr=subprocess.PIPE,
+            env=env)
+        out, err = proc.communicate()
+        if proc.returncode:
+            errmsg = err.decode('ascii',errors='ignore').strip()
+            raise GitError("git err; return code %d, error message:\n  '%s'"
+                           % (proc.returncode, errmsg))
         return out
 
     try:
@@ -83,8 +93,12 @@ def git_version(srcdir=None):
         GIT_REVISION = out.strip().decode('ascii')
         out = _minimal_ext_cmd(['git', 'tag'], srcdir)
         GIT_VERSION = out.strip().decode('ascii').split('\n')[-1][1:]
-        out = _minimal_ext_cmd(['git', 'describe', '--tags', '--long'], srcdir)
-        GIT_CYCLE = out.strip().decode('ascii').split('-')[1]
+        out = _minimal_ext_cmd(['git', 'describe', '--tags', '--long','--always'], srcdir)
+        try:
+            # don't get a good description with shallow clones, e.g., on Travis
+            GIT_CYCLE = out.strip().decode('ascii').split('-')[1]
+        except IndexError:
+            pass
     except OSError:
         pass
 
