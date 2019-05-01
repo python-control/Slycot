@@ -12,7 +12,10 @@ DOCLINES = __doc__.split("\n")
 import os
 import sys
 import subprocess
-
+try:
+    import configparser
+except ImportError:
+    import ConfigParser as configparser
 
 if sys.version_info[:2] < (2, 6) or (3, 0) <= sys.version_info[0:2] < (3, 2):
     raise RuntimeError("Python version 2.6, 2.7 or >= 3.2 required.")
@@ -43,12 +46,20 @@ Operating System :: MacOS
 """
 
 # defaults
-ISRELEASED = False
+ISRELEASED = True
 # assume a version set by conda, next update with git,
 # otherwise count on default
-VERSION = '0.3.3'
+VERSION = 'Unknown'
 
-# Return the git revision as a string
+class GitError(RuntimeError):
+    """Exception for git errors occuring in in git_version"""
+    pass
+
+# Return the git version, revision and cycle
+#
+# Uses rev-parse to get the revision
+#      tag to get the version number from the latest tag
+#      and detects (approximate) revision cycles
 def git_version(srcdir=None):
     def _minimal_ext_cmd(cmd, srcdir):
         # construct minimal environment
@@ -61,23 +72,33 @@ def git_version(srcdir=None):
         env['LANGUAGE'] = 'C'
         env['LANG'] = 'C'
         env['LC_ALL'] = 'C'
-        out = subprocess.Popen(
+        proc = subprocess.Popen(
             cmd,
             cwd=srcdir,
             stdout=subprocess.PIPE,
-            env=env).communicate()[0]
+            stderr=subprocess.PIPE,
+            env=env)
+        out, err = proc.communicate()
+        if proc.returncode:
+            errmsg = err.decode('ascii',errors='ignore').strip()
+            raise GitError("git err; return code %d, error message:\n  '%s'"
+                           % (proc.returncode, errmsg))
         return out
 
     try:
         GIT_VERSION = VERSION
         GIT_REVISION = 'Unknown'
-        CIT_CYCLE = 0
+        GIT_CYCLE = 0
         out = _minimal_ext_cmd(['git', 'rev-parse', 'HEAD'], srcdir)
         GIT_REVISION = out.strip().decode('ascii')
         out = _minimal_ext_cmd(['git', 'tag'], srcdir)
         GIT_VERSION = out.strip().decode('ascii').split('\n')[-1][1:]
-        out = _minimal_ext_cmd(['git', 'describe', '--tags'], srcdir)
-        GIT_CYCLE = out.strip().decode('ascii').split('-')[1]
+        out = _minimal_ext_cmd(['git', 'describe', '--tags', '--long','--always'], srcdir)
+        try:
+            # don't get a good description with shallow clones, e.g., on Travis
+            GIT_CYCLE = out.strip().decode('ascii').split('-')[1]
+        except IndexError:
+            pass
     except OSError:
         pass
 
@@ -94,48 +115,59 @@ if os.path.exists('MANIFEST'):
 # a lot more robust than what was previously being used.
 builtins.__SLYCOT_SETUP__ = True
 
+def rewrite_setup_cfg(version, gitrevision, release):
+    toreplace = dict(locals())
+    data = ''.join(open('setup.cfg.in', 'r').readlines()).split('@')
+    for k, v in toreplace.items():
+        idx = data.index(k)
+        data[idx] = v
+    cfg = open('setup.cfg', 'w')
+    cfg.write(''.join(data))
+    cfg.close()
 
 def get_version_info(srcdir=None):
     global ISRELEASED
+    GIT_CYCLE = 0
     
     # Adding the git rev number needs to be done inside write_version_py(),
     # otherwise the import of slycot.version messes up
     # the build under Python 3.
     if os.environ.get('CONDA_BUILD', False):
         FULLVERSION = os.environ.get('PKG_VERSION', '???')
-        GIT_REVISION = ''
-        GIT_CYCLE = 0
+        GIT_REVISION = os.environ.get('GIT_DESCRIBE_HASH', '')
         ISRELEASED = True
+        rewrite_setup_cfg(FULLVERSION, GIT_REVISION, 'yes') 
     elif os.path.exists('.git'):
-        FULLVERSION, GIT_REVISION, GIT_CYCLE = git_version(srcdir)        
-    elif os.path.exists('slycot/version.py'):
-        # must be a source distribution, use existing version file
-        try:
-            from slycot.version import git_revision as GIT_REVISION
-        except ImportError:
-            raise ImportError("Unable to import git_revision. Try removing "
-                              "slycot/version.py and the build directory "
-                              "before building.")
+        FULLVERSION, GIT_REVISION, GIT_CYCLE = git_version(srcdir)
+        ISRELEASED = (GIT_CYCLE == 0)
+        rewrite_setup_cfg(FULLVERSION, GIT_REVISION,
+                          (ISRELEASED and 'yes') or 'no')
+    elif os.path.exists('setup.cfg'):
+        # valid distribution
+        setupcfg = configparser.ConfigParser()
+        setupcfg.read('setup.cfg')
+        FULLVERSION = setupcfg['metadata'].get('version', 'Unknown')
+        GIT_REVISION = setupcfg['metadata'].get('gitrevision', '')
+        return FULLVERSION, GIT_REVISION
     else:
-        FULLVERSION = VERSION
-        GIT_REVISION = "Unknown"
+
+        # try to find a version number from the dir name
+        dname = os.getcwd().split(os.sep)[-1]
+        import re
+
+        m = re.search(r'[0-9.]+', dname)
+        if m:
+            FULLVERSION = m.group()
+            GIT_REVISION = ''
+      
+        else:
+            FULLVERSION = VERSION
+            GIT_REVISION = "Unknown"
 
     if not ISRELEASED:
         FULLVERSION += '.' + str(GIT_CYCLE)
 
     return FULLVERSION, GIT_REVISION
-
-def configuration(parent_package='', top_path=None):
-    from numpy.distutils.misc_util import Configuration
-    config = Configuration(None, parent_package, top_path)
-    config.set_options(ignore_setup_xxx_py=True,
-                       assume_default_configuration=True,
-                       delegate_options_to_subpackages=True,
-                       quiet=True)
-    config.add_subpackage('slycot')
-    config.get_version('slycot/version.py')  # sets config.version
-    return config
-
 
 def check_submodules():
     """ verify that the submodules are checked out and clean
@@ -158,8 +190,7 @@ def check_submodules():
         if line.startswith('-') or line.startswith('+'):
             raise ValueError('Submodule not clean: %s' % line)
 
-from distutils.command.sdist import sdist
-
+from skbuild.command.sdist import sdist
 
 class sdist_checked(sdist):
     """ check submodules on sdist to prevent incomplete tarballs """
@@ -188,7 +219,7 @@ def setup_package():
         long_description="\n".join(DOCLINES[2:]),
         url='https://github.com/python-control/Slycot',
         author='Enrico Avventi et al.',
-        license='GPLv2',
+        license='GPL-2.0',
         classifiers=[_f for _f in CLASSIFIERS.split('\n') if _f],
         platforms=["Windows", "Linux", "Solaris", "Mac OS-X", "Unix"],
         cmdclass={"sdist": sdist_checked},
