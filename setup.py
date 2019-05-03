@@ -216,7 +216,7 @@ def setup_package():
         maintainer="Slycot developers",
         maintainer_email="python-control-discuss@lists.sourceforge.net",
         description=DOCLINES[0],
-        long_description="\n".join(DOCLINES[2:]),
+        long_description=open('README.rst').read(),
         url='https://github.com/python-control/Slycot',
         author='Enrico Avventi et al.',
         license='GPL-2.0',
