@@ -20,6 +20,8 @@ Riccati, Lyapunov, and Sylvester equations.
 Dependencies
 ------------
 
+Supported Python versions are 2.7, and 3.5 and later.
+
 Slycot depends on Numpy and, if you are installing a binary distribution,
 Numpy should be the only prerequisite (though you may need LAPACK
 libraries as well, depending on your particular system configuration).
