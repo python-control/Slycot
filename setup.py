@@ -5,29 +5,33 @@
 Slycot wraps the SLICOT library which is used for control and systems analysis.
 
 """
-from skbuild import setup
-
-DOCLINES = __doc__.split("\n")
 
 import os
 import sys
 import subprocess
+import re
+import platform
 try:
     import configparser
 except ImportError:
     import ConfigParser as configparser
-
-if sys.version_info[:2] < (2, 6) or (3, 0) <= sys.version_info[0:2] < (3, 2):
-    raise RuntimeError("Python version 2.6, 2.7 or >= 3.2 required.")
 
 if sys.version_info[0] >= 3:
     import builtins
 else:
     import __builtin__ as builtins
 
+from skbuild import setup
+from skbuild.command.sdist import sdist
+
 # Fix a bug in python v3.4 installation
-if (sys.version_info[0:2] == (3,4)):
+if (sys.version_info[0:2] == (3, 4)):
     import importlib.machinery
+
+if sys.version_info[:2] < (2, 6) or (3, 0) <= sys.version_info[0:2] < (3, 2):
+    raise RuntimeError("Python version 2.6, 2.7 or >= 3.2 required.")
+
+DOCLINES = __doc__.split("\n")
 
 CLASSIFIERS = """\
 Development Status :: 3 - Alpha
@@ -51,16 +55,19 @@ ISRELEASED = True
 # otherwise count on default
 VERSION = 'Unknown'
 
+
 class GitError(RuntimeError):
     """Exception for git errors occuring in in git_version"""
     pass
 
-# Return the git version, revision and cycle
-#
-# Uses rev-parse to get the revision
-#      tag to get the version number from the latest tag
-#      and detects (approximate) revision cycles
+
 def git_version(srcdir=None):
+    """Return the git version, revision and cycle
+
+    Uses rev-parse to get the revision tag to get the version number from the
+    latest tag and detects (approximate) revision cycles
+
+    """
     def _minimal_ext_cmd(cmd, srcdir):
         # construct minimal environment
         env = {}
@@ -80,7 +87,7 @@ def git_version(srcdir=None):
             env=env)
         out, err = proc.communicate()
         if proc.returncode:
-            errmsg = err.decode('ascii',errors='ignore').strip()
+            errmsg = err.decode('ascii', errors='ignore').strip()
             raise GitError("git err; return code %d, error message:\n  '%s'"
                            % (proc.returncode, errmsg))
         return out
@@ -93,7 +100,8 @@ def git_version(srcdir=None):
         GIT_REVISION = out.strip().decode('ascii')
         out = _minimal_ext_cmd(['git', 'tag'], srcdir)
         GIT_VERSION = out.strip().decode('ascii').split('\n')[-1][1:]
-        out = _minimal_ext_cmd(['git', 'describe', '--tags', '--long','--always'], srcdir)
+        out = _minimal_ext_cmd(['git', 'describe', '--tags',
+                                '--long', '--always'], srcdir)
         try:
             # don't get a good description with shallow clones, e.g., on Travis
             GIT_CYCLE = out.strip().decode('ascii').split('-')[1]
@@ -115,6 +123,7 @@ if os.path.exists('MANIFEST'):
 # a lot more robust than what was previously being used.
 builtins.__SLYCOT_SETUP__ = True
 
+
 def rewrite_setup_cfg(version, gitrevision, release):
     toreplace = dict(locals())
     data = ''.join(open('setup.cfg.in', 'r').readlines()).split('@')
@@ -125,10 +134,11 @@ def rewrite_setup_cfg(version, gitrevision, release):
     cfg.write(''.join(data))
     cfg.close()
 
+
 def get_version_info(srcdir=None):
     global ISRELEASED
     GIT_CYCLE = 0
-    
+
     # Adding the git rev number needs to be done inside write_version_py(),
     # otherwise the import of slycot.version messes up
     # the build under Python 3.
@@ -136,7 +146,7 @@ def get_version_info(srcdir=None):
         FULLVERSION = os.environ.get('PKG_VERSION', '???')
         GIT_REVISION = os.environ.get('GIT_DESCRIBE_HASH', '')
         ISRELEASED = True
-        rewrite_setup_cfg(FULLVERSION, GIT_REVISION, 'yes') 
+        rewrite_setup_cfg(FULLVERSION, GIT_REVISION, 'yes')
     elif os.path.exists('.git'):
         FULLVERSION, GIT_REVISION, GIT_CYCLE = git_version(srcdir)
         ISRELEASED = (GIT_CYCLE == 0)
@@ -153,13 +163,12 @@ def get_version_info(srcdir=None):
 
         # try to find a version number from the dir name
         dname = os.getcwd().split(os.sep)[-1]
-        import re
 
         m = re.search(r'[0-9.]+', dname)
         if m:
             FULLVERSION = m.group()
             GIT_REVISION = ''
-      
+
         else:
             FULLVERSION = VERSION
             GIT_REVISION = "Unknown"
@@ -168,6 +177,7 @@ def get_version_info(srcdir=None):
         FULLVERSION += '.' + str(GIT_CYCLE)
 
     return FULLVERSION, GIT_REVISION
+
 
 def check_submodules():
     """ verify that the submodules are checked out and clean
@@ -190,7 +200,6 @@ def check_submodules():
         if line.startswith('-') or line.startswith('+'):
             raise ValueError('Submodule not clean: %s' % line)
 
-from skbuild.command.sdist import sdist
 
 class sdist_checked(sdist):
     """ check submodules on sdist to prevent incomplete tarballs """
@@ -202,13 +211,11 @@ class sdist_checked(sdist):
 
 def setup_package():
     src_path = os.path.dirname(os.path.abspath(sys.argv[0]))
-    old_path = os.getcwd()
-    #os.chdir(src_path)
     sys.path.insert(0, src_path)
 
     # Rewrite the version file everytime
     VERSION, gitrevision = get_version_info(src_path)
-    
+
     metadata = dict(
         name='slycot',
         cmake_languages=('C', 'Fortran'),
@@ -216,18 +223,17 @@ def setup_package():
         maintainer="Slycot developers",
         maintainer_email="python-control-discuss@lists.sourceforge.net",
         description=DOCLINES[0],
-        long_description="\n".join(DOCLINES[2:]),
+        long_description=open('README.rst').read(),
         url='https://github.com/python-control/Slycot',
         author='Enrico Avventi et al.',
         license='GPL-2.0',
         classifiers=[_f for _f in CLASSIFIERS.split('\n') if _f],
         platforms=["Windows", "Linux", "Solaris", "Mac OS-X", "Unix"],
         cmdclass={"sdist": sdist_checked},
-        cmake_args=[ '-DSLYCOT_VERSION:STRING=' + VERSION,
-                     '-DGIT_REVISION:STRING=' + gitrevision,
-                     '-DISRELEASE:STRING=' + str(ISRELEASED),
-                     '-DFULL_VERSION=' + VERSION + '.git' + gitrevision[:7] ],
-        #cmake_source_dir=src_path,
+        cmake_args=['-DSLYCOT_VERSION:STRING=' + VERSION,
+                    '-DGIT_REVISION:STRING=' + gitrevision,
+                    '-DISRELEASE:STRING=' + str(ISRELEASED),
+                    '-DFULL_VERSION=' + VERSION + '.git' + gitrevision[:7]],
         zip_safe=False,
     )
 
@@ -235,9 +241,8 @@ def setup_package():
     # Flang detection and configuration is not automatic yet; the CMAKE
     # settings below are to circumvent that; when scikit-build and cmake
     # tools have improved, most of this might be removed?
-    import platform
     if platform.system() == 'Windows':
-        
+
         pbase = r'/'.join(sys.executable.split(os.sep)[:-1])
         env2cmakearg = {
             'FC': ('-DCMAKE_Fortran_COMPILER=',
@@ -247,9 +252,8 @@ def setup_package():
             'NUMPY_INCLUDE': ('-DNumPy_INCLUDE_DIR=',
                               pbase + r'/Include')
         }
-            
-        metadata['cmake_args'].extend([ 
-	    '-GNMake Makefiles'])
+
+        metadata['cmake_args'].extend(['-GNMake Makefiles'])
 
         for k, v in env2cmakearg.items():
             print(k, v, os.environ.get(k, ''))
@@ -262,16 +266,15 @@ def setup_package():
                 # default
                 metadata['cmake_args'].append(v[0] + v[1])
 
-        metadata['cmake_args'].extend([ 
+        metadata['cmake_args'].extend([
             '-DCMAKE_Fortran_SIMULATE_VERSION=5.0.0',
-	    '-DCMAKE_Fortran_COMPILER_ID=Flang',
-	    '-DCMAKE_VERBOSE_MAKEFILE:BOOL=ON' ])
+            '-DCMAKE_Fortran_COMPILER_ID=Flang',
+            '-DCMAKE_VERBOSE_MAKEFILE:BOOL=ON'])
         print(metadata['cmake_args'])
     try:
         setup(**metadata)
     finally:
         del sys.path[0]
-        #os.chdir(old_path)
     return
 
 
