@@ -24,12 +24,8 @@ else:
 from skbuild import setup
 from skbuild.command.sdist import sdist
 
-# Fix a bug in python v3.4 installation
-if (sys.version_info[0:2] == (3, 4)):
-    import importlib.machinery
-
-if sys.version_info[:2] < (2, 6) or (3, 0) <= sys.version_info[0:2] < (3, 2):
-    raise RuntimeError("Python version 2.6, 2.7 or >= 3.2 required.")
+if sys.version_info[:2] < (2, 7) or (3, 0) <= sys.version_info[0:2] < (3, 5):
+    raise RuntimeError("Python version 2.7 or >= 3.5 required.")
 
 DOCLINES = __doc__.split("\n")
 
