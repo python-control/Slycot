@@ -150,10 +150,19 @@ def get_version_info(srcdir=None):
                           (ISRELEASED and 'yes') or 'no')
     elif os.path.exists('setup.cfg'):
         # valid distribution
-        setupcfg = configparser.ConfigParser()
+        setupcfg = configparser.ConfigParser(allow_no_value=True)
         setupcfg.read('setup.cfg')
-        FULLVERSION = setupcfg['metadata'].get('version', 'Unknown')
-        GIT_REVISION = setupcfg['metadata'].get('gitrevision', '')
+
+        FULLVERSION = setupcfg.get(section='metadata', option='version')
+
+        if FULLVERSION is None:
+            FULLVERSION = "Unknown"
+
+        GIT_REVISION = setupcfg.get(section='metadata', option='gitrevision')
+
+        if GIT_REVISION is None:
+            GIT_REVISION = ""
+
         return FULLVERSION, GIT_REVISION
     else:
 
