@@ -16,7 +16,6 @@ Slycot
 Python wrapper for selected SLICOT routines, notably including solvers for
 Riccati, Lyapunov, and Sylvester equations.
 
-
 Dependencies
 ------------
 
@@ -36,19 +35,18 @@ On Debian derivatives you should be able to install OpenBLAS using::
     sudo apt-get install libopenblas-dev
 
 Additionally install cmake and install scikit-build with pip or conda.
-    
+
 On Mac, you will first need to install the `developer tools
 <https://developer.apple.com/xcode/>`_.  You can then install gfortran using
 `homebrew <http://brew.sh>`_ with::
 
     brew install gcc
 
-On Windows, the BLAS and LAPACK libraries can be obtained from: 
+On Windows, the BLAS and LAPACK libraries can be obtained from:
 
 http://icl.cs.utk.edu/lapack-for-windows/libraries/VisualStudio/3.4.1/Dynamic-MINGW/Win32/
 
 Alternatively, use conda to install BLAS and LAPACK or OpenBLAS
-
 
 Installing
 -----------
@@ -88,7 +86,7 @@ e.g. ``/path/to/slycot_src/``, and execute::
     cd /path/to/slycot_src/
     python setup.py install
 
-Where # is for commands that needs to be executed as root/administrator. 
+Where # is for commands that needs to be executed as root/administrator.
 
 If you need to specify a specific compiler, set the environment
 variable FC before running the install::
@@ -120,7 +118,7 @@ incompatible with Python 2.7.
 If you are using conda, you can also get working
 (binary) copies of LAPACK from conda-forge using the command::
 
-	conda install -c conda-forge lapack
+   conda install -c conda-forge lapack
 
 Slycot will also work with the OpenBLAS libraries.
 
