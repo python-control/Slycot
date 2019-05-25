@@ -21,8 +21,11 @@ if sys.version_info[0] >= 3:
 else:
     import __builtin__ as builtins
 
-from skbuild import setup
-from skbuild.command.sdist import sdist
+try:
+    from skbuild import setup
+    from skbuild.command.sdist import sdist
+except ImportError:
+    raise ImportError('sckit-build must be installed before running setup.py')
 
 if sys.version_info[:2] < (2, 7) or (3, 0) <= sys.version_info[0:2] < (3, 5):
     raise RuntimeError("Python version 2.7 or >= 3.5 required.")
@@ -30,12 +33,15 @@ if sys.version_info[:2] < (2, 7) or (3, 0) <= sys.version_info[0:2] < (3, 5):
 DOCLINES = __doc__.split("\n")
 
 CLASSIFIERS = """\
-Development Status :: 3 - Alpha
+Development Status :: 4 - Beta
 Intended Audience :: Science/Research
 Intended Audience :: Developers
 License :: OSI Approved
+License :: OSI Approved :: GNU General Public License v2 (GPLv2)
 Programming Language :: C
+Programming Language :: Fortran
 Programming Language :: Python
+Programming Language :: Python :: 2
 Programming Language :: Python :: 3
 Topic :: Software Development
 Topic :: Scientific/Engineering
@@ -240,6 +246,7 @@ def setup_package():
                     '-DISRELEASE:STRING=' + str(ISRELEASED),
                     '-DFULL_VERSION=' + VERSION + '.git' + gitrevision[:7]],
         zip_safe=False,
+        install_requires=['numpy'],
     )
 
     # Windows builds use Flang.
