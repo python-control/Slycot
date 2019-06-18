@@ -39,7 +39,7 @@ endif()
 # base site dir, use python installation for location specific includes
 execute_process(
   COMMAND "${PYTHON_EXECUTABLE}" -c
-  "from distutils.sysconfig import get_python_lib as pl; print(pl())"
+  "import os,numpy; print(os.path.dirname(numpy.__path__[0]))"
   OUTPUT_VARIABLE PYTHON_SITE
   OUTPUT_STRIP_TRAILING_WHITESPACE)
 if(WIN32)
