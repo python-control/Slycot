@@ -229,6 +229,7 @@ def setup_package():
 
     metadata = dict(
         name='slycot',
+        packages=['slycot', 'slycot.tests'],
         cmake_languages=('C', 'Fortran'),
         version=VERSION,
         maintainer="Slycot developers",
