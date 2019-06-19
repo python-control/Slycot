@@ -221,7 +221,7 @@ class sdist_checked(sdist):
 
 
 def setup_package():
-    src_path = os.path.dirname(os.path.abspath(sys.argv[0]))
+    src_path = os.path.dirname(os.path.abspath(__file__))
     sys.path.insert(0, src_path)
 
     # Rewrite the version file everytime
