@@ -46,5 +46,15 @@ if(WIN32)
   string(REPLACE "\\" "/" PYTHON_SITE ${PYTHON_SITE})
 endif()
 
+# base site dir, use python installation for location specific includes
+execute_process(
+  COMMAND "${PYTHON_EXECUTABLE}" -c
+  "from distutils.sysconfig import get_python_lib as pl; print(pl(plat_specific=True))"
+  OUTPUT_VARIABLE PYTHON_SITEARCH
+  OUTPUT_STRIP_TRAILING_WHITESPACE)
+if(WIN32)
+  string(REPLACE "\\" "/" PYTHON_SITEARCH ${PYTHON_SITEARCH})
+endif()
+
 add_subdirectory(slycot)
 

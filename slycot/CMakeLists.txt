@@ -128,7 +128,7 @@ add_custom_command(
 add_library(
   ${SLYCOT_MODULE} SHARED
   SLYCOTmodule.c _wrappermodule.c _wrapper-f2pywrappers.f
-  "${PYTHON_SITE}/numpy/f2py/src/fortranobject.c"
+  "${PYTHON_SITEARCH}/numpy/f2py/src/fortranobject.c"
   ${FSOURCES})
 
 set(CMAKE_SHARED_LIBRARY_PREFIX "")
@@ -161,8 +161,8 @@ endif()
 
 target_include_directories(
   ${SLYCOT_MODULE} PUBLIC
-  ${PYTHON_SITE}/numpy/core/include
-  ${PYTHON_SITE}/numpy/f2py/src
+  ${PYTHON_SITEARCH}/numpy/core/include
+  ${PYTHON_SITEARCH}/numpy/f2py/src
   ${PYTHON_INCLUDE_DIRS}
   )
 
