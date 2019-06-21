@@ -13,3 +13,4 @@ include slycot/*.py
 include slycot/version.py.in
 include slycot/src/*.f
 include slycot/tests/*.py
+include runtests.py
