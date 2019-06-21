@@ -6,6 +6,7 @@ include README.rst
 include MANIFEST.in
 include setup.cfg.in
 include CMakeLists.txt
+include pyproject.toml
 include slycot/CMakeLists.txt
 include slycot/tests/CMakeLists.txt
 include slycot/*.py
