@@ -14,6 +14,7 @@ requirements:
   # conda-supplied clang and library linking see e.g.
   # https://github.com/conda-forge/mpi-feedstock issue #4
   # conda-forge might have the configuration in place for clang build and link?
+  # TODO: pip possibly required in only *one* of build and host, but which?
   build:
     - python {{PY_VER}}
     - numpy
@@ -24,6 +25,7 @@ requirements:
     
   host:
     - python {{ PY_VER }}
+    - pip
     - flang                     # [win]
     - numpy
     - mkl
