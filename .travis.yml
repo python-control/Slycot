@@ -1,59 +1,114 @@
-# Travis configuration file for slycot
-dist: xenial
+# The test matrix includes OSX and Linux
 
-services:
-  - xvfb
+# Don't know how to do non-Conda builds on OSX
+
+# Linux builds needs extra settings (see "dist" and "services" below)
 
 matrix:
-  include:
-    - name: "Python 2.7, TEST_CONDA=0"
-      env: SLYCOT_PYTHON_VERSION=2.7 TEST_CONDA=0
-    - name: "Python 2.7, TEST_CONDA=1"
+  allow_failures:
+    - name: "OSX, Python 2.7, TEST_CONDA=1"
+      os: osx
       env: SLYCOT_PYTHON_VERSION=2.7 TEST_CONDA=1
 
-    - name: "Python 3.5, TEST_CONDA=0"
-      env: SLYCOT_PYTHON_VERSION=3.5 TEST_CONDA=0
-    - name: "Python 3.5, TEST_CONDA=1"
+  include:
+    - name: "OSX, Python 2.7, TEST_CONDA=1"
+      os: osx
+      env: SLYCOT_PYTHON_VERSION=2.7 TEST_CONDA=1
+
+    - name: "OSX, Python 3.5, TEST_CONDA=1"
+      os: osx
       env: SLYCOT_PYTHON_VERSION=3.5 TEST_CONDA=1
 
-    - name: "Python 3.6, TEST_CONDA=0"
-      env: SLYCOT_PYTHON_VERSION=3.6 TEST_CONDA=0
-    - name: "Python 3.6, TEST_CONDA=1"
+    - name: "OSX, Python 3.6, TEST_CONDA=1"
+      os: osx
       env: SLYCOT_PYTHON_VERSION=3.6 TEST_CONDA=1
 
-    - name: "Python 3.7, TEST_CONDA=0"
-      env: SLYCOT_PYTHON_VERSION=3.7 TEST_CONDA=0
-    - name: "Python 3.7, TEST_CONDA=1"
+    - name: "OSX, Python 3.7, TEST_CONDA=1"
+      os: osx
       env: SLYCOT_PYTHON_VERSION=3.7 TEST_CONDA=1
 
+    - name: "Ubuntu 16.04, Python 2.7, TEST_CONDA=0"
+      os: linux
+      dist: xenial
+      services: xvfb
+      env: SLYCOT_PYTHON_VERSION=2.7 TEST_CONDA=0
+
+    - name: "Ubuntu 16.04, Python 2.7, TEST_CONDA=1"
+      os: linux
+      dist: xenial
+      services: xvfb
+      env: SLYCOT_PYTHON_VERSION=2.7 TEST_CONDA=1
+
+    - name: "Ubuntu 16.04, Python 3.5, TEST_CONDA=0"
+      os: linux
+      dist: xenial
+      services: xvfb
+      env: SLYCOT_PYTHON_VERSION=3.5 TEST_CONDA=0
+
+    - name: "Ubuntu 16.04, Python 3.5, TEST_CONDA=1"
+      os: linux
+      dist: xenial
+      services: xvfb
+      env: SLYCOT_PYTHON_VERSION=3.5 TEST_CONDA=1
+
+    - name: "Ubuntu 16.04, Python 3.6, TEST_CONDA=0"
+      os: linux
+      dist: xenial
+      services: xvfb
+      env: SLYCOT_PYTHON_VERSION=3.6 TEST_CONDA=0
+
+    - name: "Ubuntu 16.04, Python 3.6, TEST_CONDA=1"
+      os: linux
+      dist: xenial
+      services: xvfb
+      env: SLYCOT_PYTHON_VERSION=3.6 TEST_CONDA=1
+
+    - name: "Ubuntu 16.04, Python 3.7, TEST_CONDA=0"
+      os: linux
+      dist: xenial
+      services: xvfb
+      env: SLYCOT_PYTHON_VERSION=3.7 TEST_CONDA=0
+
+    - name: "Ubuntu 16.04, Python 3.7, TEST_CONDA=1"
+      os: linux
+      dist: xenial
+      services: xvfb
+      env: SLYCOT_PYTHON_VERSION=3.7 TEST_CONDA=1
+
+
 before_install:
-  #
-  # Install fortran compiler, if not using Conda's
-  # If not using conda, then install liblapack here (conda version
-  # will handle this through the build recipe)
-  #
+  - if [[ $TEST_CONDA == 0 && $TRAVIS_OS_NAME != linux ]]; then
+      echo "Only Linux supported for non-Conda builds";
+      exit 1;
+    fi
+    # from here on assume $TEST_CONDA == 0 implies $TRAVIS_OS_NAME == linux
+
   - if [[ $TEST_CONDA == 0 ]]; then
       sudo apt-get install liblapack-dev libblas-dev;
       sudo apt-get install gfortran;
       sudo apt-get install cmake;
     fi
 
+
 install:
   #
   # Install miniconda to allow quicker installation of dependencies
   # See https://conda.io/docs/user-guide/tasks/use-conda-with-travis-ci.html
   #
-  - if [[ "$SLYCOT_PYTHON_VERSION" == "2.7" ]]; then
-      wget http://repo.continuum.io/miniconda/Miniconda2-latest-Linux-x86_64.sh -O miniconda.sh;
-    else
+  - if [[ $TRAVIS_OS_NAME == linux ]]; then
       wget http://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
+    else
+      wget https://repo.anaconda.com/miniconda/Miniconda3-latest-MacOSX-x86_64.sh -O miniconda.sh;
     fi
   - bash miniconda.sh -b -p $HOME/miniconda
   - export PATH="$HOME/miniconda/bin:$PATH"
   - hash -r
   - conda config --set always_yes yes --set changeps1 no
   - conda update -q --all
-  - if [[ $TEST_CONDA == 1 ]]; then conda install conda-build; fi
+  - if [[ $TEST_CONDA == 1 ]]; then
+      conda install conda-build;
+      conda install conda-verify;
+    fi
   - conda info -a
   #
   # Set up a test environment for testing everything out
@@ -90,6 +145,7 @@ install:
   # coveralls not in conda repos :-(
   - pip install coveralls
 
+
 script:
   # Local unit tests
   # TODO: replace with nose?
@@ -101,8 +157,10 @@ script:
   # Additional packages required for python-control
   - conda install scipy matplotlib
   # Get python-control from source and install
-  - git clone https://github.com/python-control/python-control.git control
-  - cd control; python setup.py test
+  - git clone --depth 1 https://github.com/python-control/python-control.git control
+  - cd control
+  - python setup.py test
+
 
 after_success:
   - coveralls
