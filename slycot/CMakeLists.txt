@@ -103,6 +103,9 @@ set(FSOURCES
   src/NF01BV.f src/SB10JD.f src/UE01MD.f)
 
 set(F2PYSOURCE src/_wrapper.pyf)
+set(F2PYSOURCE_DEPS
+  src/analysis.pyf src/math.pyf src/mathematical.pyf
+  src/transform.pyf src/synthesis.pyf)
 
 configure_file(version.py.in version.py @ONLY)
 
@@ -123,7 +126,8 @@ add_custom_command(
   OUTPUT SLYCOTmodule.c _wrappermodule.c _wrapper-f2pywrappers.f
   COMMAND ${F2PY_EXECUTABLE} -m SLYCOT
   ${CMAKE_CURRENT_SOURCE_DIR}/${F2PYSOURCE}
-  )
+  DEPENDS ${F2PYSOURCE_DEPS} ${F2PYSOURCE}
+)
 
 add_library(
   ${SLYCOT_MODULE} SHARED
