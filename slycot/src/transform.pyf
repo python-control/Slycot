@@ -528,3 +528,40 @@ subroutine tg01fd_uu(compq,compz,joba,l,n,m,p,a,lda,e,lde,b,ldb,c,ldc,q,ldq,z,ld
 integer required intent(in) :: ldwork
     integer intent(out) :: info
 end subroutine tg01fd_uu
+subroutine mb03rd_n(jobx,sort,n,pmax,a,lda,x,ldx,nblcks,blsize,wr,wi,tol,dwork,info) ! in MB03RD.f
+  fortranname mb03rd
+  character intent(hide) :: jobx = 'N'
+  character intent(in),required :: sort
+  integer intent(in),required,check(n>0) :: n
+  double precision intent(in),required,check(pmax>=1.0) :: pmax
+  double precision intent(in,out,copy),dimension(n,n),depend(n) :: a
+  integer intent(hide),depend(a) :: lda=MAX(shape(a,0),1)
+  double precision intent(cache,hide) :: x
+  integer intent(in,hide) :: ldx=1
+  integer intent(out) :: nblcks
+  integer intent(out),dimension(n),depend(n) :: blsize
+  double precision intent(out),dimension(n),depend(n) :: wr
+  double precision intent(out),dimension(n),depend(n) :: wi
+  double precision intent(in) :: tol
+  double precision intent(cache,hide),dimension(n),depend(n) :: dwork
+  integer intent(out) :: info
+end subroutine mb03rd_n
+subroutine mb03rd_u(jobx,sort,n,pmax,a,lda,x,ldx,nblcks,blsize,wr,wi,tol,dwork,info) ! in MB03RD.f
+  fortranname mb03rd
+  character intent(hide) :: jobx = 'U'
+  character intent(in),required :: sort
+  integer intent(in),required,check(n>0) :: n
+  double precision intent(in),required,check(pmax>=1.0) :: pmax
+  double precision intent(in,out,copy),dimension(n,n),depend(n) :: a
+  integer intent(hide),depend(a) :: lda=MAX(shape(a,0),1)
+  double precision intent(in,out,copy),dimension(n,n),depend(n) :: x
+  integer intent(hide),depend(x) :: ldx=MAX(shape(x,0),1)
+  integer intent(out) :: nblcks
+  integer intent(out),dimension(n),depend(n) :: blsize
+  double precision intent(out),dimension(n),depend(n) :: wr
+  double precision intent(out),dimension(n),depend(n) :: wi
+  double precision intent(in) :: tol
+  double precision intent(cache,hide),dimension(n),depend(n) :: dwork
+  integer intent(out) :: info
+end subroutine mb03rd_u
+
