@@ -1350,4 +1350,110 @@ def tg01fd(l,n,m,p,A,E,B,C,Q=None,Z=None,compq='N',compz='N',joba='N',tol=0.0,ld
     
     return A,E,B,C,ranke,rnka22,Q,Z
 
+def mb03rd(n,A,X=None,jobx='U',sort='N',pmax=1.0,tol=0.0):
+    """ A,X,blcks,EIG = mb03rd(n,A,[X,job,sort,pmax,tol]) -- if jobx='U'
+        A,blcks,EIG = mb03rd(n,A,[X,job,sort,pmax,tol])   -- if jobx='N'
+
+    To reduce a matrix A in real Schur form to a block-diagonal form
+    using well-conditioned non-orthogonal similarity transformations.
+    The condition numbers of the transformations used for reduction
+    are roughly bounded by pmax*pmax, where pmax is a given value.
+    The transformations are optionally postmultiplied in a given
+    matrix X. The real Schur form is optionally ordered, so that
+    clustered eigenvalues are grouped in the same block.
+
+    Required arguments:
+        n : input int
+            The order of the matrices A and X.  n >= 0.
+        A : input rank-2 array('d') with bounds (n,n)
+            the matrix A to be block-diagonalized, in real Schur form.
+    Optional arguments:
+        X : input rank-2 array('d') with bounds (n,n)
+            a given matrix X, for accumulation of transformations (only if
+            jobx='U'
+        jobx : input char*1
+            Specifies whether or not the transformations are
+            accumulated, as follows:
+            = 'N':  The transformations are not accumulated;
+            = 'U':  The transformations are accumulated in X (the
+                    given matrix X is updated).
+        sort : input char*1
+            Specifies whether or not the diagonal blocks of the real
+            Schur form are reordered, as follows:
+            = 'N':  The diagonal blocks are not reordered;
+            = 'S':  The diagonal blocks are reordered before each
+                    step of reduction, so that clustered eigenvalues
+                    appear in the same block;
+            = 'C':  The diagonal blocks are not reordered, but the
+                    "closest-neighbour" strategy is used instead of
+                    the standard "closest to the mean" strategy
+                    (see METHOD);
+            = 'B':  The diagonal blocks are reordered before each
+                    step of reduction, and the "closest-neighbour"
+                    strategy is used (see METHOD).
+        pmax : input float
+            An upper bound for the infinity norm of elementary
+            submatrices of the individual transformations used for
+            reduction (see METHOD).  PMAX >= 1.0D0.
+        tol : input float
+            The tolerance to be used in the ordering of the diagonal
+            blocks of the real Schur form matrix.
+            If the user sets TOL > 0, then the given value of TOL is
+            used as an absolute tolerance: a block i and a temporarily
+            fixed block 1 (the first block of the current trailing
+            submatrix to be reduced) are considered to belong to the
+            same cluster if their eigenvalues satisfy
+
+              | lambda_1 - lambda_i | <= TOL.
+
+            If the user sets TOL < 0, then the given value of TOL is
+            used as a relative tolerance: a block i and a temporarily
+            fixed block 1 are considered to belong to the same cluster
+            if their eigenvalues satisfy, for j = 1, ..., N,
+
+              | lambda_1 - lambda_i | <= | TOL | * max | lambda_j |.
+
+            If the user sets TOL = 0, then an implicitly computed,
+            default tolerance, defined by TOL = SQRT( SQRT( EPS ) )
+            is used instead, as a relative tolerance, where EPS is
+            the machine precision (see LAPACK Library routine DLAMCH).
+            If SORT = 'N' or 'C', this parameter is not referenced.
+    Return objects:
+        Ar : output rank-2 array('d') with bounds (n,n)
+            Contains the computed block-diagonal matrix, in real Schur
+            canonical form. The non-diagonal blocks are set to zero.
+        Xr : output rank-2 array('d') with bounds (n,n)
+            Contains the product of the given matrix X and the
+            transformation matrix that reduced A to block-diagonal
+            form. The transformation matrix is itself a product of
+            non-orthogonal similarity transformations having elements
+            with magnitude less than or equal to PMAX.
+            If JOBX = 'N', this array is not referenced, and not returned
+        blksize : output rank-1 array('i') with bounds (n)
+            The orders of the resulting diagonal blocks of the matrix Ar.
+        W : output rank-1 array('c') size (n)
+            This arrays contain the eigenvalues of the matrix A.
+"""
+    hidden = ' (hidden by the wrapper)'
+    arg_list = ('jobx', 'sort', 'n', 'pmax', 'A', 'LDA'+hidden,
+                'X', 'LDX'+hidden, 'nblks'+hidden, 'blsize'+hidden,
+                'WR'+hidden, 'WI'+hidden, 'tol',
+                'DWORK'+hidden, 'INFO'+hidden)
+    if jobx == 'N':
+        out = _wrapper.mb03rd_n(sort, n, pmax, A, tol)
+    else:
+        if X is None:
+            X = _np.eye(n)
+        out = _wrapper.mb03rd_u(sort, n, pmax, A, X, tol)
+
+    if out[-1] < 0:
+        error_text = "The following argument had an illegal value: "+arg_list[-out[-1]-1]
+        e = ValueError(error_text)
+        e.info = out[-1]
+        raise e
+    if jobx == 'N':
+        return out[0], out[2][:out[1]], out[-3] + out[-2]*1j
+    else:
+        return out[0], out[1], out[3][:out[2]], out[-3] + out[-2]*1j
+
 # to be replaced by python wrappers
