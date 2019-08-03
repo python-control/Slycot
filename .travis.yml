@@ -150,12 +150,12 @@ script:
   # Local unit tests
   # TODO: replace with nose?
   - cd ..
+  # Additional packages required for testing
+  - conda install scipy matplotlib
   - python Slycot/runtests.py --coverage --no-build
   #
   # As a deeper set of tests, get test against python-control as well
   #
-  # Additional packages required for python-control
-  - conda install scipy matplotlib
   # Get python-control from source and install
   - git clone --depth 1 https://github.com/python-control/python-control.git control
   - cd control
