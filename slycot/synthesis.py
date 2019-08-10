@@ -690,20 +690,20 @@ def sb02od(n,m,A,B,Q,R,dico,p=None,L=None,fact='N',uplo='U',sort='S',tol=0.0,ldw
         out = _wrapper.sb02od_n(dico,n,m,A,B,Q,R,L,uplo=uplo,jobl=jobl,sort=sort,tol=tol,ldwork=ldwork)
     if fact == 'C':
         if p is None:
-            p = shape(Q)[0]
+            p = _np.shape(Q)[0]
         out = _wrapper.sb02od_c(dico,n,m,p,A,B,Q,R,L,uplo=uplo,jobl=jobl,sort=sort,tol=tol,ldwork=ldwork)
     if fact == 'D':
         if p is None:
-            p = shape(R)[0]
+            p = _np.shape(R)[0]
         out = _wrapper.sb02od_d(dico,n,m,p,A,B,Q,R,L,uplo=uplo,jobl=jobl,sort=sort,tol=tol,ldwork=ldwork)
     if fact == 'B':
         if p is None:
-            p = shape(Q)[0]
+            p = _np.shape(Q)[0]
         out = _wrapper.sb02od_b(dico,n,m,p,A,B,Q,R,L,uplo=uplo,jobl=jobl,sort=sort,tol=tol,ldwork=ldwork)
     if out[-1] < 0:
         error_text = "The following argument had an illegal value: "+arg_list[-out[-1]-1]
         e = ValueError(error_text)
-        e.info = info
+        e.info = out[-1]
         raise e
     if out[-1] == 1:
         e = ValueError('the computed extended matrix pencil is singular, possibly due to rounding errors')

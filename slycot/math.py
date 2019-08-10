@@ -19,6 +19,7 @@
 #       MA 02110-1301, USA.
 
 from . import _wrapper
+import warnings
 
 def mc01td(dico,dp,p):
     """ dp,stable,nz = mc01td(dico,dp,p)
@@ -62,11 +63,11 @@ def mc01td(dico,dp,p):
         e.info = out[-1]
         raise e
     if out[-1] == 1:
-        warings.warn('entry P(x) is the zero polynomial.')
+        warnings.warn('entry P(x) is the zero polynomial.')
     if out[-1] == 2:
-        warings.warn('P(x) may have zeros very close to stability boundary.')
+        warnings.warn('P(x) may have zeros very close to stability boundary.')
     if out[-2] > 0:
-        warnings.warn('The degree of P(x) has been reduced to %i' %(dp-k))
+        warnings.warn('The degree of P(x) has been reduced to %i' %(dp-out[-2]))
     return out[:-2]
 
 
@@ -138,6 +139,7 @@ def mb05md(a, delta, balanc='N'):
                  'y','ldy'+hidden,'valr','vali',
                  'iwork'+hidden,'dwork'+hidden,'ldwork'+hidden,'info'+hidden]
     out = _wrapper.mb05md(balanc=balanc,n=min(a.shape),delta=delta,a=a)
+    n = out[-4]
     if out[-1] == 0:
         return out[:-1]
     elif out[-1] < 0:
@@ -187,6 +189,7 @@ def mb05nd(a, delta, tol=1e-7):
                  'exint', 'ldexin'+hidden, 'tol', 'iwork'+hidden,
                  'dwork'+hidden, 'ldwork'+hidden]
     out = _wrapper.mb05nd(n=min(a.shape), delta=delta, a=a, tol=tol)
+    n = out[-4]
     if out[-1] == 0:
         return out[:-1]
     elif out[-1] < 0:
