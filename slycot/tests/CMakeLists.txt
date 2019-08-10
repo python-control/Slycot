@@ -15,5 +15,5 @@ set(PYSOURCE
 install(FILES ${PYSOURCE}
         PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE
                     GROUP_READ GROUP_EXECUTE
-                    OTHER_READ OTHER_EXECUTE
+                    WORLD_READ WORLD_EXECUTE
         DESTINATION slycot/tests)

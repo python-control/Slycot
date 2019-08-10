@@ -1,6 +1,5 @@
 import unittest
 from slycot import synthesis
-from slycot import math
 from slycot import transform
 
 class Test(unittest.TestCase):
@@ -10,11 +9,6 @@ class Test(unittest.TestCase):
 
     def test_1(self):
         synthesis.sb02mt(1,1,1,1)
-
-    def test_2(self):
-        from numpy import array
-        a = array([[-2, 0.5], [-1.6, -5]])
-        Ar, Vr, Yr, VALRr, VALDr = math.mb05md(a, 0.1)
 
     def test_sb02ad(self):
         "Test sb10ad, Hinf synthesis"
@@ -62,10 +56,6 @@ class Test(unittest.TestCase):
                 den = np.reshape(np.arange(1,1+nin),(nin,1))
             index = np.tile([0],den.shape[0])
             nr,a,b,c,d = transform.td04ad(rc,nin,nout,index,den,num)
-
-
-def suite():
-   return unittest.TestLoader().loadTestsFromTestCase(TestConvert)
 
 
 if __name__ == "__main__":
