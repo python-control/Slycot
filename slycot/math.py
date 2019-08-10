@@ -90,7 +90,7 @@ def mb05md(a, delta, balanc='N'):
             Square matrix
         delta : input 'd'
             The scalar value delta of the problem.
-     
+
     Optional arguments:
         balanc : input char*1
             Indicates how the input matrix should be diagonally scaled
@@ -116,7 +116,7 @@ def mb05md(a, delta, balanc='N'):
             (k+1)-th columns of the eigenvector matrix, respectively,
             then the eigenvector corresponding to the complex
             eigenvalue with positive (negative) imaginary value is
-            given by 
+            given by
               p + q*j (p - q*j), where j^2  = -1.
         Yr : output rank-2 array('d') with bounds (n,n)
             contains an intermediate result for computing the matrix
@@ -135,17 +135,21 @@ def mb05md(a, delta, balanc='N'):
             imaginary part first.
     """
     hidden = ' (hidden by the wrapper)'
-    arg_list = [ 'balanc', 'n', 'delta', 'a', 'lda'+hidden, 'v', 'ldv'+hidden,
-                 'y','ldy'+hidden,'valr','vali',
-                 'iwork'+hidden,'dwork'+hidden,'ldwork'+hidden,'info'+hidden]
-    n=min(a.shape)
-    (Ar,Vr,Yr,VALr,VALi,INFO) = _wrapper.mb05md(balanc=balanc,n=n,delta=delta,a=a)    
+    arg_list = ['balanc', 'n', 'delta', 'a', 'lda'+hidden, 'v', 'ldv'+hidden,
+                'y', 'ldy'+hidden, 'valr', 'vali',
+                'iwork'+hidden, 'dwork'+hidden, 'ldwork'+hidden,
+                'info'+hidden]
+    n = min(a.shape)
+    (Ar, Vr, Yr, VALr, VALi, INFO) = _wrapper.mb05md(balanc=balanc,
+                                                     n=n,
+                                                     delta=delta,
+                                                     a=a)
     if INFO == 0:
-        if not all(VALi==0):
-            VAL=VALr+1J*VALi
+        if not all(VALi == 0):
+            VAL = VALr + 1J*VALi
         else:
-            VAL=VALr
-        return (Ar,Vr,Yr,VAL)
+            VAL = VALr
+        return (Ar, Vr, Yr, VAL)
     elif INFO < 0:
         error_text = "The following argument had an illegal value: "+arg_list[-INFO-1]
     elif INFO > 0 and INFO <= n:
