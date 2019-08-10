@@ -3,7 +3,7 @@
 
 subroutine mc01td(dico,dp,p,stable,nz,dwork,iwarn,info) ! in :new:MC01TD.f
 	character :: dico
-	integer intent(in,out),check(dp>0) :: dp
+	integer intent(in,out),check(dp>=0) :: dp
 	double precision intent(in),check(shape(p,0)==dp+1),dimension(dp+1),depend(dp) :: p
 	logical intent(out) :: stable
 	integer intent(out) :: nz
