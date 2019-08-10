@@ -151,7 +151,8 @@ def mb05md(a, delta, balanc='N'):
             VAL = VALr
         return (Ar, Vr, Yr, VAL)
     elif INFO < 0:
-        error_text = "The following argument had an illegal value: "+arg_list[-INFO-1]
+        error_text = "The following argument had an illegal value: " \
+                     + arg_list[-INFO-1]
     elif INFO > 0 and INFO <= n:
         error_text = "Incomplete eigenvalue calculation, missing %i eigenvalues" % INFO
     elif INFO == n+1:
@@ -193,22 +194,21 @@ def mb05nd(a, delta, tol=1e-7):
         H : Int[F(s) ds] from s = 0 to s = delta,
     """
     hidden = ' (hidden by the wrapper)'
-    arg_list = [ 'n', 'delta', 'a', 'lda'+hidden, 'ex', 'ldex'+hidden,
-                 'exint', 'ldexin'+hidden, 'tol', 'iwork'+hidden,
-                 'dwork'+hidden, 'ldwork'+hidden]
-    out = _wrapper.mb05nd(n=min(a.shape), delta=delta, a=a, tol=tol)
-    n = out[-4]
+    arg_list = ['n', 'delta', 'a', 'lda'+hidden, 'ex', 'ldex'+hidden,
+                'exint', 'ldexin'+hidden, 'tol', 'iwork'+hidden,
+                'dwork'+hidden, 'ldwork'+hidden]
+    n = min(a.shape)
+    out = _wrapper.mb05nd(n=n, delta=delta, a=a, tol=tol)
     if out[-1] == 0:
         return out[:-1]
     elif out[-1] < 0:
         error_text = "The following argument had an illegal value: " \
-                     +arg_list[-out[-1]-1]
+                     + arg_list[-out[-1]-1]
     elif out[-1] == n+1:
         error_text = "Delta too large"
     e = ValueError(error_text)
     e.info = out[-1]
     raise e
-    
 
 
 # to be replaced by python wrappers
