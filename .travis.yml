@@ -10,6 +10,18 @@ matrix:
       os: osx
       env: SLYCOT_PYTHON_VERSION=2.7 TEST_CONDA=1
 
+    - name: "OSX, Python 3.5, TEST_CONDA=1"
+      os: osx
+      env: SLYCOT_PYTHON_VERSION=3.5 TEST_CONDA=1
+
+    - name: "OSX, Python 3.6, TEST_CONDA=1"
+      os: osx
+      env: SLYCOT_PYTHON_VERSION=3.6 TEST_CONDA=1
+
+    - name: "OSX, Python 3.7, TEST_CONDA=1"
+      os: osx
+      env: SLYCOT_PYTHON_VERSION=3.7 TEST_CONDA=1
+
   include:
     - name: "OSX, Python 2.7, TEST_CONDA=1"
       os: osx
