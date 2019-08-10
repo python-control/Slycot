@@ -128,7 +128,7 @@ def mb05md(a, delta, balanc='N'):
             the (right) eigenvector matrix of A, where Lambda is the
             diagonal matrix of eigenvalues.
 
-        VALr : output rank-1 array('c') with bounds (n)
+        VAL : output rank-1 array('c') with bounds (n)
             Contains the eigenvalues of the matrix A. The eigenvalues
             are unordered except that complex conjugate pairs of values
             appear consecutively with the eigenvalue having positive
@@ -138,20 +138,21 @@ def mb05md(a, delta, balanc='N'):
     arg_list = [ 'balanc', 'n', 'delta', 'a', 'lda'+hidden, 'v', 'ldv'+hidden,
                  'y','ldy'+hidden,'valr','vali',
                  'iwork'+hidden,'dwork'+hidden,'ldwork'+hidden,'info'+hidden]
-    out = _wrapper.mb05md(balanc=balanc,n=min(a.shape),delta=delta,a=a)
-    n = out[-4]
-    if out[-1] == 0:
-        return out[:-1]
-    elif out[-1] < 0:
-        error_text = "The following argument had an illegal value: "+arg_list[-out[-1]-1]
-    elif out[-1] > 0 and out[-1] <= n:
-        error_text = "Incomplete eigenvalue calculation, missing %i eigenvalues" % out[-1]
-    elif out[-1] == n+1:
+    n=min(a.shape)
+    (Ar,Vr,Yr,VALr,VALi,INFO) = _wrapper.mb05md(balanc=balanc,n=n,delta=delta,a=a)    
+    if INFO == 0:
+        VAL=VALr+1J*VALi
+        return (Ar,Vr,Yr,VAL)
+    elif INFO < 0:
+        error_text = "The following argument had an illegal value: "+arg_list[-INFO-1]
+    elif INFO > 0 and INFO <= n:
+        error_text = "Incomplete eigenvalue calculation, missing %i eigenvalues" % INFO
+    elif INFO == n+1:
         error_text = "Eigenvector matrix singular"
-    elif out[-1] == n+2:
+    elif INFO == n+2:
         error_text = "A matrix defective"
     e = ValueError(error_text)
-    e.info = out[-1]
+    e.info = INFO
     raise e
 
 """
