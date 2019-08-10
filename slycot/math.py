@@ -141,7 +141,10 @@ def mb05md(a, delta, balanc='N'):
     n=min(a.shape)
     (Ar,Vr,Yr,VALr,VALi,INFO) = _wrapper.mb05md(balanc=balanc,n=n,delta=delta,a=a)    
     if INFO == 0:
-        VAL=VALr+1J*VALi
+        if not all(VALi==0):
+            VAL=VALr+1J*VALi
+        else:
+            VAL=VALr
         return (Ar,Vr,Yr,VAL)
     elif INFO < 0:
         error_text = "The following argument had an illegal value: "+arg_list[-INFO-1]
