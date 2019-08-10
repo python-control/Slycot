@@ -72,7 +72,7 @@ def mc01td(dico,dp,p):
 
 
 def mb05md(a, delta, balanc='N'):
-    """Ar, Vr, Yr, VALRr, VALDr = mb05md(a, delta, balanc='N')
+    """Ar, Vr, Yr, VAL = mb05md(a, delta, balanc='N')
 
     Matrix exponential for a real non-defective matrix
 
