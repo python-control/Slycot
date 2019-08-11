@@ -44,7 +44,7 @@ class test_mb(unittest.TestCase):
             erow = np.ones(VAL.shape)*e
             i_ref = np.isclose(erow, VAL_ref)
             self.assertTrue(any(i_ref),
-                            msg="eigenvalue {} not expetced".format(e))
+                            msg="eigenvalue {} not expected".format(e))
             # Eigenvectors can have different scaling.
             vr_ref = Vr_ref[:, i_ref]*Vr[0, i]/Vr_ref[0, i_ref][0]
             assert_allclose(Vr[:, (i,)], vr_ref, atol=0.0001)
