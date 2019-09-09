@@ -1,0 +1,31 @@
+name: CI osx
+
+on : [push]
+
+jobs:
+  build:
+    name: Python ${{ matrix.python }} with TEST_CONDA=1
+    runs-on: macOS-10.14
+    strategy:
+      matrix:
+        python: [2.7, 3.5, 3.6, 3.7]
+    steps:
+    - uses: actions/checkout@v1
+    - name: before install
+      env:
+        TEST_CONDA: 1
+      run: 
+        source ./.github/workflows/before_install.sh
+    - name: install
+      env:
+        SLYCOT_PYTHON_VERSION: ${{ matrix.os }}
+        TEST_CONDA: 1
+      run: 
+        source ./.github/workflows/install.sh
+    - name: run tests
+      run: 
+        source ./.github/workflows/run_tests.sh
+    - name: coverall
+      run: 
+        pip install coveralls
+        coveralls
