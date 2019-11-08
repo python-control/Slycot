@@ -9,12 +9,11 @@ import unittest
 from slycot import transform
 import numpy as np
 
-from numpy.testing import assert_raises, assert_almost_equal
 
 class TestTf2SS(unittest.TestCase):
 
-    def test_td04ad_case1(self):
-        """td04ad: Convert with both 'C' and 'R' options"""
+    def test_td04ad_c(self):
+        """td04ad: Convert with 'C' option"""
         
         # for octave:
         """
@@ -26,40 +25,91 @@ class TestTf2SS(unittest.TestCase):
                 [1.0,  0.4, 3.0],  [ 1.0, 1.0 ]};
         """
         
-        # common denominators for the inputs
-        n = 2
         m = 2
         p = 3
+        d = 3        
         num = np.array([
-            [ [0.0,  0.0, 1.0 ], [ 1.0, 0.0, 0.0 ] ],
-            [ [3.0, -1.0, 1.0 ], [ 0.0, 1.0, 0.0 ] ],
-            [ [0.0, 0.0, 1.0],   [ 0.0, 2.0, 0.0 ] ] ])
-        p, m, d = num.shape
+            [ [0.0,  0.0, 1.0], [1.0, 0.0, 0.0] ],
+            [ [3.0, -1.0, 1.0], [0.0, 1.0, 0.0] ],
+            [ [0.0,  0.0, 1.0], [0.0, 2.0, 0.0] ] ])
+        
         numc = np.zeros((max(1, m, p), max(1, m, p), d), dtype=float)
         numc[:p,:m,:] = num
-
         denc = np.array(
             [ [1.0,  0.4, 3.0],  [ 1.0, 1.0, 0.0 ] ])
         indc = np.array(
             [ 2, 1 ], dtype=int)
-        denr = np.array(
-            [ [1.0,  0.4, 3.0],  [ 1.0, 1.0, 0.0 ], [1.0, 0.0, 0.0] ])
-        indr = np.array(
-            [ 2, 1, 0 ], dtype=int)
-
-        n, A, B, C, D = transform.td04ad('C', 2, 3, indc, denc, numc)
+        
+        nref = 3
+        Aref = np.array([ [-1,    0,    0],
+                          [ 0, -0.4, -0.3],
+                          [ 0,   10,    0] ])
+        Bref = np.array([ [0, -1],
+                          [1,  0], 
+                          [0,  0] ])
+        Cref = np.array([ [1,     0,  0.1],
+                          [-1, -2.2, -0.8],
+                          [-2,    0,  0.1] ])
+        Dref = np.array([ [0, 1],
+                          [3, 0],
+                          [0, 0] ])
+    
+        nr, A, B, C, D = transform.td04ad('C', m, p, indc, denc, numc)
         #print('A=\n', A, '\nB=\n', B, '\nC=\n', C, '\nD=\n', D)
-        Ac = [ [-1, 0, 0], [ 0, -0.4, -0.3], [ 0, 10, 0]]
-        Bc = [ [0, -1] ,[ 1 , 0], [ 0, 0]]
-        Cc = [ [1, 0, 0.1], [-1, -2.2, -0.8], [ -2, 0, 0.1] ]
-        Dc = [ [0, 1], [ 3, 0], [ 0, 0]]
-        np.testing.assert_array_almost_equal(A, Ac)
-        np.testing.assert_array_almost_equal(B, Bc)
-        np.testing.assert_array_almost_equal(C, Cc)
-        np.testing.assert_array_almost_equal(D, Dc)
+        np.testing.assert_equal(nref, nr)
+        # the returned state space representation is not guaranteed to
+        # be of one form for all architectures, so we transform back
+        # to tf and check for equality then
+        _, _, _, _, _, dcoeff, ucoeff = transform.tb04ad(
+                nr, m, p, A, B, C, D)
+        _, _, _, _, _, dcoeffref, ucoeffref = transform.tb04ad(
+                nref, m, p, Aref, Bref, Cref, Dref)
+        np.testing.assert_array_almost_equal(dcoeff,dcoeffref)
+        np.testing.assert_array_almost_equal(ucoeff,ucoeffref)
 
-        resr = transform.td04ad('R', 2, 3, indr, denr, num)
+
+    def test_td04ad_r(self):
+        """td04ad: Convert with 'R' option"""
+        
+        """ example program from
+        http://slicot.org/objects/software/shared/doc/TD04AD.html"""
+        
+        m = 2
+        p = 2
+        rowcol = 'R'
+        index = [3, 3]
+        dcoeff = np.array([ [1.0, 6.0, 11.0, 6.0], [1.0, 6.0, 11.0, 6.0] ])
+                            
+        ucoeff = np.array([ [[1.0, 6.0, 12.0, 7.0], [0.0, 1.0,  4.0,  3.0]],
+                            [[0.0, 0.0, 1.0,  1.0], [1.0, 8.0, 20.0, 15.0]] ])        
+        
+        nref = 3
+
+        Aref = np.array([ [ 0.5000,  -0.8028,   0.9387],
+                          [ 4.4047,  -2.3380,   2.5076],
+                          [-5.5541,   1.6872,  -4.1620] ])
+        Bref = np.array([ [-0.2000,  -1.2500],
+                          [ 0.0000,  -0.6097],
+                          [ 0.0000,   2.2217] ])  
+        Cref = np.array([ [0.0000,  -0.8679,   0.2119],
+                          [0.0000,   0.0000,   0.9002] ])
+        Dref = np.array([ [1.0000,   0.0000],
+                          [0.0000,   1.0000] ])
+    
+        nr, A, B, C, D = transform.td04ad(rowcol, m, p, index, dcoeff, ucoeff)
         #print('A=\n', A, '\nB=\n', B, '\nC=\n', C, '\nD=\n', D)
+        np.testing.assert_equal(nref, nr)
+        # order of states is not guaranteed, so we reorder the reference
+        rindex = np.flip(np.argsort(np.diag(A)))
+        Arref = Aref[rindex, :][:, rindex]
+        Brref = Bref[rindex, :] 
+        Crref = Cref[:, rindex] 
+        Drref = Dref
+        np.testing.assert_array_almost_equal(A, Arref,decimal=4)
+        np.testing.assert_array_almost_equal(B, Brref,decimal=4)
+        np.testing.assert_array_almost_equal(C, Crref,decimal=4)
+        np.testing.assert_array_almost_equal(D, Drref,decimal=4)      
+
 
     def test_staticgain(self):
         """td04ad: Convert a transferfunction to SS with only static gain"""
