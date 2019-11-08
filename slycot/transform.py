@@ -576,7 +576,7 @@ def tb05ad(n, m, p, jomega, A, B, C, job='NG'):
 
 
 def td04ad(rowcol,m,p,index,dcoeff,ucoeff,tol=0.0,ldwork=None):
-    """ nr,A,B,C,D = td04ad(m,p,index,dcoeff,ucoeff,[tol,ldwork])
+    """ nr,A,B,C,D = td04ad(rowcol,m,p,index,dcoeff,ucoeff,[tol,ldwork])
 
     Convert a transfer function or matrix of transfer functions to
     a minimum state space realization.
