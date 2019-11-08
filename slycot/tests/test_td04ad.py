@@ -157,6 +157,7 @@ class TestTf2SS(unittest.TestCase):
             if rc == 'R':
                 num = np.reshape(np.arange(nout * nin), (nout, nin, 1))
                 den = np.reshape(np.arange(1, 1 + nout), (nout, 1))
+                index = np.repeat(0, nout)
                 Dref = num[:nout, :nin, 0] / np.broadcast_to(den, (nout, nin))
             else:
                 maxn = max(nout, nin)
@@ -164,8 +165,8 @@ class TestTf2SS(unittest.TestCase):
                 num[:nout, :nin, 0] = np.reshape(
                         np.arange(nout * nin), (nout, nin))
                 den = np.reshape(np.arange(1, 1 + nin), (nin, 1))
+                index = np.repeat(0, nin)
                 Dref = num[:nout, :nin, 0] / np.broadcast_to(den.T, (nout, nin))
-            index = np.tile([0], den.shape[0])
             nr, A, B, C, D = transform.td04ad(rc, nin, nout, index, den, num)
             np.testing.assert_equal(nr, 0)
             for M in [A, B, C]:
