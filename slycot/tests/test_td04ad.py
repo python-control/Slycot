@@ -3,7 +3,7 @@
 # test_td04ad.py - test suite for tf -> ss conversion
 # RvP, 04 Jun 2018
 
-from __future__ import print_function
+from __future__ import print_function, division
 
 import unittest
 from slycot import transform
@@ -148,7 +148,30 @@ class TestTf2SS(unittest.TestCase):
         self.assertEqual(B.shape, (0,2))
         self.assertEqual(C.shape, (3,0))
         np.testing.assert_array_almost_equal(D, Dr)
-        
+
+    def test_td04ad_static(self):
+        """Regression: td04ad (TFM -> SS transformation) for static TFM"""
+        from itertools import product
+        for nout, nin, rc in product(range(1, 6), range(1, 6), ['R', 'C']):
+            Dref = np.zeros((nout, nin))
+            if rc == 'R':
+                num = np.reshape(np.arange(nout * nin), (nout, nin, 1))
+                den = np.reshape(np.arange(1, 1 + nout), (nout, 1))
+                Dref = num[:nout, :nin, 0] / np.broadcast_to(den, (nout, nin))
+            else:
+                maxn = max(nout, nin)
+                num = np.zeros((maxn, maxn, 1))
+                num[:nout, :nin, 0] = np.reshape(
+                        np.arange(nout * nin), (nout, nin))
+                den = np.reshape(np.arange(1, 1 + nin), (nin, 1))
+                Dref = num[:nout, :nin, 0] / np.broadcast_to(den.T, (nout, nin))
+            index = np.tile([0], den.shape[0])
+            nr, A, B, C, D = transform.td04ad(rc, nin, nout, index, den, num)
+            np.testing.assert_equal(nr, 0)
+            for M in [A, B, C]:
+                np.testing.assert_equal(M, np.zeros_like(M))
+            np.testing.assert_almost_equal(D, Dref)
+
 
     def test_mixfeedthrough(self):
         """Test case popping up from control testing"""
