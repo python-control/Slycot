@@ -288,9 +288,9 @@ def tb04ad(n,m,p,A,B,C,D,tol1=0.0,tol2=0.0,ldwork=None):
         Cr : rank-2 array, shape (p,nr)
             output matri of the controllable subsystem
         index : rank-1 array, shape (p)
-            array of orders of the denomenator polynomials
+            array of orders of the denominator polynomials
         dcoeff : rank-2 array, shape (p,max(index)+1)
-            array of denomenator coefficients
+            array of denominator coefficients
         ucoeff : rank-3 array, shape (p,m,max(index)+1)
             array of numerator coefficients
 
@@ -578,7 +578,7 @@ def tb05ad(n, m, p, jomega, A, B, C, job='NG'):
 def td04ad(rowcol,m,p,index,dcoeff,ucoeff,tol=0.0,ldwork=None):
     """ nr,A,B,C,D = td04ad(m,p,index,dcoeff,ucoeff,[tol,ldwork])
 
-    Convert a tranfer function or matrix of transfer functions to
+    Convert a transfer function or matrix of transfer functions to
     a minimum state space realization.
 
     Required arguments
@@ -592,11 +592,11 @@ def td04ad(rowcol,m,p,index,dcoeff,ucoeff,tol=0.0,ldwork=None):
         p : integer
             output dimension
         index : rank-1 array, shape (p) or (m)
-            array of orders of the denomenator polynomials. Different
+            array of orders of the denominator polynomials. Different
             shapes corresponding to rowcol=='R' and rowcol=='C'
             respectively.
         dcoeff : rank-2 array, shape (p,max(index)+1) or (m,max(index)+1)
-            array of denomenator coefficients. Different shapes
+            array of denominator coefficients. Different shapes
             corresponding to rowcol=='R' and rowcol=='C' respectively.
         ucoeff : rank-3 array, shape (p,m,max(index)+1) or (max(p,m),max(p,m),max(index)+1)
             array of numerator coefficients. Different shapes
