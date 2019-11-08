@@ -146,9 +146,5 @@ class TestTf2SS(unittest.TestCase):
         self.assertEqual(n, 0)
         np.testing.assert_array_almost_equal(D, np.array([[64]]))
         
-def suite():
-   return unittest.TestLoader().loadTestsFromTestCase(TestTF2SS)
-
-
 if __name__ == "__main__":
     unittest.main()
