@@ -16,20 +16,35 @@ from numpy.testing import assert_almost_equal
 
 class test_sg03ad(unittest.TestCase):
 
-    def test_sg03ad_a(self):
+    def test_sg03ad_1c(self):
         # Example 1
         n = 100
         Xref = np.ones((n, n))
         U = np.tril(Xref)
         for t in range(0, 50, 10):
-            A = 2.0**(-t) - np.eye(n) + np.diag(np.arange(1, n+1)) + U.T
-            E = np.eye(n) + 2.0**(-t)*U
+            A = (2**(-t) - 1) * np.eye(n) + np.diag(np.arange(1., n+1.)) + U.T
+            E = np.eye(n) + 2**(-t) * U
             Y = A.T.dot(Xref).dot(E) + E.T.dot(Xref).dot(A)
             Q = np.zeros((n, n))
             Z = np.zeros((n, n))
             A, E, Q, Z, X, scale, sep, ferr, alphar, alphai, beta = \
                 synthesis.sg03ad('C', 'B', 'N', 'N', 'L', n, A, E, Q, Z, Y)
-            assert_almost_equal(Xref, X)
+            assert_almost_equal(X, Xref)
+
+    def test_sg03ad_1d(self):
+        # Example 1
+        n = 100
+        Xref = np.ones((n, n))
+        U = np.tril(Xref)
+        for t in range(0, 50, 10):
+            A = 2**(-t) * np.eye(n) + np.diag(np.arange(1., n+1.)) + U.T
+            E = np.eye(n) + 2**(-t) * U
+            Y = A.T.dot(Xref).dot(A) - E.T.dot(Xref).dot(E)
+            Q = np.zeros((n, n))
+            Z = np.zeros((n, n))
+            A, E, Q, Z, X, scale, sep, ferr, alphar, alphai, beta = \
+                synthesis.sg03ad('D', 'B', 'N', 'N', 'L', n, A, E, Q, Z, Y)
+            assert_almost_equal(X, Xref)
 
     def test_sg03ad_3(self):
         n = 3
