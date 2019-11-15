@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# test_sg03ad.py - test suit for stability margin commands
+# test_sg03ad.py - test suite for stability margin commands
 # RvP, 15 Jun 2017
 from __future__ import print_function
 
@@ -11,13 +11,14 @@ import numpy as np
 from numpy.testing import assert_almost_equal
 
 # test cases from
+# Penzl T., Numerical Solution of Generalized Lyapunov Equations
 # http://www.qucosa.de/fileadmin/data/qucosa/documents/4168/data/b002.pdf
 
 
 class test_sg03ad(unittest.TestCase):
 
-    def test_sg03ad_1c(self):
-        # Example 1
+    def test_sg03ad_ex1c(self):
+        """ Example 1 continuous case"""
         n = 100
         Xref = np.ones((n, n))
         U = np.tril(Xref)
@@ -31,8 +32,8 @@ class test_sg03ad(unittest.TestCase):
                 synthesis.sg03ad('C', 'B', 'N', 'N', 'L', n, A, E, Q, Z, Y)
             assert_almost_equal(X, Xref)
 
-    def test_sg03ad_1d(self):
-        # Example 1
+    def test_sg03ad_ex1d(self):
+        """ Example 1 discrete case"""
         n = 100
         Xref = np.ones((n, n))
         U = np.tril(Xref)
@@ -46,7 +47,8 @@ class test_sg03ad(unittest.TestCase):
                 synthesis.sg03ad('D', 'B', 'N', 'N', 'L', n, A, E, Q, Z, Y)
             assert_almost_equal(X, Xref)
 
-    def test_sg03ad_3(self):
+    def test_sg03ad_b1(self):
+        """ SLICOT doc example / Penzl B.1 """
         n = 3
         A = np.array([[3.0, 1.0, 1.0],
                       [1.0, 3.0, 0.0],
