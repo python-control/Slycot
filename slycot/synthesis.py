@@ -489,16 +489,22 @@ def sb02mt(n,m,B,R,A=None,Q=None,L=None,fact='N',jobl='Z',uplo='U',ldwork=None):
         if fact == 'N':
             out = _wrapper.sb02mt_n(n,m,B,R,uplo=uplo,ldwork=ldwork)
         if out is None:
-            raise ValueError('fact must be either C or N.')
+            e = ValueError('fact must be either C or N.')
+            e.info = -3
+            raise e
     else:
         if A is None or Q is None or L is None:
-            raise ValueError('matrices A,Q and L are required if jobl is not Z.')
+            e = ValueError('matrices A,Q and L are required if jobl is not Z.')
+            e.info = -7
+            raise e
         if fact == 'C':
             out = _wrapper.sb02mt_cl(n,m,A,B,Q,R,L,uplo=uplo)
         if fact == 'N':
             out = _wrapper.sb02mt_nl(n,m,A,B,Q,R,L,uplo=uplo,ldwork=ldwork)
         if out is None:
-            raise ValueError('fact must be either C or N.')
+            e = ValueError('fact must be either C or N.')
+            e.info = -3
+            raise e
     if out[-1] < 0:
         error_text = "The following argument had an illegal value: "+arg_list[-out[-1]-1]
         e = ValueError(error_text)
@@ -850,7 +856,9 @@ def sb03md(n,C,A,U,dico,job='X',fact='N',trana='N',ldwork=None):
     if ldwork is None:
         ldwork = max(2*n*n,3*n)
     if dico != 'C' and dico != 'D':
-        raise ValueError('dico must be either D or C')
+        e = ValueError('dico must be either D or C')
+        e.info = -1
+        raise e
     out = _wrapper.sb03md(dico,n,C,A,U,job=job,fact=fact,trana=trana,ldwork=ldwork)
     if out[-1] < 0:
         error_text = "The following argument had an illegal value: "+arg_list[-out[-1]-1]
@@ -1041,7 +1049,9 @@ def sb03od(n,m,A,Q,B,dico,fact='N',trans='N',ldwork=None):
         elif m == 0:
             ldwork = 1
     if dico != 'C' and dico != 'D':
-        raise ValueError('dico must be either D or C')
+        e = ValueError('dico must be either D or C')
+        e.info = -1
+        raise e
     out = _wrapper.sb03od(dico,n,m,A,Q,B,fact=fact,trans=trans,ldwork=ldwork)
     if out[-1] < 0:
         error_text = "The following argument had an illegal value: "+arg_list[-out[-1]-1]
@@ -1658,7 +1668,7 @@ def sb10dd(n,m,np,ncon,nmeas,gamma,A,B,C,D,tol=0.0,ldwork=None):
         LW4 = 13*n*n + m*m + (8*n+m+m2+2*np2)*(m2+np2) + 6*n + n*(m+np2) + max(14*n+23,16*n,2*n+m2+np2,3*(m2+np2))
         ldwork = max(LW1,LW2,LW3,LW4)
     out = _wrapper.sb10dd(n,m,np,ncon,nmeas,gamma,A,B,C,D,tol,ldwork)
-    
+
     if out[-1] != 0:
         if out[-1] < 0:
             error_text = "The following argument had an illegal value: "\
@@ -1837,25 +1847,25 @@ def sb10hd(n,m,np,ncon,nmeas,A,B,C,D,tol=0.0,ldwork=None):
         raise e
 
     return out[:-1]
-    
+
 def sb10jd(n,m,np,A,B,C,D,E,ldwork=None):
     """ A,B,C,D = sb10jd(n,m,np,A,B,C,D,E,[ldwork])
-    
+
     To convert the descriptor state-space system
-    
+
     E*dx/dt = A*x + B*u
           y = C*x + D*u
-    
+
     into regular state-space form
-    
+
     dx/dt = Ad*x + Bd*u
         y = Cd*x + Dd*u .
-    
+
     Required arguments:
         n : input int
             The order of the descriptor system.  n >= 0.
         m : input int
-            The column size of the matrix B.  m >= 0.        
+            The column size of the matrix B.  m >= 0.
         np : input int
             The row size of the matrix C.  np >= 0.
         A : rank-2 array('d') with bounds (n,n)
@@ -1890,7 +1900,7 @@ def sb10jd(n,m,np,A,B,C,D,E,ldwork=None):
             contains the output matrix Cd of the converted system.
         D : rank-2 array('d') with bounds (np,m)
             The leading NP-by-M part of this array contains
-            the matrix Dd of the converted system.          
+            the matrix Dd of the converted system.
     """
 
     hidden = ' (hidden by the wrapper)'
@@ -1900,7 +1910,7 @@ def sb10jd(n,m,np,A,B,C,D,E,ldwork=None):
         ldwork = max(1, 2 * n * n + 2 * n + n * max(5, n + m + np))
 
     A,B,C,D,nsys,info = _wrapper.sb10jd(n,m,np,A,B,C,D,E,ldwork)
-               
+
     if info < 0:
         error_text = "The following argument had an illegal value: "+arg_list[-info-1]
         e = ValueError(error_text)
@@ -2694,7 +2704,7 @@ def sg03bd(n,m,A,E,Q,Z,B,dico,fact='N',trans='N',ldwork=None):
 
      Return objects
      ______________
-    
+
          U : rank-2 array('d'), shape  (n,n)
              The leading n-by-b part of this array contains
              the Cholesky factor U of the solution matrix X of the
@@ -2746,7 +2756,9 @@ def sg03bd(n,m,A,E,Q,Z,B,dico,fact='N',trans='N',ldwork=None):
     if ldwork is None:
         ldwork = max(1,4*n,6*n-6)
     if dico != 'C' and dico != 'D':
-        raise ValueError('dico must be either D or C')
+        e = ValueError('dico must be either D or C')
+        e.info = -1
+        raise e
     out = _wrapper.sg03bd(dico,n,m,A,E,Q,Z,B,fact=fact,trans=trans,ldwork=ldwork)
     if out[-1] < 0:
         error_text = "The following argument had an illegal value: "+arg_list[-out[-1]-1]
