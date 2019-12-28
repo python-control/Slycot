@@ -162,7 +162,7 @@ script:
   # Local unit tests
   # TODO: replace with nose?
   - cd ..
-  - python Slycot/runtests.py --coverage --no-build
+  - python slycot/runtests.py --coverage --no-build
   #
   # As a deeper set of tests, get test against python-control as well
   #
