@@ -9,8 +9,5 @@ export LAPACK_ROOT=${PREFIX}
 # ensure we are not building with old cmake files
 rm -rf _skbuild
 
-env
-
 # do the build
-#$PYTHON -m pip install . --no-deps --ignore-installed -vv
-$PYTHON setup.py build_ext -llapack -lblas install
+$PYTHON setup.py build_ext install

@@ -21,7 +21,6 @@ enable_language(Fortran)
 
 find_package(PythonLibs REQUIRED)
 find_package(NumPy REQUIRED)
-#set(BLA_VENDOR "OpenBLAS")
 find_package(LAPACK REQUIRED)
 message(STATUS "LAPACK: ${LAPACK_LIBRARIES}")
 message(STATUS "Slycot version: ${SLYCOT_VERSION}")

@@ -115,6 +115,8 @@ set(PYSOURCE
   transform.py ${CMAKE_CURRENT_BINARY_DIR}/version.py)
 
 set(SLYCOT_MODULE "_wrapper")
+find_package(PythonExtensions REQUIRED)
+
 set(GENERATED_MODULE
   ${CMAKE_CURRENT_BINARY_DIR}/${SLYCOT_MODULE}${PYTHON_EXTENSION_MODULE_SUFFIX})
 
@@ -130,33 +132,18 @@ add_custom_command(
 )
 
 add_library(
-  ${SLYCOT_MODULE} SHARED
+  ${SLYCOT_MODULE} MODULE
   SLYCOTmodule.c _wrappermodule.c _wrapper-f2pywrappers.f
   "${PYTHON_SITE}/numpy/f2py/src/fortranobject.c"
   ${FSOURCES})
 
-set(CMAKE_SHARED_LIBRARY_PREFIX "")
-if (WIN32)
-  set(CMAKE_SHARED_LIBRARY_SUFFIX ".pyd")
-endif()
-set_target_properties(${SLYCOT_MODULE} PROPERTIES
-  OUTPUT_NAME "_wrapper")
-if (WIN32)
-  target_link_libraries(${SLYCOT_MODULE} PUBLIC
-    ${PYTHON_LIBRARIES} ${LAPACK_LIBRARIES}) 
-endif()
+target_link_libraries(${SLYCOT_MODULE}
+  ${LAPACK_LIBRARIES})
 
 if (UNIX)
-  target_link_libraries(${SLYCOT_MODULE} PUBLIC
-    ${LAPACK_LIBRARIES})
-
   if (APPLE)
     set_target_properties(${SLYCOT_MODULE} PROPERTIES
       LINK_FLAGS  '-Wl,-dylib,-undefined,dynamic_lookup')
-    string(REGEX REPLACE "^([0-9]+)\.([0-9]+)\.[0-9]+$" "\\1\\2"
-      PYMAJORMINOR ${PYTHON_VERSION_STRING})
-    set(CMAKE_SHARED_LIBRARY_SUFFIX ".cpython-${PYMAJORMINOR}m-darwin.so")
-    message(STATUS "binary module suffix ${CMAKE_SHARED_LIBRARY_SUFFIX}")
   else()
     set_target_properties(${SLYCOT_MODULE} PROPERTIES
       LINK_FLAGS  '-Wl,--allow-shlib-undefined')
@@ -170,6 +157,7 @@ target_include_directories(
   ${PYTHON_INCLUDE_DIRS}
   )
 
+python_extension_module(${SLYCOT_MODULE})
 install(TARGETS ${SLYCOT_MODULE} DESTINATION slycot)
 install(FILES ${PYSOURCE} DESTINATION slycot)
 

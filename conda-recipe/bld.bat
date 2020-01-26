@@ -5,6 +5,7 @@ cd ..
 :: clean old build attempts
 RD /S /Q _skbuild
 
+set FC=%BUILD_PREFIX%\Library\bin\flang.exe
 set BLAS_ROOT=%PREFIX%
 set LAPACK_ROOT=%PREFIX%
 set NUMPY_INCLUDE=%PREFIX%\Include
@@ -16,7 +17,7 @@ if EXIST "%PREFIX%\Scripts\f2py.exe" (
   set F2PY=%PREFIX%\Scripts\f2py.bat
 )
 
-"%PYTHON%" -m pip install . --no-deps --ignore-installed -vv
+"%PYTHON%" setup.py build_ext install
 
 if errorlevel 1 exit 1
 
