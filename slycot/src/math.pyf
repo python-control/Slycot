@@ -20,9 +20,9 @@ subroutine mb03vd(n,p,ilo,ihi,a,lda1,lda2,tau,ldtau,dwork,info) ! in MB03VD.f
     double precision intent(in,out,copy),dimension(lda1,lda2,p) :: a
     integer intent(hide),depend(a,n),check(lda1>=max(1,n)) :: lda1=shape(a,0)
     integer intent(hide),depend(a,n),check(lda2>=max(1,n)) :: lda2=shape(a,1)
-    double precision intent(out),depend(n),dimension(max(1,n-1),p) :: tau
+    double precision intent(out),depend(n,p),dimension(max(1,n-1),p) :: tau
     integer intent(hide),depend(tau) :: ldtau=shape(tau,0)
-    double precision intent(hide,cache),dimension(n) :: dwork
+    double precision intent(hide,cache),depend(n),dimension(n) :: dwork
     integer intent(out) :: info
 end subroutine mb03vd
 
@@ -34,9 +34,9 @@ subroutine mb03vy(n,p,ilo,ihi,a,lda1,lda2,tau,ldtau,dwork,ldwork,info) ! in MB03
     double precision intent(in,out,copy),dimension(lda1,lda2,p) :: a
     integer intent(hide),depend(a,n),check(lda1>=max(1,n)) :: lda1=shape(a,0)
     integer intent(hide),depend(a,n),check(lda2>=max(1,n)) :: lda2=shape(a,1)
-    double precision intent(in),depend(n),dimension(ldtau,p) :: tau
+    double precision intent(in),depend(n,p),dimension(ldtau,p) :: tau
     integer intent(hide),depend(tau),check(ldtau>=max(1,n-1)) :: ldtau=shape(tau,0)
-    double precision intent(hide,cache),dimension(n) :: dwork
+    double precision intent(hide,cache),depend(ldwork),dimension(ldwork) :: dwork
     integer intent(in),optional,check(ldwork>=max(1,n)) :: ldwork=max(1,n)
     integer intent(out) :: info
 end subroutine mb03vy
