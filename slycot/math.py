@@ -258,7 +258,7 @@ def mb03vy(n, ilo, ihi, A, Tau, ldwork=None):
     arg_list = ['n', 'p' + hidden,
                 'ilo', 'ihi', 'a',
                 'lda1' + hidden, 'lda2' + hidden, 'tau',
-                'ldtau' + hidden, 'dwork' + hidden, 'info']
+                'ldtau' + hidden, 'dwork' + hidden, 'ldwork', 'info' + hidden]
 
     if not ldwork:
         ldwork = max(1, 2 * n)
@@ -359,12 +359,12 @@ def mb03wd(job, compz, n, ilo, ihi, iloz, ihiz, H, Q, ldwork=None):
     -------
 
     T : ndarray
-            If JOB = 'S', T[:n,:n,0] s upper quasi-triangular in rows
+            If JOB = 'S', T[:n,:n,0] is upper quasi-triangular in rows
             and columns [ilo-1:ihi], with any 2-by-2 diagonal blocks
             corresponding to a pair of complex conjugated eigenvalues, and
             T[:n,:n,j-1] for j > 1 contains the resulting upper
             triangular matrix T_j.
-            If job = 'E', T is  None
+            If job = 'E', T is None
 
     Z : ndarray
             If compz = 'V', or compz = 'I', the leading
