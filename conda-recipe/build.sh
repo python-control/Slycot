@@ -1,10 +1,10 @@
 cd $RECIPE_DIR/..
 
 # specify blas vendor should be MKL
-export CMAKE_EXTRA_ARGS="-DBLA_VENDOR=MKL"
+export DBLA_VENDOR=Intel10_64lp
 
 # ensure we are not building with old cmake files
 rm -rf _skbuild
 
 # do the build
-$PYTHON setup.py build_ext install 
+$PYTHON -m pip install . --no-deps --ignore-installed -vv

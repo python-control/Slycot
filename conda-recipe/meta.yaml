@@ -10,11 +10,6 @@ build:
   string: py{{ environ.get('PY_VER').replace('.', '') }}{{ environ.get('GIT_DESCRIBE_HASH', '') }}_mkl_{{ environ.get('GIT_DESCRIBE_NUMBER', 0) }}
 
 requirements:
-  # note: the osx build is with gcc for now, due to problems with the
-  # conda-supplied clang and library linking see e.g.
-  # https://github.com/conda-forge/mpi-feedstock issue #4
-  # conda-forge might have the configuration in place for clang build and link?
-  # TODO: pip possibly required in only *one* of build and host, but which?
   build:
     - {{ compiler('c') }}       
     - {{ compiler('fortran') }}   # [unix]
@@ -22,14 +17,15 @@ requirements:
     
   host:
     - numpy
-    - libblas
-    - liblapack
+    - mkl
     - python
     - scikit-build
+    - pip
 
   run:
     - python
     - {{ pin_compatible('numpy') }}
+    - mkl
     
 test:
   imports:
