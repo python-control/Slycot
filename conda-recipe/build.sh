@@ -1,13 +1,10 @@
 cd $RECIPE_DIR/..
 
-# specify where CMAKE will search for lapack and blas
-# needs recent cmake (conda's 3.12) and policy CMP0074 NEW
-# the ${PREFIX} points to conda-build's host environment
-export BLAS_ROOT=${PREFIX}
-export LAPACK_ROOT=${PREFIX}
+# specify blas vendor should be MKL
+export CMAKE_EXTRA_ARGS="-DBLA_VENDOR=MKL"
 
 # ensure we are not building with old cmake files
 rm -rf _skbuild
 
 # do the build
-$PYTHON setup.py build_ext install
+$PYTHON setup.py build_ext install 
