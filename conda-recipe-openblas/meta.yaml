@@ -25,6 +25,7 @@ requirements:
   run:
     - python {{ PY_VER }}
     - {{ pin_compatible('numpy') }}
+    - libopenblas
 
 test:
   imports:
