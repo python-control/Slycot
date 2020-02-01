@@ -1,7 +1,7 @@
 cd $RECIPE_DIR/..
 
 # specify blas vendor should be MKL
-export DBLA_VENDOR=Intel10_64lp
+export BLA_VENDOR=Intel10_64lp
 
 # ensure we are not building with old cmake files
 rm -rf _skbuild
