@@ -151,7 +151,7 @@ install:
       conda install conda-forge::openblas>=0.3.0;
       conda install local::slycot;
     else
-      CMAKE_GENERATOR="Unix Makefiles" python setup.py install;
+      CMAKE_GENERATOR="Unix Makefiles" BLA_VENDOR="OpenBLAS" python setup.py install;
     fi
   #
   # coveralls not in conda repos :-(
