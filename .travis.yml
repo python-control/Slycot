@@ -107,16 +107,15 @@ install:
   # Install miniconda to allow quicker installation of dependencies
   # See https://conda.io/docs/user-guide/tasks/use-conda-with-travis-ci.html
   #
+  # for OSX, also get the MacOS 10.9 SDK, as per
+  # https://docs.conda.io/projects/conda-build/en/latest/resources/compiler-tools.html
   - if [[ $TRAVIS_OS_NAME == linux ]]; then
       wget http://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
     else
       wget https://repo.anaconda.com/miniconda/Miniconda3-latest-MacOSX-x86_64.sh -O miniconda.sh;
-
-      # also get the MacOS 10.9 SDK, as per
-      # https://docs.conda.io/projects/conda-build/en/latest/resources/compiler-tools.html
-      wget https://github.com/phracker/MacOSX-SDKs/releases/download/10.15/MacOSX10.9.sdk.tar.xz
-      tar xvf MacOSX10.9.sdk.tar.xz
-      export CONDA_BUILD_SYSROOT="`pwd`/MacOSX10.9.sdk"
+      wget https://github.com/phracker/MacOSX-SDKs/releases/download/10.15/MacOSX10.9.sdk.tar.xz;
+      tar xvf MacOSX10.9.sdk.tar.xz;
+      export CONDA_BUILD_SYSROOT="`pwd`/MacOSX10.9.sdk";
     fi
   - bash miniconda.sh -b -p $HOME/miniconda
   - export PATH="$HOME/miniconda/bin:$PATH"
