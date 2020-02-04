@@ -114,8 +114,7 @@ install:
     else
       wget https://repo.anaconda.com/miniconda/Miniconda3-latest-MacOSX-x86_64.sh -O miniconda.sh;
       wget https://github.com/phracker/MacOSX-SDKs/releases/download/10.15/MacOSX10.9.sdk.tar.xz;
-      tar xvf MacOSX10.9.sdk.tar.xz;
-      export CONDA_BUILD_SYSROOT="`pwd`/MacOSX10.9.sdk";
+      tar xf MacOSX10.9.sdk.tar.xz;
     fi
   - bash miniconda.sh -b -p $HOME/miniconda
   - export PATH="$HOME/miniconda/bin:$PATH"
@@ -152,6 +151,7 @@ install:
   #
   - if [[ $TEST_CONDA == 1 ]]; then
       conda config --append channels conda-forge;
+      export CONDA_BUILD_SYSROOT="`pwd`/MacOSX10.9.sdk";
       conda build --python "$SLYCOT_PYTHON_VERSION" conda-recipe-openblas;
       conda install conda-forge::openblas>=0.3.0;
       conda install local::slycot;
