@@ -10,48 +10,31 @@ build:
   string: py{{ environ.get('PY_VER').replace('.', '') }}{{ environ.get('GIT_DESCRIBE_HASH', '') }}_obl_{{ environ.get('GIT_DESCRIBE_NUMBER', 0) }}
 
 requirements:
-  # TODO: pip possibly required in only *one* of build and host, but which?
   build:
-    - python {{ PY_VER }}
-    - numpy
-    - openblas >=0.3.0
-    - {{ compiler('c') }}       # [not osx]
-    - gcc                       # [osx]
-    - {{ compiler('fortran') }} # [linux]
-    - scikit-build >=0.8.0
+    - {{ compiler('c') }}       
+    - {{ compiler('fortran') }}   # [unix]
+    - flang                       # [win]
 
   host:
-    - python {{ PY_VER }}
-    - pip
-    - flang                     # [win]
     - numpy
-    - openblas >=0.3.0
-    - libgfortran-ng # [not-win]
-    - libgcc-ng      # [linux]
-    - scikit-build >=0.8.0
-   # on Windows, this relies on having visual studio CE 2015
-   # this link needed quite some searching, please do not delete!
-   # https://go.microsoft.com/fwlink/?LinkId=532606&clcid=0x409
-   
+    - libopenblas
+    - python
+    - scikit-build
+    - pip
+    
   run:
     - python {{ PY_VER }}
     - {{ pin_compatible('numpy') }}
-    - openblas >=0.3.0
-    - libgfortran-ng # [not win]
-    - libgcc-ng      # [linux]
-    - libflang       # [win]
+    - libopenblas
 
 test:
-  requires:
-    - python {{PY_VER}}
   imports:
     - slycot
 
 about:
-  home: https://github.com/python-control/slycot
-  license:  GPLv2
-  summary: 'A wrapper for the SLICOT control and systems library'
-
-# on OSX, the SDK for 10.9 is currently needed
-# download the 10.9 sdk from https://github.com/phracker/MacOSX-SDKs/releases
-# unpack and set environment variable CONDA_BUILD_SYSROOT to that location
+  home: https://github.com/python-control/Slycot
+  dev_url: https://github.com/python-control/Slycot
+  license:  GPL-2.0
+  license_family: GPL
+  license_file: COPYING
+  summary: 'Slycot: A wrapper for the SLICOT control and systems library'
