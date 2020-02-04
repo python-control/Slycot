@@ -151,7 +151,6 @@ install:
   #
   - if [[ $TEST_CONDA == 1 ]]; then
       conda config --append channels conda-forge;
-      export CONDA_BUILD_SYSROOT="`pwd`/MacOSX10.9.sdk";
       conda build --python "$SLYCOT_PYTHON_VERSION" conda-recipe-openblas;
       conda install conda-forge::openblas>=0.3.0;
       conda install local::slycot;
