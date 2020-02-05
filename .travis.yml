@@ -114,7 +114,7 @@ install:
     else
       wget https://repo.anaconda.com/miniconda/Miniconda3-latest-MacOSX-x86_64.sh -O miniconda.sh;
       wget https://github.com/phracker/MacOSX-SDKs/releases/download/10.15/MacOSX10.9.sdk.tar.xz;
-      tar xf MacOSX10.9.sdk.tar.xz;
+      cd /opt; tar xf ${HOME}/MacOSX10.9.sdk.tar.xz; cd ${HOME};
     fi
   - bash miniconda.sh -b -p $HOME/miniconda
   - export PATH="$HOME/miniconda/bin:$PATH"
