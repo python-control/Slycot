@@ -11,7 +11,7 @@ set(PYSOURCE
   test_tb05ad.py
   test_td04ad.py
   test_tg01ad.py
-  test_tg01fd.py)
+  test_tg01fd.py )
 
 install(FILES ${PYSOURCE}
         PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE

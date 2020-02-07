@@ -25,7 +25,7 @@ try:
     from skbuild import setup
     from skbuild.command.sdist import sdist
 except ImportError:
-    raise ImportError('sckit-build must be installed before running setup.py')
+    raise ImportError('scikit-build must be installed before running setup.py')
 
 if sys.version_info[:2] < (2, 7) or (3, 0) <= sys.version_info[0:2] < (3, 5):
     raise RuntimeError("Python version 2.7 or >= 3.5 required.")
