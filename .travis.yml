@@ -6,8 +6,8 @@ services: xvfb # needed for the python-control tests
 
 # Start with a 2x4 matrix of Linux builds
 python:
- - "3.7"
  - "3.8"
+ - "3.7"
 env:
  - TEST_PKG="conda" BLA_VENDOR="OpenBLAS"
  - TEST_PKG="conda" BLA_VENDOR="Intel10_64lp" # MKL
@@ -15,8 +15,19 @@ env:
  - TEST_PKG="dist"  BLA_VENDOR="Generic" # reference BLAS/LAPACK
 
 jobs:
-  # additional single OSX and Linux jobs
+  # additional single Linux and OSX jobs
   include:
+    - name: "Linux, Conda Python 3.6"
+      python: "3.6"
+      env: TEST_PKG="conda" BLA_VENDOR="OpenBLAS"
+    - name: "Linux, Conda Python 3.5"
+      python: "3.5"
+      env: TEST_PKG="conda" BLA_VENDOR="OpenBLAS"
+    - name: "Linux, Ubuntu 16.04, System Python 2.7"
+      python: "2.7"
+      dist: xenial
+      env: TEST_PKG="dist" BLA_VENDOR="OpenBLAS"
+    # (Conda Python 2 is broken due to pytest-cov dependencies)
     - name: "MacOSX, Conda Python 3"
       os: osx
       language: shell
@@ -25,24 +36,14 @@ jobs:
       os: osx
       language: shell
       env: TEST_PKG="dist" BLA_VENDOR="Apple"
-    - name: "MacOSX, pyenv 2.7"
-      os: osx
-      language: shell
-      env: TEST_PKG="dist" BLA_VENDOR="Apple" SLYCOT_PYTHON_VERSION=2.7.17
-    - name: "MacOSX, pyenv 3.8"
+    - name: "MacOSX, pyenv 3.8.0"
       os: osx
       language: shell
       env: TEST_PKG="dist" BLA_VENDOR="Apple" SLYCOT_PYTHON_VERSION=3.8.0
-    - name: "Linux, Ubuntu 16.04 Python 2.7"
-      python: "2.7"
-      dist: xenial
-      env: TEST_PKG="dist" BLA_VENDOR="OpenBLAS"
-    - name: "Linux, Conda Py3.5"
-      python: "3.5"
-      env: TEST_PKG="conda" BLA_VENDOR="OpenBLAS"
-    - name: "Linux, Conda Py3.6"
-      python: "3.6"
-      env: TEST_PKG="conda" BLA_VENDOR="OpenBLAS"
+    - name: "MacOSX, pyenv 2.7.17"
+      os: osx
+      language: shell
+      env: TEST_PKG="dist" BLA_VENDOR="Apple" SLYCOT_PYTHON_VERSION=2.7.17
 
 
 before_install:
@@ -84,15 +85,14 @@ install:
       # Install miniconda to allow quicker installation of dependencies
       # See https://conda.io/projects/conda/en/latest/user-guide/tasks/use-conda-with-travis-ci.html
       #
-      pymajor=${SLYCOT_PYTHON_VERSION:0:1}
       if [[ $TRAVIS_OS_NAME == linux ]]; then
-        wget https://repo.continuum.io/miniconda/Miniconda${pymajor}-latest-Linux-x86_64.sh -O miniconda.sh
+        wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh
       elif [[ $TRAVIS_OS_NAME == osx ]]; then
-        wget https://repo.continuum.io/miniconda/Miniconda${pymajor}-latest-MacOSX-x86_64.sh -O miniconda.sh
+        wget https://repo.continuum.io/miniconda/Miniconda3-latest-MacOSX-x86_64.sh -O miniconda.sh
         wget https://github.com/phracker/MacOSX-SDKs/releases/download/10.15/MacOSX10.9.sdk.tar.xz
         sudo tar -C /opt -xJf MacOSX10.9.sdk.tar.xz
       else
-        echo "Unsupported OS for conda builds: TRAVIS_OS_NAME"
+        echo "Unsupported OS for conda builds: $TRAVIS_OS_NAME"
         exit 4
       fi
       bash miniconda.sh -b -p $HOME/miniconda
@@ -137,9 +137,8 @@ install:
     pip install coveralls
 
 script:
-  # slycots own unit tests as installed, not from source dir
+  # slycots own unit tests as installed, not those from source dir
   - cd ..
-  - python -V # print python version for debugging
   - slycot_dir=$(python -c "import slycot; print(slycot.__path__[0])")
   - pytest --pyargs slycot --cov=$slycot_dir --cov-config=Slycot/.coveragerc
   #
