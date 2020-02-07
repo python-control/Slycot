@@ -1,0 +1,39 @@
+package:
+  name: slycot
+  version: {{ environ.get('GIT_DESCRIBE_TAG', 'v0.0.0')[1:] }}
+
+source:
+  git_url: ../
+
+build:
+  number: {{ environ.get('GIT_DESCRIBE_NUMBER', 0) }}
+  string: py{{ environ.get('PY_VER').replace('.', '') }}{{ environ.get('GIT_DESCRIBE_HASH', '') }}_mkl_{{ environ.get('GIT_DESCRIBE_NUMBER', 0) }}
+
+requirements:
+  build:
+    - {{ compiler('c') }}       
+    - {{ compiler('fortran') }}   # [unix]
+    - flang                       # [win]
+    
+  host:
+    - numpy
+    - python
+    # conda-forge::scikit-build>=0.10.0 includes MACOSX_DEPLOYMENT_TARGET
+    # patches from https://github.com/scikit-build/scikit-build/pull/441
+    - scikit-build >=0.10.0
+
+  run:
+    - python
+    - {{ pin_compatible('numpy') }}
+    
+test:
+  imports:
+    - slycot
+
+about:
+  home: https://github.com/python-control/Slycot
+  dev_url: https://github.com/python-control/Slycot
+  license:  GPL-2.0
+  license_family: GPL
+  license_file: COPYING
+  summary: 'Slycot: A wrapper for the SLICOT control and systems library'

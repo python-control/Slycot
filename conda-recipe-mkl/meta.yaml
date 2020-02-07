@@ -23,7 +23,7 @@ requirements:
     - pip
 
   run:
-    - python
+    - python {{ PY_VER }}
     - {{ pin_compatible('numpy') }}
     - mkl
     
