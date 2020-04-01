@@ -184,6 +184,37 @@ subroutine ab08nd(equil,n,m,p,a,lda,b,ldb,c,ldc,d,ldd,nu,rank_bn,dinfz,nkror,nkr
     integer optional :: ldwork = n + 3*max(m,p)
     integer intent(out) :: info
 end subroutine ab08nd
+subroutine ab08nz(equil,n,m,p,a,lda,b,ldb,c,ldc,d,ldd,nu,rank_bn,dinfz,nkror,nkrol,infz,kronr,kronl,af,ldaf,bf,ldbf,tol,iwork,dwork,ldwork,info) ! in :new:AB08NZ.f
+    character :: equil='N'
+    integer check(n>=0) :: n
+    integer check(m>=0) :: m
+    integer check(p>=0) :: p
+    complex*16 dimension(n,n),depend(n) :: a
+    integer intent(hide),depend(a) :: lda=shape(a,0)
+    complex*16 dimension(n,m),depend(n,m) :: b
+    integer intent(hide),depend(b) :: ldb=shape(b,0)
+    complex*16 dimension(p,n),depend(n,p) :: c
+    integer intent(hide),depend(c) :: ldc=shape(c,0)
+    complex*16 dimension(p,m),depend(m,p) :: d
+    integer intent(hide),depend(d) :: ldd=shape(d,0)
+    integer intent(out) :: nu
+    integer intent(out) :: rank_bn
+    integer intent(out) :: dinfz
+    integer intent(out) :: nkror
+    integer intent(out) :: nkrol
+    integer intent(out),dimension(n),depend(n) :: infz
+    integer intent(out),dimension(max(n,m)+1),depend([n,m]) :: kronr
+    integer intent(out),dimension(max(n,p)+1),depend([n,p]) :: kronl
+    complex*16 intent(out),dimension(max(1,n+m),n+min(p,m)) :: af
+    integer intent(hide),depend(af) :: ldaf=shape(af,0)
+    complex*16 intent(out),dimension(max(1,n+p),n+m) :: bf
+    integer intent(hide),depend(bf) :: ldbf=shape(bf,0)
+    double precision :: tol=0.0
+    integer intent(hide,cache),dimension(max(m,p)) :: iwork
+    double precision intent(hide,cache),dimension(ldwork) :: dwork
+    integer optional :: ldwork = n + 3*max(m,p)
+    integer intent(out) :: info
+end subroutine ab08nz
 subroutine ab09ad(dico,job,equil,ordsel,n,m,p,nr,a,lda,b,ldb,c,ldc,hsv,tol,iwork,dwork,ldwork,iwarn,info) !in :balred:AB09AD.f
     character intent(in) :: dico
     character intent(in) :: job

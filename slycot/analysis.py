@@ -475,6 +475,94 @@ def ab08nd(n,m,p,A,B,C,D,equil='N',tol=0,ldwork=None):
         raise e
     return out[:-1]
 
+def ab08nz(n,m,p,A,B,C,D,equil='N',tol=0,ldwork=None):
+    """ nu,rank,dinfz,nkror,nkrol,infz,kronr,kronl,Af,Bf = ab08nz(n,m,p,A,B,C,D,[equil,tol,ldwork])
+
+    To construct for a linear multivariable system described by a state-space
+    model (A,B,C,D) a regular pencil (Af - lambda*Bf ) which has the invariant
+    zeros of the system as generalized eigenvalues.
+    The routine also computes the orders of the infinite zeros and the
+    right and left Kronecker indices of the system (A,B,C,D).
+
+    Required arguments:
+        n : input int
+            The number of state variables.  n >= 0.
+        m : input int
+            The number of system inputs.  m >= 0.
+        p : input int
+            The number of system outputs.  p >= 0.
+        A : input rank-2 array('d') with bounds (n,n)
+            The leading n-by-n part of this array must contain the state
+            dynamics matrix A of the system.
+        B : input rank-2 array('d') with bounds (n,m)
+            The leading n-by-m part of this array must contain the input/state
+            matrix B of the system.
+        C : input rank-2 array('d') with bounds (p,n)
+            The leading p-by-n part of this array must contain the state/output
+            matrix C of the system.
+        D : input rank-2 array('d') with bounds (p,m)
+            The leading p-by-m part of this array must contain the direct
+            transmission matrix D of the system.
+    Optional arguments:
+        equil := 'N' input string(len=1)
+            Specifies whether the user wishes to balance the compound matrix
+            as follows:
+            = 'S':  Perform balancing (scaling);
+            = 'N':  Do not perform balancing.
+        tol := 0.0 input float
+            A tolerance used in rank decisions to determine the effective rank,
+            which is defined as the order of the largest leading (or trailing)
+            triangular submatrix in the QR (or RQ) factorization with column
+            (or row) pivoting whose estimated condition number is less than 1/tol.
+        ldwork := None input int
+            The length of the cache array. The default value is n + 3*max(m,p),
+            for better performance should be larger.
+    Return objects:
+        nu : int
+            The number of (finite) invariant zeros.
+        rank : int
+            The normal rank of the transfer function matrix.
+        dinfz : int
+            The maximum degree of infinite elementary divisors.
+        nkror : int
+            The number of right Kronecker indices.
+        nkrol : int
+            The number of left Kronecker indices.
+        infz : rank-1 array('i') with bounds (n)
+            The leading dinfz elements of infz contain information on the
+            infinite elementary divisors as follows: the system has infz(i)
+            infinite elementary divisors of degree i, where i = 1,2,...,dinfz.
+        kronr : rank-1 array('i') with bounds (max(n,m)+1)
+            the leading nkror elements of this array contain the right kronecker
+            (column) indices.
+        kronl : rank-1 array('i') with bounds (max(n,p)+1)
+            the leading nkrol elements of this array contain the left kronecker
+            (row) indices.
+        Af : rank-2 array('d') with bounds (max(1,n+m),n+min(p,m))
+            the leading nu-by-nu part of this array contains the coefficient
+            matrix Af of the reduced pencil. the remainder of the leading
+            (n+m)-by-(n+min(p,m)) part is used as internal workspace.
+        Bf : rank-2 array('d') with bounds (max(1,n+p),n+m)
+            The leading nu-by-nu part of this array contains the coefficient
+            matrix Bf of the reduced pencil. the remainder of the leading
+            (n+p)-by-(n+m) part is used as internal workspace.
+    """
+    hidden = ' (hidden by the wrapper)'
+    arg_list = ['equil', 'n', 'm', 'p', 'A', 'LDA'+hidden, 'B', 'LDB'+hidden,
+        'C', 'LDC'+hidden, 'D', 'LDD'+hidden, 'nu', 'rank', 'dinfz', 'nkror',
+        'nkrol', 'infz', 'kronr', 'kronl', 'Af', 'LDAF'+hidden, 'Bf',
+        'LDBF'+hidden, 'tol', 'IWORK'+hidden, 'DWORK'+hidden, 'ldwork',
+        'INFO'+hidden]
+    if ldwork is None:
+        ldwork = n+3*max(m,p) #only an upper bound
+    out = _wrapper.ab08nz(n,m,p,A,B,C,D,equil=equil,tol=tol,ldwork=ldwork)
+    if out[-1] < 0:
+        error_text = "The following argument had an illegal value: "+arg_list[-out[-1]-1]
+        e = ValueError(error_text)
+        e.info = out[-1]
+        raise e
+    return out[:-1]
+
 def ab09ad(dico,job,equil,n,m,p,A,B,C,nr=None,tol=0,ldwork=None):
     """ nr,Ar,Br,Cr,hsv = ab09ad(dico,job,equil,n,m,p,A,B,C,[nr,tol,ldwork])
 
