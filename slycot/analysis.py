@@ -475,8 +475,8 @@ def ab08nd(n,m,p,A,B,C,D,equil='N',tol=0,ldwork=None):
         raise e
     return out[:-1]
 
-def ab08nz(n,m,p,A,B,C,D,equil='N',tol=0,ldwork=None):
-    """ nu,rank,dinfz,nkror,nkrol,infz,kronr,kronl,Af,Bf = ab08nz(n,m,p,A,B,C,D,[equil,tol,ldwork])
+def ab08nz(n, m, p, A, B, C, D, equil='N', tol=0., lzwork=None):
+    """ nu,rank,dinfz,nkror,nkrol,infz,kronr,kronl,Af,Bf = ab08nz(n,m,p,A,B,C,D,[equil,tol,lzwork])
 
     To construct for a linear multivariable system described by a state-space
     model (A,B,C,D) a regular pencil (Af - lambda*Bf ) which has the invariant
@@ -514,9 +514,12 @@ def ab08nz(n,m,p,A,B,C,D,equil='N',tol=0,ldwork=None):
             which is defined as the order of the largest leading (or trailing)
             triangular submatrix in the QR (or RQ) factorization with column
             (or row) pivoting whose estimated condition number is less than 1/tol.
-        ldwork := None input int
-            The length of the cache array. The default value is n + 3*max(m,p),
-            for better performance should be larger.
+        lzwork := None input int
+            The length of the cache array zwork. The default value is calculated
+            to MAX( 1, MIN(P,M) + MAX(3*M-1,N),
+                       MIN(P,N) + MAX(3*P-1,N+P,N+M),
+                       MIN(M,N) + MAX(3*M-1,N+M) )
+            for optimum performance should be larger.
     Return objects:
         nu : int
             The number of (finite) invariant zeros.
@@ -546,22 +549,33 @@ def ab08nz(n,m,p,A,B,C,D,equil='N',tol=0,ldwork=None):
             The leading nu-by-nu part of this array contains the coefficient
             matrix Bf of the reduced pencil. the remainder of the leading
             (n+p)-by-(n+m) part is used as internal workspace.
+        lzwork_opt : int
+            The optimal value of lzwork.
     """
     hidden = ' (hidden by the wrapper)'
-    arg_list = ['equil', 'n', 'm', 'p', 'A', 'LDA'+hidden, 'B', 'LDB'+hidden,
-        'C', 'LDC'+hidden, 'D', 'LDD'+hidden, 'nu', 'rank', 'dinfz', 'nkror',
-        'nkrol', 'infz', 'kronr', 'kronl', 'Af', 'LDAF'+hidden, 'Bf',
-        'LDBF'+hidden, 'tol', 'IWORK'+hidden, 'DWORK'+hidden, 'ldwork',
-        'INFO'+hidden]
-    if ldwork is None:
-        ldwork = n+3*max(m,p) #only an upper bound
-    out = _wrapper.ab08nz(n,m,p,A,B,C,D,equil=equil,tol=tol,ldwork=ldwork)
-    if out[-1] < 0:
-        error_text = "The following argument had an illegal value: "+arg_list[-out[-1]-1]
+    arg_list = ['equil', 'n', 'm', 'p',
+                'a', 'lda' + hidden, 'b', 'ldb' + hidden,
+                'c', 'ldc' + hidden, 'd', 'ldd' + hidden,
+                'nu', 'rank', 'dinfz', 'nkror', 'nkrol', 'infz', 'kronr',
+                'kronl', 'af', 'ldaf' + hidden, 'bf', 'ldbf' + hidden,
+                'tol', 'iwork' + hidden, 'dwork' + hidden, 'zwork',
+                'lzwork', 'info']
+    if lzwork is None:
+        lzwork = max(min(p, m) + max(3*m-1, n),
+                     min(p, n) + max(3*p-1, n+p, n+m),
+                     min(m, n) + max(3*m-1, n+m))
+    out = _wrapper.ab08nz(n, m, p, A, B, C, D,
+                          equil=equil, tol=tol, lzwork=lzwork)
+    nu, rank, dinfz, nkror, nkrol, infz, kronr, kronl, Af, Bf, zwork, info \
+        = out
+    if info < 0:
+        error_text = "The following argument had an illegal value: " + \
+            arg_list[info-1]
         e = ValueError(error_text)
-        e.info = out[-1]
+        e.info = info
         raise e
-    return out[:-1]
+    return (nu, rank, dinfz, nkror, nkrol, infz, kronr, kronl, Af, Bf,
+            int(zwork[0]))
 
 def ab09ad(dico,job,equil,n,m,p,A,B,C,nr=None,tol=0,ldwork=None):
     """ nr,Ar,Br,Cr,hsv = ab09ad(dico,job,equil,n,m,p,A,B,C,[nr,tol,ldwork])
@@ -817,7 +831,7 @@ def ab09ax(dico,job,n,m,p,A,B,C,nr=None,tol=0.0,ldwork=None):
 
 def ab09bd(dico,job,equil,n,m,p,A,B,C,D,nr=None,tol1=0,tol2=0,ldwork=None):
     """ nr,Ar,Br,Cr,Dr,hsv = ab09bd(dico,job,equil,n,m,p,A,B,C,D,[nr,tol1,tol2,ldwork])
-    
+
     To compute a reduced order model (Ar,Br,Cr,Dr) for a stable
     original state-space representation (A,B,C,D) by using either the
     square-root or the balancing-free square-root Singular
@@ -1000,7 +1014,7 @@ def ab09md(dico,job,equil,n,m,p,A,B,C,alpha=None,nr=None,tol=0,ldwork=None):
                 The number of system outputs.  p >= 0.
             A : input rank-2 array('d'), dimension (n,n)
                 On entry, the leading N-by-N part of this array must
-                contain the state dynamics matrix A.                
+                contain the state dynamics matrix A.
             B : input rank-2 array('d'), dimension (n,m)
                 On entry, the leading N-by-M part of this array must
                 contain the original input/state matrix B.
@@ -1144,7 +1158,7 @@ def ab09md(dico,job,equil,n,m,p,A,B,C,alpha=None,nr=None,tol=0,ldwork=None):
 
 def ab09nd(dico,job,equil,n,m,p,A,B,C,D,alpha=None,nr=None,tol1=0,tol2=0,ldwork=None):
     """ nr,Ar,Br,Cr,Dr,ns,hsv = ab09nd(dico,job,equil,n,m,p,A,B,C,D,[alpha,nr,tol1,tol2,ldwork])
-    
+
     To compute a reduced order model (Ar,Br,Cr,Dr) for an original
     state-space representation (A,B,C,D) by using either the
     square-root or the balancing-free square-root Singular
@@ -1662,23 +1676,23 @@ def ag08bd(l,n,m,p,A,E,B,C,D,equil='N',tol=0.0,ldwork=None):
     """ Af,Ef,nrank,niz,infz,kronr,infe,kronl = ag08bd(l,n,m,p,A,E,B,C,D,[equil,tol,ldwork])
 
     To extract from the system pencil
-    
+
                         ( A-lambda*E B )
             S(lambda) = (              )
                         (      C     D )
-    
+
     a regular pencil Af-lambda*Ef which has the finite Smith zeros of
     S(lambda) as generalized eigenvalues. The routine also computes
     the orders of the infinite Smith zeros and determines the singular
     and infinite Kronecker structure of system pencil, i.e., the right
     and left Kronecker indices, and the multiplicities of infinite
     eigenvalues.
-    
+
     Required arguments:
         l : input int
             The number of rows of matrices A, B, and E.  l >= 0.
         n : input int
-            The number of columns of matrices A, E, and C.  n >= 0.        
+            The number of columns of matrices A, E, and C.  n >= 0.
         m : input int
             The number of columns of matrix B.  m >= 0.
         p : input int
@@ -1746,10 +1760,10 @@ def ag08bd(l,n,m,p,A,E,B,C,D,equil='N',tol=0.0,ldwork=None):
     """
     hidden = ' (hidden by the wrapper)'
     arg_list = ['equil', 'l', 'n', 'm', 'p', 'A', 'lda'+hidden, 'E', 'lde'+hidden, 'B', 'ldb'+hidden, 'C', 'ldc'+hidden, 'D', 'ldd'+hidden, 'nfz', 'nrank', 'niz', 'dinfz', 'nkror', 'ninfe', 'nkrol', 'infz', 'kronr', 'infe', 'kronl', 'tol', 'iwork'+hidden, 'dwork'+hidden, 'ldwork', 'info']
-    
+
     if equil != 'S' and equil != 'N':
         raise ValueError('Parameter equil had an illegal value')
-    
+
     if ldwork is None:
         ldw = max(l+p,m+n)*(m+n) + max(1,5*max(l+p,m+n))
         if equil == 'S':
