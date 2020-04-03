@@ -10,7 +10,8 @@ from numpy.testing import assert_equal, assert_allclose
 
 
 class test_ab08n(unittest.TestCase):
-    """ ag08nX with input parameters according to example in documentation """
+    """ Test regular pencil construction ab08nX with input parameters
+    according to example in documentation """
 
     A = np.diag([1., 1., 3., -4., -1., 3.])
 
@@ -68,9 +69,11 @@ class test_ab08n(unittest.TestCase):
         assert_equal(kronl[:nkrol], np.array([2]))
 
     def test_ab08nd(self):
+        "Test Construct regular pencil for real matrices"
         self.ab08nX(analysis.ab08nd, self.A, self.B, self.C, self.D)
 
     def test_ab08nz(self):
+        "Test Construct regular pencil for (pseudo) complex matrices"
         Ac, Bc, Cc, Dc = [M.astype(np.complex128) for M in [self.A, self.B,
                                                             self.C, self.D]]
         self.ab08nX(analysis.ab08nz, Ac, Bc, Cc, Dc)
