@@ -575,7 +575,7 @@ def ab08nz(n, m, p, A, B, C, D, equil='N', tol=0., lzwork=None):
         e.info = info
         raise e
     return (nu, rank, dinfz, nkror, nkrol, infz, kronr, kronl, Af, Bf,
-            int(zwork[0]))
+            int(zwork[0].real))
 
 def ab09ad(dico,job,equil,n,m,p,A,B,C,nr=None,tol=0,ldwork=None):
     """ nr,Ar,Br,Cr,hsv = ab09ad(dico,job,equil,n,m,p,A,B,C,[nr,tol,ldwork])
