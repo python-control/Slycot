@@ -1,178 +1,153 @@
-# The test matrix includes OSX and Linux
+# Default entries for matrix jobs
+os: linux
+language: python
+dist: bionic
+services: xvfb # needed for the python-control tests
 
-# Don't know how to do non-Conda builds on OSX
+# Start with a 2x4 matrix of Linux builds
+python:
+ - "3.8"
+ - "3.7"
+env:
+ - TEST_PKG="conda" BLA_VENDOR="OpenBLAS"
+ - TEST_PKG="conda" BLA_VENDOR="Intel10_64lp" # MKL
+ - TEST_PKG="dist"  BLA_VENDOR="OpenBLAS"
+ - TEST_PKG="dist"  BLA_VENDOR="Generic" # reference BLAS/LAPACK
 
-# Linux builds needs extra settings (see "dist" and "services" below)
-
-matrix:
-  allow_failures:
-    - name: "OSX, Python 2.7, TEST_CONDA=1"
-      os: osx
-      env: SLYCOT_PYTHON_VERSION=2.7 TEST_CONDA=1
-
-    - name: "OSX, Python 3.5, TEST_CONDA=1"
-      os: osx
-      env: SLYCOT_PYTHON_VERSION=3.5 TEST_CONDA=1
-
-    - name: "OSX, Python 3.6, TEST_CONDA=1"
-      os: osx
-      env: SLYCOT_PYTHON_VERSION=3.6 TEST_CONDA=1
-
-    - name: "OSX, Python 3.7, TEST_CONDA=1"
-      os: osx
-      env: SLYCOT_PYTHON_VERSION=3.7 TEST_CONDA=1
-
+jobs:
+  # additional single Linux and OSX jobs
   include:
-    - name: "OSX, Python 2.7, TEST_CONDA=1"
+    - name: "Linux, Conda Python 3.6"
+      python: "3.6"
+      env: TEST_PKG="conda" BLA_VENDOR="OpenBLAS"
+    - name: "Linux, Conda Python 3.5"
+      python: "3.5"
+      env: TEST_PKG="conda" BLA_VENDOR="OpenBLAS"
+    - name: "Linux, Ubuntu 16.04, System Python 2.7"
+      python: "2.7"
+      dist: xenial
+      env: TEST_PKG="dist" BLA_VENDOR="OpenBLAS"
+    # (Conda Python 2 is broken due to pytest-cov dependencies)
+    - name: "MacOSX, Conda Python 3"
       os: osx
-      env: SLYCOT_PYTHON_VERSION=2.7 TEST_CONDA=1
-
-    - name: "OSX, Python 3.5, TEST_CONDA=1"
+      language: shell
+      env: TEST_PKG="conda" BLA_VENDOR="Apple"
+    - name: "MacOSX, System Python 3"
       os: osx
-      env: SLYCOT_PYTHON_VERSION=3.5 TEST_CONDA=1
-
-    - name: "OSX, Python 3.6, TEST_CONDA=1"
+      language: shell
+      env: TEST_PKG="dist" BLA_VENDOR="Apple"
+    - name: "MacOSX, pyenv 3.8.0"
       os: osx
-      env: SLYCOT_PYTHON_VERSION=3.6 TEST_CONDA=1
-
-    - name: "OSX, Python 3.7, TEST_CONDA=1"
+      language: shell
+      env: TEST_PKG="dist" BLA_VENDOR="Apple" SLYCOT_PYTHON_VERSION=3.8.0
+    - name: "MacOSX, pyenv 2.7.17"
       os: osx
-      env: SLYCOT_PYTHON_VERSION=3.7 TEST_CONDA=1
-
-    - name: "Ubuntu 16.04, Python 2.7, TEST_CONDA=0"
-      os: linux
-      dist: xenial
-      services: xvfb
-      env: SLYCOT_PYTHON_VERSION=2.7 TEST_CONDA=0
-
-    - name: "Ubuntu 16.04, Python 2.7, TEST_CONDA=1"
-      os: linux
-      dist: xenial
-      services: xvfb
-      env: SLYCOT_PYTHON_VERSION=2.7 TEST_CONDA=1
-
-    - name: "Ubuntu 16.04, Python 3.5, TEST_CONDA=0"
-      os: linux
-      dist: xenial
-      services: xvfb
-      env: SLYCOT_PYTHON_VERSION=3.5 TEST_CONDA=0
-
-    - name: "Ubuntu 16.04, Python 3.5, TEST_CONDA=1"
-      os: linux
-      dist: xenial
-      services: xvfb
-      env: SLYCOT_PYTHON_VERSION=3.5 TEST_CONDA=1
-
-    - name: "Ubuntu 16.04, Python 3.6, TEST_CONDA=0"
-      os: linux
-      dist: xenial
-      services: xvfb
-      env: SLYCOT_PYTHON_VERSION=3.6 TEST_CONDA=0
-
-    - name: "Ubuntu 16.04, Python 3.6, TEST_CONDA=1"
-      os: linux
-      dist: xenial
-      services: xvfb
-      env: SLYCOT_PYTHON_VERSION=3.6 TEST_CONDA=1
-
-    - name: "Ubuntu 16.04, Python 3.7, TEST_CONDA=0"
-      os: linux
-      dist: xenial
-      services: xvfb
-      env: SLYCOT_PYTHON_VERSION=3.7 TEST_CONDA=0
-
-    - name: "Ubuntu 16.04, Python 3.7, TEST_CONDA=1"
-      os: linux
-      dist: xenial
-      services: xvfb
-      env: SLYCOT_PYTHON_VERSION=3.7 TEST_CONDA=1
+      language: shell
+      env: TEST_PKG="dist" BLA_VENDOR="Apple" SLYCOT_PYTHON_VERSION=2.7.17
 
 
 before_install:
-  - if [[ $TEST_CONDA == 0 && $TRAVIS_OS_NAME != linux ]]; then
-      echo "Only Linux supported for non-Conda builds";
-      exit 1;
+  - |
+    # Install Ubuntu packages
+    if [[ $TEST_PKG == "dist" &&  $TRAVIS_OS_NAME == linux ]]; then
+      sudo apt-get update
+      sudo apt-get -y install gfortran cmake
+      if [[ $BLA_VENDOR == "OpenBLAS" ]]; then
+        sudo apt-get -y install libopenblas-dev
+      elif [[ $BLA_VENDOR == "Generic" ]]; then
+        sudo apt-get -y install libblas-dev liblapack-dev
+      else
+        echo "Unsupported BLAS Vendor: '$BLA_VENDOR'"
+        exit 2
+      fi
     fi
-    # from here on assume $TEST_CONDA == 0 implies $TRAVIS_OS_NAME == linux
-
-  - if [[ $TEST_CONDA == 0 ]]; then
-      sudo apt-get install liblapack-dev libblas-dev;
-      sudo apt-get install gfortran;
-      sudo apt-get install cmake;
+  - |
+    # Install MacOSX packages
+    if [[ $TEST_PKG == "dist" && $TRAVIS_OS_NAME == osx ]]; then
+        if [ -n "$SLYCOT_PYTHON_VERSION" ]; then
+            pyenv install $SLYCOT_PYTHON_VERSION
+            pyenv global $SLYCOT_PYTHON_VERSION
+            eval "$(pyenv init -)"
+            export MPLBACKEND="TkAgg"
+        else
+            mkdir -p ~/.local/bin
+            ln -s $(which python3) ~/.local/bin/python
+            ln -s $(which pip3) ~/.local/bin/pip
+        fi
     fi
-
 
 install:
-  #
-  # Install miniconda to allow quicker installation of dependencies
-  # See https://conda.io/docs/user-guide/tasks/use-conda-with-travis-ci.html
-  #
-  - if [[ $TRAVIS_OS_NAME == linux ]]; then
-      wget http://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
-    else
-      wget https://repo.anaconda.com/miniconda/Miniconda3-latest-MacOSX-x86_64.sh -O miniconda.sh;
-    fi
-  - bash miniconda.sh -b -p $HOME/miniconda
-  - export PATH="$HOME/miniconda/bin:$PATH"
-  - hash -r
-  - conda config --set always_yes yes --set changeps1 no
-  - conda update -q --all
-  - if [[ $TEST_CONDA == 1 ]]; then
-      conda install conda-build;
-      conda install conda-verify;
-    fi
-  - conda info -a
-  #
-  # Set up a test environment for testing everything out
-  - conda create -q -n test-environment python="$SLYCOT_PYTHON_VERSION" pip coverage nose numpy openblas
-  - source activate test-environment
-
-  #
-  # Make sure that fortran compiler can find conda libraries
-  #
-  - export LIBRARY_PATH="$HOME/miniconda/envs/test-environment/lib";
-
-  # install scikit-build
-  - if [[ $TEST_CONDA == 0 ]]; then
+  - |
+    # compile using conda environment or distribution libraries
+    echo "Python Version: ${SLYCOT_PYTHON_VERSION:=${TRAVIS_PYTHON_VERSION:-3.8}}"
+    if [[ $TEST_PKG == conda ]]; then
+      #
+      # Install miniconda to allow quicker installation of dependencies
+      # See https://conda.io/projects/conda/en/latest/user-guide/tasks/use-conda-with-travis-ci.html
+      #
+      if [[ $TRAVIS_OS_NAME == linux ]]; then
+        wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh
+      elif [[ $TRAVIS_OS_NAME == osx ]]; then
+        wget https://repo.continuum.io/miniconda/Miniconda3-latest-MacOSX-x86_64.sh -O miniconda.sh
+        wget https://github.com/phracker/MacOSX-SDKs/releases/download/10.15/MacOSX10.9.sdk.tar.xz
+        sudo tar -C /opt -xJf MacOSX10.9.sdk.tar.xz
+      else
+        echo "Unsupported OS for conda builds: $TRAVIS_OS_NAME"
+        exit 4
+      fi
+      bash miniconda.sh -b -p $HOME/miniconda
+      source "$HOME/miniconda/etc/profile.d/conda.sh"
+      hash -r
+      conda config --set always_yes yes --set changeps1 no
+      conda update -q --all
+      conda install conda-build
+      conda install conda-verify
       conda config --append channels conda-forge;
-      conda install -c conda-forge scikit-build >=0.8.0 ;
-    fi
-  #
-  # Install the slycot package (two ways, to improve robustness).  For the
-  # conda version, need to install lapack from conda-forge (no way to specify
-  # this in the recipe).
-  # add the conda-forge channel to the config, otherwise openblas or
-  # lapack cannot be found in the check
-  # with --override-channels to make sure the locally built slycot is installed
-  #
-  - if [[ $TEST_CONDA == 1 ]]; then
-      conda config --append channels conda-forge;
-      conda build --python "$SLYCOT_PYTHON_VERSION" conda-recipe-openblas;
-      conda install conda-forge::openblas>=0.3.0;
-      conda install local::slycot;
-    else
+      conda info -a;
+      if [[ $BLA_VENDOR == "OpenBLAS" ]]; then
+        conda_blas=openblas
+        conda_recipe=conda-recipe-openblas
+      elif [[ $BLA_VENDOR == "Intel10_64lp" ]]; then
+        conda_blas=mkl
+        conda_recipe=conda-recipe-mkl
+      elif [[ $BLA_VENDOR == "Apple" ]]; then
+        conda_blas=
+        conda_recipe=conda-recipe-apple
+      else
+        echo "Unsupported BLA_VENDOR for conda builds: $BLA_VENDOR"
+        exit 3
+      fi
+      conda create -q -n test-environment \
+            python="$SLYCOT_PYTHON_VERSION" \
+            pip coverage pytest-cov \
+            numpy scipy matplotlib \
+            $conda_blas
+      conda activate test-environment
+      export LIBRARY_PATH="$HOME/miniconda/envs/test-environment/lib"
+      conda build --python "$SLYCOT_PYTHON_VERSION" $conda_recipe
+      conda install local::slycot
+    elif [[ $TEST_PKG == dist ]]; then
+      pip install scikit-build pytest-cov matplotlib scipy;
       CMAKE_GENERATOR="Unix Makefiles" python setup.py install;
+    else
+      echo "Wrong TEST_PKG '$TEST_PKG'"
+      exit 1
     fi
-  #
-  # coveralls not in conda repos :-(
-  - pip install coveralls
-
+    # coveralls not in ubuntu or conda repos
+    pip install coveralls
 
 script:
-  # Local unit tests
-  # TODO: replace with nose?
+  # slycots own unit tests as installed, not those from source dir
   - cd ..
-  - python Slycot/runtests.py --coverage --no-build
+  - slycot_dir=$(python -c "import slycot; print(slycot.__path__[0])")
+  - pytest --pyargs slycot --cov=$slycot_dir --cov-config=Slycot/.coveragerc
   #
   # As a deeper set of tests, get test against python-control as well
   #
-  # Additional packages required for python-control
-  - conda install scipy matplotlib
   # Get python-control from source and install
   - git clone --depth 1 https://github.com/python-control/python-control.git control
   - cd control
   - python setup.py test
-
 
 after_success:
   - coveralls
