@@ -138,16 +138,24 @@ install:
 
 script:
   # slycots own unit tests as installed, not those from source dir
-  - cd ..
+  - mkdir ../slycot-coverage
+  - cd ../slycot-coverage
   - slycot_dir=$(python -c "import slycot; print(slycot.__path__[0])")
-  - pytest --pyargs slycot --cov=$slycot_dir --cov-config=Slycot/.coveragerc
+  - pytest --pyargs slycot --cov=$slycot_dir --cov-config=../Slycot/.coveragerc
   #
-  # As a deeper set of tests, get test against python-control as well
-  #
-  # Get python-control from source and install
-  - git clone --depth 1 https://github.com/python-control/python-control.git control
-  - cd control
-  - python setup.py test
+  # As a deeper set of tests, use the suite from python-control master branch as well
+  - cd ..
+  - git clone --depth 1 https://github.com/python-control/python-control.git
+  - cd python-control
+  - pytest --disable-warnings --cov=$slycot_dir --cov-config=../Slycot/.coveragerc control/tests
+
 
 after_success:
+  # go back to Slycot dir and merge the coverage to report correct repo data with coveralls
+  - cd ../Slycot
+  - cp ../slycot-coverage/.coverage .coverage.slycot
+  - cp ../python-control/.coverage .coverage.control
+  - echo "  $slycot_dir" >> .coveragerc
+  - coverage combine
+  - coverage report
   - coveralls
