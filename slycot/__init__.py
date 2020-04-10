@@ -22,7 +22,7 @@ else:
 
     # Identification routines (0/5 wrapped)
 
-    # Mathematical routines (3/81 wrapped)
+    # Mathematical routines (6/81 wrapped)
     from .math import mc01td, mb03vd, mb03vy, mb03wd, mb05md, mb05nd
 
     # Synthesis routines (14/50 wrapped)
