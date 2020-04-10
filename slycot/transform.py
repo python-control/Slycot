@@ -649,7 +649,6 @@ def td04ad(rowcol,m,p,index,dcoeff,ucoeff,tol=0.0,ldwork=None):
 
     kdcoef = max(index)+1
     if rowcol == 'R':
-        porm = p
         if ucoeff.ndim != 3:
             e = ValueError("The numerator is not a 3D array!")
             e.info = -7
@@ -664,7 +663,6 @@ def td04ad(rowcol,m,p,index,dcoeff,ucoeff,tol=0.0,ldwork=None):
             raise e
         out = _wrapper.td04ad_r(m,p,index,dcoeff,ucoeff,n,tol,ldwork)
     elif rowcol == 'C':
-        porm = m
         if ucoeff.ndim != 3:
             e = ValueError("The numerator is not a 3D array!")
             e.info = -7

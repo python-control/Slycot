@@ -104,7 +104,7 @@ set(FSOURCES
 
 set(F2PYSOURCE src/_wrapper.pyf)
 set(F2PYSOURCE_DEPS
-  src/analysis.pyf src/math.pyf src/mathematical.pyf
+  src/analysis.pyf src/math.pyf
   src/transform.pyf src/synthesis.pyf)
 
 configure_file(version.py.in version.py @ONLY)

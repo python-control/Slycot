@@ -18,6 +18,7 @@
 #       MA 02110-1301, USA.
 
 from . import _wrapper
+import warnings
 
 def mc01td(dico,dp,p):
     """ dp,stable,nz = mc01td(dico,dp,p)
@@ -61,16 +62,16 @@ def mc01td(dico,dp,p):
         e.info = out[-1]
         raise e
     if out[-1] == 1:
-        warings.warn('entry P(x) is the zero polynomial.')
+        warnings.warn('entry P(x) is the zero polynomial.')
     if out[-1] == 2:
-        warings.warn('P(x) may have zeros very close to stability boundary.')
+        warnings.warn('P(x) may have zeros very close to stability boundary.')
     if out[-2] > 0:
-        warnings.warn('The degree of P(x) has been reduced to %i' %(dp-k))
+        warnings.warn('The degree of P(x) has been reduced to %i' %(dp-out[-2]))
     return out[:-2]
 
 
 def mb05md(a, delta, balanc='N'):
-    """Ar, Vr, Yr, VALRr, VALDr = mb05md(a, delta, balanc='N')
+    """Ar, Vr, Yr, VAL = mb05md(a, delta, balanc='N')
 
     Matrix exponential for a real non-defective matrix
 
@@ -88,7 +89,7 @@ def mb05md(a, delta, balanc='N'):
             Square matrix
         delta : input 'd'
             The scalar value delta of the problem.
-     
+
     Optional arguments:
         balanc : input char*1
             Indicates how the input matrix should be diagonally scaled
@@ -114,7 +115,7 @@ def mb05md(a, delta, balanc='N'):
             (k+1)-th columns of the eigenvector matrix, respectively,
             then the eigenvector corresponding to the complex
             eigenvalue with positive (negative) imaginary value is
-            given by 
+            given by
               p + q*j (p - q*j), where j^2  = -1.
         Yr : output rank-2 array('d') with bounds (n,n)
             contains an intermediate result for computing the matrix
@@ -126,29 +127,39 @@ def mb05md(a, delta, balanc='N'):
             the (right) eigenvector matrix of A, where Lambda is the
             diagonal matrix of eigenvalues.
 
-        VALr : output rank-1 array('c') with bounds (n)
+        VAL : output rank-1 array('c') with bounds (n)
             Contains the eigenvalues of the matrix A. The eigenvalues
             are unordered except that complex conjugate pairs of values
             appear consecutively with the eigenvalue having positive
             imaginary part first.
     """
     hidden = ' (hidden by the wrapper)'
-    arg_list = [ 'balanc', 'n', 'delta', 'a', 'lda'+hidden, 'v', 'ldv'+hidden,
-                 'y','ldy'+hidden,'valr','vali',
-                 'iwork'+hidden,'dwork'+hidden,'ldwork'+hidden,'info'+hidden]
-    out = _wrapper.mb05md(balanc=balanc,n=min(a.shape),delta=delta,a=a)
-    if out[-1] == 0:
-        return out[:-1]
-    elif out[-1] < 0:
-        error_text = "The following argument had an illegal value: "+arg_list[-out[-1]-1]
-    elif out[-1] > 0 and out[-1] <= n:
-        error_text = "Incomplete eigenvalue calculation, missing %i eigenvalues" % out[-1]
-    elif out[-1] == n+1:
+    arg_list = ['balanc', 'n', 'delta', 'a', 'lda'+hidden, 'v', 'ldv'+hidden,
+                'y', 'ldy'+hidden, 'valr', 'vali',
+                'iwork'+hidden, 'dwork'+hidden, 'ldwork'+hidden,
+                'info'+hidden]
+    n = min(a.shape)
+    (Ar, Vr, Yr, VALr, VALi, INFO) = _wrapper.mb05md(balanc=balanc,
+                                                     n=n,
+                                                     delta=delta,
+                                                     a=a)
+    if INFO == 0:
+        if not all(VALi == 0):
+            VAL = VALr + 1J*VALi
+        else:
+            VAL = VALr
+        return (Ar, Vr, Yr, VAL)
+    elif INFO < 0:
+        error_text = "The following argument had an illegal value: " \
+                     + arg_list[-INFO-1]
+    elif INFO > 0 and INFO <= n:
+        error_text = "Incomplete eigenvalue calculation, missing %i eigenvalues" % INFO
+    elif INFO == n+1:
         error_text = "Eigenvector matrix singular"
-    elif out[-1] == n+2:
+    elif INFO == n+2:
         error_text = "A matrix defective"
     e = ValueError(error_text)
-    e.info = out[-1]
+    e.info = INFO
     raise e
 
 """
@@ -182,21 +193,21 @@ def mb05nd(a, delta, tol=1e-7):
         H : Int[F(s) ds] from s = 0 to s = delta,
     """
     hidden = ' (hidden by the wrapper)'
-    arg_list = [ 'n', 'delta', 'a', 'lda'+hidden, 'ex', 'ldex'+hidden,
-                 'exint', 'ldexin'+hidden, 'tol', 'iwork'+hidden,
-                 'dwork'+hidden, 'ldwork'+hidden]
-    out = _wrapper.mb05nd(n=min(a.shape), delta=delta, a=a, tol=tol)
+    arg_list = ['n', 'delta', 'a', 'lda'+hidden, 'ex', 'ldex'+hidden,
+                'exint', 'ldexin'+hidden, 'tol', 'iwork'+hidden,
+                'dwork'+hidden, 'ldwork'+hidden]
+    n = min(a.shape)
+    out = _wrapper.mb05nd(n=n, delta=delta, a=a, tol=tol)
     if out[-1] == 0:
         return out[:-1]
     elif out[-1] < 0:
         error_text = "The following argument had an illegal value: " \
-                     +arg_list[-out[-1]-1]
+                     + arg_list[-out[-1]-1]
     elif out[-1] == n+1:
         error_text = "Delta too large"
     e = ValueError(error_text)
     e.info = out[-1]
     raise e
-    
 
 
 # to be replaced by python wrappers
