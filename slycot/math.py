@@ -323,7 +323,7 @@ def mb03wd(job, compz, n, ilo, ihi, iloz, ihiz, H, Q, ldwork=None):
             It is assumed that all matrices H_j, j = 2, ..., p, are
             already upper triangular in rows and columns [:ilo-1] and
             [ihi:n], and H_1 is upper quasi-triangular in rows and
-            columns [:ilo-1] and [ihi:n], with H_1[ilo-1,ilo] = 0
+            columns [:ilo-1] and [ihi:n], with H_1[ilo-1,ilo-2] = 0
             (unless ilo = 1), and H_1[ihi,ihi-1] = 0 (unless ihi = n).
             The routine works primarily with the Hessenberg submatrix
             in rows and columns ilo to ihi, but applies the
@@ -371,9 +371,8 @@ def mb03wd(job, compz, n, ilo, ihi, iloz, ihiz, H, Q, ldwork=None):
             N-by-N-by-P part of this array contains the transformation
             matrices which produced the Schur form; the
             transformations are applied only to the submatrices
-            Z[iloz-1:ihiz,ilo-1:ihi,j-1], j = 1, ..., P.
+            Z[iloz-1:ihiz,ilo-1:ihi,j-1], j = 1, ..., p.
             If compz = 'N', Z is None
-
 
     W : ndarray (dtype=complex)
             1D array with shape (n).
