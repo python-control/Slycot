@@ -19,7 +19,7 @@ Riccati, Lyapunov, and Sylvester equations.
 Dependencies
 ------------
 
-Slycot supports Python versions 2.7 and >=3.5.
+Slycot supports Python versions 2.7, and 3.5 or later.
 
 To run the compiled Slycot package, the following must be installed as
 dependencies:
@@ -32,11 +32,13 @@ following dependencies:
 
 - Python 2.7, 3.5+
 - NumPy
-- scikit-build >=0.8.1
-- cmake
+- scikit-build
+- CMake
 - C compiler (e.g. gcc, MS Visual C++)
 - FORTRAN compiler (e.g. gfortran, ifort, flang)
 - BLAS/LAPACK (e.g. OpenBLAS, ATLAS, MKL)
+
+To run the Slycot unit tests and examples, you'll also need scipy.
 
 There are a variety of ways to install these dependencies on different
 operating systems. See the individual packages' documentation for options.
@@ -87,34 +89,36 @@ before running the install::
     # Windows:
     set FC=D:\path\to\my\fortran.exe
 
-To build and install execute::
+To build and install, execute::
 
     cd /path/to/slycot_src/
     python setup.py install
 
-You can also use conda to build and install Slycot from source::
+You can also use conda to build and install Slycot from source, but
+you'll have to choose the right recipe directory.
 
-    conda build conda-recipe
+On Linux you can choose between conda-recipe-openblas and
+conda-recipe-mkl
+
+On macOS you should use conda-recipe-apple.
+
+On Windows you can try either conda-recipe-openblas or
+conda-recipe-mkl; they allow for Windows builds, but we don't
+regularly test on that OS.  The Windows builds use flang, which is
+incompatible with Python 2.7.
+
+For example, to build with the OpenBLAS recipe::
+
+    conda build conda-recipe-openblas
     conda install --use-local slycot
-
-If you prefer to use the OpenBLAS library, a conda recipe is available in
-``conda-recipe-openblas``.
 
 Additional tips for how to install Slycot from source can be found in the
 ``.travis.yml`` (commands used for Travis CI) and conda-recipe/ (conda
 pre-requisites) both which are included in the source code repository.
 
-The hardest part about installing from source is getting a working version of
-FORTRAN and LAPACK installed on your system and working properly with Python.
-On Windows, the build system currently uses flang, which can be installed from
-conda-forge. Note that flang is incompatible with Python 2.7.
-
-If you are using conda, you can also get working (binary) copies of LAPACK from
-conda-forge using the command::
-
-   conda install -c conda-forge lapack
-
-Slycot will also work with the OpenBLAS libraries.
+The hardest part about installing from source is getting a working
+version of FORTRAN and LAPACK (provided by OpenBLAS, MKL, etc.)
+installed on your system and working properly with Python.
 
 Note that in some cases you may need to set the ``LIBRARY_PATH`` environment
 variable to pick up dependencies such as ``-lpythonN.m`` (where N.m is the
