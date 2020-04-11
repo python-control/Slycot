@@ -514,12 +514,21 @@ def ab08nz(n, m, p, A, B, C, D, equil='N', tol=0., lzwork=None):
             which is defined as the order of the largest leading (or trailing)
             triangular submatrix in the QR (or RQ) factorization with column
             (or row) pivoting whose estimated condition number is less than 1/tol.
+            If tol is set to less than SQRT((N+P)*(N+M))*EPS
+            then the tolerance is taken as SQRT((N+P)*(N+M))*EPS,
+            where EPS is the machine precision (see LAPACK Library
+            Routine DLAMCH).
         lzwork := None input int
-            The length of the cache array zwork. The default value is calculated
-            to MAX( 1, MIN(P,M) + MAX(3*M-1,N),
-                       MIN(P,N) + MAX(3*P-1,N+P,N+M),
-                       MIN(M,N) + MAX(3*M-1,N+M) )
-            for optimum performance should be larger.
+            The length of the internal cache array ZWORK. The default value is
+            calculated to
+               MAX( 1,
+                    MIN(P,M) + MAX(3*M-1,N),
+                    MIN(P,N) + MAX(3*P-1,N+P,N+M),
+                    MIN(M,N) + MAX(3*M-1,N+M) )
+            For optimum performance lzwork should be larger.
+            If lzwork = -1, then a workspace query is assumed;
+            the routine only calculates the optimal size of the
+            ZWORK array, and returns this value in lzwork_opt
     Return objects:
         nu : int
             The number of (finite) invariant zeros.
@@ -576,6 +585,7 @@ def ab08nz(n, m, p, A, B, C, D, equil='N', tol=0., lzwork=None):
         raise e
     return (nu, rank, dinfz, nkror, nkrol, infz, kronr, kronl, Af, Bf,
             int(zwork[0].real))
+
 
 def ab09ad(dico,job,equil,n,m,p,A,B,C,nr=None,tol=0,ldwork=None):
     """ nr,Ar,Br,Cr,hsv = ab09ad(dico,job,equil,n,m,p,A,B,C,[nr,tol,ldwork])
