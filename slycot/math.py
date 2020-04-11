@@ -109,7 +109,7 @@ def mb03vd(n, ilo, ihi, A):
     -------
 
     HQ : ndarray
-            The upper triangle and the first
+            3D array with same shape as A. The upper triangle and the first
             subdiagonal of HQ[:n,:n,0] contain the upper Hessenberg
             matrix H_1, and the elements below the first subdiagonal,
             with the first column of the array Tau represent the
@@ -122,6 +122,7 @@ def mb03vd(n, ilo, ihi, A):
             elementary reflectors. See FURTHER COMMENTS.
 
     Tau : ndarray
+            2D array with shape (max(1, n-1), p).
             The leading n-1 elements in the j-th column contain the
             scalar factors of the elementary reflectors used to form
             the matrix Q_j, j = 1, ..., p. See FURTHER COMMENTS.
@@ -183,9 +184,6 @@ def mb03vd(n, ilo, ihi, A):
     denotes an element of the vector defining H_j(i). (The element
     (1,2) in A_p is also unchanged for this example.)
 
-    Note that for P = 1, the LAPACK Library routine DGEHRD could be
-    more efficient on some computer architectures than this routine
-    (a BLAS 2 version).
     """
     hidden = ' (hidden by the wrapper)'
     arg_list = ['n', 'p' + hidden,
@@ -235,16 +233,16 @@ def mb03vy(n, ilo, ihi, A, Tau, ldwork=None):
             MB03VD.
 
     ldwork : int, optional
-            The length of the array DWORK.  LDWORK >= MAX(1,N).
-            For optimum performance LDWORK should be larger.
+            The length of the internal array DWORK.  ldwork >= max(1, n).
+            For optimum performance ldwork should be larger.
 
 
     Returns
     -------
 
     Q : ndarray
-           Q[:n,:n,j-1] contains the
-             N-by-N orthogonal matrix Q_j, j = 1, ..., p.
+            3D array with same shape as A. Q[:n,:n,j-1] contains the
+            N-by-N orthogonal matrix Q_j, j = 1, ..., p.
 
     Raises
     ------
@@ -359,6 +357,7 @@ def mb03wd(job, compz, n, ilo, ihi, iloz, ihiz, H, Q, ldwork=None):
     -------
 
     T : ndarray
+            3D array with the same shape as H.
             If JOB = 'S', T[:n,:n,0] is upper quasi-triangular in rows
             and columns [ilo-1:ihi], with any 2-by-2 diagonal blocks
             corresponding to a pair of complex conjugated eigenvalues, and
@@ -367,6 +366,7 @@ def mb03wd(job, compz, n, ilo, ihi, iloz, ihiz, H, Q, ldwork=None):
             If job = 'E', T is None
 
     Z : ndarray
+            3D array with the same shape as Q.
             If compz = 'V', or compz = 'I', the leading
             N-by-N-by-P part of this array contains the transformation
             matrices which produced the Schur form; the
@@ -376,9 +376,10 @@ def mb03wd(job, compz, n, ilo, ihi, iloz, ihiz, H, Q, ldwork=None):
 
 
     W : ndarray (dtype=complex)
+            1D array with shape (n).
             The computed eigenvalues ilo to ihi. If two eigenvalues
             are computed as a complex conjugate pair, they are stored
-            in consecutive elements of Wr say the i-th and
+            in consecutive elements of W say the i-th and
             (i+1)th, with imag(W][i]) > 0 and imag(W[i+1]) < 0.
             If JOB = 'S', the eigenvalues are stored in the same order
             as on the diagonal of the Schur form returned in H.
