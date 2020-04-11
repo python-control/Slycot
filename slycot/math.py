@@ -92,7 +92,7 @@ def mb03vd(n, ilo, ihi, A):
 
     ilo, ihi : int
             It is assumed that all matrices A_j, j = 2, ..., p, are
-            already upper triangular in rows and columns [:ilo] and
+            already upper triangular in rows and columns [:ilo-1] and
             [ihi:n], and A_1 is upper Hessenberg in rows and columns
             [:ilo-1] and [ihi:n], with A_1[ilo-1,ilo-2] = 0 (unless
             ilo = 1), and A_1[ihi,ihi-1] = 0 (unless ihi = n).
