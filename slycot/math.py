@@ -321,9 +321,9 @@ def mb03wd(job, compz, n, ilo, ihi, iloz, ihiz, H, Q, ldwork=None):
 
     ilo, ihi : int
             It is assumed that all matrices H_j, j = 2, ..., p, are
-            already upper triangular in rows and columns [:ilo] and
-            [ihi+1:n], and H_1 is upper quasi-triangular in rows and
-            columns [:ilo] and [ihi+1:n], with H_1[ilo-1,ilo] = 0
+            already upper triangular in rows and columns [:ilo-1] and
+            [ihi:n], and H_1 is upper quasi-triangular in rows and
+            columns [:ilo-1] and [ihi:n], with H_1[ilo-1,ilo] = 0
             (unless ilo = 1), and H_1[ihi,ihi-1] = 0 (unless ihi = n).
             The routine works primarily with the Hessenberg submatrix
             in rows and columns ilo to ihi, but applies the
