@@ -94,7 +94,7 @@ def mb03vd(n, ilo, ihi, A):
             It is assumed that all matrices A_j, j = 2, ..., p, are
             already upper triangular in rows and columns [:ilo] and
             [ihi:n], and A_1 is upper Hessenberg in rows and columns
-            [:ilo] and [ihi:n], with A_1[ilo-1,ilo] = 0 (unless
+            [:ilo-1] and [ihi:n], with A_1[ilo-1,ilo-2] = 0 (unless
             ilo = 1), and A_1[ihi,ihi-1] = 0 (unless ihi = n).
             If this is not the case, ilo and ihi should be set to 1
             and n, respectively.
@@ -115,7 +115,7 @@ def mb03vd(n, ilo, ihi, A):
             with the first column of the array Tau represent the
             orthogonal matrix Q_1 as a product of elementary
             reflectors. See FURTHER COMMENTS.
-            For j > 1, the upper triangle of HQ[:n,_n,j-1]
+            For j > 1, the upper triangle of HQ[:n,:n,j-1]
             contains the upper triangular matrix H_j, and the elements
             below the diagonal, with the j-th column of the array TAU
             represent the orthogonal matrix Q_j as a product of
