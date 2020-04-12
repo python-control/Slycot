@@ -10,8 +10,8 @@ Slycot
 .. image:: https://travis-ci.org/python-control/Slycot.svg?branch=master
    :target: https://travis-ci.org/python-control/Slycot
 
-.. image:: https://coveralls.io/repos/python-control/slycot/badge.png
-   :target: https://coveralls.io/r/python-control/slycot
+.. image:: https://coveralls.io/repos/github/python-control/Slycot/badge.svg
+   :target: https://coveralls.io/github/python-control/Slycot
 
 Python wrapper for selected SLICOT routines, notably including solvers for
 Riccati, Lyapunov, and Sylvester equations.
