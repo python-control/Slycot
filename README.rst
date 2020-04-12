@@ -97,13 +97,13 @@ To build and install, execute::
 You can also use conda to build and install Slycot from source, but
 you'll have to choose the right recipe directory.
 
-On Linux you can choose between conda-recipe-openblas and
-conda-recipe-mkl
+On Linux you can choose between ``conda-recipe-openblas`` and
+``conda-recipe-mkl``
 
-On macOS you should use conda-recipe-apple.
+On macOS you should use ``conda-recipe-apple``.
 
-On Windows you can try either conda-recipe-openblas or
-conda-recipe-mkl; they allow for Windows builds, but we don't
+On Windows you can try either ``conda-recipe-openblas`` or
+``conda-recipe-mkl``; they allow for Windows builds, but we don't
 regularly test on that OS.  The Windows builds use flang, which is
 incompatible with Python 2.7.
 
@@ -113,8 +113,9 @@ For example, to build with the OpenBLAS recipe::
     conda install --use-local slycot
 
 Additional tips for how to install Slycot from source can be found in the
-``.travis.yml`` (commands used for Travis CI) and conda-recipe/ (conda
-pre-requisites) both which are included in the source code repository.
+``.travis.yml`` (commands used for Travis CI) and the ``conda-recipe-*/``
+directories (conda pre-requisites) both which are included in the source
+code repository.
 
 The hardest part about installing from source is getting a working
 version of FORTRAN and LAPACK (provided by OpenBLAS, MKL, etc.)
