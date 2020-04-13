@@ -8,11 +8,11 @@ import numpy as np
 from numpy.testing import assert_raises, assert_almost_equal, assert_equal
 
 # test1 input parameters
-test1_l = 4  
-test1_n = 4    
-test1_m = 2 
-test1_p = 2 
-test1_tol = 0.0 
+test1_l = 4
+test1_n = 4
+test1_m = 2
+test1_p = 2
+test1_tol = 0.0
 test1_A = np.array([[-1,  0,  0,  3],
                     [ 0,  0,  1,  2],
                     [ 1,  1,  0,  4],
@@ -58,10 +58,10 @@ test1_Zexp = np.array([[-3.65148372e-01, -1.35772740e-16,  4.47213595e-01,  8.16
                        [-9.12870929e-01,  0.00000000e+00,  0.00000000e+00, -4.08248290e-01],
                        [ 6.19714937e-17, -1.00000000e+00,  0.00000000e+00, -1.38572473e-16],
                        [-1.82574186e-01, -6.78863700e-17, -8.94427191e-01,  4.08248290e-01]])
-                       
+
 test1_ranke_exp = 3
 test1_rnka22_exp = 1
-                
+
 class test_tg01fd(unittest.TestCase):
 
     def test1_tg01fd(self):
@@ -83,7 +83,7 @@ class test_tg01fd(unittest.TestCase):
         n = 30
         m = 70
         p = 44
-        
+
         np.random.seed(0)
 
         Ain = np.random.rand(l, n)
@@ -92,7 +92,7 @@ class test_tg01fd(unittest.TestCase):
         Cin = np.random.rand(p, n)
         Qin = np.random.randn(l,l)
         Zin = np.random.randn(n,n)
-        
+
         A_1,E_1,B_1,C_1,ranke_1,rnka22_1,Q_1,Z_1= transform.tg01fd(l=l,n=n,m=m,p=p,A=Ain,E=Ein,B=Bin,C=Cin,compq='I', compz='I', joba='T', tol=0.0)
 
         A_2,E_2,B_2,C_2,ranke_2,rnka22_2,Q_2,Z_2= transform.tg01fd(l=l,n=n,m=m,p=p,A=Ain,E=Ein,B=Bin,C=Cin,Q=Qin,Z=Zin,compq='U', compz='U', joba='T', tol=0.0)
@@ -106,9 +106,6 @@ class test_tg01fd(unittest.TestCase):
 
         assert_almost_equal(np.dot(Qin, Q_1), Q_2)
         assert_almost_equal(np.dot(Zin, Z_1), Z_2)
-
-def suite():
-   return unittest.TestLoader().loadTestsFromTestCase(TestConvert)
 
 
 if __name__ == "__main__":

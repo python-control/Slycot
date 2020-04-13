@@ -65,7 +65,6 @@ class test_tb05ad(unittest.TestCase):
             sys_transformed = self.check_tb05ad_AG_NG(sys, jomega, 'NG')
             self.check_tb05ad_NH(sys_transformed, sys, jomega)
 
-
     def test_tb05ad_errors(self):
         """
         Test tb05ad error handling. We give wrong inputs and
@@ -154,11 +153,6 @@ class test_tb05ad(unittest.TestCase):
         # unrecognized job
         assert_raises(ValueError, transform.tb05ad, n, m, p, jomega,
                       sys['A'], sys['B'], sys['C'], job='a')
-
-
-
-def suite():
-   return unittest.TestLoader().loadTestsFromTestCase(TestConvert)
 
 
 if __name__ == "__main__":
