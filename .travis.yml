@@ -158,4 +158,4 @@ after_success:
   - echo "  $slycot_dir" >> .coveragerc
   - coverage combine
   - coverage report
-  - coveralls
+  - coveralls debug
