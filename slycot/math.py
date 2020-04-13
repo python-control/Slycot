@@ -21,59 +21,6 @@ from . import _wrapper
 import warnings
 
 
-def mc01td(dico, dp, p):
-    """ dp,stable,nz = mc01td(dico,dp,p)
-
-    To determine whether or not a given polynomial P(x) with real
-    coefficients is stable, either in the continuous-time or discrete-
-    time case.
-
-    A polynomial is said to be stable in the continuous-time case
-    if all its zeros lie in the left half-plane, and stable in the
-    discrete-time case if all its zeros lie inside the unit circle.
-
-
-    Required arguments:
-        dico : input string(len=1)
-            Indicates whether the stability test to be applied to P(x) is in
-            the continuous-time or discrete-time case as follows:
-            = 'C':  continuous-time case;
-            = 'D':  discrete-time case.
-        dp : input int
-            The degree of the polynomial P(x).  dp >= 0.
-        p : input rank-1 array('d') with bounds (dp + 1)
-            This array must contain the coefficients of P(x) in increasing
-            powers of x.
-    Return objects:
-        dp : int
-            If P(dp+1) = 0.0 on entry, then dp contains the index of the highest
-            power of x for which P(dp+1) <> 0.0.
-        stable : int
-            Equal to 1 if P(x) if stable, 0 otherwise.
-        nz : int
-            The number of unstable zeros.
-    """
-    hidden = ' (hidden by the wrapper)'
-    arg_list = ['dico', 'dp', 'P', 'stable', 'nz', 'DWORK' + hidden,
-                'IWARN', 'INFO']
-    (dp_out, stable_log, nz, iwarn, info) = _wrapper.mc01td(dico, dp, p)
-    if info < 0:
-        fmt = "The following argument had an illegal value: '{}'"
-        e = ValueError(fmt.format(arg_list[-info - 1]))
-        e.info = info
-        raise e
-    if info == 1:
-        warnings.warn('entry P(x) is the zero polynomial.')
-    if info == 2:
-        warnings.warn('P(x) may have zeros very close to stability boundary.')
-    if iwarn > 0:
-        fmt = 'The degree of P(x) has been reduced to {:d}'
-        warnings.warn(fmt.format(dp - iwarn))
-    ftrue, ffalse = _wrapper.ftruefalse()
-    stable = 1 if stable_log == ftrue else 0
-    return (dp_out, stable, nz)
-
-
 def mb03vd(n, ilo, ihi, A):
     """ HQ, Tau = mb03vd(n, ilo, ihi, A)
 
@@ -569,4 +516,54 @@ def mb05nd(a, delta, tol=1e-7):
     raise e
 
 
-# to be replaced by python wrappers
+def mc01td(dico, dp, p):
+    """ dp,stable,nz = mc01td(dico,dp,p)
+
+    To determine whether or not a given polynomial P(x) with real
+    coefficients is stable, either in the continuous-time or discrete-
+    time case.
+
+    A polynomial is said to be stable in the continuous-time case
+    if all its zeros lie in the left half-plane, and stable in the
+    discrete-time case if all its zeros lie inside the unit circle.
+
+
+    Required arguments:
+        dico : input string(len=1)
+            Indicates whether the stability test to be applied to P(x) is in
+            the continuous-time or discrete-time case as follows:
+            = 'C':  continuous-time case;
+            = 'D':  discrete-time case.
+        dp : input int
+            The degree of the polynomial P(x).  dp >= 0.
+        p : input rank-1 array('d') with bounds (dp + 1)
+            This array must contain the coefficients of P(x) in increasing
+            powers of x.
+    Return objects:
+        dp : int
+            If P(dp+1) = 0.0 on entry, then dp contains the index of the highest
+            power of x for which P(dp+1) <> 0.0.
+        stable : int
+            Equal to 1 if P(x) if stable, 0 otherwise.
+        nz : int
+            The number of unstable zeros.
+    """
+    hidden = ' (hidden by the wrapper)'
+    arg_list = ['dico', 'dp', 'P', 'stable', 'nz', 'DWORK' + hidden,
+                'IWARN', 'INFO']
+    (dp_out, stable_log, nz, iwarn, info) = _wrapper.mc01td(dico, dp, p)
+    if info < 0:
+        fmt = "The following argument had an illegal value: '{}'"
+        e = ValueError(fmt.format(arg_list[-info - 1]))
+        e.info = info
+        raise e
+    if info == 1:
+        warnings.warn('entry P(x) is the zero polynomial.')
+    if info == 2:
+        warnings.warn('P(x) may have zeros very close to stability boundary.')
+    if iwarn > 0:
+        fmt = 'The degree of P(x) has been reduced to {:d}'
+        warnings.warn(fmt.format(dp - iwarn))
+    ftrue, ffalse = _wrapper.ftruefalse()
+    stable = 1 if stable_log == ftrue else 0
+    return (dp_out, stable, nz)
