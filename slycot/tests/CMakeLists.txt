@@ -4,6 +4,7 @@ set(PYSOURCE
   test.py
   test_ab08n.py
   test_ag08bd.py
+  test_examples.py
   test_mb.py
   test_mc.py
   test_sb10jd.py
