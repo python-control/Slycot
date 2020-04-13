@@ -154,6 +154,7 @@ class test_mb(unittest.TestCase):
 
     def test_mb05md(self):
         """ test_mb05md: verify Matrix exponential with slicot doc example
+
         data from http://slicot.org/objects/software/shared/doc/MB05MD.html
         """
         A = np.array([[ 0.5,  0.,   2.3, -2.6],

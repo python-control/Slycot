@@ -67,12 +67,12 @@ class TestTf2SS(unittest.TestCase):
         np.testing.assert_array_almost_equal(dcoeff,dcoeffref)
         np.testing.assert_array_almost_equal(ucoeff,ucoeffref)
 
-
     def test_td04ad_r(self):
-        """td04ad: Convert with 'R' option"""
+        """td04ad: Convert with 'R' option
 
-        """ example program from
-        http://slicot.org/objects/software/shared/doc/TD04AD.html"""
+        example program from
+        http://slicot.org/objects/software/shared/doc/TD04AD.html
+        """
 
         m = 2
         p = 2
@@ -173,27 +173,30 @@ class TestTf2SS(unittest.TestCase):
                 np.testing.assert_equal(M, np.zeros_like(M))
             np.testing.assert_almost_equal(D, Dref)
 
-
     def test_mixfeedthrough(self):
-        """Test case popping up from control testing"""
-        # a mix of feedthrough and dynamics. The problem from the control
-        # package was somewhere else
+        """Test case popping up from control testing
+
+        a mix of feedthrough and dynamics. The problem from the control
+        package was somewhere else
+        """
         num = np.array([ [ [ 0.0,  0.0 ], [ 0.0, -0.2 ] ],
                          [ [ -0.1,  0.0 ], [ 0.0,  0.0 ] ] ])
         p, m, d = num.shape
         numc = np.zeros((max(1, m, p), max(1, m, p), d), dtype=float)
         numc[:p,:m,:] = num
-        denc = np.array([ [ 1.0,  1.1 ], [ 1.0, 0.0 ] ])
-        idxc = np.array([ 1, 0 ])
+        denc = np.array([[1.0, 1.1],
+                         [1.0, 0.0]])
+        idxc = np.array([1, 0])
         n, A, B, C, D = transform.td04ad('C', 2, 2, idxc, denc, numc)
         np.testing.assert_array_almost_equal(D, np.array([[0,  0],[-0.1, 0]]))
 
     def test_toandfrom(self):
-
         A = np.array([[-3.0]])
         B = np.array([[0.1, 0.0]])
-        C = np.array([[1.0],[0.0]])
-        D = np.array([[0.0, 0.0],[0.0, 1.0]])
+        C = np.array([[1.0],
+                      [0.0]])
+        D = np.array([[0.0, 0.0],
+                      [0.0, 1.0]])
 
         tfout = transform.tb04ad(1, 2, 2, A, B, C, D)
 
@@ -219,6 +222,7 @@ class TestTf2SS(unittest.TestCase):
         n, A, B, C, D = transform.td04ad('C', m, p, index, dcoeff, ucoeff)
         self.assertEqual(n, 0)
         np.testing.assert_array_almost_equal(D, np.array([[64]]))
+
 
 if __name__ == "__main__":
     unittest.main()
