@@ -93,7 +93,7 @@ def test_sb10jd():
                   [ 0.00000000e+00]])
 
     A_r, B_r, C_r, D_r = synthesis.sb10jd(n, m, np, A, B, C, D, E)
-    assert_allclose(A, Aexp)
-    assert_allclose(B, Bexp)
-    assert_allclose(C, Cexp)
-    assert_allclose(D, Dexp)
+    assert_allclose(A_r, Aexp)
+    assert_allclose(B_r, Bexp)
+    assert_allclose(C_r, Cexp)
+    assert_allclose(D_r, Dexp)
