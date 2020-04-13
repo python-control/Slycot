@@ -468,12 +468,6 @@ def mb05md(a, delta, balanc='N'):
     e.info = INFO
     raise e
 
-"""
-from slycot import mb05nd
-import numpy as np
-a = np.mat('[-2. 0; 0.1 -3.]')
-mb05nd(a.shape[0], a, 0.1)
-"""
 
 def mb05nd(a, delta, tol=1e-7):
     """F, H = mb05nd(n, a, delta, tol=1e-7)
@@ -517,7 +511,7 @@ def mb05nd(a, delta, tol=1e-7):
 
 
 def mc01td(dico, dp, p):
-    """ dp,stable,nz = mc01td(dico,dp,p)
+    """dp, stable, nz = mc01td(dico, dp, p)
 
     To determine whether or not a given polynomial P(x) with real
     coefficients is stable, either in the continuous-time or discrete-
@@ -528,25 +522,31 @@ def mc01td(dico, dp, p):
     discrete-time case if all its zeros lie inside the unit circle.
 
 
-    Required arguments:
-        dico : input string(len=1)
-            Indicates whether the stability test to be applied to P(x) is in
-            the continuous-time or discrete-time case as follows:
+    Parameters
+    ----------
+        dico : {'C', 'D'}
+            Indicates whether the stability test to be applied to `P(x)` is in
+            the continuous-time or discrete-time case as follows::
+
             = 'C':  continuous-time case;
             = 'D':  discrete-time case.
-        dp : input int
-            The degree of the polynomial P(x).  dp >= 0.
-        p : input rank-1 array('d') with bounds (dp + 1)
-            This array must contain the coefficients of P(x) in increasing
-            powers of x.
-    Return objects:
+
         dp : int
-            If P(dp+1) = 0.0 on entry, then dp contains the index of the highest
-            power of x for which P(dp+1) <> 0.0.
+            The degree of the polynomial `P(x)`.  ``dp >= 0``.
+        p : (dp+1,) array_like
+            This array must contain the coefficients of `P(x)` in increasing
+            powers of `x`.
+
+    Returns
+    -------
+        dp : int
+            If ``P(dp+1) = 0.0`` on entry, then `dp` contains the index of the
+            highest power of `x` for which ``P(dp+1) <> 0.0``.
         stable : int
-            Equal to 1 if P(x) if stable, 0 otherwise.
+            Equal to 1 if `P(x)` is stable, 0 otherwise.
         nz : int
             The number of unstable zeros.
+
     """
     hidden = ' (hidden by the wrapper)'
     arg_list = ['dico', 'dp', 'P', 'stable', 'nz', 'DWORK' + hidden,
