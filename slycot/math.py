@@ -20,7 +20,8 @@
 from . import _wrapper
 import warnings
 
-def mc01td(dico,dp,p):
+
+def mc01td(dico, dp, p):
     """ dp,stable,nz = mc01td(dico,dp,p)
 
     To determine whether or not a given polynomial P(x) with real
@@ -53,21 +54,24 @@ def mc01td(dico,dp,p):
             The number of unstable zeros.
     """
     hidden = ' (hidden by the wrapper)'
-    arg_list = ['dico', 'dp', 'P', 'stable', 'nz', 'DWORK', 'IWARN'+hidden,
-        'INFO'+hidden]
-    out = _wrapper.mc01td(dico,dp,p)
-    if out[-1] < 0:
-        error_text = "The following argument had an illegal value: "+arg_list[-out[-1]-1]
-        e = ValueError(error_text)
-        e.info = out[-1]
+    arg_list = ['dico', 'dp', 'P', 'stable', 'nz', 'DWORK' + hidden,
+                'IWARN', 'INFO']
+    (dp_out, stable_log, nz, iwarn, info) = _wrapper.mc01td(dico, dp, p)
+    if info < 0:
+        fmt = "The following argument had an illegal value: '{}'"
+        e = ValueError(fmt.format(arg_list[-info - 1]))
+        e.info = info
         raise e
-    if out[-1] == 1:
+    if info == 1:
         warnings.warn('entry P(x) is the zero polynomial.')
-    if out[-1] == 2:
+    if info == 2:
         warnings.warn('P(x) may have zeros very close to stability boundary.')
-    if out[-2] > 0:
-        warnings.warn('The degree of P(x) has been reduced to %i' %(dp-out[-2]))
-    return out[:-2]
+    if iwarn > 0:
+        fmt = 'The degree of P(x) has been reduced to {:d}'
+        warnings.warn(fmt.format(dp - iwarn))
+    ftrue, ffalse = _wrapper.ftruefalse()
+    stable = 1 if stable_log == ftrue else 0
+    return (dp_out, stable, nz)
 
 
 def mb03vd(n, ilo, ihi, A):
