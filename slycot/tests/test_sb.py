@@ -77,23 +77,23 @@ def test_sb10jd():
     D = zeros((7, 1))
 
     # test1 expected results
-    Aexp = array([[-0.00312500]])
-    Bexp = array([[ 0.05899985]])
-    Cexp = array([[-1.17518847e-02],
-                  [-1.17518847e-02],
-                  [-1.17518847e-02],
-                  [ 0.00000000e+00],
-                  [ 0.00000000e+00],
-                  [ 3.76060309e-01]])
-    Dexp = array([[ 2.21875000e-01],
-                  [ 2.21875000e-01],
-                  [ 2.21875000e-01],
-                  [ 0.00000000e+00],
-                  [ 7.10000000e+00],
-                  [ 0.00000000e+00]])
+    Aexp = array([[-0.003125]])
+    Bexp = array([[ 0.059000]])
+    Cexp = array([[-1.17519e-02],
+                  [-1.17519e-02],
+                  [-1.17519e-02],
+                  [ 0.         ],
+                  [ 0.         ],
+                  [ 3.76060e-01]])
+    Dexp = array([[ 2.21875e-01],
+                  [ 2.21875e-01],
+                  [ 2.21875e-01],
+                  [ 0.         ],
+                  [ 7.100000+00],
+                  [ 0.         ]])
 
     A_r, B_r, C_r, D_r = synthesis.sb10jd(n, m, np, A, B, C, D, E)
-    assert_allclose(A_r, Aexp)
-    assert_allclose(B_r, Bexp)
-    assert_allclose(C_r, Cexp)
-    assert_allclose(D_r, Dexp)
+    assert_allclose(A_r, Aexp, atol=1e-5)
+    assert_allclose(B_r, Bexp, atol=1e-5)
+    assert_allclose(C_r, Cexp, atol=1e-5)
+    assert_allclose(D_r, Dexp, atol=1e-5)
