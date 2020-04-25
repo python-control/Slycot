@@ -91,7 +91,10 @@ you'll have to choose the right recipe directory.
 On Linux you can choose between ``conda-recipe-openblas`` and
 ``conda-recipe-mkl``
 
-On macOS you should use ``conda-recipe-apple``.
+On macOS you should use ``conda-recipe-apple``. See the 
+`conda-build documentation`_ how to get the required macOS SDK.
+
+.. _conda-build documentation: https://docs.conda.io/projects/conda-build/en/latest/resources/compiler-tools.html#macos-sdk
 
 For example, to build with the OpenBLAS recipe::
 
