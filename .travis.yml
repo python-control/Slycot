@@ -138,10 +138,9 @@ install:
 
 script:
   # slycots own unit tests as installed, not those from source dir
-  - mkdir ../slycot-coverage
-  - cd ../slycot-coverage
-  - slycot_dir=$(python -c "import slycot; print(slycot.__path__[0])")
-  - pytest --pyargs slycot --cov=$slycot_dir --cov-config=../Slycot/.coveragerc
+  - slycot_dir=$(python -c "import sys; sys.path = sys.path[1:]; import slycot; print(slycot.__path__[0])")
+  - pytest --cov=$slycot_dir
+  - mv .coverage .coverage.slycot
   #
   # As a deeper set of tests, use the suite from python-control master branch as well
   - cd ..
@@ -153,7 +152,6 @@ script:
 after_success:
   # go back to Slycot dir and merge the coverage to report correct repo data with coveralls
   - cd ../Slycot
-  - cp ../slycot-coverage/.coverage .coverage.slycot
   - cp ../python-control/.coverage .coverage.control
   - echo "  $slycot_dir" >> .coveragerc
   - coverage combine
