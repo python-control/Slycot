@@ -567,7 +567,8 @@ C            CALL DGEGS( 'Vectors left', 'Vectors right', M, A, LDA, D,
 C     $                  LDD, DWORK, DWORK(M+1), DWORK(2*M+1), P, LDP, Q,
 C     $                  LDQ, DWORK(3*M+1), LDWORK-3*M, INFO )
          CALL DGGES( 'Vectors left', 'Vectors right', 'N', 0, N, A, LDA,
-     $               D, LDD, SDIM, DWORK, DWORK(M+1), DWORK(2*M+1), P, LDP, Q,
+     $               D, LDD, SDIM, DWORK, DWORK(M+1), DWORK(2*M+1), P,
+     $               LDP, Q,
      $               LDQ, DWORK(3*M+1), LDWORK-3*M, 0, INFO )
 
 C
@@ -626,8 +627,10 @@ C
 C            CALL DGEGS( 'Vectors left', 'Vectors right', N, B, LDB, E,
 C     $                  LDE, DWORK, DWORK(N+1), DWORK(2*N+1), U, LDU, V,
 C     $                  LDV, DWORK(3*N+1), LDWORK-3*N, INFO )
-            CALL DGGES( 'Vectors left', 'Vectors right', 'N', 0, N, B, LDB, E,
-     $                  LDE, SDIM, DWORK, DWORK(N+1), DWORK(2*N+1), U, LDU, V,
+            CALL DGGES( 'Vectors left', 'Vectors right', 'N',
+     $                  0, N, B, LDB, E,
+     $                  LDE, SDIM, DWORK, DWORK(N+1), DWORK(2*N+1),
+     $                  U, LDU, V,
      $                  LDV, DWORK(3*N+1), LDWORK-3*N, 0, INFO )
 C
 C           Undo scaling
