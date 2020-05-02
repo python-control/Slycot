@@ -6,24 +6,33 @@ test_examples.py
 """
 
 from inspect import getmembers, isfunction
-import pytest
+import unittest, io
+from parameterized import parameterized
+from contextlib import redirect_stdout, redirect_stderr
 
 from slycot import examples
 
-examplefunctions = [fun for (fname, fun) in getmembers(examples)
+examplefunctions = [(fname[:-len("_example")], fun)
+                    for (fname, fun) in getmembers(examples)
                     if isfunction(fun) and "_example" in fname]
 
+class TestExamples(unittest.TestCase):
 
-@pytest.mark.parametrize('examplefun', examplefunctions)
-def test_example(examplefun, capsys, recwarn):
-    """
-    Test the examples.
+    @parameterized.expand(examplefunctions)
+    def test_example(self, name, examplefun):
+        #def test_example(examplefun, capsys, recwarn):
+        """
+        Test the examples.
+        
+        Test that all the examples work, produce some (unchecked) output but no
+        exceptions or warnings.
+        """
+        out, err = io.StringIO(), io.StringIO()
+        with redirect_stderr(err), redirect_stdout(out):
+            examplefun()
+        self.assertTrue(len(out.getvalue()) > 0)
+        self.assertFalse(err.getvalue())
+        #assert not recwarn
 
-    Test that all the examples work, produce some (unchecked) output but no
-    exceptions or warnings.
-    """
-    examplefun()
-    captured = capsys.readouterr()
-    assert len(captured.out) > 0
-    assert not captured.err
-    assert not recwarn
+if __name__ == "__main__":
+    unittest.main()
