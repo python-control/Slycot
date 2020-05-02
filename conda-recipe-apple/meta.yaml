@@ -14,6 +14,7 @@ requirements:
     - {{ compiler('c') }}       
     - {{ compiler('fortran') }}   # [unix]
     - flang                       # [win]
+    - cmake
     
   host:
     - numpy
@@ -29,6 +30,9 @@ requirements:
 test:
   imports:
     - slycot
+  commands:
+    - conda install nose pytest scipy parameterized --yes --quiet
+    - python -c "from slycot import test; test()"
 
 about:
   home: https://github.com/python-control/Slycot
