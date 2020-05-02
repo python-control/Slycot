@@ -65,7 +65,7 @@ from the conda-forge channel with the following command::
 From source without conda (Linux, macOS, Windows)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Unpack the course code to a directory of your choice,
+Unpack the source code to a directory of your choice,
 e.g. ``/path/to/slycot_src/``
 
 If you need to specify a specific compiler, set the environment variable FC
