@@ -131,7 +131,7 @@ set(CMAKE_Fortran_FLAGS )
 
 add_custom_target(wrapper ALL DEPENDS ${FSOURCES})
 add_custom_command(
-  OUTPUT SLYCOTmodule.c _wrappermodule.c _wrapper-f2pywrappers.f
+  OUTPUT _wrappermodule.c _wrapper-f2pywrappers.f
   COMMAND ${F2PY_EXECUTABLE} -m SLYCOT
   ${CMAKE_CURRENT_SOURCE_DIR}/${F2PYSOURCE}
   DEPENDS ${F2PYSOURCE_DEPS} ${F2PYSOURCE}
@@ -139,12 +139,20 @@ add_custom_command(
 
 add_library(
   ${SLYCOT_MODULE} MODULE
-  SLYCOTmodule.c _wrappermodule.c _wrapper-f2pywrappers.f
-  "${PYTHON_SITE}/numpy/f2py/src/fortranobject.c"
+  _wrappermodule.c 
+  ${PYTHON_SITE}/numpy/f2py/src/fortranobject.c
+  _wrapper-f2pywrappers.f
   ${FSOURCES})
 
 target_link_libraries(${SLYCOT_MODULE}
   ${LAPACK_LIBRARIES})
+
+target_include_directories(
+  ${SLYCOT_MODULE} PUBLIC
+  ${PYTHON_SITE}/numpy/core/include
+  ${PYTHON_SITE}/numpy/f2py/src
+  ${PYTHON_INCLUDE_DIRS}
+  )
 
 if (UNIX)
   if (APPLE)
@@ -156,15 +164,9 @@ if (UNIX)
   endif()
 endif()
 
-target_include_directories(
-  ${SLYCOT_MODULE} PUBLIC
-  ${PYTHON_SITE}/numpy/core/include
-  ${PYTHON_SITE}/numpy/f2py/src
-  ${PYTHON_INCLUDE_DIRS}
-  )
-
 python_extension_module(${SLYCOT_MODULE})
-install(TARGETS ${SLYCOT_MODULE} DESTINATION slycot)
+
+install(TARGETS ${SLYCOT_MODULE} LIBRARY DESTINATION slycot)
 install(FILES ${PYSOURCE} DESTINATION slycot)
 
 add_subdirectory(tests)
