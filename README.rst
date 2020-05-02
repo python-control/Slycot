@@ -32,7 +32,7 @@ following dependencies:
 
 - Python 2.7, 3.5+
 - NumPy
-- scikit-build
+- scikit-build >= 0.10.0
 - CMake
 - C compiler (e.g. gcc, MS Visual C++)
 - FORTRAN compiler (e.g. gfortran, ifort, flang)
@@ -108,22 +108,30 @@ A similar method can be used for Linux and macOS, but is detailed here
 for Windows.  This method uses conda and conda-forge to get most build
 dependencies, *except* for the C compiler.
 
-First, install the appropriate Visual Studio compiler (see
-https://wiki.python.org/moin/WindowsCompilers ).
+This procedure has been tested on Python 3.7 and 3.8.
 
-In the unpacked Slycot source directory, run the following commands.
-This example is for Python 3.5; adapt as required.
+First, install the `correct Visual Studio compiler for the Python
+version`_ you wish to build for.
 
-    conda create --channel conda-forge --name build-slycot-py35 python=3.5 scikit-build flang numpy scipy
-    activate build-slycot-py35
+.. _correct Visual Studio compiler for the Python version: https://wiki.python.org/moin/WindowsCompilers
 
-    REM you won't need this if conda installs f2py.exe rather than f2py.cmd or f2py.bat
-    where f2py > %TMP%\F2PYPATH.txt
-    set /P F2PYPATH=< %TMP%\F2PYPATH.txt
+To build, you'll need a command shell setup for both conda and the
+Visual Studio build tools.  See `conda activation`_ and `Microsoft
+Visual Studio setup`_ for information on this.
 
-    python setup.py install -- -DF2PY_EXECUTABLE=%F2PYPATH%
-    cd slycot\tests
-    python -m unittest -v
+.. _conda activation: https://docs.conda.io/projects/conda/en/latest/user-guide/troubleshooting.html#windows-environment-has-not-been-activated
+.. _Microsoft Visual Studio setup: https://docs.microsoft.com/en-us/cpp/build/setting-the-path-and-environment-variables-for-command-line-builds?view=vs-2019
+
+In such a command shell, run the following commands to build and
+install Slycot (this example creates a Python 3.8 environment)::
+
+    conda create --channel conda-forge --name build-slycot python=3.8 numpy scipy libblas=*=*netlib liblapack=*=*netlib scikit-build flang pytest
+    conda activate build-slycot
+
+    python setup.py install
+    pytest
+
+The final ``pytest`` command is optional; it runs the Slycot unit tests.
 
 General notes on compiling
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
