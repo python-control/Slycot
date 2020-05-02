@@ -1,2 +1,12 @@
 [run]
 source = slycot
+omit = 
+  */tests/*
+  */version.py
+
+
+# please do not add any sections after this block
+# the CI will add the slycot modules as last line here
+[paths]
+source =
+  slycot/

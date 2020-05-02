@@ -1,0 +1,10 @@
+!    -*- f90 -*-
+! Note: the context of this file is case sensitive.
+
+subroutine ftruefalse(ftrue,ffalse) ! in src/ftruefalse.f
+    logical intent(out) :: ftrue
+    logical intent(out) :: ffalse
+end subroutine ftruefalse
+
+! This file was auto-generated with f2py (version:2).
+! See http://cens.ioc.ee/projects/f2py2e/
