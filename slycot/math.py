@@ -20,6 +20,234 @@
 from . import _wrapper
 import warnings
 
+import numpy as np
+
+
+def mb03rd(n, A, X=None, jobx='U', sort='N', pmax=1.0, tol=0.0):
+    """Ar, Xr, blsize, W = mb03rd(n, A, [X, jobx, sort, pmax, tol])
+
+    To reduce a matrix `A` in real Schur form to a block-diagonal form
+    using well-conditioned non-orthogonal similarity transformations.
+    The condition numbers of the transformations used for reduction
+    are roughly bounded by `pmax`*`pmax`, where `pmax` is a given value.
+    The transformations are optionally postmultiplied in a given
+    matrix `X`. The real Schur form is optionally ordered, so that
+    clustered eigenvalues are grouped in the same block.
+
+    Parameters
+    ----------
+        n : int
+            The order of the matrices `A` and `X`.  `n` >= 0.
+        A : (n, n) array_like
+            The matrix `A` to be block-diagonalized, in real Schur form.
+        X : (n, n) array_like, optional
+            A given matrix `X`, for accumulation of transformations (only if
+            `jobx`='U')
+        jobx : {'N', 'U'}, optional
+            Specifies whether or not the transformations are
+            accumulated, as follows:
+
+            := 'N': The transformations are not accumulated
+            := 'U': The transformations are accumulated in `Xr` (default)
+
+        sort : {'N', 'S', 'C', 'B'}, optional
+            Specifies whether or not the diagonal blocks of the real
+            Schur form are reordered, as follows:
+
+            := 'N':  The diagonal blocks are not reordered (default);
+            := 'S':  The diagonal blocks are reordered before each
+                     step of reduction, so that clustered eigenvalues
+                     appear in the same block;
+            := 'C':  The diagonal blocks are not reordered, but the
+                     "closest-neighbour" strategy is used instead of
+                     the standard "closest to the mean" strategy
+                     (see Notes_);
+            := 'B':  The diagonal blocks are reordered before each
+                     step of reduction, and the "closest-neighbour"
+                     strategy is used (see Notes_).
+
+        pmax : float, optional
+            An upper bound for the infinity norm of elementary
+            submatrices of the individual transformations used for
+            reduction (see Notes_).  `pmax` >= 1.0
+        tol : float, optional
+            The tolerance to be used in the ordering of the diagonal
+            blocks of the real Schur form matrix.
+            If the user sets `tol` > 0, then the given value of `tol` is
+            used as an absolute tolerance: a block `i` and a temporarily
+            fixed block 1 (the first block of the current trailing
+            submatrix to be reduced) are considered to belong to the
+            same cluster if their eigenvalues satisfy
+
+            .. math:: | \\lambda_1 - \\lambda_i | <= tol.
+
+            If the user sets `tol` < 0, then the given value of tol is
+            used as a relative tolerance: a block i and a temporarily
+            fixed block 1 are considered to belong to the same cluster
+            if their eigenvalues satisfy, for ``j = 1, ..., n``
+
+            .. math:: | \\lambda_1 - \\lambda_i | <= | tol | * \\max | \\lambda_j |.
+
+            If the user sets `tol` = 0, then an implicitly computed,
+            default tolerance, defined by ``tol = SQRT( SQRT( EPS ) )``
+            is used instead, as a relative tolerance, where `EPS` is
+            the machine precision (see LAPACK Library routine DLAMCH).
+            If `sort` = 'N' or 'C', this parameter is not referenced.
+
+    Returns
+    -------
+        Ar : (n, n) ndarray
+            Contains the computed block-diagonal matrix, in real Schur
+            canonical form. The non-diagonal blocks are set to zero.
+        Xr : (n, n) ndarray or None
+            Contains the product of the given matrix `X` and the
+            transformation matrix that reduced `A` to block-diagonal
+            form. The transformation matrix is itself a product of
+            non-orthogonal similarity transformations having elements
+            with magnitude less than or equal to `pmax`.
+            If `jobx` = 'N', this array is returned as None
+        blsize : (n,) ndarray
+            The orders of the resulting diagonal blocks of the matrix `Ar`.
+        W : (n,) complex ndarray
+            Contains the complex eigenvalues of the matrix `A`.
+
+    Notes
+    -----
+    **Method**
+
+    Consider first that `sort` = 'N'. Let
+
+    ::
+
+           ( A    A   )
+           (  11   12 )
+       A = (          ),
+           ( 0    A   )
+           (       22 )
+
+    be the given matrix in real Schur form, where initially :math:`A_{11}` is the
+    first diagonal block of dimension 1-by-1 or 2-by-2. An attempt is
+    made to compute a transformation matrix `X` of the form
+
+    ::
+
+           ( I   P )
+       X = (       )                                               (1)
+           ( 0   I )
+
+    (partitioned as `A`), so that
+
+    ::
+
+                ( A     0  )
+        -1      (  11      )
+       X  A X = (          ),
+                ( 0    A   )
+                (       22 )
+
+    and the elements of `P` do not exceed the value `pmax` in magnitude.
+    An adaptation of the standard method for solving Sylvester
+    equations [1]_, which controls the magnitude of the individual
+    elements of the computed solution [2]_, is used to obtain matrix `P`.
+    When this attempt failed, an 1-by-1 (or 2-by-2) diagonal block of
+    :math:`A_{22}`  , whose eigenvalue(s) is (are) the closest to the mean of those
+    of :math:`A_{11}`   is selected, and moved by orthogonal similarity
+    transformations in the leading position of :math:`A_{22}`  ; the moved diagonal
+    block is then added to the block :math:`A_{11}`  , increasing its order by 1
+    (or 2). Another attempt is made to compute a suitable
+    transformation matrix X with the new definitions of the blocks :math:`A_{11}`
+    and :math:`A_{22}`  . After a successful transformation matrix `X` has been
+    obtained, it postmultiplies the current transformation matrix
+    (if `jobx` = 'U'), and the whole procedure is repeated for the
+    matrix :math:`A_{22}`.
+
+    When `sort` = 'S', the diagonal blocks of the real Schur form are
+    reordered before each step of the reduction, so that each cluster
+    of eigenvalues, defined as specified in the definition of TOL,
+    appears in adjacent blocks. The blocks for each cluster are merged
+    together, and the procedure described above is applied to the
+    larger blocks. Using the option `sort` = 'S' will usually provide
+    better efficiency than the standard option (`sort` = 'N'), proposed
+    in [2]_, because there could be no or few unsuccessful attempts
+    to compute individual transformation matrices `X` of the form (1).
+    However, the resulting dimensions of the blocks are usually
+    larger; this could make subsequent calculations less efficient.
+
+    When `sort` = 'C' or 'B', the procedure is similar to that for
+    `sort` = 'N' or 'S', respectively, but the block of :math:`A_{22}` whose
+    eigenvalue(s) is (are) the closest to those of :math:`A_{11}` (not to their
+    mean) is selected and moved to the leading position of :math:`A_{22}`. This
+    is called the "closest-neighbour" strategy.
+
+    **Numerical Aspects**
+
+    The algorithm usually requires :math:`\mathcal{O}(N^3)` operations,
+    but :math:`\mathcal{O}(N^4)` are
+    possible in the worst case, when all diagonal blocks in the real
+    Schur form of `A` are 1-by-1, and the matrix cannot be diagonalized
+    by well-conditioned transformations.
+
+    **Further Comments**
+
+    The individual non-orthogonal transformation matrices used in the
+    reduction of `A` to a block-diagonal form have condition numbers
+    of the order `pmax`*`pmax`. This does not guarantee that their product
+    is well-conditioned enough. The routine can be easily modified to
+    provide estimates for the condition numbers of the clusters of
+    eigenvalues.
+
+    **Contributor**
+
+    V. Sima, Katholieke Univ. Leuven, Belgium, June 1998.
+    Partly based on the RASP routine BDIAG by A. Varga, German
+    Aerospace Center, DLR Oberpfaffenhofen.
+
+    **Revisions**
+
+    \V. Sima, Research Institute for Informatics, Bucharest, Apr. 2003.
+
+    References
+    ----------
+    .. [1] Bartels, R.H. and Stewart, G.W.  T
+           Solution of the matrix equation A X + XB = C.
+           Comm. A.C.M., 15, pp. 820-826, 1972.
+
+    .. [2] Bavely, C. and Stewart, G.W.
+           An Algorithm for Computing Reducing Subspaces by Block
+           Diagonalization.
+           SIAM J. Numer. Anal., 16, pp. 359-367, 1979.
+
+    .. [3] Demmel, J.
+           The Condition Number of Equivalence Transformations that
+           Block Diagonalize Matrix Pencils.
+           SIAM J. Numer. Anal., 20, pp. 599-610, 1983.
+
+    """
+    hidden = ' (hidden by the wrapper)'
+    arg_list = ['jobx', 'sort', 'n', 'pmax',
+                'A', 'lda' + hidden, 'X', 'ldx' + hidden,
+                'nblcks', 'blsize', 'wr', 'wi', 'tol',
+                'dwork' + hidden, 'info']
+
+    if X is None:
+        X = np.zeros((1, n))
+
+    Ar, Xr, nblcks, blsize, wr, wi, info = _wrapper.mb03rd(
+        jobx, sort, n, pmax, A, X, tol)
+
+    if info < 0:
+        fmt = "The following argument had an illegal value: '{}'"
+        e = ValueError(fmt.format(arg_list[-info - 1]))
+        e.info = info
+        raise e
+    if jobx == 'N':
+        Xr = None
+    else:
+        Xr = Xr[:n, :n]
+    Ar = Ar[:n, :n]
+    W = wr + 1J*wi
+    return Ar, Xr, blsize[:nblcks], W
+
 
 def mb03vd(n, ilo, ihi, A):
     """ HQ, Tau = mb03vd(n, ilo, ihi, A)

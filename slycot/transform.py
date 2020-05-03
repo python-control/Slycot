@@ -1049,30 +1049,30 @@ def tb01pd(n, m, p, A, B, C, job='M', equil='S', tol=1e-8, ldwork=None):
 
 def tg01ad(l,n,m,p,A,E,B,C,thresh=0.0,job='A'):
     """ A,E,B,C,lscale,rscale = tg01ad(l,n,m,p,A,E,B,C,[thresh,job])
-    
+
     To balance the matrices of the system pencil
-    
+
             S =  ( A  B ) - lambda ( E  0 ) :=  Q - lambda Z,
                  ( C  0 )          ( 0  0 )
-    
+
     corresponding to the descriptor triple (A-lambda E,B,C),
     by balancing. This involves diagonal similarity transformations
     (Dl*A*Dr - lambda Dl*E*Dr, Dl*B, C*Dr) applied to the system
     (A-lambda E,B,C) to make the rows and columns of system pencil
     matrices
-    
+
                 diag(Dl,I) * S * diag(Dr,I)
-    
+
     as close in norm as possible. Balancing may reduce the 1-norms
     of the matrices of the system pencil S.
-    
+
     The balancing can be performed optionally on the following
     particular system pencils
-    
+
             S = A-lambda E,
-    
+
             S = ( A-lambda E  B ),    or
-    
+
             S = ( A-lambda E ).
                 (     C      )
     Required arguments:
@@ -1134,15 +1134,15 @@ def tg01ad(l,n,m,p,A,E,B,C,thresh=0.0,job='A'):
           the scaling factor applied to column j, then
           SCALE(j) = Dr(j), for j = 1,...,N.
     """
-    
+
     hidden = ' (hidden by the wrapper)'
     arg_list = ['job', 'l', 'n', 'm', 'p', 'thresh', 'A', 'lda'+hidden, 'E','lde'+hidden,'B','ldb'+hidden,'C','ldc'+hidden, 'lscale', 'rscale', 'dwork'+hidden, 'info']
-        
+
     if job != 'A' and job != 'B' and job != 'C' and job != 'N':
         raise ValueError('Parameter job had an illegal value')
 
     A,E,B,C,lscale,rscale,info = _wrapper.tg01ad(job,l,n,m,p,thresh,A,E,B,C)
-        
+
     if info < 0:
         error_text = "The following argument had an illegal value: "+arg_list[-info-1]
         e = ValueError(error_text)
@@ -1152,7 +1152,7 @@ def tg01ad(l,n,m,p,A,E,B,C,thresh=0.0,job='A'):
         e = ArithmeticError('tg01ad failed')
         e.info = info
         raise e
-            
+
     return A,E,B,C,lscale,rscale
 
 def tg01fd(l,n,m,p,A,E,B,C,Q=None,Z=None,compq='N',compz='N',joba='N',tol=0.0,ldwork=None):
@@ -1162,23 +1162,23 @@ def tg01fd(l,n,m,p,A,E,B,C,Q=None,Z=None,compq='N',compz='N',joba='N',tol=0.0,ld
     the orthogonal transformation matrices Q and Z such that the
     transformed system (Q'*A*Z-lambda Q'*E*Z, Q'*B, C*Z) is
     in a SVD-like coordinate form with
-    
+
                  ( A11  A12 )             ( Er  0 )
         Q'*A*Z = (          ) ,  Q'*E*Z = (       ) ,
                  ( A21  A22 )             (  0  0 )
-    
+
     where Er is an upper triangular invertible matrix.
     Optionally, the A22 matrix can be further reduced to the form
-    
+
                   ( Ar  X )
             A22 = (       ) ,
                   (  0  0 )
-    
+
     with Ar an upper triangular invertible matrix, and X either a full
     or a zero matrix.
     The left and/or right orthogonal transformations performed
     to reduce E and A22 can be optionally accumulated.
-    
+
     Required arguments:
         l : input int
             The number of rows of matrices A, B, and E.  l >= 0.
@@ -1253,22 +1253,22 @@ def tg01fd(l,n,m,p,A,E,B,C,Q=None,Z=None,compq='N',compz='N',joba='N',tol=0.0,ld
             On exit, the leading L-by-N part of this array contains
             the transformed matrix Q'*A*Z. If JOBA = 'T', this matrix
             is in the form
-    
+
                          ( A11  *   *  )
                 Q'*A*Z = (  *   Ar  X  ) ,
                          (  *   0   0  )
-    
+
             where A11 is a RANKE-by-RANKE matrix and Ar is a
             RNKA22-by-RNKA22 invertible upper triangular matrix.
             If JOBA = 'R' then A has the above form with X = 0.
         E : rank-2 array('d') with bounds (l,n)
             The leading L-by-N part of this array contains
             the transformed matrix Q'*E*Z.
-    
+
                      ( Er  0 )
             Q'*E*Z = (       ) ,
                      (  0  0 )
-    
+
             where Er is a RANKE-by-RANKE upper triangular invertible
             matrix.
         B : rank-2 array('d') with bounds (l,m)
@@ -1310,7 +1310,7 @@ def tg01fd(l,n,m,p,A,E,B,C,Q=None,Z=None,compq='N',compz='N',joba='N',tol=0.0,ld
     hidden = ' (hidden by the wrapper)'
     arg_list = ['compq', 'compz', 'joba', 'l', 'n', 'm', 'p', 'A', 'lda'+hidden, 'E','lde'+hidden,'B','ldb'+hidden,'C','ldc'+hidden,'Q','ldq'+hidden,'Z','ldz'+hidden,'ranke','rnka22','tol','iwork'+hidden, 'dwork'+hidden, 'ldwork', 'info']
 
-        
+
     if compq != 'N' and compq != 'I' and compq != 'U':
         raise ValueError('Parameter compq had an illegal value')
 
@@ -1334,7 +1334,7 @@ def tg01fd(l,n,m,p,A,E,B,C,Q=None,Z=None,compq='N',compz='N',joba='N',tol=0.0,ld
         A,E,B,C,Q,Z,ranke,rnka22,info = _wrapper.tg01fd_uu(joba,l,n,m,p,A,E,B,C,Q,Z,tol,ldwork)
     else:
         raise ValueError("The combination of compq and compz in not implemented")
-        
+
     if info < 0:
         error_text = "The following argument had an illegal value: "+arg_list[-info-1]
         e = ValueError(error_text)
@@ -1344,116 +1344,10 @@ def tg01fd(l,n,m,p,A,E,B,C,Q=None,Z=None,compq='N',compz='N',joba='N',tol=0.0,ld
         e = ArithmeticError('tg01fd failed')
         e.info = info
         raise e
-        
+
     if joba == 'N':
         rnka22 = None
-    
+
     return A,E,B,C,ranke,rnka22,Q,Z
-
-def mb03rd(n,A,X=None,jobx='U',sort='N',pmax=1.0,tol=0.0):
-    """ A,X,blcks,EIG = mb03rd(n,A,[X,job,sort,pmax,tol]) -- if jobx='U'
-        A,blcks,EIG = mb03rd(n,A,[X,job,sort,pmax,tol])   -- if jobx='N'
-
-    To reduce a matrix A in real Schur form to a block-diagonal form
-    using well-conditioned non-orthogonal similarity transformations.
-    The condition numbers of the transformations used for reduction
-    are roughly bounded by pmax*pmax, where pmax is a given value.
-    The transformations are optionally postmultiplied in a given
-    matrix X. The real Schur form is optionally ordered, so that
-    clustered eigenvalues are grouped in the same block.
-
-    Required arguments:
-        n : input int
-            The order of the matrices A and X.  n >= 0.
-        A : input rank-2 array('d') with bounds (n,n)
-            the matrix A to be block-diagonalized, in real Schur form.
-    Optional arguments:
-        X : input rank-2 array('d') with bounds (n,n)
-            a given matrix X, for accumulation of transformations (only if
-            jobx='U'
-        jobx : input char*1
-            Specifies whether or not the transformations are
-            accumulated, as follows:
-            = 'N':  The transformations are not accumulated;
-            = 'U':  The transformations are accumulated in X (the
-                    given matrix X is updated).
-        sort : input char*1
-            Specifies whether or not the diagonal blocks of the real
-            Schur form are reordered, as follows:
-            = 'N':  The diagonal blocks are not reordered;
-            = 'S':  The diagonal blocks are reordered before each
-                    step of reduction, so that clustered eigenvalues
-                    appear in the same block;
-            = 'C':  The diagonal blocks are not reordered, but the
-                    "closest-neighbour" strategy is used instead of
-                    the standard "closest to the mean" strategy
-                    (see METHOD);
-            = 'B':  The diagonal blocks are reordered before each
-                    step of reduction, and the "closest-neighbour"
-                    strategy is used (see METHOD).
-        pmax : input float
-            An upper bound for the infinity norm of elementary
-            submatrices of the individual transformations used for
-            reduction (see METHOD).  PMAX >= 1.0D0.
-        tol : input float
-            The tolerance to be used in the ordering of the diagonal
-            blocks of the real Schur form matrix.
-            If the user sets TOL > 0, then the given value of TOL is
-            used as an absolute tolerance: a block i and a temporarily
-            fixed block 1 (the first block of the current trailing
-            submatrix to be reduced) are considered to belong to the
-            same cluster if their eigenvalues satisfy
-
-              | lambda_1 - lambda_i | <= TOL.
-
-            If the user sets TOL < 0, then the given value of TOL is
-            used as a relative tolerance: a block i and a temporarily
-            fixed block 1 are considered to belong to the same cluster
-            if their eigenvalues satisfy, for j = 1, ..., N,
-
-              | lambda_1 - lambda_i | <= | TOL | * max | lambda_j |.
-
-            If the user sets TOL = 0, then an implicitly computed,
-            default tolerance, defined by TOL = SQRT( SQRT( EPS ) )
-            is used instead, as a relative tolerance, where EPS is
-            the machine precision (see LAPACK Library routine DLAMCH).
-            If SORT = 'N' or 'C', this parameter is not referenced.
-    Return objects:
-        Ar : output rank-2 array('d') with bounds (n,n)
-            Contains the computed block-diagonal matrix, in real Schur
-            canonical form. The non-diagonal blocks are set to zero.
-        Xr : output rank-2 array('d') with bounds (n,n)
-            Contains the product of the given matrix X and the
-            transformation matrix that reduced A to block-diagonal
-            form. The transformation matrix is itself a product of
-            non-orthogonal similarity transformations having elements
-            with magnitude less than or equal to PMAX.
-            If JOBX = 'N', this array is not referenced, and not returned
-        blksize : output rank-1 array('i') with bounds (n)
-            The orders of the resulting diagonal blocks of the matrix Ar.
-        W : output rank-1 array('c') size (n)
-            This arrays contain the eigenvalues of the matrix A.
-"""
-    hidden = ' (hidden by the wrapper)'
-    arg_list = ('jobx', 'sort', 'n', 'pmax', 'A', 'LDA'+hidden,
-                'X', 'LDX'+hidden, 'nblks'+hidden, 'blsize'+hidden,
-                'WR'+hidden, 'WI'+hidden, 'tol',
-                'DWORK'+hidden, 'INFO'+hidden)
-    if jobx == 'N':
-        out = _wrapper.mb03rd_n(sort, n, pmax, A, tol)
-    else:
-        if X is None:
-            X = _np.eye(n)
-        out = _wrapper.mb03rd_u(sort, n, pmax, A, X, tol)
-
-    if out[-1] < 0:
-        error_text = "The following argument had an illegal value: "+arg_list[-out[-1]-1]
-        e = ValueError(error_text)
-        e.info = out[-1]
-        raise e
-    if jobx == 'N':
-        return out[0], out[2][:out[1]], out[-3] + out[-2]*1j
-    else:
-        return out[0], out[1], out[3][:out[2]], out[-3] + out[-2]*1j
 
 # to be replaced by python wrappers
