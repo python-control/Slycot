@@ -15,7 +15,6 @@ requirements:
     - {{ compiler('fortran') }}   # [unix]
     - flang                       # [win]
     - cmake
-    - numpy
 
   host:
     - numpy
