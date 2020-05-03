@@ -18,6 +18,8 @@
 #       MA 02110-1301, USA.
 
 from . import _wrapper
+from .exceptions import SlycotError, SlycotParameterError, \
+                        SlycotArithmeticError
 import warnings
 
 def ab01nd(n,m,A,B,jobz='N',tol=0,ldwork=None):
@@ -121,28 +123,21 @@ def ab01nd(n,m,A,B,jobz='N',tol=0,ldwork=None):
     if jobz == 'N':
         out = _wrapper.ab01nd_n(n,m,A,B,tol=tol,ldwork=ldwork)
         if out[-1] < 0:
-            error_text = "The following argument had an illegal value: "+arg_list[-out[-1]-1]
-            raise ValueError(error_text)
+            raise SlycotParameterError(out[-1], arg_list)
         # sets Z to None
         out[5] = None
         return out[:-1]
     if jobz == 'I':
         out = _wrapper.ab01nd_i(n,m,A,B,tol=tol,ldwork=ldwork)
         if out[-1] < 0:
-            error_text = "The following argument had an illegal value: "+arg_list[-out[-1]-1]
-            e = ValueError(error_text)
-            e.info = out[-1]
-            raise e
+            raise SlycotParameterError(out[-1], arg_list)
         return out[:-1]
     if jobz == 'F':
         out = _wrapper.ab01nd_f(n,m,A,B,tol=tol,ldwork=ldwork)
         if out[-1] < 0:
-            error_text = "The following argument had an illegal value: "+arg_list[-out[-1]-1]
-            e = ValueError(error_text)
-            e.info = out[-1]
-            raise e
+            raise SlycotParameterError(out[-1], arg_list)
         return out[:-1]
-    raise ValueError('jobz must be either N, I or F')
+    raise SlycotError('jobz must be either N, I or F', 0)
 
 def ab05md(n1,m1,p1,n2,p2,A1,B1,C1,D1,A2,B2,C2,D2,uplo='U'):
     """ n,a,b,c,d = ab05md(n1,m1,p1,n2,p2,a1,b1,c1,d1,a2,b2,c2,d2,[uplo])
@@ -226,10 +221,7 @@ def ab05md(n1,m1,p1,n2,p2,A1,B1,C1,D1,A2,B2,C2,D2,uplo='U'):
         'ldwork', 'info'+hidden ]
     out = _wrapper.ab05md(n1,m1,p1,n2,p2,A1,B1,C1,D1,A2,B2,C2,D2,uplo=uplo)
     if out[-1] < 0:
-        error_text = "The following argument had an illegal value: "+arg_list[-out[-1]-1]
-        e = ValueError(error_text)
-        e.info = out[-1]
-        raise e
+        raise SlycotParameterError(out[-1], arg_list)
     return out[:-1]
 
 def ab05nd(n1,m1,p1,n2,A1,B1,C1,D1,A2,B2,C2,D2,alpha=1.0,ldwork=None):
@@ -312,14 +304,11 @@ def ab05nd(n1,m1,p1,n2,A1,B1,C1,D1,A2,B2,C2,D2,alpha=1.0,ldwork=None):
         ldwork = max(p1*p1,m1*m1,n1*p1)
     out = _wrapper.ab05nd(n1,m1,p1,n2,alpha,A1,B1,C1,D1,A2,B2,C2,D2,ldwork=ldwork)
     if out[-1] < 0:
-        error_text = "The following argument had an illegal value: "+arg_list[-out[-1]-1]
-        e = ValueError(error_text)
-        e.info = out[-1]
-        raise e
+        raise SlycotParameterError(out[-1], arg_list)
     if out[-1] > 0:
-        e = ArithmeticError('The resulting system is not completely controllable.')
-        e.info = out[-1]
-        raise e
+        raise SlycotArithmeticError(
+            'The resulting system is not completely controllable.',
+            out[-1])
     return out[:-1]
 
 def ab07nd(n,m,A,B,C,D,ldwork=None):
@@ -373,18 +362,16 @@ def ab07nd(n,m,A,B,C,D,ldwork=None):
         ldwork = max(1,4*m)
     out = _wrapper.ab07nd(n,m,A,B,C,D,ldwork=ldwork)
     if out[-1] < 0:
-        error_text = "The following argument had an illegal value: "+arg_list[-out[-1]-1]
-        e = ValueError(error_text)
-        e.info = out[-1]
-        raise e
+        raise SlycotParameterError(out[-1], arg_list)
     if out[-1] == m+1:
-        e = ValueError('Entry matrix D is numerically singular.')
-        e.info = out[-1]
-        raise e
+        raise SlycotArithmeticError(
+            'Entry matrix D is numerically singular.',
+            out[-1])
     if out[-1] > 0:
-        e = ValueError('Entry matrix D is exactly singular, the (%i,%i) diagonal element is zero.' %(out[-1],out[-1]))
-        e.info = out[-1]
-        raise e
+        raise SlycotArithmeticError(
+            'Entry matrix D is exactly singular, the ({0:},{0:}) diagonal '
+            'element is zero.'.format(out[-1]),
+            out[-1])
     return out[:-1]
 
 def ab08nd(n,m,p,A,B,C,D,equil='N',tol=0,ldwork=None):
@@ -469,10 +456,7 @@ def ab08nd(n,m,p,A,B,C,D,equil='N',tol=0,ldwork=None):
         ldwork = n+3*max(m,p) #only an upper bound
     out = _wrapper.ab08nd(n,m,p,A,B,C,D,equil=equil,tol=tol,ldwork=ldwork)
     if out[-1] < 0:
-        error_text = "The following argument had an illegal value: "+arg_list[-out[-1]-1]
-        e = ValueError(error_text)
-        e.info = out[-1]
-        raise e
+        raise SlycotParameterError(out[-1], arg_list)
     return out[:-1]
 
 def ab08nz(n, m, p, A, B, C, D, equil='N', tol=0., lzwork=None):
@@ -578,11 +562,7 @@ def ab08nz(n, m, p, A, B, C, D, equil='N', tol=0., lzwork=None):
     nu, rank, dinfz, nkror, nkrol, infz, kronr, kronl, Af, Bf, zwork, info \
         = out
     if info < 0:
-        error_text = "The following argument had an illegal value: " + \
-            arg_list[info-1]
-        e = ValueError(error_text)
-        e.info = info
-        raise e
+        raise SlycotParameterError(info, arg_list)
     return (nu, rank, dinfz, nkror, nkrol, infz, kronr, kronl, Af, Bf,
             int(zwork[0].real))
 
@@ -679,11 +659,11 @@ def ab09ad(dico,job,equil,n,m,p,A,B,C,nr=None,tol=0,ldwork=None):
     else:
         ordsel = 'F'
     if dico != 'C' and dico != 'D':
-        raise ValueError('Parameter dico had an illegal value')
+        raise SlycotError('Parameter dico had an illegal value', 0)
     if job != 'B' and job != 'N':
-        raise ValueError('Parameter job had an illegal value')
+        raise SlycotError('Parameter job had an illegal value', 0)
     if equil != 'S' and equil != 'N':
-        raise ValueError('Parameter equil had an illegal value')
+        raise SlycotError('Parameter equil had an illegal value', 0)
     out = _wrapper.ab09ad(dico,job,equil,ordsel,n,m,p,nr,A,B,C,tol,ldwork)
     if out[-2] == 1:
         warnings.warn("The selected order nr is greater\
@@ -692,22 +672,19 @@ def ab09ad(dico,job,equil,n,m,p,A,B,C,nr=None,tol=0,ldwork=None):
                 corresponding to the order of a minimal realization\
                 of the system")
     if out[-1] < 0:
-        error_text = "The following argument had an illegal value: "+arg_list[-out[-1]-1]
-        e = ValueError(error_text)
-        e.info = out[-1]
-        raise e
+        raise SlycotParameterError(out[-1], arg_list)
     if out[-1] == 1:
-        e = ArithmeticError('The reduction of A to the real Schur form failed')
-        e.info = out[-1]
-        raise e
+        raise SlycotArithmeticError(
+            'The reduction of A to the real Schur form failed',
+            out[-1])
     if out[-1] == 2:
-        e = ArithmeticError('The state matrix A is not stable or not convergent')
-        e.info = out[-1]
-        raise e
+        raise SlycotArithmeticError(
+            'The state matrix A is not stable or not convergent',
+            out[-1])
     if out[-1] == 3:
-        e = ArithmeticError('The computation of Hankel singular values failed')
-        e.info = out[-1]
-        raise e
+        raise SlycotArithmeticError(
+            'The computation of Hankel singular values failed',
+            out[-1])
     Nr,A,B,C,hsv = out[:-2]
     return Nr, A[:Nr,:Nr], B[:Nr,:], C[:,:Nr], hsv
 
@@ -813,9 +790,9 @@ def ab09ax(dico,job,n,m,p,A,B,C,nr=None,tol=0.0,ldwork=None):
     else:
         ordsel = 'F'
     if dico != 'C' and dico != 'D':
-        raise ValueError('Parameter dico had an illegal value')
+        raise SlycotError('Parameter dico had an illegal value', 0)
     if job != 'B' and job != 'N':
-        raise ValueError('Parameter job had an illegal value')
+        raise SlycotError('Parameter job had an illegal value', 0)
     out = _wrapper.ab09ax(dico,job,ordsel,n,m,p,nr,A,B,C,tol,ldwork)
     if out[-2] == 1:
         warnings.warn("The selected order nr is greater\
@@ -824,18 +801,15 @@ def ab09ax(dico,job,n,m,p,A,B,C,nr=None,tol=0.0,ldwork=None):
                 corresponding to the order of a minimal realization\
                 of the system")
     if out[-1] < 0:
-        error_text = "The following argument had an illegal value: "+arg_list[-out[-1]-1]
-        e = ValueError(error_text)
-        e.info = out[-1]
-        raise e
+        raise SlycotParameterError(out[-1], arg_list)
     if out[-1] == 1:
-        e = ArithmeticError('The state matrix A is not stable or not convergent')
-        e.info = out[-1]
-        raise e
+        raise SlycotArithmeticError(
+            'The state matrix A is not stable or not convergent',
+            out[-1])
     if out[-1] == 2:
-        e = ArithmeticError('The computation of Hankel singular values failed')
-        e.info = out[-1]
-        raise e
+        raise SlycotArithmeticError(
+            'The computation of Hankel singular values failed',
+            out[-1])
     nr,A,B,C,hsv,T,Ti = out[:-2]
     return nr, A[:nr,:nr], B[:nr,:], C[:,:nr], hsv, T[:,:nr], Ti[:nr,:]
 
@@ -956,11 +930,11 @@ def ab09bd(dico,job,equil,n,m,p,A,B,C,D,nr=None,tol1=0,tol2=0,ldwork=None):
     else:
         ordsel = 'F'
     if dico != 'C' and dico != 'D':
-        raise ValueError('Parameter dico had an illegal value')
+        raise SlycotError('Parameter dico had an illegal value', 0)
     if job != 'B' and job != 'N':
-        raise ValueError('Parameter job had an illegal value')
+        raise SlycotError('Parameter job had an illegal value', 0)
     if equil != 'S' and equil != 'N':
-        raise ValueError('Parameter equil had an illegal value')
+        raise SlycotError('Parameter equil had an illegal value', 0)
     out = _wrapper.ab09bd(dico,job,equil,ordsel,n,m,p,nr,A,B,C,D,tol1,tol2,ldwork)
     if out[-2] == 1:
         warnings.warn("The selected order nr is greater\
@@ -969,22 +943,20 @@ def ab09bd(dico,job,equil,n,m,p,A,B,C,D,nr=None,tol1=0,tol2=0,ldwork=None):
                 corresponding to the order of a minimal realization\
                 of the system")
     if out[-1] < 0:
-        error_text = "The following argument had an illegal value: "+arg_list[-out[-1]-1]
-        e = ValueError(error_text)
-        e.info = out[-1]
-        raise e
+        raise SlycotParameterError(out[-1], arg_list)
     if out[-1] == 1:
-        e = ArithmeticError('The reduction of A to the real Schur form failed')
-        e.info = out[-1]
-        raise e
+        raise SlycotArithmeticError(
+             'The reduction of A to the real Schur form failed',
+             out[-1])
     if out[-1] == 2:
-        e = ArithmeticError('The state matrix A is not stable (if dico = C) or not convergent (if dico = D)')
-        e.info = out[-1]
-        raise e
+        raise SlycotArithmeticError(
+             'The state matrix A is not stable (if dico = C) '
+             'or not convergent (if dico = D)',
+             out[-1])
     if out[-1] == 3:
-        e = ArithmeticError('The computation of Hankel singular values failed')
-        e.info = out[-1]
-        raise e
+        raise SlycotArithmeticError(
+            'The computation of Hankel singular values failed',
+            out[-1])
     Nr,A,B,C,D,hsv = out[:-2]
     return Nr, A[:Nr,:Nr], B[:Nr,:], C[:,:Nr],D[:,:], hsv
 
@@ -1122,16 +1094,16 @@ def ab09md(dico,job,equil,n,m,p,A,B,C,alpha=None,nr=None,tol=0,ldwork=None):
     else:
         ordsel = 'F'
     if dico != 'C' and dico != 'D':
-        raise ValueError('Parameter dico had an illegal value')
+        raise SlycotError('Parameter dico had an illegal value', 0)
     if alpha is None:
         if dico == 'C':
             alpha = 0.
         elif dico == 'D':
             alpha = 1.
     if job != 'B' and job != 'N':
-        raise ValueError('Parameter job had an illegal value')
+        raise SlycotError('Parameter job had an illegal value', 0)
     if equil != 'S' and equil != 'N':
-        raise ValueError('Parameter equil had an illegal value')
+        raise SlycotError('Parameter equil had an illegal value', 0)
     out = _wrapper.ab09md(dico,job,equil,ordsel,n,m,p,nr,alpha,A,B,C,tol,ldwork)
     if out[-2] == 1:
         warnings.warn("with ordsel = 'F', the selected order nr is greater\
@@ -1146,23 +1118,20 @@ def ab09md(dico,job,equil,n,m,p,A,B,C,alpha=None,nr=None,tol=0,ldwork=None):
                 given system. In this case nr is set equal to the\
                 order of the alpha-unstable part.")
     if out[-1] < 0:
-        error_text = "The following argument had an illegal value: "+arg_list[-out[-1]-1]
-        e = ValueError(error_text)
-        e.info = out[-1]
-        raise e
+        raise SlycotParameterError(out[-1], arg_list)
     if out[-1] == 1:
-        e = ArithmeticError('The reduction of A to the real Schur form failed')
-        e.info = out[-1]
-        raise e
+        raise SlycotArithmeticError(
+            'The reduction of A to the real Schur form failed',
+            out[-1])
     if out[-1] == 2:
-        e = ArithmeticError('the separation of the alpha-stable/unstable diagonal\
-                blocks failed because of very close eigenvalues;')
-        e.info = out[-1]
-        raise e
+        raise SlycotArithmeticError(
+            'the separation of the alpha-stable/unstable diagonal '
+            'blocks failed because of very close eigenvalues',
+            out[-1])
     if out[-1] == 3:
-        e = ArithmeticError('The computation of Hankel singular values failed')
-        e.info = out[-1]
-        raise e
+        raise SlycotArithmeticError(
+            'The computation of Hankel singular values failed',
+            out[-1])
     Nr,A,B,C,Ns,hsv = out[:-2]
     return Nr, A[:Nr,:Nr], B[:Nr,:], C[:,:Nr], Ns, hsv
 
@@ -1296,16 +1265,16 @@ def ab09nd(dico,job,equil,n,m,p,A,B,C,D,alpha=None,nr=None,tol1=0,tol2=0,ldwork=
     else:
         ordsel = 'F'
     if dico != 'C' and dico != 'D':
-        raise ValueError('Parameter dico had an illegal value')
+        raise SlycotError('Parameter dico had an illegal value', 0)
     if alpha is None:
         if dico == 'C':
             alpha = 0.
         elif dico == 'D':
             alpha = 1.
     if job != 'B' and job != 'N':
-        raise ValueError('Parameter job had an illegal value')
+        raise SlycotError('Parameter job had an illegal value', 0)
     if equil != 'S' and equil != 'N':
-        raise ValueError('Parameter equil had an illegal value')
+        raise SlycotError('Parameter equil had an illegal value', 0)
     out = _wrapper.ab09nd(dico,job,equil,ordsel,n,m,p,nr,alpha,A,B,C,D,tol1,tol2,ldwork)
     if out[-2] == 1:
         warnings.warn("with ordsel = 'F', the selected order nr is greater\
@@ -1320,23 +1289,20 @@ def ab09nd(dico,job,equil,n,m,p,A,B,C,D,alpha=None,nr=None,tol1=0,tol2=0,ldwork=
                 given system. In this case nr is set equal to the\
                 order of the alpha-unstable part.")
     if out[-1] < 0:
-        error_text = "The following argument had an illegal value: "+arg_list[-out[-1]-1]
-        e = ValueError(error_text)
-        e.info = out[-1]
-        raise e
+        raise SlycotParameterError(out[-1], arg_list)
     if out[-1] == 1:
-        e = ArithmeticError('The reduction of A to the real Schur form failed')
-        e.info = out[-1]
-        raise e
+        raise SlycotArithmeticError(
+            'The reduction of A to the real Schur form failed',
+            out[-1])
     if out[-1] == 2:
-        e = ArithmeticError('the separation of the alpha-stable/unstable diagonal\
-                 blocks failed because of very close eigenvalues;')
-        e.info = out[-1]
-        raise e
+        raise SlycotArithmeticError(
+            'the separation of the alpha-stable/unstable diagonal '
+            'blocks failed because of very close eigenvalues',
+            out[-1])
     if out[-1] == 3:
-        e = ArithmeticError('The computation of Hankel singular values failed')
-        e.info = out[-1]
-        raise e
+        raise SlycotArithmeticError(
+            'The computation of Hankel singular values failed',
+            out[-1])
     Nr,A,B,C,D,Ns,hsv = out[:-2]
     return Nr, A[:Nr,:Nr], B[:Nr,:], C[:,:Nr], D, Ns, hsv
 
@@ -1384,9 +1350,9 @@ def ab13bd(dico, jobn, n, m, p, A, B, C, D, tol = 0.0):
     """
 
     if dico != 'C' and dico != 'D':
-        raise ValueError('dico must be "C" or "D"')
+        raise SlycotError('dico must be "C" or "D"', 0)
     if jobn != 'H' and jobn != 'L':
-        raise ValueError('jobn must be "H" or "L"')
+        raise SlycotError('jobn must be "H" or "L"', 0)
     out = _wrapper.ab13bd(dico, jobn, n, m, p, A, B, C, D, tol)
     if out[-1] == 0:
         # success
@@ -1396,37 +1362,35 @@ def ab13bd(dico, jobn, n, m, p, A, B, C, D, tol = 0.0):
         arg_list = ['dico', 'jobn', 'n', 'm', 'p',
                     'A', 'lda'+hidden, 'B', 'ldb'+hidden, 'C', 'ldc'+hidden, 'D', 'ldd'+hidden,
                     'nq'+hidden,'tol', 'dwork'+hidden, 'ldwork'+hidden, 'iwarn'+hidden, 'info'+hidden]
-        error_text = "The following argument had an illegal value: " + arg_list[-out[-1]-1]
-        e = ValueError(error_text)
-        e.info = out[-1]
-        raise e
+        raise SlycotParameterError(out[-1], arg_list)
     elif out[-1] == 1:
-        e = ArithmeticError("the reduction of A to a real Schur form failed")
-        e.info = out[-1]
-        raise e
+        raise SlycotArithmeticError(
+            "the reduction of A to a real Schur form failed",
+            out[-1])
     elif out[-1] == 2:
-        e = ArithmeticError("a failure was detected during the reordering of the real Schur form of A, "
-                            "or in the iterative process for reordering the eigenvalues of "
-                            "Z'*(A + B*F)*Z along the diagonal")
-        e.info = out[-1]
-        raise e
+        raise SlycotArithmeticError(
+            "a failure was detected during the reordering of the real Schur form of A, "
+            "or in the iterative process for reordering the eigenvalues of "
+            "Z'*(A + B*F)*Z along the diagonal",
+            out[-1])
     elif out[-1] == 3:
-        e = ArithmeticError("the matrix A has a controllable eigenvalue on the " +
-                            ( "imaginary axis" if dico == 'C' else "unit circle" ))
-        e.info = out[-1]
-        raise e
+        raise SlycotArithmeticError(
+            "the matrix A has a controllable eigenvalue on the " +
+            ("imaginary axis" if dico == 'C' else "unit circle"),
+            out[-1])
     elif out[-1] == 4:
-        e = ArithmeticError("the solution of Lyapunov equation failed because the equation is singular")
-        e.info = out[-1]
-        raise e
+        raise SlycotArithmeticError(
+            "the solution of Lyapunov equation failed because the equation is "
+            "singular",
+            out[-1])
     elif out[-1] == 5:
-        e = ArithmeticError("DICO = 'C' and D is a nonzero matrix")
-        e.info = out[-1]
-        raise e
+        raise SlycotArithmeticError(
+            "DICO = 'C' and D is a nonzero matrix",
+            out[-1])
     elif out[-1] == 6:
-        e = ArithmeticError("JOBN = 'H' and the system is unstable")
-        e.info = out[-1]
-        raise e
+        raise SlycotArithmeticError(
+            "JOBN = 'H' and the system is unstable",
+            out[-1])
     else:
         raise RuntimeError("unknown error code %r" % out[-1])
 
@@ -1506,13 +1470,13 @@ def ab13dd(dico, jobe, equil, jobd, n, m, p, A, E, B, C, D, tol = 1e-10):
     """
 
     if dico != 'C' and dico != 'D':
-        raise ValueError('dico must be "C" or "D"')
+        raise SlycotError('dico must be "C" or "D"', 0)
     if jobe != 'G' and jobe != 'I':
-        raise ValueError('jobe must be "G" or "I"')
+        raise SlycotError('jobe must be "G" or "I"', 0)
     if equil != 'S' and equil != 'N':
-        raise ValueError('equil must be "S" or "N"')
+        raise SlycotError('equil must be "S" or "N"', 0)
     if jobd != 'D' and jobd != 'Z':
-        raise ValueError('jobd must be "D" or "Z"')
+        raise SlycotError('jobd must be "D" or "Z"', 0)
     out = _wrapper.ab13dd(dico, jobe, equil, jobd, n, m, p, [0.0, 1.0], A, E, B, C, D, tol)
     if out[-1] == 0:
         # success
@@ -1525,26 +1489,24 @@ def ab13dd(dico, jobe, equil, jobd, n, m, p, A, E, B, C, D, tol = 1e-10):
                     'A', 'lda'+hidden, 'E', 'lde'+hidden, 'B', 'ldb'+hidden, 'C', 'ldc'+hidden, 'D', 'ldd'+hidden,
                     'gpeak'+hidden, 'tol', 'iwork'+hidden, 'dwork'+hidden, 'ldwork'+hidden,
                     'cwork'+hidden, 'lcwork'+hidden, 'info'+hidden]
-        error_text = "The following argument had an illegal value: " + arg_list[-out[-1]-1]
-        e = ValueError(error_text)
-        e.info = out[-1]
-        raise e
+        raise SlycotParameterError(out[-1], arg_list)
     elif out[-1] == 1:
-        e = ArithmeticError("the matrix E is (numerically) singular")
-        e.info = out[-1]
-        raise e
+        raise SlycotArithmeticError(
+            "the matrix E is (numerically) singular",
+            out[-1])
     elif out[-1] == 2:
-        e = ArithmeticError("the (periodic) QR (or QZ) algorithm for computing eigenvalues did not converge")
-        e.info = out[-1]
-        raise e
+        raise SlycotArithmeticError(
+            "the (periodic) QR (or QZ) algorithm for computing eigenvalues "
+            "did not converge",
+            out[-1])
     elif out[-1] == 3:
-        e = ArithmeticError("the SVD algorithm for computing singular values did not converge")
-        e.info = out[-1]
-        raise e
+        raise SlycotArithmeticError(
+            "the SVD algorithm for computing singular values did not converge",
+            out[-1])
     elif out[-1] == 4:
-        e = ArithmeticError("the tolerance is too small and the algorithm did not converge")
-        e.info = out[-1]
-        raise e
+        raise SlycotArithmeticError(
+            "the tolerance is too small and the algorithm did not converge",
+            out[-1])
     else:
         raise RuntimeError("unknown error code %r" % out[-1])
 
@@ -1601,14 +1563,11 @@ def ab13ed(n, A, tol = 9.0):
         hidden = ' (hidden by the wrapper)'
         arg_list = ['n', 'A', 'lda'+hidden, 'low'+hidden, 'high'+hidden, 'tol',
                     'dwork'+hidden, 'ldwork'+hidden, 'info'+hidden]
-        error_text = "The following argument had an illegal value: " + arg_list[-out[-1]-1]
-        e = ValueError(error_text)
-        e.info = out[-1]
-        raise e
+        raise SlycotParameterError(out[-1], arg_list)
     elif out[-1] == 1:
-        e = ArithmeticError("the QR algorithm fails to converge")
-        e.info = out[-1]
-        raise e
+        raise SlycotArithmeticError(
+            "the QR algorithm fails to converge",
+            out[-1])
     else:
         raise RuntimeError("unknown error code %r" % out[-1])
 
@@ -1668,17 +1627,14 @@ def ab13fd(n, A, tol = 0.0):
         hidden = ' (hidden by the wrapper)'
         arg_list = ['n', 'A', 'lda'+hidden, 'beta'+hidden, 'omega'+hidden, 'tol',
                     'dwork'+hidden, 'ldwork'+hidden, 'cwork'+hidden, 'lcwork'+hidden, 'info'+hidden]
-        error_text = "The following argument had an illegal value: " + arg_list[-out[-1]-1]
-        e = ValueError(error_text)
-        e.info = out[-1]
-        raise e
+        raise SlycotParameterError(out[-1], arg_list)
     elif out[-1] == 1:
         warnings.warn("the routine fails to compute beta(A) within the specified tolerance")
         return out[0], out[1]  # the returned value is an upper bound on beta(A)
     elif out[-1] == 2:
-        e = ArithmeticError("either the QR or SVD algorithm fails to converge")
-        e.info = out[-1]
-        raise e
+        raise SlycotArithmeticError(
+            "either the QR or SVD algorithm fails to converge",
+            out[-1])
     else:
         raise RuntimeError("unknown error code %r" % out[-1])
 
@@ -1772,7 +1728,7 @@ def ag08bd(l,n,m,p,A,E,B,C,D,equil='N',tol=0.0,ldwork=None):
     arg_list = ['equil', 'l', 'n', 'm', 'p', 'A', 'lda'+hidden, 'E', 'lde'+hidden, 'B', 'ldb'+hidden, 'C', 'ldc'+hidden, 'D', 'ldd'+hidden, 'nfz', 'nrank', 'niz', 'dinfz', 'nkror', 'ninfe', 'nkrol', 'infz', 'kronr', 'infe', 'kronl', 'tol', 'iwork'+hidden, 'dwork'+hidden, 'ldwork', 'info']
 
     if equil != 'S' and equil != 'N':
-        raise ValueError('Parameter equil had an illegal value')
+        raise SlycotError('Parameter equil had an illegal value', 0)
 
     if ldwork is None:
         ldw = max(l+p,m+n)*(m+n) + max(1,5*max(l+p,m+n))
@@ -1784,15 +1740,8 @@ def ag08bd(l,n,m,p,A,E,B,C,D,equil='N',tol=0.0,ldwork=None):
     [Af,Ef,nfz,nrank,niz,dinfz,nkror,ninfe,nkrol,infz,kronr,infe,kronl,info]= _wrapper.ag08bd(equil,l,n,m,p,A,E,B,C,D,tol,ldwork)
 
     if info < 0:
-        error_text = "The following argument had an illegal value: "+arg_list[-info-1]
-        e = ValueError(error_text)
-        e.info = info
-        raise e
+        raise SlycotParameterError(info, arg_list)
     if info != 0:
-        e = ArithmeticError('ag08bd failed')
-        e.info = info
-        raise e
+        raise SlycotArithmeticError('ag08bd failed', info)
 
     return Af[:nfz,:nfz],Ef[:nfz,:nfz],nrank,niz,infz[:dinfz],kronr[:nkror],infe[:ninfe],kronl[:nkrol]
-
-# to be replaced by python wrappers
