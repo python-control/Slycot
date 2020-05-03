@@ -12,6 +12,24 @@ subroutine mc01td(dico,dp,p,stable,nz,dwork,iwarn,info) ! in :new:MC01TD.f
 	integer intent(out) :: info
 end subroutine mc01td
 
+subroutine mb03rd(jobx,sort,n,pmax,a,lda,x,ldx,nblcks,blsize,wr,wi,tol,dwork,info) ! in MB03RD.f
+  character intent(in) :: jobx
+  character intent(in),required :: sort
+  integer intent(in),required,check(n>=0) :: n
+  double precision intent(in),required,check(pmax>=1.0) :: pmax
+  double precision intent(in,out,copy),dimension(lda,n),depend(n) :: a
+  integer intent(hide),check(lda>=max(1,n)) :: lda=shape(a,0)
+  double precision intent(in,out,copy),dimension(ldx,n),depend(n) :: x
+  integer intent(hide),check((*jobx == 'N' && ldx>=1) || (*jobx == 'U' && ldx >= max(1,n))) :: ldx=shape(x,0)
+  integer intent(out) :: nblcks
+  integer intent(out),dimension(n) :: blsize
+  double precision intent(out),dimension(n) :: wr
+  double precision intent(out),dimension(n) :: wi
+  double precision intent(in) :: tol
+  double precision intent(cache,hide),dimension(n) :: dwork
+  integer intent(out) :: info
+end subroutine mb03rd
+
 subroutine mb03vd(n,p,ilo,ihi,a,lda1,lda2,tau,ldtau,dwork,info) ! in MB03VD.f
     integer intent(in),check(n>=0) :: n
     integer intent(hide),depend(a),check(p>=1) :: p=shape(a,2)
@@ -97,5 +115,3 @@ subroutine mb05nd(n,delta,a,lda,ex,ldex,exint,ldexin,tol,iwork,dwork,ldwork,info
   integer intent(out) :: info
 end subroutine mb05nd
 
-! This file was auto-generated with f2py (version:2).
-! See http://cens.ioc.ee/projects/f2py2e/
