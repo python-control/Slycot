@@ -7,7 +7,7 @@ source:
 
 build:
   number: {{ environ.get('GIT_DESCRIBE_NUMBER', 0) }}
-  string: py{{ environ.get('PY_VER').replace('.', '') }}{{ environ.get('GIT_DESCRIBE_HASH', '') }}_obl_{{ environ.get('GIT_DESCRIBE_NUMBER', 0) }}
+  string: py{{ environ.get('PY_VER').replace('.', '') }}{{ environ.get('GIT_DESCRIBE_HASH', '') }}_apple_{{ environ.get('GIT_DESCRIBE_NUMBER', 0) }}
 
 requirements:
   build:
@@ -19,7 +19,6 @@ requirements:
   host:
     - numpy
     - python
-    - openblas
     - python
     # conda-forge::scikit-build>=0.10.0 includes MACOSX_DEPLOYMENT_TARGET
     # patches from https://github.com/scikit-build/scikit-build/pull/441
@@ -28,7 +27,6 @@ requirements:
   run:
     - python
     - {{ pin_compatible('numpy') }}
-    - libopenblas
     
 test:
   requires:

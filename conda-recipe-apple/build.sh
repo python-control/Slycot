@@ -12,4 +12,5 @@ fi
 
 $PYTHON setup.py build_ext install -- \
 	-DNumPy_INCLUDE_DIR=${SP_DIR}/numpy/core/include \
-	-DCMAKE_OSX_SYSROOT=${CONDA_BUILD_SYSROOT}
+	-DCMAKE_OSX_SYSROOT=${CONDA_BUILD_SYSROOT} \
+	-DBLA_VENDOR=Apple
