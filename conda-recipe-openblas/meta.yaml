@@ -30,11 +30,13 @@ requirements:
     - libopenblas
    
 test:
+  requires:
+    - pytest
+    - scipy
   imports:
     - slycot
   commands:
-    - conda install nose pytest scipy parameterized --yes --quiet
-    - python -c "from slycot import test; test()"
+    - pytest --pyargs slycot
 
 about:
   home: https://github.com/python-control/Slycot
