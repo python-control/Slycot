@@ -18,6 +18,8 @@
 #       MA 02110-1301, USA.
 
 from . import _wrapper
+from .exceptions import SlycotError, SlycotParameterError, \
+                        SlycotArithmeticError
 import warnings
 
 import numpy as np
@@ -236,10 +238,7 @@ def mb03rd(n, A, X=None, jobx='U', sort='N', pmax=1.0, tol=0.0):
         jobx, sort, n, pmax, A, X, tol)
 
     if info < 0:
-        fmt = "The following argument had an illegal value: '{}'"
-        e = ValueError(fmt.format(arg_list[-info - 1]))
-        e.info = info
-        raise e
+        raise SlycotParameterError(info, arg_list)
     if jobx == 'N':
         Xr = None
     else:
@@ -306,12 +305,6 @@ def mb03vd(n, ilo, ihi, A):
             scalar factors of the elementary reflectors used to form
             the matrix Q_j, j = 1, ..., p. See FURTHER COMMENTS.
 
-    Raises
-    ------
-
-    ValueError : e
-            e.info contains information about the exact type of exception
-
     Further Comments
     ----------------
 
@@ -372,11 +365,8 @@ def mb03vd(n, ilo, ihi, A):
 
     HQ, Tau, info = _wrapper.mb03vd(n, ilo, ihi, A)
 
-    if info != 0:
-        e = ValueError(
-                "Argument '{}' had an illegal value".format(arg_list[-info-1]))
-        e.info = info
-        raise e
+    if info < 0:
+        raise SlycotParameterError(info, arg_list)
     return (HQ, Tau)
 
 
@@ -423,12 +413,6 @@ def mb03vy(n, ilo, ihi, A, Tau, ldwork=None):
             3D array with same shape as A. Q[:n,:n,j-1] contains the
             N-by-N orthogonal matrix Q_j, j = 1, ..., p.
 
-    Raises
-    ------
-
-    ValueError :
-            e.info contains the number of the argument that was invalid
-
     """
 
     hidden = ' (hidden by the wrapper)'
@@ -442,11 +426,8 @@ def mb03vy(n, ilo, ihi, A, Tau, ldwork=None):
 
     Q, info = _wrapper.mb03vy(n, ilo, ihi, A, Tau, ldwork)
 
-    if info != 0:
-        e = ValueError(
-                "Argument '{}' had an illegal value".format(arg_list[-info-1]))
-        e.info = info
-        raise e
+    if info < 0:
+        raise SlycotParameterError(info, arg_list)
 
     return Q
 
@@ -562,12 +543,6 @@ def mb03wd(job, compz, n, ilo, ihi, iloz, ihiz, H, Q, ldwork=None):
             If JOB = 'S', the eigenvalues are stored in the same order
             as on the diagonal of the Schur form returned in H.
 
-    Raises
-    ------
-
-    ValueError : e
-            e.info contains information about the exact type of exception
-
     """
     hidden = ' (hidden by the wrapper)'
     arg_list = ['job', 'compz', 'n', 'p' + hidden,
@@ -585,10 +560,7 @@ def mb03wd(job, compz, n, ilo, ihi, iloz, ihiz, H, Q, ldwork=None):
             job, compz, n, ilo, ihi, iloz, ihiz, H, Q, ldwork)
 
     if info < 0:
-        e = ValueError(
-                "Argument '{}' had an illegal value".format(arg_list[-info-1]))
-        e.info = info
-        raise e
+        raise SlycotParameterError(info, arg_list)
     elif info > 0:
         warnings.warn(("failed to compute all the eigenvalues {ilo} to {ihi} "
                        "in a total of 30*({ihi}-{ilo}+1) iterations "
@@ -684,17 +656,16 @@ def mb05md(a, delta, balanc='N'):
             VAL = VALr
         return (Ar, Vr, Yr, VAL)
     elif INFO < 0:
-        error_text = "The following argument had an illegal value: " \
-                     + arg_list[-INFO-1]
+        raise SlycotParameterError(INFO, arg_list)
     elif INFO > 0 and INFO <= n:
-        error_text = "Incomplete eigenvalue calculation, missing %i eigenvalues" % INFO
+        raise SlycotArithmeticError("Incomplete eigenvalue calculation, "
+                                    "missing {} eigenvalues".format(INFO),
+                                    INFO)
     elif INFO == n+1:
-        error_text = "Eigenvector matrix singular"
+        raise SlycotArithmeticError("Eigenvector matrix singular", INFO)
     elif INFO == n+2:
-        error_text = "A matrix defective"
-    e = ValueError(error_text)
-    e.info = INFO
-    raise e
+        raise SlycotArithmeticError("Matrix A is defective, "
+                                    "possibly due to rounding errors.", INFO)
 
 
 def mb05nd(a, delta, tol=1e-7):
@@ -729,13 +700,10 @@ def mb05nd(a, delta, tol=1e-7):
     if out[-1] == 0:
         return out[:-1]
     elif out[-1] < 0:
-        error_text = "The following argument had an illegal value: " \
-                     + arg_list[-out[-1]-1]
+        raise SlycotParameterError(out[-1], arg_list)
     elif out[-1] == n+1:
-        error_text = "Delta too large"
-    e = ValueError(error_text)
-    e.info = out[-1]
-    raise e
+        raise SlycotError("Delta too large", out[-1])
+
 
 
 def mc01td(dico, dp, p):
@@ -781,10 +749,7 @@ def mc01td(dico, dp, p):
                 'IWARN', 'INFO']
     (dp_out, stable_log, nz, iwarn, info) = _wrapper.mc01td(dico, dp, p)
     if info < 0:
-        fmt = "The following argument had an illegal value: '{}'"
-        e = ValueError(fmt.format(arg_list[-info - 1]))
-        e.info = info
-        raise e
+        raise SlycotParameterError(info, arg_list)
     if info == 1:
         warnings.warn('entry P(x) is the zero polynomial.')
     if info == 2:
