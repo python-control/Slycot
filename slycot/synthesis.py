@@ -20,8 +20,8 @@
 
 
 from . import _wrapper
-from .exceptions import SlycotError, SlycotParameterError, \
-                        SlycotArithmeticError
+from .exceptions import SlycotParameterError, SlycotArithmeticError
+
 import numpy as _np
 import warnings
 
@@ -151,7 +151,7 @@ def sb01bd(n,m,np,alpha,A,B,w,dico,tol=0.0,ldwork=None):
         ldwork = max(1,5*m,5*n,2*n+4*m)
     A_z,wr,wi,nfp,nap,nup,F,Z,warn,info = _wrapper.sb01bd(dico,n,m,np,alpha,A,B,w.real,w.imag,tol=tol,ldwork=ldwork)
     if info < 0:
-        raise SlycotParameterError(info, arg_list)
+        raise SlycotParameterError(None, info, arg_list)
     if info == 1:
         raise SlycotArithmeticError(
             'the reduction of A to a real Schur form failed',
@@ -333,7 +333,7 @@ def sb02md(n,A,G,Q,dico,hinv='D',uplo='U',scal='N',sort='S',ldwork=None):
         ldwork = max(3,6*n)
     A_inv,X,rcond,wr,wi,S,U,info = _wrapper.sb02md(dico,n,A,G,Q,hinv=hinv,uplo=uplo,scal=scal,sort=sort,ldwork=ldwork)
     if info < 0:
-        raise SlycotParameterError(info, arg_list)
+        raise SlycotParameterError(None, info, arg_list)
     if info == 1:
         raise SlycotArithmeticError(
             'matrix A is (numerically) singular in discrete-time case',
@@ -494,24 +494,19 @@ def sb02mt(n,m,B,R,A=None,Q=None,L=None,fact='N',jobl='Z',uplo='U',ldwork=None):
         if fact == 'N':
             out = _wrapper.sb02mt_n(n,m,B,R,uplo=uplo,ldwork=ldwork)
         if out is None:
-            raise SlycotError(
-                'fact must be either C or N.',
-                -3)
+            raise SlycotParameterError('fact must be either C or N.', -3)
     else:
         if A is None or Q is None or L is None:
-            raise SlycotError(
-                'matrices A,Q and L are required if jobl is not Z.',
-                -7)
+            raise SlycotParameterError(
+                'matrices A,Q and L are required if jobl is not Z.', -7)
         if fact == 'C':
             out = _wrapper.sb02mt_cl(n,m,A,B,Q,R,L,uplo=uplo)
         if fact == 'N':
             out = _wrapper.sb02mt_nl(n,m,A,B,Q,R,L,uplo=uplo,ldwork=ldwork)
         if out is None:
-            raise SlycotError(
-                'fact must be either C or N.',
-                -3)
+            raise SlycotParameterError('fact must be either C or N.', -3)
     if out[-1] < 0:
-        raise SlycotParameterError(out[-1], arg_list)
+        raise SlycotParameterError(None, out[-1], arg_list)
     if out[-1] > 0 and out[-1] <= m:
         raise SlycotArithmeticError('the {}-th element of d in the UdU (LdL) '
                                     'factorization is zero.'.format(out[-1]),
@@ -713,7 +708,7 @@ def sb02od(n,m,A,B,Q,R,dico,p=None,L=None,fact='N',uplo='U',sort='S',tol=0.0,ldw
             p = _np.shape(Q)[0]
         out = _wrapper.sb02od_b(dico,n,m,p,A,B,Q,R,L,uplo=uplo,jobl=jobl,sort=sort,tol=tol,ldwork=ldwork)
     if out[-1] < 0:
-        raise SlycotParameterError(out[-1], arg_list)
+        raise SlycotParameterError(None, out[-1], arg_list)
     if out[-1] == 1:
         raise SlycotArithmeticError(
             'the computed extended matrix pencil is singular, possibly due to rounding errors',
@@ -862,10 +857,10 @@ def sb03md(n,C,A,U,dico,job='X',fact='N',trana='N',ldwork=None):
     if ldwork is None:
         ldwork = max(2*n*n,3*n)
     if dico != 'C' and dico != 'D':
-        raise SlycotError('dico must be either D or C', -1)
+        raise SlycotParameterError('dico must be either D or C', -1)
     out = _wrapper.sb03md(dico,n,C,A,U,job=job,fact=fact,trana=trana,ldwork=ldwork)
     if out[-1] < 0:
-        raise SlycotParameterError(out[-1], arg_list)
+        raise SlycotParameterError(None, out[-1], arg_list)
     if out[-1] == n+1:
         if dico == 'D':
             error_text = 'The matrix A has eigenvalues that are almost reciprocal.'
@@ -1053,10 +1048,10 @@ def sb03od(n,m,A,Q,B,dico,fact='N',trans='N',ldwork=None):
         elif m == 0:
             ldwork = 1
     if dico != 'C' and dico != 'D':
-        raise SlycotError('dico must be either D or C', -1)
+        raise SlycotParameterError('dico must be either D or C', -1)
     out = _wrapper.sb03od(dico,n,m,A,Q,B,fact=fact,trans=trans,ldwork=ldwork)
     if out[-1] < 0:
-        raise SlycotParameterError(out[-1], arg_list)
+        raise SlycotParameterError(None, out[-1], arg_list)
     if out[-1] == 1:
         if dico == 'D':
             error_text = """this means that while the matrix A
@@ -1170,7 +1165,7 @@ def sb04md(n,m,A,B,C,ldwork=None):
     else:
         out = _wrapper.sb04md(n,m,A,B,C,ldwork=ldwork)
     if out[-1] < 0:
-        raise SlycotParameterError(out[-1], arg_list)
+        raise SlycotParameterError(None, out[-1], arg_list)
     if out[-1] > 0 and out[-1] <= m:
         error_text = """The QR algorithm failed to compute all the eigenvalues
 (see LAPACK Library routine DGEES)"""
@@ -1230,7 +1225,7 @@ def sb04qd(n,m,A,B,C,ldwork=None):
     else:
         out = _wrapper.sb04qd(n,m,A,B,C,ldwork=ldwork)
     if out[-1] < 0:
-        raise SlycotParameterError(out[-1], arg_list)
+        raise SlycotParameterError(None, out[-1], arg_list)
     if out[-1] > 0 and out[-1] <= m:
         error_text = """The QR algorithm failed to compute all the eigenvalues
 (see LAPACK Library routine DGEES)"""
@@ -1902,7 +1897,7 @@ def sb10jd(n,m,np,A,B,C,D,E,ldwork=None):
     A,B,C,D,nsys,info = _wrapper.sb10jd(n,m,np,A,B,C,D,E,ldwork)
 
     if info < 0:
-        raise SlycotParameterError(info, arg_list)
+        raise SlycotParameterError(None, info, arg_list)
     elif info == 1:
         raise SlycotArithmeticError("The sb10jd algorithm did not converge", 1)
     elif info != 0:
@@ -2750,10 +2745,10 @@ def sg03bd(n,m,A,E,Q,Z,B,dico,fact='N',trans='N',ldwork=None):
     if ldwork is None:
         ldwork = max(1,4*n,6*n-6)
     if dico != 'C' and dico != 'D':
-        raise SlycotError('dico must be either D or C', -1)
+        raise SlycotParameterError('dico must be either D or C', -1)
     out = _wrapper.sg03bd(dico,n,m,A,E,Q,Z,B,fact=fact,trans=trans,ldwork=ldwork)
     if out[-1] < 0:
-        raise SlycotParameterError(out[-1], arg_list)
+        raise SlycotParameterError(None, out[-1], arg_list)
     if out[-1] == 1:
         error_text = """the pencil A - lambda * E is (nearly) singular;
                  perturbed values were used to solve the equation

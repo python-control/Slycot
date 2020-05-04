@@ -18,8 +18,7 @@
 #       MA 02110-1301, USA.
 
 from . import _wrapper
-from .exceptions import SlycotError, SlycotParameterError, \
-                        SlycotArithmeticError
+from .exceptions import SlycotParameterError, SlycotArithmeticError
 
 import numpy as _np
 
@@ -99,7 +98,7 @@ def tb01id(n,m,p,maxred,a,b,c,job='A'):
         'LDB'+hidden, 'C', 'LDC'+hidden, 'scale', 'INFO'+hidden]
     out = _wrapper.tb01id(n,m,p,maxred,a,b,c,job=job)
     if out[-1] < 0:
-        raise SlycotParameterError(out[-1], arg_list)
+        raise SlycotParameterError(None, out[-1], arg_list)
     return out[:-1]
 
 def tb03ad(n,m,p,A,B,C,D,leri,equil='N',tol=0.0,ldwork=None):
@@ -214,7 +213,7 @@ def tb03ad(n,m,p,A,B,C,D,leri,equil='N',tol=0.0,ldwork=None):
             ldwork = max( 2*n + 3*max(m,p), p*(p+2))
         out = _wrapper.tb03ad_l(n,m,p,A,B,C,D,equil=equil,tol=tol,ldwork=ldwork)
         if out[-1] < 0:
-            raise SlycotParameterError(out[-1], arg_list)
+            raise SlycotParameterError(None, out[-1], arg_list)
         if out[-1] > 0:
             raise SlycotArithmeticError(
                 'a singular matrix was encountered during the computation',
@@ -225,13 +224,13 @@ def tb03ad(n,m,p,A,B,C,D,leri,equil='N',tol=0.0,ldwork=None):
             ldwork = max( 2*n + 3*max(m,p), m*(m+2))
         out = _wrapper.tb03ad_r(n,m,p,A,B,C,D,equil=equil,tol=tol,ldwork=ldwork)
         if out[-1] < 0:
-            raise SlycotParameterError(out[-1], arg_list)
+            raise SlycotParameterError(None, out[-1], arg_list)
         if out[-1] > 0:
             raise SlycotArithmeticError(
                 'a singular matrix was encountered during the computation',
                 out[-1])
         return out[:-1]
-    raise SlycotError('leri must be either L or R', -1)
+    raise SlycotParameterError('leri must be either L or R', -1)
 
 def tb04ad(n,m,p,A,B,C,D,tol1=0.0,tol2=0.0,ldwork=None):
     """ Ar,Br,Cr,nr,denom_degs,denom_coeffs,num_coeffs = tb04ad(n,m,p,A,B,C,D,[tol1,tol2,ldwork])
@@ -298,22 +297,24 @@ def tb04ad(n,m,p,A,B,C,D,tol1=0.0,tol2=0.0,ldwork=None):
     if ldwork is None:
         ldwork = max(1,n*(n+1)+max(n*mp+2*n+max(n,mp),3*mp,pm))
     if B.shape != (n, m):
-        raise SlycotError("The shape of B is ({}, {}), "
-                          "but expected ({}, {})".format(*B.shape, n, m),
-                          -7)
+        raise SlycotParameterError("The shape of B is ({}, {}), "
+                                   "but expected ({}, {})"
+                                   "".format(*(B.shape + (n, m))),
+                                   -7)
     if C.shape != (p, n):
-        raise SlycotError("The shape of C is ({}, {}), "
-                          "but expected ({}, {})".format(*C.shape, p, n),
-                          -9)
+        raise SlycotParameterError("The shape of C is ({}, {}), "
+                                   "but expected ({}, {})"
+                                   "".format(*(C.shape + (p, n))),
+                                   -9)
     if D.shape != (max(1, p), m):
-        raise SlycotError("The shape of D is ({}, {}), "
-                          "but expected ({}, {})".format(*D.shape,
-                                                         max(1, p), m),
-                          -11)
+        raise SlycotParameterError("The shape of D is ({}, {}), "
+                                   "but expected ({}, {})"
+                                   "".format(*(D.shape + (max(1, p), m))),
+                                   -11)
     out = _wrapper.tb04ad_r(n,m,p,A,B,C,D,tol1,tol2,ldwork)
 
     if out[-1] < 0:
-        raise SlycotParameterError(out[-1], arg_list)
+        raise SlycotParameterError(None, out[-1], arg_list)
 
     A,B,C,Nr,index,dcoeff,ucoeff = out[:-1]
     kdcoef = max(index)+1
@@ -485,7 +486,7 @@ def tb05ad(n, m, p, jomega, A, B, C, job='NG'):
     """
     def error_handler(out, arg_list):
         if out[-1] < 0:
-            raise SlycotParameterError(out[-1], arg_list)
+            raise SlycotParameterError(None, out[-1], arg_list)
         if out[-1] == 1:
             error_text = ("More than 30 iterations are required "
                           "to isolate the eigenvalue of A; the computations "
@@ -508,17 +509,20 @@ def tb05ad(n, m, p, jomega, A, B, C, job='NG'):
 
     # Sanity check on matrix dimensions
     if A.shape != (n, n):
-        raise SlycotError("The shape of A is ({0:}, {1:}), "
-                          "but expected ({2:}, {2:})".format(*A.shape, n),
-                          -7)
+        raise SlycotParameterError("The shape of A is ({0:}, {1:}), "
+                                   "but expected ({2:}, {2:})"
+                                   "".format(*(A.shape + (n,))),
+                                   -7)
     if B.shape != (n, m):
-        raise SlycotError("The shape of B is ({0:}, {1:}), "
-                          "but expected ({2:}, {3:})".format(*B.shape, n, m),
-                          -9)
+        raise SlycotParameterError("The shape of B is ({0:}, {1:}), "
+                                   "but expected ({2:}, {3:})"
+                                   "".format(*(B.shape + (n, m))),
+                                   -9)
     if C.shape != (p, n):
-        raise SlycotError("The shape of C is ({0:}, {1:}), "
-                          "but expected ({2:}, {3:})".format(*C.shape, p, n),
-                          -11)
+        raise SlycotParameterError("The shape of C is ({0:}, {1:}), "
+                                   "but expected ({2:}, {3:})"
+                                   "".format(*(C.shape + (p, n))),
+                                   -11)
 
     # ----------------------------------------------------
     # Checks done, do computation.
@@ -546,9 +550,10 @@ def tb05ad(n, m, p, jomega, A, B, C, job='NG'):
         info = out[-1]
         return g_i, hinvb, info
     else:
-        raise SlycotError("Unrecognized job. Expected job = 'AG' or "
-                          "job='NG' or job = 'NH' but received job=%s" % job,
-                          0)
+        raise SlycotParameterError("Unrecognized job. Expected job = 'AG' or "
+                                   "job='NG' or job = 'NH' but received job={}"
+                                   "".format(job),
+                                   -1) # job is baleig and inita together
 
 
 def td04ad(rowcol,m,p,index,dcoeff,ucoeff,tol=0.0,ldwork=None):
@@ -627,41 +632,41 @@ def td04ad(rowcol,m,p,index,dcoeff,ucoeff,tol=0.0,ldwork=None):
     kdcoef = max(index)+1
     if rowcol == 'R':
         if ucoeff.ndim != 3:
-            raise SlycotError("The numerator is not a 3D array!", -7)
+            raise SlycotParameterError("The numerator is not a 3D array!", -7)
         expectedshape = (max(1, p), max(1, m), kdcoef)
         if ucoeff.shape != expectedshape:
-            raise SlycotError("The numerator shape is ({}, {}, {}), "
-                              "but expected ({}, {}, {})"
-                              "".format(*ucoeff.shape, *expectedshape),
-                              -7)
+            raise SlycotParameterError("The numerator shape is ({}, {}, {}), "
+                                       "but expected ({}, {}, {})".format(
+                                           *(ucoeff.shape + expectedshape)),
+                                       -7)
         expectedshape = (max(1, p), kdcoef)
         if dcoeff.shape != expectedshape:
-            raise SlycotError("The denominator shape is ({}, {}), "
-                              "but expected ({}, {})"
-                              "".format(*dcoeff.shape, *expectedshape),
-                              -5)
+            raise SlycotParameterError("The denominator shape is ({}, {}), "
+                                       "but expected ({}, {})".format(
+                                           *(dcoeff.shape + expectedshape)),
+                                       -5)
         out = _wrapper.td04ad_r(m,p,index,dcoeff,ucoeff,n,tol,ldwork)
     elif rowcol == 'C':
         if ucoeff.ndim != 3:
-            raise SlycotError("The numerator is not a 3D array!", -7)
+            raise SlycotParameterError("The numerator is not a 3D array!", -7)
         expectedshape = (max(1, m, p), max(1, m, p), kdcoef)
         if ucoeff.shape != expectedshape:
-            raise SlycotError("The numerator shape is ({}, {}, {}), "
-                              "but expected ({}, {}, {})"
-                              "".format(*ucoeff.shape, *expectedshape),
-                              -7)
+            raise SlycotParameterError("The numerator shape is ({}, {}, {}), "
+                                       "but expected ({}, {}, {})".format(
+                                           *(ucoeff.shape + expectedshape)),
+                                       -7)
         expectedshape = (max(1, m), kdcoef)
         if dcoeff.shape != expectedshape:
-            raise SlycotError("The denominator shape is ({}, {}), "
-                              "but expected ({}, {})"
-                              "".format(*dcoeff.shape, *expectedshape),
-                              -5)
+            raise SlycotParameterError("The denominator shape is ({}, {}), "
+                                       "but expected ({}, {})".format(
+                                           *(dcoeff.shape + expectedshape)),
+                                       -5)
         out = _wrapper.td04ad_c(m,p,index,dcoeff,ucoeff,n,tol,ldwork)
     else:
-        raise SlycotError("Parameter rowcol had an illegal value", -1)
+        raise SlycotParameterError("Parameter rowcol had an illegal value", -1)
 
     if out[-1] < 0:
-        raise SlycotParameterError(out[-1], arg_list)
+        raise SlycotParameterError(None, out[-1], arg_list)
     if out[-1] > 0:
         raise SlycotArithmeticError(
             "The leading coefficient of a denominator polynomial is nearly "
@@ -758,18 +763,18 @@ def tc04ad(m,p,index,pcoeff,qcoeff,leri,ldwork=None):
     if leri == 'L':
         out = _wrapper.tc04ad_l(m,p,index,pcoeff,qcoeff,n)
         if out[-1] < 0:
-            raise SlycotParameterError(out[-1], arg_list)
+            raise SlycotParameterError(None, out[-1], arg_list)
         if out[-1] == 1:
             raise SlycotArithmeticError('P(s) is not row proper', out[-1])
         return out[:-1]
     if leri == 'R':
         out = _wrapper.tc04ad_r(m,p,index,pcoeff,qcoeff,n)
         if out[-1] < 0:
-            raise SlycotParameterError(out[-1], arg_list)
+            raise SlycotParameterError(None, out[-1], arg_list)
         if out[-1] == 1:
             raise SlycotArithmeticError('P(s) is not column proper', out[-1])
         return out[:-1]
-    raise SlycotError('leri must be either L or R', -1)
+    raise SlycotParameterError('leri must be either L or R', -1)
 
 def tc01od(m,p,indlin,pcoeff,qcoeff,leri):
     """ pcoeff,qcoeff = tc01od_l(m,p,indlim,pcoeff,qcoeff,leri)
@@ -820,14 +825,14 @@ def tc01od(m,p,indlin,pcoeff,qcoeff,leri):
     if leri == 'L':
         out = _wrapper.tc01od_l(m,p,indlin,pcoeff,qcoeff)
         if out[-1] < 0:
-            raise SlycotParameterError(out[-1], arg_list)
+            raise SlycotParameterError(None, out[-1], arg_list)
         return out[:-1]
     if leri == 'R':
         out = _wrapper.tc01od_r(m,p,indlin,pcoeff,qcoeff)
         if out[-1] < 0:
-            raise SlycotParameterError(out[-1], arg_list)
+            raise SlycotParameterError(None, out[-1], arg_list)
         return out[:-1]
-    raise SlycotError('leri must be either L or R', -1)
+    raise SlycotParameterError('leri must be either L or R', -1)
 
 def tf01md(n,m,p,N,A,B,C,D,u,x0):
     """ xf,y = tf01md(n,m,p,N,A,B,C,D,u,x0)
@@ -869,7 +874,7 @@ def tf01md(n,m,p,N,A,B,C,D,u,x0):
 
     out = _wrapper.tf01md(n,m,p,N,A,B,C,D,u,x0)
     if out[-1] < 0:
-        raise SlycotParameterError(out[-1], arg_list)
+        raise SlycotParameterError(None, out[-1], arg_list)
     return out[:-1]
 
 def tf01rd(n,m,p,N,A,B,C,ldwork=None):
@@ -914,7 +919,7 @@ def tf01rd(n,m,p,N,A,B,C,ldwork=None):
     else:
         out = _wrapper.tf01rd(n,m,p,N,A,B,C,ldwork=ldwork)
     if out[-1] < 0:
-        raise SlycotParameterError(out[-1], arg_list)
+        raise SlycotParameterError(None, out[-1], arg_list)
     return out[0]
 
 def tb01pd(n, m, p, A, B, C, job='M', equil='S', tol=1e-8, ldwork=None):
@@ -990,12 +995,12 @@ def tb01pd(n, m, p, A, B, C, job='M', equil='S', tol=1e-8, ldwork=None):
     if ldwork is None:
         ldwork = max(1, n+max(n,3*m,3*p))
     elif ldwork < max(1, n+max(n,3*m,3*p)):
-        raise SlycotError("ldwork is too small", -15)
+        raise SlycotParameterError("ldwork is too small", -15)
     out = _wrapper.tb01pd(n=n,m=m,p=p,a=A,b=B,c=C,
                           job=job,equil=equil,tol=tol,ldwork=ldwork)
 
     if out[-1] < 0:
-        raise SlycotParameterError(out[-1], arg_list)
+        raise SlycotParameterError(None, out[-1], arg_list)
     return out[:-1]
 
 def tg01ad(l,n,m,p,A,E,B,C,thresh=0.0,job='A'):
@@ -1090,12 +1095,12 @@ def tg01ad(l,n,m,p,A,E,B,C,thresh=0.0,job='A'):
     arg_list = ['job', 'l', 'n', 'm', 'p', 'thresh', 'A', 'lda'+hidden, 'E','lde'+hidden,'B','ldb'+hidden,'C','ldc'+hidden, 'lscale', 'rscale', 'dwork'+hidden, 'info']
 
     if job != 'A' and job != 'B' and job != 'C' and job != 'N':
-        raise SlycotError('Parameter job had an illegal value', -1)
+        raise SlycotParameterError('Parameter job had an illegal value', -1)
 
     A,E,B,C,lscale,rscale,info = _wrapper.tg01ad(job,l,n,m,p,thresh,A,E,B,C)
 
     if info < 0:
-        raise SlycotParameterError(info, arg_list)
+        raise SlycotParameterError(None, info, arg_list)
     if info != 0:
         raise SlycotArithmeticError('tg01ad failed', info)
 
@@ -1258,13 +1263,13 @@ def tg01fd(l,n,m,p,A,E,B,C,Q=None,Z=None,compq='N',compz='N',joba='N',tol=0.0,ld
 
 
     if compq != 'N' and compq != 'I' and compq != 'U':
-        raise SlycotError('Parameter compq had an illegal value', -1)
+        raise SlycotParameterError('Parameter compq had an illegal value', -1)
 
     if compz != 'N' and compz != 'I' and compz != 'U':
-        raise SlycotError('Parameter compz had an illegal value', -2)
+        raise SlycotParameterError('Parameter compz had an illegal value', -2)
 
     if joba != 'N' and joba != 'R' and joba != 'T':
-        raise SlycotError('Parameter joba had an illegal value', -3)
+        raise SlycotParameterError('Parameter joba had an illegal value', -3)
 
     if ldwork is None:
         ldwork = max(1, n+p, min(l,n) + max(3*n-1, m, l))
@@ -1279,11 +1284,11 @@ def tg01fd(l,n,m,p,A,E,B,C,Q=None,Z=None,compq='N',compz='N',joba='N',tol=0.0,ld
     elif compq == 'U' and compz == 'U':
         A,E,B,C,Q,Z,ranke,rnka22,info = _wrapper.tg01fd_uu(joba,l,n,m,p,A,E,B,C,Q,Z,tol,ldwork)
     else:
-        raise SlycotError(
+        raise SlycotParameterError(
             "The combination of compq and compz is not implemented", -1)
 
     if info < 0:
-        raise SlycotParameterError(info, arg_list)
+        raise SlycotParameterError(None, info, arg_list)
     if info != 0:
         raise SlycotArithmeticError('tg01fd failed', info)
 

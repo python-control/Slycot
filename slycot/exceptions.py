@@ -19,30 +19,29 @@ MA 02110-1301, USA.
 """
 
 
-class SlycotError(ValueError):
-    """Slycot exception"""
+class SlycotError(RuntimeError):
+    """Slycot exception base class"""
 
     def __init__(self, message, info):
         super(SlycotError, self).__init__(message)
         self.info = info
 
 
-class SlycotParameterError(SlycotError):
-    """Slycot info parameter exception.
+class SlycotParameterError(SlycotError, ValueError):
+    """A Slycot input parameter had an illegal value.
 
     In case of a wrong input value, the SLICOT routines return a negative
     info parameter indicating which parameter was illegal.
     """
 
-    def __init__(self, info, arg_list):
-        fmt = "The following argument had an illegal value: {}"
-        super(SlycotParameterError, self).__init__(
-            fmt.format(arg_list[-info-1]), info)
+    def __init__(self, message, info, arg_list=None):
+        if not message:
+            message = ("The following argument had an illegal value: {}"
+                       "".format(arg_list[-info-1]))
+        super(SlycotParameterError, self).__init__(message, info)
 
 
-class SlycotArithmeticError(ArithmeticError):
+class SlycotArithmeticError(SlycotError, ArithmeticError):
     """A Slycot computation failed"""
 
-    def __init__(self, message, info):
-        super(SlycotArithmeticError, self).__init__(message)
-        self.info = info
+    pass
