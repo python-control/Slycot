@@ -87,7 +87,7 @@ def raise_if_slycot_error(info, arg_list, docstring=None):
         messages = filter_docstring_exceptions(docstring)
         try:
             raise SlycotParameterError(messages[info-1], info)
-        except:
+        except IndexError:
             raise SlycotParameterError(
                 "Slycot returned an unhandled error code {}".format(info),
                 info)
