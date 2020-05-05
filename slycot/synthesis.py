@@ -152,7 +152,7 @@ def sb01bd(n,m,np,alpha,A,B,w,dico,tol=0.0,ldwork=None):
         ldwork = max(1,5*m,5*n,2*n+4*m)
     A_z,wr,wi,nfp,nap,nup,F,Z,warn,info = _wrapper.sb01bd(dico,n,m,np,alpha,A,B,w.real,w.imag,tol=tol,ldwork=ldwork)
 
-    raise_if_slycot_error(out[-1], arg_list, sb01bd.__doc__)
+    raise_if_slycot_error(info, arg_list, sb01bd.__doc__)
 
     if warn != 0:
         warnings.warn('%i violations of the numerical stability condition occured during the assignment of eigenvalues' % warn)
