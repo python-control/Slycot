@@ -474,8 +474,7 @@ def sb02mt(n,m,B,R,A=None,Q=None,L=None,fact='N',jobl='Z',uplo='U',ldwork=None):
             out = _wrapper.sb02mt_nl(n,m,A,B,Q,R,L,uplo=uplo,ldwork=ldwork)
         if out is None:
             raise SlycotParameterError('fact must be either C or N.', -3)
-    if out[-1] < 0:
-        raise_if_slycot_error(out[-1], arg_list)
+    raise_if_slycot_error(out[-1], arg_list)
     if out[-1] > 0 and out[-1] <= m:
         raise SlycotArithmeticError('the {}-th element of d in the UdU (LdL) '
                                     'factorization is zero.'.format(out[-1]),
@@ -805,8 +804,7 @@ def sb03md(n,C,A,U,dico,job='X',fact='N',trana='N',ldwork=None):
     if dico != 'C' and dico != 'D':
         raise SlycotParameterError('dico must be either D or C', -1)
     out = _wrapper.sb03md(dico,n,C,A,U,job=job,fact=fact,trana=trana,ldwork=ldwork)
-    if out[-1] < 0:
-        raise_if_slycot_error(out[-1], arg_list)
+    raise_if_slycot_error(out[-1], arg_list)
     if out[-1] == n+1:
         if dico == 'D':
             error_text = 'The matrix A has eigenvalues that are almost reciprocal.'
@@ -997,8 +995,7 @@ def sb03od(n,m,A,Q,B,dico,fact='N',trans='N',ldwork=None):
         raise SlycotParameterError('dico must be either D or C', -1)
     out = _wrapper.sb03od(dico,n,m,A,Q,B,fact=fact,trans=trans,ldwork=ldwork)
 
-    if out[-1] < 0:
-        raise_if_slycot_error(out[-1], arg_list)
+    raise_if_slycot_error(out[-1], arg_list)
     if out[-1] == 1:
         if dico == 'D':
             error_text = """this means that while the matrix A
@@ -1112,8 +1109,7 @@ def sb04md(n,m,A,B,C,ldwork=None):
     else:
         out = _wrapper.sb04md(n,m,A,B,C,ldwork=ldwork)
 
-    if out[-1] < 0:
-        raise_if_slycot_error(out[-1], arg_list)
+    raise_if_slycot_error(out[-1], arg_list)
     if out[-1] > 0 and out[-1] <= m:
         error_text = """The QR algorithm failed to compute all the eigenvalues
 (see LAPACK Library routine DGEES)"""
@@ -1172,8 +1168,7 @@ def sb04qd(n,m,A,B,C,ldwork=None):
         out = _wrapper.sb04qd(n,m,A,B,C)
     else:
         out = _wrapper.sb04qd(n,m,A,B,C,ldwork=ldwork)
-    if out[-1] < 0:
-        raise_if_slycot_error(out[-1], arg_list)
+    raise_if_slycot_error(out[-1], arg_list)
     if out[-1] > 0 and out[-1] <= m:
         error_text = """The QR algorithm failed to compute all the eigenvalues
 (see LAPACK Library routine DGEES)"""

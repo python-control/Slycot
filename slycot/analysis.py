@@ -123,20 +123,17 @@ def ab01nd(n,m,A,B,jobz='N',tol=0,ldwork=None):
         ldwork = max(n,3*m)
     if jobz == 'N':
         out = _wrapper.ab01nd_n(n,m,A,B,tol=tol,ldwork=ldwork)
-        if out[-1] < 0:
-            raise_if_slycot_error(out[-1], arg_list)
+        raise_if_slycot_error(out[-1], arg_list)
         # sets Z to None
         out[5] = None
         return out[:-1]
     if jobz == 'I':
         out = _wrapper.ab01nd_i(n,m,A,B,tol=tol,ldwork=ldwork)
-        if out[-1] < 0:
-            raise_if_slycot_error(out[-1], arg_list)
+        raise_if_slycot_error(out[-1], arg_list)
         return out[:-1]
     if jobz == 'F':
         out = _wrapper.ab01nd_f(n,m,A,B,tol=tol,ldwork=ldwork)
-        if out[-1] < 0:
-            raise_if_slycot_error(out[-1], arg_list)
+        raise_if_slycot_error(out[-1], arg_list)
         return out[:-1]
     raise SlycotParameterError('jobz must be either N, I or F', -1)
 
@@ -221,8 +218,7 @@ def ab05md(n1,m1,p1,n2,p2,A1,B1,C1,D1,A2,B2,C2,D2,uplo='U'):
         'LDB'+hidden, 'C', 'LDC'+hidden, 'D', 'LDD'+hidden, 'DWORK'+hidden,
         'ldwork', 'info'+hidden ]
     out = _wrapper.ab05md(n1,m1,p1,n2,p2,A1,B1,C1,D1,A2,B2,C2,D2,uplo=uplo)
-    if out[-1] < 0:
-        raise_if_slycot_error(out[-1], arg_list)
+    raise_if_slycot_error(out[-1], arg_list)
     return out[:-1]
 
 def ab05nd(n1,m1,p1,n2,A1,B1,C1,D1,A2,B2,C2,D2,alpha=1.0,ldwork=None):
@@ -304,8 +300,7 @@ def ab05nd(n1,m1,p1,n2,A1,B1,C1,D1,A2,B2,C2,D2,alpha=1.0,ldwork=None):
     if ldwork is None:
         ldwork = max(p1*p1,m1*m1,n1*p1)
     out = _wrapper.ab05nd(n1,m1,p1,n2,alpha,A1,B1,C1,D1,A2,B2,C2,D2,ldwork=ldwork)
-    if out[-1] < 0:
-        raise_if_slycot_error(out[-1], arg_list)
+    raise_if_slycot_error(out[-1], arg_list)
     if out[-1] > 0:
         raise SlycotArithmeticError(
             'The resulting system is not completely controllable.',
@@ -362,8 +357,7 @@ def ab07nd(n,m,A,B,C,D,ldwork=None):
     if ldwork is None:
         ldwork = max(1,4*m)
     out = _wrapper.ab07nd(n,m,A,B,C,D,ldwork=ldwork)
-    if out[-1] < 0:
-        raise_if_slycot_error(out[-1], arg_list)
+    raise_if_slycot_error(out[-1], arg_list)
     if out[-1] == m+1:
         raise SlycotArithmeticError(
             'Entry matrix D is numerically singular.',
@@ -456,8 +450,7 @@ def ab08nd(n,m,p,A,B,C,D,equil='N',tol=0,ldwork=None):
     if ldwork is None:
         ldwork = n+3*max(m,p) #only an upper bound
     out = _wrapper.ab08nd(n,m,p,A,B,C,D,equil=equil,tol=tol,ldwork=ldwork)
-    if out[-1] < 0:
-        raise_if_slycot_error(out[-1], arg_list)
+    raise_if_slycot_error(out[-1], arg_list)
     return out[:-1]
 
 def ab08nz(n, m, p, A, B, C, D, equil='N', tol=0., lzwork=None):
@@ -558,12 +551,12 @@ def ab08nz(n, m, p, A, B, C, D, equil='N', tol=0., lzwork=None):
         lzwork = max(min(p, m) + max(3*m-1, n),
                      min(p, n) + max(3*p-1, n+p, n+m),
                      min(m, n) + max(3*m-1, n+m))
-    out = _wrapper.ab08nz(n, m, p, A, B, C, D,
-                          equil=equil, tol=tol, lzwork=lzwork)
+
     nu, rank, dinfz, nkror, nkrol, infz, kronr, kronl, Af, Bf, zwork, info \
-        = out
-    if info < 0:
-        raise_if_slycot_error(info, arg_list)
+        = _wrapper.ab08nz(n, m, p, A, B, C, D,
+                          equil=equil, tol=tol, lzwork=lzwork)
+
+    raise_if_slycot_error(info, arg_list)
     return (nu, rank, dinfz, nkror, nkrol, infz, kronr, kronl, Af, Bf,
             int(zwork[0].real))
 

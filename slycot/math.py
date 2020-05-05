@@ -237,8 +237,7 @@ def mb03rd(n, A, X=None, jobx='U', sort='N', pmax=1.0, tol=0.0):
     Ar, Xr, nblcks, blsize, wr, wi, info = _wrapper.mb03rd(
         jobx, sort, n, pmax, A, X, tol)
 
-    if info < 0:
-        raise_if_slycot_error(info, arg_list)
+    raise_if_slycot_error(info, arg_list)
     if jobx == 'N':
         Xr = None
     else:
@@ -365,8 +364,7 @@ def mb03vd(n, ilo, ihi, A):
 
     HQ, Tau, info = _wrapper.mb03vd(n, ilo, ihi, A)
 
-    if info < 0:
-        raise_if_slycot_error(info, arg_list)
+    raise_if_slycot_error(info, arg_list)
     return (HQ, Tau)
 
 
@@ -426,8 +424,7 @@ def mb03vy(n, ilo, ihi, A, Tau, ldwork=None):
 
     Q, info = _wrapper.mb03vy(n, ilo, ihi, A, Tau, ldwork)
 
-    if info < 0:
-        raise_if_slycot_error(info, arg_list)
+    raise_if_slycot_error(info, arg_list)
 
     return Q
 
@@ -559,9 +556,9 @@ def mb03wd(job, compz, n, ilo, ihi, iloz, ihiz, H, Q, ldwork=None):
     T, Z, Wr, Wi, info = _wrapper.mb03wd(
             job, compz, n, ilo, ihi, iloz, ihiz, H, Q, ldwork)
 
-    if info < 0:
-        raise_if_slycot_error(info, arg_list)
-    elif info > 0:
+    raise_if_slycot_error(info, arg_list)
+    
+    if info > 0:
         warnings.warn(("failed to compute all the eigenvalues {ilo} to {ihi} "
                        "in a total of 30*({ihi}-{ilo}+1) iterations "
                        "the elements {i}:{ihi} of Wr contain those "
@@ -649,15 +646,10 @@ def mb05md(a, delta, balanc='N'):
                                                      n=n,
                                                      delta=delta,
                                                      a=a)
-    if INFO == 0:
-        if not all(VALi == 0):
-            VAL = VALr + 1J*VALi
-        else:
-            VAL = VALr
-        return (Ar, Vr, Yr, VAL)
-    elif INFO < 0:
-        raise_if_slycot_error(info, arg_list)
-    elif INFO > 0 and INFO <= n:
+
+    raise_if_slycot_error(info, arg_list)
+
+    if INFO > 0 and INFO <= n:
         raise SlycotArithmeticError("Incomplete eigenvalue calculation, "
                                     "missing {} eigenvalues".format(INFO),
                                     INFO)
@@ -666,6 +658,12 @@ def mb05md(a, delta, balanc='N'):
     elif INFO == n+2:
         raise SlycotArithmeticError("Matrix A is defective, "
                                     "possibly due to rounding errors.", INFO)
+    if not all(VALi == 0):
+        VAL = VALr + 1J*VALi
+    else:
+        VAL = VALr
+    return (Ar, Vr, Yr, VAL)
+
 
 
 def mb05nd(a, delta, tol=1e-7):
@@ -697,12 +695,11 @@ def mb05nd(a, delta, tol=1e-7):
                 'dwork'+hidden, 'ldwork'+hidden]
     n = min(a.shape)
     out = _wrapper.mb05nd(n=n, delta=delta, a=a, tol=tol)
-    if out[-1] == 0:
-        return out[:-1]
-    elif out[-1] < 0:
-        raise_if_slycot_error(out[-1], arg_list)
-    elif out[-1] == n+1:
+    
+    raise_if_slycot_error(out[-1], arg_list)
+    if out[-1] == n+1:
         raise SlycotArithmeticError("Delta too large", out[-1])
+    return out[:-1]
 
 
 
@@ -747,8 +744,7 @@ def mc01td(dico, dp, p):
     arg_list = ['dico', 'dp', 'P', 'stable', 'nz', 'DWORK' + hidden,
                 'IWARN', 'INFO']
     (dp_out, stable_log, nz, iwarn, info) = _wrapper.mc01td(dico, dp, p)
-    if info < 0:
-        raise_if_slycot_error(info, arg_list)
+    raise_if_slycot_error(info, arg_list)
     if info == 1:
         warnings.warn('entry P(x) is the zero polynomial.')
     if info == 2:
