@@ -18,7 +18,8 @@
 #       MA 02110-1301, USA.
 
 from . import _wrapper
-from .exceptions import SlycotParameterError, SlycotArithmeticError
+from .exceptions import raise_if_slycot_error, \
+    SlycotParameterError, SlycotArithmeticError
 
 import numpy as _np
 
@@ -98,7 +99,7 @@ def tb01id(n,m,p,maxred,a,b,c,job='A'):
         'LDB'+hidden, 'C', 'LDC'+hidden, 'scale', 'INFO'+hidden]
     out = _wrapper.tb01id(n,m,p,maxred,a,b,c,job=job)
     if out[-1] < 0:
-        raise SlycotParameterError(None, out[-1], arg_list)
+        raise raise_if_slycot_error(out[-1], arg_list)
     return out[:-1]
 
 def tb03ad(n,m,p,A,B,C,D,leri,equil='N',tol=0.0,ldwork=None):
@@ -213,7 +214,7 @@ def tb03ad(n,m,p,A,B,C,D,leri,equil='N',tol=0.0,ldwork=None):
             ldwork = max( 2*n + 3*max(m,p), p*(p+2))
         out = _wrapper.tb03ad_l(n,m,p,A,B,C,D,equil=equil,tol=tol,ldwork=ldwork)
         if out[-1] < 0:
-            raise SlycotParameterError(None, out[-1], arg_list)
+            raise_if_slycot_error(out[-1], arg_list)
         if out[-1] > 0:
             raise SlycotArithmeticError(
                 'a singular matrix was encountered during the computation',
@@ -224,7 +225,7 @@ def tb03ad(n,m,p,A,B,C,D,leri,equil='N',tol=0.0,ldwork=None):
             ldwork = max( 2*n + 3*max(m,p), m*(m+2))
         out = _wrapper.tb03ad_r(n,m,p,A,B,C,D,equil=equil,tol=tol,ldwork=ldwork)
         if out[-1] < 0:
-            raise SlycotParameterError(None, out[-1], arg_list)
+            raise_if_slycot_error(out[-1], arg_list)
         if out[-1] > 0:
             raise SlycotArithmeticError(
                 'a singular matrix was encountered during the computation',
@@ -314,7 +315,7 @@ def tb04ad(n,m,p,A,B,C,D,tol1=0.0,tol2=0.0,ldwork=None):
     out = _wrapper.tb04ad_r(n,m,p,A,B,C,D,tol1,tol2,ldwork)
 
     if out[-1] < 0:
-        raise SlycotParameterError(None, out[-1], arg_list)
+        raise_if_slycot_error(out[-1], arg_list)
 
     A,B,C,Nr,index,dcoeff,ucoeff = out[:-1]
     kdcoef = max(index)+1
@@ -484,19 +485,6 @@ def tb05ad(n, m, p, jomega, A, B, C, job='NG'):
     >>> g_2, hinv2,info = slycot.tb05ad(n, m, p, jw_s[1], at, bt, ct, job='NH')
 
     """
-    def error_handler(out, arg_list):
-        if out[-1] < 0:
-            raise SlycotParameterError(None, out[-1], arg_list)
-        if out[-1] == 1:
-            error_text = ("More than 30 iterations are required "
-                          "to isolate the eigenvalue of A; the computations "
-                          "are continued.")
-            raise SlycotArithmeticError(error_text, out[-1])
-        if out[-1] == 2:
-            error_text = ("Either FREQ is too near to an eigenvalue of A, or "
-                          "RCOND is less than the machine precision EPS.")
-            raise SlycotArithmeticError(error_text, out[-1])
-
     hidden = ' (hidden by the wrapper)'
     arg_list = ['baleig'+hidden, 'inita'+hidden, 'n', 'm', 'p', 'freq', 'a',
                 'lda'+hidden, 'b', 'ldb'+hidden, 'c', 'ldc'+hidden, 'rcond',
@@ -528,7 +516,7 @@ def tb05ad(n, m, p, jomega, A, B, C, job='NG'):
     # Checks done, do computation.
     if job == 'AG':
         out = _wrapper.tb05ad_ag(n, m, p, jomega, A, B, C)
-        error_handler(out, arg_list)
+        raise_if_slycot_error(out[-1], arg_list, tb05ad.__doc__)
         At, Bt, Ct, rcond, g_jw, evre, evim, hinvb = out[:-1]
         ev = _np.zeros(n, 'complex64')
         ev.real = evre
@@ -539,13 +527,13 @@ def tb05ad(n, m, p, jomega, A, B, C, job='NG'):
         # use tb05ad_ng, for 'NONE' , and 'General', because balancing
         # (option 'A' for 'ALL') seems to have  a bug.
         out = _wrapper.tb05ad_ng(n, m, p, jomega, A, B, C)
-        error_handler(out, arg_list)
+        raise_if_slycot_error(out[-1], arg_list, tb05ad.__doc__)
         At, Bt, Ct, g_jw, hinvb = out[:-1]
         info = out[-1]
         return At, Bt, Ct, g_jw, hinvb, info
     elif job == 'NH':
         out = _wrapper.tb05ad_nh(n, m, p, jomega, A, B, C)
-        error_handler(out, arg_list)
+        raise_if_slycot_error(out[-1], arg_list, tb05ad.__doc__)
         g_i, hinvb = out[:-1]
         info = out[-1]
         return g_i, hinvb, info
@@ -666,7 +654,7 @@ def td04ad(rowcol,m,p,index,dcoeff,ucoeff,tol=0.0,ldwork=None):
         raise SlycotParameterError("Parameter rowcol had an illegal value", -1)
 
     if out[-1] < 0:
-        raise SlycotParameterError(None, out[-1], arg_list)
+        raise_if_slycot_error(out[-1], arg_list)
     if out[-1] > 0:
         raise SlycotArithmeticError(
             "The leading coefficient of a denominator polynomial is nearly "
@@ -763,14 +751,14 @@ def tc04ad(m,p,index,pcoeff,qcoeff,leri,ldwork=None):
     if leri == 'L':
         out = _wrapper.tc04ad_l(m,p,index,pcoeff,qcoeff,n)
         if out[-1] < 0:
-            raise SlycotParameterError(None, out[-1], arg_list)
+            raise_if_slycot_error(out[-1], arg_list)
         if out[-1] == 1:
             raise SlycotArithmeticError('P(s) is not row proper', out[-1])
         return out[:-1]
     if leri == 'R':
         out = _wrapper.tc04ad_r(m,p,index,pcoeff,qcoeff,n)
         if out[-1] < 0:
-            raise SlycotParameterError(None, out[-1], arg_list)
+            raise_if_slycot_error(out[-1], arg_list)
         if out[-1] == 1:
             raise SlycotArithmeticError('P(s) is not column proper', out[-1])
         return out[:-1]
@@ -825,12 +813,12 @@ def tc01od(m,p,indlin,pcoeff,qcoeff,leri):
     if leri == 'L':
         out = _wrapper.tc01od_l(m,p,indlin,pcoeff,qcoeff)
         if out[-1] < 0:
-            raise SlycotParameterError(None, out[-1], arg_list)
+            raise_if_slycot_error(out[-1], arg_list)
         return out[:-1]
     if leri == 'R':
         out = _wrapper.tc01od_r(m,p,indlin,pcoeff,qcoeff)
         if out[-1] < 0:
-            raise SlycotParameterError(None, out[-1], arg_list)
+            raise_if_slycot_error(out[-1], arg_list)
         return out[:-1]
     raise SlycotParameterError('leri must be either L or R', -1)
 
@@ -874,7 +862,7 @@ def tf01md(n,m,p,N,A,B,C,D,u,x0):
 
     out = _wrapper.tf01md(n,m,p,N,A,B,C,D,u,x0)
     if out[-1] < 0:
-        raise SlycotParameterError(None, out[-1], arg_list)
+        raise_if_slycot_error(out[-1], arg_list)
     return out[:-1]
 
 def tf01rd(n,m,p,N,A,B,C,ldwork=None):
@@ -919,7 +907,7 @@ def tf01rd(n,m,p,N,A,B,C,ldwork=None):
     else:
         out = _wrapper.tf01rd(n,m,p,N,A,B,C,ldwork=ldwork)
     if out[-1] < 0:
-        raise SlycotParameterError(None, out[-1], arg_list)
+        raise_if_slycot_error(out[-1], arg_list)
     return out[0]
 
 def tb01pd(n, m, p, A, B, C, job='M', equil='S', tol=1e-8, ldwork=None):
@@ -1000,7 +988,7 @@ def tb01pd(n, m, p, A, B, C, job='M', equil='S', tol=1e-8, ldwork=None):
                           job=job,equil=equil,tol=tol,ldwork=ldwork)
 
     if out[-1] < 0:
-        raise SlycotParameterError(None, out[-1], arg_list)
+        raise_if_slycot_error(out[-1], arg_list)
     return out[:-1]
 
 def tg01ad(l,n,m,p,A,E,B,C,thresh=0.0,job='A'):
@@ -1100,7 +1088,7 @@ def tg01ad(l,n,m,p,A,E,B,C,thresh=0.0,job='A'):
     A,E,B,C,lscale,rscale,info = _wrapper.tg01ad(job,l,n,m,p,thresh,A,E,B,C)
 
     if info < 0:
-        raise SlycotParameterError(None, info, arg_list)
+        raise_if_slycot_error(info, arg_list)
     if info != 0:
         raise SlycotArithmeticError('tg01ad failed', info)
 
@@ -1288,7 +1276,7 @@ def tg01fd(l,n,m,p,A,E,B,C,Q=None,Z=None,compq='N',compz='N',joba='N',tol=0.0,ld
             "The combination of compq and compz is not implemented", -1)
 
     if info < 0:
-        raise SlycotParameterError(None, info, arg_list)
+        raise_if_slycot_error(info, arg_list)
     if info != 0:
         raise SlycotArithmeticError('tg01fd failed', info)
 

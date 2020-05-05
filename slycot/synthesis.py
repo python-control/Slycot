@@ -20,7 +20,8 @@
 
 
 from . import _wrapper
-from .exceptions import SlycotParameterError, SlycotArithmeticError
+from .exceptions import raise_if_slycot_error, \
+    SlycotParameterError, SlycotArithmeticError
 
 import numpy as _np
 import warnings
@@ -150,22 +151,9 @@ def sb01bd(n,m,np,alpha,A,B,w,dico,tol=0.0,ldwork=None):
     if ldwork is None:
         ldwork = max(1,5*m,5*n,2*n+4*m)
     A_z,wr,wi,nfp,nap,nup,F,Z,warn,info = _wrapper.sb01bd(dico,n,m,np,alpha,A,B,w.real,w.imag,tol=tol,ldwork=ldwork)
-    if info < 0:
-        raise SlycotParameterError(None, info, arg_list)
-    if info == 1:
-        raise SlycotArithmeticError(
-            'the reduction of A to a real Schur form failed',
-            info)
-    if info == 2:
-        raise SlycotArithmeticError('a failure was detected during the ordering of eigenvalues', info)
-    if info == 3:
-        raise SlycotArithmeticError(
-            'the number of eigenvalues to be assigned is less than the number of possibly assignable eigenvalues',
-            info)
-    if info == 4:
-        raise SlycotArithmeticError(
-            'an attempt was made to place a complex conjugate pair on the location of a real eigenvalue',
-            info)
+
+    raise_if_slycot_error(out[-1], arg_list, sb01bd.__doc__)
+
     if warn != 0:
         warnings.warn('%i violations of the numerical stability condition occured during the assignment of eigenvalues' % warn)
     # put togheter wr and wi into a complex array of eigenvalues
@@ -332,28 +320,9 @@ def sb02md(n,A,G,Q,dico,hinv='D',uplo='U',scal='N',sort='S',ldwork=None):
     if ldwork is None:
         ldwork = max(3,6*n)
     A_inv,X,rcond,wr,wi,S,U,info = _wrapper.sb02md(dico,n,A,G,Q,hinv=hinv,uplo=uplo,scal=scal,sort=sort,ldwork=ldwork)
-    if info < 0:
-        raise SlycotParameterError(None, info, arg_list)
-    if info == 1:
-        raise SlycotArithmeticError(
-            'matrix A is (numerically) singular in discrete-time case',
-            info)
-    if info == 2:
-        raise SlycotArithmeticError(
-            'the Hamiltonian or symplectic matrix H cannot be reduced to real Schur form',
-            info)
-    if info == 3:
-        raise SlycotArithmeticError(
-            'the real Schur form of the Hamiltonian or symplectic matrix H cannot be appropriately ordered',
-            info)
-    if info == 4:
-        raise SlycotArithmeticError(
-            'the Hamiltonian or symplectic matrix H has less than n stable eigenvalues',
-            info)
-    if info == 5:
-        raise SlycotArithmeticError(
-            'if the N-th order system of linear algebraic equations is singular to working precision',
-            info)
+
+    raise_if_slycot_error(info, arg_list, sb02md.__doc__)
+
     w = _np.zeros(2*n,'complex64')
     w.real = wr[0:2*n]
     w.imag = wi[0:2*n]
@@ -506,7 +475,7 @@ def sb02mt(n,m,B,R,A=None,Q=None,L=None,fact='N',jobl='Z',uplo='U',ldwork=None):
         if out is None:
             raise SlycotParameterError('fact must be either C or N.', -3)
     if out[-1] < 0:
-        raise SlycotParameterError(None, out[-1], arg_list)
+        raise_if_slycot_error(out[-1], arg_list)
     if out[-1] > 0 and out[-1] <= m:
         raise SlycotArithmeticError('the {}-th element of d in the UdU (LdL) '
                                     'factorization is zero.'.format(out[-1]),
@@ -707,32 +676,9 @@ def sb02od(n,m,A,B,Q,R,dico,p=None,L=None,fact='N',uplo='U',sort='S',tol=0.0,ldw
         if p is None:
             p = _np.shape(Q)[0]
         out = _wrapper.sb02od_b(dico,n,m,p,A,B,Q,R,L,uplo=uplo,jobl=jobl,sort=sort,tol=tol,ldwork=ldwork)
-    if out[-1] < 0:
-        raise SlycotParameterError(None, out[-1], arg_list)
-    if out[-1] == 1:
-        raise SlycotArithmeticError(
-            'the computed extended matrix pencil is singular, possibly due to rounding errors',
-            out[-1])
-    if out[-1] == 2:
-        raise SlycotArithmeticError(
-            'the QZ (or QR) algorithm failed',
-            out[-1])
-    if out[-1] == 3:
-        raise SlycotArithmeticError(
-            'reordering of the (generalized) eigenvalues failed',
-            out[-1])
-    if out[-1] == 4:
-        raise SlycotArithmeticError(
-            'stability condition failed due to roudoff errors',
-            out[-1])
-    if out[-1] == 5:
-        raise SlycotArithmeticError(
-            'the computed dimension of the solution does not equal N',
-            out[-1])
-    if out[-1] == 6:
-        raise SlycotArithmeticError(
-            'a singular matrix was encountered during the computation',
-            out[-1])
+
+    raise_if_slycot_error(out[-1], arg_list, sb02od.__doc__)
+
     rcond,X,alphar,alphai,beta,S,T = out[:-1]
     w = _np.zeros(2*n,'complex64')
     w.real = alphar[0:2*n]/beta[0:2*n]
@@ -860,7 +806,7 @@ def sb03md(n,C,A,U,dico,job='X',fact='N',trana='N',ldwork=None):
         raise SlycotParameterError('dico must be either D or C', -1)
     out = _wrapper.sb03md(dico,n,C,A,U,job=job,fact=fact,trana=trana,ldwork=ldwork)
     if out[-1] < 0:
-        raise SlycotParameterError(None, out[-1], arg_list)
+        raise_if_slycot_error(out[-1], arg_list)
     if out[-1] == n+1:
         if dico == 'D':
             error_text = 'The matrix A has eigenvalues that are almost reciprocal.'
@@ -1050,8 +996,9 @@ def sb03od(n,m,A,Q,B,dico,fact='N',trans='N',ldwork=None):
     if dico != 'C' and dico != 'D':
         raise SlycotParameterError('dico must be either D or C', -1)
     out = _wrapper.sb03od(dico,n,m,A,Q,B,fact=fact,trans=trans,ldwork=ldwork)
+
     if out[-1] < 0:
-        raise SlycotParameterError(None, out[-1], arg_list)
+        raise_if_slycot_error(out[-1], arg_list)
     if out[-1] == 1:
         if dico == 'D':
             error_text = """this means that while the matrix A
@@ -1164,8 +1111,9 @@ def sb04md(n,m,A,B,C,ldwork=None):
         out = _wrapper.sb04md(n,m,A,B,C)
     else:
         out = _wrapper.sb04md(n,m,A,B,C,ldwork=ldwork)
+
     if out[-1] < 0:
-        raise SlycotParameterError(None, out[-1], arg_list)
+        raise_if_slycot_error(out[-1], arg_list)
     if out[-1] > 0 and out[-1] <= m:
         error_text = """The QR algorithm failed to compute all the eigenvalues
 (see LAPACK Library routine DGEES)"""
@@ -1225,7 +1173,7 @@ def sb04qd(n,m,A,B,C,ldwork=None):
     else:
         out = _wrapper.sb04qd(n,m,A,B,C,ldwork=ldwork)
     if out[-1] < 0:
-        raise SlycotParameterError(None, out[-1], arg_list)
+        raise_if_slycot_error(out[-1], arg_list)
     if out[-1] > 0 and out[-1] <= m:
         error_text = """The QR algorithm failed to compute all the eigenvalues
 (see LAPACK Library routine DGEES)"""
@@ -1363,46 +1311,45 @@ def sb10ad(n,m,np,ncon,nmeas,gamma,A,B,C,D,job=3,gtol=0.0,actol=0.0,liwork=None,
             :e.info = -i: the i-th argument had an illegal value;
         SlycotArithmeticError : e
             :e.info = 1:
-                if the matrix | A-j*omega*I  B2  | had not full
+                The matrix | A-j*omega*I  B2  | had not full
                               |    C1        D12 |
                 column rank in respect to the tolerance eps;
             :e.info = 2:
-                if the matrix | A-j*omega*I  B1  |  had not full row
+                The matrix | A-j*omega*I  B1  |  had not full row
                               |    C2        D21 |
                 rank in respect to the tolerance eps;
             :e.info = 3:
-                if the matrix D12 had not full column rank in
+                The matrix D12 had not full column rank in
                 respect to the tolerance SQRT(eps);
             :e.info = 4:
-                if the matrix D21 had not full row rank in respect
+                The matrix D21 had not full row rank in respect
                 to the tolerance SQRT(eps);
             :e.info = 5:
-                if the singular value decomposition (SVD) algorithm
+                The singular value decomposition (SVD) algorithm
                 did not converge (when computing the SVD of one of
                 the matrices |A   B2 |, |A   B1 |, D12 or D21);
                              |C1  D12|  |C2  D21|
             :e.info = 6:
-                if the controller is not admissible (too small value of gamma);
+                The controller is not admissible (too small value of gamma);
             :e.info = 7:
-                if the X-Riccati equation was not solved
+                The X-Riccati equation was not solved
                 successfully (the controller is not admissible or
                 there are numerical difficulties);
             :e.info = 8:
-                if the Y-Riccati equation was not solved
+                The Y-Riccati equation was not solved
                 successfully (the controller is not admissible or
                 there are numerical difficulties);
             :e.info = 9:
                 if the determinant of Im2 + Tu*D11HAT*Ty*D22 is
                 zero [3];
             :e.info = 10:
-                if there are numerical problems when estimating
+                There are numerical problems when estimating
                 singular values of D1111, D1112, D1111', D1121';
             :e.info = 11:
-                if the matrices Inp2 - D22*DK or Im2 - DK*D22
+                The matrices Inp2 - D22*DK or Im2 - DK*D22
                 are singular to working precision;
             :e.info = 12:
-                if a stabilizing controller cannot be found.
-
+                A stabilizing controller cannot be found.
     """
     hidden = ' (hidden by the wrapper)'
     arg_list = ['job', 'n', 'm', 'np', 'ncon', 'nmeas', 'gamma',
@@ -1438,49 +1385,7 @@ def sb10ad(n,m,np,ncon,nmeas,gamma,A,B,C,D,job=3,gtol=0.0,actol=0.0,liwork=None,
         ldwork = LW1 + max(1, LW2, LW3, LW4, LW5 + max(LW6,LW7))
     out = _wrapper.sb10ad(job,n,m,np,ncon,nmeas,gamma,A,B,C,D,gtol,actol,liwork,ldwork)
 
-    if out[-1] != 0:
-        if out[-1] < 0:
-            error_text = "The following argument had an illegal value: "\
-                +arg_list[-out[-1]-1]
-        if out[-1] == 1:
-            error_text = "The matrix [A-j*omega*I,  B2 ; C1,  D12] does not\
-                have full column rank with respect to the tolerance eps."
-        if out[-1] == 2:
-            error_text = "The matrix [A-j*omega*I,  B1 ; C2,  D21] does not\
-                have full row rank with respect to the tolerance eps."
-        if out[-1] == 3:
-            error_text = "The matrix D12 does not have full column rank with\
-                respect to tolerance sqrt(eps)."
-        if out[-1] == 4:
-            error_text = "The matrix D21 does not have full column rank with\
-                respect to tolerance sqrt(eps)."
-        if out[-1] == 5:
-            error_text = "The singular value decomposition (SVD) algorithm did\
-                not converge (when computing the SVD of one of the matrices\
-                [A,  B2; C1,  D12], [A,  B1; C2,  D21] , D12 or D21."
-        if out[-1] == 6:
-            error_text = "The controller is not admissible (too small value of\
-                gamma)."
-        if out[-1] == 7:
-            error_text = "The X-Riccati equation was not solved successfully\
-                (the controller is not admissible or there are numerical\
-                difficulties)."
-        if out[-1] == 8:
-            error_text = "The Y-Riccati equation was not solved successfully\
-                (the controller is not admissible or there are numerical\
-                difficulties)."
-        if out[-1] == 9:
-            error_text = "The determinant of Im2 + Tu*D11Hat*Ty*D22 is zero,\
-                see ref [3] in SLICOT doc."
-        if out[-1] == 10:
-            error_text = "There are numerical problems when estimating singular\
-                values of D1111, D1112, D1111', D1121'."
-        if out[-1] == 11:
-            error_text = "The matrices Inp2 - D22*DK or Im2 - DK*D22 are singular\
-                to working precision."
-        if out[-1] == 12:
-            error_text = "A stabilizing controller cannot be found."
-        raise SlycotArithmeticError(error_text, out[-1])
+    raise_if_slycot_error(out[-1], arg_list, sb10ad.__doc__)
 
     return out[:-1]
 
@@ -1604,12 +1509,12 @@ def sb10dd(n,m,np,ncon,nmeas,gamma,A,B,C,D,tol=0.0,ldwork=None):
         SlycotParameterError : e
             :e.info = -i: the i-th argument had an illegal value;
         SlycotArithmeticError : e
-            :e.info = 1
+            :e.info = 1:
                                    j*Theta
                 if the matrix | A-e       *I  B2  | had not full
                               |      C1       D12 |
                    column rank;
-            :e.info = 2
+            :e.info = 2:
                                    j*Theta
                 if the matrix | A-e       *I  B1  | had not full
                               |      C2       D21 |
@@ -1656,40 +1561,7 @@ def sb10dd(n,m,np,ncon,nmeas,gamma,A,B,C,D,tol=0.0,ldwork=None):
         ldwork = max(LW1,LW2,LW3,LW4)
     out = _wrapper.sb10dd(n,m,np,ncon,nmeas,gamma,A,B,C,D,tol,ldwork)
 
-    if out[-1] != 0:
-        if out[-1] < 0:
-            error_text = "The following argument had an illegal value: "\
-                +arg_list[-out[-1]-1]
-        if out[-1] == 1:
-            error_text = "  j*Theta\
-            The matrix | A-e       *I  B2  | had not full column rank.\
-                       |      C1       D12 |"
-        if out[-1] == 2:
-            error_text = "  j*Theta\
-            The matrix | A-e       *I  B2  | had not full row rank.\
-                       |      C1       D12 |"
-        if out[-1] == 3:
-            error_text = "The matrix D12 had not full column rank."
-        if out[-1] == 4:
-            error_text = "The matrix D21 had not full row rank."
-        if out[-1] == 5:
-            error_text = "The controller is not admissible (too small value of gamma)"
-        if out[-1] == 6:
-            error_text = "The X-Riccati equation was not solved\
-                successfully (the controller is not admissible or\
-                there are numerical difficulties)."
-        if out[-1] == 7:
-            error_text = "The Z-Riccati equation was not solved\
-                successfully (the controller is not admissible or\
-                there are numerical difficulties)."
-        if out[-1] == 8:
-            error_text = "The matrix Im2 + DKHAT*D22 is singular."
-        if out[-1] == 9:
-            error_text = "the singular value decomposition (SVD) algorithm\
-                did not converge (when computing the SVD of one of\
-                the matrices |A   B2 |, |A   B1 |, D12 or D21).\
-                             |C1  D12|  |C2  D21|"
-        raise SlycotArithmeticError(error_text, out[-1])
+    raise_if_slycot_error(out[-1], arg_list, sb10dd.__doc__)
 
     return out[:-1]
 
@@ -1787,13 +1659,13 @@ def sb10hd(n,m,np,ncon,nmeas,A,B,C,D,tol=0.0,ldwork=None):
             :e.info = 2:
                 if the matrix D21 had not full row rank in respect
                 to the tolerance tol;
-            :e.info  = 3:
+            :e.info = 3:
                 if the singular value decomposition (SVD) algorithm
                 did not converge (when computing the SVD of one of
                the matrices D12 or D21).
-            :e.info  = 4:
+            :e.info = 4:
                 if the X-Riccati equation was not solved successfully;
-            :e.info  = 5:
+            :e.info = 5:
                 if the Y-Riccati equation was not solved successfully.
     """
 
@@ -1808,28 +1680,7 @@ def sb10hd(n,m,np,ncon,nmeas,A,B,C,D,tol=0.0,ldwork=None):
         ldwork = 2*Q*(3*Q+2*n)+max(1,Q*(Q+max(n,5)+1),n*(14*n+12+2*Q)+5)
     out = _wrapper.sb10hd(n,m,np,ncon,nmeas,A,B,C,D,tol,ldwork)
 
-    if out[-1] != 0:
-        if out[-1] < 0:
-            error_text = "The following argument had an illegal value: "\
-                +arg_list[-out[-1]-1]
-        if out[-1] == 1:
-            error_text = "The matrix D12 does not have full column rank with\
-                respect to the tolerance tol."
-        if out[-1] == 2:
-            error_text = "The matrix D21 does not have full row rank with\
-                respect to the tolerance tol."
-        if out[-1] == 3:
-            error_text = "The singular value decomposition (SVD) algorithm\
-                did not converge (when computing the SVD of one of the matrices\
-                D12 or D21.)"
-        if out[-1] == 4:
-            error_text = "The X-Riccati equation was not solved successfully\
-                (the controller is not admissible or there are numerical difficulties)."
-        if out[-1] == 5:
-            error_text = "The Y-Riccati equation was not solved successfully\
-                (the controller is not admissible or there are numerical\
-                difficulties)."
-        raise SlycotArithmeticError(error_text, out[-1])
+    raise_if_slycot_error(out[-1], arg_list, sb10hd.__doc__)
 
     return out[:-1]
 
@@ -1896,12 +1747,7 @@ def sb10jd(n,m,np,A,B,C,D,E,ldwork=None):
 
     A,B,C,D,nsys,info = _wrapper.sb10jd(n,m,np,A,B,C,D,E,ldwork)
 
-    if info < 0:
-        raise SlycotParameterError(None, info, arg_list)
-    elif info == 1:
-        raise SlycotArithmeticError("The sb10jd algorithm did not converge", 1)
-    elif info != 0:
-        raise SlycotArithmeticError('sb10jd failed', info)
+    raise_if_slycot_error(info, arg_list, sb10jd.__doc__)
 
     return A[:nsys,:nsys],B[:nsys,:m],C[:np, :nsys],D[:np, :m]
 
@@ -2143,35 +1989,7 @@ def sg03ad(dico,job,fact,trans,uplo,N,A,E,Q,Z,X,ldwork=None):
 
     out = _wrapper.sg03ad(dico,job,fact,trans,uplo,N,A,E,Q,Z,X,ldwork)
 
-    if out[-1] != 0:
-        if out[-1] < 0:
-            error_text = "The following argument had an illegal value: "\
-                +arg_list[-out[-1]-1]
-        elif out[-1] == 1:
-            error_text = "FACT = 'F' and the matrix contained in the upper \
-                        Hessenberg part of the array A is not in upper \
-                        quasitriangular form"
-        elif out[-1] == 2:
-            error_text = "FACT = 'N' and the pencil A - lambda * E cannot be \
-                        reduced to generalized Schur form: LAPACK routine \
-                        DGEGS has failed to converge"
-        elif out[-1] == 3:
-            error_text = "DICO = 'D' and the pencil A - lambda * E has a \
-                        pair of reciprocal eigenvalues. That is, lambda_i = \
-                        1/lambda_j for some i and j, where lambda_i and \
-                        lambda_j are eigenvalues of A - lambda * E. Hence, \
-                        equation (2) is singular;  perturbed values were \
-                        used to solve the equation (but the matrices A and \
-                        E are unchanged)"
-        elif out[-1] == 4:
-            error_text = "TDICO = 'C' and the pencil A - lambda * E has a \
-                        degenerate pair of eigenvalues. That is, lambda_i = \
-                        -lambda_j for some i and j, where lambda_i and \
-                        lambda_j are eigenvalues of A - lambda * E. Hence, \
-                        equation (1) is singular;  perturbed values were \
-                        used to solve the equation (but the matrices A and \
-                        E are unchanged)"
-        raise SlycotArithmeticError(error_text, out[-1])
+    raise_if_slycot_error(out[-1], arg_list, sg03ad.__dict__)
 
     return out[:-1]
 
@@ -2482,27 +2300,27 @@ def sg02ad(dico,jobb,fact,uplo,jobl,scal,sort,acc,N,M,P,A,E,B,Q,R,L,ldwork=None,
             :e.info = -i: the i-th argument had an illegal value;
         SlycotArithmeticError : e
             :e.info = 1:
-                if the computed extended matrix pencil is singular,
-                possibly due to rounding errors;
+                The computed extended matrix pencil is singular,
+                possibly due to rounding errors
             :e.info = 2:
-                if the QZ algorithm failed;
+                The QZ algorithm failed
             :e.info = 3:
-                if reordering of the generalized eigenvalues failed;
+                Reordering of the generalized eigenvalues failed
             :e.info = 4:
-                if after reordering, roundoff changed values of
+                After reordering, roundoff changed values of
                 some complex eigenvalues so that leading eigenvalues
                 in the generalized Schur form no longer satisfy the
                 stability condition; this could also be caused due
-                to scaling;
+                to scaling
             :e.info = 5:
-                if the computed dimension of the solution does not
-                equal N;
+                The computed dimension of the solution does not
+                equal N
             :e.info = 6:
-                if the spectrum is too close to the boundary of
-                the stability domain;
+                The spectrum is too close to the boundary of
+                the stability domain
             :e.info = 7:
-                if a singular matrix was encountered during the
-                computation of the solution matrix X.
+                A singular matrix was encountered during the
+                computation of the solution matrix X
     """
 
     hidden = ' (hidden by the wrapper)'
@@ -2533,33 +2351,7 @@ def sg02ad(dico,jobb,fact,uplo,jobl,scal,sort,acc,N,M,P,A,E,B,Q,R,L,ldwork=None,
         elif (fact == 'B'):
             out = _wrapper.sg02ad_bb(dico,jobl,scal,sort,acc,N,M,P,A,E,B,Q,R,L,tol,ldwork)
 
-    if out[-1] != 0:
-        if out[-1] < 0:
-            error_text = "The following argument had an illegal value: "\
-                +arg_list[-out[-1]-1]
-        elif out[-1] == 1:
-            error_text = "The computed extended matrix pencil is singular,\
-                possibly due to rounding errors"
-        elif out[-1] == 2:
-            error_text = "The QZ algorithm failed"
-        elif out[-1] == 3:
-            error_text = "Reordering of the generalized eigenvalues failed"
-        elif out[-1] == 4:
-            error_text = "After reordering, roundoff changed values of\
-                some complex eigenvalues so that leading eigenvalues\
-                in the generalized Schur form no longer satisfy the\
-                stability condition; this could also be caused due\
-                to scaling"
-        elif out[-1] == 5:
-            error_text = "The computed dimension of the solution does not\
-                equal N"
-        elif out[-1] == 6:
-            error_text = "The spectrum is too close to the boundary of\
-                the stability domain"
-        elif out[-1] == 7:
-            error_text = "A singular matrix was encountered during the\
-                computation of the solution matrix X"
-        raise SlycotArithmeticError(error_text, out[-1])
+    raise_if_slycot_error(out[-1], arg_list, sg02ad.__doc__)
 
     return out[:-1]
 
@@ -2747,43 +2539,8 @@ def sg03bd(n,m,A,E,Q,Z,B,dico,fact='N',trans='N',ldwork=None):
     if dico != 'C' and dico != 'D':
         raise SlycotParameterError('dico must be either D or C', -1)
     out = _wrapper.sg03bd(dico,n,m,A,E,Q,Z,B,fact=fact,trans=trans,ldwork=ldwork)
-    if out[-1] < 0:
-        raise SlycotParameterError(None, out[-1], arg_list)
-    if out[-1] == 1:
-        error_text = """the pencil A - lambda * E is (nearly) singular;
-                 perturbed values were used to solve the equation
-                 (but the reduced (quasi)triangular matrices A and E
-                 are unchanged)."""
-        raise SlycotArithmeticError(error_text, out[-1])
-    if out[-1] == 2:
-        error_text = """the matrix contained in the upper
-                 Hessenberg part of the array A is not in upper
-                 quasitriangular form."""
-        raise SlycotArithmeticError(error_text, out[-1])
-    if out[-1] == 3:
-        error_text = """there is a 2-by-2 block on the main
-                 diagonal of the pencil A_s - lambda * E_s whose
-                 eigenvalues are not conjugate complex."""
-        raise SlycotArithmeticError(error_text, out[-1])
-    if out[-1] == 4:
-        error_text = """the pencil A - lambda * E cannot be
-                 reduced to generalized Schur form: LAPACK routine
-                 DGEGS (or DGGES) has failed to converge."""
-        raise SlycotArithmeticError(error_text, out[-1])
-    if out[-1] == 5:
-        error_text = """the pencil A - lambda * E is not
-                 c-stable."""
-        raise SlycotArithmeticError(error_text, out[-1])
-    if out[-1] == 6:
-        error_text = """the pencil A - lambda * E is not
-                 d-stable."""
-        raise SlycotArithmeticError(error_text, out[-1])
-    if out[-1] == 7:
-        error_text = """the LAPACK routine DSYEVX utilized to factorize M3
-                 failed to converge in the discrete-time case (see
-                 section METHOD for SLICOT Library routine SG03BU).
-                 This error is unlikely to occur."""
-        raise SlycotArithmeticError(error_text, out[-1])
+    raise_if_slycot_error(out[-1], arg_list, sg03bd.__doc__)
+
     U,scale,alphar,alphai,beta = out[:-1]
     alpha = _np.zeros(n,'complex64')
     alpha.real = alphar[0:n]

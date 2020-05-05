@@ -18,8 +18,8 @@
 #       MA 02110-1301, USA.
 
 from . import _wrapper
-from .exceptions import SlycotError, SlycotParameterError, \
-                        SlycotArithmeticError
+from .exceptions import raise_if_slycot_error, \
+    SlycotParameterError, SlycotArithmeticError
 
 import warnings
 
@@ -124,19 +124,19 @@ def ab01nd(n,m,A,B,jobz='N',tol=0,ldwork=None):
     if jobz == 'N':
         out = _wrapper.ab01nd_n(n,m,A,B,tol=tol,ldwork=ldwork)
         if out[-1] < 0:
-            raise SlycotParameterError(None, out[-1], arg_list)
+            raise_if_slycot_error(out[-1], arg_list)
         # sets Z to None
         out[5] = None
         return out[:-1]
     if jobz == 'I':
         out = _wrapper.ab01nd_i(n,m,A,B,tol=tol,ldwork=ldwork)
         if out[-1] < 0:
-            raise SlycotParameterError(None, out[-1], arg_list)
+            raise_if_slycot_error(out[-1], arg_list)
         return out[:-1]
     if jobz == 'F':
         out = _wrapper.ab01nd_f(n,m,A,B,tol=tol,ldwork=ldwork)
         if out[-1] < 0:
-            raise SlycotParameterError(None, out[-1], arg_list)
+            raise_if_slycot_error(out[-1], arg_list)
         return out[:-1]
     raise SlycotParameterError('jobz must be either N, I or F', -1)
 
@@ -222,7 +222,7 @@ def ab05md(n1,m1,p1,n2,p2,A1,B1,C1,D1,A2,B2,C2,D2,uplo='U'):
         'ldwork', 'info'+hidden ]
     out = _wrapper.ab05md(n1,m1,p1,n2,p2,A1,B1,C1,D1,A2,B2,C2,D2,uplo=uplo)
     if out[-1] < 0:
-        raise SlycotParameterError(None, out[-1], arg_list)
+        raise_if_slycot_error(out[-1], arg_list)
     return out[:-1]
 
 def ab05nd(n1,m1,p1,n2,A1,B1,C1,D1,A2,B2,C2,D2,alpha=1.0,ldwork=None):
@@ -305,7 +305,7 @@ def ab05nd(n1,m1,p1,n2,A1,B1,C1,D1,A2,B2,C2,D2,alpha=1.0,ldwork=None):
         ldwork = max(p1*p1,m1*m1,n1*p1)
     out = _wrapper.ab05nd(n1,m1,p1,n2,alpha,A1,B1,C1,D1,A2,B2,C2,D2,ldwork=ldwork)
     if out[-1] < 0:
-        raise SlycotParameterError(None, out[-1], arg_list)
+        raise_if_slycot_error(out[-1], arg_list)
     if out[-1] > 0:
         raise SlycotArithmeticError(
             'The resulting system is not completely controllable.',
@@ -363,7 +363,7 @@ def ab07nd(n,m,A,B,C,D,ldwork=None):
         ldwork = max(1,4*m)
     out = _wrapper.ab07nd(n,m,A,B,C,D,ldwork=ldwork)
     if out[-1] < 0:
-        raise SlycotParameterError(None, out[-1], arg_list)
+        raise_if_slycot_error(out[-1], arg_list)
     if out[-1] == m+1:
         raise SlycotArithmeticError(
             'Entry matrix D is numerically singular.',
@@ -457,7 +457,7 @@ def ab08nd(n,m,p,A,B,C,D,equil='N',tol=0,ldwork=None):
         ldwork = n+3*max(m,p) #only an upper bound
     out = _wrapper.ab08nd(n,m,p,A,B,C,D,equil=equil,tol=tol,ldwork=ldwork)
     if out[-1] < 0:
-        raise SlycotParameterError(None, out[-1], arg_list)
+        raise_if_slycot_error(out[-1], arg_list)
     return out[:-1]
 
 def ab08nz(n, m, p, A, B, C, D, equil='N', tol=0., lzwork=None):
@@ -563,7 +563,7 @@ def ab08nz(n, m, p, A, B, C, D, equil='N', tol=0., lzwork=None):
     nu, rank, dinfz, nkror, nkrol, infz, kronr, kronl, Af, Bf, zwork, info \
         = out
     if info < 0:
-        raise SlycotParameterError(None, info, arg_list)
+        raise_if_slycot_error(info, arg_list)
     return (nu, rank, dinfz, nkror, nkrol, infz, kronr, kronl, Af, Bf,
             int(zwork[0].real))
 
@@ -647,6 +647,18 @@ def ab09ad(dico,job,equil,n,m,p,A,B,C,nr=None,tol=0,ldwork=None):
             the original system ordered decreasingly. ``HSV(1)`` is the
             Hankel norm of the system.
 
+    Raises
+    ------
+
+        SlycotParameterError : e
+            :e.info = -i: the i-th argument had an illegal value;
+        SlycotArithmeticError : e
+            :e.info = 1:
+                The reduction of A to the real Schur form failed
+            :e.info = 2:
+                The state matrix A is not stable or not convergent
+            :e.info = 3:
+                The computation of Hankel singular values failed
     """
     hidden = ' (hidden by the wrapper)'
     arg_list = ['dico', 'job', 'equil', 'ordsel', 'n', 'm', 'p', 'nr', 'A',
@@ -672,20 +684,7 @@ def ab09ad(dico,job,equil,n,m,p,A,B,C,nr=None,tol=0,ldwork=None):
                 given system. It was set automatically to a value\
                 corresponding to the order of a minimal realization\
                 of the system")
-    if out[-1] < 0:
-        raise SlycotParameterError(None, out[-1], arg_list)
-    if out[-1] == 1:
-        raise SlycotArithmeticError(
-            'The reduction of A to the real Schur form failed',
-            out[-1])
-    if out[-1] == 2:
-        raise SlycotArithmeticError(
-            'The state matrix A is not stable or not convergent',
-            out[-1])
-    if out[-1] == 3:
-        raise SlycotArithmeticError(
-            'The computation of Hankel singular values failed',
-            out[-1])
+    raise_if_slycot_error(out[-1], arg_list, ab09ad.__doc__)
     Nr,A,B,C,hsv = out[:-2]
     return Nr, A[:Nr,:Nr], B[:Nr,:], C[:,:Nr], hsv
 
@@ -777,6 +776,17 @@ def ab09ax(dico,job,n,m,p,A,B,C,nr=None,tol=0.0,ldwork=None):
         Ti : rank-2 array('d') with bounds ``(nr,n)``
             This array contains the left truncation matrix `Ti` of the reduced
             order system.
+
+    Raises
+    ------
+
+        SlycotParameterError : e
+            :e.info = -i: the i-th argument had an illegal value;
+        SlycotArithmeticError : e
+            :e.info = 1:
+                The state matrix A is not stable or not convergent
+            :e.info = 2:
+                The computation of Hankel singular values failed
     """
     hidden = ' (hidden by the wrapper)'
     arg_list = ['dico', 'job', 'ordsel', 'n', 'm', 'p', 'nr', 'A',
@@ -801,16 +811,8 @@ def ab09ax(dico,job,n,m,p,A,B,C,nr=None,tol=0.0,ldwork=None):
                 given system. It was set automatically to a value\
                 corresponding to the order of a minimal realization\
                 of the system")
-    if out[-1] < 0:
-        raise SlycotParameterError(None, out[-1], arg_list)
-    if out[-1] == 1:
-        raise SlycotArithmeticError(
-            'The state matrix A is not stable or not convergent',
-            out[-1])
-    if out[-1] == 2:
-        raise SlycotArithmeticError(
-            'The computation of Hankel singular values failed',
-            out[-1])
+    raise_if_slycot_error(out[-1], arg_list, ab09ax.__doc__)
+
     nr,A,B,C,hsv,T,Ti = out[:-2]
     return nr, A[:nr,:nr], B[:nr,:], C[:,:nr], hsv, T[:,:nr], Ti[:nr,:]
 
@@ -917,6 +919,20 @@ def ab09bd(dico,job,equil,n,m,p,A,B,C,D,nr=None,tol1=0,tol2=0,ldwork=None):
                 If info = 0, it contains the Hankel singular values of
                 the original system ordered decreasingly. hsv(1) is the
                 Hankel norm of the system.
+
+    Raises
+    ------
+
+        SlycotParameterError : e
+            :e.info = -i: the i-th argument had an illegal value;
+        SlycotArithmeticError : e
+            :e.info = 1:
+                The reduction of A to the real Schur form failed
+            :e.info = 2:
+                The state matrix A is not stable (if dico = C) '
+                'or not convergent (if dico = D)
+            :e.info = 3:
+                The computation of Hankel singular values failed
     """
 
     hidden = ' (hidden by the wrapper)'
@@ -943,21 +959,7 @@ def ab09bd(dico,job,equil,n,m,p,A,B,C,D,nr=None,tol1=0,tol2=0,ldwork=None):
                 given system. It was set automatically to a value\
                 corresponding to the order of a minimal realization\
                 of the system")
-    if out[-1] < 0:
-        raise SlycotParameterError(None, out[-1], arg_list)
-    if out[-1] == 1:
-        raise SlycotArithmeticError(
-             'The reduction of A to the real Schur form failed',
-             out[-1])
-    if out[-1] == 2:
-        raise SlycotArithmeticError(
-             'The state matrix A is not stable (if dico = C) '
-             'or not convergent (if dico = D)',
-             out[-1])
-    if out[-1] == 3:
-        raise SlycotArithmeticError(
-            'The computation of Hankel singular values failed',
-            out[-1])
+    raise_if_slycot_error(out[-1], arg_list, ab09bd.__doc__)
     Nr,A,B,C,D,hsv = out[:-2]
     return Nr, A[:Nr,:Nr], B[:Nr,:], C[:,:Nr],D[:,:], hsv
 
@@ -1082,6 +1084,20 @@ def ab09md(dico,job,equil,n,m,p,A,B,C,alpha=None,nr=None,tol=0,ldwork=None):
                 Hankel singular values of the alpha-stable part of the
                 original system ordered decreasingly.
                 hsv(1) is the Hankel norm of the alpha-stable subsystem.
+
+    Raises
+    ------
+
+        SlycotParameterError : e
+            :e.info = -i: the i-th argument had an illegal value;
+        SlycotArithmeticError : e
+            :e.info = 1:
+                The reduction of A to the real Schur form failed
+            :e.info = 2:
+                The separation of the alpha-stable/unstable diagonal
+                blocks failed because of very close eigenvalues
+            :e.info = 3:
+                The computation of Hankel singular values failed
     """
     hidden = ' (hidden by the wrapper)'
     arg_list = ['dico', 'job', 'equil', 'ordsel', 'n', 'm', 'p', 'nr', 'alpha', 'A',
@@ -1118,21 +1134,8 @@ def ab09md(dico,job,equil,n,m,p,A,B,C,alpha=None,nr=None,tol=0,ldwork=None):
                 than the order of the alpha-unstable part of the\
                 given system. In this case nr is set equal to the\
                 order of the alpha-unstable part.")
-    if out[-1] < 0:
-        raise SlycotParameterError(None, out[-1], arg_list)
-    if out[-1] == 1:
-        raise SlycotArithmeticError(
-            'The reduction of A to the real Schur form failed',
-            out[-1])
-    if out[-1] == 2:
-        raise SlycotArithmeticError(
-            'the separation of the alpha-stable/unstable diagonal '
-            'blocks failed because of very close eigenvalues',
-            out[-1])
-    if out[-1] == 3:
-        raise SlycotArithmeticError(
-            'The computation of Hankel singular values failed',
-            out[-1])
+
+    raise_if_slycot_error(out[-1], arg_list, ab09md.__doc__)
     Nr,A,B,C,Ns,hsv = out[:-2]
     return Nr, A[:Nr,:Nr], B[:Nr,:], C[:,:Nr], Ns, hsv
 
@@ -1253,6 +1256,20 @@ def ab09nd(dico,job,equil,n,m,p,A,B,C,D,alpha=None,nr=None,tol1=0,tol2=0,ldwork=
                 If info = 0, it contains the Hankel singular values of
                 the original system ordered decreasingly. hsv(1) is the
                 Hankel norm of the system.
+
+    Raises
+    ------
+
+        SlycotParameterError : e
+            :e.info = -i: the i-th argument had an illegal value;
+        SlycotArithmeticError : e
+            :e.info = 1:
+                The reduction of A to the real Schur form failed
+            :e.info = 2:
+                The state matrix A is not stable (if dico = C) '
+                'or not convergent (if dico = D)
+            :e.info = 3:
+                The computation of Hankel singular values failed
     """
     hidden = ' (hidden by the wrapper)'
     arg_list = ['dico', 'job', 'equil', 'ordsel', 'n', 'm', 'p', 'nr', 'alpha', 'A',
@@ -1289,21 +1306,9 @@ def ab09nd(dico,job,equil,n,m,p,A,B,C,D,alpha=None,nr=None,tol1=0,tol2=0,ldwork=
                 than the order of the alpha-unstable part of the\
                 given system. In this case nr is set equal to the\
                 order of the alpha-unstable part.")
-    if out[-1] < 0:
-        raise SlycotParameterError(None, out[-1], arg_list)
-    if out[-1] == 1:
-        raise SlycotArithmeticError(
-            'The reduction of A to the real Schur form failed',
-            out[-1])
-    if out[-1] == 2:
-        raise SlycotArithmeticError(
-            'the separation of the alpha-stable/unstable diagonal '
-            'blocks failed because of very close eigenvalues',
-            out[-1])
-    if out[-1] == 3:
-        raise SlycotArithmeticError(
-            'The computation of Hankel singular values failed',
-            out[-1])
+
+    raise_if_slycot_error(out[-1], arg_list, ab09nd.__doc__)
+
     Nr,A,B,C,D,Ns,hsv = out[:-2]
     return Nr, A[:Nr,:Nr], B[:Nr,:], C[:,:Nr], D, Ns, hsv
 
@@ -1316,7 +1321,9 @@ def ab13bd(dico, jobn, n, m, p, A, B, C, D, tol = 0.0):
     a discrete-time system. If the H2-norm is computed, the system
     must be stable.
 
-    Required arguments:
+    Required arguments
+    ------------------
+
         dico : {'D', 'C'} input string(len=1)
                Indicate whether the system is discrete 'D' or continuous 'C'.
         jobn : {'H', 'L'} input string(len=1)
@@ -1340,7 +1347,9 @@ def ab13bd(dico, jobn, n, m, p, A, B, C, D, tol = 0.0):
             The leading p-by-m part of this array must contain the direct
             transmission matrix D of the system.
 
-    Optional arguments:
+    Optional arguments
+    ------------------
+
         tol : The absolute tolerance level below which the elements of
               B are considered zero (used for controllability tests).
               If the user sets tol <= 0, then an implicitly computed,
@@ -1348,6 +1357,36 @@ def ab13bd(dico, jobn, n, m, p, A, B, C, D, tol = 0.0):
               is used instead, where eps is the machine precision
               (see LAPACK Library routine DLAMCH) and norm(B) denotes
               the 1-norm of B.
+
+    Returns
+    -------
+
+        norm:  H2 or L2 norm of thes ystem (A,B,C,D)
+
+    Raises
+    ------
+
+        SlycotParameterError : e
+            :e.info = -i: the i-th argument had an illegal value;
+        SlycotArithmeticError : e
+            :e.info = 1:
+                The reduction of A to a real Schur form failed
+            :e.info = 2:
+                A failure was detected during the reordering of the
+                real Schur form of A, or in the iterative process for
+                reordering the eigenvalues of Z'*(A + B*F)*Z along the
+                diagonal
+            :e.info = 3:
+                The matrix A has a controllable eigenvalue on the
+                imaginary axis if dico == 'C' or the unit circle
+                if dico = 'D'
+            :e.info = 4:
+                The solution of Lyapunov equation failed because the
+                equation is singular
+            :e.info = 5:
+                dico = 'C' and D is a nonzero matrix
+            :e.info = 6:
+                jobn = 'H' and the system is unstable
     """
 
     if dico != 'C' and dico != 'D':
@@ -1355,45 +1394,15 @@ def ab13bd(dico, jobn, n, m, p, A, B, C, D, tol = 0.0):
     if jobn != 'H' and jobn != 'L':
         raise SlycotParameterError('jobn must be "H" or "L"', -2)
     out = _wrapper.ab13bd(dico, jobn, n, m, p, A, B, C, D, tol)
-    if out[-1] == 0:
-        # success
-        return out[0]
-    elif out[-1] < 0:
-        hidden = ' (hidden by the wrapper)'
-        arg_list = ['dico', 'jobn', 'n', 'm', 'p',
-                    'A', 'lda'+hidden, 'B', 'ldb'+hidden, 'C', 'ldc'+hidden, 'D', 'ldd'+hidden,
-                    'nq'+hidden,'tol', 'dwork'+hidden, 'ldwork'+hidden, 'iwarn'+hidden, 'info'+hidden]
-        raise SlycotParameterError(None, out[-1], arg_list)
-    elif out[-1] == 1:
-        raise SlycotArithmeticError(
-            "the reduction of A to a real Schur form failed",
-            out[-1])
-    elif out[-1] == 2:
-        raise SlycotArithmeticError(
-            "a failure was detected during the reordering of the real Schur form of A, "
-            "or in the iterative process for reordering the eigenvalues of "
-            "Z'*(A + B*F)*Z along the diagonal",
-            out[-1])
-    elif out[-1] == 3:
-        raise SlycotArithmeticError(
-            "the matrix A has a controllable eigenvalue on the " +
-            ("imaginary axis" if dico == 'C' else "unit circle"),
-            out[-1])
-    elif out[-1] == 4:
-        raise SlycotArithmeticError(
-            "the solution of Lyapunov equation failed because the equation is "
-            "singular",
-            out[-1])
-    elif out[-1] == 5:
-        raise SlycotArithmeticError(
-            "DICO = 'C' and D is a nonzero matrix",
-            out[-1])
-    elif out[-1] == 6:
-        raise SlycotArithmeticError(
-            "JOBN = 'H' and the system is unstable",
-            out[-1])
-    else:
-        raise SlycotError("unknown error code %r" % out[-1], out[-1])
+
+    hidden = ' (hidden by the wrapper)'
+    arg_list = ('dico', 'jobn', 'n', 'm', 'p',
+                'A', 'lda'+hidden, 'B', 'ldb'+hidden, 'C', 'ldc'+hidden,
+                'D', 'ldd'+hidden, 'nq'+hidden,'tol', 'dwork'+hidden,
+                'ldwork'+hidden, 'iwarn'+hidden, 'info'+hidden)
+    raise_if_slycot_error(out[-1], arg_list, ab13bd.__doc__)
+
+    return out[0]
 
 def ab13dd(dico, jobe, equil, jobd, n, m, p, A, E, B, C, D, tol = 1e-10):
     """gpeak, fpeak = ab13dd(dico, jobe, equil, jobd, n, m, p, A, E, B, C, D, [tol])
@@ -1468,6 +1477,23 @@ def ab13dd(dico, jobe, equil, jobd, n, m, p, A, E, B, C, D, tol = 1e-10):
 
                           j*fpeak
                   || G ( e       ) || = gpeak ,  if dico = 'D'.
+
+    Raises
+    ------
+
+        SlycotParameterError : e
+            :e.info = -i: the i-th argument had an illegal value;
+        SlycotArithmeticError : e
+            :e.info = 1:
+                The matrix E is (numerically) singular
+            :e.info = 2:
+                The (periodic) QR (or QZ) algorithm for computing
+                eigenvalues did not converge
+            :e.info = 3:
+                The SVD algorithm for computing singular values did
+                not converge
+            :e.info = 4:
+                The tolerance is too small and the algorithm did not converge
     """
 
     if dico != 'C' and dico != 'D':
@@ -1484,32 +1510,15 @@ def ab13dd(dico, jobe, equil, jobd, n, m, p, A, E, B, C, D, tol = 1e-10):
         fpeak = out[0][0] if out[0][1] > 0 else float('inf')
         gpeak = out[1][0] if out[1][1] > 0 else float('inf')
         return gpeak, fpeak
-    elif out[-1] < 0:
-        hidden = ' (hidden by the wrapper)'
-        arg_list = ['dico', 'jobe', 'equil', 'jobd', 'n', 'm', 'p', 'fpeak'+hidden,
-                    'A', 'lda'+hidden, 'E', 'lde'+hidden, 'B', 'ldb'+hidden, 'C', 'ldc'+hidden, 'D', 'ldd'+hidden,
-                    'gpeak'+hidden, 'tol', 'iwork'+hidden, 'dwork'+hidden, 'ldwork'+hidden,
-                    'cwork'+hidden, 'lcwork'+hidden, 'info'+hidden]
-        raise SlycotParameterError(None, out[-1], arg_list)
-    elif out[-1] == 1:
-        raise SlycotArithmeticError(
-            "the matrix E is (numerically) singular",
-            out[-1])
-    elif out[-1] == 2:
-        raise SlycotArithmeticError(
-            "the (periodic) QR (or QZ) algorithm for computing eigenvalues "
-            "did not converge",
-            out[-1])
-    elif out[-1] == 3:
-        raise SlycotArithmeticError(
-            "the SVD algorithm for computing singular values did not converge",
-            out[-1])
-    elif out[-1] == 4:
-        raise SlycotArithmeticError(
-            "the tolerance is too small and the algorithm did not converge",
-            out[-1])
-    else:
-        raise SlycotError("unknown error code %r" % out[-1], out[-1])
+
+    hidden = ' (hidden by the wrapper)'
+    arg_list = ('dico', 'jobe', 'equil', 'jobd', 'n', 'm', 'p',
+                'fpeak'+hidden,
+                'A', 'lda'+hidden, 'E', 'lde'+hidden, 'B', 'ldb'+hidden,
+                'C', 'ldc'+hidden, 'D', 'ldd'+hidden,
+                'gpeak'+hidden, 'tol', 'iwork'+hidden, 'dwork'+hidden,
+                'ldwork'+hidden, 'cwork'+hidden, 'lcwork'+hidden, 'info'+hidden)
+    raise_if_slycot_error(out[-1], arg_list, ab13dd.__doc__)
 
 def ab13ed(n, A, tol = 9.0):
     """low, high = ab13ed(n, A, [tol])
@@ -1555,22 +1564,25 @@ def ab13ed(n, A, tol = 9.0):
               A lower bound for beta(A).
         high : float
                An upper bound for beta(A).
+
+    Raises
+    ------
+
+        SlycotParameterError : e
+            :e.info = -i: the i-th argument had an illegal value;
+        SlycotArithmeticError : e
+            :e.info = 1:
+                The QR algorithm fails to converge
     """
     out = _wrapper.ab13ed(n, A, tol)
     if out[-1] == 0:
         # success
         return out[0], out[1]
-    elif out[-1] < 0:
-        hidden = ' (hidden by the wrapper)'
-        arg_list = ['n', 'A', 'lda'+hidden, 'low'+hidden, 'high'+hidden, 'tol',
-                    'dwork'+hidden, 'ldwork'+hidden, 'info'+hidden]
-        raise SlycotParameterError(None, out[-1], arg_list)
-    elif out[-1] == 1:
-        raise SlycotArithmeticError(
-            "the QR algorithm fails to converge",
-            out[-1])
-    else:
-        raise SlycotError("unknown error code %r" % out[-1], out[-1])
+
+    hidden = ' (hidden by the wrapper)'
+    arg_list = ['n', 'A', 'lda'+hidden, 'low'+hidden, 'high'+hidden, 'tol',
+                'dwork'+hidden, 'ldwork'+hidden, 'info'+hidden]
+    raise_if_slycot_error(out[-1], arg_list, ab13ed.__doc__)
 
 def ab13fd(n, A, tol = 0.0):
     """beta, omega = ab13fd(n, A, [tol])
@@ -1619,25 +1631,31 @@ def ab13fd(n, A, tol = 0.0):
         AB13FD to fail for smaller values of tol, nevertheless, it usually
         succeeds. Regardless of success or failure, the first inequality
         holds.
+
+    Raises
+    ------
+
+        SlycotParameterError : e
+            :e.info = -i: the i-th argument had an illegal value;
+        SlycotArithmeticError : e
+            :e.info = 2:
+                Either the QR or SVD algorithm fails to converge
     """
     out = _wrapper.ab13fd(n, A, tol)
     if out[-1] == 0:
         # success
         return out[0], out[1]
-    elif out[-1] < 0:
-        hidden = ' (hidden by the wrapper)'
-        arg_list = ['n', 'A', 'lda'+hidden, 'beta'+hidden, 'omega'+hidden, 'tol',
-                    'dwork'+hidden, 'ldwork'+hidden, 'cwork'+hidden, 'lcwork'+hidden, 'info'+hidden]
-        raise SlycotParameterError(None, out[-1], arg_list)
-    elif out[-1] == 1:
-        warnings.warn("the routine fails to compute beta(A) within the specified tolerance")
+
+    if out[-1] == 1:
+        warnings.warn("the routine fails to compute beta(A) within the"
+                      " specified tolerance")
         return out[0], out[1]  # the returned value is an upper bound on beta(A)
-    elif out[-1] == 2:
-        raise SlycotArithmeticError(
-            "either the QR or SVD algorithm fails to converge",
-            out[-1])
-    else:
-        raise SlycotError("unknown error code %r" % out[-1], out[-1])
+
+    hidden = ' (hidden by the wrapper)'
+    arg_list = ['n', 'A', 'lda'+hidden, 'beta'+hidden, 'omega'+hidden, 'tol',
+                'dwork'+hidden, 'ldwork'+hidden, 'cwork'+hidden,
+                'lcwork'+hidden, 'info'+hidden]
+    raise_if_slycot_error(out[-1], arg_list, ab13fd.__dict__)
 
 def ag08bd(l,n,m,p,A,E,B,C,D,equil='N',tol=0.0,ldwork=None):
     """ Af,Ef,nrank,niz,infz,kronr,infe,kronl = ag08bd(l,n,m,p,A,E,B,C,D,[equil,tol,ldwork])
@@ -1740,9 +1758,6 @@ def ag08bd(l,n,m,p,A,E,B,C,D,equil='N',tol=0.0,ldwork=None):
 
     [Af,Ef,nfz,nrank,niz,dinfz,nkror,ninfe,nkrol,infz,kronr,infe,kronl,info]= _wrapper.ag08bd(equil,l,n,m,p,A,E,B,C,D,tol,ldwork)
 
-    if info < 0:
-        raise SlycotParameterError(None, info, arg_list)
-    if info != 0:
-        raise SlycotArithmeticError('ag08bd failed', info)
+    raise_if_slycot_error(info, arg_list, '')
 
     return Af[:nfz,:nfz],Ef[:nfz,:nfz],nrank,niz,infz[:dinfz],kronr[:nkror],infe[:ninfe],kronl[:nkrol]

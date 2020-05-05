@@ -18,7 +18,7 @@
 #       MA 02110-1301, USA.
 
 from . import _wrapper
-from .exceptions import SlycotParameterError, SlycotArithmeticError
+from .exceptions import raise_if_slycot_error, SlycotArithmeticError
 
 import warnings
 
@@ -238,7 +238,7 @@ def mb03rd(n, A, X=None, jobx='U', sort='N', pmax=1.0, tol=0.0):
         jobx, sort, n, pmax, A, X, tol)
 
     if info < 0:
-        raise SlycotParameterError(None, info, arg_list)
+        raise_if_slycot_error(info, arg_list)
     if jobx == 'N':
         Xr = None
     else:
@@ -366,7 +366,7 @@ def mb03vd(n, ilo, ihi, A):
     HQ, Tau, info = _wrapper.mb03vd(n, ilo, ihi, A)
 
     if info < 0:
-        raise SlycotParameterError(None, info, arg_list)
+        raise_if_slycot_error(info, arg_list)
     return (HQ, Tau)
 
 
@@ -427,7 +427,7 @@ def mb03vy(n, ilo, ihi, A, Tau, ldwork=None):
     Q, info = _wrapper.mb03vy(n, ilo, ihi, A, Tau, ldwork)
 
     if info < 0:
-        raise SlycotParameterError(None, info, arg_list)
+        raise_if_slycot_error(info, arg_list)
 
     return Q
 
@@ -560,7 +560,7 @@ def mb03wd(job, compz, n, ilo, ihi, iloz, ihiz, H, Q, ldwork=None):
             job, compz, n, ilo, ihi, iloz, ihiz, H, Q, ldwork)
 
     if info < 0:
-        raise SlycotParameterError(None, info, arg_list)
+        raise_if_slycot_error(info, arg_list)
     elif info > 0:
         warnings.warn(("failed to compute all the eigenvalues {ilo} to {ihi} "
                        "in a total of 30*({ihi}-{ilo}+1) iterations "
@@ -656,7 +656,7 @@ def mb05md(a, delta, balanc='N'):
             VAL = VALr
         return (Ar, Vr, Yr, VAL)
     elif INFO < 0:
-        raise SlycotParameterError(None, INFO, arg_list)
+        raise_if_slycot_error(info, arg_list)
     elif INFO > 0 and INFO <= n:
         raise SlycotArithmeticError("Incomplete eigenvalue calculation, "
                                     "missing {} eigenvalues".format(INFO),
@@ -700,7 +700,7 @@ def mb05nd(a, delta, tol=1e-7):
     if out[-1] == 0:
         return out[:-1]
     elif out[-1] < 0:
-        raise SlycotParameterError(None, out[-1], arg_list)
+        raise_if_slycot_error(out[-1], arg_list)
     elif out[-1] == n+1:
         raise SlycotArithmeticError("Delta too large", out[-1])
 
@@ -742,14 +742,13 @@ def mc01td(dico, dp, p):
             Equal to 1 if `P(x)` is stable, 0 otherwise.
         nz : int
             The number of unstable zeros.
-
     """
     hidden = ' (hidden by the wrapper)'
     arg_list = ['dico', 'dp', 'P', 'stable', 'nz', 'DWORK' + hidden,
                 'IWARN', 'INFO']
     (dp_out, stable_log, nz, iwarn, info) = _wrapper.mc01td(dico, dp, p)
     if info < 0:
-        raise SlycotParameterError(None, info, arg_list)
+        raise_if_slycot_error(info, arg_list)
     if info == 1:
         warnings.warn('entry P(x) is the zero polynomial.')
     if info == 2:

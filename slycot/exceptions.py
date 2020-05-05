@@ -34,14 +34,61 @@ class SlycotParameterError(SlycotError, ValueError):
     info parameter indicating which parameter was illegal.
     """
 
-    def __init__(self, message, info, arg_list=None):
-        if not message:
-            message = ("The following argument had an illegal value: {}"
-                       "".format(arg_list[-info-1]))
-        super(SlycotParameterError, self).__init__(message, info)
-
+    pass
 
 class SlycotArithmeticError(SlycotError, ArithmeticError):
     """A Slycot computation failed"""
 
     pass
+
+def filter_docstring_exceptions(docstring):
+    """Check a docstring to find exception descriptions"""
+
+    # check-count the message indices
+    index = 0
+    exdict = {}
+    msg = []
+    for l in docstring.split('\n'):
+        l = l.strip()
+        if l[:10] == ":e.info = " and l[-1] == ":":
+            try:
+                idx = int(l[10:-1])
+                if msg:
+                    exdict[index] = '\n'.join(msg)
+                    msg = []
+                index = idx
+            except ValueError:
+                if msg:
+                    exdict[index] = '\n'.join(msg)
+                    msg = []
+                index = 0
+        elif index:
+            msg.append(l.strip())
+    if msg:
+        exdict[index] = '\n'.join(msg)
+    return exdict
+
+def raise_if_slycot_error(info, arg_list, docstring=None):
+    """Raise exceptions if slycot info returned is non-zero
+
+    For negative info, the argument as indicated in arg_list was erroneous
+
+    For positive info, the matching exception text is recovered from
+    the docstring, which may in many cases simply be the python interface
+    routine docstring
+    """
+
+    if info < 0:
+        message = ("The following argument had an illegal value: {}"
+                    "".format(arg_list[-info-1]))
+        raise SlycotParameterError(message, info)
+    elif info > 0:
+        # process the docstring for the error message
+        messages = filter_docstring_exceptions(docstring)
+        try:
+            raise SlycotParameterError(messages[info-1], info)
+        except:
+            raise SlycotParameterError(
+                "Slycot returned an unhandled error code {}".format(info),
+                info)
+
