@@ -557,7 +557,7 @@ def mb03wd(job, compz, n, ilo, ihi, iloz, ihiz, H, Q, ldwork=None):
             job, compz, n, ilo, ihi, iloz, ihiz, H, Q, ldwork)
 
     raise_if_slycot_error(info, arg_list)
-    
+
     if info > 0:
         warnings.warn(("failed to compute all the eigenvalues {ilo} to {ihi} "
                        "in a total of 30*({ihi}-{ilo}+1) iterations "
@@ -647,7 +647,7 @@ def mb05md(a, delta, balanc='N'):
                                                      delta=delta,
                                                      a=a)
 
-    raise_if_slycot_error(info, arg_list)
+    raise_if_slycot_error(INFO, arg_list)
 
     if INFO > 0 and INFO <= n:
         raise SlycotArithmeticError("Incomplete eigenvalue calculation, "
@@ -695,7 +695,7 @@ def mb05nd(a, delta, tol=1e-7):
                 'dwork'+hidden, 'ldwork'+hidden]
     n = min(a.shape)
     out = _wrapper.mb05nd(n=n, delta=delta, a=a, tol=tol)
-    
+
     raise_if_slycot_error(out[-1], arg_list)
     if out[-1] == n+1:
         raise SlycotArithmeticError("Delta too large", out[-1])

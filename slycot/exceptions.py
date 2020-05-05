@@ -87,7 +87,7 @@ def raise_if_slycot_error(info, arg_list, docstring=None):
         message = ("The following argument had an illegal value: {}"
                     "".format(arg_list[-info-1]))
         raise SlycotParameterError(message, info)
-    elif info > 0:
+    elif info > 0 and docstring:
         # process the docstring for the error message
         messages = filter_docstring_exceptions(docstring)
         try:
