@@ -169,6 +169,16 @@ def test_sb10fd():
     assert_allclose(rcond, (1.0, 1.0, 0.011241, 0.80492e-3), rtol=1e-4)
 
 
+def test_sb10fd_2():
+    """ fails, from python-control issue #367"""
+    A = array([[-1, 0, 0], [0, -12, -5], [0, 4, 0]])
+    B = array([[2, 0], [0, 0.5], [0, 0]])
+    C = array([[-0.5, 0, -0.5], [0, 0, 0], [-0.5, 0, -0.5]])
+    D = array([[0, 0],  [0, 1], [0, 0]], dtype=float)
+    assert_raises(ValueError, synthesis.sb10fd,
+                  3, 2, 3, 1, 1, 1000, A, B, C, D)
+
+
 @pytest.mark.parametrize(
     'fun,               exception_class,       erange,         checkvars',
     ((synthesis.sb01bd, SlycotArithmeticError, 2,              {}),
