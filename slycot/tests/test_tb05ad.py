@@ -3,6 +3,7 @@
 import unittest
 from slycot import transform
 import numpy as np
+from slycot.exceptions import SlycotError
 
 from numpy.testing import assert_raises, assert_almost_equal
 
@@ -154,6 +155,24 @@ class test_tb05ad(unittest.TestCase):
         assert_raises(ValueError, transform.tb05ad, n, m, p, jomega,
                       sys['A'], sys['B'], sys['C'], job='a')
 
+    def test_tb05ad_resonance(self):
+        '''
+        Actually test one of the exception messages. For many routines these are 
+        parsed from the docstring, tests both the info index and the message
+        '''
+        A = np.array([ [0, -1], [1, 0] ])
+        B = np.array([ [1],[0] ])
+        C = np.array([ [0, 1 ]])
+        jomega = 1j
+        from numpy.linalg import eig
+        print( eig(A))
+        try:
+            transform.tb05ad(2, 1, 1, jomega, A, B, C, job='NH')
+        except SlycotError as e:
+            assert(str(e) == \
+                   """Either FREQ is too near to an eigenvalue of A, or RCOND
+is less than the machine precision EPS.""")
+            assert(e.info == 2)
 
 if __name__ == "__main__":
     unittest.main()

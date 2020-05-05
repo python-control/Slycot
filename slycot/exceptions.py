@@ -62,6 +62,11 @@ def filter_docstring_exceptions(docstring):
                     exdict[index] = '\n'.join(msg)
                     msg = []
                 index = 0
+        elif not l:
+            if msg:
+                exdict[index] = '\n'.join(msg)
+                msg = []
+            index = 0
         elif index:
             msg.append(l.strip())
     if msg:
@@ -86,7 +91,7 @@ def raise_if_slycot_error(info, arg_list, docstring=None):
         # process the docstring for the error message
         messages = filter_docstring_exceptions(docstring)
         try:
-            raise SlycotParameterError(messages[info-1], info)
+            raise SlycotParameterError(messages[info], info)
         except IndexError:
             raise SlycotParameterError(
                 "Slycot returned an unhandled error code {}".format(info),

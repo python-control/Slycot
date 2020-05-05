@@ -462,7 +462,7 @@ def tb05ad(n, m, p, jomega, A, B, C, job='NG'):
         SlycotArithmeticError : e
             :e.info = 1:
                 More than 30 iterations were required to isolate the
-                eigenvalues of A. The computation is continued ?.
+                eigenvalues of A. The computations are continued.
             :e.info = 2:
                 Either FREQ is too near to an eigenvalue of A, or RCOND
                 is less than the machine precision EPS.
