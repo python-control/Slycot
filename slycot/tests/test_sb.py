@@ -4,7 +4,7 @@
 from slycot import synthesis
 from numpy import array, eye, zeros
 from numpy.testing import assert_allclose
-
+from slycot.exceptions import filter_docstring_exceptions
 
 def test_sb02mt():
     """Test if sb02mt is callable
@@ -97,3 +97,19 @@ def test_sb10jd():
     assert_allclose(B_r, Bexp, atol=1e-5)
     assert_allclose(C_r, Cexp, atol=1e-5)
     assert_allclose(D_r, Dexp, atol=1e-5)
+
+def test_exceptionstrings():
+    assert(len(filter_docstring_exceptions(synthesis.sb01bd.__doc__)) == 4)
+    assert(len(filter_docstring_exceptions(synthesis.sb02md.__doc__)) == 5)
+    assert(len(filter_docstring_exceptions(synthesis.sb02od.__doc__)) == 6)
+    assert(len(filter_docstring_exceptions(synthesis.sb03md.__doc__)) == 0)
+    assert(len(filter_docstring_exceptions(synthesis.sb03od.__doc__)) == 6)
+    assert(len(filter_docstring_exceptions(synthesis.sb04md.__doc__)) == 0)
+    assert(len(filter_docstring_exceptions(synthesis.sb04qd.__doc__)) == 0)
+    assert(len(filter_docstring_exceptions(synthesis.sb10ad.__doc__)) == 12)
+    assert(len(filter_docstring_exceptions(synthesis.sb10dd.__doc__)) == 9)
+    assert(len(filter_docstring_exceptions(synthesis.sb10hd.__doc__)) == 5)
+    assert(len(filter_docstring_exceptions(synthesis.sb10jd.__doc__)) == 0)
+    assert(len(filter_docstring_exceptions(synthesis.sg03ad.__doc__)) == 4)
+    assert(len(filter_docstring_exceptions(synthesis.sg02ad.__doc__)) == 7)
+    assert(len(filter_docstring_exceptions(synthesis.sg03bd.__doc__)) == 7)
