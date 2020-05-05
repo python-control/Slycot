@@ -2490,7 +2490,7 @@ def sg03bd(n,m,A,E,Q,Z,B,dico,fact='N',trans='N',ldwork=None):
              eigenvalues of the matrix pencil A - lambda * E.
 
      Raises
-    ------
+     ------
 
         SlycotParameterError : e
             :e.info = -i: the i-th argument had an illegal value;
@@ -2507,7 +2507,7 @@ def sg03bd(n,m,A,E,Q,Z,B,dico,fact='N',trans='N',ldwork=None):
             :e.info = 3:
                 fact = 'F' and there is a 2-by-2 block on the main
                 diagonal of the pencil A_s - lambda * E_s whose
-                 igenvalues are not conjugate complex;
+                eigenvalues are not conjugate complex;
             :e.info = 4:
                 fact = 'N' and the pencil A - lambda * E cannot be
                 reduced to generalized Schur form: LAPACK routine

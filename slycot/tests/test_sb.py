@@ -2,9 +2,13 @@
 # sb* synthesis tests
 
 from slycot import synthesis
+from slycot.exceptions import raise_if_slycot_error, SlycotError, \
+                              SlycotParameterError, SlycotArithmeticError
+
 from numpy import array, eye, zeros
-from numpy.testing import assert_allclose
-from slycot.exceptions import filter_docstring_exceptions
+from numpy.testing import assert_allclose, assert_raises
+import pytest
+
 
 def test_sb02mt():
     """Test if sb02mt is callable
@@ -98,18 +102,15 @@ def test_sb10jd():
     assert_allclose(C_r, Cexp, atol=1e-5)
     assert_allclose(D_r, Dexp, atol=1e-5)
 
-def test_exceptionstrings():
-    assert(len(filter_docstring_exceptions(synthesis.sb01bd.__doc__)) == 4)
-    assert(len(filter_docstring_exceptions(synthesis.sb02md.__doc__)) == 5)
-    assert(len(filter_docstring_exceptions(synthesis.sb02od.__doc__)) == 6)
-    assert(len(filter_docstring_exceptions(synthesis.sb03md.__doc__)) == 0)
-    assert(len(filter_docstring_exceptions(synthesis.sb03od.__doc__)) == 6)
-    assert(len(filter_docstring_exceptions(synthesis.sb04md.__doc__)) == 0)
-    assert(len(filter_docstring_exceptions(synthesis.sb04qd.__doc__)) == 0)
-    assert(len(filter_docstring_exceptions(synthesis.sb10ad.__doc__)) == 12)
-    assert(len(filter_docstring_exceptions(synthesis.sb10dd.__doc__)) == 9)
-    assert(len(filter_docstring_exceptions(synthesis.sb10hd.__doc__)) == 5)
-    assert(len(filter_docstring_exceptions(synthesis.sb10jd.__doc__)) == 0)
-    assert(len(filter_docstring_exceptions(synthesis.sg03ad.__doc__)) == 4)
-    assert(len(filter_docstring_exceptions(synthesis.sg02ad.__doc__)) == 7)
-    assert(len(filter_docstring_exceptions(synthesis.sg03bd.__doc__)) == 7)
+
+@pytest.mark.parametrize(
+    'fun, info, exception, checkvars',
+    [(synthesis.sb01bd, -1, SlycotParameterError,  {}),
+     (synthesis.sb01bd,  1, SlycotArithmeticError, {}),
+     (synthesis.sb01bd,  2, SlycotArithmeticError, {}), ])
+def test_sb_exceptionstrings(fun, info, exception, checkvars):
+    assert_raises(exception, raise_if_slycot_error, info, arg_list=["a", "b"],
+                  docstring=fun.__doc__, checkvars=checkvars)
+
+
+
