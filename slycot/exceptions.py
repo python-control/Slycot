@@ -130,7 +130,6 @@ def raise_if_slycot_error(info, arg_list=None, docstring=None, checkvars={}):
                 if not l.strip():
                     continue
 
-
                 # reached end of Raises section without match
                 if not l[:section_indent].isspace():
                     return None
@@ -139,8 +138,8 @@ def raise_if_slycot_error(info, arg_list=None, docstring=None, checkvars={}):
                 ematch = re.match(
                     r'(\s*)(Slycot(Parameter|Arithmetic)?Error) : e', l)
                 if ematch:
-                    error_indent = len(ematch[1])
-                    slycot_error = ematch[2]
+                    error_indent = len(ematch.group(1))
+                    slycot_error = ematch.group(2)
 
                 # new infospec
                 if slycot_error:
@@ -148,8 +147,8 @@ def raise_if_slycot_error(info, arg_list=None, docstring=None, checkvars={}):
                         r'(\s{' + str(error_indent + 1) + r',}):(.*):\s*(.*)',
                         l)
                     if imatch:
-                        infospec_indent = len(imatch[1])
-                        infospec = imatch[2]
+                        infospec_indent = len(imatch.group(1))
+                        infospec = imatch.group(2)
                         # Don't handle the standard case unless we have i
                         if infospec == "e.info = -i":
                             if 'i' not in checkvars.keys():
@@ -165,14 +164,14 @@ def raise_if_slycot_error(info, arg_list=None, docstring=None, checkvars={}):
                             raise RuntimeError("Invalid infospec: "
                                                + infospec)
                         if info_eval:
-                            message = imatch[3].strip() + '\n'
+                            message = imatch.group(3).strip() + '\n'
                             mmatch = re.match(
                                 r'(\s{' + str(infospec_indent+1) + r',})(.*)',
                                 next(docline))
                             if not mmatch:
                                 break  # docstring
-                            body_indent = len(mmatch[1])
-                            message += mmatch[2] + '\n'
+                            body_indent = len(mmatch.group(1))
+                            message += mmatch.group(2) + '\n'
                             for l in docline:
                                 if l and not l[:body_indent].isspace():
                                     break  # message body
