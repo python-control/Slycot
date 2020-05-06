@@ -30,16 +30,16 @@ def assert_docstring_parse(docstring, exception_class, erange, checkvars={}):
 
     Parameters
     ----------
-        docstring: str
-            Documentation string with exception definitions
-        exception_class: SlycotError or SlycotWarning
-            Subclass of Slycot specific Errors or Warnings expected to raise
-        erange: int or iterable with int
-            Error numbers for which the documentation should have
-            exception text
-        checkvars: dict, optional
-            dict of variables for evaluation of <infospec> and formatting the
-            exception message
+    docstring: str
+        Documentation string with exception definitions
+    exception_class: SlycotError or SlycotWarning
+        Subclass of Slycot specific Errors or Warnings expected to raise
+    erange: int or iterable with int
+        Error numbers for which the documentation should have
+        exception text
+    checkvars: dict, optional
+        dict of variables for evaluation of <infospec> and formatting the
+        exception message
     """
 
     # if erange is a simple integer, assume a continous range of errors

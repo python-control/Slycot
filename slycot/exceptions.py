@@ -152,26 +152,25 @@ def raise_if_slycot_error(info, arg_list=None, docstring=None, checkvars={}):
     multiple definition terms ``SlycotError : e`` or a subclass of it,
     the matching exception text is used.
 
+    To raise warnings, define a "Warns" section using a ``SlycotWarning : e``
+    definition or a subclass of it.
+
     The definition body must contain a reST compliant field list with
     ':<infospec>:' as field name, where <infospec> specifies the valid values
     for `e.ìnfo` in a python parseable expression using the variables provided
     in `checkvars`. A single " = " is treated as " == ".
 
-    The body of the field list contains the exception message and can contain
-    replacement fields in format string syntax using the variables in
-    `checkvars`.
+    The body of the field list contains the exception or warning message and
+    can contain replacement fields in format string syntax using the variables
+    in `checkvars`.
 
     For negative info, the argument as indicated in arg_list was erroneous and
-    a generic SlycotParameterError is raised if no custom text was defined in
-    the docstring or no docstring is provided.
-
-    To rase warnings, define a "Warns" section similarly formatted as "Raises"
-    using the  ``SlycotResultWarning : e`` definition name.
+    a generic SlycotParameterError is raised if matching infospec was defined.
 
     Example
     -------
     >>> def fun(info):
-    ...     \"""Example function
+    ...     '''Example function
     ...
     ...     Raises
     ...     ------
@@ -180,9 +179,14 @@ def raise_if_slycot_error(info, arg_list=None, docstring=None, checkvars={}):
     ...         :e.info > 1 and e.info < n:
     ...             Info is {e.info}, which is between 1 and {n}
     ...         :n <= e.info < m:
-    ...             {e.info} is between {n} and {m:10.2g}!
-    ...     \"""
-    ...     n, m = 4, 1.2e2
+    ...             {e.info} is in [{n}, {m:10.2g})!
+    ...
+    ...     Warns
+    ...     -----
+    ...     SlycotResultWarning : e
+    ...         :e.info >= 120: {e.info} is too large
+    ...     '''
+    ...     n, m = 4, 120.
     ...     raise_if_slycot_error(info,
     ...                           arg_list=["a", "b", "c"],
     ...                           docstring=fun.__doc__,
@@ -190,13 +194,20 @@ def raise_if_slycot_error(info, arg_list=None, docstring=None, checkvars={}):
     ...
     >>> fun(0)
     >>> fun(-1)
-    SlycotParameterError: The following argument had an illegal value: a
+    SlycotParameterError:
+    The following argument had an illegal value: a
     >>> fun(1)
-    SlycotArithmeticError: Info is 1
+    SlycotArithmeticError:
+    Info is 1
     >>> fun(2)
-    SlycotArithmeticError: Info is 2, which is between 1 and 4
-    >>> fun(5)
-    SlycotArithmeticError: 4 is between 4 and    1.2e+02!
+    SlycotArithmeticError:
+    Info is 2, which is between 1 and 4
+    >>> fun(4)
+    SlycotArithmeticError:
+    4 is in [4,    1.2e+02)!
+    >>> fun(120)
+    SlycotResultWarning:
+    120 is too large
     """
     if docstring:
         checkvars['e'] = SlycotError("", info)
@@ -208,7 +219,7 @@ def raise_if_slycot_error(info, arg_list=None, docstring=None, checkvars={}):
 
         warning, message = _parse_docsection("Warns", docstring, checkvars)
         if warning and message:
-            fmessage = message.format(**checkvars).strip()
+            fmessage = '\n' + message.format(**checkvars).strip()
             warn(globals()[warning](fmessage, info))
 
     if info < 0 and arg_list:
