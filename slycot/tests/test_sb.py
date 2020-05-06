@@ -8,7 +8,7 @@ from slycot.exceptions import raise_if_slycot_error, SlycotError, \
 from numpy import array, eye, zeros
 from numpy.testing import assert_allclose, assert_raises
 import pytest
-
+from .docstring_check import assert_docstring_parse
 
 def test_sb02mt():
     """Test if sb02mt is callable
@@ -112,5 +112,21 @@ def test_sb_exceptionstrings(fun, info, exception, checkvars):
     assert_raises(exception, raise_if_slycot_error, info, arg_list=["a", "b"],
                   docstring=fun.__doc__, checkvars=checkvars)
 
-
-
+@pytest.mark.parametrize(
+    'fun, erange, checkvars',
+    ( ( synthesis.sb01bd, 4, {} ),
+      ( synthesis.sb02md, 5, {} ),
+      ( synthesis.sb02od, 6, {} ),
+      ( synthesis.sb03md, 3, { 'N': 2} ),
+      ( synthesis.sb03od, 6, {} ),
+      ( synthesis.sb04md, 2, { 'm': 1} ),
+      ( synthesis.sb04qd, 3, { 'm': 2} ),
+      ( synthesis.sb10ad, 12, {} ),
+      ( synthesis.sb10dd, 9, {} ),
+      ( synthesis.sb10hd, 4, {} ),
+      ( synthesis.sb10jd, 0, {} ),
+      ( synthesis.sg03ad, 4, {} ),
+      ( synthesis.sg02ad, 7, {} ),
+      ( synthesis.sg03bd, 7, {} ) ) )
+def test_sb_docparse(fun, erange, checkvars):
+    assert_docstring_parse(fun.__doc__, erange, checkvars)

@@ -1152,7 +1152,7 @@ def sb04qd(n,m,A,B,C,ldwork=None):
         SlycotParameterError : e
             :e.info = -i: the i-th argument had an illegal value;
         SlycotArithmeticError : e
-            :e.info => 0:
+            :1 <= e.info <= m:
                 if info = i, 1 <= i <= m, the QR algorithm failed to
                 compute all the eigenvalues of B (see LAPACK Library
                 routine DGEES)
