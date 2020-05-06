@@ -2,13 +2,14 @@
 # sb* synthesis tests
 
 from slycot import synthesis
-from slycot.exceptions import raise_if_slycot_error, SlycotError, \
-                              SlycotParameterError, SlycotArithmeticError
+from slycot.exceptions import raise_if_slycot_error, \
+                              SlycotParameterError, SlycotArithmeticError, \
+                              SlycotResultWarning
 
 from numpy import array, eye, zeros
 from numpy.testing import assert_allclose, assert_raises
 import pytest
-from .docstring_check import assert_docstring_parse
+from .test_exceptions import assert_docstring_parse
 
 def test_sb02mt():
     """Test if sb02mt is callable
@@ -104,29 +105,21 @@ def test_sb10jd():
 
 
 @pytest.mark.parametrize(
-    'fun, info, exception, checkvars',
-    [(synthesis.sb01bd, -1, SlycotParameterError,  {}),
-     (synthesis.sb01bd,  1, SlycotArithmeticError, {}),
-     (synthesis.sb01bd,  2, SlycotArithmeticError, {}), ])
-def test_sb_exceptionstrings(fun, info, exception, checkvars):
-    assert_raises(exception, raise_if_slycot_error, info, arg_list=["a", "b"],
-                  docstring=fun.__doc__, checkvars=checkvars)
-
-@pytest.mark.parametrize(
-    'fun, erange, checkvars',
-    ( ( synthesis.sb01bd, 4, {} ),
-      ( synthesis.sb02md, 5, {} ),
-      ( synthesis.sb02od, 6, {} ),
-      ( synthesis.sb03md, 3, { 'N': 2} ),
-      ( synthesis.sb03od, 6, {} ),
-      ( synthesis.sb04md, 2, { 'm': 1} ),
-      ( synthesis.sb04qd, 3, { 'm': 2} ),
-      ( synthesis.sb10ad, 12, {} ),
-      ( synthesis.sb10dd, 9, {} ),
-      ( synthesis.sb10hd, 4, {} ),
-      ( synthesis.sb10jd, 0, {} ),
-      ( synthesis.sg03ad, 4, {} ),
-      ( synthesis.sg02ad, 7, {} ),
-      ( synthesis.sg03bd, 7, {} ) ) )
-def test_sb_docparse(fun, erange, checkvars):
-    assert_docstring_parse(fun.__doc__, erange, checkvars)
+    'fun, exception_class, erange, checkvars',
+    ( ( synthesis.sb01bd, SlycotArithmeticError, 4, {} ),
+      ( synthesis.sb02md, SlycotArithmeticError, 5, {} ),
+      ( synthesis.sb02od, SlycotArithmeticError, 6, {} ),
+      ( synthesis.sb03md, SlycotResultWarning, 3, { 'n': 2, 'dico': 'D'} ),
+      ( synthesis.sb03md, SlycotResultWarning, 3, { 'n': 2, 'dico': 'C'} ),
+      ( synthesis.sb03od, SlycotArithmeticError, 6, {} ),
+      ( synthesis.sb04md, SlycotArithmeticError, 2, { 'm': 1} ),
+      ( synthesis.sb04qd, SlycotArithmeticError, 3, { 'm': 2} ),
+      ( synthesis.sb10ad, SlycotArithmeticError, 12, {} ),
+      ( synthesis.sb10dd, SlycotArithmeticError, 9, {} ),
+      ( synthesis.sb10hd, SlycotArithmeticError, 4, {} ),
+      ( synthesis.sb10jd, SlycotArithmeticError, 0, {} ),
+      ( synthesis.sg03ad, SlycotArithmeticError, 4, {} ),
+      ( synthesis.sg02ad, SlycotArithmeticError, 7, {} ),
+      ( synthesis.sg03bd, SlycotArithmeticError, 7, {} ) ) )
+def test_sb_docparse(fun, exception_class, erange, checkvars):
+    assert_docstring_parse(fun.__doc__,  exception_class, erange, checkvars)

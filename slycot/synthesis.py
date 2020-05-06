@@ -437,17 +437,16 @@ def sb02mt(n,m,B,R,A=None,Q=None,L=None,fact='N',jobl='Z',uplo='U',ldwork=None):
 
     Raises
     ------
-
-        SlycotParameterError : e
-            :e.info = -i: the i-th argument had an illegal value;
-        SlycotArithmeticError : e
-            :e.info = i:
-                if the i-th element (1 <= i <= m) of the d factor is
-                exactly zero; the UdU' (or LdL') factorization has
-                been completed, but the block diagonal matrix d is
-                exactly singular;
-            :e.info = m+1:
-                if the matrix R is numerically singular.
+    SlycotParameterError : e
+        :e.info = -i: the i-th argument had an illegal value;
+    SlycotArithmeticError : e
+        :1 <= e.info <= m:
+            The {e.info}-th element of the `d` factor is
+            exactly zero; the ``UdU' (or LdL')`` factorization has
+            been completed, but the block diagonal matrix d is
+            exactly singular;
+        :e.info = m+1:
+            The matrix R is numerically singular.
     """
     hidden = ' (hidden by the wrapper)'
     arg_list = ['JOBG'+hidden, 'jobl', 'fact', 'uplo', 'n', 'm', 'A',
@@ -474,14 +473,7 @@ def sb02mt(n,m,B,R,A=None,Q=None,L=None,fact='N',jobl='Z',uplo='U',ldwork=None):
             out = _wrapper.sb02mt_nl(n,m,A,B,Q,R,L,uplo=uplo,ldwork=ldwork)
         if out is None:
             raise SlycotParameterError('fact must be either C or N.', -3)
-    raise_if_slycot_error(out[-1], arg_list)
-    if out[-1] > 0 and out[-1] <= m:
-        raise SlycotArithmeticError('the {}-th element of d in the UdU (LdL) '
-                                    'factorization is zero.'.format(out[-1]),
-                                    out[-1])
-    if out[-1] == m+1:
-        raise SlycotArithmeticError('matrix R is numerically singular.',
-                                    out[-1])
+    raise_if_slycot_error(out[-1], arg_list, sb02mt.__doc__, locals())
     return out[:-1]
 
 def sb02od(n,m,A,B,Q,R,dico,p=None,L=None,fact='N',uplo='U',sort='S',tol=0.0,ldwork=None):
@@ -776,25 +768,28 @@ def sb03md(n,C,A,U,dico,job='X',fact='N',trana='N',ldwork=None):
 
     Raises
     ------
+    SlycotParameterError : e
+        :e.info = -i: the i-th argument had an illegal value;
 
-        SlycotParameterError : e
-            :e.info = -i: the i-th argument had an illegal value;
-        SlycotArithmeticError : e
-            :e.info > 0:
-                if info = i, the QR algorithm failed to compute all
-                the eigenvalues (see LAPACK Library routine DGEES);
-                elements i+1:n of w contain eigenvalues which have converged,
-                and A contains the partially converged Schur form;
-            :e.info = N+1:
-                if dico = 'C', and the matrices A and -A' have
-                common or very close eigenvalues, or
-                if dico = 'D', and matrix A has almost reciprocal
-                eigenvalues (that is, lambda(i) = 1/lambda(j) for
-                some i and j, where lambda(i) and lambda(j) are
-                eigenvalues of A and i <> j); perturbed values were
-                used to solve the equation (but the matrix A is
-                unchanged).
+    Warns
+    -----
+    SlycotResultWarning : e
+        :0 < e.info <=n:
+            The QR algorithm failed to compute all
+            the eigenvalues (see LAPACK Library routine DGEES);
+            w[{e.info}:{n}] contains eigenvalues which have converged,
+            and A contains the partially converged Shur form
+        :e.info == n+1 and dico == 'C':
+            The matrices `A` and `-A'` have common or very close eigenvalues
+        :e.info == n+1 and dico == 'D':
+            Matrix A has almost reciprocal eigenvalues
+            (that is, `'lambda(i) = 1/lambda(j)`` for
+            some `i` and `j`, where ``lambda(i)`` and ``lambda(j)`` are
+            eigenvalues of `A` and ``i != j``);  perturbed values were
+            used to solve the equation (but the matrix A is unchanged).
     """
+
+
     hidden = ' (hidden by the wrapper)'
     arg_list = ['dico', 'job', 'fact', 'trana', 'n', 'A', 'LDA'+hidden, 'U',
         'LDU'+hidden, 'C', 'LDC'+hidden, 'scale', 'sep', 'ferr', 'wr'+hidden,
@@ -804,21 +799,7 @@ def sb03md(n,C,A,U,dico,job='X',fact='N',trana='N',ldwork=None):
     if dico != 'C' and dico != 'D':
         raise SlycotParameterError('dico must be either D or C', -1)
     out = _wrapper.sb03md(dico,n,C,A,U,job=job,fact=fact,trana=trana,ldwork=ldwork)
-    raise_if_slycot_error(out[-1], arg_list)
-    if out[-1] == n+1:
-        if dico == 'D':
-            error_text = 'The matrix A has eigenvalues that are almost reciprocal.'
-        else:
-            error_text = 'The matrix A and -A have common or very close eigenvalues.'
-        raise SlycotArithmeticError(error_text, out[-1])
-    else:
-        if out[-1] > 0:
-            raise SlycotArithmeticError(
-                "The QR algorithm failed to compute all the eigenvalues "
-                "(see LAPACK Library routine DGEES); elements {}:{} of w "
-                "contains eigenvalues which have converged, A contains the "
-                "partially converged Shur form".format(out[-1],n),
-                out[-1])
+    raise_if_slycot_error(out[-1], arg_list, sb03md.__doc__, locals())
     X,scale,sep,ferr,wr,wi = out[:-1]
     w = _np.zeros(n,'complex64')
     w.real = wr[0:n]

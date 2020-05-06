@@ -578,63 +578,78 @@ def mb05md(a, delta, balanc='N'):
 
     Matrix exponential for a real non-defective matrix
 
-    To compute exp(A*delta) where A is a real N-by-N non-defective
+    To compute ``exp(A*delta)`` where `A` is a real N-by-N non-defective
     matrix with real or complex eigenvalues and delta is a scalar
     value. The routine also returns the eigenvalues and eigenvectors
-    of A as well as (if all eigenvalues are real) the matrix product
-    exp(Lambda*delta) times the inverse of the eigenvector matrix of
-    A, where Lambda is the diagonal matrix of eigenvalues.
+    of `A` as well as (if all eigenvalues are real) the matrix product
+    ``exp(Lambda*delta)`` times the inverse of the eigenvector matrix of
+    `A`, where `Lambda` is the diagonal matrix of eigenvalues.
     Optionally, the routine computes a balancing transformation to
     improve the conditioning of the eigenvalues and eigenvectors.
 
-    Required arguments:
-        A : input rank-2 array('d') with bounds (n,n)
-            Square matrix
-        delta : input 'd'
-            The scalar value delta of the problem.
+    Parameters
+    ----------
+    A : (n, n) array_like
+        Square matrix
+    delta : float
+        The scalar value delta of the problem.
+    balanc : {'N', 'S'}, optional
+        Indicates how the input matrix should be diagonally scaled
+        to improve the conditioning of its eigenvalues as follows:
 
-    Optional arguments:
-        balanc : input char*1
-            Indicates how the input matrix should be diagonally scaled
-            to improve the conditioning of its eigenvalues as follows:
-            = 'N':  Do not diagonally scale;
-            = 'S':  Diagonally scale the matrix, i.e. replace A by
-                    D*A*D**(-1), where D is a diagonal matrix chosen
-                    to make the rows and columns of A more equal in
-                    norm. Do not permute.
+        := 'N':  Do not diagonally scale;
+        := 'S':  Diagonally scale the matrix, i.e. replace `A` by
+                 ``D*A*D**(-1)``, where `D` is a diagonal matrix chosen
+                 to make the rows and columns of A more equal in
+                 norm. Do not permute.
 
-    Return objects:
-        Ar : output rank-2 array('d') with bounds (n,n)
-            Contains the solution matrix exp(A*delta)
-        Vr : output rank-2 array('d') with bounds (n,n)
-            Contains the eigenvector matrix for A.  If the k-th
-            eigenvalue is real the k-th column of the eigenvector
-            matrix holds the eigenvector corresponding to the k-th
-            eigenvalue.  Otherwise, the k-th and (k+1)-th eigenvalues
-            form a complex conjugate pair and the k-th and (k+1)-th
-            columns of the eigenvector matrix hold the real and
-            imaginary parts of the eigenvectors corresponding to these
-            eigenvalues as follows.  If p and q denote the k-th and
-            (k+1)-th columns of the eigenvector matrix, respectively,
-            then the eigenvector corresponding to the complex
-            eigenvalue with positive (negative) imaginary value is
-            given by
-              p + q*j (p - q*j), where j^2  = -1.
-        Yr : output rank-2 array('d') with bounds (n,n)
-            contains an intermediate result for computing the matrix
-            exponential.  Specifically, exp(A*delta) is obtained as the
-            product V*Y, where V is the matrix stored in the leading
-            N-by-N part of the array V. If all eigenvalues of A are
-            real, then the leading N-by-N part of this array contains
-            the matrix product exp(Lambda*delta) times the inverse of
-            the (right) eigenvector matrix of A, where Lambda is the
-            diagonal matrix of eigenvalues.
+    Returns
+    -------
+    Ar : (n, n) ndarray
+        Contains the solution matrix ``exp(A*delta)``
+    Vr : (n, n) ndarray
+        Contains the eigenvector matrix for `A`.  If the `k`-th
+        eigenvalue is real the `k`-th column of the eigenvector
+        matrix holds the eigenvector corresponding to the `k`-th
+        eigenvalue.  Otherwise, the `k`-th and `(k+1)`-th eigenvalues
+        form a complex conjugate pair and the k-th and `(k+1)`-th
+        columns of the eigenvector matrix hold the real and
+        imaginary parts of the eigenvectors corresponding to these
+        eigenvalues as follows.  If `p` and `q` denote the `k`-th and
+        `(k+1)`-th columns of the eigenvector matrix, respectively,
+        then the eigenvector corresponding to the complex
+        eigenvalue with positive (negative) imaginary value is
+        given by
+          ``p + q*j (p - q*j), where j^2  = -1.``
+    Yr : (n, n) ndarray
+        contains an intermediate result for computing the matrix
+        exponential.  Specifically, ``exp(A*delta)`` is obtained as the
+        product ``V*Y``, where `V` is the matrix stored in the leading
+        `n`-by-`n` part of the array `V`. If all eigenvalues of `A` are
+        real, then the leading `n`-by-`n` part of this array contains
+        the matrix product ``exp(Lambda*delta)`` times the inverse of
+        the (right) eigenvector matrix of `A`, where `Lambda` is the
+        diagonal matrix of eigenvalues.
 
-        VAL : output rank-1 array('c') with bounds (n)
-            Contains the eigenvalues of the matrix A. The eigenvalues
-            are unordered except that complex conjugate pairs of values
-            appear consecutively with the eigenvalue having positive
-            imaginary part first.
+    VAL : (n,) real or complex ndarray
+        Contains the eigenvalues of the matrix `A`. The eigenvalues
+        are unordered except that complex conjugate pairs of values
+        appear consecutively with the eigenvalue having positive
+        imaginary part first.
+
+    Warns
+    ------
+    SlycotResultWarning : e
+        :0 < e.info <=n:
+            the QR algorithm failed to compute all
+            the eigenvalues; no eigenvectors have been computed;
+            w[{e.info:n}] contains eigenvalues which have converged;
+        :e.info == n+1:
+            The inverse of the eigenvector matrix could not
+            be formed due to an attempt to divide by zero, i.e.,
+            the eigenvector matrix is singular;
+        :e.info == n+2:
+            Matrix A is defective, possibly due to rounding errors.
     """
     hidden = ' (hidden by the wrapper)'
     arg_list = ['balanc', 'n', 'delta', 'a', 'lda'+hidden, 'v', 'ldv'+hidden,
@@ -647,17 +662,9 @@ def mb05md(a, delta, balanc='N'):
                                                      delta=delta,
                                                      a=a)
 
-    raise_if_slycot_error(INFO, arg_list)
+    raise_if_slycot_error(INFO, arg_list,
+                          docstring=mb05md.__doc__, checkvars=locals())
 
-    if INFO > 0 and INFO <= n:
-        raise SlycotArithmeticError("Incomplete eigenvalue calculation, "
-                                    "missing {} eigenvalues".format(INFO),
-                                    INFO)
-    elif INFO == n+1:
-        raise SlycotArithmeticError("Eigenvector matrix singular", INFO)
-    elif INFO == n+2:
-        raise SlycotArithmeticError("Matrix A is defective, "
-                                    "possibly due to rounding errors.", INFO)
     if not all(VALi == 0):
         VAL = VALr + 1J*VALi
     else:

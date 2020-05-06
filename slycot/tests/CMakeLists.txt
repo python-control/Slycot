@@ -4,6 +4,7 @@ set(PYSOURCE
   test_ab08n.py
   test_ag08bd.py
   test_examples.py
+  test_exceptions.py
   test_mb.py
   test_mc.py
   test_sb.py
@@ -12,8 +13,7 @@ set(PYSOURCE
   test_tb05ad.py
   test_td04ad.py
   test_tg01ad.py
-  test_tg01fd.py
-  docstring_check.py )
+  test_tg01fd.py )
 
 install(FILES ${PYSOURCE}
         PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE

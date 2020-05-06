@@ -20,6 +20,8 @@ MA 02110-1301, USA.
 
 import re
 
+from warnings import warn
+
 
 class SlycotError(RuntimeError):
     """Slycot exception base class"""
@@ -45,8 +47,91 @@ class SlycotArithmeticError(SlycotError, ArithmeticError):
     pass
 
 
+class SlycotWarning(UserWarning):
+    """Slycot Warning"""
+
+    def __init__(self, message, info):
+        super(SlycotWarning, self).__init__(message)
+        self.info = info
+
+
+class SlycotResultWarning(SlycotWarning):
+    """Slycot computation result warning
+
+    A Slycot routine returned a nonzero info parameter that warns about the
+    returned results, but the results might still be usable.
+    """
+
+    pass
+
+
+def _parse_docsection(section_name, docstring, checkvars):
+    slycot_error = None
+    message = None
+    docline = iter(docstring.splitlines())
+    try:
+
+        info_eval = False
+        while section_name not in next(docline):
+            continue
+        section_indent = next(docline).index("-")
+
+        for l in docline:
+            # ignore blank lines
+            if not l.strip():
+                continue
+
+            # reached next section without match
+            if l[section_indent] == "-":
+                break
+
+            # Exception Type
+            ematch = re.match(
+                r'(\s*)(Slycot.*(Error|Warning)) : e', l)
+            if ematch:
+                error_indent = len(ematch.group(1))
+                slycot_error = ematch.group(2)
+
+            # new infospec
+            if slycot_error:
+                imatch = re.match(
+                    r'(\s{' + str(error_indent + 1) + r',}):(.*):\s*(.*)', l)
+                if imatch:
+                    infospec_indent = len(imatch.group(1))
+                    infospec = imatch.group(2)
+                    # Don't handle the standard case unless we have i
+                    if infospec == "e.info = -i":
+                        if 'i' not in checkvars.keys():
+                            continue
+                    infospec_ = infospec.replace(" = ", " == ")
+                    try:
+                        info_eval = eval(infospec_, checkvars)
+                    except NameError:
+                        raise RuntimeError("Unknown variable in infospec: "
+                                           + infospec)
+                    except SyntaxError:
+                        raise RuntimeError("Invalid infospec: " + infospec)
+                    if info_eval:
+                        message = imatch.group(3).strip() + '\n'
+                        mmatch = re.match(
+                            r'(\s{' + str(infospec_indent+1) + r',})(.*)',
+                            next(docline))
+                        if not mmatch:
+                            break  # docstring
+                        body_indent = len(mmatch.group(1))
+                        message += mmatch.group(2) + '\n'
+                        for l in docline:
+                            if l and not l[:body_indent].isspace():
+                                break  # message body
+                            message += l[body_indent:] + '\n'
+                        break  # docstring
+    except StopIteration:
+        pass
+    return (slycot_error, message)
+
+
 def raise_if_slycot_error(info, arg_list=None, docstring=None, checkvars={}):
-    """Raise exceptions if slycot info returned is non-zero.
+    """Raise exceptions or warnings if slycot info returned is non-zero.
 
     Parameters
     ----------
@@ -80,6 +165,9 @@ def raise_if_slycot_error(info, arg_list=None, docstring=None, checkvars={}):
     a generic SlycotParameterError is raised if no custom text was defined in
     the docstring or no docstring is provided.
 
+    To rase warnings, define a "Warns" section similarly formatted as "Raises"
+    using the  ``SlycotResultWarning : e`` definition name.
+
     Example
     -------
     >>> def fun(info):
@@ -111,77 +199,17 @@ def raise_if_slycot_error(info, arg_list=None, docstring=None, checkvars={}):
     SlycotArithmeticError: 4 is between 4 and    1.2e+02!
     """
     if docstring:
-        slycot_error_map = {"SlycotError": SlycotError,
-                            "SlycotParameterError": SlycotParameterError,
-                            "SlycotArithmeticError": SlycotArithmeticError}
+        checkvars['e'] = SlycotError("", info)
 
-        docline = iter(docstring.splitlines())
-        info_eval = False
-        try:
-            while "Raises" not in next(docline):
-                continue
-
-            section_indent = next(docline).index("-")
-
-            slycot_error = None
-            for l in docline:
-                print(l)
-                # ignore blank lines
-                if not l.strip():
-                    continue
-
-                # reached end of Raises section without match
-                if not l[:section_indent].isspace():
-                    return None
-
-                # Exception Type
-                ematch = re.match(
-                    r'(\s*)(Slycot(Parameter|Arithmetic)?Error) : e', l)
-                if ematch:
-                    error_indent = len(ematch.group(1))
-                    slycot_error = ematch.group(2)
-
-                # new infospec
-                if slycot_error:
-                    imatch = re.match(
-                        r'(\s{' + str(error_indent + 1) + r',}):(.*):\s*(.*)',
-                        l)
-                    if imatch:
-                        infospec_indent = len(imatch.group(1))
-                        infospec = imatch.group(2)
-                        # Don't handle the standard case unless we have i
-                        if infospec == "e.info = -i":
-                            if 'i' not in checkvars.keys():
-                                continue
-                        infospec_ = infospec.replace(" = ", " == ")
-                        checkvars['e'] = SlycotError("", info)
-                        try:
-                            info_eval = eval(infospec_, checkvars)
-                        except NameError:
-                            raise RuntimeError("Unknown variable in infospec: "
-                                               + infospec)
-                        except SyntaxError:
-                            raise RuntimeError("Invalid infospec: "
-                                               + infospec)
-                        if info_eval:
-                            message = imatch.group(3).strip() + '\n'
-                            mmatch = re.match(
-                                r'(\s{' + str(infospec_indent+1) + r',})(.*)',
-                                next(docline))
-                            if not mmatch:
-                                break  # docstring
-                            body_indent = len(mmatch.group(1))
-                            message += mmatch.group(2) + '\n'
-                            for l in docline:
-                                if l and not l[:body_indent].isspace():
-                                    break  # message body
-                                message += l[body_indent:] + '\n'
-                            break  # docstring
-        except StopIteration:
-            pass
-        if info_eval and message:
+        exception, message = _parse_docsection("Raises", docstring, checkvars)
+        if exception and message:
             fmessage = '\n' + message.format(**checkvars).strip()
-            raise slycot_error_map[slycot_error](fmessage, info)
+            raise globals()[exception](fmessage, info)
+
+        warning, message = _parse_docsection("Warns", docstring, checkvars)
+        if warning and message:
+            fmessage = message.format(**checkvars).strip()
+            warn(globals()[warning](fmessage, info))
 
     if info < 0 and arg_list:
         message = ("The following argument had an illegal value: {}"
