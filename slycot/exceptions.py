@@ -50,9 +50,10 @@ class SlycotArithmeticError(SlycotError, ArithmeticError):
 class SlycotWarning(UserWarning):
     """Slycot Warning"""
 
-    def __init__(self, message, info):
+    def __init__(self, message, iwarn, info):
         super(SlycotWarning, self).__init__(message)
         self.info = info
+        self.iwarn = iwarn
 
 
 class SlycotResultWarning(SlycotWarning):
@@ -87,7 +88,7 @@ def _parse_docsection(section_name, docstring, checkvars):
 
             # Exception Type
             ematch = re.match(
-                r'(\s*)(Slycot.*(Error|Warning)) : e', l)
+                r'(\s*)(Slycot.*(Error|Warning))', l)
             if ematch:
                 error_indent = len(ematch.group(1))
                 slycot_error = ematch.group(2)
@@ -100,7 +101,7 @@ def _parse_docsection(section_name, docstring, checkvars):
                     infospec_indent = len(imatch.group(1))
                     infospec = imatch.group(2)
                     # Don't handle the standard case unless we have i
-                    if infospec == "e.info = -i":
+                    if infospec == "info = -i":
                         if 'i' not in checkvars.keys():
                             continue
                     infospec_ = infospec.replace(" = ", " == ")
@@ -135,8 +136,8 @@ def raise_if_slycot_error(info, arg_list=None, docstring=None, checkvars={}):
 
     Parameters
     ----------
-    info: int
-        The parameter INFO returned by the SLICOT subroutine
+    info: int or list of int
+        The parameter INFO or [IWARN, INFO] returned by the SLICOT subroutine
     arg_list: list of str, optional
         A list of arguments (possibly hidden by the wrapper) of the SLICOT
         subroutine
@@ -149,16 +150,17 @@ def raise_if_slycot_error(info, arg_list=None, docstring=None, checkvars={}):
     Notes
     -----
     If the numpydoc compliant docstring has a "Raises" section with one or
-    multiple definition terms ``SlycotError : e`` or a subclass of it,
+    multiple definition terms ``SlycotError`` or a subclass of it,
     the matching exception text is used.
 
-    To raise warnings, define a "Warns" section using a ``SlycotWarning : e``
+    To raise warnings, define a "Warns" section using a ``SlycotWarning``
     definition or a subclass of it.
 
     The definition body must contain a reST compliant field list with
-    ':<infospec>:' as field name, where <infospec> specifies the valid values
-    for `e.ìnfo` in a python parseable expression using the variables provided
-    in `checkvars`. A single " = " is treated as " == ".
+    ':<infospec>:' as field name, where <infospec> is a python parseable
+    expression using the arguments `iwarn`, `info` and any additional variables
+    provided in `checkvars` (usually obtained by calling `locals()`.
+    A single " = " is treated as " == ".
 
     The body of the field list contains the exception or warning message and
     can contain replacement fields in format string syntax using the variables
@@ -174,22 +176,25 @@ def raise_if_slycot_error(info, arg_list=None, docstring=None, checkvars={}):
     ...
     ...     Raises
     ...     ------
-    ...     SlycotArithmeticError : e
-    ...         :e.info = 1: Info is 1
-    ...         :e.info > 1 and e.info < n:
-    ...             Info is {e.info}, which is between 1 and {n}
-    ...         :n <= e.info < m:
-    ...             {e.info} is in [{n}, {m:10.2g})!
+    ...     SlycotArithmeticError
+    ...         :info = 1: INFO is 1
+    ...         :info > 1 and info < n:
+    ...             INFO is {info}, which is between 1 and {n}
+    ...         :n <= info < m:
+    ...             {info} is in [{n}, {m:10.2g})!
     ...
     ...     Warns
     ...     -----
-    ...     SlycotResultWarning : e
-    ...         :e.info >= 120: {e.info} is too large
+    ...     SlycotResultWarning
+    ...         :info >= 120: {info} is too large
+    ...     SlycotResultWarning
+    ...         :iwarn == 1: IWARN is 1
     ...     '''
     ...     n, m = 4, 120.
     ...     raise_if_slycot_error(info,
     ...                           arg_list=["a", "b", "c"],
-    ...                           docstring=fun.__doc__,
+    ...                           docstring=(fun.__doc__ if type(info) is list
+    ...                                          else fun.__doc__[:-60]),
     ...                           checkvars=locals())
     ...
     >>> fun(0)
@@ -198,19 +203,31 @@ def raise_if_slycot_error(info, arg_list=None, docstring=None, checkvars={}):
     The following argument had an illegal value: a
     >>> fun(1)
     SlycotArithmeticError:
-    Info is 1
+    INFO is 1
     >>> fun(2)
     SlycotArithmeticError:
-    Info is 2, which is between 1 and 4
+    INFO is 2, which is between 1 and 4
     >>> fun(4)
     SlycotArithmeticError:
     4 is in [4,    1.2e+02)!
     >>> fun(120)
     SlycotResultWarning:
     120 is too large
+    >>> fun([1,0])
+    SlycotResultWarning:
+    IWARN is 1
     """
+    try:
+        iwarn, info = info
+    except TypeError:
+        iwarn = None
     if docstring:
-        checkvars['e'] = SlycotError("", info)
+        # possibly override with mandatory argument
+        checkvars['info'] = info
+        if iwarn is not None:  # do not possibly override if not provided
+            checkvars['iwarn'] = iwarn
+        else:
+            iwarn = 0
 
         exception, message = _parse_docsection("Raises", docstring, checkvars)
         if exception and message:
@@ -220,9 +237,16 @@ def raise_if_slycot_error(info, arg_list=None, docstring=None, checkvars={}):
         warning, message = _parse_docsection("Warns", docstring, checkvars)
         if warning and message:
             fmessage = '\n' + message.format(**checkvars).strip()
-            warn(globals()[warning](fmessage, info))
+            warn(globals()[warning](fmessage, iwarn, info))
+            return
 
     if info < 0 and arg_list:
         message = ("The following argument had an illegal value: {}"
                    "".format(arg_list[-info-1]))
         raise SlycotParameterError(message, info)
+
+    # catch all
+    if info > 0:
+        raise SlycotError("Caught unhandled nonzero INFO value {}"
+                          .format(info),
+                          info)

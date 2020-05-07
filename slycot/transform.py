@@ -98,8 +98,7 @@ def tb01id(n,m,p,maxred,a,b,c,job='A'):
     arg_list = ['job', 'N', 'M', 'P', 'maxred', 'A', 'LDA'+hidden, 'B',
         'LDB'+hidden, 'C', 'LDC'+hidden, 'scale', 'INFO'+hidden]
     out = _wrapper.tb01id(n,m,p,maxred,a,b,c,job=job)
-    if out[-1] < 0:
-        raise raise_if_slycot_error(out[-1], arg_list)
+    raise_if_slycot_error(out[-1], arg_list)
     return out[:-1]
 
 def tb03ad(n,m,p,A,B,C,D,leri,equil='N',tol=0.0,ldwork=None):
@@ -202,6 +201,16 @@ def tb03ad(n,m,p,A,B,C,D,leri,equil='N',tol=0.0,ldwork=None):
             The leading porm-by-nr-by-kpcoef part of this array contains
             the coefficients of the intermediate matrix V(s).
             vcoeff(i,j,k) is defined as for pcoeff(i,j,k).
+    Raises
+    ------
+    SlycotArithmeticError
+        :info == 1:
+            A singular matrix was encountered during the
+            computation of V(s);
+        :info == 2:
+            A singular matrix was encountered during the
+            computation of P(s).
+
     """
     hidden = ' (hidden by the wrapper)'
     arg_list = ['leri', 'equil', 'n', 'm', 'P', 'A', 'LDA'+hidden, 'B',
@@ -209,27 +218,18 @@ def tb03ad(n,m,p,A,B,C,D,leri,equil='N',tol=0.0,ldwork=None):
         'pcoeff', 'LDPCO1'+hidden, 'LDPCO2'+hidden, 'qcoeff', 'LDQCO1'+hidden,
         'LDQCO2'+hidden, 'vcoeff', 'LDVCO1'+hidden, 'LDVCO2'+hidden, 'tol',
         'IWORK'+hidden, 'DWORK'+hidden, 'ldwork', 'INFO'+hidden]
-    if leri == 'L':
-        if ldwork is None:
-            ldwork = max( 2*n + 3*max(m,p), p*(p+2))
-        out = _wrapper.tb03ad_l(n,m,p,A,B,C,D,equil=equil,tol=tol,ldwork=ldwork)
-        raise_if_slycot_error(out[-1], arg_list)
-        if out[-1] > 0:
-            raise SlycotArithmeticError(
-                'a singular matrix was encountered during the computation',
-                out[-1])
-        return out[:-1]
-    if leri == 'R':
-        if ldwork is None:
-            ldwork = max( 2*n + 3*max(m,p), m*(m+2))
-        out = _wrapper.tb03ad_r(n,m,p,A,B,C,D,equil=equil,tol=tol,ldwork=ldwork)
-        raise_if_slycot_error(out[-1], arg_list)
-        if out[-1] > 0:
-            raise SlycotArithmeticError(
-                'a singular matrix was encountered during the computation',
-                out[-1])
-        return out[:-1]
-    raise SlycotParameterError('leri must be either L or R', -1)
+    wfun = {"L": _wrapper.tb03ad_l,
+            "R": _wrapper.tb03ad_r}
+    mp_ = {"L": p, "R": m}
+    mp = mp_[leri]
+    if leri not in wfun.keys():
+        raise SlycotParameterError('leri must be either L or R', -1)
+    if ldwork is None:
+        ldwork = max(2*n + 3*max(m, p), mp*(mp+2))
+    out = wfun[leri](n, m, p, A, B, C, D, equil=equil, tol=tol, ldwork=ldwork)
+    raise_if_slycot_error(out[-1], arg_list)
+    return out[:-1]
+
 
 def tb04ad(n,m,p,A,B,C,D,tol1=0.0,tol2=0.0,ldwork=None):
     """ Ar,Br,Cr,nr,denom_degs,denom_coeffs,num_coeffs = tb04ad(n,m,p,A,B,C,D,[tol1,tol2,ldwork])
@@ -324,65 +324,57 @@ def tb05ad(n, m, p, jomega, A, B, C, job='NG'):
 
     To find the complex frequency response matrix (transfer matrix)
     G(freq) of the state-space representation (A,B,C) given by
-                                   -1
+
+    ::
+
+                                  -1
        G(freq) = C * ((freq*I - A)  ) * B
 
     where A, B and C are real N-by-N, N-by-M and P-by-N matrices
     respectively and freq is a complex scalar.
 
-    Required Arguments
-    ------------------
+    Parameters
+    ----------
+    n : int
+        The number of states, i.e. the order of the state
+        transition matrix A.
+    m : int
+        The number of inputs, i.e. the number of columns in the
+        matrix B.
+    p :  int
+        The number of outputs, i.e. the number of rows in the
+        matrix C.
+    jomega : complex float
+        The frequency at which the frequency response matrix
+        (transfer matrix) is to be evaluated. For continuous time
+        systems, this is j*omega, where omega is the frequency to
+        be evaluated. For discrete time systems,
+        freq = exp(j*omega*Ts)
+    A : (n,n) ndarray
+        On entry, this array must contain the state transition
+        matrix A.
+    B : (n,m) ndarray
+        On entry, this array must contain the input/state matrix B.
+    C : (p,n) ndarray
+        On entry, of this array must contain the state/output matrix C.
+    job : {'AG', 'NG', 'NH'}
+        If job = 'AG' (i.e., 'all', 'general matrix'), the A matrix is
+        first balanced. The balancing transformation
+        is then appropriately applied to matrices B and C. The A matrix
+        is (again) transformed to an upper Hessenberg representation and
+        the B and C matrices are also transformed. In addition,
+        the condition number of the problem is calculated as well as the
+        eigenvalues of A.
 
-      n :   integer
-            The number of states, i.e. the order of the state
-            transition matrix A.
+        If job='NG' (i.e., 'none', 'general matrix'), no balancing is done.
+        Neither the condition number nor the eigenvalues are calculated.
+        The routine still transforms A into upper Hessenberg form. The
+        matrices B and C are also appropriately transformed.
 
-      m :   integer
-            The number of inputs, i.e. the number of columns in the
-            matrix B.
-
-      p :   integer
-            The number of outputs, i.e. the number of rows in the
-            matrix C.
-
-      freq  complex
-            The frequency freq at which the frequency response matrix
-            (transfer matrix) is to be evaluated. For continuous time
-            systems, this is j*omega, where omega is the frequency to
-            be evaluated. For discrete time systems,
-            freq = exp(j*omega*Ts)
-
-      A :   double precision array, dimension (n,n).
-            On entry, this array must contain the state transition
-            matrix A.
-
-
-      B :   double precision array, dimension (n,m).
-            On entry, this array must contain the input/state matrix B.
-
-
-      C :   double precision array, dimension (p,n)
-            On entry, of this array must contain the state/output matrix C.
-
-
-      job : string, 'AG', 'NG', or 'NH'
-            If job = 'AG' (i.e., 'all', 'general matrix'), the A matrix is
-            first balanced. The balancing transformation
-            is then appropriately applied to matrices B and C. The A matrix
-            is (again) transformed to an upper Hessenberg representation and
-            the B and C matrices are also transformed. In addition,
-            the condition number of the problem is calculated as well as the
-            eigenvalues of A.
-
-            If job='NG' (i.e., 'none', 'general matrix'), no balancing is done.
-            Neither the condition number nor the eigenvalues are calculated.
-            The routine still transforms A into upper Hessenberg form. The
-            matrices B and C are also appropriately transformed.
-
-            If job = 'NH' (i.e., 'none', 'hessenberg matrix'), the function
-            assumes the matrices have already been transformed into Hessenberg
-            form, i.e., by a previous function call tb05ad. If this not the
-            case, the routine will return a wrong result without warning.
+        If job = 'NH' (i.e., 'none', 'hessenberg matrix'), the function
+        assumes the matrices have already been transformed into Hessenberg
+        form, i.e., by a previous function call tb05ad. If this not the
+        case, the routine will return a wrong result without warning.
 
     Returns
     -------
@@ -455,17 +447,13 @@ def tb05ad(n, m, p, jomega, A, B, C, job='NG'):
 
     Raises
     ------
-
-        SlycotParameterError : e
-            :e.info = -i:
-                the i-th argument had an illegal value;
-        SlycotArithmeticError : e
-            :e.info = 1:
-                More than 30 iterations were required to isolate the
-                eigenvalues of A. The computations are continued.
-            :e.info = 2:
-                Either FREQ is too near to an eigenvalue of A, or RCOND
-                is less than the machine precision EPS.
+    SlycotArithmeticError
+        :info = 1:
+            More than {n30} (30*`n`) iterations were required to isolate the
+            eigenvalues of A. The computations are continued.
+        :info = 2:
+            Either `freq`={jomega} is too near to an eigenvalue of A,
+            or `rcond` is less than the machine precision EPS.
 
     Example
     -------
@@ -511,34 +499,32 @@ def tb05ad(n, m, p, jomega, A, B, C, job='NG'):
 
     # ----------------------------------------------------
     # Checks done, do computation.
+    n30 = 30*n  # for INFO = 1 error docstring
     if job == 'AG':
         out = _wrapper.tb05ad_ag(n, m, p, jomega, A, B, C)
-        raise_if_slycot_error(out[-1], arg_list, tb05ad.__doc__)
-        At, Bt, Ct, rcond, g_jw, evre, evim, hinvb = out[:-1]
+        At, Bt, Ct, rcond, g_jw, evre, evim, hinvb, info = out
+        raise_if_slycot_error(info, arg_list, tb05ad.__doc__, locals())
         ev = _np.zeros(n, 'complex64')
         ev.real = evre
         ev.imag = evim
-        info = out[-1]
         return At, Bt, Ct, g_jw, rcond, ev, hinvb, info
     elif job == 'NG':
         # use tb05ad_ng, for 'NONE' , and 'General', because balancing
         # (option 'A' for 'ALL') seems to have  a bug.
         out = _wrapper.tb05ad_ng(n, m, p, jomega, A, B, C)
-        raise_if_slycot_error(out[-1], arg_list, tb05ad.__doc__)
-        At, Bt, Ct, g_jw, hinvb = out[:-1]
-        info = out[-1]
+        At, Bt, Ct, g_jw, hinvb, info = out
+        raise_if_slycot_error(info, arg_list, tb05ad.__doc__, locals())
         return At, Bt, Ct, g_jw, hinvb, info
     elif job == 'NH':
         out = _wrapper.tb05ad_nh(n, m, p, jomega, A, B, C)
-        raise_if_slycot_error(out[-1], arg_list, tb05ad.__doc__)
-        g_i, hinvb = out[:-1]
-        info = out[-1]
+        g_i, hinvb, info = out
+        raise_if_slycot_error(info, arg_list, tb05ad.__doc__, locals())
         return g_i, hinvb, info
     else:
         raise SlycotParameterError("Unrecognized job. Expected job = 'AG' or "
                                    "job='NG' or job = 'NH' but received job={}"
                                    "".format(job),
-                                   -1) # job is baleig and inita together
+                                   -1)  # job is baleig and inita together
 
 
 def td04ad(rowcol,m,p,index,dcoeff,ucoeff,tol=0.0,ldwork=None):
@@ -547,64 +533,54 @@ def td04ad(rowcol,m,p,index,dcoeff,ucoeff,tol=0.0,ldwork=None):
     Convert a transfer function or matrix of transfer functions to
     a minimum state space realization.
 
-    Required arguments
-    ------------------
-
-        rowcol : character
-            indicates whether the transfer matrix T(s) is given
-            as rows ('R') or colums ('C') over common denominators.
-        m : integer
-            input dimension
-        p : integer
-            output dimension
-        index : rank-1 array, shape (p) or (m)
-            array of orders of the denominator polynomials. Different
-            shapes corresponding to rowcol=='R' and rowcol=='C'
-            respectively.
-        dcoeff : rank-2 array, shape (p,max(index)+1) or (m,max(index)+1)
-            array of denominator coefficients. Different shapes
-            corresponding to rowcol=='R' and rowcol=='C' respectively.
-        ucoeff : rank-3 array, shape (p,m,max(index)+1) or (max(p,m),max(p,m),max(index)+1)
-            array of numerator coefficients. Different shapes
-            corresponding to rowcol=='R' and rowcol=='C' respectively.
-
-    Optional arguments
-    ------------------
-
-        tol : float
-            tolerance in determining the state space system,
-            when set to 0, a default value is used.
-        ldwork : int
-            The length of the cache array. The default values is
-            max(1,sum(index)+max(sum(index),max(3*m,3*p)))
+    Parameters
+    ----------
+    rowcol : {R', 'C'}
+        indicates whether the transfer matrix T(s) is given
+        as rows ('R') or colums ('C') over common denominators.
+    m : int
+        input dimension
+    p : int
+        output dimension
+    index : (p,) or (m,) array_like
+        array of orders of the denominator polynomials. Different
+        shapes corresponding to rowcol=='R' and rowcol=='C'
+        respectively.
+    dcoeff : (p,max(index)+1) or (m,max(index)+1) ndarray
+        array of denominator coefficients. Different shapes
+        corresponding to rowcol=='R' and rowcol=='C' respectively.
+    ucoeff : (p,m,max(index)+1) or (max(p,m),max(p,m),max(index)+1) ndarray
+        array of numerator coefficients. Different shapes
+        corresponding to rowcol=='R' and rowcol=='C' respectively.
+    tol : float, optional
+        tolerance in determining the state space system,
+        when set to 0, a default value is used.
+    ldwork : int, optional
+        The length of the cache array. The default values is
+        max(1,sum(index)+max(sum(index),max(3*m,3*p)))
 
     Returns
     -------
-
-        nr : int
-            minimal state dimension
-        A :  rank-2 array, shape(nr,nr)
-            state dynamics matrix.
-        B : rank-2 array, shape (nr,m)
-            input matrix
-        C : rank-2 array, shape (p,nr)
-            output matri
-        D : rank-2 array, shape (p,m)
-            direct transmission matrix
+    nr : int
+        minimal state dimension
+    A : (nr,nr) ndarray
+        state dynamics matrix.
+    B : (nr,m) ndarray
+        input matrix
+    C : (p,nr) ndarray
+        output matrix
+    D : (p,m) ndarray
+        direct transmission matrix
 
     Raises
     ------
-
-        SlycotParameterError : e
-            :e.info = -i:
-                the i-th argument had an illegal value;
-        SlycotArithmeticError : e
-            if e.info = i, then i is the first integer for which
-            abs( dcoeff(i,1) ) is so small that the calculations
+    SlycotArithmeticError
+        :info > 0:
+            i={info} is the first index of `dcoeff` for which
+            ``abs( dcoeff(i,1) )`` is so small that the calculations
             would overflow (see SLICOT Library routine TD03AY);
             that is, the leading coefficient of a polynomial is
-            nearly zero; no state-space representation is
-            calculated.
+            nearly zero;
     """
     hidden = ' (hidden by the wrapper)'
     arg_list = ['rowcol','m','p','index','dcoeff','lddcoe'+hidden, 'ucoeff', 'lduco1'+hidden,'lduco2'+hidden,
@@ -650,14 +626,7 @@ def td04ad(rowcol,m,p,index,dcoeff,ucoeff,tol=0.0,ldwork=None):
     else:
         raise SlycotParameterError("Parameter rowcol had an illegal value", -1)
 
-    raise_if_slycot_error(out[-1], arg_list)
-    if out[-1] > 0:
-        raise SlycotArithmeticError(
-            "The leading coefficient of a denominator polynomial is nearly "
-            "zero; calculations would overflow; no state-space representation "
-            "was calculated. ABS(DCOEFF({},1))={} is too small."
-            "".format(out[-1],(abs(dcoeff[out[-1],1]))),
-            out[-1])
+    raise_if_slycot_error(out[-1], arg_list, td04ad.__doc__)
     Nr, A, B, C, D = out[:-1]
     return Nr, A[:Nr,:Nr], B[:Nr,:m], C[:p,:Nr], D[:p,:m]
 
@@ -735,28 +704,33 @@ def tc04ad(m,p,index,pcoeff,qcoeff,leri,ldwork=None):
             The leading p-by-m part of this array contains the direct transmission
             matrix D; the remainder of the leading max(m,p)-by-max(m,p) part is
             used as internal workspace.
+    Raises
+    ------
+    SlycotArithmeticError
+        :info == 1 and leri = 'L':
+            P(s) is not row proper
+        :info == 1 and leri = 'R':
+            P(s) is not column proper
     """
     hidden = ' (hidden by the wrapper)'
-    arg_list = ['leri', 'm', 'P', 'index', 'pcoeff', 'LDPCO1'+hidden,
-    'LDPCO2'+hidden, 'qcoeff', 'LDQCO1'+hidden, 'LDQCO2'+hidden, 'N', 'rcond',
-    'A', 'LDA'+hidden, 'B', 'LDB'+hidden, 'C', 'LDC'+hidden, 'D', 'LDD'+hidden,
-    'IWORK'+hidden, 'DWORK'+hidden, 'ldwork', 'INFO'+hidden]
+    arg_list = ['leri', 'm', 'P', 'index',
+                'pcoeff', 'LDPCO1' + hidden, 'LDPCO2' + hidden,
+                'qcoeff', 'LDQCO1' + hidden, 'LDQCO2' + hidden,
+                'N', 'rcond',
+                'A', 'LDA' + hidden, 'B', 'LDB' + hidden,
+                'C', 'LDC' + hidden, 'D', 'LDD' + hidden,
+                'IWORK' + hidden, 'DWORK' + hidden, 'ldwork',
+                'INFO' + hidden]
     if ldwork is None:
-        ldwork = max(m,p)*(max(m,p)+4)
+        ldwork = max(m, p)*(max(m, p)+4)
     n = sum(index)
-    if leri == 'L':
-        out = _wrapper.tc04ad_l(m,p,index,pcoeff,qcoeff,n)
-        raise_if_slycot_error(out[-1], arg_list)
-        if out[-1] == 1:
-            raise SlycotArithmeticError('P(s) is not row proper', out[-1])
-        return out[:-1]
-    if leri == 'R':
-        out = _wrapper.tc04ad_r(m,p,index,pcoeff,qcoeff,n)
-        raise_if_slycot_error(out[-1], arg_list)
-        if out[-1] == 1:
-            raise SlycotArithmeticError('P(s) is not column proper', out[-1])
-        return out[:-1]
-    raise SlycotParameterError('leri must be either L or R', -1)
+    wfun = {"L": _wrapper.tc04ad_l, "R": _wrapper.tc04ad_r}
+    if leri not in wfun.keys():
+        raise SlycotParameterError('leri must be either L or R', -1)
+    out = wfun[leri](m, p, index, pcoeff, qcoeff, n)
+    raise_if_slycot_error(out[-1], arg_list, tc04ad.__doc__, locals())
+    return out[:-1]
+
 
 def tc01od(m,p,indlin,pcoeff,qcoeff,leri):
     """ pcoeff,qcoeff = tc01od_l(m,p,indlim,pcoeff,qcoeff,leri)
@@ -1071,15 +1045,8 @@ def tg01ad(l,n,m,p,A,E,B,C,thresh=0.0,job='A'):
     hidden = ' (hidden by the wrapper)'
     arg_list = ['job', 'l', 'n', 'm', 'p', 'thresh', 'A', 'lda'+hidden, 'E','lde'+hidden,'B','ldb'+hidden,'C','ldc'+hidden, 'lscale', 'rscale', 'dwork'+hidden, 'info']
 
-    if job != 'A' and job != 'B' and job != 'C' and job != 'N':
-        raise SlycotParameterError('Parameter job had an illegal value', -1)
-
     A,E,B,C,lscale,rscale,info = _wrapper.tg01ad(job,l,n,m,p,thresh,A,E,B,C)
-
     raise_if_slycot_error(info, arg_list)
-    if info != 0:
-        raise SlycotArithmeticError('tg01ad failed', info)
-
     return A,E,B,C,lscale,rscale
 
 def tg01fd(l,n,m,p,A,E,B,C,Q=None,Z=None,compq='N',compz='N',joba='N',tol=0.0,ldwork=None):
@@ -1260,12 +1227,10 @@ def tg01fd(l,n,m,p,A,E,B,C,Q=None,Z=None,compq='N',compz='N',joba='N',tol=0.0,ld
     elif compq == 'U' and compz == 'U':
         A,E,B,C,Q,Z,ranke,rnka22,info = _wrapper.tg01fd_uu(joba,l,n,m,p,A,E,B,C,Q,Z,tol,ldwork)
     else:
-        raise SlycotParameterError(
-            "The combination of compq and compz is not implemented", -1)
+        raise NotImplementedError(
+            "The combination of compq and compz is not implemented")
 
     raise_if_slycot_error(info, arg_list)
-    if info != 0:
-        raise SlycotArithmeticError('tg01fd failed', info)
 
     if joba == 'N':
         rnka22 = None

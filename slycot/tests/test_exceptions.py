@@ -34,9 +34,9 @@ def assert_docstring_parse(docstring, exception_class, erange, checkvars={}):
         Documentation string with exception definitions
     exception_class: SlycotError or SlycotWarning
         Subclass of Slycot specific Errors or Warnings expected to raise
-    erange: int or iterable with int
-        Error numbers for which the documentation should have
-        exception text
+    erange: int or iterable with int or iterable of two-element iterables
+        of [IWARN, INFO] for which the documentation should have exception
+        text
     checkvars: dict, optional
         dict of variables for evaluation of <infospec> and formatting the
         exception message
@@ -48,14 +48,20 @@ def assert_docstring_parse(docstring, exception_class, erange, checkvars={}):
     except TypeError:
         pass
 
-    for info in erange:
+    for e in erange:
+        try:
+            iwarn, info = e
+        except TypeError:
+            iwarn = 0
+            info = e
         if issubclass(exception_class, SlycotError):
             with pytest.raises(exception_class) as ex_info:
-                raise_if_slycot_error(info, [], docstring, checkvars)
+                raise_if_slycot_error(e, [], docstring, checkvars)
             assert ex_info.value.info == info
         elif issubclass(exception_class, SlycotWarning):
             with pytest.warns(exception_class) as wm:
-                raise_if_slycot_error(info, [], docstring, checkvars)
+                raise_if_slycot_error(e, [], docstring, checkvars)
+            assert wm[0].message.iwarn == iwarn
             assert wm[0].message.info == info
         else:
             raise RuntimeError("Invalid test exception")
@@ -66,3 +72,9 @@ def test_standard_info_error():
     with pytest.raises(SlycotParameterError) as ex_info:
         raise_if_slycot_error(-2, ["a", "b"])
     assert ex_info.value.info == -2
+
+
+def test_unhandled_info():
+    with pytest.raises(SlycotError) as ex_info:
+        raise_if_slycot_error(2, [], docstring="no valid docstring")
+    assert ex_info.value.info == 2

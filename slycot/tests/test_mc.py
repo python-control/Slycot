@@ -33,9 +33,18 @@ class test_mc(unittest.TestCase):
 
     def test_mc01td_warnings(self):
         """ test_mc01td_warnings: Test warnings """
-        T = [([0, 0], "entry P(x) is the zero polynomial."),
-             ([0, 1], "P(x) may have zeros very close to stability boundary."),
-             ([1, 0], "The degree of P(x) has been reduced to 0")]
+        T = [([0, 0], "\n"
+              "Entry ``P(x)`` is the zero polynomial."),
+             ([0, 1], "\n"
+              "The polynomial ``P(x)`` is most probably unstable,\n"
+              "although it may be stable with one or more zeros\n"
+              "very close to the imaginary axis.\n"
+              "The number of unstable zeros (NZ) is not determined."),
+             ([1, 0], "\n"
+              "The degree of the polynomial ``P(x)`` has been\n"
+              "reduced to ``(DB - 1)`` because\n"
+              "``P(DB+1-j) = 0.0`` on entry\n"
+              "for ``j = 0, 1,..., k-1`` and ``P(DB+1-k) <> 0.0``.")]
         for P, m in T:
             with warnings.catch_warnings(record=True) as w:
                 (dp, stable, nz) = mc01td('C', len(P)-1, P)

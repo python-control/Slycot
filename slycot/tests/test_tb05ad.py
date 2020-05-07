@@ -172,15 +172,16 @@ class test_tb05ad(unittest.TestCase):
         are parsed from the docstring, tests both the info index and the
         message
         """
-        A = np.array([ [0, -1], [1, 0] ])
-        B = np.array([ [1],[0] ])
-        C = np.array([ [0, 1 ]])
+        A = np.array([[0, -1],
+                      [1, 0]])
+        B = np.array([[1],
+                      [0]])
+        C = np.array([[0, 1]])
         jomega = 1j
-        with self.assertRaises(
+        with self.assertRaisesRegex(
                 SlycotArithmeticError,
-                msg="\n"
-                    "Either FREQ is too near to an eigenvalue of A, or RCOND\n"
-                    "is less than the machine precision EPS.") as cm:
+                r"Either `freq`.* is too near to an eigenvalue of A,\n"
+                r"or `rcond` is less than the machine precision EPS.") as cm:
             transform.tb05ad(2, 1, 1, jomega, A, B, C, job='NH')
         assert cm.exception.info == 2
 
