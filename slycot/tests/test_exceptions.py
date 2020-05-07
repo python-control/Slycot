@@ -74,16 +74,17 @@ def test_standard_info_error():
     assert ex_info.value.info == -2
 
 
-def test_unhandled_info():
+def test_unhandled_info_iwarn():
     with pytest.raises(SlycotError) as ex_info:
-        raise_if_slycot_error(2, [], docstring="no valid docstring")
-    assert ex_info.value.info == 2
+        raise_if_slycot_error(100, [], docstring="no valid docstring")
+    assert ex_info.value.info == 100
     with pytest.warns(SlycotWarning) as wm:
-        raise_if_slycot_error([1, 0], [], docstring="no valid docstring")
-    assert wm[0].message.iwarn == 1
-    assert wm[0].message.info == 0
-    with pytest.warns(SlycotWarning) as wm:
+        raise_if_slycot_error([101, 0], [], docstring="no valid docstring")
         raise_if_slycot_error(0, [], docstring="no valid docstring",
-                              checkvars={'iwarn': 1})
-    assert wm[0].message.iwarn == 1
+                              checkvars={'iwarn': 102})
+    assert wm[0].message.iwarn == 101
     assert wm[0].message.info == 0
+    assert wm[1].message.iwarn == 102
+    assert wm[1].message.info == 0
+
+

@@ -131,7 +131,7 @@ def _parse_docsection(section_name, docstring, checkvars):
     return (slycot_error, message)
 
 
-def raise_if_slycot_error(info, arg_list=None, docstring=None, checkvars={}):
+def raise_if_slycot_error(info, arg_list=None, docstring=None, checkvars=None):
     """Raise exceptions or warnings if slycot info returned is non-zero.
 
     Parameters
@@ -221,6 +221,8 @@ def raise_if_slycot_error(info, arg_list=None, docstring=None, checkvars={}):
         iwarn, info = info
     except TypeError:
         iwarn = None
+    if not checkvars:
+        checkvars = {}
     if docstring and (iwarn or info):
         # possibly override info with mandatory argument
         checkvars['info'] = info
@@ -247,11 +249,11 @@ def raise_if_slycot_error(info, arg_list=None, docstring=None, checkvars={}):
     # catch all
     if info > 0:
         raise SlycotError("Caught unhandled nonzero INFO value {}"
-                          .format(info),
+                          "".format(info),
                           info)
-    if not iwarn and 'iwarn' in checkvars:
+    if iwarn is None and 'iwarn' in checkvars:
         iwarn = checkvars['iwarn']
     if iwarn:
         warn(SlycotWarning("Caught unhandled nonzero IWARN value {}"
-                           .format(iwarn),
+                           "".format(iwarn),
                            iwarn, info))
