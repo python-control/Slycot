@@ -803,7 +803,7 @@ def ab09ax(dico,job,n,m,p,A,B,C,nr=None,tol=0.0,ldwork=None):
     arg_list = ['dico', 'job', 'ordsel', 'n', 'm', 'p', 'nr',
                 'A', 'lda' + hidden, 'B', 'ldb' + hidden, 'C', 'ldc' + hidden,
                 'hsv', 'T', 'ldt' + hidden, 'Ti', 'ldti' + hidden, 'tol',
-                'iwork'+hidden, 'dwork'+hidden, 'ldwork', 'iwarn', 'info']
+                'iwork' + hidden, 'dwork' + hidden, 'ldwork', 'iwarn', 'info']
     if ldwork is None:
         ldwork = max(1, n*(2*n + max(n, max(m, p))+5)+n*(n+1)/2)
     if nr is None:
@@ -922,7 +922,7 @@ def ab09bd(dico,job,equil,n,m,p,A,B,C,D,nr=None,tol1=0,tol2=0,ldwork=None):
 
     Raises
     ------
-    SlycotArithmeticError : e
+    SlycotArithmeticError
         :info == 1:
             The reduction of A to the real Schur form failed
         :info == 2 and dico == 'C':
@@ -934,7 +934,7 @@ def ab09bd(dico,job,equil,n,m,p,A,B,C,D,nr=None,tol1=0,tol2=0,ldwork=None):
 
     Warns
     -----
-    SlycotResultWarning : e
+    SlycotResultWarning
         :iwarn == 1:
                 The selected order {nr} is greater
                 than the order of a minimal realization of the
@@ -1304,47 +1304,42 @@ def ab13bd(dico, jobn, n, m, p, A, B, C, D, tol = 0.0):
     a discrete-time system. If the H2-norm is computed, the system
     must be stable.
 
-    Required arguments
-    ------------------
-
-        dico : {'D', 'C'} input string(len=1)
-               Indicate whether the system is discrete 'D' or continuous 'C'.
-        jobn : {'H', 'L'} input string(len=1)
-               H2-norm 'H' or L2-norm 'L' to be computed.
-        n : input int
-            The number of state variables.  n >= 0.
-        m : input int
-            The number of system inputs.  m >= 0.
-        p : input int
-            The number of system outputs.  p >= 0.
-        A : input rank-2 array('d') with bounds (n,n)
-            The leading n-by-n part of this array must contain the state
-            dynamics matrix A of the system.
-        B : input rank-2 array('d') with bounds (n,m)
-            The leading n-by-m part of this array must contain the input/state
-            matrix B of the system.
-        C : input rank-2 array('d') with bounds (p,n)
-            The leading p-by-n part of this array must contain the state/output
-            matrix C of the system.
-        D : input rank-2 array('d') with bounds (p,m)
-            The leading p-by-m part of this array must contain the direct
-            transmission matrix D of the system.
-
-    Optional arguments
-    ------------------
-
-        tol : The absolute tolerance level below which the elements of
-              B are considered zero (used for controllability tests).
-              If the user sets tol <= 0, then an implicitly computed,
-              default tolerance, defined by  toldef = n*eps*norm(B),
-              is used instead, where eps is the machine precision
-              (see LAPACK Library routine DLAMCH) and norm(B) denotes
-              the 1-norm of B.
+    Parameters
+    ----------
+    dico : {'D', 'C'}
+        Indicate whether the system is discrete 'D' or continuous 'C'.
+    jobn : {'H', 'L'}
+        H2-norm 'H' or L2-norm 'L' to be computed.
+    n : int
+        The number of state variables.  n >= 0.
+    m : int
+        The number of system inputs.  m >= 0.
+    p : int
+        The number of system outputs.  p >= 0.
+    A : (n,n) ndarray
+        The leading n-by-n part of this array must contain the state
+        dynamics matrix A of the system.
+    B : (n,m) ndarray
+        The leading n-by-m part of this array must contain the input/state
+        matrix B of the system.
+    C : (p,n) ndarray
+        The leading p-by-n part of this array must contain the state/output
+        matrix C of the system.
+    D : (p,m) ndarray
+        The leading p-by-m part of this array must contain the direct
+        transmission matrix D of the system.
+    tol : float, optional
+        The absolute tolerance level below which the elements of
+        B are considered zero (used for controllability tests).
+        If the user sets tol <= 0, then an implicitly computed,
+        default tolerance, defined by  toldef = n*eps*norm(B),
+        is used instead, where eps is the machine precision
+        (see LAPACK Library routine DLAMCH) and norm(B) denotes
+        the 1-norm of B.
 
     Returns
     -------
-
-        norm:  H2 or L2 norm of thes ystem (A,B,C,D)
+    norm:  H2 or L2 norm of the system (A,B,C,D)
 
     Raises
     ------
@@ -1493,9 +1488,9 @@ def ab13dd(dico, jobe, equil, jobd, n, m, p, A, E, B, C, D, tol = 1e-10):
     if jobd != 'D' and jobd != 'Z':
         raise SlycotParameterError('jobd must be "D" or "Z"', -4)
     out = _wrapper.ab13dd(dico, jobe, equil, jobd,
-                          n, m, p, [0.0, 1.0], A, E, B, C, D, tol)    
+                          n, m, p, [0.0, 1.0], A, E, B, C, D, tol)
     raise_if_slycot_error(out[-1], arg_list, ab13dd.__doc__)
-    
+
     fpeak = out[0][0] if out[0][1] > 0 else float('inf')
     gpeak = out[1][0] if out[1][1] > 0 else float('inf')
     return gpeak, fpeak
@@ -1509,15 +1504,15 @@ def ab13ed(n, A, tol = 9.0):
     the nearest complex matrix with an eigenvalue on the imaginary
     axis. The estimate is given as
 
-         low <= beta(A) <= high,
+         ``low <= beta(A) <= high,``
 
     where either
 
-         (1 + tol) * low >= high,
+         ``(1 + tol) * low >= high,``
 
     or
 
-         low = 0   and   high = delta,
+         ``low = 0   and   high = delta,``
 
     and delta is a small number approximately equal to the square root
     of machine precision times the Frobenius norm (Euclidean norm)
@@ -1526,32 +1521,30 @@ def ab13ed(n, A, tol = 9.0):
     to the nearest unstable complex matrix, i.e., the complex
     stability radius.
 
-    Required arguments:
-        n : input int
-            The order of the matrix A.  n >= 0.
-        A : input rank-2 array('d') with bounds (n,n)
-            The leading n-by-n part of this array must contain the matrix A.
+    Parameters
+    ----------
+    n : int
+        The order of the matrix A.  ``n >= 0.``
+    A : (n,n) array_like
+        The leading n-by-n part of this array must contain the matrix A.
+    tol : float optional
+        Specifies the accuracy with which low and high approximate
+        beta(A). If the user sets tol to be less than sqrt(eps),
+        where eps is the machine precision (see LAPACK Library
+        Routine DLAMCH), then the tolerance is taken to be
+        sqrt(eps).
+        The recommended value is tol = 9, which gives an estimate
+        of beta(A) correct to within an order of magnitude.
 
-    Optional arguments:
-        tol : Specifies the accuracy with which low and high approximate
-              beta(A). If the user sets tol to be less than sqrt(eps),
-              where eps is the machine precision (see LAPACK Library
-              Routine DLAMCH), then the tolerance is taken to be
-              sqrt(eps).
-              The recommended value is tol = 9, which gives an estimate
-              of beta(A) correct to within an order of magnitude.
-
-    Return objects:
-        low : float
-              A lower bound for beta(A).
-        high : float
-               An upper bound for beta(A).
+    Returns
+    -------
+    low : float
+          A lower bound for beta(A).
+    high : float
+           An upper bound for beta(A).
 
     Raises
     ------
-
-    SlycotParameterError
-        :info = -i: the i-th argument had an illegal value;
     SlycotArithmeticError
         :info = 1:
             The QR algorithm fails to converge
@@ -1559,7 +1552,7 @@ def ab13ed(n, A, tol = 9.0):
     hidden = ' (hidden by the wrapper)'
     arg_list = ['n', 'A', 'lda' + hidden, 'low' + hidden, 'high' + hidden, 'tol',
                 'dwork' + hidden, 'ldwork' + hidden, 'info' + hidden]
-    out = _wrapper.ab13ed(n, A, tol)                
+    out = _wrapper.ab13ed(n, A, tol)
     raise_if_slycot_error(out[-1], arg_list, ab13ed.__doc__)
     return out[:-1]
 
@@ -1616,6 +1609,7 @@ def ab13fd(n, A, tol = 0.0):
     SlycotArithmeticError
         :info = 2:
             Either the QR or SVD algorithm fails to converge
+
     Warns
     -----
     SlycotResultWarning

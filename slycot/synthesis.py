@@ -768,11 +768,6 @@ def sb03md(n,C,A,U,dico,job='X',fact='N',trana='N',ldwork=None):
         w : rank-1 array('c'), shape  (n)
             If fact = 'N', this array contain the eigenvalues of A.
 
-    Raises
-    ------
-    SlycotParameterError
-        :info = -i: the i-th argument had an illegal value;
-
     Warns
     -----
     SlycotResultWarning
@@ -1549,19 +1544,19 @@ def sb10hd(n,m,np,ncon,nmeas,A,B,C,D,tol=0.0,ldwork=None):
     ------
     SlycotArithmeticError
         :info = 1:
-            if the matrix D12 had not full column rank in
+            The matrix D12 had not full column rank in
             respect to the tolerance tol;
         :info = 2:
-            if the matrix D21 had not full row rank in respect
+            The matrix D21 had not full row rank in respect
             to the tolerance tol;
         :info = 3:
-            if the singular value decomposition (SVD) algorithm
+            The singular value decomposition (SVD) algorithm
             did not converge (when computing the SVD of one of
             the matrices D12 or D21).
         :info = 4:
-            if the X-Riccati equation was not solved successfully;
+            The X-Riccati equation was not solved successfully;
         :info = 5:
-            if the Y-Riccati equation was not solved successfully.
+            The Y-Riccati equation was not solved successfully.
     """
 
     hidden = ' (hidden by the wrapper)'

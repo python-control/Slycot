@@ -183,8 +183,8 @@ def mb03rd(n, A, X=None, jobx='U', sort='N', pmax=1.0, tol=0.0):
 
     **Numerical Aspects**
 
-    The algorithm usually requires :math:`\mathcal{O}(N^3)` operations,
-    but :math:`\mathcal{O}(N^4)` are
+    The algorithm usually requires :math:`\\mathcal{O}(N^3)` operations,
+    but :math:`\\mathcal{O}(N^4)` are
     possible in the worst case, when all diagonal blocks in the real
     Schur form of `A` are 1-by-1, and the matrix cannot be diagonalized
     by well-conditioned transformations.
@@ -206,7 +206,7 @@ def mb03rd(n, A, X=None, jobx='U', sort='N', pmax=1.0, tol=0.0):
 
     **Revisions**
 
-    \V. Sima, Research Institute for Informatics, Bucharest, Apr. 2003.
+    \\V. Sima, Research Institute for Informatics, Bucharest, Apr. 2003.
 
     References
     ----------
