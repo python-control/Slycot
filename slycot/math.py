@@ -680,7 +680,7 @@ def mb05nd(a, delta, tol=1e-7):
 
     Returns
     -------
-    F : (n n) ndarray
+    F : (n, n) ndarray
         exp(A*delta)
     H : (n, n) ndarray
         Int[F(s) ds] from s = 0 to s = delta,
