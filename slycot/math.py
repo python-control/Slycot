@@ -617,8 +617,7 @@ def mb05md(a, delta, balanc='N'):
         the matrix product ``exp(Lambda*delta)`` times the inverse of
         the (right) eigenvector matrix of `A`, where `Lambda` is the
         diagonal matrix of eigenvalues.
-
-    w : (n,) real or complex ndarray
+    w : (n, ) real or complex ndarray
         Contains the eigenvalues of the matrix `A`. The eigenvalues
         are unordered except that complex conjugate pairs of values
         appear consecutively with the eigenvalue having positive
@@ -672,7 +671,7 @@ def mb05nd(a, delta, tol=1e-7):
 
     Parameters
     ----------
-    A : (n,n) array_like
+    A : (n, n) array_like
         Square matrix
     delta : float
         The scalar value delta of the problem.
@@ -681,9 +680,9 @@ def mb05nd(a, delta, tol=1e-7):
 
     Returns
     -------
-    F : ndarray
+    F : (n n) ndarray
         exp(A*delta)
-    H : ndarray
+    H : (n, n) ndarray
         Int[F(s) ds] from s = 0 to s = delta,
 
     Raises
@@ -734,7 +733,7 @@ def mc01td(dico, dp, p):
 
     dp : int
         The degree of the polynomial `P(x)`.  ``dp >= 0``.
-    p : (dp+1,) array_like
+    p : (dp+1, ) array_like
         This array must contain the coefficients of `P(x)` in increasing
         powers of `x`.
 

@@ -254,7 +254,7 @@ def sb02md(n,A,G,Q,dico,hinv='D',uplo='U',scal='N',sort='S',ldwork=None):
         An estimate of the reciprocal of the condition number (in
         the 1-norm) of the n-th order system of algebraic
         equations from which the solution matrix X is obtained.
-    w : (2*n) complex ndarray
+    w : (2*n, ) complex ndarray
         This array contain the eigenvalues of the 2n-by-2n matrix S, ordered
         as specified by sort (except for the case hinv = 'D', when the order
         is opposite to that specified by sort). The leading n elements of
@@ -583,17 +583,17 @@ def sb02od(n,m,A,B,Q,R,dico,p=None,L=None,fact='N',uplo='U',sort='S',tol=0.0,ldw
         An estimate of the reciprocal of the condition number (in
         the 1-norm) of the n-th order system of algebraic equations
         from which the solution matrix X is obtained.
-    w : (2 * n) complex array_like
+    w : (2*n, ) complex array_like
         The generalized eigenvalues of the 2n-by-2n matrix pair, ordered as
         specified by sort. For instance, if sort = 'S', the leading n
         elements of these arrays contain the closed-loop spectrum of the
         system matrix A - BF, where F is the optimal feedback matrix computed
         based on the solution matrix X.
-    S : (2*n+m, 2 * n) array_like
+    S : (2*n+m, 2*n) array_like
         This array contains the ordered real Schur form S of the first matrix
         in the reduced matrix pencil associated to the optimal problem, or of
         the corresponding Hamiltonian matrix
-    T : (2*n+m+1, 2 * n) array_like
+    T : (2*n+m+1, 2*n) array_like
         This array contains the ordered upper triangular form T of the second
         matrix in the reduced matrix pencil associated to the optimal problem.
 
@@ -1184,11 +1184,11 @@ def sb10ad(n,m,np,ncon,nmeas,gamma,A,B,C,D,job=3,gtol=0.0,actol=0.0,liwork=None,
         The controller output matrix Ck.
     Dk : (ncon, nmeas) ndarray
         The controller input/output matrix DK.
-    Ac : (2n, 2n) ndarray
+    Ac : (2*n, 2*n) ndarray
         The closed-loop system state matrix AC.
-    Bc : (2n, m-ncon) ndarray
+    Bc : (2*n, m-ncon) ndarray
         The closed-loop system input matrix BC.
-    Cc : (np-nmeas, 2n) ndarray
+    Cc : (np-nmeas, 2*n) ndarray
         The closed-loop system output matrix CC.
     Dc : (np-nmeas, m-ncon) ndarray
         The the closed-loop system input/output matrix DC.
