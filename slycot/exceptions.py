@@ -96,7 +96,7 @@ def _parse_docsection(section_name, docstring, checkvars):
             # new infospec
             if slycot_error:
                 imatch = re.match(
-                    r'(\s{' + str(error_indent + 1) + r',}):(.*):\s*(.*)', l)
+                    r'(\s{' + str(error_indent + 1) + r',}):(.+):\s*(.*)', l)
                 if imatch:
                     infospec_indent = len(imatch.group(1))
                     infospec = imatch.group(2)
