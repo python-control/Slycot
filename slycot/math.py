@@ -498,7 +498,7 @@ def mb03wd(job, compz, n, ilo, ihi, iloz, ihiz, H, Q, ldwork=None):
             transformations accumulated by SLICOT Library routine
             MB03VY.
             If compz = 'I', Q is ignored
-    ldwork : int, optinal
+    ldwork : int, optional
             The length of the cache array. The default value is
             ihi-ilo+p-1
 
