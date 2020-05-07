@@ -534,7 +534,7 @@ def mb03wd(job, compz, n, ilo, ihi, iloz, ihiz, H, Q, ldwork=None):
         :info > 0:
             failed to compute all the eigenvalues {ilo} to {ihi}
             in a total of 30*({ihi}-{ilo}+1) iterations
-            the elements Wr{{info}:{ihi}] contains those
+            the elements Wr[{info}:{ihi}] contains those
             eigenvalues which have been successfully computed.
     """
     hidden = ' (hidden by the wrapper)'
