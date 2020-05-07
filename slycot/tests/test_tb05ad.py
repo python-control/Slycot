@@ -4,6 +4,7 @@
 from slycot import transform
 from slycot.exceptions import SlycotArithmeticError, SlycotParameterError
 
+import sys
 import numpy as np
 
 import unittest
@@ -165,6 +166,7 @@ class test_tb05ad(unittest.TestCase):
                 n, m, p, jomega, sys['A'], sys['B'], sys['C'], job='a')
         assert cm.exception.info == -1
 
+    @unittest.skipIf(sys.version < "3", "no assertRaisesRegex in old Python")
     def test_tb05ad_resonance(self):
         """ Test tb05ad resonance failure.
 
