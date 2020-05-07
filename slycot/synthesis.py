@@ -20,11 +20,10 @@
 
 
 from . import _wrapper
-from .exceptions import raise_if_slycot_error, \
-    SlycotParameterError, SlycotArithmeticError
+from .exceptions import raise_if_slycot_error, SlycotParameterError
 
 import numpy as _np
-import warnings
+
 
 def sb01bd(n,m,np,alpha,A,B,w,dico,tol=0.0,ldwork=None):
     """ A_z,w,nfp,nap,nup,F,Z = sb01bd(n,m,np,alpha,A,B,w,dico,[tol,ldwork])

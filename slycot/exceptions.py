@@ -221,13 +221,12 @@ def raise_if_slycot_error(info, arg_list=None, docstring=None, checkvars={}):
         iwarn, info = info
     except TypeError:
         iwarn = None
-    if docstring:
-        # possibly override with mandatory argument
+    if docstring and (iwarn or info):
+        # possibly override info with mandatory argument
         checkvars['info'] = info
-        if iwarn is not None:  # do not possibly override if not provided
+        # do not possibly override iwarn if not provided
+        if iwarn is not None:
             checkvars['iwarn'] = iwarn
-        else:
-            iwarn = 0
 
         exception, message = _parse_docsection("Raises", docstring, checkvars)
         if exception and message:
@@ -250,3 +249,9 @@ def raise_if_slycot_error(info, arg_list=None, docstring=None, checkvars={}):
         raise SlycotError("Caught unhandled nonzero INFO value {}"
                           .format(info),
                           info)
+    if not iwarn and 'iwarn' in checkvars:
+        iwarn = checkvars['iwarn']
+    if iwarn:
+        warn(SlycotWarning("Caught unhandled nonzero IWARN value {}"
+                           .format(iwarn),
+                           iwarn, info))

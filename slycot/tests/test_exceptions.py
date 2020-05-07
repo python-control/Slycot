@@ -52,7 +52,7 @@ def assert_docstring_parse(docstring, exception_class, erange, checkvars={}):
         try:
             iwarn, info = e
         except TypeError:
-            iwarn = 0
+            iwarn = None
             info = e
         if issubclass(exception_class, SlycotError):
             with pytest.raises(exception_class) as ex_info:
@@ -78,3 +78,12 @@ def test_unhandled_info():
     with pytest.raises(SlycotError) as ex_info:
         raise_if_slycot_error(2, [], docstring="no valid docstring")
     assert ex_info.value.info == 2
+    with pytest.warns(SlycotWarning) as wm:
+        raise_if_slycot_error([1, 0], [], docstring="no valid docstring")
+    assert wm[0].message.iwarn == 1
+    assert wm[0].message.info == 0
+    with pytest.warns(SlycotWarning) as wm:
+        raise_if_slycot_error(0, [], docstring="no valid docstring",
+                              checkvars={'iwarn': 1})
+    assert wm[0].message.iwarn == 1
+    assert wm[0].message.info == 0

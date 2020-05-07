@@ -18,9 +18,7 @@
 #       MA 02110-1301, USA.
 
 from . import _wrapper
-from .exceptions import raise_if_slycot_error, SlycotArithmeticError
-
-import warnings
+from .exceptions import raise_if_slycot_error
 
 import numpy as np
 
