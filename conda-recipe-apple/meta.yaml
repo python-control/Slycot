@@ -7,16 +7,18 @@ source:
 
 build:
   number: {{ environ.get('GIT_DESCRIBE_NUMBER', 0) }}
-  string: py{{ environ.get('PY_VER').replace('.', '') }}{{ environ.get('GIT_DESCRIBE_HASH', '') }}_mkl_{{ environ.get('GIT_DESCRIBE_NUMBER', 0) }}
+  string: py{{ environ.get('PY_VER').replace('.', '') }}{{ environ.get('GIT_DESCRIBE_HASH', '') }}_apple_{{ environ.get('GIT_DESCRIBE_NUMBER', 0) }}
 
 requirements:
   build:
     - {{ compiler('c') }}       
     - {{ compiler('fortran') }}   # [unix]
     - flang                       # [win]
+    - cmake
     
   host:
     - numpy
+    - python
     - python
     # conda-forge::scikit-build>=0.10.0 includes MACOSX_DEPLOYMENT_TARGET
     # patches from https://github.com/scikit-build/scikit-build/pull/441
@@ -27,8 +29,13 @@ requirements:
     - {{ pin_compatible('numpy') }}
     
 test:
+  requires:
+    - pytest
+    - scipy
   imports:
     - slycot
+  commands:
+    - pytest --pyargs slycot
 
 about:
   home: https://github.com/python-control/Slycot

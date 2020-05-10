@@ -1,11 +1,11 @@
 cd $RECIPE_DIR/..
 
-# specify blas vendor should be OpenBLAS
-export BLA_VENDOR=OpenBLAS
-
 # ensure we are not building with old cmake files
 rm -rf _skbuild
+rm -rf _cmake_test_compile
 
 # do the build
-$PYTHON -m pip install . --no-deps --ignore-installed -vv
+$PYTHON setup.py build_ext install -- \
+	-DNumPy_INCLUDE_DIR=${SP_DIR}/numpy/core/include \
+	-DBLA_VENDOR=OpenBLAS
 

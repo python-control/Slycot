@@ -1,10 +1,10 @@
 cd $RECIPE_DIR/..
 
-# specify blas vendor should be MKL
-export BLA_VENDOR=Intel10_64lp
-
 # ensure we are not building with old cmake files
 rm -rf _skbuild
+rm -rf _cmake_test_compile
 
 # do the build
-$PYTHON -m pip install . --no-deps --ignore-installed -vv
+$PYTHON setup.py build_ext -lmkl install -- \
+	-DNumPy_INCLUDE_DIR=${SP_DIR}/numpy/core/include \
+	-DBLA_VENDOR=Intel10_64lp
