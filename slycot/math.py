@@ -18,7 +18,7 @@
 #       MA 02110-1301, USA.
 
 from . import _wrapper
-import warnings
+from .exceptions import raise_if_slycot_error
 
 import numpy as np
 
@@ -181,8 +181,8 @@ def mb03rd(n, A, X=None, jobx='U', sort='N', pmax=1.0, tol=0.0):
 
     **Numerical Aspects**
 
-    The algorithm usually requires :math:`\mathcal{O}(N^3)` operations,
-    but :math:`\mathcal{O}(N^4)` are
+    The algorithm usually requires :math:`\\mathcal{O}(N^3)` operations,
+    but :math:`\\mathcal{O}(N^4)` are
     possible in the worst case, when all diagonal blocks in the real
     Schur form of `A` are 1-by-1, and the matrix cannot be diagonalized
     by well-conditioned transformations.
@@ -204,7 +204,7 @@ def mb03rd(n, A, X=None, jobx='U', sort='N', pmax=1.0, tol=0.0):
 
     **Revisions**
 
-    \V. Sima, Research Institute for Informatics, Bucharest, Apr. 2003.
+    \\V. Sima, Research Institute for Informatics, Bucharest, Apr. 2003.
 
     References
     ----------
@@ -235,11 +235,7 @@ def mb03rd(n, A, X=None, jobx='U', sort='N', pmax=1.0, tol=0.0):
     Ar, Xr, nblcks, blsize, wr, wi, info = _wrapper.mb03rd(
         jobx, sort, n, pmax, A, X, tol)
 
-    if info < 0:
-        fmt = "The following argument had an illegal value: '{}'"
-        e = ValueError(fmt.format(arg_list[-info - 1]))
-        e.info = info
-        raise e
+    raise_if_slycot_error(info, arg_list)
     if jobx == 'N':
         Xr = None
     else:
@@ -306,12 +302,6 @@ def mb03vd(n, ilo, ihi, A):
             scalar factors of the elementary reflectors used to form
             the matrix Q_j, j = 1, ..., p. See FURTHER COMMENTS.
 
-    Raises
-    ------
-
-    ValueError : e
-            e.info contains information about the exact type of exception
-
     Further Comments
     ----------------
 
@@ -372,11 +362,7 @@ def mb03vd(n, ilo, ihi, A):
 
     HQ, Tau, info = _wrapper.mb03vd(n, ilo, ihi, A)
 
-    if info != 0:
-        e = ValueError(
-                "Argument '{}' had an illegal value".format(arg_list[-info-1]))
-        e.info = info
-        raise e
+    raise_if_slycot_error(info, arg_list)
     return (HQ, Tau)
 
 
@@ -423,12 +409,6 @@ def mb03vy(n, ilo, ihi, A, Tau, ldwork=None):
             3D array with same shape as A. Q[:n,:n,j-1] contains the
             N-by-N orthogonal matrix Q_j, j = 1, ..., p.
 
-    Raises
-    ------
-
-    ValueError :
-            e.info contains the number of the argument that was invalid
-
     """
 
     hidden = ' (hidden by the wrapper)'
@@ -442,11 +422,7 @@ def mb03vy(n, ilo, ihi, A, Tau, ldwork=None):
 
     Q, info = _wrapper.mb03vy(n, ilo, ihi, A, Tau, ldwork)
 
-    if info != 0:
-        e = ValueError(
-                "Argument '{}' had an illegal value".format(arg_list[-info-1]))
-        e.info = info
-        raise e
+    raise_if_slycot_error(info, arg_list)
 
     return Q
 
@@ -459,6 +435,8 @@ def mb03wd(job, compz, n, ilo, ihi, iloz, ihiz, H, Q, ldwork=None):
     Hessenberg matrix and H_2, ..., H_p upper triangular matrices,
     without evaluating the product. Specifically, the matrices Z_i
     are computed, such that
+
+    ::
 
             Z_1' * H_1 * Z_2 = T_1,
             Z_2' * H_2 * Z_3 = T_2,
@@ -476,14 +454,12 @@ def mb03wd(job, compz, n, ilo, ihi, iloz, ihiz, H, Q, ldwork=None):
 
     Parameters
     ----------
-
     job : {'E', 'S'}
             Indicates whether the user wishes to compute the full
             Schur form or the eigenvalues only, as follows:
             = 'E':  Compute the eigenvalues only;
             = 'S':  Compute the factors T_1, ..., T_p of the full
                     Schur form, T = T_1*T_2*...*T_p.
-
    compz : {'N', 'I', 'V'}
             Indicates whether or not the user wishes to accumulate
             the matrices Z_1, ..., Z_p, as follows:
@@ -494,10 +470,8 @@ def mb03wd(job, compz, n, ilo, ihi, iloz, ihiz, H, Q, ldwork=None):
             = 'V':  Z_i must contain an orthogonal matrix Q_i on
                     entry, and the product Q_i*Z_i is returned,
                     i = 1, ..., p.
-
     n : int
             The order of the matrix H.  n >= 0
-
     ilo, ihi : int
             It is assumed that all matrices H_j, j = 2, ..., p, are
             already upper triangular in rows and columns [:ilo-1] and
@@ -509,32 +483,25 @@ def mb03wd(job, compz, n, ilo, ihi, iloz, ihiz, H, Q, ldwork=None):
             transformations to all the rows and columns of the
             matrices H_i, i = 1,...,p, if JOB = 'S'.
             1 <= ilo <= max(1,n); min(ilo,n) <= ihi <= n.
-
     iloz, ihiz : int
             Specify the rows of Z to which the transformations must be
             applied if compz = 'I' or compz = 'V'.
             1 <= iloz <= ilo; ihi <= ihiz <= n.
-
-    H : ndarray
+    H : array_like
             H[:n,:n,0] must contain the upper Hessenberg matrix H_1 and
             H[:n,:n,j-1] for j > 1 must contain the upper triangular matrix
             H_j, j = 2, ..., p.
-
-    Q : ndarray
+    Q : array_like
             If compz = 'V', Q[:n,:n,:p] must contain the current matrix Q of
             transformations accumulated by SLICOT Library routine
             MB03VY.
             If compz = 'I', Q is ignored
-
-    ldwork : int, optinal
+    ldwork : int, optional
             The length of the cache array. The default value is
             ihi-ilo+p-1
 
-
-
     Returns
     -------
-
     T : ndarray
             3D array with the same shape as H.
             If JOB = 'S', T[:n,:n,0] is upper quasi-triangular in rows
@@ -543,7 +510,6 @@ def mb03wd(job, compz, n, ilo, ihi, iloz, ihiz, H, Q, ldwork=None):
             T[:n,:n,j-1] for j > 1 contains the resulting upper
             triangular matrix T_j.
             If job = 'E', T is None
-
     Z : ndarray
             3D array with the same shape as Q.
             If compz = 'V', or compz = 'I', the leading
@@ -552,9 +518,7 @@ def mb03wd(job, compz, n, ilo, ihi, iloz, ihiz, H, Q, ldwork=None):
             transformations are applied only to the submatrices
             Z[iloz-1:ihiz,ilo-1:ihi,j-1], j = 1, ..., p.
             If compz = 'N', Z is None
-
-    W : ndarray (dtype=complex)
-            1D array with shape (n).
+    W : (n,) complex ndarray
             The computed eigenvalues ilo to ihi. If two eigenvalues
             are computed as a complex conjugate pair, they are stored
             in consecutive elements of W say the i-th and
@@ -562,12 +526,14 @@ def mb03wd(job, compz, n, ilo, ihi, iloz, ihiz, H, Q, ldwork=None):
             If JOB = 'S', the eigenvalues are stored in the same order
             as on the diagonal of the Schur form returned in H.
 
-    Raises
-    ------
-
-    ValueError : e
-            e.info contains information about the exact type of exception
-
+    Warns
+    -----
+    SlycotResultWarning
+        :info > 0:
+            failed to compute all the eigenvalues {ilo} to {ihi}
+            in a total of 30*({ihi}-{ilo}+1) iterations
+            the elements Wr[{info}:{ihi}] contains those
+            eigenvalues which have been successfully computed.
     """
     hidden = ' (hidden by the wrapper)'
     arg_list = ['job', 'compz', 'n', 'p' + hidden,
@@ -583,18 +549,8 @@ def mb03wd(job, compz, n, ilo, ihi, iloz, ihiz, H, Q, ldwork=None):
 
     T, Z, Wr, Wi, info = _wrapper.mb03wd(
             job, compz, n, ilo, ihi, iloz, ihiz, H, Q, ldwork)
+    raise_if_slycot_error(info, arg_list, mb03rd.__doc__, locals())
 
-    if info < 0:
-        e = ValueError(
-                "Argument '{}' had an illegal value".format(arg_list[-info-1]))
-        e.info = info
-        raise e
-    elif info > 0:
-        warnings.warn(("failed to compute all the eigenvalues {ilo} to {ihi} "
-                       "in a total of 30*({ihi}-{ilo}+1) iterations "
-                       "the elements {i}:{ihi} of Wr contain those "
-                       "eigenvalues which have been successfully computed."
-                       ).format(i=info, ilo=ilo, ihi=ihi))
     if job == 'E':
         T = None
     if compz == 'N':
@@ -605,67 +561,81 @@ def mb03wd(job, compz, n, ilo, ihi, iloz, ihiz, H, Q, ldwork=None):
 
 
 def mb05md(a, delta, balanc='N'):
-    """Ar, Vr, Yr, VAL = mb05md(a, delta, balanc='N')
+    """Ar, Vr, Yr, w = mb05md(a, delta, balanc='N')
 
     Matrix exponential for a real non-defective matrix
 
-    To compute exp(A*delta) where A is a real N-by-N non-defective
+    To compute ``exp(A*delta)`` where `A` is a real N-by-N non-defective
     matrix with real or complex eigenvalues and delta is a scalar
     value. The routine also returns the eigenvalues and eigenvectors
-    of A as well as (if all eigenvalues are real) the matrix product
-    exp(Lambda*delta) times the inverse of the eigenvector matrix of
-    A, where Lambda is the diagonal matrix of eigenvalues.
+    of `A` as well as (if all eigenvalues are real) the matrix product
+    ``exp(Lambda*delta)`` times the inverse of the eigenvector matrix of
+    `A`, where `Lambda` is the diagonal matrix of eigenvalues.
     Optionally, the routine computes a balancing transformation to
     improve the conditioning of the eigenvalues and eigenvectors.
 
-    Required arguments:
-        A : input rank-2 array('d') with bounds (n,n)
-            Square matrix
-        delta : input 'd'
-            The scalar value delta of the problem.
+    Parameters
+    ----------
+    A : (n, n) array_like
+        Square matrix
+    delta : float
+        The scalar value delta of the problem.
+    balanc : {'N', 'S'}, optional
+        Indicates how the input matrix should be diagonally scaled
+        to improve the conditioning of its eigenvalues as follows:
 
-    Optional arguments:
-        balanc : input char*1
-            Indicates how the input matrix should be diagonally scaled
-            to improve the conditioning of its eigenvalues as follows:
-            = 'N':  Do not diagonally scale;
-            = 'S':  Diagonally scale the matrix, i.e. replace A by
-                    D*A*D**(-1), where D is a diagonal matrix chosen
-                    to make the rows and columns of A more equal in
-                    norm. Do not permute.
+        := 'N':  Do not diagonally scale;
+        := 'S':  Diagonally scale the matrix, i.e. replace `A` by
+                 ``D*A*D**(-1)``, where `D` is a diagonal matrix chosen
+                 to make the rows and columns of A more equal in
+                 norm. Do not permute.
 
-    Return objects:
-        Ar : output rank-2 array('d') with bounds (n,n)
-            Contains the solution matrix exp(A*delta)
-        Vr : output rank-2 array('d') with bounds (n,n)
-            Contains the eigenvector matrix for A.  If the k-th
-            eigenvalue is real the k-th column of the eigenvector
-            matrix holds the eigenvector corresponding to the k-th
-            eigenvalue.  Otherwise, the k-th and (k+1)-th eigenvalues
-            form a complex conjugate pair and the k-th and (k+1)-th
-            columns of the eigenvector matrix hold the real and
-            imaginary parts of the eigenvectors corresponding to these
-            eigenvalues as follows.  If p and q denote the k-th and
-            (k+1)-th columns of the eigenvector matrix, respectively,
-            then the eigenvector corresponding to the complex
-            eigenvalue with positive (negative) imaginary value is
-            given by
-              p + q*j (p - q*j), where j^2  = -1.
-        Yr : output rank-2 array('d') with bounds (n,n)
-            contains an intermediate result for computing the matrix
-            exponential.  Specifically, exp(A*delta) is obtained as the
-            product V*Y, where V is the matrix stored in the leading
-            N-by-N part of the array V. If all eigenvalues of A are
-            real, then the leading N-by-N part of this array contains
-            the matrix product exp(Lambda*delta) times the inverse of
-            the (right) eigenvector matrix of A, where Lambda is the
-            diagonal matrix of eigenvalues.
+    Returns
+    -------
+    Ar : (n, n) ndarray
+        Contains the solution matrix ``exp(A*delta)``
+    Vr : (n, n) ndarray
+        Contains the eigenvector matrix for `A`.  If the `k`-th
+        eigenvalue is real the `k`-th column of the eigenvector
+        matrix holds the eigenvector corresponding to the `k`-th
+        eigenvalue.  Otherwise, the `k`-th and `(k+1)`-th eigenvalues
+        form a complex conjugate pair and the k-th and `(k+1)`-th
+        columns of the eigenvector matrix hold the real and
+        imaginary parts of the eigenvectors corresponding to these
+        eigenvalues as follows.  If `p` and `q` denote the `k`-th and
+        `(k+1)`-th columns of the eigenvector matrix, respectively,
+        then the eigenvector corresponding to the complex
+        eigenvalue with positive (negative) imaginary value is
+        given by
+          ``p + q*j (p - q*j), where j^2  = -1.``
+    Yr : (n, n) ndarray
+        contains an intermediate result for computing the matrix
+        exponential.  Specifically, ``exp(A*delta)`` is obtained as the
+        product ``V*Y``, where `V` is the matrix stored in the leading
+        `n`-by-`n` part of the array `V`. If all eigenvalues of `A` are
+        real, then the leading `n`-by-`n` part of this array contains
+        the matrix product ``exp(Lambda*delta)`` times the inverse of
+        the (right) eigenvector matrix of `A`, where `Lambda` is the
+        diagonal matrix of eigenvalues.
+    w : (n, ) real or complex ndarray
+        Contains the eigenvalues of the matrix `A`. The eigenvalues
+        are unordered except that complex conjugate pairs of values
+        appear consecutively with the eigenvalue having positive
+        imaginary part first.
 
-        VAL : output rank-1 array('c') with bounds (n)
-            Contains the eigenvalues of the matrix A. The eigenvalues
-            are unordered except that complex conjugate pairs of values
-            appear consecutively with the eigenvalue having positive
-            imaginary part first.
+    Warns
+    ------
+    SlycotResultWarning
+        :0 < info <=n:
+            the QR algorithm failed to compute all
+            the eigenvalues; no eigenvectors have been computed;
+            w[{info}:{n}] contains eigenvalues which have converged;
+        :info == n+1:
+            The inverse of the eigenvector matrix could not
+            be formed due to an attempt to divide by zero, i.e.,
+            the eigenvector matrix is singular;
+        :info == n+2:
+            Matrix A is defective, possibly due to rounding errors.
     """
     hidden = ' (hidden by the wrapper)'
     arg_list = ['balanc', 'n', 'delta', 'a', 'lda'+hidden, 'v', 'ldv'+hidden,
@@ -677,24 +647,14 @@ def mb05md(a, delta, balanc='N'):
                                                      n=n,
                                                      delta=delta,
                                                      a=a)
-    if INFO == 0:
-        if not all(VALi == 0):
-            VAL = VALr + 1J*VALi
-        else:
-            VAL = VALr
-        return (Ar, Vr, Yr, VAL)
-    elif INFO < 0:
-        error_text = "The following argument had an illegal value: " \
-                     + arg_list[-INFO-1]
-    elif INFO > 0 and INFO <= n:
-        error_text = "Incomplete eigenvalue calculation, missing %i eigenvalues" % INFO
-    elif INFO == n+1:
-        error_text = "Eigenvector matrix singular"
-    elif INFO == n+2:
-        error_text = "A matrix defective"
-    e = ValueError(error_text)
-    e.info = INFO
-    raise e
+    raise_if_slycot_error(INFO, arg_list, mb05md.__doc__, locals())
+
+    if not all(VALi == 0):
+        w = VALr + 1J*VALi
+    else:
+        w = VALr
+    return (Ar, Vr, Yr, w)
+
 
 
 def mb05nd(a, delta, tol=1e-7):
@@ -702,23 +662,42 @@ def mb05nd(a, delta, tol=1e-7):
 
     To compute
 
-     (a)    F(delta) =  exp(A*delta) and
+    ::
 
+     (a)    F(delta) =  exp(A*delta) and
      (b)    H(delta) =  Int[F(s) ds] from s = 0 to s = delta,
 
-    where A is a real N-by-N matrix and delta is a scalar value.
+    where `A` is a real`n`-by-`n` matrix and `delta` is a scalar value.
 
-    Required arguments:
-        A : input rank-2 array('d') with bounds (n,n)
-            Square matrix
-        delta : input 'd'
-            The scalar value delta of the problem.
-        tol : input 'd'
-            Tolerance. A good value is sqrt(eps)
+    Parameters
+    ----------
+    A : (n, n) array_like
+        Square matrix
+    delta : float
+        The scalar value delta of the problem.
+    tol : float
+        Tolerance. A good value is sqrt(eps)
 
-    Return objects:
-        F : exp(A*delta)
-        H : Int[F(s) ds] from s = 0 to s = delta,
+    Returns
+    -------
+    F : (n, n) ndarray
+        exp(A*delta)
+    H : (n, n) ndarray
+        Int[F(s) ds] from s = 0 to s = delta,
+
+    Raises
+    ------
+    SlycotArithmeticError
+        :1 < info <=n:
+            the ({info},{info}) element of the denominator of
+            the Pade approximation is zero, so the denominator
+            is exactly singular;
+        :info == n+1:
+            ``DELTA = (delta * frobenius norm of matrix A)`` is
+            probably too large to permit meaningful computation.
+            That is, {delta} > SQRT(BIG), where BIG is a
+            representable number near the overflow threshold of
+            the machine (see LAPACK Library Routine DLAMCH).
     """
     hidden = ' (hidden by the wrapper)'
     arg_list = ['n', 'delta', 'a', 'lda'+hidden, 'ex', 'ldex'+hidden,
@@ -726,16 +705,9 @@ def mb05nd(a, delta, tol=1e-7):
                 'dwork'+hidden, 'ldwork'+hidden]
     n = min(a.shape)
     out = _wrapper.mb05nd(n=n, delta=delta, a=a, tol=tol)
-    if out[-1] == 0:
-        return out[:-1]
-    elif out[-1] < 0:
-        error_text = "The following argument had an illegal value: " \
-                     + arg_list[-out[-1]-1]
-    elif out[-1] == n+1:
-        error_text = "Delta too large"
-    e = ValueError(error_text)
-    e.info = out[-1]
-    raise e
+    raise_if_slycot_error(out[-1], arg_list, mb05nd.__doc__, locals())
+    return out[:-1]
+
 
 
 def mc01td(dico, dp, p):
@@ -752,46 +724,55 @@ def mc01td(dico, dp, p):
 
     Parameters
     ----------
-        dico : {'C', 'D'}
-            Indicates whether the stability test to be applied to `P(x)` is in
-            the continuous-time or discrete-time case as follows::
+    dico : {'C', 'D'}
+        Indicates whether the stability test to be applied to `P(x)` is in
+        the continuous-time or discrete-time case as follows::
 
-            = 'C':  continuous-time case;
-            = 'D':  discrete-time case.
+        = 'C':  continuous-time case;
+        = 'D':  discrete-time case.
 
-        dp : int
-            The degree of the polynomial `P(x)`.  ``dp >= 0``.
-        p : (dp+1,) array_like
-            This array must contain the coefficients of `P(x)` in increasing
-            powers of `x`.
+    dp : int
+        The degree of the polynomial `P(x)`.  ``dp >= 0``.
+    p : (dp+1, ) array_like
+        This array must contain the coefficients of `P(x)` in increasing
+        powers of `x`.
 
     Returns
     -------
-        dp : int
-            If ``P(dp+1) = 0.0`` on entry, then `dp` contains the index of the
-            highest power of `x` for which ``P(dp+1) <> 0.0``.
-        stable : int
-            Equal to 1 if `P(x)` is stable, 0 otherwise.
-        nz : int
-            The number of unstable zeros.
+    dp : int
+        If ``P(dp+1) = 0.0`` on entry, then `dp` contains the index of the
+        highest power of `x` for which ``P(dp+1) <> 0.0``.
+    stable : int
+        Equal to 1 if `P(x)` is stable, 0 otherwise.
+    nz : int
+        The number of unstable zeros.
 
+    Warns
+    -----
+    SlycotResultWarning
+        :info == 1:
+            Entry ``P(x)`` is the zero polynomial.
+        :info == 2 and dico == 'C':
+            The polynomial ``P(x)`` is most probably unstable,
+            although it may be stable with one or more zeros
+            very close to the imaginary axis.
+            The number of unstable zeros (NZ) is not determined.
+        :info == 2 and dico == 'D':
+            The polynomial ``P(x)`` is most probably unstable,
+            although it may be stable with one or more zeros
+            very close to the the unit circle.
+            The number of unstable zeros (NZ) is not determined.
+        :iwarn > 0:
+            The degree of the polynomial ``P(x)`` has been
+            reduced to ``(DB - {iwarn})`` because
+            ``P(DB+1-j) = 0.0`` on entry
+            for ``j = 0, 1,..., k-1`` and ``P(DB+1-k) <> 0.0``.
     """
     hidden = ' (hidden by the wrapper)'
     arg_list = ['dico', 'dp', 'P', 'stable', 'nz', 'DWORK' + hidden,
                 'IWARN', 'INFO']
     (dp_out, stable_log, nz, iwarn, info) = _wrapper.mc01td(dico, dp, p)
-    if info < 0:
-        fmt = "The following argument had an illegal value: '{}'"
-        e = ValueError(fmt.format(arg_list[-info - 1]))
-        e.info = info
-        raise e
-    if info == 1:
-        warnings.warn('entry P(x) is the zero polynomial.')
-    if info == 2:
-        warnings.warn('P(x) may have zeros very close to stability boundary.')
-    if iwarn > 0:
-        fmt = 'The degree of P(x) has been reduced to {:d}'
-        warnings.warn(fmt.format(dp - iwarn))
+    raise_if_slycot_error([iwarn, info], arg_list, mc01td.__doc__, locals())
     ftrue, ffalse = _wrapper.ftruefalse()
     stable = 1 if stable_log == ftrue else 0
     return (dp_out, stable, nz)

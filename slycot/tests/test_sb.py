@@ -2,9 +2,14 @@
 # sb* synthesis tests
 
 from slycot import synthesis
-from numpy import array, eye, zeros
-from numpy.testing import assert_allclose
+from slycot.exceptions import raise_if_slycot_error, \
+                              SlycotParameterError, SlycotArithmeticError, \
+                              SlycotResultWarning
 
+from numpy import array, eye, zeros
+from numpy.testing import assert_allclose, assert_raises
+import pytest
+from .test_exceptions import assert_docstring_parse
 
 def test_sb02mt():
     """Test if sb02mt is callable
@@ -97,3 +102,36 @@ def test_sb10jd():
     assert_allclose(B_r, Bexp, atol=1e-5)
     assert_allclose(C_r, Cexp, atol=1e-5)
     assert_allclose(D_r, Dexp, atol=1e-5)
+
+
+@pytest.mark.parametrize(
+    'fun,               exception_class,       erange,         checkvars',
+    ((synthesis.sb01bd, SlycotArithmeticError, 2,              {}),
+     (synthesis.sb01bd, SlycotResultWarning,   [3, 4, [1, 0]], {'nap': '1'}),
+     (synthesis.sb02md, SlycotArithmeticError, 5,              {}),
+     (synthesis.sb02od, SlycotArithmeticError, 6,              {}),
+     (synthesis.sb03md, SlycotResultWarning,   3,              {'n': 2,
+                                                                'dico': 'D'}),
+     (synthesis.sb03md, SlycotResultWarning,   3,              {'n': 2,
+                                                                'dico': 'C'}),
+     (synthesis.sb03od, SlycotResultWarning,   [1, 2],         {'dico': 'C',
+                                                                'fact': 'N'}),
+     (synthesis.sb03od, SlycotResultWarning,   [1, 2],         {'dico': 'D',
+                                                                'fact': 'N'}),
+     (synthesis.sb03od, SlycotArithmeticError, [3, 4, 5, 6],   {'dico': 'D',
+                                                                'fact': 'F'}),
+     (synthesis.sb04md, SlycotArithmeticError, 2,              {'m': 1}),
+     (synthesis.sb04qd, SlycotArithmeticError, 3,              {'m': 2}),
+     (synthesis.sb10ad, SlycotArithmeticError, 12,             {}),
+     (synthesis.sb10dd, SlycotArithmeticError, 9,              {}),
+     (synthesis.sb10hd, SlycotArithmeticError, 4,              {}),
+     (synthesis.sb10jd, SlycotArithmeticError, 0,              {}),
+     (synthesis.sg02ad, SlycotArithmeticError, 7,              {}),
+     (synthesis.sg02ad, SlycotResultWarning,   [[1, 0]],       {'dico': 'C'}),
+     (synthesis.sg02ad, SlycotResultWarning,   [[1, 0]],       {'dico': 'D'}),
+     (synthesis.sg03ad, SlycotArithmeticError, 2,              {}),
+     (synthesis.sg03ad, SlycotResultWarning,   [3, 4],         {}),
+     (synthesis.sg03bd, SlycotResultWarning,   1,              {}),
+     (synthesis.sg03bd, SlycotArithmeticError, range(2, 8),    {})))
+def test_sb_docparse(fun, exception_class, erange, checkvars):
+    assert_docstring_parse(fun.__doc__,  exception_class, erange, checkvars)

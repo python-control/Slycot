@@ -3,11 +3,14 @@
 # test_mb.py - test suite for linear algebra commands
 # bnavigator <code@bnavigator.de>, Aug 2019
 
+import sys
 import unittest
-import numpy as np
-from scipy.linalg import schur
 
 from slycot import mb03rd, mb03vd, mb03vy, mb03wd, mb05md, mb05nd
+from slycot.exceptions import SlycotResultWarning
+
+import numpy as np
+from scipy.linalg import schur
 
 from numpy.testing import assert_allclose
 
@@ -258,6 +261,23 @@ class test_mb(unittest.TestCase):
             assert_allclose(Vr[:, (i,)], vr_ref, atol=0.0001)
 
         assert_allclose(np.dot(Vr, Yr), np.dot(Vr_ref, Yr_ref), atol=0.0001)
+
+    # TODO: move this to pytest recwarn together with the whole class
+    @unittest.skipIf(sys.version < "3", "no assertWarns in old Python")
+    def test_mb05md_warning(self):
+        """ Check that the correct warning is raised from docstring"""
+        A = np.array([[5, 4, 2, 1],
+                      [0, 1, -1, -1],
+                      [-1, -1, 3, 0],
+                      [1, 1, -1, 2]])
+        delta = 0.
+
+        with self.assertWarns(SlycotResultWarning,
+                              msg="\n"
+                                  "Matrix A is defective, possibly "
+                                  "due to rounding errors.") as cm:
+            (Ar, Vr, Yr, VAL) = mb05md(A, delta)
+        assert cm.warning.info == 6
 
     def test_mb05nd(self):
         """ test_mb05nd: verify Matrix exponential and integral

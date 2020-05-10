@@ -1,10 +1,14 @@
 # ===================================================
 # tb05ad tests
-import unittest
+
 from slycot import transform
+from slycot.exceptions import SlycotArithmeticError, SlycotParameterError
+
+import sys
 import numpy as np
 
-from numpy.testing import assert_raises, assert_almost_equal
+import unittest
+from numpy.testing import assert_almost_equal
 
 
 # set the random seed so we can get consistent results.
@@ -142,17 +146,46 @@ class test_tb05ad(unittest.TestCase):
         jomega = 10*1j
         # test error handling
         # wrong size A
-        assert_raises(ValueError, transform.tb05ad, n+1, m, p,
-                      jomega, sys['A'], sys['B'], sys['C'], job='NH')
+        with self.assertRaises(SlycotParameterError) as cm:
+            transform.tb05ad(
+                n+1, m, p, jomega, sys['A'], sys['B'], sys['C'], job='NH')
+        assert cm.exception.info == -7
         # wrong size B
-        assert_raises(ValueError, transform.tb05ad, n, m+1, p,
-                      jomega, sys['A'], sys['B'], sys['C'], job='NH')
+        with self.assertRaises(SlycotParameterError) as cm:
+            transform.tb05ad(
+                n, m+1, p, jomega, sys['A'], sys['B'], sys['C'], job='NH')
+        assert cm.exception.info == -9
         # wrong size C
-        assert_raises(ValueError, transform.tb05ad, n, m, p+1,
-                      jomega, sys['A'], sys['B'], sys['C'], job='NH')
+        with self.assertRaises(SlycotParameterError) as cm:
+            transform.tb05ad(
+                n, m, p+1, jomega, sys['A'], sys['B'], sys['C'], job='NH')
+        assert cm.exception.info == -11
         # unrecognized job
-        assert_raises(ValueError, transform.tb05ad, n, m, p, jomega,
-                      sys['A'], sys['B'], sys['C'], job='a')
+        with self.assertRaises(SlycotParameterError) as cm:
+            transform.tb05ad(
+                n, m, p, jomega, sys['A'], sys['B'], sys['C'], job='a')
+        assert cm.exception.info == -1
+
+    @unittest.skipIf(sys.version < "3", "no assertRaisesRegex in old Python")
+    def test_tb05ad_resonance(self):
+        """ Test tb05ad resonance failure.
+
+        Actually test one of the exception messages. For many routines these
+        are parsed from the docstring, tests both the info index and the
+        message
+        """
+        A = np.array([[0, -1],
+                      [1, 0]])
+        B = np.array([[1],
+                      [0]])
+        C = np.array([[0, 1]])
+        jomega = 1j
+        with self.assertRaisesRegex(
+                SlycotArithmeticError,
+                r"Either `freq`.* is too near to an eigenvalue of A,\n"
+                r"or `rcond` is less than the machine precision EPS.") as cm:
+            transform.tb05ad(2, 1, 1, jomega, A, B, C, job='NH')
+        assert cm.exception.info == 2
 
 
 if __name__ == "__main__":
