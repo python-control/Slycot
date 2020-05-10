@@ -10,8 +10,8 @@ Slycot
 .. image:: https://travis-ci.org/python-control/Slycot.svg?branch=master
    :target: https://travis-ci.org/python-control/Slycot
 
-.. image:: https://coveralls.io/repos/python-control/slycot/badge.png
-   :target: https://coveralls.io/r/python-control/slycot
+.. image:: https://coveralls.io/repos/github/python-control/Slycot/badge.svg
+   :target: https://coveralls.io/github/python-control/Slycot
 
 Python wrapper for selected SLICOT routines, notably including solvers for
 Riccati, Lyapunov, and Sylvester equations.
@@ -19,7 +19,7 @@ Riccati, Lyapunov, and Sylvester equations.
 Dependencies
 ------------
 
-Slycot supports Python versions 2.7 and >=3.5.
+Slycot supports Python versions 2.7, and 3.5 or later.
 
 To run the compiled Slycot package, the following must be installed as
 dependencies:
@@ -32,11 +32,14 @@ following dependencies:
 
 - Python 2.7, 3.5+
 - NumPy
-- scikit-build >=0.8.1
-- cmake
+- scikit-build >= 0.10.0
+- CMake
 - C compiler (e.g. gcc, MS Visual C++)
 - FORTRAN compiler (e.g. gfortran, ifort, flang)
 - BLAS/LAPACK (e.g. OpenBLAS, ATLAS, MKL)
+
+To run the Slycot unit tests and examples, you'll also need scipy and
+pytest.
 
 There are a variety of ways to install these dependencies on different
 operating systems. See the individual packages' documentation for options.
@@ -44,38 +47,25 @@ operating systems. See the individual packages' documentation for options.
 Installing
 -----------
 
-In general Slycot requires non-trivial compilation to install on a given
-system. The easiest way to get started using Slycot is by installing
-pre-compiled binaries. The Slycot team provides pre-compiled binaries via the
-conda package manager and conda forge package hosting channel for Linux, OSX,
-and Windows.
+The easiest way to get started with Slycot is to install pre-compiled
+binaries from conda-forge (see below); these are available for Linux,
+OSX, and Windows.
 
-Using conda
-~~~~~~~~~~~
+Compiling the Slycot source is unfortunately a bit tricky, especially
+on Windows, but we give some pointers further below for doing this.
 
-Install Miniconda or Anaconda and then Slycot can be installed via the conda
-package manager from the conda-forge channel with the following command::
+Using conda and conda-forge
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+First install Miniconda or Anaconda.  Slycot can then be installed
+from the conda-forge channel with the following command::
 
     conda install -c conda-forge slycot
 
-Using pip
-~~~~~~~~~
+From source without conda (Linux, macOS, Windows)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Slycot can also be installed via the pip package manager. Install pip as per
-recommendations in pip's documentation. At a minimum, Python and pip must be
-installed. If a pre-complied binary (i.e. "wheel") is available it will be
-installed with no need for compilation. If not, pip will attempt to compile the
-package from source and thus the compilation dependencies will be required
-(scikit-build, gfortran, BLAS, etc.).
-
-Pip can then be used to install Slycot with the command::
-
-    pip install slycot
-
-From source
-~~~~~~~~~~~
-
-Unpack the course code to a directory of your choice,
+Unpack the source code to a directory of your choice,
 e.g. ``/path/to/slycot_src/``
 
 If you need to specify a specific compiler, set the environment variable FC
@@ -87,35 +77,85 @@ before running the install::
     # Windows:
     set FC=D:\path\to\my\fortran.exe
 
-To build and install execute::
+To build and install, execute::
 
     cd /path/to/slycot_src/
     python setup.py install
 
-You can also use conda to build and install Slycot from source::
+From source using a conda recipe (Linux and macOS)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    conda build conda-recipe
-    conda install --use-local slycot
+You can also use conda to build and install Slycot from source, but
+you'll have to choose the right recipe directory.
 
-If you prefer to use the OpenBLAS library, a conda recipe is available in
-``conda-recipe-openblas``.
+On Linux you can choose between ``conda-recipe-openblas`` and
+``conda-recipe-mkl``
+
+On macOS you should use ``conda-recipe-apple``. See the 
+`conda-build documentation`_ how to get the required macOS SDK.
+
+.. _conda-build documentation: https://docs.conda.io/projects/conda-build/en/latest/resources/compiler-tools.html#macos-sdk
+
+For example, to build with the OpenBLAS recipe::
+
+    conda build -c conda-forge conda-recipe-openblas
+    conda install -c conda-forge --use-local slycot
+
+From source in a conda environment (Windows)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A similar method can be used for Linux and macOS, but is detailed here
+for Windows.  This method uses conda and conda-forge to get most build
+dependencies, *except* for the C compiler.
+
+This procedure has been tested on Python 3.7 and 3.8.
+
+First, install the `correct Visual Studio compiler for the Python
+version`_ you wish to build for.
+
+.. _correct Visual Studio compiler for the Python version: https://wiki.python.org/moin/WindowsCompilers
+
+To build, you'll need a command shell setup for both conda and the
+Visual Studio build tools.  See `conda activation`_ and `Microsoft
+Visual Studio setup`_ for information on this.
+
+.. _conda activation: https://docs.conda.io/projects/conda/en/latest/user-guide/troubleshooting.html#windows-environment-has-not-been-activated
+.. _Microsoft Visual Studio setup: https://docs.microsoft.com/en-us/cpp/build/setting-the-path-and-environment-variables-for-command-line-builds?view=vs-2019
+
+In such a command shell, run the following commands to build and
+install Slycot (this example creates a Python 3.8 environment)::
+
+    conda create --channel conda-forge --name build-slycot python=3.8 numpy scipy libblas=*=*netlib liblapack=*=*netlib scikit-build flang pytest
+    conda activate build-slycot
+
+    python setup.py install
+    pytest
+
+The final ``pytest`` command is optional; it runs the Slycot unit tests.
+
+General notes on compiling
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Additional tips for how to install Slycot from source can be found in the
-``.travis.yml`` (commands used for Travis CI) and conda-recipe/ (conda
-pre-requisites) both which are included in the source code repository.
+``.travis.yml`` (commands used for Travis CI) and the ``conda-recipe-*/``
+directories (conda pre-requisites) both which are included in the source
+code repository.
 
-The hardest part about installing from source is getting a working version of
-FORTRAN and LAPACK installed on your system and working properly with Python.
-On Windows, the build system currently uses flang, which can be installed from
-conda-forge. Note that flang is incompatible with Python 2.7.
-
-If you are using conda, you can also get working (binary) copies of LAPACK from
-conda-forge using the command::
-
-   conda install -c conda-forge lapack
-
-Slycot will also work with the OpenBLAS libraries.
+The hardest part about installing from source is getting a working
+version of FORTRAN and LAPACK (provided by OpenBLAS, MKL, etc.)
+installed on your system, and working properly with Python.
 
 Note that in some cases you may need to set the ``LIBRARY_PATH`` environment
 variable to pick up dependencies such as ``-lpythonN.m`` (where N.m is the
 version of python you are using).
+
+Using pip
+~~~~~~~~~
+
+We publish Slycot to the Python package index, but only as a source
+package, so to install using pip you'll first need to install the
+build prerequisites (compilers, libraries, etc.)
+
+If you have these build prerequisites, install in the standard way with:
+
+    pip install slycot
