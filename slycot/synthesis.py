@@ -2574,13 +2574,23 @@ def sb10fd(n,m,np,ncon,nmeas,gamma,A,B,C,D,tol=0.0,ldwork=None):
     ------
     SlycotArithmeticError
         :info = 1:
-            The matrix | A-j*omega*I  B2  | had no full
-                       |    C1        D12 |
-            column rank in respect to the tolerance eps
+            The matrix
+
+            ::
+
+                | A-j*omega*I  B2  | 
+                |    C1        D12 |
+
+            had no full column rank in respect to the tolerance eps
         :info = 2:
-            The matrix | A-j*omega*I  B1  |  had not full row
-                       |    C2        D21 |
-            rank in respect to the tolerance EPS
+            The matrix
+
+             ::
+
+                 | A-j*omega*I  B1  |
+                 |    C2        D21 |
+
+            had not full row rank in respect to the tolerance EPS
         :info = 3:
             The matrix D12 has no full column rank in
             respect to the tolerance tol
@@ -2590,8 +2600,13 @@ def sb10fd(n,m,np,ncon,nmeas,gamma,A,B,C,D,tol=0.0,ldwork=None):
         :info = 5:
             The singular value decomposition (SVD) algorithm
             did not converge (when computing the SVD of one of
-            the matrices |A   B2 |, |A   B1 |, D12 or D21).
-                         |C1  D12|  |C2  D21|
+            the matrices
+
+            ::
+
+                |A   B2 |, |A   B1 |, D12 or D21).
+                |C1  D12|  |C2  D21|
+                
         :info = 6:
             The controller is not admissible (too small value
             of gamma)
@@ -2604,7 +2619,7 @@ def sb10fd(n,m,np,ncon,nmeas,gamma,A,B,C,D,tol=0.0,ldwork=None):
             successfully (the controller is not admissible or
             there are numerical difficulties)
         :info = 9:
-            The determinant of Im2 + Tu*D11HAT*Ty*D22 is zero
+            The determinant of ``Im2 + Tu*D11HAT*Ty*D22`` is zero
     """
     hidden = ' (hidden by the wrapper)'
     arg_list = ('n', 'm', 'np', 'ncon', 'nmeas', 'gamma',
