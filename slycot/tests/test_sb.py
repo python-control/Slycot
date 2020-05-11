@@ -209,6 +209,7 @@ def test_sb10fd_2():
      (synthesis.sg03ad, SlycotResultWarning,   [3, 4],         {}),
      (synthesis.sg03bd, SlycotResultWarning,   1,              {}),
      (synthesis.sg03bd, SlycotArithmeticError, range(2, 8),    {}),
-     (synthesis.sb10fd, SlycotArithmeticError, 9,              {})))
+     (synthesis.sb10fd, SlycotArithmeticError, 9,              {}),
+     (synthesis.sb10fd, SlycotParameterError,  (-27, ),        {})))
 def test_sb_docparse(fun, exception_class, erange, checkvars):
     assert_docstring_parse(fun.__doc__,  exception_class, erange, checkvars)

@@ -2519,33 +2519,38 @@ def sb10fd(n,m,np,ncon,nmeas,gamma,A,B,C,D,tol=0.0,ldwork=None):
         sqrt(eps) is used, where eps is the relative machine
         precision.
     ldwork : int, optional
-        The dimension of the cache array.
-        ldwork >= n*m + np*(n+m) + m2*m2 + np2*np2 +
-                   max(1,lw1,lw2,lw3,lw4,lw5,lw6), where
-        lw1 = (n+np1+1)*(n+m2) + max(3*(n+m2)+n+np1,5*(n+m2)),
-        lw2 = (n+np2)*(n+m1+1) + max(3*(n+np2)+n+m1,5*(n+np2)),
-        lw3 = m2 + np1*np1 + max(np1*max(n,m1),3*m2+np1,5*m2),
-        lw4 = np2 + m1*m1 + max(max(n,np1)*m1,3*np2+m1,5*np2),
-        lw5 = 2*n*n + n*(m+np) +
-              max(1,m*m + max(2*m1,3*n*n+max(n*m,10*n*n+12*n+5)),
-                  np*np + max(2*np1,3*n*n +
-                              max(n*np,10*n*n+12*n+5))),
-        lw6 = 2*n*n + n*(m+np) +
-              max(1, m2*np2 + np2*np2 + m2*m2 +
-                  max(d1*d1 + max(2*d1, (d1+d2)*np2),
-                      d2*d2 + max(2*d2, d2*m2), 3*n,
-                      n*(2*np2 + m2) +
-                      max(2*n*m2, m2*np2 +
-                          max(m2*m2+3*m2, np2*(2*np2+
-                              m2+max(np2,n)))))),
-        with d1 = np1 - m2, d2 = m1 - np2,
-            np1 = np - np2, m1 = m - m2.
+        The dimension of the cache array::
+
+            ldwork >= n*m + np*(n+m) + m2*m2 + np2*np2 +
+                      max(1,lw1,lw2,lw3,lw4,lw5,lw6), where
+            lw1 = (n+np1+1)*(n+m2) + max(3*(n+m2)+n+np1,5*(n+m2)),
+            lw2 = (n+np2)*(n+m1+1) + max(3*(n+np2)+n+m1,5*(n+np2)),
+            lw3 = m2 + np1*np1 + max(np1*max(n,m1),3*m2+np1,5*m2),
+            lw4 = np2 + m1*m1 + max(max(n,np1)*m1,3*np2+m1,5*np2),
+            lw5 = 2*n*n + n*(m+np) +
+                  max(1,m*m + max(2*m1,3*n*n+max(n*m,10*n*n+12*n+5)),
+                      np*np + max(2*np1,3*n*n +
+                                  max(n*np,10*n*n+12*n+5))),
+            lw6 = 2*n*n + n*(m+np) +
+                  max(1, m2*np2 + np2*np2 + m2*m2 +
+                      max(d1*d1 + max(2*d1, (d1+d2)*np2),
+                          d2*d2 + max(2*d2, d2*m2), 3*n,
+                          n*(2*np2 + m2) +
+                          max(2*n*m2, m2*np2 +
+                              max(m2*m2+3*m2, np2*(2*np2+
+                                  m2+max(np2,n)))))),
+
+        with `d1 = np1 - m2`, `d2 = m1 - np2`,
+        `np1 = np - np2`, `m1 = m - m2`.
+
         For good performance, ldwork must generally be larger.
-        Denoting q = max(m1,m2,np1,np2), an upper bound is
-        2*q*(3*q+2*n)+max(1,(n+q)*(n+q+6),q*(q+max(n,q,5)+1),
-        2*n*(n+2*q)+max(1,4*q*q+
-                        max(2*q,3*n*n+max(2*n*q,10*n*n+12*n+5)),
+        Denoting q = max(m1,m2,np1,np2), an upper bound is::
+
+            2*q*(3*q+2*n)+max(1,(n+q)*(n+q+6),q*(q+max(n,q,5)+1),
+            2*n*(n+2*q)+max(1,4*q*q+
+                            max(2*q,3*n*n+max(2*n*q,10*n*n+12*n+5)),
                             q*(3*n+3*q+max(2*n,4*q+max(n,q))))).
+
         if the default (None) value is used, the size for good performance
         is automatically used, when ldwork is set to zero, the minimum
         cache size will be used.
@@ -2590,7 +2595,7 @@ def sb10fd(n,m,np,ncon,nmeas,gamma,A,B,C,D,tol=0.0,ldwork=None):
         :info = 2:
             The matrix
 
-             ::
+            ::
 
                  | A-j*omega*I  B1  |
                  |    C2        D21 |
