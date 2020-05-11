@@ -2507,9 +2507,13 @@ def sb10fd(n,m,np,ncon,nmeas,gamma,A,B,C,D,tol=0.0,ldwork=None):
         sufficiently large so that the controller is admissible.
         gamma >= 0.
     A : (n, n) array_like
+        System state matrix
     B : (n, m) array_like
+        System input matrix
     C : (np, n) array_like
+        System output matrix
     D : (np, m) array_like
+        System input/output matrix
     tol : float, optional
         Tolerance used for controlling the accuracy of the applied
         transformations for computing the normalized form in
@@ -2566,13 +2570,17 @@ def sb10fd(n,m,np,ncon,nmeas,gamma,A,B,C,D,tol=0.0,ldwork=None):
     Dk : (ncon, nmeas) mdarrau
         The controller input/output matrix Dk.
     rcond : (4, ) ndarray
-        rcond[1] contains the reciprocal condition number of the
+        rcond[0]
+                 contains the reciprocal condition number of the
                  control transformation matrix
-        rcond[2] contains the reciprocal condition number of the
+        rcond[1]
+                 contains the reciprocal condition number of the
                  measurement transformation matrix
-        rcond[3] contains an estimate of the reciprocal condition
+        rcond[2]
+                 contains an estimate of the reciprocal condition
                  number of the X-Riccati equation
-        rcond[4] contains an estimate of the reciprocal condition
+        rcond[3]
+                 contains an estimate of the reciprocal condition
                  number of the Y-Riccati equation
 
     Raises
@@ -2640,8 +2648,7 @@ def sb10fd(n,m,np,ncon,nmeas,gamma,A,B,C,D,tol=0.0,ldwork=None):
     Numerical Aspects
         The accuracy of the result depends on the condition numbers of the
         input and output transformations and on the condition numbers of
-        the two Riccati equations, as given by the values of RCOND(1),
-        RCOND(2), RCOND(3) and RCOND(4), respectively.
+        the two Riccati equations, as given by the values of `rcond[0:4]`
 
     References
     ----------
