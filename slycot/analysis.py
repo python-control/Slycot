@@ -1620,7 +1620,7 @@ def ab13fd(n, A, tol = 0.0):
                 'dwork' + hidden, 'ldwork' + hidden, 'cwork' + hidden,
                 'lcwork' + hidden, 'info' + hidden]
     out = _wrapper.ab13fd(n, A, tol)
-    raise_if_slycot_error(out[-1], arg_list, ab13fd.__dict__)
+    raise_if_slycot_error(out[-1], arg_list, ab13fd.__doc__)
     return out[0], out[1]
 
 def ag08bd(l,n,m,p,A,E,B,C,D,equil='N',tol=0.0,ldwork=None):
