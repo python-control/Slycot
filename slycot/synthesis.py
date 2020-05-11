@@ -2518,7 +2518,7 @@ def sb10fd(n,m,np,ncon,nmeas,gamma,A,B,C,D,tol=0.0,ldwork=None):
         not allowed. If tol <= 0, then a default value equal to
         sqrt(eps) is used, where eps is the relative machine
         precision.
-    ldwork : int
+    ldwork : int, optional
         The dimension of the cache array.
         ldwork >= n*m + np*(n+m) + m2*m2 + np2*np2 +
                    max(1,lw1,lw2,lw3,lw4,lw5,lw6), where
