@@ -2572,8 +2572,6 @@ def sb10fd(n,m,np,ncon,nmeas,gamma,A,B,C,D,tol=0.0,ldwork=None):
 
     Raises
     ------
-    SlycotParameterError
-        :info = -i: the i-th argument had an illegal value;
     SlycotArithmeticError
         :info = 1:
             The matrix | A-j*omega*I  B2  | had no full
