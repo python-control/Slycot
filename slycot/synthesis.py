@@ -2625,6 +2625,36 @@ def sb10fd(n,m,np,ncon,nmeas,gamma,A,B,C,D,tol=0.0,ldwork=None):
             there are numerical difficulties)
         :info = 9:
             The determinant of ``Im2 + Tu*D11HAT*Ty*D22`` is zero
+            [3]_.
+    
+    Notes
+    -----
+    Method
+        The routine implements the Glover's and Doyle's 1988 formulas [1]_,
+        [2]_ modified to improve the efficiency as described in [3]_.
+    Numerical Aspects
+        The accuracy of the result depends on the condition numbers of the
+        input and output transformations and on the condition numbers of
+        the two Riccati equations, as given by the values of RCOND(1),
+        RCOND(2), RCOND(3) and RCOND(4), respectively.
+
+    References
+    ----------
+    .. [1] Glover, K. and Doyle, J.C.,
+           State-space formulae for all stabilizing controllers that
+           satisfy an Hinf norm bound and relations to risk sensitivity.
+           Systems and Control Letters, vol. 11, pp. 167-172, 1988.
+
+    .. [2] Balas, G.J., Doyle, J.C., Glover, K., Packard, A., and
+           Smith, R.,
+           mu-Analysis and Synthesis Toolbox.
+           The MathWorks Inc., Natick, Mass., 1995.
+
+    .. [3] Petkov, P.Hr., Gu, D.W., and Konstantinov, M.M.,
+           Fortran 77 routines for Hinf and H2 design of continuous-time
+           linear control systems.
+           Rep. 98-14, Department of Engineering, Leicester University,
+           Leicester, U.K., 1998.
     """
     hidden = ' (hidden by the wrapper)'
     arg_list = ('n', 'm', 'np', 'ncon', 'nmeas', 'gamma',
