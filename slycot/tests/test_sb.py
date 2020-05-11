@@ -11,6 +11,7 @@ from numpy.testing import assert_allclose, assert_raises
 import pytest
 from .test_exceptions import assert_docstring_parse
 
+
 def test_sb02mt():
     """Test if sb02mt is callable
 
@@ -104,6 +105,81 @@ def test_sb10jd():
     assert_allclose(D_r, Dexp, atol=1e-5)
 
 
+def test_sb10fd():
+    A = array(((-1.0,  0.0,  4.0,  5.0, -3.0, -2.0),
+               (-2.0,  4.0, -7.0, -2.0,  0.0,  3.0),
+               (-6.0,  9.0, -5.0,  0.0,  2.0, -1.0),
+               (-8.0,  4.0,  7.0, -1.0, -3.0,  0.0),
+               ( 2.0,  5.0,  8.0, -9.0,  1.0, -4.0),
+               ( 3.0, -5.0,  8.0,  0.0,  2.0, -6.0)))
+    B = array(((-3.0, -4.0, -2.0,  1.0,  0.0),
+               ( 2.0,  0.0,  1.0, -5.0,  2.0),
+               (-5.0, -7.0,  0.0,  7.0, -2.0),
+               ( 4.0, -6.0,  1.0,  1.0, -2.0),
+               (-3.0,  9.0, -8.0,  0.0,  5.0),
+               ( 1.0, -2.0,  3.0, -6.0, -2.0)))
+    C = array(((1.0, -1.0,  2.0, -4.0,  0.0, -3.0),
+               (-3.0,  0.0,  5.0, -1.0,  1.0,  1.0),
+               (-7.0,  5.0,  0.0, -8.0,  2.0, -2.0),
+               ( 9.0, -3.0,  4.0,  0.0,  3.0,  7.0),
+               ( 0.0,  1.0, -2.0,  1.0, -6.0, -2.0)))
+    D = array((( 1.0, -2.0, -3.0,  0.0,  0.0),
+               ( 0.0,  4.0,  0.0,  1.0,  0.0),
+               ( 5.0, -3.0, -4.0,  0.0,  1.0),
+               ( 0.0,  1.0,  0.0,  1.0, -3.0),
+               ( 0.0,  0.0,  1.0,  7.0,  1.0)))
+
+    gamma, tol = 15.0, 0.00000001
+    n, m, np, ncon, nmeas = 6, 5, 5, 2, 2
+
+    # ldwork too small
+    assert_raises(SlycotParameterError, synthesis.sb10fd,
+        n, m, np, ncon, nmeas, gamma, A, B, C, D, tol, 1)
+    Ak, Bk, Ck, Dk, rcond = synthesis.sb10fd(
+        n, m, np, ncon, nmeas, gamma, A, B, C, D, tol, 900)
+    Ak, Bk, Ck, Dk, rcond = synthesis.sb10fd(
+        n, m, np, ncon, nmeas, gamma, A, B, C, D, tol, 0)
+    Ak, Bk, Ck, Dk, rcond = synthesis.sb10fd(
+        n, m, np, ncon, nmeas, gamma, A, B, C, D, tol)
+
+    Ak_ref = array((
+        ( -2.8043,  14.7367,   4.6658,   8.1596,   0.0848,   2.5290),
+        (  4.6609,   3.2756,  -3.5754,  -2.8941,   0.2393,   8.2920),
+        (-15.3127,  23.5592,  -7.1229,   2.7599,   5.9775,  -2.0285),
+        (-22.0691,  16.4758,  12.5523, -16.3602,   4.4300,  -3.3168),
+        ( 30.6789,  -3.9026,  -1.3868,  26.2357,  -8.8267,  10.4860),
+        ( -5.7429,   0.0577,  10.8216, -11.2275,   1.5074, -10.7244)))
+    Bk_ref = array((
+        ( -0.1581,  -0.0793),
+        ( -0.9237,  -0.5718),
+        (  0.7984,   0.6627),
+        (  0.1145,   0.1496),
+        ( -0.6743,  -0.2376),
+        (  0.0196,  -0.7598)))
+    Ck_ref = array((
+        ( -0.2480,  -0.1713,  -0.0880,   0.1534,   0.5016,  -0.0730),
+        (  2.8810,  -0.3658,   1.3007,   0.3945,   1.2244,   2.5690)))
+    Dk_ref = array((
+        (  0.0554,   0.1334),
+        ( -0.3195,   0.0333)))
+
+    assert_allclose(Ak, Ak_ref, rtol=1e-3)
+    assert_allclose(Bk, Bk_ref, rtol=1e-3)
+    assert_allclose(Ck, Ck_ref, rtol=1e-3)
+    assert_allclose(Dk, Dk_ref, rtol=1e-3, atol=1e-4)
+    assert_allclose(rcond, (1.0, 1.0, 0.011241, 0.80492e-3), rtol=1e-4)
+
+
+def test_sb10fd_2():
+    """ fails, from python-control issue #367"""
+    A = array([[-1, 0, 0], [0, -12, -5], [0, 4, 0]])
+    B = array([[2, 0], [0, 0.5], [0, 0]])
+    C = array([[-0.5, 0, -0.5], [0, 0, 0], [-0.5, 0, -0.5]])
+    D = array([[0, 0],  [0, 1], [0, 0]], dtype=float)
+    assert_raises(SlycotArithmeticError, synthesis.sb10fd,
+                  3, 2, 3, 1, 1, 100, A, B, C, D, 1e-7, None)
+
+
 @pytest.mark.parametrize(
     'fun,               exception_class,       erange,         checkvars',
     ((synthesis.sb01bd, SlycotArithmeticError, 2,              {}),
@@ -132,6 +208,8 @@ def test_sb10jd():
      (synthesis.sg03ad, SlycotArithmeticError, 2,              {}),
      (synthesis.sg03ad, SlycotResultWarning,   [3, 4],         {}),
      (synthesis.sg03bd, SlycotResultWarning,   1,              {}),
-     (synthesis.sg03bd, SlycotArithmeticError, range(2, 8),    {})))
+     (synthesis.sg03bd, SlycotArithmeticError, range(2, 8),    {}),
+     (synthesis.sb10fd, SlycotArithmeticError, 9,              {}),
+     (synthesis.sb10fd, SlycotParameterError,  (-27, ),        {})))
 def test_sb_docparse(fun, exception_class, erange, checkvars):
     assert_docstring_parse(fun.__doc__,  exception_class, erange, checkvars)
