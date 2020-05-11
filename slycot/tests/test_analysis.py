@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 #
 # test_ab.py - generic tests for analysis programs
 # repagh <rene.vanpaassen@gmail.com, May 2020
@@ -39,6 +38,5 @@ from slycot.exceptions import SlycotArithmeticError, SlycotResultWarning
      (analysis.ab13fd, SlycotResultWarning,   (1,),           {})))
 def test_ab_docparse(fun, exception_class, erange, checkvars):
     assert_docstring_parse(fun.__doc__,  exception_class, erange, checkvars)
-
 
 

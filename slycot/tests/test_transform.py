@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 #
 # test_transform.py - generic tests for transform routines
 # repagh <rene.vanpaassen@gmail.com, May 2020
