@@ -8,6 +8,8 @@ set(PYSOURCE
   test_mb.py
   test_mc.py
   test_sb.py
+  test_analysis.py
+  test_transform.py
   test_sg02ad.py
   test_sg03ad.py
   test_tb05ad.py

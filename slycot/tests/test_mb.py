@@ -5,9 +5,12 @@
 
 import sys
 import unittest
+import pytest
 
+from slycot import math
 from slycot import mb03rd, mb03vd, mb03vy, mb03wd, mb05md, mb05nd
-from slycot.exceptions import SlycotResultWarning
+from slycot.exceptions import SlycotResultWarning, SlycotArithmeticError
+from .test_exceptions import assert_docstring_parse
 
 import numpy as np
 from scipy.linalg import schur
@@ -304,6 +307,18 @@ class test_mb(unittest.TestCase):
 
         assert_allclose(F, F_ref, atol=0.0001)
         assert_allclose(H, H_ref, atol=0.0001)
+
+
+@pytest.mark.parametrize(
+    'fun,          exception_class,       erange,         checkvars',
+    ((math.mb03wd, SlycotResultWarning,   (4,),           {'ilo': 2,
+                                                           'ihi': 5}),
+     (math.mb05md, SlycotResultWarning,   (2, 3, 4),      {'n': 2}),
+     (math.mb05nd, SlycotArithmeticError, (2, 3),         {'n': 2,
+                                                           'delta': 1000}),
+     (math.mc01td, SlycotResultWarning,   (1, 2, (1, 0)), {'dico': 'C'})))
+def test_mb_docparse(fun, exception_class, erange, checkvars):
+    assert_docstring_parse(fun.__doc__,  exception_class, erange, checkvars)
 
 
 if __name__ == "__main__":

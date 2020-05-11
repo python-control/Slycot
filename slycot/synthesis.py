@@ -1904,7 +1904,7 @@ def sg03ad(dico,job,fact,trans,uplo,N,A,E,Q,Z,X,ldwork=None):
 
     out = _wrapper.sg03ad(dico,job,fact,trans,uplo,N,A,E,Q,Z,X,ldwork)
 
-    raise_if_slycot_error(out[-1], arg_list, sg03ad.__dict__)
+    raise_if_slycot_error(out[-1], arg_list, sg03ad.__doc__)
 
     return out[:-1]
 
