@@ -11,6 +11,7 @@ import unittest
 from numpy.testing import assert_almost_equal
 
 
+
 # set the random seed so we can get consistent results.
 np.random.seed(40)
 CASES = {}
@@ -47,9 +48,10 @@ class test_tb05ad(unittest.TestCase):
         for key in CASES:
             sys = CASES[key]
             self.check_tb05ad_AG_NG(sys, 10*1j, 'NG')
+            self.check_tb05ad_AG_NG(sys, 10*1j, 'AG')
 
-    @unittest.expectedFailure
-    def test_tb05ad_ag_failure(self):
+    #@unittest.expectedFailure
+    def test_tb05ad_ag_no_longer_failure(self):
         """ Test tb05ad and job 'AG' (i.e., balancing enabled) fails
         on certain A matrices.
         """
@@ -186,6 +188,29 @@ class test_tb05ad(unittest.TestCase):
                 r"or `rcond` is less than the machine precision EPS.") as cm:
             transform.tb05ad(2, 1, 1, jomega, A, B, C, job='NH')
         assert cm.exception.info == 2
+
+    def test_tb05ad_balance(self):
+        """Specifically check for the balancing output.
+
+        Based on https://rdrr.io/rforge/expm/man/balance.html
+        """
+        A = np.array(((-1, -1,  0,  0),
+                      ( 0,  0, 10, 10),
+                      ( 0,  0, 10,  0),
+                      ( 0, 10,  0,  0)), dtype=float)
+        B = np.eye(4)
+        C = np.eye(4)
+        Ar = np.array(((-1, -1,  0,  0),
+                       ( 0,  0, 10, 10),
+                       ( 0, 10,  0,  0),
+                       ( 0,  0,  0, 10)))
+        jomega = 1.0
+        At, Bt, Ct, rcond, g_jw, ev, hinvb, info = transform.tb05ad(
+            4, 4, 4, jomega, A, B, C, job='AG')
+        assert_almost_equal(At, Ar)
+
+        At, Bt, Ct, rcond, g_jwb, ev, hinvb, info = transform.tb05ad(
+            4, 4, 4, jomega, A, B, C, job='AG')
 
 
 if __name__ == "__main__":

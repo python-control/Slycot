@@ -245,7 +245,7 @@ C     Use the information in SCSTAT on state scalings and reorderings
 C     to transform B and C.
 C
       DO 10 K = 1, N
-         KOLD = K
+         KOLD = N + 1 - K   ! RvP, rabraker, slycot #11
          IF ( ( LOW.GT.KOLD ) .OR. ( KOLD.GT.IGH ) ) THEN
             IF ( KOLD.LT.LOW ) KOLD = LOW - KOLD
             KNEW = INT( SCSTAT(KOLD) )
