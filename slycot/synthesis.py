@@ -2572,6 +2572,11 @@ def sb10fd(n,m,np,ncon,nmeas,gamma,A,B,C,D,tol=0.0,ldwork=None):
 
     Raises
     ------
+    SlycotParameterError
+        :info = -27:
+            The dimension ldwork of the cache array is too small.
+            Use ldwork=0 for the minimum size or ldwork=None for automatic
+            sizing.
     SlycotArithmeticError
         :info = 1:
             The matrix
