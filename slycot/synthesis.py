@@ -1511,7 +1511,7 @@ def sb10hd(n,m,np,ncon,nmeas,A,B,C,D,tol=0.0,ldwork=None):
     It is assumed that
 
     - (A1) (A,B2) is stabilizable and (C2,A) is detectable,
- 
+
     - (A2) The block D11 of D is zero,
 
     - (A3) D12 is full column rank and D21 is full row rank.
@@ -2449,8 +2449,9 @@ def sg03bd(n,m,A,E,Q,Z,B,dico,fact='N',trans='N',ldwork=None):
     alpha.imag = alphai[0:n]
     return U,scale,alpha/beta
 
+
 def sb10fd(n,m,np,ncon,nmeas,gamma,A,B,C,D,tol=0.0,ldwork=None):
-    """ AK,BK,CK,DK,rcond = \
+    """Ak,Bk,Ck,Dk,rcond = \
                sb10fd(n,m,np,ncon,nmeas,gamma,A,B,C,D,[tol,ldwork])
 
     To compute the matrices of an H-infinity (sub)optimal n-state
@@ -2468,8 +2469,8 @@ def sb10fd(n,m,np,ncon,nmeas,gamma,A,B,C,D,tol=0.0,ldwork=None):
                 | C2 | D21 D22 |
 
     and for a given value of gamma, where B2 has as column size the
-    number of control inputs (NCON) and C2 has as row size the number
-    of measurements (NMEAS) being provided to the controller.
+    number of control inputs (ncon) and C2 has as row size the number
+    of measurements (nmeas) being provided to the controller.
 
     It is assumed that
 
@@ -2483,131 +2484,123 @@ def sb10fd(n,m,np,ncon,nmeas,gamma,A,B,C,D,tol=0.0,ldwork=None):
     (A4) | A-j*omega*I  B1  |  has full row rank for all omega.
          |    C2        D21 |
 
-    Required arguments
-    ------------------
+    Parameters
+    ----------
+    n : int
+        The order of the system. (size of matrix A).
+    m : int
+        The column size of the matrix B
+    np : int
+        The row size of the matrix C
+    ncon : int
+        The number of control inputs.  m >= ncon >= 0, np-nmeas >= ncon.
+    nmeas : int
+        The number of measurements.  np >= nmeas >= 0, m-ncon >= nmeas.
+    gamma : float
+        The value of gamma. It is assumed that gamma is
+        sufficiently large so that the controller is admissible.
+        gamma >= 0.
+    A : (n, n) array_like
+    B : (n, m) array_like
+    C : (np, n) array_like
+    D : (np, m) array_like
+    tol : float, optional
+        Tolerance used for controlling the accuracy of the applied
+        transformations for computing the normalized form in
+        SLICOT Library routine SB10PD. Transformation matrices
+        whose reciprocal condition numbers are less than tol are
+        not allowed. If tol <= 0, then a default value equal to
+        sqrt(eps) is used, where eps is the relative machine
+        precision.
+    ldwork : int
+        The dimension of the cache array.
+        ldwork >= n*m + np*(n+m) + m2*m2 + np2*np2 +
+                   max(1,lw1,lw2,lw3,lw4,lw5,lw6), where
+        lw1 = (n+np1+1)*(n+m2) + max(3*(n+m2)+n+np1,5*(n+m2)),
+        lw2 = (n+np2)*(n+m1+1) + max(3*(n+np2)+n+m1,5*(n+np2)),
+        lw3 = m2 + np1*np1 + max(np1*max(n,m1),3*m2+np1,5*m2),
+        lw4 = np2 + m1*m1 + max(max(n,np1)*m1,3*np2+m1,5*np2),
+        lw5 = 2*n*n + n*(m+np) +
+              max(1,m*m + max(2*m1,3*n*n+max(n*m,10*n*n+12*n+5)),
+                  np*np + max(2*np1,3*n*n +
+                              max(n*np,10*n*n+12*n+5))),
+        lw6 = 2*n*n + n*(m+np) +
+              max(1, m2*np2 + np2*np2 + m2*m2 +
+                  max(d1*d1 + max(2*d1, (d1+d2)*np2),
+                      d2*d2 + max(2*d2, d2*m2), 3*n,
+                      n*(2*np2 + m2) +
+                      max(2*n*m2, m2*np2 +
+                          max(m2*m2+3*m2, np2*(2*np2+
+                              m2+max(np2,n)))))),
+        with d1 = np1 - m2, d2 = m1 - np2,
+            np1 = np - np2, m1 = m - m2.
+        For good performance, ldwork must generally be larger.
+        Denoting q = max(m1,m2,np1,np2), an upper bound is
+        2*q*(3*q+2*n)+max(1,(n+q)*(n+q+6),q*(q+max(n,q,5)+1),
+        2*n*(n+2*q)+max(1,4*q*q+
+                        max(2*q,3*n*n+max(2*n*q,10*n*n+12*n+5)),
+                            q*(3*n+3*q+max(2*n,4*q+max(n,q))))).
+        if the default (None) value is used, the size for good performance
+        is automatically used, when ldwork is set to zero, the minimum
+        cache size will be used.
 
-        n : int
-            The order of the system. (size of matrix A).
-        m : int
-            The column size of the matrix B
-        np : int
-            The row size of the matrix C
-        ncon : int
-            The number of control inputs.  m >= ncon >= 0, np-nmeas >= ncon.
-        nmeas : int
-            The number of measurements.  np >= nmeas >= 0, m-ncon >= nmeas.
-        gamma : float
-            The value of gamma. It is assumed that gamma is
-            sufficiently large so that the controller is admissible.
-            gamma >= 0.
-        A : rank-2 array('d'), shape (n,n)
-        B : rank-2 array('d'), shape (n,m)
-        C : rank-2 array('d'), shape (np,n)
-        D : rank-2 array('d'), shape (np,m)
-
-    Optional arguments
-    ------------------
-
-       tol : float
-          Tolerance used for controlling the accuracy of the applied
-          transformations for computing the normalized form in
-          SLICOT Library routine SB10PD. Transformation matrices
-          whose reciprocal condition numbers are less than tol are
-          not allowed. If tol <= 0, then a default value equal to
-          sqrt(eps) is used, where eps is the relative machine
-          precision.
-
-      ldwork : int
-          The dimension of the cache array.
-          LDWORK >= N*M + NP*(N+M) + M2*M2 + NP2*NP2 +
-                    max(1,LW1,LW2,LW3,LW4,LW5,LW6), where
-          LW1 = (N+NP1+1)*(N+M2) + max(3*(N+M2)+N+NP1,5*(N+M2)),
-          LW2 = (N+NP2)*(N+M1+1) + max(3*(N+NP2)+N+M1,5*(N+NP2)),
-          LW3 = M2 + NP1*NP1 + max(NP1*max(N,M1),3*M2+NP1,5*M2),
-          LW4 = NP2 + M1*M1 + max(max(N,NP1)*M1,3*NP2+M1,5*NP2),
-          LW5 = 2*N*N + N*(M+NP) +
-                max(1,M*M + max(2*M1,3*N*N+max(N*M,10*N*N+12*N+5)),
-                    NP*NP + max(2*NP1,3*N*N +
-                                max(N*NP,10*N*N+12*N+5))),
-          LW6 = 2*N*N + N*(M+NP) +
-                max(1, M2*NP2 + NP2*NP2 + M2*M2 +
-                    max(D1*D1 + max(2*D1, (D1+D2)*NP2),
-                        D2*D2 + max(2*D2, D2*M2), 3*N,
-                        N*(2*NP2 + M2) +
-                        max(2*N*M2, M2*NP2 +
-                                    max(M2*M2+3*M2, NP2*(2*NP2+
-                                           M2+max(NP2,N)))))),
-          with D1 = NP1 - M2, D2 = M1 - NP2,
-              NP1 = NP - NP2, M1 = M - M2.
-          For good performance, LDWORK must generally be larger.
-          Denoting Q = max(M1,M2,NP1,NP2), an upper bound is
-          2*Q*(3*Q+2*N)+max(1,(N+Q)*(N+Q+6),Q*(Q+max(N,Q,5)+1),
-            2*N*(N+2*Q)+max(1,4*Q*Q+
-                            max(2*Q,3*N*N+max(2*N*Q,10*N*N+12*N+5)),
-                              Q*(3*N+3*Q+max(2*N,4*Q+max(N,Q))))).
-         if the default (None) value is used, the size for good performance
-         is automatically used, when LDWORK is set to zero, the minimum
-         cache size will be used.
-
-    Return objects
-    --------------
-
-        Ak : rank-2 array('d'), shape (n,n)
-            The controller state matrix Ak.
-        Bk : rank-2 array('d') with bound s(n,nmeas)
-            The controller input matrix Bk.
-        Ck : rank-2 array('d'), shape  (ncon,n)
-            The controller output matrix Ck.
-        Dk : rank-2 array('d'), shape  (ncon,nmeas)
-            The controller input/output matrix Dk.
-        rcond : rank-1 array('d'), shape(4,)
-            rcond[1] contains the reciprocal condition number of the
-                     control transformation matrix
-            rcond[2] contains the reciprocal condition number of the
-                     measurement transformation matrix
-            rcond[3] contains an estimate of the reciprocal condition
-                     number of the X-Riccati equation
-            rcond[4] contains an estimate of the reciprocal condition
-                     number of the Y-Riccati equation
+    Returns
+    -------
+    Ak : (n, n) ndarray
+        The controller state matrix Ak.
+    Bk : (n, nmeas) ndarray
+        The controller input matrix Bk.
+    Ck : (ncon, n) ndarray
+        The controller output matrix Ck.
+    Dk : (ncon, nmeas) mdarrau
+        The controller input/output matrix Dk.
+    rcond : (4, ) ndarray
+        rcond[1] contains the reciprocal condition number of the
+                 control transformation matrix
+        rcond[2] contains the reciprocal condition number of the
+                 measurement transformation matrix
+        rcond[3] contains an estimate of the reciprocal condition
+                 number of the X-Riccati equation
+        rcond[4] contains an estimate of the reciprocal condition
+                 number of the Y-Riccati equation
 
     Raises
     ------
-
-        SlycotParameterError : e
-            :e.info = -i: the i-th argument had an illegal value;
-        SlycotArithmeticError : e
-            :e.info = 1:
-                The matrix | A-j*omega*I  B2  | had no full
-                .          |    C1        D12 |
-                column rank in respect to the tolerance eps
-            :e.info = 2:
-                The matrix | A-j*omega*I  B1  |  had not full row
-                .          |    C2        D21 |
-                rank in respect to the tolerance EPS
-            :e.info = 3:
-                The matrix D12 has no full column rank in
-                respect to the tolerance tol
-            :e.info = 4:
-                The matrix D21 had no full row rank in respect
-                to the tolerance tol
-            :e.info = 5:
-                The singular value decomposition (SVD) algorithm
-                did not converge (when computing the SVD of one of
-                the matrices |A   B2 |, |A   B1 |, D12 or D21).
-                .            |C1  D12|  |C2  D21|
-            :e.info = 6:
-                The controller is not admissible (too small value
-                of gamma)
-            :e.info = 7:
-                The X-Riccati equation was not solved
-                successfully (the controller is not admissible or
-                there are numerical difficulties)
-            :e.info = 8:
-                The Y-Riccati equation was not solved
-                successfully (the controller is not admissible or
-                there are numerical difficulties)
-            :e.info = 9:
-                The determinant of Im2 + Tu*D11HAT*Ty*D22 is zero
+    SlycotParameterError
+        :info = -i: the i-th argument had an illegal value;
+    SlycotArithmeticError
+        :info = 1:
+            The matrix | A-j*omega*I  B2  | had no full
+                       |    C1        D12 |
+            column rank in respect to the tolerance eps
+        :info = 2:
+            The matrix | A-j*omega*I  B1  |  had not full row
+                       |    C2        D21 |
+            rank in respect to the tolerance EPS
+        :info = 3:
+            The matrix D12 has no full column rank in
+            respect to the tolerance tol
+        :info = 4:
+            The matrix D21 had no full row rank in respect
+            to the tolerance tol
+        :info = 5:
+            The singular value decomposition (SVD) algorithm
+            did not converge (when computing the SVD of one of
+            the matrices |A   B2 |, |A   B1 |, D12 or D21).
+                         |C1  D12|  |C2  D21|
+        :info = 6:
+            The controller is not admissible (too small value
+            of gamma)
+        :info = 7:
+            The X-Riccati equation was not solved
+            successfully (the controller is not admissible or
+            there are numerical difficulties)
+        :info = 8:
+            The Y-Riccati equation was not solved
+            successfully (the controller is not admissible or
+            there are numerical difficulties)
+        :info = 9:
+            The determinant of Im2 + Tu*D11HAT*Ty*D22 is zero
     """
     hidden = ' (hidden by the wrapper)'
     arg_list = ('n', 'm', 'np', 'ncon', 'nmeas', 'gamma',
@@ -2620,12 +2613,13 @@ def sb10fd(n,m,np,ncon,nmeas,gamma,A,B,C,D,tol=0.0,ldwork=None):
 
     if ldwork is None:
         # M2 = NCON NP2=NMEAS M1 = M - M2
-        q = max(m-ncon, ncon, np-nmeas,nmeas)
-        ldwork = 2*q*(3*q+2*n) + max(
-            1,(n+q)*(n+q+6),q*(1+max(n,q,5)+1),
-            2*n*(n+2*q)+max(1,4*q*q+
-                            max(2*q,3*n*n+max(2*n*q,10*n*n+12*n+5)),
-                              q*(3*n+3*q+max(2*n,4*q+max(n,q)))))
+        q = max(m-ncon, ncon, np-nmeas, nmeas)
+        ldwork = 2*q*(3*q + 2*n) + max(
+            1, (n + q)*(n + q + 6), q*(1 + max(n, q, 5) + 1),
+            2*n*(n + 2*q) + max(1, 4*q*q +
+                                max(2*q, 3*n*n +
+                                    max(2*n*q, 10*n*n + 12*n + 5)),
+                                q*(3*n + 3*q + max(2*n, 4*q + max(n, q)))))
     elif ldwork == 0:
         np1 = np - nmeas
         np2 = nmeas
@@ -2633,27 +2627,27 @@ def sb10fd(n,m,np,ncon,nmeas,gamma,A,B,C,D,tol=0.0,ldwork=None):
         m2 = m - ncon
         d1 = np1 - m2
         d2 = m1 - np2
-        lw1 = (n+np1+1)*(n+m2) + max(3*(n+m2)+n+np1,5*(n+m2))
-        lw2 = (n+np2)*(n+m1+1) + max(3*(n+np2)+n+m1,5*(n+np2))
-        lw3 = m2 + np1*np1 + max(np1*max(n,m1),3*m2+np1,5*m2)
-        lw4 = np2 + m1*m1 + max(max(n,np1)*m1,3*np2+m1,5*np2)
+        lw1 = (n + np1 + 1)*(n + m2) + max(3*(n + m2) + n + np1, 5*(n + m2))
+        lw2 = (n + np2)*(n + m1 + 1) + max(3*(n + np2) + n + m1, 5*(n + np2))
+        lw3 = m2 + np1*np1 + max(np1*max(n, m1), 3*m2 + np1, 5*m2)
+        lw4 = np2 + m1*m1 + max(max(n, np1)*m1, 3*np2 + m1, 5*np2)
         lw5 = 2*n*n + n*(m+np) + \
-            max(1,m*m + max(2*m1,3*n*n+max(n*m,10*n*n+12*n+5)),
-                np*np + max(2*np1,3*n*n +
-                            max(n*np,10*n*n+12*n+5)))
+            max(1, m*m + max(2*m1, 3*n*n + max(n*m, 10*n*n + 12*n + 5)),
+                np*np + max(2*np1, 3*n*n + max(n*np, 10*n*n + 12*n + 5)))
         lw6 = 2*n*n + n*(m+np) + \
             max(1, m2*np2 + np2*np2 + m2*m2 +
                 max(d1*d1 + max(2*d1, (d1+d2)*np2),
-                d2*d2 + max(2*d2, d2*m2), 3*n,
+                    d2*d2 + max(2*d2, d2*m2), 3*n,
                     n*(2*np2 + m2) +
-                max(2*n*m2, m2*np2 +
-                    max(m2*m2+3*m2, np2*(2*np2+
-                                         m2+max(np2,n))))))
+                    max(2*n*m2, m2*np2 +
+                        max(m2*m2 + 3*m2, np2*(2*np2 +
+                                               m2 + max(np2, n))))))
         ldwork = n*m + np*(n+m) + ncon*ncon + nmeas*nmeas + \
-            max(1,lw1,lw2,lw3,lw4,lw5,lw6)
+            max(1, lw1, lw2, lw3, lw4, lw5, lw6)
 
-    out = _wrapper.sb10fd(n,m,np,ncon,nmeas,gamma,A,B,C,D,tol,ldwork)
+    out = _wrapper.sb10fd(n, m, np, ncon, nmeas, gamma,
+                          A, B, C, D, tol, ldwork)
 
-    raise_if_slycot_error(arg_list, out[-1], sb10fd.__doc__)
+    raise_if_slycot_error(out[-1], arg_list, sb10fd.__doc__)
 
     return out[:-1]

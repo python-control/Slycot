@@ -175,8 +175,8 @@ def test_sb10fd_2():
     B = array([[2, 0], [0, 0.5], [0, 0]])
     C = array([[-0.5, 0, -0.5], [0, 0, 0], [-0.5, 0, -0.5]])
     D = array([[0, 0],  [0, 1], [0, 0]], dtype=float)
-    assert_raises(ValueError, synthesis.sb10fd,
-                  3, 2, 3, 1, 1, 1000, A, B, C, D)
+    assert_raises(SlycotArithmeticError, synthesis.sb10fd,
+                  3, 2, 3, 1, 1, 100, A, B, C, D, 1e-7, None)
 
 
 @pytest.mark.parametrize(
@@ -207,6 +207,7 @@ def test_sb10fd_2():
      (synthesis.sg03ad, SlycotArithmeticError, 2,              {}),
      (synthesis.sg03ad, SlycotResultWarning,   [3, 4],         {}),
      (synthesis.sg03bd, SlycotResultWarning,   1,              {}),
-     (synthesis.sg03bd, SlycotArithmeticError, range(2, 8),    {})))
+     (synthesis.sg03bd, SlycotArithmeticError, range(2, 8),    {}),
+     (synthesis.sb10fd, SlycotArithmeticError, 9,              {})))
 def test_sb_docparse(fun, exception_class, erange, checkvars):
     assert_docstring_parse(fun.__doc__,  exception_class, erange, checkvars)
