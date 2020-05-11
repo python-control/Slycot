@@ -132,7 +132,8 @@ def test_sb10fd():
     gamma, tol = 15.0, 0.00000001
     n, m, np, ncon, nmeas = 6, 5, 5, 2, 2
 
-    assert_raises(ValueError, synthesis.sb10fd,
+    # ldwork too small
+    assert_raises(SlycotParameterError, synthesis.sb10fd,
         n, m, np, ncon, nmeas, gamma, A, B, C, D, tol, 1)
     Ak, Bk, Ck, Dk, rcond = synthesis.sb10fd(
         n, m, np, ncon, nmeas, gamma, A, B, C, D, tol, 900)
