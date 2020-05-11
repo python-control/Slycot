@@ -2456,12 +2456,16 @@ def sb10fd(n,m,np,ncon,nmeas,gamma,A,B,C,D,tol=0.0,ldwork=None):
 
     To compute the matrices of an H-infinity (sub)optimal n-state
     controller
+    
+    ::
 
            | AK | BK |
        K = |----|----|,
            | CK | DK |
 
     using modified Glover's and Doyle's 1988 formulas, for the system
+    
+    ::
 
                 | A  | B1  B2  |   | A | B |
             P = |----|---------| = |---|---|
@@ -2473,16 +2477,18 @@ def sb10fd(n,m,np,ncon,nmeas,gamma,A,B,C,D,tol=0.0,ldwork=None):
     of measurements (nmeas) being provided to the controller.
 
     It is assumed that
+    
+    ::
 
-    (A1) (A,B2) is stabilizable and (C2,A) is detectable,
+      (A1) (A,B2) is stabilizable and (C2,A) is detectable,
 
-    (A2) D12 is full column rank and D21 is full row rank,
+      (A2) D12 is full column rank and D21 is full row rank,
 
-    (A3) | A-j*omega*I  B2  | has full column rank for all omega,
-         |    C1        D12 |
+      (A3) | A-j*omega*I  B2  | has full column rank for all omega,
+           |    C1        D12 |
 
-    (A4) | A-j*omega*I  B1  |  has full row rank for all omega.
-         |    C2        D21 |
+      (A4) | A-j*omega*I  B1  |  has full row rank for all omega.
+           |    C2        D21 |
 
     Parameters
     ----------
