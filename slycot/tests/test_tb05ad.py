@@ -48,12 +48,20 @@ class test_tb05ad(unittest.TestCase):
         for key in CASES:
             sys = CASES[key]
             self.check_tb05ad_AG_NG(sys, 10*1j, 'NG')
+
+    def test_tb05ad_ag(self):
+        """
+        Test that tb05ad with job 'AG' computes the correct
+        frequency response.
+        """
+        for key in CASES:
+            sys = CASES[key]
             self.check_tb05ad_AG_NG(sys, 10*1j, 'AG')
 
-    #@unittest.expectedFailure
-    def test_tb05ad_ag_no_longer_failure(self):
-        """ Test tb05ad and job 'AG' (i.e., balancing enabled) fails
-        on certain A matrices.
+    def test_tb05ad_ag_fixed_bug_no11(self):
+        """ Test tb05ad and job 'AG' (i.e., balancing enabled).
+
+        Failed on certain A matrices before, issue #11.
         """
         self.check_tb05ad_AG_NG(CASES['fail1'], 10*1j, 'AG')
 
