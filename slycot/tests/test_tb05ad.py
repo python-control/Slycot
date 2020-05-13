@@ -3,31 +3,28 @@
 
 from slycot import transform
 from slycot.exceptions import SlycotArithmeticError, SlycotParameterError
-
 import sys
 import numpy as np
-
+from scipy.linalg import matrix_balance, eig
 import unittest
 from numpy.testing import assert_almost_equal
-
-
 
 # set the random seed so we can get consistent results.
 np.random.seed(40)
 CASES = {}
 
-# This is a known failure for tb05ad when running job 'AG'
-CASES['fail1'] = {'A': np.array([[-0.5,  0.,  0.,  0. ],
-                              [ 0., -1.,  0. ,  0. ],
-                              [ 1.,  0., -0.5,  0. ],
-                              [ 0.,  1.,  0., -1. ]]),
-                   'B': np.array([[ 1.,  0.],
-                             [ 0.,  1.],
-                             [ 0.,  0.],
-                             [ 0.,  0.]]),
-                   'C': np.array([[ 0.,  1.,  1.,  0.],
-                             [ 0.,  1.,  0.,  1.],
-                             [ 0.,  1.,  1.,  1.]])}
+# This was (pre 2020) a known failure for tb05ad when running job 'AG'
+CASES['known'] = {'A': np.array([[-0.5,  0.,  0.,  0.],
+                                 [ 0.,  -1.,  0.,  0.],
+                                 [ 1.,   0., -0.5, 0.],
+                                 [ 0.,   1.,  0., -1.]]),
+                  'B': np.array([[ 1.,  0.],
+                                 [ 0.,  1.],
+                                 [ 0.,  0.],
+                                 [ 0.,  0.]]),
+                  'C': np.array([[ 0.,  1.,  1.,  0.],
+                                 [ 0.,  1.,  0.,  1.],
+                                 [ 0.,  1.,  1.,  1.]])}
 
 n = 20
 p = 10
@@ -57,13 +54,6 @@ class test_tb05ad(unittest.TestCase):
         for key in CASES:
             sys = CASES[key]
             self.check_tb05ad_AG_NG(sys, 10*1j, 'AG')
-
-    def test_tb05ad_ag_fixed_bug_no11(self):
-        """ Test tb05ad and job 'AG' (i.e., balancing enabled).
-
-        Failed on certain A matrices before, issue #11.
-        """
-        self.check_tb05ad_AG_NG(CASES['fail1'], 10*1j, 'AG')
 
     def test_tb05ad_nh(self):
         """Test that tb05ad with job = 'NH' computes the correct
@@ -180,7 +170,7 @@ class test_tb05ad(unittest.TestCase):
     def test_tb05ad_resonance(self):
         """ Test tb05ad resonance failure.
 
-        Actually test one of the exception messages. For many routines these
+        Actually test one of the exception messages. These
         are parsed from the docstring, tests both the info index and the
         message
         """
@@ -198,27 +188,53 @@ class test_tb05ad(unittest.TestCase):
         assert cm.exception.info == 2
 
     def test_tb05ad_balance(self):
-        """Specifically check for the balancing output.
+        """Test balancing in tb05ad.
 
-        Based on https://rdrr.io/rforge/expm/man/balance.html
+        Tests for the cause of the problem reported in issue #11
+        balancing permutations were not correctly applied to the
+        C and D matrix.
         """
-        A = np.array(((-1, -1,  0,  0),
-                      ( 0,  0, 10, 10),
-                      ( 0,  0, 10,  0),
-                      ( 0, 10,  0,  0)), dtype=float)
-        B = np.eye(4)
-        C = np.eye(4)
-        Ar = np.array(((-1, -1,  0,  0),
-                       ( 0,  0, 10, 10),
-                       ( 0, 10,  0,  0),
-                       ( 0,  0,  0, 10)))
+
+        # find a good test case. Some sparsity,
+        # some zero eigenvalues, some non-zero eigenvalues,
+        # and proof that the 1st step, with dgebal, does some
+        # permutation
+        crit = False
+        while not crit:
+            A = np.random.randn(8, 8)
+            A[np.random.uniform(size=(8, 8)) > 0.35] = 0.0
+
+            Aeig = eig(A)[0]
+            neig0 = np.sum(np.abs(Aeig) == 0)
+            As, T = matrix_balance(A)
+            nperm = np.sum(np.diag(T == 0))
+
+            crit = nperm < 8 and nperm >= 4 and \
+                neig0 > 1 and neig0 <= 3
+
+        # print("number of permutations", nperm, "eigenvalues=0", neig0)
+        B = np.random.randn(8, 4)
+        C = np.random.randn(3, 8)
+
+        # do a run
         jomega = 1.0
         At, Bt, Ct, rcond, g_jw, ev, hinvb, info = transform.tb05ad(
-            4, 4, 4, jomega, A, B, C, job='AG')
-        assert_almost_equal(At, Ar)
+            8, 4, 3, jomega, A, B, C, job='AG')
 
-        At, Bt, Ct, rcond, g_jwb, ev, hinvb, info = transform.tb05ad(
-            4, 4, 4, jomega, A, B, C, job='AG')
+        # remove information on Q, in lower sub-triangle part of A
+        At = np.triu(At, k=-1)
+
+        # now after the balancing in DGEBAL, and conversion to
+        # upper Hessenberg form:
+        # At = Q^T * (P^-1 * A * P ) * Q
+        # with Q orthogonal
+        # Ct = C * P * Q
+        # Bt = Q^T * P^-1 * B
+        # so test with Ct * At * Bt  ==  C * A * B
+        # and verify that eigenvalues of both A matrices are close
+        assert_almost_equal(np.dot(np.dot(Ct, At), Bt),
+                            np.dot(np.dot(C, A), B))
+        assert_almost_equal(eig(At)[0], eig(A)[0])
 
 
 if __name__ == "__main__":
