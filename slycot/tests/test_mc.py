@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 #
 # test_mc.py - test suite for polynomial and rational function manipulation
 # bnavigator <code@bnavigator.de>, Aug 2019
