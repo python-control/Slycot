@@ -268,12 +268,9 @@ class test_mb(unittest.TestCase):
     # TODO: move this to pytest recwarn together with the whole class
     @unittest.skipIf(sys.version < "3", "no assertWarns in old Python")
     def test_mb05md_warning(self):
-        """ Check that the correct warning is raised from docstring"""
-        A = np.array([[5, 4, 2, 1],
-                      [0, 1, -1, -1],
-                      [-1, -1, 3, 0],
-                      [1, 1, -1, 2]])
-        delta = 0.
+        """Check that the correct warning is raised from docstring"""
+        A = np.diag([3., 3., 3., 3.]) + np.diag([1., 1., 1.], k=1)
+        delta = 0.1
 
         with self.assertWarns(SlycotResultWarning,
                               msg="\n"
