@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 #
 # test_td04ad.py - test suite for tf -> ss conversion
 # RvP, 04 Jun 2018

@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 #
 # test_mb.py - test suite for linear algebra commands
 # bnavigator <code@bnavigator.de>, Aug 2019

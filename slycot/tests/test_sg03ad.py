@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 #
 # test_sg03ad.py - test suite for stability margin commands
 # RvP, 15 Jun 2017
