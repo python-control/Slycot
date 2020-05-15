@@ -198,19 +198,20 @@ class test_tb05ad(unittest.TestCase):
         # find a good test case. Some sparsity,
         # some zero eigenvalues, some non-zero eigenvalues,
         # and proof that the 1st step, with dgebal, does some
-        # permutation
+        # permutation and some scaling
         crit = False
+        n = 8
         while not crit:
-            A = np.random.randn(8, 8)
-            A[np.random.uniform(size=(8, 8)) > 0.35] = 0.0
+            A = np.random.randn(n, n)
+            A[np.random.uniform(size=(n, n)) > 0.35] = 0.0
 
             Aeig = eig(A)[0]
             neig0 = np.sum(np.abs(Aeig) == 0)
             As, T = matrix_balance(A)
             nperm = np.sum(np.diag(T == 0))
-
-            crit = nperm < 8 and nperm >= 4 and \
-                neig0 > 1 and neig0 <= 3
+            nscale = n - np.sum(T == 1.0)
+            crit = nperm < n and nperm >= n//2 and \
+                neig0 > 1 and neig0 <= 3 and nscale > 0
 
         # print("number of permutations", nperm, "eigenvalues=0", neig0)
         B = np.random.randn(8, 4)
