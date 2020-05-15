@@ -234,7 +234,12 @@ class test_tb05ad(unittest.TestCase):
         # and verify that eigenvalues of both A matrices are close
         assert_almost_equal(np.dot(np.dot(Ct, At), Bt),
                             np.dot(np.dot(C, A), B))
-        assert_almost_equal(eig(At)[0], eig(A)[0])
+        # uses a sort, there is no guarantee on the order of eigenvalues
+        eigAt = eig(At)[0]
+        idxAt = np.argsort(eigAt)
+        eigA = eig(A)[0]
+        idxA = np.argsort(eigA)
+        assert_almost_equal(eigA[idxA], eigAt[idxAt])
 
 
 if __name__ == "__main__":
