@@ -346,10 +346,10 @@ C           vector DWORK which describes the balancing of A and is
 C           defined in the subroutine DGEBAL.
 C
             DO 10 J = 1, N
-               JJ = J
+               JJ = N + 1 - J   ! RvP, rabraker, slycot #11
                IF ( JJ.LT.LOW .OR. JJ.GT.IGH ) THEN
                   IF ( JJ.LT.LOW ) JJ = LOW - JJ
-                  JP = DWORK(JJ)
+                  JP = INT( DWORK(JJ) )
                   IF ( JP.NE.JJ ) THEN
 C
 C                    Permute rows of B.
