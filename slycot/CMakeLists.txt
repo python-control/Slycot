@@ -104,7 +104,7 @@ set(FSOURCES
     src/delctg.f  src/select.f
     src/SLCT_DLATZM.f  src/SLCT_ZLATZM.f
 
-    src/ftruefalse.f
+    src/ftruefalse.f src/XERBLA.f
 )
 
 set(F2PYSOURCE src/_wrapper.pyf)

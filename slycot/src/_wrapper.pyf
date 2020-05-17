@@ -1,12 +1,23 @@
 !    -*- f90 -*-
 ! Note: the context of this file is case sensitive.
 
-python module _wrapper ! in
-    interface  ! in :wrapper
-		include "analysis.pyf"
-		include "math.pyf"
-		include "synthesis.pyf"
-		include "transform.pyf"
-		include "_helper.pyf"
+python module __user__routines
+    interface
+        subroutine raise_xerbla(srname,info)
+            intent(callback,hide) raise_xerbla
+            character*(*) :: srname
+            integer :: info
+        end subroutine raise_xerbla
+    end interface
+end python module __user__routines
+
+python module _wrapper
+    interface
+        include "analysis.pyf"
+        include "math.pyf"
+        include "synthesis.pyf"
+        include "transform.pyf"
+        include "_helper.pyf"
     end interface
 end python module slycot
+

@@ -43,6 +43,11 @@ else:
     # Version information
     from .version import version as __version__
 
+    # initialize error handling
+    from .exceptions import raise_xerbla
+    from . import _wrapper
+    _wrapper.raise_xerbla = raise_xerbla
+
     from numpy.testing import Tester
     test = Tester().test
     bench = Tester().bench

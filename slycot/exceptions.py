@@ -257,3 +257,11 @@ def raise_if_slycot_error(info, arg_list=None, docstring=None, checkvars=None):
         warn(SlycotWarning("Caught unhandled nonzero IWARN value {}"
                            "".format(iwarn),
                            iwarn, info))
+
+
+def raise_xerbla(srname, info):
+    """Overrides LAPACK XERBLA routine to raise Exception instead of exiting
+    """
+    message = ("The argument number {1} to {0} had an illegal value."
+               "".format(srname, -info))
+    raise SlycotParameterError(message, info)

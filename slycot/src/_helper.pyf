@@ -6,5 +6,10 @@ subroutine ftruefalse(ftrue,ffalse) ! in src/ftruefalse.f
     logical intent(out) :: ffalse
 end subroutine ftruefalse
 
-! This file was auto-generated with f2py (version:2).
-! See http://cens.ioc.ee/projects/f2py2e/
+subroutine xerbla(srname,info) ! in src/XERBLA.f
+    use __user__routines
+    character*(*) :: srname
+    integer :: info
+    intent(callback) raise_xerbla
+    external raise_xerbla
+end subroutine xerbla
