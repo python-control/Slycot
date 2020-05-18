@@ -104,7 +104,7 @@ set(FSOURCES
     src/delctg.f  src/select.f
     src/SLCT_DLATZM.f  src/SLCT_ZLATZM.f
 
-    src/ftruefalse.f
+    src/ftruefalse.f src/XERBLA.f
 )
 
 set(F2PYSOURCE src/_wrapper.pyf)
@@ -139,7 +139,7 @@ add_custom_command(
 
 add_library(
   ${SLYCOT_MODULE} MODULE
-  _wrappermodule.c 
+  _wrappermodule.c
   ${PYTHON_SITE}/numpy/f2py/src/fortranobject.c
   _wrapper-f2pywrappers.f
   ${FSOURCES})
