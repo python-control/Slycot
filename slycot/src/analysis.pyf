@@ -1,7 +1,6 @@
 !    -*- f90 -*-
-subroutine ab01nd_i(jobz,n,m,a,lda,b,ldb,ncont,indcon,nblk,z,ldz,tau,tol,iwork,dwork,ldwork,info) ! in AB01ND.f
-    fortranname ab01nd
-    character intent(hide) :: jobz = 'I'
+subroutine ab01nd(jobz,n,m,a,lda,b,ldb,ncont,indcon,nblk,z,ldz,tau,tol,iwork,dwork,ldwork,info) ! in AB01ND.f
+    character :: jobz
     integer check(n>0) :: n
     integer check(n>0) :: m
     double precision intent(in,out),dimension(n,n),depend(n) :: a
@@ -19,49 +18,7 @@ subroutine ab01nd_i(jobz,n,m,a,lda,b,ldb,ncont,indcon,nblk,z,ldz,tau,tol,iwork,d
     double precision intent(hide,cache),dimension(ldwork),depend(ldwork) :: dwork
     integer :: ldwork = max(n,3*m)
     integer intent(out) :: info
-end subroutine ab01nd_i
-subroutine ab01nd_f(jobz,n,m,a,lda,b,ldb,ncont,indcon,nblk,z,ldz,tau,tol,iwork,dwork,ldwork,info) ! in AB01ND.f
-    fortranname ab01nd
-    character intent(hide) :: jobz = 'F'
-    integer check(n>0) :: n
-    integer check(n>0) :: m
-    double precision intent(in,out),dimension(n,n),depend(n) :: a
-    integer intent(hide),depend(a) :: lda=shape(a,0)
-    double precision intent(in,out),dimension(n,m),depend(n,m) :: b
-    integer intent(hide),depend(b) :: ldb=shape(b,0)
-    integer intent(out) :: ncont
-    integer intent(out) :: indcon
-    integer intent(out),dimension(n),depend(n) :: nblk
-    double precision intent(out),dimension(n,n),depend(n) :: z
-    integer intent(hide),depend(z) :: ldz=shape(z,0)
-    double precision intent(out),dimension(n),depend(n) :: tau
-    double precision :: tol = 0
-    integer intent(hide,cache),dimension(m),depend(m) :: iwork
-    double precision intent(hide,cache),dimension(ldwork),depend(ldwork) :: dwork
-    integer :: ldwork = max(n,3*m)
-    integer intent(out) :: info
-end subroutine ab01nd_f
-subroutine ab01nd_n(jobz,n,m,a,lda,b,ldb,ncont,indcon,nblk,z,ldz,tau,tol,iwork,dwork,ldwork,info) ! in AB01ND.f
-    fortranname ab01nd
-    character intent(hide) :: jobz = 'N'
-    integer check(n>0) :: n
-    integer check(n>0) :: m
-    double precision intent(in,out),dimension(n,n),depend(n) :: a
-    integer intent(hide),depend(a) :: lda=shape(a,0)
-    double precision intent(in,out),dimension(n,m),depend(n,m) :: b
-    integer intent(hide),depend(b) :: ldb=shape(b,0)
-    integer intent(out) :: ncont
-    integer intent(out) :: indcon
-    integer intent(out),dimension(n),depend(n) :: nblk
-    double precision intent(out),dimension(1,1),depend(n) :: z
-    integer intent(hide),depend(z) :: ldz=shape(z,0)
-    double precision intent(out),dimension(n),depend(n) :: tau
-    double precision :: tol = 0
-    integer intent(hide,cache),dimension(m),depend(m) :: iwork
-    double precision intent(hide,cache),dimension(ldwork),depend(ldwork) :: dwork
-    integer :: ldwork = max(n,3*m)
-    integer intent(out) :: info
-end subroutine ab01nd_n
+end subroutine ab01nd
 subroutine ab05md(uplo,over,n1,m1,p1,n2,p2,a1,lda1,b1,ldb1,c1,ldc1,d1,ldd1,a2,lda2,b2,ldb2,c2,ldc2,d2,ldd2,n,a,lda,b,ldb,c,ldc,d,ldd,dwork,ldwork,info) ! in AB05MD.f
     character :: uplo = 'U'
     character intent(hide) :: over = 'N' ! not sure how the overlap works

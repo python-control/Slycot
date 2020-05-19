@@ -126,15 +126,11 @@ def ab01nd(n, m, A, B, jobz='N', tol=0, ldwork=None):
                 'ncont', 'indcon', 'nblk', 'Z', 'LDZ'+hidden, 'tau', 'tol',
                 'IWORK'+hidden, 'DWORK'+hidden, 'ldwork', 'info'+hidden]
 
-    wrappermap = {"N": _wrapper.ab01nd_n,
-                  "I": _wrapper.ab01nd_i,
-                  "F": _wrapper.ab01nd_f}
-
     if ldwork is None:
         ldwork = max(n, 3*m)
 
-    Ac, Bc, ncont, indcon, nblk, Z, tau, info = \
-        wrappermap[jobz](n, m, A, B, tol=tol, ldwork=ldwork)
+    Ac, Bc, ncont, indcon, nblk, Z, tau, info = _wrapper.ab01nd(
+        jobz, n, m, A, B, tol=tol, ldwork=ldwork)
     raise_if_slycot_error(info, arg_list)
 
     if jobz == "N":
