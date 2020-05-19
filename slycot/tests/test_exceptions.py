@@ -19,6 +19,8 @@ MA 02110-1301, USA.
 """
 
 import pytest
+import subprocess
+import sys
 
 from slycot.exceptions import raise_if_slycot_error, \
                               SlycotError, SlycotWarning, SlycotParameterError
@@ -88,3 +90,19 @@ def test_unhandled_info_iwarn():
     assert wm[1].message.info == 0
 
 
+# Test code for test_xerbla_override
+CODE = """
+from slycot._wrapper import ab08nd
+# equil='X' is invalid
+out = ab08nd(1, 1, 1, [1], [1], [1], [1], equil='X')
+print("INFO={}".format(out[-1]))
+"""
+
+
+def test_xerbla_override():
+    """Test that Fortran routines calling XERBLA do not print to stdout."""
+
+    stdout = subprocess.check_output([sys.executable, '-c', CODE],
+                                     stderr=subprocess.STDOUT,
+                                     universal_newlines=True)
+    assert stdout == "INFO=-1\n"
