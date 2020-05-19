@@ -2,7 +2,7 @@
 subroutine ab01nd(jobz,n,m,a,lda,b,ldb,ncont,indcon,nblk,z,ldz,tau,tol,iwork,dwork,ldwork,info) ! in AB01ND.f
     character :: jobz
     integer check(n>0) :: n
-    integer check(n>0) :: m
+    integer check(m>0) :: m
     double precision intent(in,out),dimension(n,n),depend(n) :: a
     integer intent(hide),depend(a) :: lda=shape(a,0)
     double precision intent(in,out),dimension(n,m),depend(n,m) :: b
@@ -11,7 +11,7 @@ subroutine ab01nd(jobz,n,m,a,lda,b,ldb,ncont,indcon,nblk,z,ldz,tau,tol,iwork,dwo
     integer intent(out) :: indcon
     integer intent(out),dimension(n),depend(n) :: nblk
     double precision intent(out),dimension(ldz,n),depend(n,ldz) :: z
-    integer intent(hide),depend(n) :: ldz = (*jobz == 'N' ? 1 : n)
+    integer intent(hide),depend(n, jobz) :: ldz = (*jobz == 'N' ? 1 : n)
     double precision intent(out),dimension(n),depend(n) :: tau
     double precision :: tol = 0
     integer intent(hide,cache),dimension(m),depend(m) :: iwork
