@@ -10,8 +10,8 @@ subroutine ab01nd(jobz,n,m,a,lda,b,ldb,ncont,indcon,nblk,z,ldz,tau,tol,iwork,dwo
     integer intent(out) :: ncont
     integer intent(out) :: indcon
     integer intent(out),dimension(n),depend(n) :: nblk
-    double precision intent(out),dimension(n,n),depend(n) :: z
-    integer intent(hide),depend(z) :: ldz=shape(z,0)
+    double precision intent(out),dimension(ldz,n),depend(n,ldz) :: z
+    integer intent(hide),depend(n) :: ldz = (*jobz == 'N' ? 1 : n)
     double precision intent(out),dimension(n),depend(n) :: tau
     double precision :: tol = 0
     integer intent(hide,cache),dimension(m),depend(m) :: iwork
