@@ -1,5 +1,5 @@
 # ===================================================
-# ab08nX tests
+# ab08n* tests
 
 import unittest
 from slycot import analysis
