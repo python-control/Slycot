@@ -104,5 +104,5 @@ def test_xerbla_override():
 
     stdout = subprocess.check_output([sys.executable, '-c', CODE],
                                      stderr=subprocess.STDOUT,
-                                     text=True)
+                                     universal_newlines=True)
     assert stdout == "INFO=-1\n"
