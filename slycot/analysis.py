@@ -21,19 +21,23 @@ from . import _wrapper
 from .exceptions import raise_if_slycot_error, SlycotParameterError
 
 
-def ab01nd(n,m,A,B,jobz='N',tol=0,ldwork=None):
+def ab01nd(n, m, A, B, jobz='N', tol=0, ldwork=None):
     """ Ac,Bc,ncont,indcon,nblk,Z,tau = ab01nd_i(n,m,A,B,[jobz,tol,ldwork])
 
     To find a controllable realization for the linear time-invariant
     multi-input system
+
+    ::
 
           dX/dt = A * X + B * U,
 
     where A and B are N-by-N and N-by-M matrices, respectively,
     which are reduced by this routine to orthogonal canonical form
     using (and optionally accumulating) orthogonal similarity
-    transformations.  Specifically, the pair (A, B) is reduced to
-    the pair (Ac, Bc),  Ac = Z' * A * Z,  Bc = Z' * B,  given by
+    transformations.  Specifically, the pair ``(A, B)`` is reduced to
+    the pair ``(Ac, Bc),  Ac = Z' * A * Z,  Bc = Z' * B``,  given by
+
+    ::
 
           [ Acont     *    ]         [ Bcont ]
      Ac = [                ],   Bc = [       ],
@@ -49,88 +53,89 @@ def ab01nd(n,m,A,B,jobz='N',tol=0,ldwork=None):
              [  .   .       .    .     .  ]         [ .  ]
              [  0   0   . . .  Ap,p-1 App ]         [ 0  ]
 
-    where the blocks  B1, A21, ..., Ap,p-1  have full row ranks and
-    p is the controllability index of the pair.  The size of the
-    block  Auncont is equal to the dimension of the uncontrollable
-    subspace of the pair (A, B).
+    where the blocks ``B1, A21, ..., Ap,p-1`` have full row ranks and
+    `p` is the controllability index of the pair.  The size of the
+    block `Auncont` is equal to the dimension of the uncontrollable
+    subspace of the pair ``(A, B)``.
 
-    Required arguments:
-        n : input int
-            The order of the original state-space representation, i.e.
-            the order of the matrix A.  N > 0.
-        m : input int
-            The number of system inputs, or of columns of B.  M > 0.
-        A : rank-2 array('d') with bounds (n,n)
-            The leading n-by-n part of this array must contain the original
-            state dynamics matrix A.
-        B : rank-2 array('d') with bounds (n,m)
-            The leading n-by-m part of this array must contain the input
-            matrix B.
-    Optional arguments:
-        jobz := 'N' input string(len=1)
-            Indicates whether the user wishes to accumulate in a matrix Z
-            the orthogonal similarity transformations for reducing the system,
-            as follows:
-            = 'N':  Do not form Z and do not store the orthogonal transformations;
-            = 'F':  Do not form Z, but store the orthogonal transformations in
-                    the factored form;
-            = 'I':  Z is initialized to the unit matrix and the orthogonal
-                    transformation matrix Z is returned.
-        tol := 0 input float
-            The tolerance to be used in rank determination when transforming
-            (A, B). If tol <= 0 a default value is used.
-        ldwork := max(n,3*m) input int
-            The length of the cache array. ldwork >= max(n, 3*m).
-            For optimum performance it should be larger.
-    Return objects:
-        Ac : rank-2 array('d') with bounds (n,n)
-            The leading ncont-by-ncont part contains the upper block
-            Hessenberg state dynamics matrix Acont in Ac, given by Z'*A*Z,
-            of a controllable realization for the original system. The
-            elements below the first block-subdiagonal are set to zero.
-        Bc : rank-2 array('d') with bounds (n,m)
-            The leading ncont-by-m part of this array contains the transformed
-            input matrix Bcont in Bc, given by Z'*B, with all elements but the
-            first block set to zero.
-        ncont : int
-            The order of the controllable state-space representation.
-        indcon : int
-            The controllability index of the controllable part of the system
-            representation.
-        nblk : rank-1 array('i') with bounds (n)
-            The leading indcon elements of this array contain the the orders of
-            the diagonal blocks of Acont.
-        Z : rank-2 array('d') with bounds (n,n)
-            If jobz = 'I', then the leading N-by-N part of this array contains
-            the matrix of accumulated orthogonal similarity transformations
-            which reduces the given system to orthogonal canonical form.
-            If jobz = 'F', the elements below the diagonal, with the array tau,
-            represent the orthogonal transformation matrix as a product of
-            elementary reflectors. The transformation matrix can then be
-            obtained by calling the LAPACK Library routine DORGQR.
-            If jobz = 'N', the array Z is None.
-        tau : rank-1 array('d') with bounds (n)
-            The elements of tau contain the scalar factors of the
-            elementary reflectors used in the reduction of B and A."""
+    Parameters
+    ----------
+    n : int
+        The order of the original state-space representation, i.e.
+        the order of the matrix A.  ``n > 0``.
+    m : int
+        The number of system inputs, or of columns of B.  ``m > 0``.
+    A : (n,n) array_like
+        The original state dynamics matrix A.
+    B : (n,m) array_like
+        The input matrix B.
+    jobz : {'N', 'F', 'I'}, optional
+        Indicates whether the user wishes to accumulate in a matrix Z
+        the orthogonal similarity transformations for reducing the system,
+        as follows:
+
+        := 'N':  Do not form Z and do not store the orthogonal transformations;
+                 (default)
+        := 'F':  Do not form Z, but store the orthogonal transformations in
+                 the factored form;
+        := 'I':  Z is initialized to the unit matrix and the orthogonal
+                 transformation matrix Z is returned.
+    tol : float, optional
+        The tolerance to be used in rank determination when transforming
+        ``(A, B)``. If ``tol <= 0`` a default value is used.
+    ldwork : int, optional
+        The length of the cache array. ``ldwork >= max(n, 3*m)``.
+        For optimum performance it should be larger.
+        default: ``ldwork = max(n, 3*m)``
+
+    Returns
+    -------
+    Ac : (n,n) ndarray
+        The leading ncont-by-ncont part contains the upper block
+        Hessenberg state dynamics matrix Acont in Ac, given by Z'*A*Z,
+        of a controllable realization for the original system. The
+        elements below the first block-subdiagonal are set to zero.
+    Bc : (n,m) ndarray
+        The leading ncont-by-m part of this array contains the transformed
+        input matrix Bcont in Bc, given by ``Z'*B``, with all elements but the
+        first block set to zero.
+    ncont : int
+        The order of the controllable state-space representation.
+    indcon : int
+        The controllability index of the controllable part of the system
+        representation.
+    nblk : (n,) int ndarray
+        The leading indcon elements of this array contain the the orders of
+        the diagonal blocks of Acont.
+    Z : (n,n) ndarray
+        - If jobz = 'I', then the leading N-by-N part of this array contains
+          the matrix of accumulated orthogonal similarity transformations
+          which reduces the given system to orthogonal canonical form.
+        - If jobz = 'F', the elements below the diagonal, with the array tau,
+          represent the orthogonal transformation matrix as a product of
+          elementary reflectors. The transformation matrix can then be
+          obtained by calling the LAPACK Library routine DORGQR.
+        - If jobz = 'N', the array Z is `None`.
+    tau : (n, ) ndarray
+        The elements of tau contain the scalar factors of the
+        elementary reflectors used in the reduction of B and A.
+    """
 
     hidden = ' (hidden by the wrapper)'
     arg_list = ['jobz', 'n', 'm', 'A', 'LDA'+hidden, 'B', 'LDB'+hidden,
                 'ncont', 'indcon', 'nblk', 'Z', 'LDZ'+hidden, 'tau', 'tol',
                 'IWORK'+hidden, 'DWORK'+hidden, 'ldwork', 'info'+hidden]
 
-    wrappermap = {"N": _wrapper.ab01nd_n,
-                  "I": _wrapper.ab01nd_i,
-                  "F": _wrapper.ab01nd_f}
-
     if ldwork is None:
         ldwork = max(n, 3*m)
 
-    out = wrappermap[jobz](n, m, A, B, tol=tol, ldwork=ldwork)
-    raise_if_slycot_error(out[-1], arg_list)
-    # sets Z to None
+    Ac, Bc, ncont, indcon, nblk, Z, tau, info = _wrapper.ab01nd(
+        jobz, n, m, A, B, tol=tol, ldwork=ldwork)
+    raise_if_slycot_error(info, arg_list)
+
     if jobz == "N":
-        out[5] = None
-    return out[:-1]
+        Z = None
+    return Ac, Bc, ncont, indcon, nblk, Z, tau
 
 
 def ab05md(n1,m1,p1,n2,p2,A1,B1,C1,D1,A2,B2,C2,D2,uplo='U'):

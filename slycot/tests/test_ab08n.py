@@ -1,5 +1,5 @@
 # ===================================================
-# ag08bd tests
+# ab08n* tests
 
 import unittest
 from slycot import analysis
@@ -9,7 +9,7 @@ from scipy.linalg import eig
 from numpy.testing import assert_equal, assert_allclose
 
 
-class test_ab08n(unittest.TestCase):
+class test_ab08nX(unittest.TestCase):
     """ Test regular pencil construction ab08nX with input parameters
     according to example in documentation """
 
