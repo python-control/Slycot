@@ -93,6 +93,8 @@ def test_unhandled_info_iwarn():
 
 # Test code for test_xerbla_override
 CODE = """
+import sys
+sys.path.pop(0)  # do not import from current directory ('')
 from slycot._wrapper import __file__, ab08nd
 print(__file__)
 # equil='X' is invalid
