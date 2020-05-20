@@ -248,6 +248,8 @@ def setup_package():
                     '-DFULL_VERSION=' + VERSION + '.git' + gitrevision[:7]],
         zip_safe=False,
         install_requires=['numpy'],
+        entry_points={"pytest11":
+                      ["slycot_pytest_header=slycot.tests.slycot_pytest_header"]}
     )
 
     # Windows builds use Flang.

@@ -117,7 +117,7 @@ configure_file(version.py.in version.py @ONLY)
 
 set(PYSOURCE
 
-  __init__.py analysis.py examples.py math.py synthesis.py
+  __init__.py analysis.py examples.py exceptions.py math.py synthesis.py
   transform.py ${CMAKE_CURRENT_BINARY_DIR}/version.py)
 
 set(SLYCOT_MODULE "_wrapper")
