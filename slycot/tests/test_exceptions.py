@@ -104,17 +104,18 @@ print("INFO={}".format(out[-1]))
 def test_xerbla_override():
     """Test that Fortran routines calling XERBLA do not print to stdout."""
 
-    ret = subprocess.run([sys.executable, '-c', CODE],
-                         capture_output=True,
-                         universal_newlines=True)
-    if ret.returncode:
+    try:
+        out = subprocess.check_output([sys.executable, '-c', CODE],
+                                       stderr=subprocess.STDOUT,
+                                       universal_newlines=True)
+    except subprocess.CalledProcessError as cpe:
         raise RuntimeError("Trying to call _wrapper.ab08nd() failed with "
                            "returncode {}.\n"
                            "Captured STDOUT: \n {}\n"
                            "Captured STDERR: \n {}\n"
-                           "".format(ret.returncode, ret.stdout, ret.stderr))
+                           "".format(cpe.returncode, cpe.stdout, cpe.stderr))
 
-    outlines = ret.stdout.splitlines()
+    outlines = out.splitlines()
     assert len(outlines) == 2
     assert outlines[0] == _wrapper.__file__
     assert outlines[1] == "INFO=-1"
