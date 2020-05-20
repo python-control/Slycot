@@ -91,7 +91,7 @@ you'll have to choose the right recipe directory.
 On Linux you can choose between ``conda-recipe-openblas`` and
 ``conda-recipe-mkl``
 
-On macOS you should use ``conda-recipe-apple``. See the 
+On macOS you should use ``conda-recipe-apple``. See the
 `conda-build documentation`_ how to get the required macOS SDK.
 
 .. _conda-build documentation: https://docs.conda.io/projects/conda-build/en/latest/resources/compiler-tools.html#macos-sdk
@@ -129,9 +129,16 @@ install Slycot (this example creates a Python 3.8 environment)::
     conda activate build-slycot
 
     python setup.py install
-    pytest
 
-The final ``pytest`` command is optional; it runs the Slycot unit tests.
+Testing
+~~~~~~~
+To test if the installation was successful, you can run the slycot unit tests::
+
+    pytest --pyargs slycot
+
+Running ``pytest`` without ``--pyargs slycot`` from inside the source directory
+will fail, unless either ``setup.cfg`` or the compiled wrapper library have
+been installed into that directory.
 
 General notes on compiling
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
