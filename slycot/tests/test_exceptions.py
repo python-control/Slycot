@@ -24,6 +24,7 @@ import sys
 
 from slycot.exceptions import raise_if_slycot_error, \
                               SlycotError, SlycotWarning, SlycotParameterError
+from slycot import _wrapper
 
 
 def assert_docstring_parse(docstring, exception_class, erange, checkvars={}):
@@ -92,7 +93,10 @@ def test_unhandled_info_iwarn():
 
 # Test code for test_xerbla_override
 CODE = """
-from slycot._wrapper import ab08nd
+import sys
+sys.path.pop(0)  # do not import from current directory ('')
+from slycot._wrapper import __file__, ab08nd
+print(__file__)
 # equil='X' is invalid
 out = ab08nd(1, 1, 1, [1], [1], [1], [1], equil='X')
 print("INFO={}".format(out[-1]))
@@ -102,7 +106,18 @@ print("INFO={}".format(out[-1]))
 def test_xerbla_override():
     """Test that Fortran routines calling XERBLA do not print to stdout."""
 
-    stdout = subprocess.check_output([sys.executable, '-c', CODE],
-                                     stderr=subprocess.STDOUT,
-                                     universal_newlines=True)
-    assert stdout == "INFO=-1\n"
+    try:
+        out = subprocess.check_output([sys.executable, '-c', CODE],
+                                       stderr=subprocess.STDOUT,
+                                       universal_newlines=True)
+    except subprocess.CalledProcessError as cpe:
+        raise RuntimeError("Trying to call _wrapper.ab08nd() failed with "
+                           "returncode {}.\n"
+                           "Captured STDOUT: \n {}\n"
+                           "Captured STDERR: \n {}\n"
+                           "".format(cpe.returncode, cpe.stdout, cpe.stderr))
+
+    outlines = out.splitlines()
+    assert len(outlines) == 2
+    assert outlines[0] == _wrapper.__file__
+    assert outlines[1] == "INFO=-1"
