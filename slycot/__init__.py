@@ -43,6 +43,7 @@ else:
     # Version information
     from .version import version as __version__
 
-    from numpy.testing import Tester
-    test = Tester().test
-    bench = Tester().bench
+
+def test():
+    import pytest
+    pytest.main(['--pyargs', 'slycot'])
