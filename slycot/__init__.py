@@ -6,7 +6,7 @@ except NameError:
 
 if __SLYCOT_SETUP__:
     import sys as _sys
-    _sys.stderr.write('Running from numpy source directory.\n')
+    _sys.stderr.write('Running from Slycot source directory.\n')
     del _sys
 else:
 

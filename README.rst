@@ -136,9 +136,16 @@ To test if the installation was successful, you can run the slycot unit tests::
 
     pytest --pyargs slycot
 
-Running ``pytest`` without ``--pyargs slycot`` from inside the source directory
-will fail, unless either ``setup.cfg`` or the compiled wrapper library have
-been installed into that directory.
+You may also run the tests by calling ``slycot.test()`` from within the python
+interpreter::
+
+    import slycot
+    slycot.test()
+
+Importing ``slycot`` or running ``pytest`` without ``--pyargs slycot`` from
+inside the source directory will fail, unless the compiled wrapper library has
+been installed into that directory. Note that the ``[tool:pytest]`` section
+in ``setup.cfg`` enforces the ``--pyargs slycot`` argument by default.
 
 General notes on compiling
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
