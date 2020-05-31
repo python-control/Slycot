@@ -1,5 +1,5 @@
 """
-docstring_check.py
+test_exceptions.py
 
 Copyright 2020 Slycot team
 
@@ -18,9 +18,11 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 MA 02110-1301, USA.
 """
 
-import pytest
+import os
 import subprocess
 import sys
+
+import pytest
 
 from slycot.exceptions import raise_if_slycot_error, \
                               SlycotError, SlycotWarning, SlycotParameterError
@@ -119,5 +121,5 @@ def test_xerbla_override():
 
     outlines = out.splitlines()
     assert len(outlines) == 2
-    assert outlines[0] == _wrapper.__file__
+    assert os.path.samefile(outlines[0], _wrapper.__file__)
     assert outlines[1] == "INFO=-1"
