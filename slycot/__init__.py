@@ -6,7 +6,7 @@ except NameError:
 
 if __SLYCOT_SETUP__:
     import sys as _sys
-    _sys.stderr.write('Running from numpy source directory.\n')
+    _sys.stderr.write('Running from Slycot source directory.\n')
     del _sys
 else:
 
@@ -43,6 +43,7 @@ else:
     # Version information
     from .version import version as __version__
 
-    from numpy.testing import Tester
-    test = Tester().test
-    bench = Tester().bench
+
+def test():
+    import pytest
+    pytest.main(['--pyargs', 'slycot'])
