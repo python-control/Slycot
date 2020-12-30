@@ -86,6 +86,27 @@ class test_mb(unittest.TestCase):
                     test1_n, A, X, 'N', sort, test1_pmax, test1_tol)
             assert Xr is None
 
+
+    def test_mb03rd_default(self):
+        # regression: mb03rd was failing with no third arg (X) supplied
+        A = np.array([[ 6, -1, -7, -2,  2],
+                      [-3,  4,  2, -7,  6],
+                      [-6, -9, -3, -1, 10],
+                      [-2, -4,  1,  5,  7],
+                      [-7, -5, -6,  6,  7]])
+
+        Aschur, Tschur = schur(A)
+
+        X = Tschur.copy()
+
+        Ar, Xr, blsize, W = mb03rd(Aschur.shape[0], Aschur, X, 'U', 'N', pmax=1.0, tol=0.0)
+
+        Ar2, Xr2, blsize2, W2 = mb03rd(Aschur.shape[0], Aschur)
+
+        assert_allclose(Ar, Ar2)
+        assert_allclose(Xr, Tschur.dot(Xr2))
+
+
     def test_mb03vd_mb03vy_ex(self):
         """Test MB03VD and MB03VY
            with the example given in the MB03VD SLICOT documentation"""
