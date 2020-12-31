@@ -6,6 +6,7 @@ services: xvfb # needed for the python-control tests
 
 # Start with a 2x4 matrix of Linux builds
 python:
+ - "3.9
  - "3.8"
  - "3.7"
 env:
@@ -20,14 +21,6 @@ jobs:
     - name: "Linux, Conda Python 3.6"
       python: "3.6"
       env: TEST_PKG="conda" BLA_VENDOR="OpenBLAS"
-    - name: "Linux, Conda Python 3.5"
-      python: "3.5"
-      env: TEST_PKG="conda" BLA_VENDOR="OpenBLAS"
-    - name: "Linux, Ubuntu 16.04, System Python 2.7"
-      python: "2.7"
-      dist: xenial
-      env: TEST_PKG="dist" BLA_VENDOR="OpenBLAS"
-    # (Conda Python 2 is broken due to pytest-cov dependencies)
     - name: "MacOSX, Conda Python 3"
       os: osx
       language: shell
@@ -36,14 +29,10 @@ jobs:
       os: osx
       language: shell
       env: TEST_PKG="dist" BLA_VENDOR="Apple"
-    - name: "MacOSX, pyenv 3.8.0"
+    - name: "MacOSX, pyenv 3.8.7"
       os: osx
       language: shell
-      env: TEST_PKG="dist" BLA_VENDOR="Apple" SLYCOT_PYTHON_VERSION=3.8.0
-    - name: "MacOSX, pyenv 2.7.17"
-      os: osx
-      language: shell
-      env: TEST_PKG="dist" BLA_VENDOR="Apple" SLYCOT_PYTHON_VERSION=2.7.17
+      env: TEST_PKG="dist" BLA_VENDOR="Apple" SLYCOT_PYTHON_VERSION=3.8.7
 
 
 before_install:
