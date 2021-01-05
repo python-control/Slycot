@@ -86,7 +86,6 @@ class test_mb(unittest.TestCase):
                     test1_n, A, X, 'N', sort, test1_pmax, test1_tol)
             assert Xr is None
 
-
     def test_mb03rd_default(self):
         # regression: mb03rd was failing with no third arg (X) supplied
         A = np.array([[ 6, -1, -7, -2,  2],
@@ -105,7 +104,6 @@ class test_mb(unittest.TestCase):
 
         assert_allclose(Ar, Ar2)
         assert_allclose(Xr, Tschur.dot(Xr2))
-
 
     def test_mb03vd_mb03vy_ex(self):
         """Test MB03VD and MB03VY
