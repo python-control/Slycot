@@ -6,6 +6,7 @@ Slycot wraps the SLICOT library which is used for control and systems analysis.
 
 """
 
+import builtins
 import os
 import sys
 import subprocess
@@ -16,19 +17,14 @@ try:
 except ImportError:
     import ConfigParser as configparser
 
-if sys.version_info[0] >= 3:
-    import builtins
-else:
-    import __builtin__ as builtins
-
 try:
     from skbuild import setup
     from skbuild.command.sdist import sdist
 except ImportError:
     raise ImportError('scikit-build must be installed before running setup.py')
 
-if sys.version_info[:2] < (2, 7) or (3, 0) <= sys.version_info[0:2] < (3, 5):
-    raise RuntimeError("Python version 2.7 or >= 3.5 required.")
+if sys.version_info[0:2] < (3, 6):
+    raise RuntimeError("Python version >= 3.6 required.")
 
 DOCLINES = __doc__.split("\n")
 
@@ -41,8 +37,10 @@ License :: OSI Approved :: GNU General Public License v2 (GPLv2)
 Programming Language :: C
 Programming Language :: Fortran
 Programming Language :: Python
-Programming Language :: Python :: 2
-Programming Language :: Python :: 3
+Programming Language :: Python :: 3.6
+Programming Language :: Python :: 3.7
+Programming Language :: Python :: 3.8
+Programming Language :: Python :: 3.9
 Topic :: Software Development
 Topic :: Scientific/Engineering
 Operating System :: Microsoft :: Windows
@@ -190,35 +188,6 @@ def get_version_info(srcdir=None):
     return FULLVERSION, GIT_REVISION
 
 
-def check_submodules():
-    """ verify that the submodules are checked out and clean
-        use `git submodule update --init`; on failure
-    """
-    if not os.path.exists('.git'):
-        return
-    with open('.gitmodules') as f:
-        for l in f:
-            if 'path' in l:
-                p = l.split('=')[-1].strip()
-                if not os.path.exists(p):
-                    raise ValueError('Submodule %s missing' % p)
-
-    proc = subprocess.Popen(['git', 'submodule', 'status'],
-                            stdout=subprocess.PIPE)
-    status, _ = proc.communicate()
-    status = status.decode("ascii", "replace")
-    for line in status.splitlines():
-        if line.startswith('-') or line.startswith('+'):
-            raise ValueError('Submodule not clean: %s' % line)
-
-
-class sdist_checked(sdist):
-    """ check submodules on sdist to prevent incomplete tarballs """
-    def run(self):
-        # slycot had no submodules currently
-        # check_submodules()
-        sdist.run(self)
-
 
 def setup_package():
     src_path = os.path.dirname(os.path.abspath(__file__))
@@ -241,7 +210,6 @@ def setup_package():
         license='GPL-2.0',
         classifiers=[_f for _f in CLASSIFIERS.split('\n') if _f],
         platforms=["Windows", "Linux", "Solaris", "Mac OS-X", "Unix"],
-        cmdclass={"sdist": sdist_checked},
         cmake_args=['-DSLYCOT_VERSION:STRING=' + VERSION,
                     '-DGIT_REVISION:STRING=' + gitrevision,
                     '-DISRELEASE:STRING=' + str(ISRELEASED),
@@ -250,40 +218,6 @@ def setup_package():
         install_requires=['numpy'],
     )
 
-    # Windows builds use Flang.
-    # Flang detection and configuration is not automatic yet; the CMAKE
-    # settings below are to circumvent that; when scikit-build and cmake
-    # tools have improved, most of this might be removed?
-    if platform.system() == 'Windows':
-
-        pbase = r'/'.join(sys.executable.split(os.sep)[:-1])
-        env2cmakearg = {
-            'FC': ('-DCMAKE_Fortran_COMPILER=',
-                   pbase + r'/Library/bin/flang.exe'),
-            'F2PY': ('-DF2PY_EXECUTABLE=',
-                     pbase + r'/Scripts/f2py.exe'),
-            'NUMPY_INCLUDE': ('-DNumPy_INCLUDE_DIR=',
-                              pbase + r'/Include')
-        }
-
-        metadata['cmake_args'].extend(['-GNMake Makefiles'])
-
-        for k, v in env2cmakearg.items():
-            print(k, v, os.environ.get(k, ''))
-            envval = os.environ.get(k, None)
-            if envval:
-                # get from environment
-                metadata['cmake_args'].append(
-                    v[0] + envval.replace('\\', '/'))
-            else:
-                # default
-                metadata['cmake_args'].append(v[0] + v[1])
-
-        metadata['cmake_args'].extend([
-            '-DCMAKE_Fortran_SIMULATE_VERSION=5.0.0',
-            '-DCMAKE_Fortran_COMPILER_ID=Flang',
-            '-DCMAKE_VERBOSE_MAKEFILE:BOOL=ON'])
-        print(metadata['cmake_args'])
     try:
         setup(**metadata)
     finally:

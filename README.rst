@@ -19,18 +19,18 @@ Riccati, Lyapunov, and Sylvester equations.
 Dependencies
 ------------
 
-Slycot supports Python versions 2.7, and 3.5 or later.
+Slycot supports Python versions 3.6 or later.
 
 To run the compiled Slycot package, the following must be installed as
 dependencies:
 
-- Python 2.7, 3.5+
+- Python 3.6+
 - NumPy
 
 If you are compiling and installing Slycot from source, you will need the
 following dependencies:
 
-- Python 2.7, 3.5+
+- 3.6+
 - NumPy
 - scikit-build >= 0.10.0
 - CMake
