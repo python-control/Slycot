@@ -6,7 +6,7 @@ services: xvfb # needed for the python-control tests
 
 # Start with a 2x4 matrix of Linux builds
 python:
- - "3.9
+ - "3.9"
  - "3.8"
  - "3.7"
 env:
