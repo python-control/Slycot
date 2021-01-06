@@ -10,6 +10,9 @@ Slycot
 .. image:: https://travis-ci.org/python-control/Slycot.svg?branch=master
    :target: https://travis-ci.org/python-control/Slycot
 
+.. image:: https://github.com/python-control/Slycot/workflows/Build%20and%20Test%20Slycot/badge.svg
+   :target: https://github.com/python-control/Slycot/actions
+
 .. image:: https://coveralls.io/repos/github/python-control/Slycot/badge.svg?branch=master
    :target: https://coveralls.io/github/python-control/Slycot?branch=master
 
