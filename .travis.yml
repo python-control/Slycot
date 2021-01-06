@@ -29,11 +29,13 @@ jobs:
       os: osx
       language: shell
       env: TEST_PKG="dist" BLA_VENDOR="Apple"
-    - name: "MacOSX, pyenv 3.8.7"
+    - name: "MacOSX, pyenv 3.8.0"
       os: osx
       language: shell
-      env: TEST_PKG="dist" BLA_VENDOR="Apple" SLYCOT_PYTHON_VERSION=3.8.7
-
+      env: TEST_PKG="dist" BLA_VENDOR="Apple" SLYCOT_PYTHON_VERSION=3.8.0
+  allow_failures:
+    - python: "3.9"
+      env: TEST_PKG="conda" BLA_VENDOR="Intel10_64lp"
 
 before_install:
   - |
