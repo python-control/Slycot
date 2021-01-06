@@ -13,7 +13,7 @@ env:
  - TEST_PKG="conda" BLA_VENDOR="OpenBLAS"
  - TEST_PKG="conda" BLA_VENDOR="Intel10_64lp" # MKL
  - TEST_PKG="dist"  BLA_VENDOR="OpenBLAS"
- - TEST_PKG="dist"  BLA_VENDOR="Generic" # reference BLAS/LAPACK
+ - TEST_PKG="dist"  BLA_VENDOR="Generic" # force reference BLAS/LAPACK
 
 jobs:
   # additional single Linux and OSX jobs
@@ -33,9 +33,6 @@ jobs:
       os: osx
       language: shell
       env: TEST_PKG="dist" BLA_VENDOR="Apple" SLYCOT_PYTHON_VERSION=3.8.0
-  allow_failures:
-    - python: "3.9"
-      env: TEST_PKG="conda" BLA_VENDOR="Intel10_64lp"
 
 before_install:
   - |
@@ -90,34 +87,31 @@ install:
       source "$HOME/miniconda/etc/profile.d/conda.sh"
       hash -r
       conda config --set always_yes yes --set changeps1 no
-      conda update -q --all
       conda install conda-build
       conda install conda-verify
-      conda config --append channels conda-forge;
+      conda config --add channels conda-forge;
+      conda update -q --all
       conda info -a;
+      conda create -q -n test-environment \
+            python="$SLYCOT_PYTHON_VERSION" \
+            pip coverage pytest-cov \
+            numpy scipy matplotlib
+      conda activate test-environment
+      export LIBRARY_PATH="$HOME/miniconda/envs/test-environment/lib"
+      numpyversion=$(python -c 'import numpy; print(numpy.version.version)')
+      conda build --python "$SLYCOT_PYTHON_VERSION" --numpy $numpyversion conda-recipe
+      conda install local::slycot
       if [[ $BLA_VENDOR == "OpenBLAS" ]]; then
-        conda_blas=openblas
-        conda_recipe=conda-recipe-openblas
+        conda install 'libblas=*=*openblas'
       elif [[ $BLA_VENDOR == "Intel10_64lp" ]]; then
-        conda_blas=mkl
-        conda_recipe=conda-recipe-mkl
+        conda install 'libblas=*=*mkl'
       elif [[ $BLA_VENDOR == "Apple" ]]; then
-        conda_blas=
-        conda_recipe=conda-recipe-apple
+        export LD_LIBRARY_PATH="/opt/MacOSX10.9.sdk/usr/lib"
       else
         echo "Unsupported BLA_VENDOR for conda builds: $BLA_VENDOR"
         exit 3
       fi
-      conda create -q -n test-environment \
-            python="$SLYCOT_PYTHON_VERSION" \
-            pip coverage pytest-cov \
-            numpy scipy matplotlib \
-            $conda_blas
-      conda activate test-environment
-      export LIBRARY_PATH="$HOME/miniconda/envs/test-environment/lib"
-      numpyversion=$(python -c 'import numpy; print(numpy.version.version)')
-      conda build --python "$SLYCOT_PYTHON_VERSION" --numpy $numpyversion $conda_recipe
-      conda install local::slycot
+
     elif [[ $TEST_PKG == dist ]]; then
       pip install scikit-build pytest-cov matplotlib scipy;
       CMAKE_GENERATOR="Unix Makefiles" python setup.py install;
