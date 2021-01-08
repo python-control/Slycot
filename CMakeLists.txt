@@ -7,46 +7,21 @@ if (CMAKE_VERSION VERSION_GREATER "3.11.99")
 endif()
 
 project(slycot VERSION ${SLYCOT_VERSION} LANGUAGES NONE)
-# Fortran detection fails on windows, use the CMAKE_C_SIMULATE flag to
-# force success
-if(WIN32)
-  set(CMAKE_Fortran_SIMULATE_VERSION 19.0)
-endif()
 
-# this does not seem to work, maybe scikit-build's doing? the cxx compiler is
-# still tested
 enable_language(C)
 enable_language(Fortran)
 
-# base site dir, use python installation for location specific includes
-execute_process(
-  COMMAND "${PYTHON_EXECUTABLE}" -c
-  "import os,numpy; print(os.path.dirname(numpy.__path__[0]))"
-  OUTPUT_VARIABLE PYTHON_SITE
-  OUTPUT_STRIP_TRAILING_WHITESPACE)
-if(WIN32)
-  string(REPLACE "\\" "/" PYTHON_SITE ${PYTHON_SITE})
-endif()
-
 find_package(PythonLibs REQUIRED)
+find_package(PythonExtensions REQUIRED)
 find_package(NumPy REQUIRED)
+find_package(F2PY REQUIRED)
 find_package(BLAS REQUIRED)
 find_package(LAPACK REQUIRED)
 
-message(STATUS "NumPy: ${NumPy_INCLUDE_DIR}")
+message(STATUS "NumPy included from: ${NumPy_INCLUDE_DIR}")
+message(STATUS "F2PY included from: ${F2PY_INCLUDE_DIR}")
 message(STATUS "LAPACK: ${LAPACK_LIBRARIES}")
 message(STATUS "BLAS: ${BLAS_LIBRARIES}")
 message(STATUS "Slycot version: ${SLYCOT_VERSION}")
 
-# find python, standard packages, F2PY find flaky on Windows
-if (NOT WIN32)
-  find_package(F2PY REQUIRED)
-endif()
-
-# pic option for flang not correct, remove for Windows
-if (WIN32)
-  set(CMAKE_Fortran_COMPILE_OPTIONS_PIC "")
-endif()
-
 add_subdirectory(slycot)
-

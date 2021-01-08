@@ -122,7 +122,6 @@ set(PYSOURCE
   ${CMAKE_CURRENT_BINARY_DIR}/version.py)
 
 set(SLYCOT_MODULE "_wrapper")
-find_package(PythonExtensions REQUIRED)
 
 set(GENERATED_MODULE
   ${CMAKE_CURRENT_BINARY_DIR}/${SLYCOT_MODULE}${PYTHON_EXTENSION_MODULE_SUFFIX})
@@ -141,7 +140,7 @@ add_custom_command(
 add_library(
   ${SLYCOT_MODULE} MODULE
   _wrappermodule.c
-  ${PYTHON_SITE}/numpy/f2py/src/fortranobject.c
+  ${F2PY_INCLUDE_DIR}/fortranobject.c
   _wrapper-f2pywrappers.f
   ${FSOURCES})
 
@@ -150,8 +149,7 @@ target_link_libraries(${SLYCOT_MODULE}
 
 target_include_directories(
   ${SLYCOT_MODULE} PUBLIC
-  ${PYTHON_SITE}/numpy/core/include
-  ${PYTHON_SITE}/numpy/f2py/src
+  ${F2PY_INCLUDE_DIRS}
   ${PYTHON_INCLUDE_DIRS}
   )
 
