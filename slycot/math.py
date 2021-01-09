@@ -42,7 +42,7 @@ def mb03rd(n, A, X=None, jobx='U', sort='N', pmax=1.0, tol=0.0):
             The matrix `A` to be block-diagonalized, in real Schur form.
         X : (n, n) array_like, optional
             A given matrix `X`, for accumulation of transformations (only if
-            `jobx`='U')
+            `jobx`='U'). Default value is identity matrix of order `n`.
         jobx : {'N', 'U'}, optional
             Specifies whether or not the transformations are
             accumulated, as follows:
@@ -230,7 +230,7 @@ def mb03rd(n, A, X=None, jobx='U', sort='N', pmax=1.0, tol=0.0):
                 'dwork' + hidden, 'info']
 
     if X is None:
-        X = np.zeros((1, n))
+        X = np.eye(n)
 
     Ar, Xr, nblcks, blsize, wr, wi, info = _wrapper.mb03rd(
         jobx, sort, n, pmax, A, X, tol)
