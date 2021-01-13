@@ -5,7 +5,6 @@ include gpl-2.0.txt
 include README.rst
 include CMakeLists.txt
 include pyproject.toml
-include .travis.yml
 include conda-recipe/*
 include slycot/CMakeLists.txt
 include slycot/tests/CMakeLists.txt

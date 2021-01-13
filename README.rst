@@ -170,9 +170,13 @@ Additional hints
 ~~~~~~~~~~~~~~~~
 
 Additional hints for how to install Slycot from source can be found in the
-``.travis.yml`` (commands used for Travis CI) and the ``conda-recipe``
-directory (conda pre-requisites, install and test commands) both which are
-included in the source code repository.
+`.github`_ directory , (commands used to build and test in the GitHub Actions
+CI), the `logs from the GitHub Actions`_, and the ``conda-recipe`` directory
+(conda pre-requisites, install and test commands) which is included
+in the source code repository.
+
+.. _.github: https://github.com/python-control/Slycot/tree/master/.github
+.. _`logs from the GitHub Actions`: https://github.com/python-control/Slycot/actions
 
 Testing
 -------
