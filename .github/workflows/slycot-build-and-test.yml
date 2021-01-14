@@ -280,7 +280,8 @@ jobs:
           COVERALLS_FLAG_NAME: wheel-${{ matrix.packagekey }}-${{matrix.blas_lib}}
           COVERALLS_PARALLEL: true
         working-directory: slycot-src
-        run: coveralls
+        # https://github.com/TheKevJames/coveralls-python/issues/252
+        run: coveralls --service=github
 
   test-conda:
     name: Test conda ${{ matrix.packagekey }}, ${{matrix.blas_lib}} BLAS lib ${{ matrix.failok }}
@@ -354,7 +355,8 @@ jobs:
           COVERALLS_FLAG_NAME: conda-${{ matrix.packagekey }}-${{matrix.blas_lib}}
           COVERALLS_PARALLEL: true
         working-directory: slycot-src
-        run: coveralls
+        # https://github.com/TheKevJames/coveralls-python/issues/252
+        run: coveralls --service=github
 
   coveralls-final:
     name: Finalize parallel coveralls
