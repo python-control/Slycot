@@ -21,11 +21,9 @@ for conda_pkg_file in Path("slycot-conda-pkgs").glob("*/*.tar.bz2"):
                 'os': cos,
                 'python': cpy,
                 'blas_lib':  cbl}
-        if (cos == 'windows' and
-            pyminor < 8 and
-            cbl not in ['unset', 'Intel10_64lp']):
-            # fatal windows error because numpy and matplotlib directly
-            # link to mkl on older versions
+        if (cos == 'windows' and cbl not in ['unset', 'Intel10_64lp']):
+            # sporadic fatal windows errors because numpy and matplotlib
+            # directly link to mkl on older versions
             cjob['failok'] = "FAILOK"
         conda_jobs.append(cjob)
 
