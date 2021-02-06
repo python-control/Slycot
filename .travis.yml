@@ -119,8 +119,6 @@ install:
       echo "Wrong TEST_PKG '$TEST_PKG'"
       exit 1
     fi
-    # coveralls not in ubuntu or conda repos
-    pip install coveralls
 
 script:
   # slycots own unit tests as installed, not those from source dir
@@ -135,13 +133,12 @@ script:
   - cd python-control
   - pytest --disable-warnings --cov=$slycot_dir --cov-config=../Slycot/.coveragerc control/tests
 
-
 after_success:
-  # go back to Slycot dir and merge the coverage to report correct repo data with coveralls
+  # go back to Slycot dir and merge the coverage for a total tally
   - cd ../Slycot
   - cp ../slycot-coverage/.coverage .coverage.slycot
   - cp ../python-control/.coverage .coverage.control
   - echo "  $slycot_dir" >> .coveragerc
   - coverage combine
   - coverage report
-  - coveralls
+  # reporting to coveralls only happens from the github actions runs
