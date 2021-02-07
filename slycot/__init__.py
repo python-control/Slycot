@@ -29,9 +29,14 @@ else:
 
     # Synthesis routines (15/50 wrapped)
 
-    from .synthesis import sb01bd,sb02md,sb02mt,sb02od,sb03md,sb03od
-    from .synthesis import sb04md,sb04qd,sb10ad,sb10dd,sb10hd,sg03ad
-    from .synthesis import sg02ad, sg03bd, sb10fd
+    from .synthesis import (sb01bd,
+                            sb02md, sb02mt, sb02od, 
+                            sb03md, sb03md57, sb03od,
+                            sb04md, sb04qd,
+                            sb10ad, sb10dd, sb10fd, sb10hd,
+                            sg02ad,
+                            sg03ad, sg03bd)
+                            
 
     # Transformation routines (9/40 wrapped)
     from .transform import tb01id, tb03ad, tb04ad
