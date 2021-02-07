@@ -4,6 +4,8 @@ dependencies:
   - conda-build  # for conda index
   - scipy
   - matplotlib
+  - pytest
   - pytest-cov
+  - pytest-timeout
   - coverage
   - coveralls
