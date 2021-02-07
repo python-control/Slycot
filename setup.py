@@ -103,7 +103,7 @@ def git_version(srcdir=None):
         out = _minimal_ext_cmd(['git', 'describe', '--tags',
                                 '--long', '--always'], srcdir)
         try:
-            # don't get a good description with shallow clones, e.g., on Travis
+            # don't get a good description with shallow clones
             GIT_CYCLE = out.strip().decode('ascii').split('-')[1]
         except IndexError:
             pass

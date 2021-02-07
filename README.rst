@@ -7,9 +7,6 @@ Slycot
 .. image:: https://anaconda.org/conda-forge/slycot/badges/version.svg
    :target: https://anaconda.org/conda-forge/slycot
 
-.. image:: https://travis-ci.org/python-control/Slycot.svg?branch=master
-   :target: https://travis-ci.org/python-control/Slycot
-
 .. image:: https://github.com/python-control/Slycot/workflows/Build%20and%20Test%20Slycot/badge.svg
    :target: https://github.com/python-control/Slycot/actions
 
