@@ -152,7 +152,7 @@ jobs:
         shell: bash -l {0}
         run: |
           set -e
-          conda install conda-build numpy
+          conda install conda-build conda-verify numpy
           numpyversion=$(python -c 'import numpy; print(numpy.version.version)')
           conda-build --python "${{ matrix.python }}" --numpy $numpyversion conda-recipe
           # preserve directory structure for custom conda channel
