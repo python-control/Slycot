@@ -18,11 +18,12 @@
 #       Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 #       MA 02110-1301, USA.
 
+from warnings import warn
+
+import numpy as _np
 
 from . import _wrapper
 from .exceptions import raise_if_slycot_error, SlycotParameterError
-
-import numpy as _np
 
 
 def sb01bd(n,m,np,alpha,A,B,w,dico,tol=0.0,ldwork=None):
@@ -674,10 +675,10 @@ def sb02od(n,m,A,B,Q,R,dico,p=None,L=None,fact='N',uplo='U',sort='S',tol=0.0,ldw
     w.imag = alphai[0:2*n]/beta[0:2*n]
     return X,rcond,w,S,T
 
-def sb03md(n,C,A,U,dico,job='X',fact='N',trana='N',ldwork=None):
-    """  X,scale,sep,ferr,w = sb03md(dico,n,C,A,U,[job,fact,trana,ldwork])
 
-    To solve for X either the real continuous-time Lyapunov equation
+def sb03md57(A, U=None, C=None,
+             dico='C', job='X',fact='N',trana='N',ldwork=None):
+    """To solve for X either the real continuous-time Lyapunov equation
 
     ::
 
@@ -699,9 +700,6 @@ def sb03md(n,C,A,U,dico,job='X',fact='N',trana='N',ldwork=None):
     ----------
     n : int
         The order of the matrices A, X, and C.  n > 0.
-    C : (n, n) array_like
-        If job = 'X' or 'B', the leading n-by-n part of this array must
-        contain the symmetric matrix C. If job = 'S', C is not referenced.
     A : (n, n) array_like
         On entry, the leading n-by-n part of this array must contain the
         matrix A. If fact = 'F', then A contains an upper quasi-triangular
@@ -717,6 +715,9 @@ def sb03md(n,C,A,U,dico,job='X',fact='N',trana='N',ldwork=None):
         the real Schur factorization of A.
         If fact = 'N', then U is an output argument and on exit, it contains
         the orthogonal n-by-n matrix from the real Schur factorization of A.
+    C : (n, n) array_like
+        If job = 'X' or 'B', the leading n-by-n part of this array must
+        contain the symmetric matrix C. If job = 'S', C is not referenced.
     dico : {'C', 'D'}
         Specifies the equation from which X is to be determined as follows:
             := 'C':  Equation (1), continuous-time case;
@@ -779,23 +780,40 @@ def sb03md(n,C,A,U,dico,job='X',fact='N',trana='N',ldwork=None):
             eigenvalues of `A` and ``i != j``);  perturbed values were
             used to solve the equation (but the matrix A is unchanged).
     """
-
-
     hidden = ' (hidden by the wrapper)'
     arg_list = ['dico', 'job', 'fact', 'trana', 'n', 'A', 'LDA'+hidden, 'U',
         'LDU'+hidden, 'C', 'LDC'+hidden, 'scale', 'sep', 'ferr', 'wr'+hidden,
         'wi'+hidden, 'IWORK'+hidden, 'DWORK'+hidden, 'ldwork', 'INFO'+hidden]
+    n = A.shape[0]
+    if U is None:
+        U = _np.zeros((n, n))
+    if C is None:
+        C = _np.zeros((n, n))
     if ldwork is None:
-        ldwork = max(2*n*n,3*n)
+        ldwork = max(2*n*n, 3*n)
     if dico != 'C' and dico != 'D':
         raise SlycotParameterError('dico must be either D or C', -1)
-    out = _wrapper.sb03md(dico,n,C,A,U,job=job,fact=fact,trana=trana,ldwork=ldwork)
+    out = _wrapper.sb03md(dico, n, A, U, C,
+                          job=job, fact=fact, trana=trana, ldwork=ldwork)
     raise_if_slycot_error(out[-1], arg_list, sb03md.__doc__, locals())
-    X,scale,sep,ferr,wr,wi = out[:-1]
-    w = _np.zeros(n,'complex64')
+    Ar, Ur, X, scale, sep, ferr, wr, wi = out[:-1]
+    w = _np.zeros(n, 'complex64')
     w.real = wr[0:n]
     w.imag = wi[0:n]
-    return X,scale,sep,ferr,w
+    return Ar, Ur, X, scale, sep, ferr, w
+
+def sb03md(n, C, A, U, dico, job='X',fact='N',trana='N',ldwork=None):
+    """  X,scale,sep,ferr,w = sb03md(n,C,A,U,dico,[job,fact,trana,ldwork])
+    
+    .. deprecated:: 0.5
+        This function uses a call signature of SB03MD prior to SLICOT version
+        5.7. Use `sb03md57` instead.
+    """
+    warn("sb03md uses a call signature of SB03MD prior to SLICOT version 5.7."
+         " Use sb03md57 for the new call signature",
+         DeprecationWarning, stacklevel=2)
+    ret = sb03md57(A, U, C, dico, job, fact, trana, ldwork)
+    return ret[2:]
 
 def sb03od(n,m,A,Q,B,dico,fact='N',trans='N',ldwork=None):
     """  U,scale,w = sb03od(dico,n,m,A,Q,B,[fact,trans,ldwork])
