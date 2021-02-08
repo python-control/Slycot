@@ -2,7 +2,7 @@ Fortran sources
 ---------------
 
 This directory contains the f2py wrappers and some helper functions to work
-with the SLICOT Library routines. SLICOT-reference is a git submodule
+with the SLICOT Library routines. SLICOT-Reference is a git submodule
 forked from [SLICOT-Reference](https://github.com/SLICOT/SLICOT-Reference)
 plus some backported improvements.
 
