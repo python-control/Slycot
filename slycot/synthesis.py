@@ -698,26 +698,16 @@ def sb03md57(A, U=None, C=None,
 
     Parameters
     ----------
-    n : int
-        The order of the matrices A, X, and C.  n > 0.
     A : (n, n) array_like
-        On entry, the leading n-by-n part of this array must contain the
-        matrix A. If fact = 'F', then A contains an upper quasi-triangular
+        If fact = 'F', then A contains an upper quasi-triangular
         matrix in Schur canonical form; the elements below the upper
         Hessenberg part of the array A are not referenced.
-        On exit, the leading n-by-n upper Hessenberg part of this array
-        contains the upper quasi-triangular matrix in Schur canonical form
-        from the Schur factorization of A. The contents of array A is not
-        modified if fact = 'F'.
     U : (n, n) array_like
-        If fact = 'F', then U is an input argument and on entry the leading
-        n-by-n part of this array must contain the orthogonal matrix U of
+        If fact = 'F', then this array must contain the orthogonal matrix U of
         the real Schur factorization of A.
-        If fact = 'N', then U is an output argument and on exit, it contains
-        the orthogonal n-by-n matrix from the real Schur factorization of A.
     C : (n, n) array_like
-        If job = 'X' or 'B', the leading n-by-n part of this array must
-        contain the symmetric matrix C. If job = 'S', C is not referenced.
+        If job = 'X' or 'B', this array must contain the symmetric matrix C.
+        If job = 'S', C is not referenced.
     dico : {'C', 'D'}
         Specifies the equation from which X is to be determined as follows:
             := 'C':  Equation (1), continuous-time case;
@@ -745,6 +735,14 @@ def sb03md57(A, U=None, C=None,
 
     Returns
     -------
+    Ar : (n, n) ndarray
+        The leading n-by-n upper Hessenberg part of this array
+        contains the upper quasi-triangular matrix in Schur canonical form
+        from the Schur factorization of A. The content of array A is not
+        modified if fact = 'F'.
+    Ur : (n, n) ndarray
+        If fact = 'N', this arrray contains the orthogonal n-by-n matrix
+        from the real Schur factorization of A.
     X : (n, n) ndarray
         If job = 'X' or 'B', the leading n-by-n part contains the symmetric
         solution matrix.
@@ -761,7 +759,7 @@ def sb03md57(A, U=None, C=None,
         relative error in the computed solution, measured in the Frobenius
         norm:  norm(X - X_true)/norm(X_true).
     w : (n, ) complex ndarray
-        If fact = 'N', this array contain the eigenvalues of A.
+        If fact = 'N', this array contains the eigenvalues of A.
 
     Warns
     -----
@@ -804,7 +802,7 @@ def sb03md57(A, U=None, C=None,
 
 def sb03md(n, C, A, U, dico, job='X',fact='N',trana='N',ldwork=None):
     """  X,scale,sep,ferr,w = sb03md(n,C,A,U,dico,[job,fact,trana,ldwork])
-    
+
     .. deprecated:: 0.5
         This function uses a call signature of SB03MD prior to SLICOT version
         5.7. Use `sb03md57` instead.
@@ -2474,7 +2472,7 @@ def sb10fd(n,m,np,ncon,nmeas,gamma,A,B,C,D,tol=0.0,ldwork=None):
 
     To compute the matrices of an H-infinity (sub)optimal n-state
     controller
-    
+
     ::
 
            | AK | BK |
@@ -2482,7 +2480,7 @@ def sb10fd(n,m,np,ncon,nmeas,gamma,A,B,C,D,tol=0.0,ldwork=None):
            | CK | DK |
 
     using modified Glover's and Doyle's 1988 formulas, for the system
-    
+
     ::
 
                 | A  | B1  B2  |   | A | B |
@@ -2495,7 +2493,7 @@ def sb10fd(n,m,np,ncon,nmeas,gamma,A,B,C,D,tol=0.0,ldwork=None):
     of measurements (nmeas) being provided to the controller.
 
     It is assumed that
-    
+
     ::
 
       (A1) (A,B2) is stabilizable and (C2,A) is detectable,
@@ -2614,7 +2612,7 @@ def sb10fd(n,m,np,ncon,nmeas,gamma,A,B,C,D,tol=0.0,ldwork=None):
 
             ::
 
-                | A-j*omega*I  B2  | 
+                | A-j*omega*I  B2  |
                 |    C1        D12 |
 
             had no full column rank in respect to the tolerance eps
@@ -2642,7 +2640,7 @@ def sb10fd(n,m,np,ncon,nmeas,gamma,A,B,C,D,tol=0.0,ldwork=None):
 
                 |A   B2 |, |A   B1 |, D12 or D21).
                 |C1  D12|  |C2  D21|
-                
+
         :info = 6:
             The controller is not admissible (too small value
             of gamma)
@@ -2657,7 +2655,7 @@ def sb10fd(n,m,np,ncon,nmeas,gamma,A,B,C,D,tol=0.0,ldwork=None):
         :info = 9:
             The determinant of ``Im2 + Tu*D11HAT*Ty*D22`` is zero
             [3]_.
-    
+
     Notes
     -----
     Method
