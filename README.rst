@@ -197,8 +197,8 @@ in ``setup.cfg`` enforces the ``--pyargs slycot`` argument by default.
 
 License
 -------
-Up until version 0.4, Slycot used a version of SLICOT, which was released under
-the GPLv2 license. This mandates to release Slycot under the same license. In
+Up until version 0.4, Slycot used a version of SLICOT that was released under
+the GPLv2 license. This requires Slycot to be released under the same license. In
 December 2020, SLICOT 5.7 was released under BSD-3-Clause. However, as the
 existing Slycot wrappers have been submitted by many contributors, we cannot
 move away from GPLv2 unless we get the permission to do so by all authors.

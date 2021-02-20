@@ -213,7 +213,7 @@ class sdist_checked(sdist):
     """ check submodules on sdist to prevent incomplete tarballs """
     def run(self):
         # slycot had no submodules currently
-        # check_submodules()
+        check_submodules()
         sdist.run(self)
 
 def setup_package():
