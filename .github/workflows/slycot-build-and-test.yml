@@ -14,13 +14,14 @@ jobs:
 
   build-setup:
     # Super fast sniff build. If this fails, don't start the other jobs
-    name: Build setup.py on Ubuntu
+    name: Build sdist on Ubuntu
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Slycot
         uses: actions/checkout@v2
         with:
           fetch-depth: 0
+          submodules: 'recursive'
       - name: Set up Python
         uses: actions/setup-python@v2
       - name: Setup Ubuntu
@@ -28,8 +29,16 @@ jobs:
           sudo apt-get -y install gfortran cmake --fix-missing
           sudo apt-get -y install libblas-dev liblapack-dev
           pip install scikit-build numpy scipy pytest
-      - name: Install Slycot
-        run: python setup.py install
+      - name: Create Slycot sdist
+        run: python setup.py sdist
+
+      - name: Install Slycot sdist
+        run: |
+          mkdir cleancwd
+          cd cleancwd
+          tar xfz ../dist/slycot-*.tar.gz
+          cd slycot-*
+          python setup.py install
       - name: Run tests
         run: pytest
 
@@ -71,6 +80,7 @@ jobs:
         uses: actions/checkout@v2
         with:
           fetch-depth: 0
+          submodules: 'recursive'
       - name: Set up Python
         uses: actions/setup-python@v2
         with:
@@ -139,6 +149,7 @@ jobs:
         uses: actions/checkout@v2
         with:
           fetch-depth: 0
+          submodules: 'recursive'
       - name: Setup Conda
         uses: conda-incubator/setup-miniconda@v2
         with:

@@ -325,16 +325,16 @@ subroutine sb02mt_cl(jobg,jobl,fact,uplo,n,m,a,lda,b,ldb,q,ldq,r,ldr,l,ldl,ipiv,
     integer intent(hide) :: ldwork = 1
     integer intent(out) :: info
 end subroutine sb02mt_cl
-subroutine sb03md(dico,job,fact,trana,n,c,ldc,a,lda,u,ldu,scale,sep,ferr,wr,wi,iwork,dwork,ldwork,info) ! in :new:SB03MD.f
+subroutine sb03md(dico,job,fact,trana,n,a,lda,u,ldu,c,ldc,scale,sep,ferr,wr,wi,iwork,dwork,ldwork,info) ! in :new:SB03MD.f
     fortranname sb03md
     character :: dico
     character :: job='X'
     character :: fact='N'
     character :: trana='N'
     integer check(n>0) :: n
-    double precision dimension(n,n),depend(n) :: a
+    double precision intent(in,out,copy),dimension(n,n),depend(n) :: a
     integer intent(hide),depend(a) :: lda=shape(a,0)
-    double precision dimension(n,n),depend(n) :: u
+    double precision  intent(in,out,copy),dimension(n,n),depend(n) :: u
     integer intent(hide),depend(u) :: ldu=shape(u,0)
     double precision intent(in,out,copy),dimension(n,n),depend(n) :: c
     integer intent(hide),depend(c) :: ldc=shape(c,0)

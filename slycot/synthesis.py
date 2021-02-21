@@ -18,11 +18,12 @@
 #       Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 #       MA 02110-1301, USA.
 
+from warnings import warn
+
+import numpy as _np
 
 from . import _wrapper
 from .exceptions import raise_if_slycot_error, SlycotParameterError
-
-import numpy as _np
 
 
 def sb01bd(n,m,np,alpha,A,B,w,dico,tol=0.0,ldwork=None):
@@ -674,10 +675,10 @@ def sb02od(n,m,A,B,Q,R,dico,p=None,L=None,fact='N',uplo='U',sort='S',tol=0.0,ldw
     w.imag = alphai[0:2*n]/beta[0:2*n]
     return X,rcond,w,S,T
 
-def sb03md(n,C,A,U,dico,job='X',fact='N',trana='N',ldwork=None):
-    """  X,scale,sep,ferr,w = sb03md(dico,n,C,A,U,[job,fact,trana,ldwork])
 
-    To solve for X either the real continuous-time Lyapunov equation
+def sb03md57(A, U=None, C=None,
+             dico='C', job='X',fact='N',trana='N',ldwork=None):
+    """To solve for X either the real continuous-time Lyapunov equation
 
     ::
 
@@ -697,26 +698,16 @@ def sb03md(n,C,A,U,dico,job='X',fact='N',trana='N',ldwork=None):
 
     Parameters
     ----------
-    n : int
-        The order of the matrices A, X, and C.  n > 0.
-    C : (n, n) array_like
-        If job = 'X' or 'B', the leading n-by-n part of this array must
-        contain the symmetric matrix C. If job = 'S', C is not referenced.
     A : (n, n) array_like
-        On entry, the leading n-by-n part of this array must contain the
-        matrix A. If fact = 'F', then A contains an upper quasi-triangular
+        If fact = 'F', then A contains an upper quasi-triangular
         matrix in Schur canonical form; the elements below the upper
         Hessenberg part of the array A are not referenced.
-        On exit, the leading n-by-n upper Hessenberg part of this array
-        contains the upper quasi-triangular matrix in Schur canonical form
-        from the Schur factorization of A. The contents of array A is not
-        modified if fact = 'F'.
     U : (n, n) array_like
-        If fact = 'F', then U is an input argument and on entry the leading
-        n-by-n part of this array must contain the orthogonal matrix U of
+        If fact = 'F', then this array must contain the orthogonal matrix U of
         the real Schur factorization of A.
-        If fact = 'N', then U is an output argument and on exit, it contains
-        the orthogonal n-by-n matrix from the real Schur factorization of A.
+    C : (n, n) array_like
+        If job = 'X' or 'B', this array must contain the symmetric matrix C.
+        If job = 'S', C is not referenced.
     dico : {'C', 'D'}
         Specifies the equation from which X is to be determined as follows:
             := 'C':  Equation (1), continuous-time case;
@@ -744,6 +735,14 @@ def sb03md(n,C,A,U,dico,job='X',fact='N',trana='N',ldwork=None):
 
     Returns
     -------
+    Ar : (n, n) ndarray
+        The leading n-by-n upper Hessenberg part of this array
+        contains the upper quasi-triangular matrix in Schur canonical form
+        from the Schur factorization of A. The content of array A is not
+        modified if fact = 'F'.
+    Ur : (n, n) ndarray
+        If fact = 'N', this arrray contains the orthogonal n-by-n matrix
+        from the real Schur factorization of A.
     X : (n, n) ndarray
         If job = 'X' or 'B', the leading n-by-n part contains the symmetric
         solution matrix.
@@ -760,7 +759,7 @@ def sb03md(n,C,A,U,dico,job='X',fact='N',trana='N',ldwork=None):
         relative error in the computed solution, measured in the Frobenius
         norm:  norm(X - X_true)/norm(X_true).
     w : (n, ) complex ndarray
-        If fact = 'N', this array contain the eigenvalues of A.
+        If fact = 'N', this array contains the eigenvalues of A.
 
     Warns
     -----
@@ -779,23 +778,40 @@ def sb03md(n,C,A,U,dico,job='X',fact='N',trana='N',ldwork=None):
             eigenvalues of `A` and ``i != j``);  perturbed values were
             used to solve the equation (but the matrix A is unchanged).
     """
-
-
     hidden = ' (hidden by the wrapper)'
     arg_list = ['dico', 'job', 'fact', 'trana', 'n', 'A', 'LDA'+hidden, 'U',
         'LDU'+hidden, 'C', 'LDC'+hidden, 'scale', 'sep', 'ferr', 'wr'+hidden,
         'wi'+hidden, 'IWORK'+hidden, 'DWORK'+hidden, 'ldwork', 'INFO'+hidden]
+    n = A.shape[0]
+    if U is None:
+        U = _np.zeros((n, n))
+    if C is None:
+        C = _np.zeros((n, n))
     if ldwork is None:
-        ldwork = max(2*n*n,3*n)
+        ldwork = max(2*n*n, 3*n)
     if dico != 'C' and dico != 'D':
         raise SlycotParameterError('dico must be either D or C', -1)
-    out = _wrapper.sb03md(dico,n,C,A,U,job=job,fact=fact,trana=trana,ldwork=ldwork)
+    out = _wrapper.sb03md(dico, n, A, U, C,
+                          job=job, fact=fact, trana=trana, ldwork=ldwork)
     raise_if_slycot_error(out[-1], arg_list, sb03md.__doc__, locals())
-    X,scale,sep,ferr,wr,wi = out[:-1]
-    w = _np.zeros(n,'complex64')
+    Ar, Ur, X, scale, sep, ferr, wr, wi = out[:-1]
+    w = _np.zeros(n, 'complex64')
     w.real = wr[0:n]
     w.imag = wi[0:n]
-    return X,scale,sep,ferr,w
+    return Ar, Ur, X, scale, sep, ferr, w
+
+def sb03md(n, C, A, U, dico, job='X',fact='N',trana='N',ldwork=None):
+    """  X,scale,sep,ferr,w = sb03md(n,C,A,U,dico,[job,fact,trana,ldwork])
+
+    .. deprecated:: 0.5
+        This function uses a call signature of SB03MD prior to SLICOT version
+        5.7. Use `sb03md57` instead.
+    """
+    warn("sb03md uses a call signature of SB03MD prior to SLICOT version 5.7."
+         " Use sb03md57 for the new call signature",
+         DeprecationWarning, stacklevel=2)
+    ret = sb03md57(A, U, C, dico, job, fact, trana, ldwork)
+    return ret[2:]
 
 def sb03od(n,m,A,Q,B,dico,fact='N',trans='N',ldwork=None):
     """  U,scale,w = sb03od(dico,n,m,A,Q,B,[fact,trans,ldwork])
@@ -2456,7 +2472,7 @@ def sb10fd(n,m,np,ncon,nmeas,gamma,A,B,C,D,tol=0.0,ldwork=None):
 
     To compute the matrices of an H-infinity (sub)optimal n-state
     controller
-    
+
     ::
 
            | AK | BK |
@@ -2464,7 +2480,7 @@ def sb10fd(n,m,np,ncon,nmeas,gamma,A,B,C,D,tol=0.0,ldwork=None):
            | CK | DK |
 
     using modified Glover's and Doyle's 1988 formulas, for the system
-    
+
     ::
 
                 | A  | B1  B2  |   | A | B |
@@ -2477,7 +2493,7 @@ def sb10fd(n,m,np,ncon,nmeas,gamma,A,B,C,D,tol=0.0,ldwork=None):
     of measurements (nmeas) being provided to the controller.
 
     It is assumed that
-    
+
     ::
 
       (A1) (A,B2) is stabilizable and (C2,A) is detectable,
@@ -2596,7 +2612,7 @@ def sb10fd(n,m,np,ncon,nmeas,gamma,A,B,C,D,tol=0.0,ldwork=None):
 
             ::
 
-                | A-j*omega*I  B2  | 
+                | A-j*omega*I  B2  |
                 |    C1        D12 |
 
             had no full column rank in respect to the tolerance eps
@@ -2624,7 +2640,7 @@ def sb10fd(n,m,np,ncon,nmeas,gamma,A,B,C,D,tol=0.0,ldwork=None):
 
                 |A   B2 |, |A   B1 |, D12 or D21).
                 |C1  D12|  |C2  D21|
-                
+
         :info = 6:
             The controller is not admissible (too small value
             of gamma)
@@ -2639,7 +2655,7 @@ def sb10fd(n,m,np,ncon,nmeas,gamma,A,B,C,D,tol=0.0,ldwork=None):
         :info = 9:
             The determinant of ``Im2 + Tu*D11HAT*Ty*D22`` is zero
             [3]_.
-    
+
     Notes
     -----
     Method
