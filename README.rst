@@ -65,6 +65,7 @@ from the conda-forge channel with the following command::
 
     conda install -c conda-forge slycot
 
+
 Compiling from source
 ---------------------
 
@@ -77,12 +78,53 @@ the correct header files are installed, and specify the environment variable
 
 .. _BLA_VENDOR: https://cmake.org/cmake/help/latest/module/FindBLAS.html#input-variables
 
+Getting the full source code
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-From source without conda (Linux, macOS, Windows)
+Get it from PyPI
+^^^^^^^^^^^^^^^^
+
+Get the source code of the latest release is available from `PyPI`_. It
+contains both the Python to Fortran wrappers as well as the SLICOT-Reference
+Fortran sources.
+
+.. _PyPI: https://pypi.org/project/slycot
+
+Get it from GitHub archives
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+If you decide to download a source code archive from GitHub (tagged release or
+a specific branch), you also have to get the correct version of our
+SLICOT-Reference fork and place it into ``slycot/src/SLICOT-Reference``:
+ 
+1. Download and unpack https://github.com/python-control/Slycot/archive/master.zip
+2. Go to https://github.com/python-control/Slycot/master/slycot/src
+3. Follow the link of ``SLICOT-Reference @ <commit-id>``
+4. Download the archive of SLICOT-Reference from the Code download button
+   (``https://github.com/python-control/SLICOT-Reference/archive/<commit-id>.zip``)
+5. Unpack the contents of the SLICOT-Reference archive into
+   ``slycot/src/SLICOT-Reference``
+
+Replace ``master`` with the release tag or branch name, which you want to build.
+
+Clone the git repository
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+Directly checkout the submodule, when cloning the git repository::
+
+    git clone --recurse-submodules https://github.com/python-control/Slycot.git
+
+or if you forked the repository::
+
+    git clone --recurse-submodules https://github.com/<your-username>/Slycot.git
+
+If you already have a local checkout, but still need to init the submodule::
+
+    git submodule init
+    git submodule update
+
+Compiling with setuptools (Linux, macOS, Windows)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Unpack the source code (or clone the git repository) to a directory of your choice,
-e.g. ``/path/to/slycot_src/``
 
 If you need to specify a specific compiler, set the environment variable FC
 before running the install::
@@ -98,8 +140,8 @@ To build and install, execute::
     cd /path/to/slycot_src/
     python setup.py install
 
-From source using the conda recipe
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Using the conda recipe
+~~~~~~~~~~~~~~~~~~~~~~
 
 You can use conda to compile and install Slycot from source. The recipe is
 located in the folder ``conda-recipe`` and is intended to work for all
@@ -127,8 +169,8 @@ To build and install::
     conda build -c conda-forge conda-recipe
     conda install -c conda-forge --use-local slycot
 
-From source in a conda environment (Windows)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+With setuptools in a conda environment (Windows)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 A similar method can be used for Linux and macOS, but is detailed here
 for Windows.  This method uses conda and conda-forge to get most build
@@ -163,8 +205,6 @@ If you have these build prerequisites, the command::
 will download the latest release of the source code from `PyPI`_, compile, and
 install Slycot into the currently configured location (virtual environment or
 user site-packages).
-
-.. _PyPI: https://pypi.org/project/slycot
 
 Additional hints
 ~~~~~~~~~~~~~~~~
