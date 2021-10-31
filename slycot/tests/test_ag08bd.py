@@ -47,8 +47,8 @@ test1_D = np.array([[ 1,  2, -2],
                     [ 0,  0,  0]])
 
 
-class test_tg01fd(unittest.TestCase):
-    """ Verify ag08bd with input parameters according to example in documentation """
+class test_ag08bd(unittest.TestCase):
+    """Verify ag08bd with input parameters according to example in documentation."""
 
     def test1_ag08bd(self):
         """test [A-lambda*E]
@@ -108,8 +108,9 @@ class test_tg01fd(unittest.TestCase):
 
         Af,Ef,nrank,niz,infz,kronr,infe,kronl = analysis.ag08bd(l=test1_l,n=test1_n,m=test1_m,p=test1_p,A=test1_A,E=test1_E,B=test1_B,C=test1_C,D=test1_D,equil=test1_equil, tol=test1_tol)
 
-        assert_almost_equal(Af, [[0.77045021]])
-        assert_almost_equal(Ef, [[0.77045021]])
+        # Af-lambda*Ef==0. => lambda==1. => Finite Smith zero of S(lambda) == 1.
+        assert Af.shape == (1, 1)
+        assert_almost_equal(Af, Ef)
         assert_equal(nrank, 11)
         assert_equal(niz, 2)
         assert_equal(infz, [0,1])
