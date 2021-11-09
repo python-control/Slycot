@@ -55,10 +55,9 @@ jobs:
               - 'ubuntu'
               - 'macos'
             python:
-              - '3.6'
               - '3.7'
-              - '3.8'
               - '3.9'
+              - '3.10'
             bla_vendor: [ 'unset' ]
             include:
               - os: 'ubuntu'
@@ -143,8 +142,8 @@ jobs:
             - 'macos'
             - 'windows'
           python:
-            - '3.6'
             - '3.9'
+            - '3.10'
 
     steps:
       - name: Checkout Slycot
