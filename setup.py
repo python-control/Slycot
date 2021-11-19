@@ -23,9 +23,6 @@ try:
 except ImportError:
     raise ImportError('scikit-build must be installed before running setup.py')
 
-if sys.version_info[0:2] < (3, 6):
-    raise RuntimeError("Python version >= 3.6 required.")
-
 DOCLINES = __doc__.split("\n")
 
 CLASSIFIERS = """\
@@ -37,10 +34,10 @@ License :: OSI Approved :: GNU General Public License v2 (GPLv2)
 Programming Language :: C
 Programming Language :: Fortran
 Programming Language :: Python
-Programming Language :: Python :: 3.6
 Programming Language :: Python :: 3.7
 Programming Language :: Python :: 3.8
 Programming Language :: Python :: 3.9
+Programming Language :: Python :: 3.10
 Topic :: Software Development
 Topic :: Scientific/Engineering
 Operating System :: Microsoft :: Windows
@@ -243,6 +240,7 @@ def setup_package():
                     '-DFULL_VERSION=' + VERSION + '.git' + gitrevision[:7]],
         zip_safe=False,
         install_requires=['numpy'],
+        python_requires=">=3.7"
     )
 
     try:

@@ -14,7 +14,7 @@ requirements:
     - {{ compiler('fortran') }}  # [not win]
     - {{ compiler('c') }}
     - cmake
-    - flang  # [win]
+    - flang >=11  # [win]
 
   host:
     # Always build against NETLIB ('Generic') LAPACK/Blas
