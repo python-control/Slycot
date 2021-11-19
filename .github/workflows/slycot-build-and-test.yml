@@ -143,6 +143,7 @@ jobs:
             - 'windows'
           python:
             - '3.9'
+            - '3.10'
 
     steps:
       - name: Checkout Slycot
