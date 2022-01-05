@@ -788,7 +788,7 @@ def sb03md57(A, U=None, C=None,
     if C is None:
         C = _np.zeros((n, n))
     if ldwork is None:
-        ldwork = max(2*n*n, 3*n)
+        ldwork = max(2*n*n, 3*n) if dico == 'C' else 2*n*n + 2*n
     if dico != 'C' and dico != 'D':
         raise SlycotParameterError('dico must be either D or C', -1)
     out = _wrapper.sb03md(dico, n, A, U, C,
