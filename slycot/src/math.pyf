@@ -18,9 +18,9 @@ subroutine mb03rd(jobx,sort,n,pmax,a,lda,x,ldx,nblcks,blsize,wr,wi,tol,dwork,inf
   integer intent(in),required,check(n>=0) :: n
   double precision intent(in),required,check(pmax>=1.0) :: pmax
   double precision intent(in,out,copy),dimension(lda,n),depend(n) :: a
-  integer intent(hide),check(lda>=max(1,n)) :: lda=shape(a,0)
+  integer intent(hide),check(lda>=max(1,n)),depend(a,n) :: lda=shape(a,0)
   double precision intent(in,out,copy),dimension(ldx,n),depend(n) :: x
-  integer intent(hide),check((*jobx == 'N' && ldx>=1) || (*jobx == 'U' && ldx >= max(1,n))) :: ldx=shape(x,0)
+  integer intent(hide),check((*jobx == 'N' && ldx>=1) || (*jobx == 'U' && ldx >= max(1,n))),depend(x,n,jobx) :: ldx=shape(x,0)
   integer intent(out) :: nblcks
   integer intent(out),dimension(n) :: blsize
   double precision intent(out),dimension(n) :: wr

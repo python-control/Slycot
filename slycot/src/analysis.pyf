@@ -116,13 +116,13 @@ subroutine ab08nd(equil,n,m,p,a,lda,b,ldb,c,ldc,d,ldd,nu,rank_bn,dinfz,nkror,nkr
     integer intent(in),check(m>=0),required :: m
     integer intent(in),check(p>=0),required :: p
     double precision intent(in),dimension(lda,*),check(shape(a,1)>=n) :: a
-    integer intent(hide),check(lda>=max(1,n)) :: lda=shape(a,0)
+    integer intent(hide),check(lda>=max(1,n)),depend(n,a) :: lda=shape(a,0)
     double precision intent(in),dimension(ldb,*),check(shape(b,1)>=m) :: b
-    integer intent(hide),check(ldb>=max(1,n)) :: ldb=shape(b,0)
+    integer intent(hide),check(ldb>=max(1,n)),depend(n,b) :: ldb=shape(b,0)
     double precision intent(in),dimension(ldc,*),check(shape(c,1)>=n) :: c
-    integer intent(hide),check(ldc>=max(1,p)) :: ldc=shape(c,0)
+    integer intent(hide),check(ldc>=max(1,p)),depend(p,c) :: ldc=shape(c,0)
     double precision intent(in),dimension(ldd,*),check(shape(d,1)>=m) :: d
-    integer intent(hide),check(ldd>=max(1,p)) :: ldd=shape(d,0)
+    integer intent(hide),check(ldd>=max(1,p)),depend(p,d) :: ldd=shape(d,0)
     integer intent(out) :: nu
     integer intent(out) :: rank_bn
     integer intent(out) :: dinfz
@@ -147,13 +147,13 @@ subroutine ab08nz(equil,n,m,p,a,lda,b,ldb,c,ldc,d,ldd,nu,rank_bn,dinfz,nkror,nkr
     integer intent(in),check(m>=0),required :: m
     integer intent(in),check(p>=0),required :: p
     complex*16 intent(in),dimension(lda,*),check(shape(a,1)>=n) :: a
-    integer intent(hide),check(lda>=max(1,n)) :: lda=shape(a,0)
+    integer intent(hide),check(lda>=max(1,n)),depend(n,a) :: lda=shape(a,0)
     complex*16 intent(in),dimension(ldb,*),check(shape(b,1)>=m) :: b
-    integer intent(hide),check(ldb>=max(1,n)) :: ldb=shape(b,0)
+    integer intent(hide),check(ldb>=max(1,n)),depend(n,b) :: ldb=shape(b,0)
     complex*16 intent(in),dimension(ldc,*),check(shape(c,1)>=n) :: c
-    integer intent(hide),check(ldc>=max(1,p)) :: ldc=shape(c,0)
+    integer intent(hide),check(ldc>=max(1,p)),depend(p,c) :: ldc=shape(c,0)
     complex*16 intent(in),dimension(ldd,*),check(shape(d,1)>=m) :: d
-    integer intent(hide),check(ldd>=max(1,p)) :: ldd=shape(d,0)
+    integer intent(hide),check(ldd>=max(1,p)),depend(p,d) :: ldd=shape(d,0)
     integer intent(out) :: nu
     integer intent(out) :: rank_bn
     integer intent(out) :: dinfz
@@ -163,9 +163,9 @@ subroutine ab08nz(equil,n,m,p,a,lda,b,ldb,c,ldc,d,ldd,nu,rank_bn,dinfz,nkror,nkr
     integer intent(out),dimension(max(n,m)+1) :: kronr
     integer intent(out),dimension(max(n,p)+1) :: kronl
     complex*16 intent(out),dimension(max(1,n+m),n+min(p,m)) :: af
-    integer intent(hide),check(ldaf>=max(1,n+m)) :: ldaf=shape(af,0)
+    integer intent(hide),check(ldaf>=max(1,n+m)),depend(n,p,af) :: ldaf=shape(af,0)
     complex*16 intent(out),dimension(max(1,n+p),n+m) :: bf
-    integer intent(hide),check(ldbf>=max(1,n+p)) :: ldbf=shape(bf,0)
+    integer intent(hide),check(ldbf>=max(1,n+p)),depend(n,p,bf) :: ldbf=shape(bf,0)
     double precision intent(in) :: tol = 0.0
     integer intent(hide),cache,dimension(max(m,p)) :: iwork
     double precision intent(hide),cache,dimension(max(n,2*max(p,m))) :: dwork
