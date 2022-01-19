@@ -1,3 +1,13 @@
+Have a go now!
+======
+Try out the examples in the examples folder using the binder service.
+
+.. image:: https://mybinder.org/badge_logo.svg
+ :target: https://mybinder.org/v2/gh/python-control/python-control/HEAD
+
+
+
+
 Slycot
 ======
 
