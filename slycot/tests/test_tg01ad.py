@@ -59,13 +59,13 @@ test1_B_desired = \
 test1_C_desired = \
     np.array([[-1e-2,   0.0,    1e-3,    0.0   ],
               [ 0.0,    1e-3,  -1e-3,    1e-3  ]])
-  
+
 test1_lscale_desired = \
     np.array([  10.0,   10.0,   0.1,     1e-2  ])
 
 test1_rscale_desired = \
     np.array([  0.1,    0.1,    1.0,     10.0  ])
-                
+
 class test_tg01ad(unittest.TestCase):
     """ test1: Verify tg01ad with input parameters according to example in documentation """
 
@@ -79,10 +79,6 @@ class test_tg01ad(unittest.TestCase):
         assert_almost_equal(C, test1_C_desired)
         assert_almost_equal(lscale, test1_lscale_desired)
         assert_almost_equal(rscale, test1_rscale_desired)
-  
-
-def suite():
-   return unittest.TestLoader().loadTestsFromTestCase(TestConvert)
 
 
 if __name__ == "__main__":

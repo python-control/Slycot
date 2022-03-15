@@ -7,106 +7,236 @@ Slycot
 .. image:: https://anaconda.org/conda-forge/slycot/badges/version.svg
    :target: https://anaconda.org/conda-forge/slycot
 
-.. image:: https://travis-ci.org/python-control/slycot.svg?branch=master
-   :target: https://travis-ci.org/python-control/slycot
+.. image:: https://github.com/python-control/Slycot/workflows/Build%20and%20Test%20Slycot/badge.svg
+   :target: https://github.com/python-control/Slycot/actions
 
-.. image:: https://coveralls.io/repos/python-control/slycot/badge.png
-   :target: https://coveralls.io/r/python-control/slycot
+.. image:: https://coveralls.io/repos/github/python-control/Slycot/badge.svg?branch=master
+   :target: https://coveralls.io/github/python-control/Slycot?branch=master
 
 Python wrapper for selected SLICOT routines, notably including solvers for
 Riccati, Lyapunov, and Sylvester equations.
 
-
 Dependencies
 ------------
 
-Slycot depends on Numpy and, if you are installing a binary distribution,
-Numpy should be the only prerequisite (though you may need the LAPACK
-libraries as well, depending on your particular system configuration).
+Slycot supports Python versions 3.6 or later.
 
-If you are installing Slycot from source, you will need a FORTRAN
-compiler, such as gfortran, and BLAS/LAPACK libraries.
+To run the compiled Slycot package, the following must be installed as
+dependencies:
 
-On Debian derivatives you should be able to install all the above with a
-single command::
+- Python 3.6+
+- NumPy
 
-    sudo apt-get build-dep python-scipy
+If you are compiling and installing Slycot from source, you will need the
+following dependencies:
 
-On Mac, you will first need to install the `developer tools
-<https://developer.apple.com/xcode/>`_.  You can then install gfortran using
-`homebrew <http://brew.sh>`_ with::
+- 3.6+
+- NumPy
+- scikit-build >= 0.10.0
+- CMake
+- C compiler (e.g. gcc, MS Visual C++, clang)
+- FORTRAN compiler (e.g. gfortran, ifort, flang)
+- BLAS/LAPACK (e.g. OpenBLAS, ATLAS, MKL)
 
-    brew install gcc
+To run the Slycot unit tests and examples, you'll also need SciPy and
+pytest.
 
-On Windows, the BLAS and LAPACK libraries can be obtained from: 
-
-http://icl.cs.utk.edu/lapack-for-windows/libraries/VisualStudio/3.4.1/Dynamic-MINGW/Win32/
-
+There are a variety of ways to install these dependencies on different
+operating systems. See the individual packages' documentation for options.
 
 Installing
------------
+----------
 
-Using pip
-~~~~~~~~~
+The easiest way to get started with Slycot is to install pre-compiled
+binaries from conda-forge (see below); these are available for Linux,
+OSX, and Windows.
 
-Slycot supports the pip packaging system. You must first have pip installed.
+Compiling the Slycot source is unfortunately a bit tricky, especially
+on Windows, but we give some pointers further below for doing this.
 
-On Debian Linux based systems you can install pip with the command::
+Using conda and conda-forge
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    sudo apt-get install pip
-
-Pip can then be used to install Slycot with the command::
-
-    pip install slycot
-
-Note that installing with pip may or may not require having the build
-dependencies installed.  There are some binary "wheels" available on PyPI,
-so if those versions match with your system, you may be able to avoid
-installing from source.
-
-Using conda
-~~~~~~~~~~~
-
-Slycot can be installed via the conda package manager from the conda-forge
-channel with the following command::
+First install Miniconda or Anaconda.  Slycot can then be installed
+from the conda-forge channel with the following command::
 
     conda install -c conda-forge slycot
 
-From source
-~~~~~~~~~~~
 
-Unpack the course code to a directory of your choice,
-e.g. ``/path/to/slycot_src/``, and execute::
+Compiling from source
+---------------------
+
+The hardest part about installing from source is getting a working
+version of FORTRAN and LAPACK (provided by OpenBLAS, MKL, etc.)
+installed on your system. Depending on where you get your NumPy and SciPy
+from, you will need to use a compatible LAPACK implementation. Make sure that
+the correct header files are installed, and specify the environment variable
+`BLA_VENDOR`_, if necessary.
+
+.. _BLA_VENDOR: https://cmake.org/cmake/help/latest/module/FindBLAS.html#input-variables
+
+Getting the full source code
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Get it from PyPI
+^^^^^^^^^^^^^^^^
+
+Get the source code of the latest release is available from `PyPI`_. It
+contains both the Python to Fortran wrappers as well as the SLICOT-Reference
+Fortran sources.
+
+.. _PyPI: https://pypi.org/project/slycot
+
+Get it from GitHub archives
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+If you decide to download a source code archive from GitHub (tagged release or
+a specific branch), you also have to get the correct version of our
+SLICOT-Reference fork and place it into ``slycot/src/SLICOT-Reference``:
+ 
+1. Download and unpack https://github.com/python-control/Slycot/archive/master.zip
+2. Go to https://github.com/python-control/Slycot/master/slycot/src
+3. Follow the link of ``SLICOT-Reference @ <commit-id>``
+4. Download the archive of SLICOT-Reference from the Code download button
+   (``https://github.com/python-control/SLICOT-Reference/archive/<commit-id>.zip``)
+5. Unpack the contents of the SLICOT-Reference archive into
+   ``slycot/src/SLICOT-Reference``
+
+Replace ``master`` with the release tag or branch name, which you want to build.
+
+Clone the git repository
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+Directly checkout the submodule, when cloning the git repository::
+
+    git clone --recurse-submodules https://github.com/python-control/Slycot.git
+
+or if you forked the repository::
+
+    git clone --recurse-submodules https://github.com/<your-username>/Slycot.git
+
+If you already have a local checkout, but still need to init the submodule::
+
+    git submodule init
+    git submodule update
+
+Compiling with setuptools (Linux, macOS, Windows)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you need to specify a specific compiler, set the environment variable FC
+before running the install::
+
+    # Linux/OSX:
+    export FC=/path/to/my/fortran
+
+    # Windows:
+    set FC=D:\path\to\my\fortran.exe
+
+To build and install, execute::
 
     cd /path/to/slycot_src/
     python setup.py install
 
-Where # is for commands that needs to be executed as root/administrator. 
+Using the conda recipe
+~~~~~~~~~~~~~~~~~~~~~~
 
-If the build fails and you are on a 64bit OS you may want to try::
+You can use conda to compile and install Slycot from source. The recipe is
+located in the folder ``conda-recipe`` and is intended to work for all
+platforms.
 
-    python setup.py config_fc --arch="-march=x86-64" build
-    python setup.py install
+The ``conda-forge`` channel provides almost all requirements to compile
+Slycot with `conda-build`_, except:
 
-You can also use conda to build and install slycot from source::
+- On macOS, you need the macOS SDK. See the
+  `conda-build documentation for macOS`_ how to get it.
+- On Windows, you need to install `Microsoft Visual C++ 14.x`_ provided e.g.
+  by `Microsoft Visual Studio`_.  To build, you'll need a command shell setup
+  for both conda and the Visual Studio build tools.  See `conda activation`_
+  and `Microsoft Visual Studio setup`_ for information on this.
 
-    conda build conda-recipe
-    conda install --use-local slycot
+.. _conda-build: https://docs.conda.io/projects/conda-build/en/latest/resources/commands/conda-build.html
+.. _conda-build documentation for macOS: https://docs.conda.io/projects/conda-build/en/latest/resources/compiler-tools.html#macos-sdk
+.. _Microsoft Visual C++ 14.x: https://wiki.python.org/moin/WindowsCompilers
+.. _Microsoft Visual Studio: https://visualstudio.microsoft.com/de/vs/
+.. _conda activation: https://docs.conda.io/projects/conda/en/latest/user-guide/troubleshooting.html#windows-environment-has-not-been-activated
+.. _Microsoft Visual Studio setup: https://docs.microsoft.com/en-us/cpp/build/setting-the-path-and-environment-variables-for-command-line-builds
 
-If you prefer to use the OpenBLAS library, a conda recipe is available in
-``conda-recipe-openblas``.
+To build and install::
 
-Additional tips for how to install slycot from source can be found in the
-.travis.yml (commands used for Travis CI) and conda-recipe/ (conda
-pre-requisities).  The hardest part about installing from source is getting
-a working version of FORTRAN and LAPACK installed on your system and working
-properly with Python.  If you are using conda, you can also get working
-(binary) copies of LAPACK from conda-forge using the command::
+    conda build -c conda-forge conda-recipe
+    conda install -c conda-forge --use-local slycot
 
-	conda install -c conda-forge lapack
+With setuptools in a conda environment (Windows)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Slycot will also work with the OpenBLAS libraries.
+A similar method can be used for Linux and macOS, but is detailed here
+for Windows.  This method uses conda and conda-forge to get most build
+dependencies, *except* for the C compiler.
 
-Note that in some cases you may need to set the LIBRARY_PATH environment
-variable to pick up dependencies such as -lpythonN.m (where N.m is the
-version of python you are using).
+This procedure has been tested on Python 3.7 and 3.8.
+
+1. Install `Microsoft Visual Studio`_.
+2. Unpack the source code to a directory of your choice,
+3. Create a command shell setup that can run the conda commands and the Visual
+   Studio build tools (see above)
+4. In such a command shell, within the Slycot source code directory, run the
+   following commands to build and install Slycot (this example creates a
+   Python 3.8 environment)::
+
+        conda create --channel conda-forge --name build-slycot python=3.8 numpy scipy libblas=*=*netlib liblapack=*=*netlib scikit-build flang pytest
+        conda activate build-slycot
+
+        python setup.py install
+
+Using pip
+~~~~~~~~~
+
+We publish Slycot to the Python package index, but only as a source
+package, so to install using pip you'll first need to install the
+build prerequisites (compilers, libraries, etc.)
+
+If you have these build prerequisites, the command::
+
+    pip install slycot
+
+will download the latest release of the source code from `PyPI`_, compile, and
+install Slycot into the currently configured location (virtual environment or
+user site-packages).
+
+Additional hints
+~~~~~~~~~~~~~~~~
+
+Additional hints for how to install Slycot from source can be found in the
+`.github`_ directory , (commands used to build and test in the GitHub Actions
+CI), the `logs from the GitHub Actions`_, and the ``conda-recipe`` directory
+(conda pre-requisites, install and test commands) which is included
+in the source code repository.
+
+.. _.github: https://github.com/python-control/Slycot/tree/master/.github
+.. _`logs from the GitHub Actions`: https://github.com/python-control/Slycot/actions
+
+Testing
+-------
+To test if the installation was successful, you can run the slycot unit tests::
+
+    pytest --pyargs slycot
+
+You may also run the tests by calling ``slycot.test()`` from within the python
+interpreter::
+
+    import slycot
+    slycot.test()
+
+Importing ``slycot`` or running ``pytest`` without ``--pyargs slycot`` from
+inside the source directory will fail, unless the compiled wrapper library has
+been installed into that directory. Note that the ``[tool:pytest]`` section
+in ``setup.cfg`` enforces the ``--pyargs slycot`` argument by default.
+
+License
+-------
+Up until version 0.4, Slycot used a version of SLICOT that was released under
+the GPLv2 license. This requires Slycot to be released under the same license. In
+December 2020, SLICOT 5.7 was released under BSD-3-Clause. However, as the
+existing Slycot wrappers have been submitted by many contributors, we cannot
+move away from GPLv2 unless we get the permission to do so by all authors.
+Thus, Slycot remains licensed under GPLv2 until further notice.

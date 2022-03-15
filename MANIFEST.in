@@ -1,6 +1,15 @@
 include slycot/src/*.pyf
 include COPYING
-include CREDITS
+include AUTHORS
 include gpl-2.0.txt
 include README.rst
-include MANIFEST.in
+include CMakeLists.txt
+include pyproject.toml
+include conda-recipe/*
+include slycot/CMakeLists.txt
+include slycot/tests/CMakeLists.txt
+include slycot/*.py
+include slycot/version.py.in
+include slycot/src/*.f
+include slycot/tests/*.py
+graft slycot/src/SLICOT-Reference
