@@ -325,16 +325,16 @@ subroutine sb02mt_cl(jobg,jobl,fact,uplo,n,m,a,lda,b,ldb,q,ldq,r,ldr,l,ldl,ipiv,
     integer intent(hide) :: ldwork = 1
     integer intent(out) :: info
 end subroutine sb02mt_cl
-subroutine sb03md(dico,job,fact,trana,n,c,ldc,a,lda,u,ldu,scale,sep,ferr,wr,wi,iwork,dwork,ldwork,info) ! in :new:SB03MD.f
+subroutine sb03md(dico,job,fact,trana,n,a,lda,u,ldu,c,ldc,scale,sep,ferr,wr,wi,iwork,dwork,ldwork,info) ! in :new:SB03MD.f
     fortranname sb03md
     character :: dico
     character :: job='X'
     character :: fact='N'
     character :: trana='N'
     integer check(n>0) :: n
-    double precision dimension(n,n),depend(n) :: a
+    double precision intent(in,out,copy),dimension(n,n),depend(n) :: a
     integer intent(hide),depend(a) :: lda=shape(a,0)
-    double precision dimension(n,n),depend(n) :: u
+    double precision  intent(in,out,copy),dimension(n,n),depend(n) :: u
     integer intent(hide),depend(u) :: ldu=shape(u,0)
     double precision intent(in,out,copy),dimension(n,n),depend(n) :: c
     integer intent(hide),depend(c) :: ldc=shape(c,0)
@@ -490,6 +490,37 @@ subroutine sb10dd(n,m,np,ncon,nmeas,gamma,a,lda,b,ldb,c,ldc,d,ldd,ak,ldak,bk,ldb
     logical intent(hide,cache), dimension(2*n), depend(n) :: bwork
     integer intent(out) :: info
 end subroutine sb10dd
+subroutine sb10fd(n,m,np,ncon,nmeas,gamma,a,lda,b,ldb,c,ldc,d,ldd,ak,ldak,bk,ldbk,ck,ldck,dk,lddk,rcond,tol,iwork,dwork,ldwork,bwork,info) ! in SB10FD.f
+    integer intent(in),check(n>=0) :: n
+    integer intent(in),check(m>=0) :: m
+    integer intent(in),check(np>=0) :: np
+    integer intent(in),check(m>=ncon && ncon>=0 && np-nmeas>=ncon),depend(m,ncon):: ncon
+    integer intent(in),check(np>=nmeas && nmeas>=0 && m-ncon>=nmeas),depend(np,ncon):: nmeas
+    double precision intent(in),check(gamma>=0.0) :: gamma
+    double precision intent(in),dimension(n,n),depend(n) :: a
+    integer intent(hide),depend(a) :: lda=shape(a,0)
+    double precision intent(in),dimension(n,m),depend(n,m) :: b
+    integer intent(hide),depend(b) :: ldb=shape(b,0)
+    double precision intent(in),dimension(np,n),depend(np,n) :: c
+    integer intent(hide),depend(c) :: ldc=shape(c,0)
+    double precision intent(in),dimension(np,m),depend(np,m) :: d
+    integer intent(hide),depend(d) :: ldd=shape(d,0)
+    double precision intent(out),dimension(n,n) :: ak
+    integer intent(hide),depend(ak) :: ldak=shape(ak,0)
+    double precision intent(out),dimension(n,nmeas) :: bk
+    integer intent(hide),depend(bk) :: ldbk=shape(bk,0)
+    double precision intent(out),dimension(ncon,n) :: ck
+    integer intent(hide),depend(ck) :: ldck=shape(ck,0)
+    double precision intent(out),dimension(ncon,nmeas) :: dk
+    integer intent(hide),depend(dk) :: lddk=shape(dk,0)
+    double precision intent(out),dimension(4) :: rcond
+    double precision intent(in) :: tol
+    integer intent(hide,cache),dimension(max(2*max(n,m-ncon),2*max(np-nmeas,ncon)),n*n),depend(n,m,ncon,np,nmeas) :: iwork
+    double precision intent(hide,cache),dimension(ldwork),depend(ldwork) :: dwork
+    integer intent(in) :: ldwork
+    logical intent(hide,cache),dimension(2*n),depend(n) :: bwork
+    integer intent(out) :: info
+end subroutine sb10fd
 subroutine sb10hd(n,m,np,ncon,nmeas,a,lda,b,ldb,c,ldc,d,ldd,ak,ldak,bk,ldbk,ck,ldck,dk,lddk,rcond,tol,iwork,dwork,ldwork,bwork,info) ! in :python-control:SB10HD.f
     integer check(n>0) :: n
     integer check(m>0) :: m

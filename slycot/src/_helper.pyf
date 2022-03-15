@@ -1,0 +1,12 @@
+!    -*- f90 -*-
+! Note: the context of this file is case sensitive.
+
+subroutine ftruefalse(ftrue,ffalse) ! in src/ftruefalse.f
+    logical intent(out) :: ftrue
+    logical intent(out) :: ffalse
+end subroutine ftruefalse
+
+subroutine xerbla(srname, info) ! in src/XERBLA.f
+    character*(*) :: srname
+    integer :: info
+end subroutine

@@ -1,39 +1,56 @@
 package:
   name: slycot
-  version: "0.3.3"
+  version: {{ environ.get('GIT_DESCRIBE_TAG', 'v0.0.0')[1:] }}
+
+source:
+  git_url: ../
 
 build:
-  number: 0
+  number: {{ environ.get('GIT_DESCRIBE_NUMBER', 0) }}
+  string: py{{ environ.get('PY_VER').replace('.', '') }}_{{ environ.get('GIT_DESCRIBE_HASH', '') }}_{{ environ.get('GIT_DESCRIBE_NUMBER', 0) }}
 
 requirements:
-  host:
-    - numpy
-    - lapack
-    - libflang  # [win]
-    - libgfortran # [not win]
-    - python {{PY_VER}}
-    
   build:
-    - {{ compiler('fortran') }} # [not win]
-    - {{ compiler('c') }} # [win]
-    - flang # [win]
-   # on Windows, this relies on having visual studio CE 2015
-   # this link needed quite some searching, please do not delete!
-   # https://go.microsoft.com/fwlink/?LinkId=532606&clcid=0x409
+    - {{ compiler('fortran') }}  # [not win]
+    - {{ compiler('c') }}
+    - cmake
+    - make  # [linux]
+    - flang >=11  # [win]
+
+  host:
+    # Always build against NETLIB ('Generic') LAPACK/Blas
+    # https://conda-forge.org/docs/maintainer/knowledge_base.html#blas
+    # deviating from above link: we have to specifiy netlib variant, because
+    # the mkl variant selected by default for older pythons on windows
+    # does not provide the generic headers
+    - libblas * *netlib
+    - libcblas * *netlib
+    - liblapack * *netlib
+    - python
+    - numpy
+    - scikit-build >=0.10.0
 
   run:
-    - numpy
-    - lapack
-    - libgfortran # [not win]
-    - libflang # [win]
+    - python {{ PY_VER }}
+    - {{ pin_compatible('numpy') }}
+    - libflang  # [win]
 
 test:
   requires:
-    - python {{PY_VER}}
+    - pytest
+    - scipy
   imports:
     - slycot
+  commands:
+    - pytest --pyargs slycot
 
 about:
-  home: https://github.com/python-control/slycot
-  license:  GPLv2
-  summary: 'A wrapper for the SLICOT control and systems library'
+  home: https://github.com/python-control/Slycot
+  dev_url: https://github.com/python-control/Slycot
+  license: GPL-2.0-only
+  license_family: GPL
+  license_file: COPYING
+  summary: 'Slycot: a wrapper for the SLICOT control and systems library'
+  description: |
+    Slycot wraps the SLICOT library which is used for control and systems
+    analysis.

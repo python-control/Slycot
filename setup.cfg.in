@@ -1,0 +1,10 @@
+[metadata]
+
+name = slycot
+version = @version@
+gitrevision = @gitrevision@
+release = @release@
+
+[tool:pytest]
+# run the tests with compiled and installed package
+addopts = --pyargs slycot

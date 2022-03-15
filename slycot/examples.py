@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 #
 #       examples.py
 #       
@@ -41,12 +40,11 @@ def sb03md_example():
     C = array([ [25, 24, 15],
                 [24, 32,  8],
                 [15,  8, 40]])
-    U = zeros((3,3))
-    out = slycot.sb03md(3,C,A,U,'D')
+    out = slycot.sb03md57(A, C=C, dico='D')
     print('--- Example for sb03md ---')   
     print('The solution X is')
-    print(out[0])
-    print('scaling factor:', out[1])
+    print(out[2])
+    print('scaling factor:', out[3])
     
 def ab08nd_example():
     from numpy import zeros, size
