@@ -1650,7 +1650,7 @@ def ab13md(Z, nblock, itype, x=None):
       The type of each block diagonal uncertainty defined in nblock.
       itype(i)==1 means that the ith block is real, while itype(i)==2
       means the the ith block is complex.  Real blocks must be 1x1,
-      i.e., if itype(i)==1, ntype(i) must be 1.
+      i.e., if itype(i)==1, nblock(i) must be 1.
 
     x : (q,) real array or None
       If not None, must be the output of a previous call to ab13md.
