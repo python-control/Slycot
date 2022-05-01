@@ -3,7 +3,7 @@ from numpy.testing import assert_allclose, assert_array_less
 
 import pytest
 
-from slycot.analysis import ab13md
+from slycot import ab13md
 
 # References:
 # [1] Skogestand & Postlethwaite, Multivariable Feedback Control, 1996
