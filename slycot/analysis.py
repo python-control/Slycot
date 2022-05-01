@@ -1730,7 +1730,7 @@ def ab13md(n, Z, nblock, itype, x=None):
     else:
         fact='F'
         if len(x) != m+mr-1:
-            raise ValueError(f'Require len(x)==m+mr-1, but {len(x)=}, {m=}, {mr=}')
+            raise ValueError(f'Require len(x)==m+mr-1, but len(x)={len(x)}, m={m}, mr={mr}')
         x = np.concatenate([x,np.zeros(2*m-1-len(x))])
 
     x, bound, d, g, info = _wrapper.ab13md(fact, n, Z, nblock, itype, x)
