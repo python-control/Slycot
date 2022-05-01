@@ -31,59 +31,56 @@ def slicot_example():
         complex(-6.0e0,14.0e0), complex(2.0e0,-5.0e0),  complex(4.0e0,16.0e0),
     ])
     Z = np.reshape(Z, (n, n))
-    return n, Z, nblock, itype
+    return Z, nblock, itype
 
 
 def test_cached_inputoutput():
     # check x, cached working area, input and output, and error
-    n, Z, nblock, itype = slicot_example()
+    Z, nblock, itype = slicot_example()
 
     m = len(nblock)
     mr = np.count_nonzero(1==itype)
 
-    mu0, d0, g0, x0 = ab13md(n, Z, nblock, itype)
+    mu0, d0, g0, x0 = ab13md(Z, nblock, itype)
     assert m+mr-1 == len(x0)
 
-    mu1, d1, g1, x1 = ab13md(n, Z, nblock, itype, x0)
+    mu1, d1, g1, x1 = ab13md(Z, nblock, itype, x0)
 
     assert_allclose(mu1, mu0)
 
     with pytest.raises(ValueError):
-        mu0, d, g, x = ab13md(n, Z, nblock, itype, np.ones(mr+mr))
+        mu0, d, g, x = ab13md(Z, nblock, itype, np.ones(mr+mr))
 
 
 class TestReference:
     # check a few reference cases
     def test_complex_scalar(self):
         # [1] (8.74)
-        n = 1
         nblock = np.array([1])
         itype = np.array([2]) # complex
 
         z = np.array([[1+2j]])
-        mu = ab13md(n,z,nblock,itype)[0]
+        mu = ab13md(z,nblock,itype)[0]
         assert_allclose(mu, abs(z))
 
 
     @pytest.mark.xfail(reason="https://github.com/SLICOT/SLICOT-Reference/issues/4")
     def test_real_scalar_real_uncertainty(self):
         # [1] (8.75)
-        n=1
         nblock=np.array([1])
         itype=np.array([1]) # real
         z = np.array([[5.34]])
-        mu = ab13md(n,z,nblock,itype)[0]
+        mu = ab13md(z,nblock,itype)[0]
         assert_allclose(mu, abs(z))
 
 
     def test_complex_scalar_real_uncertainty(self):
         # [1] (8.75)
-        n=1
         nblock=np.array([1])
         itype=np.array([1]) # real
 
         z = np.array([[6.78j]])
-        mu = ab13md(n,z,nblock,itype)[0]
+        mu = ab13md(z,nblock,itype)[0]
         assert_allclose(mu, 0)
 
 
@@ -92,11 +89,10 @@ class TestReference:
         M = np.array([[2, 2], [-1, -1]])
         muref = 3.162
 
-        n = M.shape[0]
         nblock=np.array([2])
         itype=np.array([2])
 
-        mu = ab13md(n, M, nblock, itype)[0]
+        mu = ab13md(M, nblock, itype)[0]
         assert_allclose(mu, muref, rtol=5e-4)
 
 
@@ -105,11 +101,10 @@ class TestReference:
         M = np.array([[2, 2], [-1, -1]])
         muref = 3.000
 
-        n = M.shape[0]
         nblock=np.array([1, 1])
         itype=np.array([2, 2])
 
-        mu = ab13md(n, M, nblock, itype)[0]
+        mu = ab13md(M, nblock, itype)[0]
         assert_allclose(mu, muref, rtol=5e-4)
 
     def test_slicot(self):
@@ -117,9 +112,9 @@ class TestReference:
 
         muref =  0.4174753408e+02 # [2] AB13MD.res
 
-        n, Z, nblock, itype = slicot_example()
+        Z, nblock, itype = slicot_example()
 
-        mu, d, g, x = ab13md(n, Z, nblock, itype)
+        mu, d, g, x = ab13md(Z, nblock, itype)
 
         assert_allclose(mu, muref)
 

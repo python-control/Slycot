@@ -1631,17 +1631,14 @@ def ab13fd(n, A, tol = 0.0):
     return out[0], out[1]
 
 
-def ab13md(n, Z, nblock, itype, x=None):
-    """mubound, d, g, xout = ab13md(n, Z, nblock, itype, [x])
+def ab13md(Z, nblock, itype, x=None):
+    """mubound, d, g, xout = ab13md(Z, nblock, itype, [x])
 
     Find an upper bound for the structured singular value of complex
     matrix Z and given block diagonal structure.
 
     Parameters
     ----------
-    n : integer
-      Order of Z; n=Z.shape[0].
-
     Z : (n,n) complex array
       Matrix to find structured singular value upper bound of
 
@@ -1704,10 +1701,11 @@ def ab13md(n, Z, nblock, itype, x=None):
 
     """
     hidden = ' (hidden by the wrapper)'
-    arg_list = ['fact' + hidden, 'n' + hidden, 'z', 'ldz' + hidden,
-                'm' + hidden, 'nblock', 'itype', 'x', 'bound', 'd', 'g',
+
+    arg_list = ['fact', 'n' + hidden, 'z', 'ldz' + hidden, 'm',
+                'nblock', 'itype', 'x', 'bound', 'd', 'g',
                 'iwork' + hidden, 'dwork' + hidden, 'ldwork' + hidden,
-                'zwork' + hidden, 'lzwork' + hidden, 'info' + hidden]
+                'zwork' + hidden, 'lzwork' + hidden, 'info']
 
     # prepare the "x" input and output
 
@@ -1730,10 +1728,11 @@ def ab13md(n, Z, nblock, itype, x=None):
     else:
         fact='F'
         if len(x) != m+mr-1:
-            raise ValueError(f'Require len(x)==m+mr-1, but len(x)={len(x)}, m={m}, mr={mr}')
+            raise ValueError(f'Require len(x)==m+mr-1, but'
+                             + f' len(x)={len(x)}, m={m}, mr={mr}')
         x = np.concatenate([x,np.zeros(2*m-1-len(x))])
 
-    x, bound, d, g, info = _wrapper.ab13md(fact, n, Z, nblock, itype, x)
+    x, bound, d, g, info = _wrapper.ab13md(fact, Z, nblock, itype, x)
 
     raise_if_slycot_error(info, arg_list, ab13md.__doc__)
 
