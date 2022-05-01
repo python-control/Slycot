@@ -1740,7 +1740,6 @@ def ab13md(Z, nblock, itype, x=None):
 
 
 def ag08bd(l,n,m,p,A,E,B,C,D,equil='N',tol=0.0,ldwork=None):
-
     """ Af,Ef,nrank,niz,infz,kronr,infe,kronl = ag08bd(l,n,m,p,A,E,B,C,D,[equil,tol,ldwork])
 
     To extract from the system pencil
