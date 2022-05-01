@@ -1702,7 +1702,7 @@ def ab13md(Z, nblock, itype, x=None):
     """
     hidden = ' (hidden by the wrapper)'
 
-    arg_list = ['fact', 'n' + hidden, 'z', 'ldz' + hidden, 'm',
+    arg_list = ['fact', 'n' + hidden, 'z', 'ldz' + hidden, 'm' + hidden,
                 'nblock', 'itype', 'x', 'bound', 'd', 'g',
                 'iwork' + hidden, 'dwork' + hidden, 'ldwork' + hidden,
                 'zwork' + hidden, 'lzwork' + hidden, 'info']

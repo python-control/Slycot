@@ -356,9 +356,9 @@ subroutine ab13md(fact, n, z, ldz, m, nblock, itype, x, bound, d, g, iwork, dwor
   integer intent(in,hide),check(n>=0) :: n = shape(z,0)
   complex*16 intent(in),dimension(n,n) :: z
   integer intent(hide),depend(z) :: ldz = shape(z,0)
-  integer intent(required, in) :: m
-  integer intent(in),dimension(m),depend(m) :: nblock
-  integer intent(in),dimension(m),depend(m) :: itype
+  integer intent(hide, in), depend(nblock) :: m = len(nblock)
+  integer intent(in),dimension(m) :: nblock
+  integer intent(in),dimension(m), depend(m) :: itype
   double precision intent(in,out),dimension(2*m-1) :: x ! dim m+mr-1; mr<=m
   double precision intent(out) :: bound
   double precision intent(out),dimension(n),depend(n) :: d
