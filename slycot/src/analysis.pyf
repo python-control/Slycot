@@ -351,6 +351,25 @@ subroutine ab13dd(dico,jobe,equil,jobd,n,m,p,fpeak,a,lda,e,lde,b,ldb,c,ldc,d,ldd
     integer intent(hide),depend(n,m,p) :: lcwork = max(1,(n+m)*(n+p)+2*min(p,m)+max(p,m))
     integer intent(out) :: info
 end subroutine ab13dd
+subroutine ab13md(fact, n, z, ldz, m, nblock, itype, x, bound, d, g, iwork, dwork, ldwork, zwork, lzwork, info ) ! in AB13MD.f
+  character intent(in) :: fact
+  integer intent(in,hide),check(n>=0) :: n = shape(z,0)
+  complex*16 intent(in),dimension(n,n) :: z
+  integer intent(hide),depend(z) :: ldz = shape(z,0)
+  integer intent(hide, in), depend(nblock) :: m = len(nblock)
+  integer intent(in),dimension(m) :: nblock
+  integer intent(in),dimension(m), depend(m) :: itype
+  double precision intent(in,out),dimension(2*m-1) :: x ! dim m+mr-1; mr<=m
+  double precision intent(out) :: bound
+  double precision intent(out),dimension(n),depend(n) :: d
+  double precision intent(out),dimension(n),depend(n) :: g
+  integer intent(hide,cache),dimension(max(4*m-2,n)),depend(m,n) :: iwork
+  double precision intent(hide,cache),dimension(ldwork),depend(ldwork) :: dwork
+  integer intent(hide,in) :: ldwork=2*n*n*m - n*n + 9*m*m + n*m + 11*n + 33*m - 11
+  complex*16 intent(hide,cache),dimension(lzwork) :: zwork
+  integer intent(hide,in),depend(n,m) :: lzwork=6*n*n*m + 12*n*n + 6*m + 6*n - 3
+  integer intent(out) :: info
+end subroutine ab13dd
 subroutine ab13ed(n,a,lda,low,high,tol,dwork,ldwork,info) ! in AB13ED.f
     integer check(n>=0) :: n
     double precision dimension(n,n),depend(n) :: a

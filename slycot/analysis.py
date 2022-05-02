@@ -17,6 +17,8 @@
 #       Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 #       MA 02110-1301, USA.
 
+import numpy as np
+
 from . import _wrapper
 from .exceptions import raise_if_slycot_error, SlycotParameterError
 
@@ -1627,6 +1629,115 @@ def ab13fd(n, A, tol = 0.0):
     out = _wrapper.ab13fd(n, A, tol)
     raise_if_slycot_error(out[-1], arg_list, ab13fd.__doc__)
     return out[0], out[1]
+
+
+def ab13md(Z, nblock, itype, x=None):
+    """mubound, d, g, xout = ab13md(Z, nblock, itype, [x])
+
+    Find an upper bound for the structured singular value of complex
+    matrix Z and given block diagonal structure.
+
+    Parameters
+    ----------
+    Z : (n,n) complex array
+      Matrix to find structured singular value upper bound of
+
+    nblock : (m,) integer array
+      The size of the block diagonals of the uncertainty structure;
+      i.e., nblock(i)=p means that the ith block is pxp.
+
+    itype : (m,) integer array
+      The type of each block diagonal uncertainty defined in nblock.
+      itype(i)==1 means that the ith block is real, while itype(i)==2
+      means the the ith block is complex.  Real blocks must be 1x1,
+      i.e., if itype(i)==1, nblock(i) must be 1.
+
+    x : (q,) real array or None
+      If not None, must be the output of a previous call to ab13md.
+      The previous call must have been with the same values of n,
+      nblock, and itype; and the previous call's Z should be "close"
+      to the current call's Z.
+
+      q is determined by the block structure; see SLICOT AB13MD for
+      details.
+
+    Returns
+    -------
+    mubound : non-negative real scalar
+      Upper bound on structure singular value for given arguments
+
+    d, g : (n,) real arrays
+      Real arrays such that if D=np.diag(g), G=np.diag(G), and ZH = Z.T.conj(), then
+        ZH @ D**2 @ Z + 1j * (G@Z - ZH@G) - mu**2 * D**2
+      will be negative semi-definite.
+
+    xout : (q,) real array
+      For use as ``x`` argument in subsequent call to ``ab13md``.
+
+    For scalar Z and real uncertainty (ntype=1, itype=1), returns 0
+    instead of abs(Z).
+
+    Raises
+    ------
+    SlycotArithmeticError
+        :info = 1: Block sizes must be positive
+        :info = 2: Block sizes must sum to n
+        :info = 3: Real blocks must be of size 1
+        :info = 4: Block types must be 1 or 2
+        :info = 5: Error in linear equation solution
+        :info = 6: Error in eigenvalue or singular value computation
+
+    Notes
+    -----
+    This wraps SLICOT routine AB13MD, which implements the upper bound
+    of [1].
+
+    References
+    ----------
+    .. [1] Fan, M.K.H., Tits, A.L., and Doyle, J.C., "Robustness in
+       the presence of mixed parametric uncertainty and unmodeled
+       dynamics," IEEE Trans. Automatic Control, vol. AC-36, 1991,
+       pp. 25-38.
+
+    """
+    hidden = ' (hidden by the wrapper)'
+
+    arg_list = ['fact', 'n' + hidden, 'z', 'ldz' + hidden, 'm' + hidden,
+                'nblock', 'itype', 'x', 'bound', 'd', 'g',
+                'iwork' + hidden, 'dwork' + hidden, 'ldwork' + hidden,
+                'zwork' + hidden, 'lzwork' + hidden, 'info']
+
+    # prepare the "x" input and output
+
+    # x, in SLICOT, needs to be length m+mr-1. m is the length of
+    # nblock (and itype), and mr is the number of real blocks.
+
+    # In analysis.pyf x is specified as length 2*m-1, since I couldn't
+    # figure out how to express the m+mr-1 constraint there.
+
+    # The code here is to arrange for the user-visible part of x,
+    # which is length m+mr-1, to be packed into the 2*m-1-length array
+    # to pass the SLICOT routine.
+
+    m = len(nblock)
+    mr = np.count_nonzero(1==itype)
+
+    if x is None:
+        fact='N'
+        x = np.empty(2*m-1)
+    else:
+        fact='F'
+        if len(x) != m+mr-1:
+            raise ValueError(f'Require len(x)==m+mr-1, but'
+                             + f' len(x)={len(x)}, m={m}, mr={mr}')
+        x = np.concatenate([x,np.zeros(2*m-1-len(x))])
+
+    x, bound, d, g, info = _wrapper.ab13md(fact, Z, nblock, itype, x)
+
+    raise_if_slycot_error(info, arg_list, ab13md.__doc__)
+
+    return bound, d, g, x[:m+mr-1]
+
 
 def ag08bd(l,n,m,p,A,E,B,C,D,equil='N',tol=0.0,ldwork=None):
     """ Af,Ef,nrank,niz,infz,kronr,infe,kronl = ag08bd(l,n,m,p,A,E,B,C,D,[equil,tol,ldwork])
