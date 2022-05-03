@@ -1,7 +1,8 @@
 set BLAS_ROOT=%PREFIX%
 set LAPACK_ROOT=%PREFIX%
 
-# Keep deprecated setup.py install for now https://github.com/scikit-build/scikit-build/issues/705
-"%PYTHON%" setup.py install -G "NMake Makefiles" -DBLA_VENDOR=Generic
+set "SKBUILD_CONFIGURE_OPTIONS=-DBLA_VENDOR=Generic"
+set "CMAKE_GENERATOR=NMake Makefiles"
+"%PYTHON%" -m pip install -v .
 
 if errorlevel 1 exit 1
