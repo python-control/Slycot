@@ -157,7 +157,9 @@ jobs:
         with:
           python-version: ${{ matrix.python }}
           activate-environment: build-env
-          channels: conda-forge
+          environment-file: .github/conda-env/build-env.yml
+          miniforge-version: latest
+          miniforge-variant: Mambaforge
           channel-priority: strict
           auto-update-conda: false
           auto-activate-base: false
@@ -165,9 +167,9 @@ jobs:
         shell: bash -l {0}
         run: |
           set -e
-          conda install conda-build conda-verify numpy
+          mamba install boa numpy
           numpyversion=$(python -c 'import numpy; print(numpy.version.version)')
-          conda-build --python "${{ matrix.python }}" --numpy $numpyversion conda-recipe
+          conda mambabuild --python "${{ matrix.python }}" --numpy $numpyversion conda-recipe
           # preserve directory structure for custom conda channel
           find "${CONDA_PREFIX}/conda-bld" -maxdepth 2 -name 'slycot*.tar.bz2' | while read -r conda_pkg; do
             conda_platform=$(basename $(dirname "${conda_pkg}"))
@@ -327,9 +329,10 @@ jobs:
         uses: conda-incubator/setup-miniconda@v2
         with:
           python-version: ${{ matrix.python }}
+          miniforge-version: latest
+          miniforge-variant: Mambaforge
           activate-environment: test-env
           environment-file: slycot-src/.github/conda-env/test-env.yml
-          channels: conda-forge
           channel-priority: strict
           auto-activate-base: false
       - name: Download conda packages
@@ -342,23 +345,23 @@ jobs:
           set -e
           case ${{ matrix.blas_lib }} in
             unset        ) # the conda-forge default (os dependent)
-              conda install libblas libcblas liblapack
+              mamba install libblas libcblas liblapack
               ;;
             Generic      )
-              conda install 'libblas=*=*netlib' 'libcblas=*=*netlib' 'liblapack=*=*netlib'
+              mamba install 'libblas=*=*netlib' 'libcblas=*=*netlib' 'liblapack=*=*netlib'
               echo "libblas * *netlib" >> $CONDA_PREFIX/conda-meta/pinned
               ;;
             OpenBLAS     )
-              conda install 'libblas=*=*openblas' openblas
+              mamba install 'libblas=*=*openblas' openblas
               echo "libblas * *openblas" >> $CONDA_PREFIX/conda-meta/pinned
               ;;
             Intel10_64lp )
-              conda install 'libblas=*=*mkl' mkl
+              mamba install 'libblas=*=*mkl' mkl
               echo "libblas * *mkl" >> $CONDA_PREFIX/conda-meta/pinned
               ;;
           esac
           conda index --no-progress ./slycot-conda-pkgs
-          conda install -c ./slycot-conda-pkgs slycot
+          mamba install -c ./slycot-conda-pkgs slycot
           conda list
       - name: Slycot and python-control tests
         run: bash slycot-src/.github/scripts/run-tests.sh
