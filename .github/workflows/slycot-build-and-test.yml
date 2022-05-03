@@ -12,7 +12,7 @@ on:
 
 jobs:
 
-  build-setup:
+  build-sdist:
     # Super fast sniff build. If this fails, don't start the other jobs
     name: Build sdist on Ubuntu
     runs-on: ubuntu-latest
@@ -30,24 +30,26 @@ jobs:
         run: |
           sudo apt-get -y install gfortran cmake --fix-missing
           sudo apt-get -y install libblas-dev liblapack-dev
-          pip install scikit-build numpy scipy pytest
       - name: Create Slycot sdist
-        run: python setup.py sdist
-
+        run: |
+          pip install build
+          python -m build --sdist
       - name: Install Slycot sdist
         run: |
           mkdir cleancwd
           cd cleancwd
           tar xfz ../dist/slycot-*.tar.gz
           cd slycot-*
-          python setup.py install
+          pip install -v .
       - name: Run tests
-        run: pytest
+        run: |
+          pip install scipy pytest
+          pytest
 
   build-pip:
     name: Build pip Py${{ matrix.python }}, ${{ matrix.os }}, ${{ matrix.bla_vendor}} BLA_VENDOR
     runs-on: ${{ matrix.os }}-latest
-    needs: build-setup
+    needs: build-sdist
     strategy:
         fail-fast: false
         matrix:
@@ -133,7 +135,7 @@ jobs:
   build-conda:
     name: Build conda Py${{ matrix.python }}, ${{ matrix.os }}
     runs-on: ${{ matrix.os }}-latest
-    needs: build-setup
+    needs: build-sdist
     strategy:
         fail-fast: false
         matrix:

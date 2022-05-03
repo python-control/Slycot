@@ -32,7 +32,7 @@ following dependencies:
 
 - 3.6+
 - NumPy
-- scikit-build >= 0.10.0
+- scikit-build
 - CMake
 - C compiler (e.g. gcc, MS Visual C++, clang)
 - FORTRAN compiler (e.g. gfortran, ifort, flang)
@@ -70,10 +70,26 @@ The hardest part about installing from source is getting a working
 version of FORTRAN and LAPACK (provided by OpenBLAS, MKL, etc.)
 installed on your system. Depending on where you get your NumPy and SciPy
 from, you will need to use a compatible LAPACK implementation. Make sure that
-the correct header files are installed, and specify the environment variable
-`BLA_VENDOR`_, if necessary.
+the correct header files are installed, and specify the CMake variable
+`BLA_VENDOR`_, if necessary. We recommend to use `BLA_VENDOR=Generic` in order
+to produce a Slycot module, which is binary compatible with all implementations.
 
 .. _BLA_VENDOR: https://cmake.org/cmake/help/latest/module/FindBLAS.html#input-variables
+
+Compiling the PyPI source with pip
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+We publish Slycot to the Python package index, but only as a source
+package, so to install using pip you'll first need to install the
+build prerequisites (compilers, libraries, etc.)
+
+If you have these build prerequisites, the command::
+
+    pip install slycot
+
+will download the latest release of the source code from `PyPI`_, compile, and
+install Slycot into the currently configured location (virtual environment or
+user site-packages).
 
 Getting the full source code
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -120,8 +136,8 @@ If you already have a local checkout, but still need to init the submodule::
     git submodule init
     git submodule update
 
-Compiling with setuptools (Linux, macOS, Windows)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Compiling the source (Linux, macOS, Windows)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 If you need to specify a specific compiler, set the environment variable FC
 before running the install::
@@ -135,7 +151,7 @@ before running the install::
 To build and install, execute::
 
     cd /path/to/slycot_src/
-    python setup.py install
+    pip install -v .
 
 Using the conda recipe
 ~~~~~~~~~~~~~~~~~~~~~~
@@ -166,8 +182,8 @@ To build and install::
     conda build -c conda-forge conda-recipe
     conda install -c conda-forge --use-local slycot
 
-With setuptools in a conda environment (Windows)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Building from source manually in a conda environment (Windows)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 A similar method can be used for Linux and macOS, but is detailed here
 for Windows.  This method uses conda and conda-forge to get most build
@@ -186,22 +202,7 @@ This procedure has been tested on Python 3.7 and 3.8.
         conda create --channel conda-forge --name build-slycot python=3.8 numpy scipy libblas=*=*netlib liblapack=*=*netlib scikit-build flang pytest
         conda activate build-slycot
 
-        python setup.py install
-
-Using pip
-~~~~~~~~~
-
-We publish Slycot to the Python package index, but only as a source
-package, so to install using pip you'll first need to install the
-build prerequisites (compilers, libraries, etc.)
-
-If you have these build prerequisites, the command::
-
-    pip install slycot
-
-will download the latest release of the source code from `PyPI`_, compile, and
-install Slycot into the currently configured location (virtual environment or
-user site-packages).
+        pip install -v .
 
 Additional hints
 ~~~~~~~~~~~~~~~~

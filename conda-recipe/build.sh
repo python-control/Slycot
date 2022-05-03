@@ -2,13 +2,5 @@
 rm -rf _skbuild
 rm -rf _cmake_test_compile
 
-export LDFLAGS="$LDFLAGS -v"
-if [[ "$target_platform" == osx-64 ]]; then
-  export LDFLAGS="${LDFLAGS} -isysroot ${CONDA_BUILD_SYSROOT}"
-  export CFLAGS="${CFLAGS} -isysroot ${CONDA_BUILD_SYSROOT}"
-  export CMAKE_OSX_SYSROOT=${CONDA_BUILD_SYSROOT}
-fi
-
-# Always build against netlib implementation
-# https://conda-forge.org/docs/maintainer/knowledge_base.html#blas
-$PYTHON setup.py build_ext install -DBLA_VENDOR=Generic
+export SKBUILD_CONFIGURE_OPTIONS="-DBLA_VENDOR=Generic"
+$PYTHON -m pip install -v .
