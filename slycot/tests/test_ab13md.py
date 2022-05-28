@@ -64,7 +64,6 @@ class TestReference:
         assert_allclose(mu, abs(z))
 
 
-    @pytest.mark.xfail(reason="https://github.com/SLICOT/SLICOT-Reference/issues/4")
     def test_real_scalar_real_uncertainty(self):
         # [1] (8.75)
         nblock=np.array([1])
