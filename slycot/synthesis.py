@@ -920,15 +920,6 @@ def sb03od(n,m,A,Q,B,dico,fact='N',trans='N',ldwork=None):
     Raises
     ------
     SlycotArithmeticError
-        :info = 3 and fact == 'F' and dico == 'C':
-            The Schur factor S supplied in the array A is not
-            stable (that is, one or more of the eigenvalues of
-            S has a non-negative real part)
-        :info = 3 and dico == 'D':
-            The Schur factor S
-            supplied in the array A is not convergent (that is,
-            one or more of the eigenvalues of S lies outside the
-            unit circle)
         :info = 4:
             FACT = 'F' and the Schur factor S supplied in
             the array A has two or more consecutive non-zero
@@ -977,6 +968,16 @@ def sb03od(n,m,A,Q,B,dico,fact='N',trans='N',ldwork=None):
             more of the eigenvalues of A lies outside the unit
             circle); however, A still has been factored
             and the eigenvalues of A are returned in WR and WI.
+        :info = 3 and fact == 'F' and dico == 'C':
+            The Schur factor S supplied in the array A is not
+            stable (that is, one or more of the eigenvalues of
+            S has a non-negative real part);
+            the eigenvalues of A are still returned in w.
+        :info = 3 and dico == 'D':
+            The Schur factor S supplied in the array A is not
+            convergent (that is, one or more of the eigenvalues
+            of S lies outside the unit circle);
+            the eigenvalues of A are still returned in w.
     """
     hidden = ' (hidden by the wrapper)'
     arg_list = ['dico','fact', 'trans', 'n', 'm', 'a', 'lda'+hidden, 'q',
