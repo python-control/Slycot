@@ -4,7 +4,7 @@
 # RvP, 180710
 
 # 
-set(SLICOT_FSOURCE 
+set(SLICOT_FSOURCE
 
 src/SLICOT-Reference/src/AB01MD.f
 src/SLICOT-Reference/src/AB01ND.f
@@ -106,6 +106,7 @@ src/SLICOT-Reference/src/MA01BD.f
 src/SLICOT-Reference/src/MA01BZ.f
 src/SLICOT-Reference/src/MA01CD.f
 src/SLICOT-Reference/src/MA02AD.f
+src/SLICOT-Reference/src/MA02AZ.f
 src/SLICOT-Reference/src/MA02BD.f
 src/SLICOT-Reference/src/MA02BZ.f
 src/SLICOT-Reference/src/MA02CD.f
@@ -157,6 +158,8 @@ src/SLICOT-Reference/src/MB01TD.f
 src/SLICOT-Reference/src/MB01UD.f
 src/SLICOT-Reference/src/MB01UW.f
 src/SLICOT-Reference/src/MB01UX.f
+src/SLICOT-Reference/src/MB01UY.f
+src/SLICOT-Reference/src/MB01UZ.f
 src/SLICOT-Reference/src/MB01VD.f
 src/SLICOT-Reference/src/MB01WD.f
 src/SLICOT-Reference/src/MB01XD.f
@@ -253,13 +256,16 @@ src/SLICOT-Reference/src/MB03QW.f
 src/SLICOT-Reference/src/MB03QX.f
 src/SLICOT-Reference/src/MB03QY.f
 src/SLICOT-Reference/src/MB03RD.f
+src/SLICOT-Reference/src/MB03RW.f
 src/SLICOT-Reference/src/MB03RX.f
 src/SLICOT-Reference/src/MB03RY.f
+src/SLICOT-Reference/src/MB03RZ.f
 src/SLICOT-Reference/src/MB03SD.f
 src/SLICOT-Reference/src/MB03TD.f
 src/SLICOT-Reference/src/MB03TS.f
 src/SLICOT-Reference/src/MB03UD.f
 src/SLICOT-Reference/src/MB03VD.f
+src/SLICOT-Reference/src/MB03VW.f
 src/SLICOT-Reference/src/MB03VY.f
 src/SLICOT-Reference/src/MB03WA.f
 src/SLICOT-Reference/src/MB03WD.f
@@ -427,10 +433,12 @@ src/SLICOT-Reference/src/SB03MX.f
 src/SLICOT-Reference/src/SB03MY.f
 src/SLICOT-Reference/src/SB03OD.f
 src/SLICOT-Reference/src/SB03OR.f
+src/SLICOT-Reference/src/SB03OS.f
 src/SLICOT-Reference/src/SB03OT.f
 src/SLICOT-Reference/src/SB03OU.f
 src/SLICOT-Reference/src/SB03OV.f
 src/SLICOT-Reference/src/SB03OY.f
+src/SLICOT-Reference/src/SB03OZ.f
 src/SLICOT-Reference/src/SB03PD.f
 src/SLICOT-Reference/src/SB03QD.f
 src/SLICOT-Reference/src/SB03QX.f
@@ -512,11 +520,15 @@ src/SLICOT-Reference/src/SG03AD.f
 src/SLICOT-Reference/src/SG03AX.f
 src/SLICOT-Reference/src/SG03AY.f
 src/SLICOT-Reference/src/SG03BD.f
+src/SLICOT-Reference/src/SG03BR.f
+src/SLICOT-Reference/src/SG03BS.f
+src/SLICOT-Reference/src/SG03BT.f
 src/SLICOT-Reference/src/SG03BU.f
 src/SLICOT-Reference/src/SG03BV.f
 src/SLICOT-Reference/src/SG03BW.f
 src/SLICOT-Reference/src/SG03BX.f
 src/SLICOT-Reference/src/SG03BY.f
+src/SLICOT-Reference/src/SG03BZ.f
 src/SLICOT-Reference/src/TB01ID.f
 src/SLICOT-Reference/src/TB01IZ.f
 src/SLICOT-Reference/src/TB01KD.f
@@ -580,11 +592,17 @@ src/SLICOT-Reference/src/TG01HY.f
 src/SLICOT-Reference/src/TG01ID.f
 src/SLICOT-Reference/src/TG01JD.f
 src/SLICOT-Reference/src/TG01JY.f
+src/SLICOT-Reference/src/TG01KD.f
+src/SLICOT-Reference/src/TG01KZ.f
 src/SLICOT-Reference/src/TG01LD.f
 src/SLICOT-Reference/src/TG01LY.f
 src/SLICOT-Reference/src/TG01MD.f
 src/SLICOT-Reference/src/TG01ND.f
 src/SLICOT-Reference/src/TG01NX.f
+src/SLICOT-Reference/src/TG01OA.f
+src/SLICOT-Reference/src/TG01OB.f
+src/SLICOT-Reference/src/TG01OD.f
+src/SLICOT-Reference/src/TG01OZ.f
 src/SLICOT-Reference/src/TG01PD.f
 src/SLICOT-Reference/src/TG01QD.f
 src/SLICOT-Reference/src/TG01WD.f
