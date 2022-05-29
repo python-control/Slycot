@@ -901,7 +901,7 @@ def sb03od(n,m,A,Q,B,dico,fact='N',trans='N',ldwork=None):
             := 'T':  op(K) = K**T (Transpose).
     ldwork : int, optional
         The length of the array DWORK.
-        If m > 0, ldwork >= max(1, 4*n + min(m, n));
+        If m > 0, ldwork >= max(1, 4*n);
         If m = 0, ldwork >= 1.
         For optimum performance ldwork should sometimes be larger.
 
@@ -984,7 +984,7 @@ def sb03od(n,m,A,Q,B,dico,fact='N',trans='N',ldwork=None):
         'wi'+hidden, 'dwork'+hidden, 'ldwork', 'info'+hidden]
     if ldwork is None:
         if m > 0:
-            ldwork = max(1,4*n + min(m,n))
+            ldwork = max(1,4*n)
         elif m == 0:
             ldwork = 1
     if dico != 'C' and dico != 'D':
