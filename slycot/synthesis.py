@@ -839,7 +839,7 @@ def sb03od(n,m,A,Q,B,dico,fact='N',trans='N',ldwork=None):
     set less than or equal to 1 to avoid overflow in X. If matrix B
     has full rank then the solution matrix X will be positive-definite
     and hence the Cholesky factor U will be nonsingular, but if B is
-    rank deficient then X may be only positive semi-definite and U
+    rank deficient, then X may be only positive semi-definite and U
     will be singular.
 
     In the case of equation (1) the matrix A must be stable (that
@@ -850,8 +850,8 @@ def sb03od(n,m,A,Q,B,dico,fact='N',trans='N',ldwork=None):
     Parameters
     ----------
     n : int
-        The order of the matrix A and the number of columns in
-        matrix op(B).  n >= 0.
+        The order of the matrix A and the number of columns of
+        the matrix op(B).  n >= 0.
     m : int
         The number of rows in matrix op(B).  m >= 0.
     A : (n, n) array_like
@@ -859,11 +859,11 @@ def sb03od(n,m,A,Q,B,dico,fact='N',trans='N',ldwork=None):
         contain the matrix A. If fact = 'F', then A contains
         an upper quasi-triangular matrix S in Schur canonical
         form; the elements below the upper Hessenberg part of the
-        array A are not referenced.
+        array A are then not referenced.
         On exit, the leading n-by-n upper Hessenberg part of this
         array contains the upper quasi-triangular matrix S in
         Schur canonical form from the Shur factorization of A.
-        The contents of array A is not modified if fact = 'F'.
+        The contents of the array A is not modified if fact = 'F'.
     Q : (n, n) array_like
         On entry, if fact = 'F', then the leading n-by-n part of
         this array must contain the orthogonal matrix Q of the
@@ -871,7 +871,7 @@ def sb03od(n,m,A,Q,B,dico,fact='N',trans='N',ldwork=None):
         Otherwise, Q need not be set on entry.
         On exit, the leading n-by-n part of this array contains
         the orthogonal matrix Q of the Schur factorization of A.
-        The contents of array Q is not modified if fact = 'F'.
+        The contents of the array Q is not modified if fact = 'F'.
     B : (m, n) array_like
         On entry, if trans = 'N', the leading m-by-n part of this
         array must contain the coefficient matrix B of the
@@ -901,7 +901,7 @@ def sb03od(n,m,A,Q,B,dico,fact='N',trans='N',ldwork=None):
             := 'T':  op(K) = K**T (Transpose).
     ldwork : int, optional
         The length of the array DWORK.
-        If m > 0, ldwork >= max(1, 4*n + min(m, n));
+        If m > 0, ldwork >= max(1, 4*n);
         If m = 0, ldwork >= 1.
         For optimum performance ldwork should sometimes be larger.
 
@@ -915,24 +915,15 @@ def sb03od(n,m,A,Q,B,dico,fact='N',trans='N',ldwork=None):
         The scale factor, scale, set less than or equal to 1 to
         prevent the solution overflowing.
     w : (n, ) complex ndarray
-        If fact = 'N', this array contains the eigenvalues of A.
+        The eigenvalues of A.
 
     Raises
     ------
     SlycotArithmeticError
-        :info = 3 and fact == 'F' and dico == 'C':
-            The Schur factor S supplied in the array A is not
-            stable (that is, one or more of the eigenvalues of
-            S has a non-negative real part)
-        :info = 3 and dico == 'D':
-            The Schur factor S
-            supplied in the array A is not convergent (that is,
-            one or more of the eigenvalues of S lies outside the
-            unit circle)
         :info = 4:
             FACT = 'F' and the Schur factor S supplied in
             the array A has two or more consecutive non-zero
-            elements on the first sub-diagonal, so that there is
+            elements on the first subdiagonal, so that there is
             a block larger than 2-by-2 on the diagonal
         :info = 5:
             FACT = 'F' and the Schur factor S supplied in
@@ -977,6 +968,16 @@ def sb03od(n,m,A,Q,B,dico,fact='N',trans='N',ldwork=None):
             more of the eigenvalues of A lies outside the unit
             circle); however, A still has been factored
             and the eigenvalues of A are returned in WR and WI.
+        :info = 3 and fact == 'F' and dico == 'C':
+            The Schur factor S supplied in the array A is not
+            stable (that is, one or more of the eigenvalues of
+            S has a non-negative real part);
+            the eigenvalues of A are still returned in w.
+        :info = 3 and dico == 'D':
+            The Schur factor S supplied in the array A is not
+            convergent (that is, one or more of the eigenvalues
+            of S lies outside the unit circle);
+            the eigenvalues of A are still returned in w.
     """
     hidden = ' (hidden by the wrapper)'
     arg_list = ['dico','fact', 'trans', 'n', 'm', 'a', 'lda'+hidden, 'q',
@@ -984,7 +985,7 @@ def sb03od(n,m,A,Q,B,dico,fact='N',trans='N',ldwork=None):
         'wi'+hidden, 'dwork'+hidden, 'ldwork', 'info'+hidden]
     if ldwork is None:
         if m > 0:
-            ldwork = max(1,4*n + min(m,n))
+            ldwork = max(1,4*n)
         elif m == 0:
             ldwork = 1
     if dico != 'C' and dico != 'D':
@@ -2333,9 +2334,6 @@ def sg03bd(n,m,A,E,Q,Z,B,dico,fact='N',trans='N',ldwork=None):
         Hessenberg part of the array A are not referenced.
         If fact = 'N', then the leading n-by-n part of this
         array must contain the matrix A.
-        On exit, the leading n-by-n part of this array contains
-        the generalized Schur factor A_s of the matrix A. (A_s is
-        an upper quasitriangular matrix.)
     E : (n, n) array_like
         On entry, if fact = 'F', then the leading n-by-n upper
         triangular part of this array must contain the
@@ -2407,9 +2405,9 @@ def sg03bd(n,m,A,E,Q,Z,B,dico,fact='N',trans='N',ldwork=None):
     scale : float
         The scale factor set to avoid overflow in U.
         0 < scale <= 1.
-    alpha : (n, ) complex ndarray
+    lambda : (n, ) complex ndarray
         If INFO = 0, 3, 5, 6, or 7, then
-        (alpha(j), j=1,...,n, are the
+        ((j), j=1,...,n, are the
         eigenvalues of the matrix pencil A - lambda * E.
 
     Raises
@@ -2463,7 +2461,7 @@ def sg03bd(n,m,A,E,Q,Z,B,dico,fact='N',trans='N',ldwork=None):
     alpha = _np.zeros(n,'complex64')
     alpha.real = alphar[0:n]
     alpha.imag = alphai[0:n]
-    return U,scale,alpha/beta
+    return U, scale, alpha/beta
 
 
 def sb10fd(n,m,np,ncon,nmeas,gamma,A,B,C,D,tol=0.0,ldwork=None):

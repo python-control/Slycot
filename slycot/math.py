@@ -29,7 +29,7 @@ def mb03rd(n, A, X=None, jobx='U', sort='N', pmax=1.0, tol=0.0):
     To reduce a matrix `A` in real Schur form to a block-diagonal form
     using well-conditioned non-orthogonal similarity transformations.
     The condition numbers of the transformations used for reduction
-    are roughly bounded by `pmax`*`pmax`, where `pmax` is a given value.
+    are roughly bounded by `pmax`, where `pmax` is a given value.
     The transformations are optionally postmultiplied in a given
     matrix `X`. The real Schur form is optionally ordered, so that
     clustered eigenvalues are grouped in the same block.

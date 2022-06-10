@@ -365,7 +365,7 @@ subroutine sb03od(dico,fact,trans,n,m,a,lda,q,ldq,b,ldb,scale,wr,wi,dwork,ldwork
     double precision intent(out),dimension(n),depend(n) :: wr
     double precision intent(out),dimension(n),depend(n) :: wi
     double precision intent(hide,cache),dimension(ldwork) :: dwork
-    integer optional,check(ldwork>=max(1,4*n + min(m,n))),depend(n,m) :: ldwork=max(1,4*n + min(m,n))
+    integer optional,check(ldwork>=max(1,4*n)),depend(n,m) :: ldwork=max(1,4*n)
     integer intent(out) :: info    
 end subroutine sb03od
 subroutine sb04md(n,m,a,lda,b,ldb,c,ldc,z,ldz,iwork,dwork,ldwork,info) ! in SB04MD.f
