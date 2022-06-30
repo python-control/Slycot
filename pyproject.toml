@@ -4,5 +4,5 @@ requires = [
     "wheel",
     "scikit-build>=0.14.1",
     "cmake",
-    "numpy"]
+    "numpy!=1.23.0"]
 build-backend = "setuptools.build_meta"
