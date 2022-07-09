@@ -45,8 +45,11 @@ else:
     from .transform import tf01md, tf01rd
     from .transform import td04ad, tb01pd
 
-    # Version information
-    from .version import version as __version__
+    try:
+        from importlib.metadata import version
+    except ImportError:
+        from importlib_metadata import version
+    __version__ = version("slycot")
 
 
 def test():

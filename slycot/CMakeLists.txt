@@ -630,13 +630,11 @@ set(F2PYSOURCE_DEPS
   src/transform.pyf src/synthesis.pyf
   src/_helper.pyf)
 
-configure_file(version.py.in version.py @ONLY)
-
 set(PYSOURCE
 
   __init__.py  examples.py exceptions.py
   analysis.py math.py synthesis.py transform.py
-  ${CMAKE_CURRENT_BINARY_DIR}/version.py)
+)
 
 set(SLYCOT_MODULE "_wrapper")
 

@@ -1,8 +1,15 @@
 [build-system]
 requires = [
     "setuptools",
+    "setuptools_scm>=6.3",
     "wheel",
     "scikit-build>=0.14.1",
     "cmake",
     "numpy!=1.23.0"]
 build-backend = "setuptools.build_meta"
+
+[tool.setuptools_scm]
+
+[tool.pytest.ini_options]
+# run the tests with compiled and installed package
+addopts = "--pyargs slycot"

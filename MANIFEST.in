@@ -9,7 +9,6 @@ include conda-recipe/*
 include slycot/CMakeLists.txt
 include slycot/tests/CMakeLists.txt
 include slycot/*.py
-include slycot/version.py.in
 include slycot/src/*.f
 include slycot/tests/*.py
 graft slycot/src/SLICOT-Reference

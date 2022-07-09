@@ -27,14 +27,16 @@ requirements:
     - libcblas * *netlib
     - liblapack * *netlib
     - python
-    - numpy!=1.23.0
+    - numpy !=1.23.0
     - pip
     - scikit-build >=0.14.1
+    - setuptools_scm >=6.3    
 
   run:
     - python {{ PY_VER }}
     - {{ pin_compatible('numpy') }}
     - libflang  # [win]
+    - importlib_metadata  # [py<38]
 
 test:
   requires:
