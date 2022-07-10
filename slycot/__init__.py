@@ -46,10 +46,11 @@ else:
     from .transform import td04ad, tb01pd
 
     try:
-        from importlib.metadata import version
+        from importlib.metadata import version as imv
     except ImportError:
-        from importlib_metadata import version
-    __version__ = version("slycot")
+        from importlib_metadata import version as imv
+    __version__ = imv(__package__)
+
 
 
 def test():
