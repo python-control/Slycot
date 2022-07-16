@@ -30,7 +30,8 @@ requirements:
     - numpy !=1.23.0
     - pip
     - scikit-build >=0.14.1
-    - setuptools_scm >=6.3    
+    - setuptools >=45
+    - setuptools_scm >=6.3
 
   run:
     - python {{ PY_VER }}
