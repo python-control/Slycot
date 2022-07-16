@@ -6,7 +6,7 @@ if (CMAKE_VERSION VERSION_GREATER "3.11.99")
   cmake_policy(SET CMP0074 NEW)
 endif()
 
-project(slycot VERSION ${SLYCOT_VERSION} LANGUAGES NONE)
+project(slycot LANGUAGES NONE)
 
 enable_language(C)
 enable_language(Fortran)
@@ -22,6 +22,5 @@ message(STATUS "NumPy included from: ${NumPy_INCLUDE_DIR}")
 message(STATUS "F2PY included from: ${F2PY_INCLUDE_DIR}")
 message(STATUS "LAPACK: ${LAPACK_LIBRARIES}")
 message(STATUS "BLAS: ${BLAS_LIBRARIES}")
-message(STATUS "Slycot version: ${SLYCOT_VERSION}")
 
 add_subdirectory(slycot)

@@ -45,8 +45,7 @@ else:
     from .transform import tf01md, tf01rd
     from .transform import td04ad, tb01pd
 
-    # Version information
-    from .version import version as __version__
+    from .version import __version__
 
 
 def test():
