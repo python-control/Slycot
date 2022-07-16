@@ -2,6 +2,7 @@
 source = slycot
 omit = 
   */tests/*
+  */version.py
 
 
 # please do not add any sections after this block

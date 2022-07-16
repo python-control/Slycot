@@ -9,6 +9,7 @@ requires = [
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools_scm]
+write_to = "slycot/version.py"
 
 [tool.pytest.ini_options]
 # run the tests with compiled and installed package

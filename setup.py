@@ -103,8 +103,7 @@ def setup_package():
         platforms=["Windows", "Linux", "Solaris", "Mac OS-X", "Unix"],
         cmdclass={"sdist": sdist_checked},
         zip_safe=False,
-        install_requires=["numpy",
-                          "importlib-metadata; python_version < '3.8'"],
+        install_requires=["numpy"],
         python_requires=">=3.7"
     )
 

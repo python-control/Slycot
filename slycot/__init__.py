@@ -45,12 +45,7 @@ else:
     from .transform import tf01md, tf01rd
     from .transform import td04ad, tb01pd
 
-    try:
-        from importlib.metadata import version as imv
-    except ImportError:
-        from importlib_metadata import version as imv
-    __version__ = imv(__package__)
-
+    from .version import __version__
 
 
 def test():
