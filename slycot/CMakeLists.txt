@@ -664,8 +664,9 @@ target_link_libraries(${SLYCOT_MODULE}
 
 target_include_directories(
   ${SLYCOT_MODULE} PUBLIC
+  ${Python_INCLUDE_DIRS}
+  ${Python_NumPy_INCLUDE_DIRS}
   ${F2PY_INCLUDE_DIRS}
-  ${PYTHON_INCLUDE_DIRS}
   )
 
 if (UNIX)

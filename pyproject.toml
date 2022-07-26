@@ -3,8 +3,8 @@ requires = [
     "setuptools>=45",
     "setuptools_scm>=6.3",
     "wheel",
-    "scikit-build>=0.14.1",
-    "cmake",
+    "scikit-build>=0.15",
+    "cmake>=3.14",
     "numpy!=1.23.0"]
 build-backend = "setuptools.build_meta"
 
