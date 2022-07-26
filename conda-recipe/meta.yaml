@@ -13,7 +13,7 @@ requirements:
   build:
     - {{ compiler('fortran') }}  # [not win]
     - {{ compiler('c') }}
-    - cmake
+    - cmake >=3.14
     - make  # [linux]
     - flang >=11  # [win]
 
@@ -29,7 +29,7 @@ requirements:
     - python
     - numpy !=1.23.0
     - pip
-    - scikit-build >=0.14.1
+    - scikit-build >=0.15
     - setuptools >=45
     - setuptools_scm >=6.3
 
