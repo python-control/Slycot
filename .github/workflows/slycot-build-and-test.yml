@@ -25,7 +25,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v2
         with:
-          python-version: 3.9
+          python-version: 3.11
       - name: Setup Ubuntu
         run: |
           sudo apt-get -y install gfortran cmake --fix-missing
@@ -58,23 +58,23 @@ jobs:
               - 'macos'
             python:
               - '3.7'
-              - '3.10'
+              - '3.11'
             bla_vendor: [ 'unset' ]
             include:
               - os: 'ubuntu'
-                python: '3.10'
+                python: '3.11'
                 bla_vendor: 'Generic'
               - os: 'ubuntu'
-                python: '3.10'
+                python: '3.11'
                 bla_vendor: 'OpenBLAS'
               - os: 'macos'
-                python: '3.10'
+                python: '3.11'
                 bla_vendor: 'Apple'
               - os: 'macos'
-                python: '3.10'
+                python: '3.11'
                 bla_vendor: 'Generic'
               - os: 'macos'
-                python: '3.10'
+                python: '3.11'
                 bla_vendor: 'OpenBLAS'
 
     steps:
