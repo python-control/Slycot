@@ -23,9 +23,9 @@ jobs:
           fetch-depth: 0
           submodules: 'recursive'
       - name: Set up Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
-          python-version: 3.11
+          python-version: '3.11'
       - name: Setup Ubuntu
         run: |
           sudo apt-get -y install gfortran cmake --fix-missing
@@ -84,7 +84,7 @@ jobs:
           fetch-depth: 0
           submodules: 'recursive'
       - name: Set up Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python }}
       - name: Setup Ubuntu
@@ -243,7 +243,7 @@ jobs:
           repository: 'python-control/python-control'
           path: python-control
       - name: Setup Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python }}
       - name: Setup Ubuntu
