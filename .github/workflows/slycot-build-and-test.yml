@@ -168,7 +168,7 @@ jobs:
         run: |
           set -e
           numpyversion=$(python -c 'import numpy; print(numpy.version.version)')
-          conda mambabuild --python "${{ matrix.python }}" --numpy $numpyversion conda-recipe
+          conda build --python "${{ matrix.python }}" --numpy $numpyversion conda-recipe
           # preserve directory structure for custom conda channel
           find "${CONDA_PREFIX}/conda-bld" -maxdepth 2 -name 'slycot*.tar.bz2' | while read -r conda_pkg; do
             conda_platform=$(basename $(dirname "${conda_pkg}"))
