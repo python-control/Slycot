@@ -23,9 +23,9 @@ jobs:
           fetch-depth: 0
           submodules: 'recursive'
       - name: Set up Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
-          python-version: 3.9
+          python-version: '3.11'
       - name: Setup Ubuntu
         run: |
           sudo apt-get -y install gfortran cmake --fix-missing
@@ -58,23 +58,23 @@ jobs:
               - 'macos'
             python:
               - '3.7'
-              - '3.10'
+              - '3.11'
             bla_vendor: [ 'unset' ]
             include:
               - os: 'ubuntu'
-                python: '3.10'
+                python: '3.11'
                 bla_vendor: 'Generic'
               - os: 'ubuntu'
-                python: '3.10'
+                python: '3.11'
                 bla_vendor: 'OpenBLAS'
               - os: 'macos'
-                python: '3.10'
+                python: '3.11'
                 bla_vendor: 'Apple'
               - os: 'macos'
-                python: '3.10'
+                python: '3.11'
                 bla_vendor: 'Generic'
               - os: 'macos'
-                python: '3.10'
+                python: '3.11'
                 bla_vendor: 'OpenBLAS'
 
     steps:
@@ -84,7 +84,7 @@ jobs:
           fetch-depth: 0
           submodules: 'recursive'
       - name: Set up Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python }}
       - name: Setup Ubuntu
@@ -113,7 +113,7 @@ jobs:
               echo "bla_vendor option ${{ matrix.bla_vendor }} not supported"
               exit 1 ;;
           esac
-          echo "FC=gfortran-10" >> $GITHUB_ENV
+          echo "FC=gfortran-11" >> $GITHUB_ENV
       - name: Build wheel
         env:
           BLA_VENDOR: ${{ matrix.bla_vendor }}
@@ -144,7 +144,7 @@ jobs:
             - 'windows'
           python:
             - '3.9'
-            - '3.10'
+            - '3.11'
 
     steps:
       - name: Checkout Slycot
@@ -168,7 +168,7 @@ jobs:
         run: |
           set -e
           numpyversion=$(python -c 'import numpy; print(numpy.version.version)')
-          conda mambabuild --python "${{ matrix.python }}" --numpy $numpyversion conda-recipe
+          conda build --python "${{ matrix.python }}" --numpy $numpyversion conda-recipe
           # preserve directory structure for custom conda channel
           find "${CONDA_PREFIX}/conda-bld" -maxdepth 2 -name 'slycot*.tar.bz2' | while read -r conda_pkg; do
             conda_platform=$(basename $(dirname "${conda_pkg}"))
@@ -243,7 +243,7 @@ jobs:
           repository: 'python-control/python-control'
           path: python-control
       - name: Setup Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python }}
       - name: Setup Ubuntu

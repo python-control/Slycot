@@ -1,4 +1,6 @@
 name: build-env
 dependencies:
-  - boa
-  - numpy!=1.23.0
+  - conda-build
+  - conda-verify
+  # - boa # re-enable when boa is compatible with mamba 1.0 and Python 3.11
+  - numpy !=1.23.0
