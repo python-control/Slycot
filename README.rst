@@ -189,7 +189,7 @@ A similar method can be used for Linux and macOS, but is detailed here
 for Windows.  This method uses conda and conda-forge to get most build
 dependencies, *except* for the C compiler.
 
-This procedure has been tested on Python 3.7 and 3.8.
+This procedure has been tested on Python 3.8.
 
 1. Install `Microsoft Visual Studio`_.
 2. Unpack the source code to a directory of your choice,
