@@ -197,9 +197,7 @@ jobs:
           name: slycot-wheels
           path: slycot-wheels
       - id: set-matrix
-        run: |
-          matrix=$(python3 .github/scripts/set-pip-test-matrix.py)
-          echo "::set-output name=matrix::$matrix"
+        run: echo "matrix=$(python3 .github/scripts/set-pip-test-matrix.py)" >> $GITHUB_OUTPUT
 
   create-conda-test-matrix:
     name: Create conda test matrix
@@ -217,9 +215,7 @@ jobs:
           name: slycot-conda-pkgs
           path: slycot-conda-pkgs
       - id: set-matrix
-        run: |
-          matrix=$(python3 .github/scripts/set-conda-test-matrix.py)
-          echo "::set-output name=matrix::$matrix"
+        run: echo "matrix=$(python3 .github/scripts/set-conda-test-matrix.py)" >> $GITHUB_OUTPUT
 
 
   test-wheel:
