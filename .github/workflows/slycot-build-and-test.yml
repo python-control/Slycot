@@ -18,7 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Slycot
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           fetch-depth: 0
           submodules: 'recursive'
@@ -79,7 +79,7 @@ jobs:
 
     steps:
       - name: Checkout Slycot
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           fetch-depth: 0
           submodules: 'recursive'
@@ -126,7 +126,7 @@ jobs:
           mkdir -p ${wheeldir}
           cp ./slycot*.whl ${wheeldir}/
       - name: Save wheel
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: slycot-wheels
           path: slycot-wheels
@@ -148,7 +148,7 @@ jobs:
 
     steps:
       - name: Checkout Slycot
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           fetch-depth: 0
           submodules: 'recursive'
@@ -176,7 +176,7 @@ jobs:
             cp "${conda_pkg}" "slycot-conda-pkgs/${conda_platform}/"
           done
       - name: Save to local conda pkg channel
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: slycot-conda-pkgs
           path: slycot-conda-pkgs
@@ -190,9 +190,9 @@ jobs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
     steps:
       - name: Checkout Slycot
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: Download wheels (if any)
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: slycot-wheels
           path: slycot-wheels
@@ -210,9 +210,9 @@ jobs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
     steps:
       - name: Checkout Slycot
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: Download conda packages
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: slycot-conda-pkgs
           path: slycot-conda-pkgs
@@ -234,11 +234,11 @@ jobs:
 
     steps:
       - name: Checkout Slycot
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           path: slycot-src
       - name: Checkout python-control
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           repository: 'python-control/python-control'
           path: python-control
@@ -276,7 +276,7 @@ jobs:
               exit 1 ;;
           esac
       - name: Download wheels
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: slycot-wheels
           path: slycot-wheels
@@ -313,11 +313,11 @@ jobs:
 
     steps:
       - name: Checkout Slycot
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           path: slycot-src
       - name: Checkout python-control
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           repository: 'python-control/python-control'
           path: python-control
@@ -335,7 +335,7 @@ jobs:
           channel-priority: strict
           auto-activate-base: false
       - name: Download conda packages
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: slycot-conda-pkgs
           path: slycot-conda-pkgs
