@@ -5,7 +5,8 @@ requires = [
     "wheel",
     "scikit-build>=0.15",
     "cmake>=3.14",
-    "numpy!=1.23.0"]
+    # python-control/Slycot/issues/187
+    "numpy<1.24"]
 build-backend = "setuptools.build_meta"
 
 [project]
