@@ -8,4 +8,4 @@ dependencies:
   - pytest-cov
   - pytest-timeout
   - coverage
-  - coveralls
+  - coveralls >= 3.3
