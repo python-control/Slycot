@@ -283,7 +283,9 @@ jobs:
           pip install slycot-wheels/${{ matrix.packagekey }}/slycot*.whl
           pip show slycot
       - name: Slycot and python-control tests
-        run: bash slycot-src/.github/scripts/run-tests.sh
+        run: JOBNAME=$JOBNAME bash slycot-src/.github/scripts/run-tests.sh
+        env:
+          JOBNAME: ${{ matrix.packagekey }} ${{ matrix.blas_lib }}
       - name: report coverage
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -359,7 +361,9 @@ jobs:
           mamba install -c ./slycot-conda-pkgs slycot
           conda list
       - name: Slycot and python-control tests
-        run: bash slycot-src/.github/scripts/run-tests.sh
+        run: JOBNAME=$JOBNAME bash slycot-src/.github/scripts/run-tests.sh
+        env:
+          JOBNAME: ${{ matrix.packagekey }} ${{ matrix.blas_lib }}
       - name: Report coverage
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
