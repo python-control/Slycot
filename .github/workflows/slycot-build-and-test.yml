@@ -285,7 +285,7 @@ jobs:
       - name: Slycot and python-control tests
         run: JOBNAME="$JOBNAME" bash slycot-src/.github/scripts/run-tests.sh
         env:
-          JOBNAME: ${{ matrix.packagekey }} ${{ matrix.blas_lib }}
+          JOBNAME: wheel ${{ matrix.packagekey }} ${{ matrix.blas_lib }}
       - name: report coverage
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -363,7 +363,7 @@ jobs:
       - name: Slycot and python-control tests
         run: JOBNAME="$JOBNAME" bash slycot-src/.github/scripts/run-tests.sh
         env:
-          JOBNAME: ${{ matrix.packagekey }} ${{ matrix.blas_lib }}
+          JOBNAME: conda ${{ matrix.packagekey }} ${{ matrix.blas_lib }}
       - name: Report coverage
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
