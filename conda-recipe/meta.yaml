@@ -27,7 +27,7 @@ requirements:
     - libcblas * *netlib
     - liblapack * *netlib
     - python
-    - numpy !=1.23.0
+    - numpy >=1.19,!=1.23.0
     - pip
     - scikit-build >=0.15
     - setuptools >=45
