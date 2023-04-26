@@ -58,9 +58,10 @@ class sdist_checked(sdist):
 
 # These need to stay in setup.py
 # https://scikit-build.readthedocs.io/en/latest/usage.html#setuptools-options
-setup(     
+setup(
     packages=['slycot', 'slycot.tests'],
     cmdclass={'sdist': sdist_checked},
     cmake_languages=('C', 'Fortran'),
     use_scm_version = True,
+    include_package_data = False,
 )
