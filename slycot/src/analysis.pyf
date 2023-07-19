@@ -305,8 +305,8 @@ function ab13bd(dico,jobn,n,m,p,a,lda,b,ldb,c,ldc,d,ldd,nq,tol,dwork,ldwork,iwar
     character intent(in) :: dico
     character intent(in) :: jobn
     integer check(n>=0) :: n
-    integer check(n>=0) :: m
-    integer check(n>=0) :: p
+    integer check(m>=0) :: m
+    integer check(p>=0) :: p
     double precision dimension(n,n),depend(n) :: a
     integer intent(hide),depend(a) :: lda = shape(a,0)
     double precision dimension(n,m),depend(n,m) :: b
