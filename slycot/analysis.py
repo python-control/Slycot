@@ -1384,12 +1384,7 @@ def ab13bd(dico, jobn, n, m, p, A, B, C, D, tol = 0.0):
                 'D', 'ldd' + hidden, 'nq' + hidden,'tol', 'dwork' + hidden,
                 'ldwork' + hidden, 'iwarn', 'info')
     
-    a = A.copy()
-    b = B.copy()
-    c = C.copy()
-    d = D.copy()
-    
-    out = _wrapper.ab13bd(dico, jobn, n, m, p, a, b, c, d, tol)
+    out = _wrapper.ab13bd(dico, jobn, n, m, p, A, B, C, D, tol)
 
     raise_if_slycot_error(out[-2:], arg_list, ab13bd.__doc__, locals())
     return out[0]
