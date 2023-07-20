@@ -27,8 +27,9 @@ else:
     # U : Utility Routines
 
 
-    # Analysis routines (16/60 wrapped)
+    # Analysis routines (17/60 wrapped)
     from .analysis import (ab01nd,
+                           ab04md,
                            ab05md, ab05nd,
                            ab07nd,
                            ab08nd, ab08nz,

@@ -139,6 +139,23 @@ def ab01nd(n, m, A, B, jobz='N', tol=0, ldwork=None):
         Z = None
     return Ac, Bc, ncont, indcon, nblk, Z, tau
 
+def ab04md(type_bn, n, m, p, A, B, C, D, alpha=1.0, beta=1.0, ldwork=None):
+    """ a,b,c,d = ab04md()
+    """
+
+    hidden = ' (hidden by the wrapper)'  
+    arg_list = ['type_bn', 'n', 'm', 'p', 'alpha', 'beta', 
+                'A', 'LDA'+hidden, 'B', 'LDB'+hidden, 'C', 'LDC'+hidden, 'D', 'LDD'+hidden,
+                'IWORK'+hidden, 'DWORK'+hidden, 'ldwork', 'info'+hidden]
+
+    if ldwork is None:
+        ldwork = max(n, 3*m)
+
+    out = _wrapper.ab04md(type_bn, n, m, p, alpha, beta, A, B, C, D, ldwork=ldwork)
+    info=out[-1]
+    raise_if_slycot_error(info, arg_list)
+
+    return out[:-1]
 
 def ab05md(n1,m1,p1,n2,p2,A1,B1,C1,D1,A2,B2,C2,D2,uplo='U'):
     """ n,a,b,c,d = ab05md(n1,m1,p1,n2,p2,a1,b1,c1,d1,a2,b2,c2,d2,[uplo])
