@@ -1,0 +1,143 @@
+<HTML>
+<HEAD><TITLE>MB03KC - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MB03KC">MB03KC</A></H2>
+<H3>
+Reducing a 2-by-2 formal matrix product to periodic Hessenberg-triangular form
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To reduce a 2-by-2 general, formal matrix product A of length K,
+
+     A_K^s(K) * A_K-1^s(K-1) * ... * A_1^s(1),
+
+  to the periodic Hessenberg-triangular form using a K-periodic
+  sequence of elementary reflectors (Householder matrices). The
+  matrices A_k, k = 1, ..., K, are stored in the N-by-N-by-K array A
+  starting in the R-th row and column, and N can be 3 or 4.
+
+  Each elementary reflector H_k is represented as
+
+     H_k = I - tau_k * v_k * v_k',                               (1)
+
+  where I is the 2-by-2 identity, tau_k is a real scalar, and v_k is
+  a vector of length 2, k = 1,...,K, and it is constructed such that
+  the following holds for k = 1,...,K:
+
+         H_{k+1} * A_k * H_k = T_k, if s(k) = 1,
+                                                                 (2)
+         H_k * A_k * H_{k+1} = T_k, if s(k) = -1,
+
+  with H_{K+1} = H_1 and all T_k upper triangular except for
+  T_{khess} which is full. Clearly,
+
+     T_K^s(K) *...* T_1^s(1) = H_1 * A_K^s(K) *...* A_1^s(1) * H_1.
+
+  The reflectors are suitably applied to the whole, extended N-by-N
+  matrices Ae_k, not only to the submatrices A_k, k = 1, ..., K.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MB03KC( K, KHESS, N, R, S, A, LDA, V, TAU )
+C     .. Scalar Arguments ..
+      INTEGER            K, KHESS, LDA, N, R
+C     .. Array Arguments ..
+      INTEGER            S( * )
+      DOUBLE PRECISION   A( * ), TAU( * ), V( * )
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  K       (input) INTEGER
+          The number of matrices in the sequence A_k.  K &gt;= 2.
+
+  KHESS   (input) INTEGER
+          The index for which the returned matrix A_khess should be
+          in the Hessenberg form on output.  1 &lt;= KHESS &lt;= K.
+
+  N       (input) INTEGER
+          The order of the extended matrices.  N = 3 or N = 4.
+
+  R       (input) INTEGER
+          The starting row and column index for the
+          2-by-2 submatrices.  R = 1, or R = N-1.
+
+  S       (input) INTEGER array, dimension (K)
+          The leading K elements of this array must contain the
+          signatures of the factors. Each entry in S must be either
+          1 or -1; the value S(k) = -1 corresponds to using the
+          inverse of the factor A_k.
+
+  A       (input/output) DOUBLE PRECISION array, dimension (*)
+          On entry, this array must contain at position IXA(k) =
+          (k-1)*N*LDA+1 the N-by-N matrix Ae_k stored with leading
+          dimension LDA.
+          On exit, this array contains at position IXA(k) the
+          N-by-N matrix Te_k stored with leading dimension LDA.
+
+  LDA     INTEGER
+          Leading dimension of the matrices Ae_k and Te_k in the
+          one-dimensional array A.  LDA &gt;= N.
+
+  V       (output) DOUBLE PRECISION array, dimension (2*K)
+          On exit, this array contains the K vectors v_k,
+          k = 1,...,K, defining the elementary reflectors H_k as
+          in (1). The k-th reflector is stored in V(2*k-1:2*k).
+
+  TAU     (output) DOUBLE PRECISION array, dimension (K)
+          On exit, this array contains the K values of tau_k,
+          k = 1,...,K, defining the elementary reflectors H_k
+          as in (1).
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  A K-periodic sequence of elementary reflectors (Householder
+  matrices) is used. The computations start for k = khess with the
+  left reflector in (1), which is the identity matrix.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  The implemented method is numerically backward stable.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

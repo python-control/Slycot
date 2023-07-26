@@ -1,0 +1,239 @@
+<HTML>
+<HEAD><TITLE>SB01MD - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="SB01MD">SB01MD</A></H2>
+<H3>
+State feedback matrix of a linear time-invariant single-input system
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To determine the one-dimensional state feedback matrix G of the
+  linear time-invariant single-input system
+
+        dX/dt = A * X + B * U,
+
+  where A is an NCONT-by-NCONT matrix and B is an NCONT element
+  vector such that the closed-loop system
+
+        dX/dt = (A - B * G) * X
+
+  has desired poles. The system must be preliminarily reduced
+  to orthogonal canonical form using the SLICOT Library routine
+  AB01MD.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE SB01MD( NCONT, N, A, LDA, B, WR, WI, Z, LDZ, G, DWORK,
+     $                   INFO )
+C     .. Scalar Arguments ..
+      INTEGER           INFO, LDA, LDZ, N, NCONT
+C     .. Array Arguments ..
+      DOUBLE PRECISION  A(LDA,*), B(*), DWORK(*), G(*), WI(*), WR(*),
+     $                  Z(LDZ,*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  NCONT   (input) INTEGER
+          The order of the matrix A as produced by SLICOT Library
+          routine AB01MD.  NCONT &gt;= 0.
+
+  N       (input) INTEGER
+          The order of the matrix Z.  N &gt;= NCONT.
+
+  A       (input/output) DOUBLE PRECISION array, dimension
+          (LDA,NCONT)
+          On entry, the leading NCONT-by-NCONT part of this array
+          must contain the canonical form of the state dynamics
+          matrix A as produced by SLICOT Library routine AB01MD.
+          On exit, the leading NCONT-by-NCONT part of this array
+          contains the upper quasi-triangular form S of the closed-
+          loop system matrix (A - B * G), that is triangular except
+          for possible 2-by-2 diagonal blocks.
+          (To reconstruct the closed-loop system matrix see
+          FURTHER COMMENTS below.)
+
+  LDA     INTEGER
+          The leading dimension of array A.  LDA &gt;= MAX(1,NCONT).
+
+  B       (input/output) DOUBLE PRECISION array, dimension (NCONT)
+          On entry, this array must contain the canonical form of
+          the input/state vector B as produced by SLICOT Library
+          routine AB01MD.
+          On exit, this array contains the transformed vector Z * B
+          of the closed-loop system.
+
+  WR      (input) DOUBLE PRECISION array, dimension (NCONT)
+  WI      (input) DOUBLE PRECISION array, dimension (NCONT)
+          These arrays must contain the real and imaginary parts,
+          respectively, of the desired poles of the closed-loop
+          system. The poles can be unordered, except that complex
+          conjugate pairs of poles must appear consecutively.
+
+  Z       (input/output) DOUBLE PRECISION array, dimension (LDZ,N)
+          On entry, the leading N-by-N part of this array must
+          contain the orthogonal transformation matrix as produced
+          by SLICOT Library routine AB01MD, which reduces the system
+          to canonical form.
+          On exit, the leading NCONT-by-NCONT part of this array
+          contains the orthogonal matrix Z which reduces the closed-
+          loop system matrix (A - B * G) to upper quasi-triangular
+          form.
+
+  LDZ     INTEGER
+          The leading dimension of array Z.  LDZ &gt;= MAX(1,N).
+
+  G       (output) DOUBLE PRECISION array, dimension (NCONT)
+          This array contains the one-dimensional state feedback
+          matrix G of the original system.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  DWORK   DOUBLE PRECISION array, dimension (3*NCONT)
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  The method is based on the orthogonal reduction of the closed-loop
+  system matrix (A - B * G) to upper quasi-triangular form S whose
+  1-by-1 and 2-by-2 diagonal blocks correspond to the desired poles.
+  That is, S = Z'*(A - B * G)*Z, where Z is an orthogonal matrix.
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Petkov, P. Hr.
+      A Computational Algorithm for Pole Assignment of Linear
+      Single Input Systems.
+      Internal Report 81/2, Control Systems Research Group, School
+      of Electronic Engineering and Computer Science, Kingston
+      Polytechnic, 1981.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>                                3
+  The algorithm requires 0(NCONT ) operations and is backward
+  stable.
+
+</PRE>
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  If required, the closed-loop system matrix (A - B * G) can be
+  formed from the matrix product Z * S * Z' (where S and Z are the
+  matrices output in arrays A and Z respectively).
+
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+*     SB01MD EXAMPLE PROGRAM TEXT
+*
+*     .. Parameters ..
+      INTEGER          NIN, NOUT
+      PARAMETER        ( NIN = 5, NOUT = 6 )
+      INTEGER          NMAX
+      PARAMETER        ( NMAX = 20 )
+      INTEGER          LDA, LDZ
+      PARAMETER        ( LDA = NMAX, LDZ = NMAX )
+      INTEGER          LDWORK
+      PARAMETER        ( LDWORK = 3*NMAX )
+*     .. Local Scalars ..
+      DOUBLE PRECISION TOL
+      INTEGER          I, INFO1, INFO2, J, N, NCONT
+      CHARACTER*1      JOBZ
+*     .. Local Arrays ..
+      DOUBLE PRECISION A(LDA,NMAX), B(NMAX), DWORK(LDWORK), G(NMAX),
+     $                 WI(NMAX), WR(NMAX), Z(LDZ,NMAX)
+*     .. External Subroutines ..
+      EXTERNAL         AB01MD, SB01MD
+*     .. Executable Statements ..
+*
+      WRITE ( NOUT, FMT = 99999 )
+*     Skip the heading in the data file and read the data.
+      READ ( NIN, FMT = '()' )
+      READ ( NIN, FMT = * ) N, TOL, JOBZ
+      IF ( N.LT.0 .OR. N.GT.NMAX ) THEN
+         WRITE ( NOUT, FMT = 99995 ) N
+      ELSE
+         READ ( NIN, FMT = * ) ( ( A(I,J), J = 1,N ), I = 1,N )
+         READ ( NIN, FMT = * ) ( B(I), I = 1,N )
+         READ ( NIN, FMT = * ) ( WR(I), I = 1,N )
+         READ ( NIN, FMT = * ) ( WI(I), I = 1,N )
+*        First reduce the given system to canonical form.
+         CALL AB01MD( JOBZ, N, A, LDA, B, NCONT, Z, LDZ, DWORK, TOL,
+     $                DWORK(N+1), LDWORK-N, INFO1 )
+*
+         IF ( INFO1.EQ.0 ) THEN
+*           Find the one-dimensional state feedback matrix G.
+            CALL SB01MD( NCONT, N, A, LDA, B, WR, WI, Z, LDZ, G, DWORK,
+     $                   INFO2 )
+*
+            IF ( INFO2.NE.0 ) THEN
+               WRITE ( NOUT, FMT = 99997 ) INFO2
+            ELSE
+               WRITE ( NOUT, FMT = 99996 ) ( G(I), I = 1,NCONT )
+            END IF
+         ELSE
+            WRITE ( NOUT, FMT = 99998 ) INFO1
+         END IF
+      END IF
+      STOP
+*
+99999 FORMAT (' SB01MD EXAMPLE PROGRAM RESULTS',/1X)
+99998 FORMAT (' INFO on exit from AB01MD =',I2)
+99997 FORMAT (' INFO on exit from SB01MD =',I2)
+99996 FORMAT (' The one-dimensional state feedback matrix G is',
+     $       /20(1X,F8.4))
+99995 FORMAT (/' N is out of range.',/' N = ',I5)
+      END
+</PRE>
+<B>Program Data</B>
+<PRE>
+ SB01MD EXAMPLE PROGRAM DATA
+   4     0.0     I
+  -1.0  0.0  2.0 -3.0
+   1.0 -4.0  3.0 -1.0
+   0.0  2.0  4.0 -5.0
+   0.0  0.0 -1.0 -2.0
+   1.0  0.0  0.0  0.0
+  -1.0 -1.0 -1.0 -1.0
+   0.0  0.0  0.0  0.0
+</PRE>
+<B>Program Results</B>
+<PRE>
+ SB01MD EXAMPLE PROGRAM RESULTS
+
+ The one-dimensional state feedback matrix G is
+   1.0000  29.0000  93.0000 -76.0000
+</PRE>
+
+<HR>
+<p>
+<A HREF=..\libindex.html><B>Return to index</B></A></BODY>
+</HTML>

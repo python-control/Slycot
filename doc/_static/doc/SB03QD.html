@@ -1,0 +1,418 @@
+<HTML>
+<HEAD><TITLE>SB03QD - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="SB03QD">SB03QD</A></H2>
+<H3>
+Estimating conditioning and forward error bound for the solution of continuous-time Lyapunov equation
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To estimate the conditioning and compute an error bound on the
+  solution of the real continuous-time Lyapunov matrix equation
+
+      op(A)'*X + X*op(A) = scale*C
+
+  where op(A) = A or A' (A**T) and C is symmetric (C = C**T). The
+  matrix A is N-by-N, the right hand side C and the solution X are
+  N-by-N symmetric matrices, and scale is a given scale factor.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE SB03QD( JOB, FACT, TRANA, UPLO, LYAPUN, N, SCALE, A,
+     $                   LDA, T, LDT, U, LDU, C, LDC, X, LDX, SEP,
+     $                   RCOND, FERR, IWORK, DWORK, LDWORK, INFO )
+C     .. Scalar Arguments ..
+      CHARACTER          FACT, JOB, LYAPUN, TRANA, UPLO
+      INTEGER            INFO, LDA, LDC, LDT, LDU, LDWORK, LDX, N
+      DOUBLE PRECISION   FERR, RCOND, SCALE, SEP
+C     .. Array Arguments ..
+      INTEGER            IWORK( * )
+      DOUBLE PRECISION   A( LDA, * ), C( LDC, * ), DWORK( * ),
+     $                   T( LDT, * ), U( LDU, * ), X( LDX, * )
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  JOB     CHARACTER*1
+          Specifies the computation to be performed, as follows:
+          = 'C':  Compute the reciprocal condition number only;
+          = 'E':  Compute the error bound only;
+          = 'B':  Compute both the reciprocal condition number and
+                  the error bound.
+
+  FACT    CHARACTER*1
+          Specifies whether or not the real Schur factorization
+          of the matrix A is supplied on entry, as follows:
+          = 'F':  On entry, T and U (if LYAPUN = 'O') contain the
+                  factors from the real Schur factorization of the
+                  matrix A;
+          = 'N':  The Schur factorization of A will be computed
+                  and the factors will be stored in T and U (if
+                  LYAPUN = 'O').
+
+  TRANA   CHARACTER*1
+          Specifies the form of op(A) to be used, as follows:
+          = 'N':  op(A) = A    (No transpose);
+          = 'T':  op(A) = A**T (Transpose);
+          = 'C':  op(A) = A**T (Conjugate transpose = Transpose).
+
+  UPLO    CHARACTER*1
+          Specifies which part of the symmetric matrix C is to be
+          used, as follows:
+          = 'U':  Upper triangular part;
+          = 'L':  Lower triangular part.
+
+  LYAPUN  CHARACTER*1
+          Specifies whether or not the original Lyapunov equations
+          should be solved in the iterative estimation process,
+          as follows:
+          = 'O':  Solve the original Lyapunov equations, updating
+                  the right-hand sides and solutions with the
+                  matrix U, e.g., X &lt;-- U'*X*U;
+          = 'R':  Solve reduced Lyapunov equations only, without
+                  updating the right-hand sides and solutions.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The order of the matrices A, X and C.  N &gt;= 0.
+
+  SCALE   (input) DOUBLE PRECISION
+          The scale factor, scale, set by a Lyapunov solver.
+          0 &lt;= SCALE &lt;= 1.
+
+  A       (input) DOUBLE PRECISION array, dimension (LDA,N)
+          If FACT = 'N' or LYAPUN = 'O', the leading N-by-N part of
+          this array must contain the original matrix A.
+          If FACT = 'F' and LYAPUN = 'R', A is not referenced.
+
+  LDA     INTEGER
+          The leading dimension of the array A.
+          LDA &gt;= MAX(1,N), if FACT = 'N' or  LYAPUN = 'O';
+          LDA &gt;= 1,        if FACT = 'F' and LYAPUN = 'R'.
+
+  T       (input/output) DOUBLE PRECISION array, dimension
+          (LDT,N)
+          If FACT = 'F', then on entry the leading N-by-N upper
+          Hessenberg part of this array must contain the upper
+          quasi-triangular matrix T in Schur canonical form from a
+          Schur factorization of A.
+          If FACT = 'N', then this array need not be set on input.
+          On exit, (if INFO = 0 or INFO = N+1, for FACT = 'N') the
+          leading N-by-N upper Hessenberg part of this array
+          contains the upper quasi-triangular matrix T in Schur
+          canonical form from a Schur factorization of A.
+
+  LDT     INTEGER
+          The leading dimension of the array T.  LDT &gt;= MAX(1,N).
+
+  U       (input or output) DOUBLE PRECISION array, dimension
+          (LDU,N)
+          If LYAPUN = 'O' and FACT = 'F', then U is an input
+          argument and on entry, the leading N-by-N part of this
+          array must contain the orthogonal matrix U from a real
+          Schur factorization of A.
+          If LYAPUN = 'O' and FACT = 'N', then U is an output
+          argument and on exit, if INFO = 0 or INFO = N+1, it
+          contains the orthogonal N-by-N matrix from a real Schur
+          factorization of A.
+          If LYAPUN = 'R', the array U is not referenced.
+
+  LDU     INTEGER
+          The leading dimension of the array U.
+          LDU &gt;= 1,        if LYAPUN = 'R';
+          LDU &gt;= MAX(1,N), if LYAPUN = 'O'.
+
+  C       (input) DOUBLE PRECISION array, dimension (LDC,N)
+          If UPLO = 'U', the leading N-by-N upper triangular part of
+          this array must contain the upper triangular part of the
+          matrix C of the original Lyapunov equation (with
+          matrix A), if LYAPUN = 'O', or of the reduced Lyapunov
+          equation (with matrix T), if LYAPUN = 'R'.
+          If UPLO = 'L', the leading N-by-N lower triangular part of
+          this array must contain the lower triangular part of the
+          matrix C of the original Lyapunov equation (with
+          matrix A), if LYAPUN = 'O', or of the reduced Lyapunov
+          equation (with matrix T), if LYAPUN = 'R'.
+
+  LDC     INTEGER
+          The leading dimension of the array C.  LDC &gt;= MAX(1,N).
+
+  X       (input) DOUBLE PRECISION array, dimension (LDX,N)
+          The leading N-by-N part of this array must contain the
+          symmetric solution matrix X of the original Lyapunov
+          equation (with matrix A), if LYAPUN = 'O', or of the
+          reduced Lyapunov equation (with matrix T), if
+          LYAPUN = 'R'.
+
+  LDX     INTEGER
+          The leading dimension of the array X.  LDX &gt;= MAX(1,N).
+
+  SEP     (output) DOUBLE PRECISION
+          If JOB = 'C' or JOB = 'B', the estimated quantity
+          sep(op(A),-op(A)').
+          If N = 0, or X = 0, or JOB = 'E', SEP is not referenced.
+
+  RCOND   (output) DOUBLE PRECISION
+          If JOB = 'C' or JOB = 'B', an estimate of the reciprocal
+          condition number of the continuous-time Lyapunov equation.
+          If N = 0 or X = 0, RCOND is set to 1 or 0, respectively.
+          If JOB = 'E', RCOND is not referenced.
+
+  FERR    (output) DOUBLE PRECISION
+          If JOB = 'E' or JOB = 'B', an estimated forward error
+          bound for the solution X. If XTRUE is the true solution,
+          FERR bounds the magnitude of the largest entry in
+          (X - XTRUE) divided by the magnitude of the largest entry
+          in X.
+          If N = 0 or X = 0, FERR is set to 0.
+          If JOB = 'C', FERR is not referenced.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  IWORK   INTEGER array, dimension (N*N)
+
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+          On exit, if INFO = 0 or INFO = N+1, DWORK(1) returns the
+          optimal value of LDWORK.
+
+  LDWORK  INTEGER
+          The dimension of the array DWORK.
+          If JOB = 'C', then
+          LDWORK &gt;= MAX(1,2*N*N),         if FACT = 'F';
+          LDWORK &gt;= MAX(1,2*N*N,5*N),     if FACT = 'N'.
+          If JOB = 'E', or JOB = 'B', and LYAPUN  = 'O', then
+          LDWORK &gt;= MAX(1,3*N*N),         if FACT = 'F';
+          LDWORK &gt;= MAX(1,3*N*N,5*N),     if FACT = 'N'.
+          If JOB = 'E', or JOB = 'B', and LYAPUN  = 'R', then
+          LDWORK &gt;= MAX(1,3*N*N+N-1),     if FACT = 'F';
+          LDWORK &gt;= MAX(1,3*N*N+N-1,5*N), if FACT = 'N'.
+          For optimum performance LDWORK should sometimes be larger.
+
+          If LDWORK = -1, then a workspace query is assumed;
+          the routine only calculates the optimal size of the
+          DWORK array, returns this value as the first entry of
+          the DWORK array, and no error message related to LDWORK
+          is issued by XERBLA.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value;
+          &gt; 0:  if INFO = i, i &lt;= N, the QR algorithm failed to
+                complete the reduction to Schur canonical form (see
+                LAPACK Library routine DGEES); on exit, the matrix
+                T(i+1:N,i+1:N) contains the partially converged
+                Schur form, and DWORK(i+1:N) and DWORK(N+i+1:2*N)
+                contain the real and imaginary parts, respectively,
+                of the converged eigenvalues; this error is unlikely
+                to appear;
+          = N+1:  if the matrices T and -T' have common or very
+                close eigenvalues; perturbed values were used to
+                solve Lyapunov equations, but the matrix T, if given
+                (for FACT = 'F'), is unchanged.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  The condition number of the continuous-time Lyapunov equation is
+  estimated as
+
+  cond = (norm(Theta)*norm(A) + norm(inv(Omega))*norm(C))/norm(X),
+
+  where Omega and Theta are linear operators defined by
+
+  Omega(W) = op(A)'*W + W*op(A),
+  Theta(W) = inv(Omega(op(W)'*X + X*op(W))).
+
+  The routine estimates the quantities
+
+  sep(op(A),-op(A)') = 1 / norm(inv(Omega))
+
+  and norm(Theta) using 1-norm condition estimators.
+
+  The forward error bound is estimated using a practical error bound
+  similar to the one proposed in [1].
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Higham, N.J.
+      Perturbation theory and backward error for AX-XB=C.
+      BIT, vol. 33, pp. 124-136, 1993.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>                            3
+  The algorithm requires 0(N ) operations.
+  The accuracy of the estimates obtained depends on the solution
+  accuracy and on the properties of the 1-norm estimator.
+
+</PRE>
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  The option LYAPUN = 'R' may occasionally produce slightly worse
+  or better estimates, and it is much faster than the option 'O'.
+  When SEP is computed and it is zero, the routine returns
+  immediately, with RCOND and FERR (if requested) set to 0 and 1,
+  respectively. In this case, the equation is singular.
+
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+*     SB03QD EXAMPLE PROGRAM TEXT
+*
+*     .. Parameters ..
+      INTEGER          NIN, NOUT
+      PARAMETER        ( NIN = 5, NOUT = 6 )
+      INTEGER          NMAX
+      PARAMETER        ( NMAX = 20 )
+      INTEGER          LDA, LDC, LDT, LDU, LDX
+      PARAMETER        ( LDA = NMAX, LDC = NMAX, LDT = NMAX,
+     $                   LDU = NMAX, LDX = NMAX )
+      INTEGER          LIWORK
+      PARAMETER        ( LIWORK = NMAX*NMAX )
+      INTEGER          LDWORK
+      PARAMETER        ( LDWORK = MAX( 1, 3*NMAX*NMAX + NMAX - 1,
+     $                                    5*NMAX ) )
+      DOUBLE PRECISION ZERO, ONE
+      PARAMETER        ( ZERO = 0.0D+0, ONE = 1.0D+0 )
+*     .. Local Scalars ..
+      DOUBLE PRECISION FERR, RCOND, SCALE, SEP
+      INTEGER          I, INFO1, INFO2, J, N
+      CHARACTER*1      DICO, FACT, JOB, LYAPUN, TRANA, TRANAT, UPLO
+*     .. Local Arrays ..
+      INTEGER          IWORK(LIWORK)
+      DOUBLE PRECISION A(LDA,NMAX), C(LDC,NMAX), DWORK(LDWORK),
+     $                 T(LDT,NMAX), U(LDU,NMAX), X(LDX,NMAX)
+*     .. External Functions ..
+      LOGICAL          LSAME
+      EXTERNAL         LSAME
+*     .. External Subroutines ..
+      EXTERNAL         DLACPY, MA02ED, MB01RU, SB03MD, SB03QD
+*     .. Intrinsic Functions ..
+      INTRINSIC        MAX
+*     .. Executable Statements ..
+*
+      WRITE ( NOUT, FMT = 99999 )
+      DICO = 'C'
+*     Skip the heading in the data file and read the data.
+      READ ( NIN, FMT = '()' )
+      READ ( NIN, FMT = * ) N, JOB, FACT, TRANA, UPLO, LYAPUN
+      IF ( N.LT.0 .OR. N.GT.NMAX ) THEN
+         WRITE ( NOUT, FMT = 99994 ) N
+      ELSE
+         READ ( NIN, FMT = * ) ( ( A(I,J), J = 1,N ), I = 1,N )
+         IF ( LSAME( FACT, 'F' ) ) READ ( NIN, FMT = * )
+     $                         ( ( U(I,J), J = 1,N ), I = 1,N )
+         READ ( NIN, FMT = * ) ( ( C(I,J), J = 1,N ), I = 1,N )
+         CALL DLACPY( 'Full', N, N, A, LDA, T, LDT )
+         CALL DLACPY( 'Full', N, N, C, LDC, X, LDX )
+*        Solve the continuous-time Lyapunov matrix equation.
+         CALL SB03MD( DICO, 'X', FACT, TRANA, N, T, LDT, U, LDU, X, LDX,
+     $                SCALE, SEP, FERR, DWORK(1), DWORK(N+1), IWORK,
+     $                DWORK(2*N+1), LDWORK-2*N, INFO1 )
+*
+         IF ( INFO1.EQ.0 ) THEN
+            WRITE ( NOUT, FMT = 99996 )
+            DO 10 I = 1, N
+               WRITE ( NOUT, FMT = 99995 ) ( X(I,J), J = 1,N )
+   10       CONTINUE
+            IF ( LSAME( LYAPUN, 'R' ) ) THEN
+               IF( LSAME( TRANA, 'N' )  ) THEN
+                  TRANAT = 'T'
+               ELSE
+                  TRANAT = 'N'
+               END IF
+               CALL MB01RU( UPLO, TRANAT, N, N, ZERO, ONE, X, LDX,
+     $                      U, LDU, X, LDX, DWORK, N*N, INFO2 )
+               CALL MA02ED( UPLO, N, X, LDX )
+               CALL MB01RU( UPLO, TRANAT, N, N, ZERO, ONE, C, LDC,
+     $                      U, LDU, C, LDC, DWORK, N*N, INFO2 )
+            END IF
+*           Estimate the condition and error bound on the solution.
+            CALL SB03QD( JOB, 'F', TRANA, UPLO, LYAPUN, N, SCALE, A,
+     $                   LDA, T, LDT, U, LDU, C, LDC, X, LDX, SEP,
+     $                   RCOND, FERR, IWORK, DWORK, LDWORK, INFO2 )
+*
+            IF ( INFO2.NE.0 ) THEN
+               WRITE ( NOUT, FMT = 99997 ) INFO2
+            ELSE
+               WRITE ( NOUT, FMT = 99993 ) SCALE
+               WRITE ( NOUT, FMT = 99992 ) SEP
+               WRITE ( NOUT, FMT = 99991 ) RCOND
+               WRITE ( NOUT, FMT = 99990 ) FERR
+            END IF
+         ELSE
+            WRITE ( NOUT, FMT = 99998 ) INFO1
+         END IF
+      END IF
+      STOP
+*
+99999 FORMAT (' SB03QD EXAMPLE PROGRAM RESULTS',/1X)
+99998 FORMAT (' INFO on exit from SB03MD =',I2)
+99997 FORMAT (' INFO on exit from SB03QD =',I2)
+99996 FORMAT (' The solution matrix X is')
+99995 FORMAT (20(1X,F8.4))
+99994 FORMAT (/' N is out of range.',/' N = ',I5)
+99993 FORMAT (/' Scaling factor = ',F8.4)
+99992 FORMAT (/' Estimated separation = ',F8.4)
+99991 FORMAT (/' Estimated reciprocal condition number = ',F8.4)
+99990 FORMAT (/' Estimated error bound = ',F8.4)
+      END
+</PRE>
+<B>Program Data</B>
+<PRE>
+ SB03QD EXAMPLE PROGRAM DATA
+   3     B     N     N     U     O
+   3.0   1.0   1.0
+   1.0   3.0   0.0
+   0.0   0.0   3.0
+  25.0  24.0  15.0
+  24.0  32.0   8.0
+  15.0   8.0  40.0
+</PRE>
+<B>Program Results</B>
+<PRE>
+ SB03QD EXAMPLE PROGRAM RESULTS
+
+ The solution matrix X is
+   3.2604   2.7187   1.8616
+   2.7187   4.4271   0.5699
+   1.8616   0.5699   6.0461
+
+ Scaling factor =   1.0000
+
+ Estimated separation =   4.9068
+
+ Estimated reciprocal condition number =   0.3611
+
+ Estimated error bound =   0.0000
+</PRE>
+
+<HR>
+<p>
+<A HREF=..\libindex.html><B>Return to index</B></A></BODY>
+</HTML>

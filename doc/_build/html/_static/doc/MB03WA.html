@@ -1,0 +1,180 @@
+<HTML>
+<HEAD><TITLE>MB03WA - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MB03WA">MB03WA</A></H2>
+<H3>
+Swapping two adjacent diagonal blocks in a periodic real Schur canonical form
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To swap adjacent diagonal blocks A11*B11 and A22*B22 of size
+  1-by-1 or 2-by-2 in an upper (quasi) triangular matrix product
+  A*B by an orthogonal equivalence transformation.
+
+  (A, B) must be in periodic real Schur canonical form (as returned
+  by SLICOT Library routine MB03XP), i.e., A is block upper
+  triangular with 1-by-1 and 2-by-2 diagonal blocks, and B is upper
+  triangular.
+
+  Optionally, the matrices Q and Z of generalized Schur vectors are
+  updated.
+
+      Q(in) * A(in) * Z(in)' = Q(out) * A(out) * Z(out)',
+      Z(in) * B(in) * Q(in)' = Z(out) * B(out) * Q(out)'.
+
+  This routine is largely based on the LAPACK routine DTGEX2
+  developed by Bo Kagstrom and Peter Poromaa.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MB03WA( WANTQ, WANTZ, N1, N2, A, LDA, B, LDB, Q, LDQ,
+     $                   Z, LDZ, INFO )
+C     .. Scalar Arguments ..
+      LOGICAL            WANTQ, WANTZ
+      INTEGER            INFO, LDA, LDB, LDQ, LDZ, N1, N2
+C     .. Array Arguments ..
+      DOUBLE PRECISION   A(LDA,*), B(LDB,*), Q(LDQ,*), Z(LDZ,*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  WANTQ   LOGICAL
+          Indicates whether or not the user wishes to accumulate
+          the matrix Q as follows:
+          = .TRUE. :  The matrix Q is updated;
+          = .FALSE.:  the matrix Q is not required.
+
+  WANTZ   LOGICAL
+          Indicates whether or not the user wishes to accumulate
+          the matrix Z as follows:
+          = .TRUE. :  The matrix Z is updated;
+          = .FALSE.:  the matrix Z is not required.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N1      (input) INTEGER
+          The order of the first block A11*B11. N1 = 0, 1 or 2.
+
+  N2      (input) INTEGER
+          The order of the second block A22*B22. N2 = 0, 1 or 2.
+
+  A       (input/output) DOUBLE PRECISION array, dimension
+          (LDA,N1+N2)
+          On entry, the leading (N1+N2)-by-(N1+N2) part of this
+          array must contain the matrix A.
+          On exit, the leading (N1+N2)-by-(N1+N2) part of this array
+          contains the matrix A of the reordered pair.
+
+  LDA     INTEGER
+          The leading dimension of the array A. LDA &gt;= MAX(1,N1+N2).
+
+  B       (input/output) DOUBLE PRECISION array, dimension
+          (LDB,N1+N2)
+          On entry, the leading (N1+N2)-by-(N1+N2) part of this
+          array must contain the matrix B.
+          On exit, the leading (N1+N2)-by-(N1+N2) part of this array
+          contains the matrix B of the reordered pair.
+
+  LDB     INTEGER
+          The leading dimension of the array B. LDB &gt;= MAX(1,N1+N2).
+
+  Q       (input/output) DOUBLE PRECISION array, dimension
+          (LDQ,N1+N2)
+          On entry, if WANTQ = .TRUE., the leading
+          (N1+N2)-by-(N1+N2) part of this array must contain the
+          orthogonal matrix Q.
+          On exit, the leading (N1+N2)-by-(N1+N2) part of this array
+          contains the updated matrix Q. Q will be a rotation
+          matrix for N1=N2=1.
+          This array is not referenced if WANTQ = .FALSE..
+
+  LDQ     INTEGER
+          The leading dimension of the array Q. LDQ &gt;= 1.
+          If WANTQ = .TRUE., LDQ &gt;= N1+N2.
+
+  Z       (input/output) DOUBLE PRECISION array, dimension
+          (LDZ,N1+N2)
+          On entry, if WANTZ = .TRUE., the leading
+          (N1+N2)-by-(N1+N2) part of this array must contain the
+          orthogonal matrix Z.
+          On exit, the leading (N1+N2)-by-(N1+N2) part of this array
+          contains the updated matrix Z. Z will be a rotation
+          matrix for N1=N2=1.
+          This array is not referenced if WANTZ = .FALSE..
+
+  LDZ     INTEGER
+          The leading dimension of the array Z. LDZ &gt;= 1.
+          If WANTZ = .TRUE., LDZ &gt;= N1+N2.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          = 1:  the transformed matrix (A, B) would be
+                too far from periodic Schur form; the blocks are
+                not swapped and (A,B) and (Q,Z) are unchanged.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  In the current code both weak and strong stability tests are
+  performed. The user can omit the strong stability test by changing
+  the internal logical parameter WANDS to .FALSE.. See ref. [2] for
+  details.
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Kagstrom, B.
+      A direct method for reordering eigenvalues in the generalized
+      real Schur form of a regular matrix pair (A,B), in M.S. Moonen
+      et al (eds.), Linear Algebra for Large Scale and Real-Time
+      Applications, Kluwer Academic Publ., 1993, pp. 195-218.
+
+  [2] Kagstrom, B., and Poromaa, P.
+      Computing eigenspaces with specified eigenvalues of a regular
+      matrix pair (A, B) and condition estimation: Theory,
+      algorithms and software, Numer. Algorithms, 1996, vol. 12,
+      pp. 369-407.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

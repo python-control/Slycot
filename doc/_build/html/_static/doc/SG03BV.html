@@ -1,0 +1,274 @@
+<HTML>
+<HEAD><TITLE>SG03BV - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="SG03BV">SG03BV</A></H2>
+<H3>
+Solving (for Cholesky factor) generalized stable continuous-time Lyapunov equations, with A quasi-triangular, and E, B upper triangular
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To compute the Cholesky factor U of the matrix X, X = U**T * U or
+  X = U * U**T, which is the solution of the generalized c-stable
+  continuous-time Lyapunov equation
+
+      T            T                  2    T
+     A  * X * E + E  * X * A = - SCALE  * B  * B,                (1)
+
+  or the transposed equation
+
+              T            T          2        T
+     A * X * E  + E * X * A  = - SCALE  * B * B ,                (2)
+
+  respectively, where A, E, B, and U are real N-by-N matrices. The
+  Cholesky factor U of the solution is computed without first
+  finding X. The pencil A - lambda * E must be in generalized Schur
+  form ( A upper quasitriangular, E upper triangular ). Moreover, it
+  must be c-stable, i.e., its eigenvalues must have negative real
+  parts. B must be an upper triangular matrix with non-negative
+  entries on its main diagonal.
+
+  The resulting matrix U is upper triangular. The entries on its
+  main diagonal are non-negative. SCALE is an output scale factor
+  set to avoid overflow in U.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE SG03BV( TRANS, N, A, LDA, E, LDE, B, LDB, SCALE, DWORK,
+     $                   INFO )
+C     .. Scalar Arguments ..
+      CHARACTER         TRANS
+      DOUBLE PRECISION  SCALE
+      INTEGER           INFO, LDA, LDB, LDE, N
+C     .. Array Arguments ..
+      DOUBLE PRECISION  A(LDA,*), B(LDB,*), DWORK(*), E(LDE,*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  TRANS   CHARACTER*1
+          Specifies whether equation (1) or equation (2) is to be
+          solved:
+          = 'N':  Solve equation (1);
+          = 'T':  Solve equation (2).
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The order of the matrices.  N &gt;= 0.
+
+  A       (input) DOUBLE PRECISION array, dimension (LDA,N)
+          The leading N-by-N upper Hessenberg part of this array
+          must contain the quasitriangular matrix A. The elements
+          below the upper Hessenberg part are not referenced.
+
+  LDA     INTEGER
+          The leading dimension of the array A.  LDA &gt;= MAX(1,N).
+
+  E       (input) DOUBLE PRECISION array, dimension (LDE,N)
+          The leading N-by-N upper triangular part of this array
+          must contain the triangular matrix E. The elements below
+          the main diagonal are not referenced.
+
+  LDE     INTEGER
+          The leading dimension of the array E.  LDE &gt;= MAX(1,N).
+
+  B       (input/output) DOUBLE PRECISION array, dimension (LDB,N)
+          On entry, the leading N-by-N upper triangular part of this
+          array must contain the matrix B.
+          On exit, the leading N-by-N upper triangular part of this
+          array contains the solution matrix U. The elements below
+          the main diagonal are not referenced.
+
+  LDB     INTEGER
+          The leading dimension of the array B.  LDB &gt;= MAX(1,N).
+
+  SCALE   (output) DOUBLE PRECISION
+          The scale factor set to avoid overflow in U.
+          0 &lt; SCALE &lt;= 1.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  DWORK   DOUBLE PRECISION array, dimension (6*N-6)
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value;
+          = 1:  the generalized Sylvester equation to be solved in
+                step II (see METHOD) is (nearly) singular to working
+                precision;  perturbed values were used to solve the
+                equation (but the matrices A and E are unchanged);
+          = 2:  the generalized Schur form of the pencil
+                A - lambda * E contains a 2-by-2 main diagonal block
+                whose eigenvalues are not a pair of complex
+                conjugate numbers;
+          = 3:  the pencil A - lambda * E is not stable, i.e., there
+                is an eigenvalue with zero or positive real part.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  The method [2] used by the routine is an extension of Hammarling's
+  algorithm [1] to generalized Lyapunov equations.
+
+  We present the method for solving equation (1). Equation (2) can
+  be treated in a similar fashion. For simplicity, assume SCALE = 1.
+
+  The matrix A is an upper quasitriangular matrix, i.e., it is a
+  block triangular matrix with square blocks on the main diagonal
+  and the block order at most 2. We use the following partitioning
+  for the matrices A, E, B and the solution matrix U
+
+            ( A11   A12 )        ( E11   E12 )
+        A = (           ),   E = (           ),
+            (   0   A22 )        (   0   E22 )
+
+            ( B11   B12 )        ( U11   U12 )
+        B = (           ),   U = (           ).                  (3)
+            (   0   B22 )        (   0   U22 )
+
+  The size of the (1,1)-blocks is 1-by-1 (iff A(2,1) = 0.0) or
+  2-by-2.
+
+  We compute U11, U12**T, and U22 in three steps.
+
+  Step I:
+
+     From (1) and (3) we get the 1-by-1 or 2-by-2 equation
+
+             T      T                  T      T
+          A11  * U11  * U11 * E11 + E11  * U11  * U11 * A11
+
+                 T
+          = - B11  * B11.
+
+     For brevity, details are omitted here. The technique for
+     computing U11 is similar to those applied to standard Lyapunov
+     equations in Hammarling's algorithm ([1], section 6).
+
+     Furthermore, the auxiliary matrices M1 and M2 defined as
+     follows
+
+                            -1      -1
+        M1 = U11 * A11 * E11   * U11  ,
+
+                      -1      -1
+        M2 = B11 * E11   * U11  ,
+
+     are computed in a numerically reliable way.
+
+  Step II:
+
+     We solve for U12**T the generalized Sylvester equation
+
+           T      T      T      T
+        A22  * U12  + E22  * U12  * M1
+
+               T           T      T      T      T
+        = - B12  * M2 - A12  * U11  - E12  * U11  * M1.
+
+  Step III:
+
+     One can show that
+
+           T      T                  T      T
+        A22  * U22  * U22 * E22 + E22  * U22  * U22 * A22  =
+
+             T              T
+        - B22  * B22 - y * y                                     (4)
+
+     holds, where y is defined as follows
+
+               T      T      T      T
+        w = E12  * U11  + E22  * U12 ,
+               T         T
+        y = B12  - w * M2 .
+
+     If B22_tilde is the square triangular matrix arising from the
+     QR-factorization
+
+            ( B22_tilde )     ( B22  )
+        Q * (           )  =  (      ),
+            (     0     )     ( y**T )
+
+     then
+
+             T              T                T
+        - B22  * B22 - y * y   =  - B22_tilde  * B22_tilde.
+
+     Replacing the right hand side in (4) by the term
+     - B22_tilde**T * B22_tilde leads to a generalized Lyapunov
+     equation of lower dimension compared to (1).
+
+  The solution U of the equation (1) can be obtained by recursive
+  application of the steps I to III.
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Hammarling, S.J.
+      Numerical solution of the stable, non-negative definite
+      Lyapunov equation.
+      IMA J. Num. Anal., 2, pp. 303-323, 1982.
+
+  [2] Penzl, T.
+      Numerical solution of generalized Lyapunov equations.
+      Advances in Comp. Math., vol. 8, pp. 33-48, 1998.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  The routine requires 2*N**3 flops. Note that we count a single
+  floating point arithmetic operation as one flop.
+
+</PRE>
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  The Lyapunov equation may be very ill-conditioned. In particular,
+  if the pencil A - lambda * E has a pair of almost degenerate
+  eigenvalues, then the Lyapunov equation will be ill-conditioned.
+  Perturbed values were used to solve the equation.
+  A condition estimate can be obtained from the routine SG03AD.
+  When setting the error indicator INFO, the routine does not test
+  for near instability in the equation but only for exact
+  instability.
+
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

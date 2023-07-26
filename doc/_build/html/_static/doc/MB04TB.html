@@ -1,0 +1,559 @@
+<HTML>
+<HEAD><TITLE>MB04TB - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MB04TB">MB04TB</A></H2>
+<H3>
+Symplectic URV decomposition of a real 2N-by-2N matrix
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To compute a symplectic URV (SURV) decomposition of a real
+  2N-by-2N matrix H,
+
+         [ op(A)   G   ]                 [ op(R11)   R12   ]
+     H = [             ] = U R V'  = U * [                 ] * V' ,
+         [  Q    op(B) ]                 [   0     op(R22) ]
+
+  where A, B, G, Q, R12 are real N-by-N matrices, op(R11) is a real
+  N-by-N upper triangular matrix, op(R22) is a real N-by-N lower
+  Hessenberg matrix and U, V are 2N-by-2N orthogonal symplectic
+  matrices. Blocked version.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MB04TB( TRANA, TRANB, N, ILO, A, LDA, B, LDB, G, LDG,
+     $                   Q, LDQ, CSL, CSR, TAUL, TAUR, DWORK, LDWORK,
+     $                   INFO )
+C     .. Scalar Arguments ..
+      CHARACTER         TRANA, TRANB
+      INTEGER           ILO, INFO, LDA, LDB, LDG, LDQ, LDWORK, N
+C     .. Array Arguments ..
+      DOUBLE PRECISION  A(LDA,*), B(LDB,*), CSL(*), CSR(*), DWORK(*),
+     $                  G(LDG,*), Q(LDQ,*), TAUL(*), TAUR(*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  TRANA   CHARACTER*1
+          Specifies the form of op( A ) as follows:
+          = 'N':  op( A ) = A;
+          = 'T':  op( A ) = A';
+          = 'C':  op( A ) = A'.
+
+  TRANB   CHARACTER*1
+          Specifies the form of op( B ) as follows:
+          = 'N':  op( B ) = B;
+          = 'T':  op( B ) = B';
+          = 'C':  op( B ) = B'.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The order of the matrix A. N &gt;= 0.
+
+  ILO     (input) INTEGER
+          It is assumed that op(A) is already upper triangular,
+          op(B) is lower triangular and Q is zero in rows and
+          columns 1:ILO-1. ILO is normally set by a previous call
+          to MB04DD; otherwise it should be set to 1.
+          1 &lt;= ILO &lt;= N+1, if N &gt; 0; ILO = 1, if N = 0.
+
+  A       (input/output) DOUBLE PRECISION array, dimension (LDA,N)
+          On entry, the leading N-by-N part of this array must
+          contain the matrix A.
+          On exit, the leading N-by-N part of this array contains
+          the triangular matrix R11, and in the zero part
+          information about the elementary reflectors used to
+          compute the SURV decomposition.
+
+  LDA     INTEGER
+          The leading dimension of the array A.  LDA &gt;= MAX(1,N).
+
+  B       (input/output) DOUBLE PRECISION array, dimension (LDB,N)
+          On entry, the leading N-by-N part of this array must
+          contain the matrix B.
+          On exit, the leading N-by-N part of this array contains
+          the Hessenberg matrix R22, and in the zero part
+          information about the elementary reflectors used to
+          compute the SURV decomposition.
+
+  LDB     INTEGER
+          The leading dimension of the array B.  LDB &gt;= MAX(1,N).
+
+  G       (input/output) DOUBLE PRECISION array, dimension (LDG,N)
+          On entry, the leading N-by-N part of this array must
+          contain the matrix G.
+          On exit, the leading N-by-N part of this array contains
+          the matrix R12.
+
+  LDG     INTEGER
+          The leading dimension of the array G.  LDG &gt;= MAX(1,N).
+
+  Q       (input/output) DOUBLE PRECISION array, dimension (LDQ,N)
+          On entry, the leading N-by-N part of this array must
+          contain the matrix Q.
+          On exit, the leading N-by-N part of this array contains
+          information about the elementary reflectors used to
+          compute the SURV decomposition.
+
+  LDQ     INTEGER
+          The leading dimension of the array Q.  LDQ &gt;= MAX(1,N).
+
+  CSL     (output) DOUBLE PRECISION array, dimension (2N)
+          On exit, the first 2N elements of this array contain the
+          cosines and sines of the symplectic Givens rotations
+          applied from the left-hand side used to compute the SURV
+          decomposition.
+
+  CSR     (output) DOUBLE PRECISION array, dimension (2N-2)
+          On exit, the first 2N-2 elements of this array contain the
+          cosines and sines of the symplectic Givens rotations
+          applied from the right-hand side used to compute the SURV
+          decomposition.
+
+  TAUL    (output) DOUBLE PRECISION array, dimension (N)
+          On exit, the first N elements of this array contain the
+          scalar factors of some of the elementary reflectors
+          applied form the left-hand side.
+
+  TAUR    (output) DOUBLE PRECISION array, dimension (N-1)
+          On exit, the first N-1 elements of this array contain the
+          scalar factors of some of the elementary reflectors
+          applied form the right-hand side.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+          On exit, if INFO = 0,  DWORK(1)  returns the optimal
+          value of LDWORK, (16*N + 5)*NB, where NB is the optimal
+          block size determined by the function UE01MD.
+          On exit, if  INFO = -16,  DWORK(1)  returns the minimum
+          value of LDWORK.
+
+  LDWORK  INTEGER
+          The length of the array DWORK.  LDWORK &gt;= MAX(1,N).
+
+          If LDWORK = -1, then a workspace query is assumed;
+          the routine only calculates the optimal size of the
+          DWORK array, returns this value as the first entry of
+          the DWORK array, and no error message related to LDWORK
+          is issued by XERBLA.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  The matrices U and V are represented as products of symplectic
+  reflectors and Givens rotations
+
+  U = diag( HU(1),HU(1) )  GU(1)  diag( FU(1),FU(1) )
+      diag( HU(2),HU(2) )  GU(2)  diag( FU(2),FU(2) )
+                           ....
+      diag( HU(n),HU(n) )  GU(n)  diag( FU(n),FU(n) ),
+
+  V = diag( HV(1),HV(1) )       GV(1)   diag( FV(1),FV(1) )
+      diag( HV(2),HV(2) )       GV(2)   diag( FV(2),FV(2) )
+                                ....
+      diag( HV(n-1),HV(n-1) )  GV(n-1)  diag( FV(n-1),FV(n-1) ).
+
+  Each HU(i) has the form
+
+        HU(i) = I - tau * v * v'
+
+  where tau is a real scalar, and v is a real vector with
+  v(1:i-1) = 0 and v(i) = 1; v(i+1:n) is stored on exit in
+  Q(i+1:n,i), and tau in Q(i,i).
+
+  Each FU(i) has the form
+
+        FU(i) = I - nu * w * w'
+
+  where nu is a real scalar, and w is a real vector with
+  w(1:i-1) = 0 and w(i) = 1; w(i+1:n) is stored on exit in
+  A(i+1:n,i), if op(A) = 'N', and in A(i,i+1:n), otherwise. The
+  scalar nu is stored in TAUL(i).
+
+  Each GU(i) is a Givens rotation acting on rows i and n+i,
+  where the cosine is stored in CSL(2*i-1) and the sine in
+  CSL(2*i).
+
+  Each HV(i) has the form
+
+        HV(i) = I - tau * v * v'
+
+  where tau is a real scalar, and v is a real vector with
+  v(1:i) = 0 and v(i+1) = 1; v(i+2:n) is stored on exit in
+  Q(i,i+2:n), and tau in Q(i,i+1).
+
+  Each FV(i) has the form
+
+        FV(i) = I - nu * w * w'
+
+  where nu is a real scalar, and w is a real vector with
+  w(1:i) = 0 and w(i+1) = 1; w(i+2:n) is stored on exit in
+  B(i,i+2:n), if op(B) = 'N', and in B(i+2:n,i), otherwise.
+  The scalar nu is stored in TAUR(i).
+
+  Each GV(i) is a Givens rotation acting on columns i+1 and n+i+1,
+  where the cosine is stored in CSR(2*i-1) and the sine in
+  CSR(2*i).
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  The algorithm requires 80/3*N**3 + ( 64*NB + 77 )*N**2 +
+  ( -16*NB + 48 )*NB*N + O(N) floating point operations, where
+  NB is the used block size, and is numerically backward stable.
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Benner, P., Mehrmann, V., and Xu, H.
+      A numerically stable, structure preserving method for
+      computing the eigenvalues of real Hamiltonian or symplectic
+      pencils. Numer. Math., Vol 78 (3), pp. 329-358, 1998.
+
+  [2] Kressner, D.
+      Block algorithms for orthogonal symplectic factorizations.
+      BIT, 43 (4), pp. 775-790, 2003.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+*     MB04TB/MB04WR EXAMPLE PROGRAM TEXT
+*
+*     .. Parameters ..
+      DOUBLE PRECISION ZERO, ONE
+      PARAMETER        ( ZERO = 0.0D0, ONE = 1.0D0 )
+      INTEGER          NIN, NOUT
+      PARAMETER        ( NIN = 5, NOUT = 6 )
+      INTEGER          NBMAX, NMAX
+      PARAMETER        ( NBMAX = 64, NMAX = 421 )
+      INTEGER          LDA, LDB, LDG, LDQ, LDRES, LDU1, LDU2, LDV1,
+     $                 LDV2, LDWORK
+      PARAMETER        ( LDA = NMAX, LDB = NMAX, LDG = NMAX, LDQ = NMAX,
+     $                   LDRES = NMAX, LDU1 = NMAX, LDU2 = NMAX,
+     $                   LDV1 = NMAX, LDV2 = NMAX,
+     $                   LDWORK = NBMAX*( 16*NMAX + 1 ) )
+*     .. Local Scalars ..
+      CHARACTER*1      TRANA, TRANB, TRANV1
+      INTEGER          I, INFO, J, N
+      DOUBLE PRECISION TEMP
+*     .. Local Arrays ..
+      DOUBLE PRECISION A(LDA, NMAX), B(LDB, NMAX), CSL(2*NMAX),
+     $                 CSR(2*NMAX), DWORK(LDWORK), G(LDG, NMAX),
+     $                 Q(LDQ, NMAX), RES(LDRES,5*NMAX), TAUL(NMAX),
+     $                 TAUR(NMAX), U1(LDU1, NMAX), U2(LDU2, NMAX),
+     $                 V1(LDV1, NMAX), V2(LDV2, NMAX)
+*     .. External Functions ..
+*     .. External Functions ..
+      LOGICAL          LSAME
+      DOUBLE PRECISION DLANGE, DLAPY2, MA02JD
+      EXTERNAL         DLANGE, DLAPY2, LSAME, MA02JD
+*     .. External Subroutines ..
+      EXTERNAL         DGEMM, DLACPY, DLASET, MB04TB, MB04WR
+*     .. Executable Statements ..
+      WRITE ( NOUT, FMT = 99999 )
+*     Skip the heading in the data file and read the data.
+      READ ( NIN, FMT = '()' )
+      READ ( NIN, FMT = * )  N, TRANA, TRANB
+      IF( N.LE.0 .OR. N.GT.NMAX ) THEN
+         WRITE ( NOUT, FMT = 99992 ) N
+      ELSE
+         READ ( NIN, FMT = * ) ( ( A(I,J), J = 1,N ), I = 1,N )
+         CALL DLACPY( 'All', N, N, A, LDA, RES, LDRES )
+         READ ( NIN, FMT = * ) ( ( B(I,J), J = 1,N ), I = 1,N )
+         CALL DLACPY( 'All', N, N, B, LDB, RES(1,N+1), LDRES )
+         READ ( NIN, FMT = * ) ( ( G(I,J), J = 1,N ), I = 1,N )
+         CALL DLACPY( 'All', N, N, G, LDG, RES(1,2*N+1), LDRES )
+         READ ( NIN, FMT = * ) ( ( Q(I,J), J = 1,N ), I = 1,N )
+         CALL DLACPY( 'All', N, N, Q, LDQ, RES(1,3*N+1), LDRES )
+         CALL MB04TB( TRANA, TRANB, N, 1, A, LDA, B, LDB, G, LDG, Q,
+     $                LDQ, CSL, CSR, TAUL, TAUR, DWORK, LDWORK, INFO )
+         IF ( INFO.NE.0 ) THEN
+            WRITE ( NOUT, FMT = 99998 ) INFO
+         ELSE
+            CALL DLACPY( 'All', N, N, A, LDA, U1, LDU1 )
+            CALL DLACPY( 'All', N, N, Q, LDQ, U2, LDU2 )
+            CALL MB04WR( 'U', TRANA, N, 1, U1, LDU1, U2, LDU2, CSL,
+     $                   TAUL, DWORK, LDWORK, INFO )
+            IF ( INFO.NE.0 ) THEN
+               WRITE ( NOUT, FMT = 99997 ) INFO
+            ELSE
+               CALL DLACPY( 'All', N, N, Q, LDQ, V2, LDV2 )
+               CALL DLACPY( 'All', N, N, B, LDB, V1, LDV1 )
+               CALL MB04WR( 'V', TRANB, N, 1, V1, LDV1, V2, LDV2,
+     $                      CSR, TAUR, DWORK, LDWORK, INFO )
+               IF ( INFO.NE.0 ) THEN
+                  WRITE ( NOUT, FMT = 99997 ) INFO
+               ELSE
+                  WRITE ( NOUT, FMT = 99996 )
+                  IF ( LSAME( TRANA, 'N' ) ) THEN
+                     DO 10  I = 1, N
+                        WRITE (NOUT, FMT = 99993)
+     $                     ( U1(I,J), J = 1,N ), ( U2(I,J), J = 1,N )
+10                   CONTINUE
+                     DO 20  I = 1, N
+                        WRITE (NOUT, FMT = 99993)
+     $                     ( -U2(I,J), J = 1,N ), ( U1(I,J), J = 1,N )
+20                   CONTINUE
+                     WRITE ( NOUT, FMT = 99991 ) MA02JD( .FALSE.,
+     $                       .FALSE., N, U1, LDU1, U2, LDU2,
+     $                       RES(1,4*N+1), LDRES )
+                  ELSE
+                     DO 30  I = 1, N
+                        WRITE (NOUT, FMT = 99993)
+     $                     ( U1(J,I), J = 1,N ), ( U2(I,J), J = 1,N )
+30                   CONTINUE
+                     DO 40  I = 1, N
+                        WRITE (NOUT, FMT = 99993)
+     $                     ( -U2(I,J), J = 1,N ), ( U1(J,I), J = 1,N )
+40                   CONTINUE
+                     WRITE ( NOUT, FMT = 99991 ) MA02JD( .TRUE.,
+     $                       .FALSE., N, U1, LDU1, U2, LDU2,
+     $                       RES(1,4*N+1), LDRES )
+                  END IF
+                  WRITE ( NOUT, FMT = 99995 )
+                  CALL DLASET( 'All', N, N, ZERO, ZERO, Q, LDQ )
+                  IF ( LSAME( TRANA, 'N' ) ) THEN
+                     CALL DLASET( 'Lower', N-1, N-1, ZERO, ZERO,
+     $                            A(2,1), LDA )
+                     DO 50  I = 1, N
+                        WRITE (NOUT, FMT = 99993)
+     $                     ( A(I,J), J = 1,N ), ( G(I,J), J = 1,N )
+50                   CONTINUE
+                  ELSE
+                     CALL DLASET( 'Upper', N-1, N-1, ZERO, ZERO,
+     $                            A(1,2), LDA )
+                     DO 60  I = 1, N
+                        WRITE (NOUT, FMT = 99993)
+     $                     ( A(J,I), J = 1,N ), ( G(I,J), J = 1,N )
+60                   CONTINUE
+                  END IF
+                  IF ( LSAME( TRANB, 'N' ) ) THEN
+                     IF ( N.GT.1 ) THEN
+                        CALL DLASET( 'Upper', N-2, N-2, ZERO, ZERO,
+     $                               B(1,3), LDB )
+                     END IF
+                     DO 70  I = 1, N
+                        WRITE (NOUT, FMT = 99993)
+     $                     ( Q(I,J), J = 1,N ), ( B(I,J), J = 1,N )
+70                   CONTINUE
+                  ELSE
+                     IF ( N.GT.1 ) THEN
+C                        CALL DLASET( 'Lower', N-2, N-2, ZERO, ZERO,
+C     $                               B(3,1), LDB )
+                     END IF
+                     DO 80  I = 1, N
+                        WRITE (NOUT, FMT = 99993)
+     $                     ( Q(I,J), J = 1,N ), ( B(J,I), J = 1,N )
+80                   CONTINUE
+                  END IF
+C
+                  IF ( LSAME( TRANB, 'N' ) ) THEN
+                     TRANV1 = 'T'
+                  ELSE
+                     TRANV1 = 'N'
+                  END IF
+                  CALL DGEMM( TRANA, TRANV1, N, N, N, ONE, RES, LDRES,
+     $                        V1, LDV1, ZERO, RES(1,4*N+1), LDRES )
+                  CALL DGEMM( 'No Transpose', 'Transpose', N, N, N,
+     $                        -ONE, RES(1,2*N+1), LDRES, V2, LDV2, ONE,
+     $                        RES(1,4*N+1), LDRES )
+                  CALL DGEMM( TRANA, TRANA, N, N, N, -ONE, U1, LDU1,
+     $                        A, LDA, ONE, RES(1,4*N+1), LDRES )
+                  TEMP = DLANGE( 'Frobenius', N, N, RES(1,4*N+1),
+     $                           LDRES, DWORK )
+                  CALL DGEMM( TRANA, 'Transpose', N, N, N, ONE, RES,
+     $                        LDRES, V2, LDV2, ZERO, RES(1,4*N+1),
+     $                        LDRES )
+                  CALL DGEMM( 'No Transpose', TRANV1, N, N, N, ONE,
+     $                        RES(1,2*N+1), LDRES, V1, LDV1, ONE,
+     $                        RES(1,4*N+1), LDRES )
+                  CALL DGEMM( TRANA, 'No Transpose', N, N, N, -ONE,
+     $                        U1, LDU1, G, LDG, ONE, RES(1,4*N+1),
+     $                        LDRES )
+                  CALL DGEMM( 'No Transpose', TRANB, N, N, N, -ONE,
+     $                        U2, LDU2, B, LDB, ONE, RES(1,4*N+1),
+     $                        LDRES )
+                  TEMP = DLAPY2( TEMP, DLANGE( 'Frobenius', N, N,
+     $                                 RES(1,4*N+1), LDRES, DWORK ) )
+                  CALL DGEMM( 'No Transpose', TRANV1, N, N, N, ONE,
+     $                        RES(1,3*N+1), LDRES, V1, LDV1, ZERO,
+     $                        RES(1,4*N+1), LDRES )
+                  CALL DGEMM( TRANB, 'Transpose', N, N, N, -ONE,
+     $                        RES(1,N+1), LDRES, V2, LDV2, ONE,
+     $                        RES(1,4*N+1), LDRES )
+                  CALL DGEMM( 'No Transpose', TRANA, N, N, N, ONE,
+     $                        U2, LDU2, A, LDA, ONE, RES(1,4*N+1),
+     $                        LDRES )
+                  TEMP = DLAPY2( TEMP, DLANGE( 'Frobenius', N, N,
+     $                                 RES(1,4*N+1), LDRES, DWORK ) )
+                  CALL DGEMM( 'No Transpose', 'Transpose', N, N, N, ONE,
+     $                        RES(1,3*N+1), LDRES, V2, LDV2, ZERO,
+     $                        RES(1,4*N+1), LDRES )
+                  CALL DGEMM( TRANB, TRANV1, N, N, N, ONE, RES(1,N+1),
+     $                        LDRES, V1, LDV1, ONE, RES(1,4*N+1),
+     $                        LDRES )
+                  CALL DGEMM( 'No Transpose', 'No Transpose', N, N, N,
+     $                        ONE, U2, LDU2, G, LDG, ONE, RES(1,4*N+1),
+     $                        LDRES )
+                  CALL DGEMM( TRANA, TRANB, N, N, N, -ONE, U1, LDU1,
+     $                        B, LDB, ONE, RES(1,4*N+1), LDRES )
+                  TEMP = DLAPY2( TEMP, DLANGE( 'Frobenius', N, N,
+     $                                 RES(1,4*N+1), LDRES, DWORK ) )
+                  WRITE ( NOUT, FMT = 99990 ) TEMP
+C
+                  WRITE ( NOUT, FMT = 99994 )
+                  IF ( LSAME( TRANB, 'N' ) ) THEN
+                     DO 90  I = 1, N
+                        WRITE (NOUT, FMT = 99993)
+     $                     ( V1(J,I), J = 1,N ), ( V2(J,I), J = 1,N )
+90                   CONTINUE
+                     DO 100  I = 1, N
+                        WRITE (NOUT, FMT = 99993)
+     $                     ( -V2(J,I), J = 1,N ), ( V1(J,I), J = 1,N )
+100                  CONTINUE
+                     WRITE ( NOUT, FMT = 99989 ) MA02JD( .TRUE.,
+     $                       .TRUE., N, V1, LDV1, V2, LDV2,
+     $                       RES(1,4*N+1), LDRES )
+                  ELSE
+                     DO 110  I = 1, N
+                        WRITE (NOUT, FMT = 99993)
+     $                     ( V1(I,J), J = 1,N ), ( V2(J,I), J = 1,N )
+110                  CONTINUE
+                     DO 120  I = 1, N
+                        WRITE (NOUT, FMT = 99993)
+     $                     ( -V2(J,I), J = 1,N ), ( V1(I,J), J = 1,N )
+120                  CONTINUE
+                     WRITE ( NOUT, FMT = 99989 ) MA02JD( .FALSE.,
+     $                       .TRUE., N, V1, LDV1, V2, LDV2,
+     $                       RES(1,4*N+1), LDRES )
+                  END IF
+               END IF
+            END IF
+         END IF
+      END IF
+*
+      STOP
+*
+99999 FORMAT (' MB04TB EXAMPLE PROGRAM RESULTS',/1X)
+99998 FORMAT (' INFO on exit from MB04TB = ',I2)
+99997 FORMAT (' INFO on exit from MB04WR = ',I2)
+99996 FORMAT (' The orthogonal symplectic factor U is ')
+99995 FORMAT (/' The factor R is ')
+99994 FORMAT (/' The orthogonal symplectic factor V is ')
+99993 FORMAT (20(1X,F9.4))
+99992 FORMAT (/' N is out of range.',/' N = ',I5)
+99991 FORMAT (/' Orthogonality of U: || U^T U - I ||_F = ',G7.2)
+99990 FORMAT (/' Residual: || H*V - U*R ||_F = ',G7.2)
+99989 FORMAT (/' Orthogonality of V: || V^T V - I ||_F = ',G7.2)
+      END
+</PRE>
+<B>Program Data</B>
+<PRE>
+MB04TB EXAMPLE PROGRAM DATA
+        5       N       N
+    0.4643    0.3655    0.6853    0.5090    0.3718
+    0.3688    0.6460    0.4227    0.6798    0.5135
+    0.7458    0.5043    0.9419    0.9717    0.9990
+    0.7140    0.4941    0.7802    0.5272    0.1220
+    0.7418    0.0339    0.7441    0.0436    0.6564
+   -0.4643   -0.3688   -0.7458   -0.7140   -0.7418
+   -0.3655   -0.6460   -0.5043   -0.4941   -0.0339
+   -0.6853   -0.4227   -0.9419   -0.7802   -0.7441
+   -0.5090   -0.6798   -0.9717   -0.5272   -0.0436
+   -0.3718   -0.5135   -0.9990   -0.1220   -0.6564
+    0.7933    1.5765    1.0711    1.0794    0.8481
+    1.5765    0.1167    1.5685    0.8756    0.5037
+    1.0711    1.5685    0.9902    0.3858    0.2109
+    1.0794    0.8756    0.3858    1.8834    1.4338
+    0.8481    0.5037    0.2109    1.4338    0.1439
+    1.0786    1.5264    1.1721    1.5343    0.4756
+    1.5264    0.8644    0.6872    1.1379    0.6499
+    1.1721    0.6872    1.5194    1.1197    1.0158
+    1.5343    1.1379    1.1197    0.6612    0.2004
+    0.4756    0.6499    1.0158    0.2004    1.2188
+</PRE>
+<B>Program Results</B>
+<PRE>
+ MB04TB EXAMPLE PROGRAM RESULTS
+
+ The orthogonal symplectic factor U is 
+   -0.1513    0.0756   -0.0027    0.1694   -0.2999    0.3515   -0.4843    0.6545   -0.1995   -0.1627
+   -0.1202    0.2320    0.1662   -0.2835   -0.0508    0.4975    0.3319   -0.2686   -0.4186   -0.4649
+   -0.2431    0.2724    0.3439    0.3954    0.0236    0.3820   -0.2863   -0.4324    0.3706    0.1984
+   -0.2327   -0.1509   -0.3710   -0.1240   -0.0393    0.5000    0.3659    0.1429    0.0493    0.6015
+   -0.2418   -0.2928   -0.0836   -0.5549    0.4824    0.1550   -0.4441   -0.0396    0.2376   -0.1702
+   -0.3515    0.4843   -0.6545    0.1995    0.1627   -0.1513    0.0756   -0.0027    0.1694   -0.2999
+   -0.4975   -0.3319    0.2686    0.4186    0.4649   -0.1202    0.2320    0.1662   -0.2835   -0.0508
+   -0.3820    0.2863    0.4324   -0.3706   -0.1984   -0.2431    0.2724    0.3439    0.3954    0.0236
+   -0.5000   -0.3659   -0.1429   -0.0493   -0.6015   -0.2327   -0.1509   -0.3710   -0.1240   -0.0393
+   -0.1550    0.4441    0.0396   -0.2376    0.1702   -0.2418   -0.2928   -0.0836   -0.5549    0.4824
+
+ Orthogonality of U: || U^T U - I ||_F = .17E-14
+
+ The factor R is 
+   -3.0684    4.6724   -0.2613   -0.1996    0.0208   -0.1071   -0.1355   -0.1400    0.4652   -0.5032
+    0.0000   -1.8037   -0.0301   -0.1137    0.1771    0.0277    0.3929    0.5424    0.5220   -0.4843
+    0.0000    0.0000   -0.7617   -0.1874    0.2557    0.1244   -0.0012    0.4091    0.5123   -0.3522
+    0.0000    0.0000    0.0000   -0.6931   -0.4293   -0.3718    0.1542   -0.3635    0.0336   -0.9832
+    0.0000    0.0000    0.0000    0.0000    0.6469    0.2074    0.0266    0.2028    0.1995    0.2517
+    0.0000    0.0000    0.0000    0.0000    0.0000    2.6325   -4.7377    0.0000    0.0000    0.0000
+    0.0000    0.0000    0.0000    0.0000    0.0000   -0.2702    0.9347   -1.1210    0.0000    0.0000
+    0.0000    0.0000    0.0000    0.0000    0.0000   -0.3219   -0.5394    0.1748   -0.4788    0.0000
+    0.0000    0.0000    0.0000    0.0000    0.0000   -0.1431   -0.1021    0.4974   -0.3565   -0.6402
+    0.0000    0.0000    0.0000    0.0000    0.0000   -0.1622   -0.2368    0.6126   -0.7369    0.6915
+
+ Residual: || H*V - U*R ||_F = .76E-14
+
+ The orthogonal symplectic factor V is 
+    1.0000    0.0000    0.0000    0.0000    0.0000    0.0000    0.0000    0.0000    0.0000    0.0000
+    0.0000   -0.4740    0.6013   -0.2299   -0.4282    0.0000    0.0061   -0.1732    0.3134    0.2220
+    0.0000   -0.5553   -0.2623    0.6622   -0.3042    0.0000   -0.0382    0.2453   -0.1662    0.0509
+    0.0000   -0.5563    0.0322   -0.1431    0.4461    0.0000   -0.0665   -0.4132   -0.3100   -0.4457
+    0.0000   -0.3872   -0.4022   -0.4194    0.3541    0.0000   -0.0406    0.3820    0.3006    0.3861
+    0.0000    0.0000    0.0000    0.0000    0.0000    1.0000    0.0000    0.0000    0.0000    0.0000
+    0.0000   -0.0061    0.1732   -0.3134   -0.2220    0.0000   -0.4740    0.6013   -0.2299   -0.4282
+    0.0000    0.0382   -0.2453    0.1662   -0.0509    0.0000   -0.5553   -0.2623    0.6622   -0.3042
+    0.0000    0.0665    0.4132    0.3100    0.4457    0.0000   -0.5563    0.0322   -0.1431    0.4461
+    0.0000    0.0406   -0.3820   -0.3006   -0.3861    0.0000   -0.3872   -0.4022   -0.4194    0.3541
+
+ Orthogonality of V: || V^T V - I ||_F = .17E-14
+</PRE>
+
+<HR>
+<p>
+<A HREF=..\libindex.html><B>Return to index</B></A></BODY>
+</HTML>

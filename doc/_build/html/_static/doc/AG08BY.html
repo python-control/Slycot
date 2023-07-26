@@ -1,0 +1,261 @@
+<HTML>
+<HEAD><TITLE>AG08BY - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="AG08BY">AG08BY</A></H2>
+<H3>
+Construction of a reduced system with input/output matrix Dr of full row rank, preserving the finite Smith zeros of the descriptor system
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To extract from the (N+P)-by-(M+N) descriptor system pencil
+
+     S(lambda) = ( B   A - lambda*E  )
+                 ( D        C        )
+
+  with E nonsingular and upper triangular a
+  (NR+PR)-by-(M+NR) "reduced" descriptor system pencil
+
+                        ( Br  Ar-lambda*Er )
+           Sr(lambda) = (                  )
+                        ( Dr     Cr        )
+
+  having the same finite Smith zeros as the pencil
+  S(lambda) but with Dr, a PR-by-M full row rank
+  left upper trapezoidal matrix, and Er, an NR-by-NR
+  upper triangular nonsingular matrix.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE AG08BY( FIRST, N, M, P, SVLMAX, ABCD, LDABCD, E, LDE,
+     $                   NR, PR, NINFZ, DINFZ, NKRONL, INFZ, KRONL,
+     $                   TOL, IWORK, DWORK, LDWORK, INFO )
+C     .. Scalar Arguments ..
+      INTEGER            DINFZ, INFO, LDABCD, LDE, LDWORK, M, N, NINFZ,
+     $                   NKRONL, NR, P, PR
+      DOUBLE PRECISION   SVLMAX, TOL
+      LOGICAL            FIRST
+C     .. Array Arguments ..
+      INTEGER            INFZ( * ), IWORK(*), KRONL( * )
+      DOUBLE PRECISION   ABCD( LDABCD, * ), DWORK( * ), E( LDE, * )
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  FIRST   LOGICAL
+          Specifies if AG08BY is called first time or it is called
+          for an already reduced system, with D full column rank
+          with the last M rows in upper triangular form:
+          FIRST = .TRUE.,  first time called;
+          FIRST = .FALSE., not first time called.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The number of rows of matrix B, the number of columns of
+          matrix C and the order of square matrices A and E.
+          N &gt;= 0.
+
+  M       (input) INTEGER
+          The number of columns of matrices B and D.  M &gt;= 0.
+          M &lt;= P if FIRST = .FALSE. .
+
+  P       (input) INTEGER
+          The number of rows of matrices C and D.  P &gt;= 0.
+
+  SVLMAX  (input) DOUBLE PRECISION
+          During each reduction step, the rank-revealing QR
+          factorization of a matrix stops when the estimated minimum
+          singular value is smaller than TOL * MAX(SVLMAX,EMSV),
+          where EMSV is the estimated maximum singular value.
+          SVLMAX &gt;= 0.
+
+  ABCD    (input/output) DOUBLE PRECISION array, dimension
+          (LDABCD,M+N)
+          On entry, the leading (N+P)-by-(M+N) part of this array
+          must contain the compound matrix
+                   (  B   A  ) ,
+                   (  D   C  )
+          where A is an N-by-N matrix, B is an N-by-M matrix,
+          C is a P-by-N matrix and D is a P-by-M matrix.
+          If FIRST = .FALSE., then D must be a full column
+          rank matrix with the last M rows in upper triangular form.
+          On exit, the leading (NR+PR)-by-(M+NR) part of ABCD
+          contains the reduced compound matrix
+                    (  Br  Ar ) ,
+                    (  Dr  Cr )
+          where Ar is an NR-by-NR matrix, Br is an NR-by-M matrix,
+          Cr is a PR-by-NR matrix, Dr is a PR-by-M full row rank
+          left upper trapezoidal matrix with the first PR columns
+          in upper triangular form.
+
+  LDABCD  INTEGER
+          The leading dimension of array ABCD.
+          LDABCD &gt;= MAX(1,N+P).
+
+  E       (input/output) DOUBLE PRECISION array, dimension (LDE,N)
+          On entry, the leading N-by-N part of this array must
+          contain the upper triangular nonsingular matrix E.
+          On exit, the leading NR-by-NR part contains the reduced
+          upper triangular nonsingular matrix Er.
+
+  LDE     INTEGER
+          The leading dimension of array E.  LDE &gt;= MAX(1,N).
+
+  NR      (output) INTEGER
+          The order of the reduced matrices Ar and Er; also the
+          number of rows of the reduced matrix Br and the number
+          of columns of the reduced matrix Cr.
+          If Dr is invertible, NR is also the number of finite
+          Smith zeros.
+
+  PR      (output) INTEGER
+          The rank of the resulting matrix Dr; also the number of
+          rows of reduced matrices Cr and Dr.
+
+  NINFZ   (output) INTEGER
+          Number of infinite zeros.  NINFZ = 0 if FIRST = .FALSE. .
+
+  DINFZ   (output) INTEGER
+          The maximal multiplicity of infinite zeros.
+          DINFZ = 0 if FIRST = .FALSE. .
+
+  NKRONL  (output) INTEGER
+          The maximal dimension of left elementary Kronecker blocks.
+
+  INFZ    (output) INTEGER array, dimension (N)
+          INFZ(i) contains the number of infinite zeros of
+          degree i, where i = 1,2,...,DINFZ.
+          INFZ is not referenced if FIRST = .FALSE. .
+
+  KRONL   (output) INTEGER array, dimension (N+1)
+          KRONL(i) contains the number of left elementary Kronecker
+          blocks of dimension i-by-(i-1), where i = 1,2,...,NKRONL.
+
+</PRE>
+<B>Tolerances</B>
+<PRE>
+  TOL     DOUBLE PRECISION
+          A tolerance used in rank decisions to determine the
+          effective rank, which is defined as the order of the
+          largest leading (or trailing) triangular submatrix in the
+          QR (or RQ) factorization with column (or row) pivoting
+          whose estimated condition number is less than 1/TOL.
+          If the user sets TOL &lt;= 0, then an implicitly computed,
+          default tolerance TOLDEF = (N+P)*(N+M)*EPS,  is used
+          instead, where EPS is the machine precision
+          (see LAPACK Library routine DLAMCH).
+          NOTE that when SVLMAX &gt; 0, the estimated ranks could be
+          less than those defined above (see SVLMAX).  TOL &lt;= 1.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  IWORK   INTEGER array, dimension (M)
+          If FIRST = .FALSE., IWORK is not referenced.
+
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+          On exit, if INFO = 0, DWORK(1) returns the optimal value
+          of LDWORK.
+
+  LDWORK  INTEGER
+          The length of the array DWORK.
+          LDWORK &gt;= 1, if P = 0; otherwise
+          LDWORK &gt;= MAX( 1, N+M-1, MIN(P,M) + MAX(3*M-1,N), 5*P ),
+                                          if FIRST = .TRUE.;
+          LDWORK &gt;= MAX( 1, N+M-1, 5*P ), if FIRST = .FALSE. .
+          The second term is not needed if M = 0.
+          For optimum performance LDWORK should be larger.
+
+          If LDWORK = -1, then a workspace query is assumed;
+          the routine only calculates the optimal size of the
+          DWORK array, returns this value as the first entry of
+          the DWORK array, and no error message related to LDWORK
+          is issued by XERBLA.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  The subroutine is based on the reduction algorithm of [1].
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] P. Misra, P. Van Dooren and A. Varga.
+      Computation of structural invariants of generalized
+      state-space systems.
+      Automatica, 30, pp. 1921-1936, 1994.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  The algorithm is numerically backward stable and requires
+  0( (P+N)*(M+N)*N )  floating point operations.
+
+</PRE>
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  The number of infinite zeros is computed as
+
+                DINFZ
+     NINFZ =     Sum  (INFZ(i)*i) .
+                 i=1
+  Note that each infinite zero of multiplicity k corresponds to
+  an infinite eigenvalue of multiplicity k+1.
+  The multiplicities of the infinite eigenvalues can be determined
+  from PR, DINFZ and INFZ(i), i = 1, ..., DINFZ, as follows:
+
+                  DINFZ
+  - there are PR - Sum (INFZ(i)) simple infinite eigenvalues;
+                   i=1
+
+  - there are INFZ(i) infinite eigenvalues with multiplicity i+1,
+    for i = 1, ..., DINFZ.
+
+  The left Kronecker indices are:
+
+  [ 0  0 ...  0  | 1  1  ...  1 |  .... | NKRONL  ...  NKRONL ]
+  |&lt;- KRONL(1) -&gt;|&lt;- KRONL(2) -&gt;|       |&lt;-  KRONL(NKRONL)  -&gt;|
+
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

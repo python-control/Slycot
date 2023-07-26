@@ -1,0 +1,418 @@
+<HTML>
+<HEAD><TITLE>TD04AD - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="TD04AD">TD04AD</A></H2>
+<H3>
+Minimal state-space representation for a proper transfer matrix
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To find a minimal state-space representation (A,B,C,D) for a
+  proper transfer matrix T(s) given as either row or column
+  polynomial vectors over denominator polynomials, possibly with
+  uncancelled common terms.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE TD04AD( ROWCOL, M, P, INDEX, DCOEFF, LDDCOE, UCOEFF,
+     $                   LDUCO1, LDUCO2, NR, A, LDA, B, LDB, C, LDC, D,
+     $                   LDD, TOL, IWORK, DWORK, LDWORK, INFO )
+C     .. Scalar Arguments ..
+      CHARACTER         ROWCOL
+      INTEGER           INFO, LDA, LDB, LDC, LDD, LDDCOE, LDUCO1,
+     $                  LDUCO2, LDWORK, M, NR, P
+      DOUBLE PRECISION  TOL
+C     .. Array Arguments ..
+      INTEGER           INDEX(*), IWORK(*)
+      DOUBLE PRECISION  A(LDA,*), B(LDB,*), C(LDC,*), D(LDD,*),
+     $                  DCOEFF(LDDCOE,*), DWORK(*),
+     $                  UCOEFF(LDUCO1,LDUCO2,*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  ROWCOL  CHARACTER*1
+          Indicates whether the transfer matrix T(s) is given as
+          rows or columns over common denominators as follows:
+          = 'R':  T(s) is given as rows over common denominators;
+          = 'C':  T(s) is given as columns over common denominators.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  M       (input) INTEGER
+          The number of system inputs.  M &gt;= 0.
+
+  P       (input) INTEGER
+          The number of system outputs.  P &gt;= 0.
+
+  INDEX   (input) INTEGER array, dimension (porm), where porm = P,
+          if ROWCOL = 'R', and porm = M, if ROWCOL = 'C'.
+          This array must contain the degrees of the denominator
+          polynomials in D(s).
+
+  DCOEFF  (input) DOUBLE PRECISION array, dimension (LDDCOE,kdcoef),
+          where kdcoef = MAX(INDEX(I)) + 1.
+          The leading porm-by-kdcoef part of this array must contain
+          the coefficients of each denominator polynomial.
+          DCOEFF(I,K) is the coefficient in s**(INDEX(I)-K+1) of the
+          I-th denominator polynomial in D(s), where
+          K = 1,2,...,kdcoef.
+
+  LDDCOE  INTEGER
+          The leading dimension of array DCOEFF.
+          LDDCOE &gt;= MAX(1,P) if ROWCOL = 'R';
+          LDDCOE &gt;= MAX(1,M) if ROWCOL = 'C'.
+
+  UCOEFF  (input) DOUBLE PRECISION array, dimension
+          (LDUCO1,LDUCO2,kdcoef)
+          The leading P-by-M-by-kdcoef part of this array must
+          contain the numerator matrix U(s); if ROWCOL = 'C', this
+          array is modified internally but restored on exit, and the
+          remainder of the leading MAX(M,P)-by-MAX(M,P)-by-kdcoef
+          part is used as internal workspace.
+          UCOEFF(I,J,K) is the coefficient in s**(INDEX(iorj)-K+1)
+          of polynomial (I,J) of U(s), where K = 1,2,...,kdcoef;
+          if ROWCOL = 'R' then iorj = I, otherwise iorj = J.
+          Thus for ROWCOL = 'R', U(s) =
+          diag(s**INDEX(I))*(UCOEFF(.,.,1)+UCOEFF(.,.,2)/s+...).
+
+  LDUCO1  INTEGER
+          The leading dimension of array UCOEFF.
+          LDUCO1 &gt;= MAX(1,P)   if ROWCOL = 'R';
+          LDUCO1 &gt;= MAX(1,M,P) if ROWCOL = 'C'.
+
+  LDUCO2  INTEGER
+          The second dimension of array UCOEFF.
+          LDUCO2 &gt;= MAX(1,M)   if ROWCOL = 'R';
+          LDUCO2 &gt;= MAX(1,M,P) if ROWCOL = 'C'.
+
+  NR      (output) INTEGER
+          The order of the resulting minimal realization, i.e. the
+          order of the state dynamics matrix A.
+
+  A       (output) DOUBLE PRECISION array, dimension (LDA,N),
+                    porm
+          where N = SUM INDEX(I).
+                    I=1
+          The leading NR-by-NR part of this array contains the upper
+          block Hessenberg state dynamics matrix A of a minimal
+          realization.
+
+  LDA     INTEGER
+          The leading dimension of array A.  LDA &gt;= MAX(1,N).
+
+  B       (output) DOUBLE PRECISION array, dimension (LDB,MAX(M,P))
+          The leading NR-by-M part of this array contains the
+          input/state matrix B of a minimal realization; the
+          remainder of the leading N-by-MAX(M,P) part is used as
+          internal workspace.
+
+  LDB     INTEGER
+          The leading dimension of array B.  LDB &gt;= MAX(1,N).
+
+  C       (output) DOUBLE PRECISION array, dimension (LDC,N)
+          The leading P-by-NR part of this array contains the
+          state/output matrix C of a minimal realization; the
+          remainder of the leading MAX(M,P)-by-N part is used as
+          internal workspace.
+
+  LDC     INTEGER
+          The leading dimension of array C.  LDC &gt;= MAX(1,M,P).
+
+  D       (output) DOUBLE PRECISION array, dimension (LDD,M),
+          if ROWCOL = 'R', and (LDD,MAX(M,P)) if ROWCOL = 'C'.
+          The leading P-by-M part of this array contains the direct
+          transmission matrix D; if ROWCOL = 'C', the remainder of
+          the leading MAX(M,P)-by-MAX(M,P) part is used as internal
+          workspace.
+
+  LDD     INTEGER
+          The leading dimension of array D.
+          LDD &gt;= MAX(1,P)   if ROWCOL = 'R';
+          LDD &gt;= MAX(1,M,P) if ROWCOL = 'C'.
+
+</PRE>
+<B>Tolerances</B>
+<PRE>
+  TOL     DOUBLE PRECISION
+          The tolerance to be used in rank determination when
+          transforming (A, B, C). If the user sets TOL &gt; 0, then
+          the given value of TOL is used as a lower bound for the
+          reciprocal condition number (see the description of the
+          argument RCOND in the SLICOT routine MB03OD);  a
+          (sub)matrix whose estimated condition number is less than
+          1/TOL is considered to be of full rank.  If the user sets
+          TOL &lt;= 0, then an implicitly computed, default tolerance
+          (determined by the SLICOT routine TB01UD) is used instead.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  IWORK   INTEGER array, dimension (N+MAX(M,P))
+          On exit, if INFO = 0, the first nonzero elements of
+          IWORK(1:N) return the orders of the diagonal blocks of A.
+
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+          On exit, if INFO = 0, DWORK(1) returns the optimal value
+          of LDWORK.
+
+  LDWORK  INTEGER
+          The length of the array DWORK.
+          LDWORK &gt;= MAX(1, N + MAX(N, 3*M, 3*P)).
+          For optimum performance LDWORK should be larger.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value;
+          &gt; 0:  if INFO = i, then i is the first integer for which
+                ABS( DCOEFF(I,1) ) is so small that the calculations
+                would overflow (see SLICOT Library routine TD03AY);
+                that is, the leading coefficient of a polynomial is
+                nearly zero; no state-space representation is
+                calculated.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  The method for transfer matrices factorized by rows will be
+  described here: T(s) factorized by columns is dealt with by
+  operating on the dual T'(s). This description for T(s) is
+  actually the left polynomial matrix representation
+
+       T(s) = inv(D(s))*U(s),
+
+  where D(s) is diagonal with its (I,I)-th polynomial element of
+  degree INDEX(I). The first step is to check whether the leading
+  coefficient of any polynomial element of D(s) is approximately
+  zero; if so the routine returns with INFO &gt; 0. Otherwise,
+  Wolovich's Observable Structure Theorem is used to construct a
+  state-space representation in observable companion form which
+  is equivalent to the above polynomial matrix representation.
+  The method is particularly easy here due to the diagonal form
+  of D(s). This state-space representation is not necessarily
+  controllable (as D(s) and U(s) are not necessarily relatively
+  left prime), but it is in theory completely observable; however,
+  its observability matrix may be poorly conditioned, so it is
+  treated as a general state-space representation and SLICOT
+  Library routine TB01PD is then called to separate out a minimal
+  realization from this general state-space representation by means
+  of orthogonal similarity transformations.
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Patel, R.V.
+      Computation of Minimal-Order State-Space Realizations and
+      Observability Indices using Orthogonal Transformations.
+      Int. J. Control, 33, pp. 227-246, 1981.
+
+  [2] Wolovich, W.A.
+      Linear Multivariable Systems, (Theorem 4.3.3).
+      Springer-Verlag, 1974.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>                            3
+  The algorithm requires 0(N ) operations.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+*     TD04AD EXAMPLE PROGRAM TEXT
+*
+*     .. Parameters ..
+      INTEGER          NIN, NOUT
+      PARAMETER        ( NIN = 5, NOUT = 6 )
+      INTEGER          MMAX, PMAX, KDCMAX, NMAX
+      PARAMETER        ( MMAX = 10, PMAX = 10, KDCMAX = 10, NMAX = 10 )
+      INTEGER          MAXMP
+      PARAMETER        ( MAXMP = MAX( MMAX, PMAX ) )
+      INTEGER          LDDCOE, LDUCO1, LDUCO2, LDA, LDB, LDC, LDD
+      PARAMETER        ( LDDCOE = MAXMP, LDUCO1 = MAXMP,
+     $                   LDUCO2 = MAXMP, LDA = NMAX, LDB = NMAX,
+     $                   LDC = MAXMP, LDD = MAXMP )
+      INTEGER          LIWORK
+      PARAMETER        ( LIWORK = NMAX + MAXMP )
+      INTEGER          LDWORK
+      PARAMETER        ( LDWORK = NMAX + MAX( NMAX, 3*MAXMP ) )
+*     .. Local Scalars ..
+      DOUBLE PRECISION TOL
+      INTEGER          I, INDBLK, INFO, J, K, KDCOEF, M, N, NR, P, PORM
+      CHARACTER*1      ROWCOL
+      LOGICAL          LROWCO
+*     .. Local Arrays ..
+      DOUBLE PRECISION A(LDA,NMAX), B(LDB,MAXMP), C(LDC,NMAX),
+     $                 D(LDD,MAXMP), DCOEFF(LDDCOE,KDCMAX),
+     $                 DWORK(LDWORK), UCOEFF(LDUCO1,LDUCO2,KDCMAX)
+      INTEGER          INDEX(MAXMP), IWORK(LIWORK)
+*     .. External Functions ..
+      LOGICAL          LSAME
+      EXTERNAL         LSAME
+*     .. External Subroutines ..
+      EXTERNAL         TD04AD
+*     .. Intrinsic Functions ..
+      INTRINSIC        MAX
+*     .. Executable Statements ..
+*
+      WRITE ( NOUT, FMT = 99999 )
+*     Skip the heading in the data file and read the data.
+      READ ( NIN, FMT = '()' )
+      READ ( NIN, FMT = * ) M, P, TOL, ROWCOL
+      LROWCO = LSAME( ROWCOL, 'R' )
+      IF ( M.LT.0 .OR. M.GT.MMAX ) THEN
+         WRITE ( NOUT, FMT = 99990 ) M
+      ELSE IF ( P.LT.0 .OR. P.GT.PMAX ) THEN
+         WRITE ( NOUT, FMT = 99989 ) P
+      ELSE
+         PORM = P
+         IF ( .NOT.LROWCO ) PORM = M
+         READ ( NIN, FMT = * ) ( INDEX(I), I = 1,PORM )
+*
+         N = 0
+         KDCOEF = 0
+         DO 20 I = 1, PORM
+            N = N + INDEX(I)
+            KDCOEF = MAX( KDCOEF, INDEX(I) )
+   20    CONTINUE
+         KDCOEF = KDCOEF + 1
+*
+         IF ( KDCOEF.LE.0 .OR. KDCOEF.GT.KDCMAX ) THEN
+            WRITE ( NOUT, FMT = 99988 ) KDCOEF
+         ELSE
+            READ ( NIN, FMT = * )
+     $         ( ( DCOEFF(I,J), J = 1,KDCOEF ), I = 1,PORM )
+            READ ( NIN, FMT = * )
+     $         ( ( ( UCOEFF(I,J,K), K = 1,KDCOEF ), J = 1,M ), I = 1,P )
+*           Find a minimal state-space representation (A,B,C,D).
+            CALL TD04AD( ROWCOL, M, P, INDEX, DCOEFF, LDDCOE, UCOEFF,
+     $                   LDUCO1, LDUCO2, NR, A, LDA, B, LDB, C, LDC, D,
+     $                   LDD, TOL, IWORK, DWORK, LDWORK, INFO )
+*
+            IF ( INFO.NE.0 ) THEN
+               WRITE ( NOUT, FMT = 99998 ) INFO
+            ELSE
+               WRITE ( NOUT, FMT = 99997 ) NR
+               DO 40 I = 1, NR
+                  WRITE ( NOUT, FMT = 99996 ) ( A(I,J), J = 1,NR )
+   40          CONTINUE
+               WRITE ( NOUT, FMT = 99995 )
+               DO 60 I = 1, NR
+                  WRITE ( NOUT, FMT = 99996 ) ( B(I,J), J = 1,M )
+   60          CONTINUE
+               WRITE ( NOUT, FMT = 99994 )
+               DO 80 I = 1, P
+                  WRITE ( NOUT, FMT = 99996 ) ( C(I,J), J = 1,NR )
+   80          CONTINUE
+               WRITE ( NOUT, FMT = 99993 )
+               DO 100 I = 1, P
+                  WRITE ( NOUT, FMT = 99996 ) ( D(I,J), J = 1,M )
+  100          CONTINUE
+               INDBLK = 0
+               DO 120 I = 1, N
+                  IF ( IWORK(I).NE.0 ) INDBLK = INDBLK + 1
+  120          CONTINUE
+               IF ( LROWCO ) THEN
+                  WRITE ( NOUT, FMT = 99992 ) INDBLK,
+     $                       ( IWORK(I), I = 1,INDBLK )
+               ELSE
+                  WRITE ( NOUT, FMT = 99991 ) INDBLK,
+     $                       ( IWORK(I), I = 1,INDBLK )
+               END IF
+            END IF
+         END IF
+      END IF
+      STOP
+*
+99999 FORMAT (' TD04AD EXAMPLE PROGRAM RESULTS',/1X)
+99998 FORMAT (' INFO on exit from TD04AD = ',I2)
+99997 FORMAT (' The order of the minimal realization = ',I2,//' The st',
+     $       'ate dynamics matrix A of a minimal realization is ')
+99996 FORMAT (20(1X,F8.4))
+99995 FORMAT (/' The input/state matrix B of a minimal realization is ')
+99994 FORMAT (/' The state/output matrix C of a minimal realization is '
+     $       )
+99993 FORMAT (/' The direct transmission matrix D is ')
+99992 FORMAT (/' The observability index of a minimal state-space repr',
+     $       'esentation = ',I2,//' The dimensions of the diagonal blo',
+     $       'cks of the state dynamics matrix are',/20(1X,I2))
+99991 FORMAT (/' The controllability index of a minimal state-space re',
+     $       'presentation = ',I2,//' The dimensions of the diagonal b',
+     $       'locks of the state dynamics matrix are',/20(1X,I2))
+99990 FORMAT (/' M is out of range.',/' M = ',I5)
+99989 FORMAT (/' P is out of range.',/' P = ',I5)
+99988 FORMAT (/' KDCOEF is out of range.',/' KDCOEF = ',I5)
+      END
+</PRE>
+<B>Program Data</B>
+<PRE>
+ TD04AD EXAMPLE PROGRAM DATA
+   2     2     0.0     R
+   3     3
+   1.0   6.0  11.0   6.0
+   1.0   6.0  11.0   6.0
+   1.0   6.0  12.0   7.0
+   0.0   1.0   4.0   3.0
+   0.0   0.0   1.0   1.0
+   1.0   8.0  20.0  15.0
+</PRE>
+<B>Program Results</B>
+<PRE>
+ TD04AD EXAMPLE PROGRAM RESULTS
+
+ The order of the minimal realization =  3
+
+ The state dynamics matrix A of a minimal realization is 
+   0.5000  -0.8028   0.9387
+   4.4047  -2.3380   2.5076
+  -5.5541   1.6872  -4.1620
+
+ The input/state matrix B of a minimal realization is 
+  -0.2000  -1.2500
+   0.0000  -0.6097
+   0.0000   2.2217
+
+ The state/output matrix C of a minimal realization is 
+   0.0000  -0.8679   0.2119
+   0.0000   0.0000   0.9002
+
+ The direct transmission matrix D is 
+   1.0000   0.0000
+   0.0000   1.0000
+
+ The observability index of a minimal state-space representation =  2
+
+ The dimensions of the diagonal blocks of the state dynamics matrix are
+  2  1
+</PRE>
+
+<HR>
+<p>
+<A HREF=..\libindex.html><B>Return to index</B></A></BODY>
+</HTML>

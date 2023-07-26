@@ -1,0 +1,413 @@
+<HTML>
+<HEAD><TITLE>SB01BD - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="SB01BD">SB01BD</A></H2>
+<H3>
+Pole assignment for a given matrix pair (A,B)
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To determine the state feedback matrix F for a given system (A,B)
+  such that the closed-loop state matrix A+B*F has specified
+  eigenvalues.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE SB01BD( DICO, N, M, NP, ALPHA, A, LDA, B, LDB, WR, WI,
+     $                   NFP, NAP, NUP, F, LDF, Z, LDZ, TOL, DWORK,
+     $                   LDWORK, IWARN, INFO )
+C     .. Scalar Arguments ..
+      CHARACTER        DICO
+      INTEGER          INFO, IWARN, LDA, LDB, LDF, LDWORK, LDZ, M, N,
+     $                 NAP, NFP, NP, NUP
+      DOUBLE PRECISION ALPHA, TOL
+C     .. Array Arguments ..
+      DOUBLE PRECISION A(LDA,*), B(LDB,*), DWORK(*), F(LDF,*),
+     $                 WI(*), WR(*), Z(LDZ,*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  DICO    CHARACTER*1
+          Specifies the type of the original system as follows:
+          = 'C':  continuous-time system;
+          = 'D':  discrete-time system.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The dimension of the state vector, i.e. the order of the
+          matrix A, and also the number of rows of the matrix B and
+          the number of columns of the matrix F.  N &gt;= 0.
+
+  M       (input) INTEGER
+          The dimension of input vector, i.e. the number of columns
+          of the matrix B and the number of rows of the matrix F.
+          M &gt;= 0.
+
+  NP      (input) INTEGER
+          The number of given eigenvalues. At most N eigenvalues
+          can be assigned.  0 &lt;= NP.
+
+  ALPHA   (input) DOUBLE PRECISION
+          Specifies the maximum admissible value, either for real
+          parts, if DICO = 'C', or for moduli, if DICO = 'D',
+          of the eigenvalues of A which will not be modified by
+          the eigenvalue assignment algorithm.
+          ALPHA &gt;= 0 if DICO = 'D'.
+
+  A       (input/output) DOUBLE PRECISION array, dimension (LDA,N)
+          On entry, the leading N-by-N part of this array must
+          contain the state dynamics matrix A.
+          On exit, the leading N-by-N part of this array contains
+          the matrix Z'*(A+B*F)*Z in a real Schur form.
+          The leading NFP-by-NFP diagonal block of A corresponds
+          to the fixed (unmodified) eigenvalues having real parts
+          less than ALPHA, if DICO = 'C', or moduli less than ALPHA,
+          if DICO = 'D'. The trailing NUP-by-NUP diagonal block of A
+          corresponds to the uncontrollable eigenvalues detected by
+          the eigenvalue assignment algorithm. The elements under
+          the first subdiagonal are set to zero.
+
+  LDA     INTEGER
+          The leading dimension of array A.  LDA &gt;= MAX(1,N).
+
+  B       (input) DOUBLE PRECISION array, dimension (LDB,M)
+          The leading N-by-M part of this array must contain the
+          input/state matrix.
+
+  LDB     INTEGER
+          The leading dimension of array B.  LDB &gt;= MAX(1,N).
+
+  WR,WI   (input/output) DOUBLE PRECISION array, dimension (NP)
+          On entry, these arrays must contain the real and imaginary
+          parts, respectively, of the desired eigenvalues of the
+          closed-loop system state-matrix A+B*F. The eigenvalues
+          can be unordered, except that complex conjugate pairs
+          must appear consecutively in these arrays.
+          On exit, if INFO = 0, the leading NAP elements of these
+          arrays contain the real and imaginary parts, respectively,
+          of the assigned eigenvalues. The trailing NP-NAP elements
+          contain the unassigned eigenvalues.
+
+  NFP     (output) INTEGER
+          The number of eigenvalues of A having real parts less than
+          ALPHA, if DICO = 'C', or moduli less than ALPHA, if
+          DICO = 'D'. These eigenvalues are not modified by the
+          eigenvalue assignment algorithm.
+
+  NAP     (output) INTEGER
+          The number of assigned eigenvalues. If INFO = 0 on exit,
+          then NAP = N-NFP-NUP.
+
+  NUP     (output) INTEGER
+          The number of uncontrollable eigenvalues detected by the
+          eigenvalue assignment algorithm (see METHOD).
+
+  F       (output) DOUBLE PRECISION array, dimension (LDF,N)
+          The leading M-by-N part of this array contains the state
+          feedback F, which assigns NAP closed-loop eigenvalues and
+          keeps unaltered N-NAP open-loop eigenvalues.
+
+  LDF     INTEGER
+          The leading dimension of array F.  LDF &gt;= MAX(1,M).
+
+  Z       (output) DOUBLE PRECISION array, dimension (LDZ,N)
+          The leading N-by-N part of this array contains the
+          orthogonal matrix Z which reduces the closed-loop
+          system state matrix A + B*F to upper real Schur form.
+
+  LDZ     INTEGER
+          The leading dimension of array Z.  LDZ &gt;= MAX(1,N).
+
+</PRE>
+<B>Tolerances</B>
+<PRE>
+  TOL     DOUBLE PRECISION
+          The absolute tolerance level below which the elements of A
+          or B are considered zero (used for controllability tests).
+          If the user sets TOL &lt;= 0, then the default tolerance
+          TOL = N * EPS * max(NORM(A),NORM(B)) is used, where EPS is
+          the machine precision (see LAPACK Library routine DLAMCH)
+          and NORM(A) denotes the 1-norm of A.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+          On exit, if INFO = 0, DWORK(1) returns the optimal value
+          of LDWORK.
+
+  LDWORK  INTEGER
+          The dimension of working array DWORK.
+          LDWORK &gt;= MAX( 1,5*M,5*N,2*N+4*M ).
+          For optimum performance LDWORK should be larger.
+
+</PRE>
+<B>Warning Indicator</B>
+<PRE>
+  IWARN   INTEGER
+          = 0:  no warning;
+          = K:  K violations of the numerical stability condition
+                NORM(F) &lt;= 100*NORM(A)/NORM(B) occured during the
+                assignment of eigenvalues.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value;
+          = 1:  the reduction of A to a real Schur form failed;
+          = 2:  a failure was detected during the ordering of the
+                real Schur form of A, or in the iterative process
+                for reordering the eigenvalues of Z'*(A + B*F)*Z
+                along the diagonal.
+          = 3:  the number of eigenvalues to be assigned is less
+                than the number of possibly assignable eigenvalues;
+                NAP eigenvalues have been properly assigned,
+                but some assignable eigenvalues remain unmodified.
+          = 4:  an attempt is made to place a complex conjugate
+                pair on the location of a real eigenvalue. This
+                situation can only appear when N-NFP is odd,
+                NP &gt; N-NFP-NUP is even, and for the last real
+                eigenvalue to be modified there exists no available
+                real eigenvalue to be assigned. However, NAP
+                eigenvalues have been already properly assigned.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  SB01BD is based on the factorization algorithm of [1].
+  Given the matrices A and B of dimensions N-by-N and N-by-M,
+  respectively, this subroutine constructs an M-by-N matrix F such
+  that A + BF has eigenvalues as follows.
+  Let NFP eigenvalues of A have real parts less than ALPHA, if
+  DICO = 'C', or moduli less then ALPHA, if DICO = 'D'. Then:
+  1) If the pair (A,B) is controllable, then A + B*F has
+     NAP = MIN(NP,N-NFP) eigenvalues assigned from those specified
+     by WR + j*WI and N-NAP unmodified eigenvalues;
+  2) If the pair (A,B) is uncontrollable, then the number of
+     assigned eigenvalues NAP satifies generally the condition
+     NAP &lt;= MIN(NP,N-NFP).
+
+  At the beginning of the algorithm, F = 0 and the matrix A is
+  reduced to an ordered real Schur form by separating its spectrum
+  in two parts. The leading NFP-by-NFP part of the Schur form of
+  A corresponds to the eigenvalues which will not be modified.
+  These eigenvalues have real parts less than ALPHA, if
+  DICO = 'C', or moduli less than ALPHA, if DICO = 'D'.
+  The performed orthogonal transformations are accumulated in Z.
+  After this preliminary reduction, the algorithm proceeds
+  recursively.
+
+  Let F be the feedback matrix at the beginning of a typical step i.
+  At each step of the algorithm one real eigenvalue or two complex
+  conjugate eigenvalues are placed by a feedback Fi of rank 1 or
+  rank 2, respectively. Since the feedback Fi affects only the
+  last 1 or 2 columns of Z'*(A+B*F)*Z, the matrix Z'*(A+B*F+B*Fi)*Z
+  therefore remains in real Schur form. The assigned eigenvalue(s)
+  is (are) then moved to another diagonal position of the real
+  Schur form using reordering techniques and a new block is
+  transfered in the last diagonal position. The feedback matrix F
+  is updated as F &lt;-- F + Fi. The eigenvalue(s) to be assigned at
+  each step is (are) chosen such that the norm of each Fi is
+  minimized.
+
+  If uncontrollable eigenvalues are encountered in the last diagonal
+  position of the real Schur matrix Z'*(A+B*F)*Z, the algorithm
+  deflates them at the bottom of the real Schur form and redefines
+  accordingly the position of the "last" block.
+
+  Note: Not all uncontrollable eigenvalues of the pair (A,B) are
+  necessarily detected by the eigenvalue assignment algorithm.
+  Undetected uncontrollable eigenvalues may exist if NFP &gt; 0 and/or
+  NP &lt; N-NFP.
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Varga A.
+      A Schur method for pole assignment.
+      IEEE Trans. Autom. Control, Vol. AC-26, pp. 517-519, 1981.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>                                         3
+  The algorithm requires no more than 14N  floating point
+  operations. Although no proof of numerical stability is known,
+  the algorithm has always been observed to yield reliable
+  numerical results.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+*     SB01BD EXAMPLE PROGRAM TEXT
+*
+*     .. Parameters ..
+      INTEGER          NIN, NOUT
+      PARAMETER        ( NIN = 5, NOUT = 6 )
+      INTEGER          NMAX, MMAX
+      PARAMETER        ( NMAX = 20, MMAX = 20 )
+      INTEGER          LDA, LDB, LDF, LDZ
+      PARAMETER        ( LDA = NMAX, LDB = NMAX, LDF = MMAX,
+     $                   LDZ = NMAX )
+      INTEGER          LDWORK
+      PARAMETER        ( LDWORK = MAX( 5*MMAX,5*NMAX,2*NMAX+4*MMAX ) )
+      DOUBLE PRECISION ZERO, ONE
+      PARAMETER        ( ZERO = 0.0D0, ONE = 1.0D0 )
+*     .. Local Scalars ..
+      DOUBLE PRECISION ALPHA, ANORM, NRM, TOL
+      INTEGER          I, INFO, IWARN, J, M, N, NAP, NFP, NP, NUP
+      CHARACTER*1      DICO
+*     .. Local Arrays ..
+      DOUBLE PRECISION A(LDA,NMAX), AIN(LDA,NMAX), B(LDB,MMAX),
+     $                 DWORK(LDWORK), F(LDF,NMAX), WI(NMAX), WR(NMAX),
+     $                 Z(LDZ,NMAX), ZTA(LDZ,NMAX)
+C     .. External Functions ..
+      LOGICAL          LSAME
+      DOUBLE PRECISION DLAMCH, DLANGE
+      EXTERNAL         DLAMCH, DLANGE, LSAME
+*     .. External Subroutines ..
+      EXTERNAL         DGEMM, DLACPY, MB03QX, SB01BD
+*     .. Intrinsic Functions ..
+      INTRINSIC        MAX
+*     .. Executable Statements ..
+*
+      WRITE ( NOUT, FMT = 99999 )
+*     Skip the heading in the data file and read the data.
+      READ ( NIN, FMT = '()' )
+      READ ( NIN, FMT = * ) N, M, NP, ALPHA, TOL, DICO
+      IF ( N.LT.0 .OR. N.GT.NMAX ) THEN
+         WRITE ( NOUT, FMT = 99994 ) N
+      ELSE
+         READ ( NIN, FMT = * ) ( ( A(I,J), J = 1,N ), I = 1,N )
+         IF ( M.LT.0 .OR. M.GT.MMAX ) THEN
+            WRITE ( NOUT, FMT = 99993 ) M
+         ELSE
+            READ ( NIN, FMT = * ) ( ( B(I,J), J = 1,M ), I = 1,N )
+            IF( NP.LT.0 .OR. NP.GT.NMAX ) THEN
+               WRITE ( NOUT, FMT = 99992 ) NP
+            ELSE
+               DO 10 I = 1, NP
+                  READ ( NIN, FMT = * ) WR(I), WI(I)
+   10          CONTINUE
+*              Perform "eigenvalue assignment" to compute F.
+               CALL DLACPY( 'G', N, N, A, LDA, AIN, LDA )
+               CALL SB01BD( DICO, N, M, NP, ALPHA, A, LDA, B, LDB,
+     $                      WR, WI, NFP, NAP, NUP, F, LDF, Z, LDZ,
+     $                      TOL, DWORK, LDWORK, IWARN, INFO )
+*
+               IF ( INFO.NE.0 .AND. INFO.LT.3 ) THEN
+                  WRITE ( NOUT, FMT = 99997 ) INFO
+               ELSE
+                  IF ( INFO  .NE. 0 ) WRITE ( NOUT, FMT = 99997 ) INFO
+                  IF ( IWARN .NE. 0 ) WRITE ( NOUT, FMT = 99991 ) IWARN
+                  WRITE ( NOUT, FMT = 99990 ) NAP
+                  WRITE ( NOUT, FMT = 99989 ) NFP
+                  WRITE ( NOUT, FMT = 99988 ) NUP
+                  WRITE ( NOUT, FMT = 99996 )
+                  DO 60 I = 1, M
+                     WRITE ( NOUT, FMT = 99995 ) ( F(I,J), J = 1,N )
+   60             CONTINUE
+                  CALL MB03QX( N, A, LDA, WR, WI, INFO )
+                  WRITE ( NOUT, FMT = 99998 ) ( WR(I), WI(I), I = 1,N )
+*                 Compute NORM (Z*Aout*Z'-(A+B*F)) / (eps*NORM(A))
+                  ANORM = DLANGE( 'F', N, N, AIN, LDA, DWORK )
+                  CALL DGEMM( 'N', 'N', N, N, M, ONE, B, LDB, F, LDF,
+     $                        ONE, AIN, LDA )
+                  CALL DGEMM( 'N', 'N', N, N, N, ONE, Z, LDZ, A, LDA,
+     $                        ZERO, ZTA, LDZ )
+                  CALL DGEMM( 'N', 'T', N, N, N, ONE, ZTA, LDZ, Z, LDZ,
+     $                        -ONE, AIN, LDA )
+                  NRM = DLANGE( 'F', N, N, AIN, LDA, DWORK ) /
+     $                  ( DLAMCH( 'E' )*ANORM )
+                  WRITE ( NOUT, FMT = 99987 ) NRM
+               END IF
+            END IF
+         END IF
+      END IF
+      STOP
+*
+99999 FORMAT (' SB01BD EXAMPLE PROGRAM RESULTS',/1X)
+99998 FORMAT (/,' The eigenvalues of closed-loop matrix A+B*F',/
+     $          ( ' ( ',F8.4,',',F8.4,' )' ) )
+99997 FORMAT (' INFO on exit from SB01BD = ',I2)
+99996 FORMAT (/,' The state feedback matrix F is ')
+99995 FORMAT (20(1X,F8.4))
+99994 FORMAT (/' N is out of range.',/' N = ',I5)
+99993 FORMAT (/' M is out of range.',/' M = ',I5)
+99992 FORMAT (/' NP is out of range.',/' NP = ',I5)
+99991 FORMAT (/' IWARN on exit from SB01BD = ', I2)
+99990 FORMAT ( ' Number of assigned eigenvalues: NAP = ', I2 )
+99989 FORMAT ( ' Number of fixed eigenvalues:    NFP = ', I2)
+99988 FORMAT ( ' Number of uncontrollable poles: NUP = ', I2)
+99987 FORMAT (/,' NORM(A+B*F - Z*Aout*Z'') / (eps*NORM(A)) =',1PD12.5)
+      END
+</PRE>
+<B>Program Data</B>
+<PRE>
+ SB01BD EXAMPLE PROGRAM DATA
+   4   2   2   -.4  1.E-8   C
+  -6.8000   0.0000  -207.0000   0.0000
+   1.0000   0.0000     0.0000   0.0000
+  43.2000   0.0000     0.0000  -4.2000
+   0.0000   0.0000     1.0000   0.0000
+   5.6400   0.0000
+   0.0000   0.0000
+   0.0000   1.1800
+   0.0000   0.0000
+  -0.5000   0.1500
+  -0.5000  -0.1500
+  -2.0000   0.0000
+  -0.4000   0.0000
+</PRE>
+<B>Program Results</B>
+<PRE>
+ SB01BD EXAMPLE PROGRAM RESULTS
+
+ Number of assigned eigenvalues: NAP =  2
+ Number of fixed eigenvalues:    NFP =  2
+ Number of uncontrollable poles: NUP =  0
+
+ The state feedback matrix F is 
+  -0.0876  -4.2138   0.0837 -18.1412
+  -0.0233  18.2483  -0.4259  -4.8120
+
+ The eigenvalues of closed-loop matrix A+B*F
+ (  -3.3984, 94.5253 )
+ (  -3.3984,-94.5253 )
+ (  -0.5000,  0.1500 )
+ (  -0.5000, -0.1500 )
+
+ NORM(A+B*F - Z*Aout*Z') / (eps*NORM(A)) = 1.03505D+01
+</PRE>
+
+<HR>
+<p>
+<A HREF=..\libindex.html><B>Return to index</B></A></BODY>
+</HTML>

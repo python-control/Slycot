@@ -1,0 +1,348 @@
+<HTML>
+<HEAD><TITLE>AB09HX - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="AB09HX">AB09HX</A></H2>
+<H3>
+Stochastic balancing model reduction of stable systems
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To compute a reduced order model (Ar,Br,Cr,Dr) for an original
+  stable state-space representation (A,B,C,D) by using the
+  stochastic balancing approach in conjunction with the square-root
+  or the balancing-free square-root Balance & Truncate (B&T) or
+  Singular Perturbation Approximation (SPA) model reduction methods.
+  The state dynamics matrix A of the original system is an upper
+  quasi-triangular matrix in real Schur canonical form and D must be
+  full row rank.
+
+  For the B&T approach, the matrices of the reduced order system
+  are computed using the truncation formulas:
+
+       Ar = TI * A * T ,  Br = TI * B ,  Cr = C * T .     (1)
+
+  For the SPA approach, the matrices of a minimal realization
+  (Am,Bm,Cm) are computed using the truncation formulas:
+
+       Am = TI * A * T ,  Bm = TI * B ,  Cm = C * T .     (2)
+
+  Am, Bm, Cm and D serve further for computing the SPA of the given
+  system.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE AB09HX( DICO, JOB, ORDSEL, N, M, P, NR, A, LDA, B, LDB,
+     $                   C, LDC, D, LDD, HSV, T, LDT, TI, LDTI, TOL1,
+     $                   TOL2, IWORK, DWORK, LDWORK, BWORK, IWARN,
+     $                   INFO )
+C     .. Scalar Arguments ..
+      CHARACTER         DICO, JOB, ORDSEL
+      INTEGER           INFO, IWARN, LDA, LDB, LDC, LDD, LDT, LDTI,
+     $                  LDWORK, M, N, NR, P
+      DOUBLE PRECISION  TOL1, TOL2
+C     .. Array Arguments ..
+      INTEGER           IWORK(*)
+      DOUBLE PRECISION  A(LDA,*), B(LDB,*), C(LDC,*), D(LDD,*),
+     $                  DWORK(*), HSV(*), T(LDT,*), TI(LDTI,*)
+      LOGICAL           BWORK(*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  DICO    CHARACTER*1
+          Specifies the type of the original system as follows:
+          = 'C':  continuous-time system;
+          = 'D':  discrete-time system.
+
+  JOB     CHARACTER*1
+          Specifies the model reduction approach to be used
+          as follows:
+          = 'B':  use the square-root Balance & Truncate method;
+          = 'F':  use the balancing-free square-root
+                  Balance & Truncate method;
+          = 'S':  use the square-root Singular Perturbation
+                  Approximation method;
+          = 'P':  use the balancing-free square-root
+                  Singular Perturbation Approximation method.
+
+  ORDSEL  CHARACTER*1
+          Specifies the order selection method as follows:
+          = 'F':  the resulting order NR is fixed;
+          = 'A':  the resulting order NR is automatically determined
+                  on basis of the given tolerance TOL1.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The order of the original state-space representation,
+          i.e., the order of the matrix A.  N &gt;= 0.
+
+  M       (input) INTEGER
+          The number of system inputs.  M &gt;= 0.
+
+  P       (input) INTEGER
+          The number of system outputs.  M &gt;= P &gt;= 0.
+
+  NR      (input/output) INTEGER
+          On entry with ORDSEL = 'F', NR is the desired order of
+          the resulting reduced order system.  0 &lt;= NR &lt;= N.
+          On exit, if INFO = 0, NR is the order of the resulting
+          reduced order model. NR is set as follows:
+          if ORDSEL = 'F', NR is equal to MIN(NR,NMIN), where NR
+          is the desired order on entry and NMIN is the order of a
+          minimal realization of the given system; NMIN is
+          determined as the number of Hankel singular values greater
+          than N*EPS, where EPS is the machine precision
+          (see LAPACK Library Routine DLAMCH);
+          if ORDSEL = 'A', NR is equal to the number of Hankel
+          singular values greater than MAX(TOL1,N*EPS).
+
+  A       (input/output) DOUBLE PRECISION array, dimension (LDA,N)
+          On entry, the leading N-by-N part of this array must
+          contain the state dynamics matrix A in a real Schur
+          canonical form.
+          On exit, if INFO = 0, the leading NR-by-NR part of this
+          array contains the state dynamics matrix Ar of the
+          reduced order system.
+
+  LDA     INTEGER
+          The leading dimension of array A.  LDA &gt;= MAX(1,N).
+
+  B       (input/output) DOUBLE PRECISION array, dimension (LDB,M)
+          On entry, the leading N-by-M part of this array must
+          contain the original input/state matrix B.
+          On exit, if INFO = 0, the leading NR-by-M part of this
+          array contains the input/state matrix Br of the reduced
+          order system.
+
+  LDB     INTEGER
+          The leading dimension of array B.  LDB &gt;= MAX(1,N).
+
+  C       (input/output) DOUBLE PRECISION array, dimension (LDC,N)
+          On entry, the leading P-by-N part of this array must
+          contain the original state/output matrix C.
+          On exit, if INFO = 0, the leading P-by-NR part of this
+          array contains the state/output matrix Cr of the reduced
+          order system.
+
+  LDC     INTEGER
+          The leading dimension of array C.  LDC &gt;= MAX(1,P).
+
+  D       (input/output) DOUBLE PRECISION array, dimension (LDD,M)
+          On entry, the leading P-by-M part of this array must
+          contain the original input/output matrix D.
+          On exit, if INFO = 0, the leading P-by-M part of this
+          array contains the input/output matrix Dr of the reduced
+          order system.
+
+  LDD     INTEGER
+          The leading dimension of array D.  LDD &gt;= MAX(1,P).
+
+  HSV     (output) DOUBLE PRECISION array, dimension (N)
+          If INFO = 0, it contains the Hankel singular values,
+          ordered decreasingly, of the phase system. All singular
+          values are less than or equal to 1.
+
+  T       (output) DOUBLE PRECISION array, dimension (LDT,N)
+          If INFO = 0 and NR &gt; 0, the leading N-by-NR part of this
+          array contains the right truncation matrix T in (1), for
+          the B&T approach, or in (2), for the SPA approach.
+
+  LDT     INTEGER
+          The leading dimension of array T.  LDT &gt;= MAX(1,N).
+
+  TI      (output) DOUBLE PRECISION array, dimension (LDTI,N)
+          If INFO = 0 and NR &gt; 0, the leading NR-by-N part of this
+          array contains the left truncation matrix TI in (1), for
+          the B&T approach, or in (2), for the SPA approach.
+
+  LDTI    INTEGER
+          The leading dimension of array TI.  LDTI &gt;= MAX(1,N).
+
+</PRE>
+<B>Tolerances</B>
+<PRE>
+  TOL1    DOUBLE PRECISION
+          If ORDSEL = 'A', TOL1 contains the tolerance for
+          determining the order of reduced system.
+          For model reduction, the recommended value lies in the
+          interval [0.00001,0.001].
+          If TOL1 &lt;= 0 on entry, the used default value is
+          TOL1 = N*EPS, where EPS is the machine
+          precision (see LAPACK Library Routine DLAMCH).
+          If ORDSEL = 'F', the value of TOL1 is ignored.
+
+  TOL2    DOUBLE PRECISION
+          The tolerance for determining the order of a minimal
+          realization of the phase system (see METHOD) corresponding
+          to the given system.
+          The recommended value is TOL2 = N*EPS.
+          This value is used by default if TOL2 &lt;= 0 on entry.
+          If TOL2 &gt; 0 and ORDSEL = 'A', then TOL2 &lt;= TOL1.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  IWORK   INTEGER array, dimension (MAX(1,2*N))
+          On exit with INFO = 0, IWORK(1) contains the order of the
+          minimal realization of the system.
+
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+          On exit, if INFO = 0, DWORK(1) returns the optimal value
+          of LDWORK and DWORK(2) contains RCOND, the reciprocal
+          condition number of the U11 matrix from the expression
+          used to compute the solution X = U21*inv(U11) of the
+          Riccati equation for spectral factorization.
+          A small value RCOND indicates possible ill-conditioning
+          of the respective Riccati equation.
+
+  LDWORK  INTEGER
+          The length of the array DWORK.
+          LDWORK &gt;= MAX( 2, N*(MAX(N,M,P)+5),
+                         2*N*P+MAX(P*(M+2),10*N*(N+1) ) ).
+          For optimum performance LDWORK should be larger.
+
+  BWORK   LOGICAL array, dimension 2*N
+
+</PRE>
+<B>Warning Indicator</B>
+<PRE>
+  IWARN   INTEGER
+          = 0:  no warning;
+          = 1:  with ORDSEL = 'F', the selected order NR is greater
+                than the order of a minimal realization of the
+                given system. In this case, the resulting NR is
+                set automatically to a value corresponding to the
+                order of a minimal realization of the system.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value;
+          = 1:  the state matrix A is not stable (if DICO = 'C')
+                or not convergent (if DICO = 'D'), or it is not in
+                a real Schur form;
+          = 2:  the reduction of Hamiltonian matrix to real
+                Schur form failed;
+          = 3:  the reordering of the real Schur form of the
+                Hamiltonian matrix failed;
+          = 4:  the Hamiltonian matrix has less than N stable
+                eigenvalues;
+          = 5:  the coefficient matrix U11 in the linear system
+                X*U11 = U21, used to determine X, is singular to
+                working precision;
+          = 6:  the feedthrough matrix D has not a full row rank P;
+          = 7:  the computation of Hankel singular values failed.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  Let be the stable linear system
+
+       d[x(t)] = Ax(t) + Bu(t)
+       y(t)    = Cx(t) + Du(t),                             (3)
+
+  where d[x(t)] is dx(t)/dt for a continuous-time system and x(t+1)
+  for a discrete-time system. The subroutine AB09HX determines for
+  the given system (3), the matrices of a reduced NR-rder system
+
+       d[z(t)] = Ar*z(t) + Br*u(t)
+       yr(t)   = Cr*z(t) + Dr*u(t),                         (4)
+
+  such that
+
+        HSV(NR) &lt;= INFNORM(G-Gr) &lt;= 2*[HSV(NR+1) + ... + HSV(N)],
+
+  where G and Gr are transfer-function matrices of the systems
+  (A,B,C,D) and (Ar,Br,Cr,Dr), respectively, and INFNORM(G) is the
+  infinity-norm of G.
+
+  If JOB = 'B', the square-root stochastic Balance & Truncate
+  method of [1] is used and the resulting model is balanced.
+
+  If JOB = 'F', the balancing-free square-root version of the
+  stochastic Balance & Truncate method [1] is used.
+
+  If JOB = 'S', the stochastic balancing method, in conjunction
+  with the square-root version of the Singular Perturbation
+  Approximation method [2,3] is used.
+
+  If JOB = 'P', the stochastic balancing method, in conjunction
+  with the balancing-free square-root version of the Singular
+  Perturbation Approximation method [2,3] is used.
+
+  By setting TOL1 = TOL2, the routine can be also used to compute
+  Balance & Truncate approximations.
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Varga A. and Fasol K.H.
+      A new square-root balancing-free stochastic truncation
+      model reduction algorithm.
+      Proc. of 12th IFAC World Congress, Sydney, 1993.
+
+  [2] Liu Y. and Anderson B.D.O.
+      Singular Perturbation Approximation of balanced systems.
+      Int. J. Control, Vol. 50, pp. 1379-1405, 1989.
+
+  [3] Varga A.
+      Balancing-free square-root algorithm for computing singular
+      perturbation approximations.
+      Proc. 30-th IEEE CDC,  Brighton, Dec. 11-13, 1991,
+      Vol. 2, pp. 1062-1065.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  The implemented method relies on accuracy enhancing square-root
+  or balancing-free square-root methods. The effectiveness of the
+  accuracy enhancing technique depends on the accuracy of the
+  solution of a Riccati equation. Ill-conditioned Riccati solution
+  typically results when D is nearly rank deficient.
+                                   3
+  The algorithm requires about 100N  floating point operations.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

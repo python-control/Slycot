@@ -1,0 +1,380 @@
+<HTML>
+<HEAD><TITLE>FB01VD - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="FB01VD">FB01VD</A></H2>
+<H3>
+One recursion of the conventional Kalman filter
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To compute one recursion of the conventional Kalman filter
+  equations. This is one update of the Riccati difference equation
+  and the Kalman filter gain.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE FB01VD( N, M, L, P, LDP, A, LDA, B, LDB, C, LDC, Q,
+     $                   LDQ, R, LDR, K, LDK, TOL, IWORK, DWORK, LDWORK,
+     $                   INFO )
+C     .. Scalar Arguments ..
+      INTEGER           INFO, L, LDA, LDB, LDC, LDK, LDP, LDQ, LDR,
+     $                  LDWORK, M, N
+      DOUBLE PRECISION  TOL
+C     .. Array Arguments ..
+      INTEGER           IWORK(*)
+      DOUBLE PRECISION  A(LDA,*), B(LDB,*), C(LDC,*), DWORK(*),
+     $                  K(LDK,*), P(LDP,*), Q(LDQ,*), R(LDR,*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The actual state dimension, i.e., the order of the
+          matrices P      and A .  N &gt;= 0.
+                    i|i-1      i
+
+  M       (input) INTEGER
+          The actual input dimension, i.e., the order of the matrix
+          Q .  M &gt;= 0.
+           i
+
+  L       (input) INTEGER
+          The actual output dimension, i.e., the order of the matrix
+          R .  L &gt;= 0.
+           i
+
+  P       (input/output) DOUBLE PRECISION array, dimension (LDP,N)
+          On entry, the leading N-by-N part of this array must
+          contain P     , the state covariance matrix at instant
+                   i|i-1
+          (i-1). The upper triangular part only is needed.
+          On exit, if INFO = 0, the leading N-by-N part of this
+          array contains P     , the state covariance matrix at
+                          i+1|i
+          instant i. The strictly lower triangular part is not set.
+          Otherwise, the leading N-by-N part of this array contains
+          P     , its input value.
+           i|i-1
+
+  LDP     INTEGER
+          The leading dimension of array P.  LDP &gt;= MAX(1,N).
+
+  A       (input) DOUBLE PRECISION array, dimension (LDA,N)
+          The leading N-by-N part of this array must contain A ,
+                                                              i
+          the state transition matrix of the discrete system at
+          instant i.
+
+  LDA     INTEGER
+          The leading dimension of array A.  LDA &gt;= MAX(1,N).
+
+  B       (input) DOUBLE PRECISION array, dimension (LDB,M)
+          The leading N-by-M part of this array must contain B ,
+                                                              i
+          the input weight matrix of the discrete system at
+          instant i.
+
+  LDB     INTEGER
+          The leading dimension of array B.  LDB &gt;= MAX(1,N).
+
+  C       (input) DOUBLE PRECISION array, dimension (LDC,N)
+          The leading L-by-N part of this array must contain C ,
+                                                              i
+          the output weight matrix of the discrete system at
+          instant i.
+
+  LDC     INTEGER
+          The leading dimension of array C.  LDC &gt;= MAX(1,L).
+
+  Q       (input) DOUBLE PRECISION array, dimension (LDQ,M)
+          The leading M-by-M part of this array must contain Q ,
+                                                              i
+          the input (process) noise covariance matrix at instant i.
+          The diagonal elements of this array are modified by the
+          routine, but are restored on exit.
+
+  LDQ     INTEGER
+          The leading dimension of array Q.  LDQ &gt;= MAX(1,M).
+
+  R       (input/output) DOUBLE PRECISION array, dimension (LDR,L)
+          On entry, the leading L-by-L part of this array must
+          contain R , the output (measurement) noise covariance
+                   i
+          matrix at instant i.
+          On exit, if INFO = 0, or INFO = L+1, the leading L-by-L
+                                                               1/2
+          upper triangular part of this array contains (RINOV )   ,
+                                                             i
+          the square root (left Cholesky factor) of the covariance
+          matrix of the innovations at instant i.
+
+  LDR     INTEGER
+          The leading dimension of array R.  LDR &gt;= MAX(1,L).
+
+  K       (output) DOUBLE PRECISION array, dimension (LDK,L)
+          If INFO = 0, the leading N-by-L part of this array
+          contains K , the Kalman filter gain matrix at instant i.
+                    i
+          If INFO &gt; 0, the leading N-by-L part of this array
+          contains the matrix product P     C'.
+                                       i|i-1 i
+
+  LDK     INTEGER
+          The leading dimension of array K.  LDK &gt;= MAX(1,N).
+
+</PRE>
+<B>Tolerances</B>
+<PRE>
+  TOL     DOUBLE PRECISION
+          The tolerance to be used to test for near singularity of
+          the matrix RINOV . If the user sets TOL &gt; 0, then the
+                          i
+          given value of TOL is used as a lower bound for the
+          reciprocal condition number of that matrix; a matrix whose
+          estimated condition number is less than 1/TOL is
+          considered to be nonsingular. If the user sets TOL &lt;= 0,
+          then an implicitly computed, default tolerance, defined by
+          TOLDEF = L*L*EPS, is used instead, where EPS is the
+          machine precision (see LAPACK Library routine DLAMCH).
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  IWORK   INTEGER array, dimension (L)
+
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+          On exit, if INFO = 0, or INFO = L+1, DWORK(1) returns an
+          estimate of the reciprocal of the condition number (in the
+          1-norm) of the matrix RINOV .
+                                     i
+
+  LDWORK  The length of the array DWORK.
+          LDWORK &gt;= MAX(1,L*N+3*L,N*N,N*M).
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -k, the k-th argument had an illegal
+                value;
+          = k:  if INFO = k, 1 &lt;= k &lt;= L, the leading minor of order
+                k of the matrix RINOV  is not positive-definite, and
+                                     i
+                its Cholesky factorization could not be completed;
+          = L+1: the matrix RINOV  is singular, i.e., the condition
+                                 i
+                number estimate of RINOV  (in the 1-norm) exceeds
+                                        i
+                1/TOL.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  The conventional Kalman filter gain used at the i-th recursion
+  step is of the form
+
+                         -1
+     K  = P     C'  RINOV  ,
+      i    i|i-1 i       i
+
+  where RINOV  = C P     C' + R , and the state covariance matrix
+             i    i i|i-1 i    i
+
+  P      is updated by the discrete-time difference Riccati equation
+   i|i-1
+
+     P      = A  (P      - K C P     ) A'  + B Q B'.
+      i+1|i    i   i|i-1    i i i|i-1   i     i i i
+
+  Using these two updates, the combined time and measurement update
+  of the state X      is given by
+                i|i-1
+
+     X      = A X      + A K (Y  - C X     ),
+      i+1|i    i i|i-1    i i  i    i i|i-1
+
+  where Y  is the new observation at step i.
+         i
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Anderson, B.D.O. and Moore, J.B.
+      Optimal Filtering,
+      Prentice Hall, Englewood Cliffs, New Jersey, 1979.
+
+  [2] Verhaegen, M.H.G. and Van Dooren, P.
+      Numerical Aspects of Different Kalman Filter Implementations.
+      IEEE Trans. Auto. Contr., AC-31, pp. 907-917, 1986.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  The algorithm requires approximately
+
+          3   2
+   3/2 x N + N  x (3 x L + M/2)
+
+  operations.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+*     FB01VD EXAMPLE PROGRAM TEXT
+*
+*     .. Parameters ..
+      INTEGER          NIN, NOUT
+      PARAMETER        ( NIN = 5, NOUT = 6 )
+      INTEGER          NMAX, MMAX, LMAX
+      PARAMETER        ( NMAX = 20, MMAX = 20, LMAX = 20 )
+      INTEGER          LDA, LDB, LDC, LDK, LDP, LDQ, LDR
+      PARAMETER        ( LDA = NMAX, LDB = NMAX, LDC = LMAX, LDK = NMAX,
+     $                   LDP = NMAX, LDQ = MMAX, LDR = LMAX )
+      INTEGER          LDWORK
+      PARAMETER        ( LDWORK = MAX( LMAX*NMAX + 3*LMAX, NMAX*NMAX,
+     $                                 MMAX*NMAX ) )
+*     .. Local Scalars ..
+      DOUBLE PRECISION TOL
+      INTEGER          I, INFO, J, L, M, N
+*     .. Local Arrays ..
+      DOUBLE PRECISION A(LDA,NMAX), B(LDB,MMAX), C(LDC,NMAX),
+     $                 DWORK(LDWORK), K(LDK,LMAX), P(LDP,NMAX),
+     $                 Q(LDQ,MMAX), R(LDR,LMAX)
+      INTEGER          IWORK(LMAX)
+*     .. External Subroutines ..
+      EXTERNAL         DCOPY, FB01VD
+*     .. Intrinsic Functions ..
+      INTRINSIC        MAX
+*     .. Executable Statements ..
+*
+      WRITE ( NOUT, FMT = 99999 )
+*     Skip the heading in the data file and read the data.
+      READ ( NIN, FMT = '()' )
+      READ ( NIN, FMT = * ) N, M, L, TOL
+      IF ( N.LE.0 .OR. N.GT.NMAX ) THEN
+         WRITE ( NOUT, FMT = 99993 ) N
+      ELSE
+         READ ( NIN, FMT = * ) ( ( P(I,J), J = 1,N ), I = 1,N )
+         READ ( NIN, FMT = * ) ( ( A(I,J), J = 1,N ), I = 1,N )
+         IF ( M.LE.0 .OR. M.GT.MMAX ) THEN
+            WRITE ( NOUT, FMT = 99992 ) M
+         ELSE
+            READ ( NIN, FMT = * ) ( ( B(I,J), J = 1,M ), I = 1,N )
+            READ ( NIN, FMT = * ) ( ( Q(I,J), J = 1,M ), I = 1,M )
+            IF ( L.LE.0 .OR. L.GT.LMAX ) THEN
+               WRITE ( NOUT, FMT = 99991 ) L
+            ELSE
+               READ ( NIN, FMT = * ) ( ( C(I,J), J = 1,N ), I = 1,L )
+               READ ( NIN, FMT = * ) ( ( R(I,J), J = 1,L ), I = 1,L )
+*              Perform one iteration of the (Kalman) filter recursion.
+               CALL FB01VD( N, M, L, P, LDP, A, LDA, B, LDB, C, LDC,
+     $                      Q, LDQ, R, LDR, K, LDK, TOL, IWORK, DWORK,
+     $                      LDWORK, INFO )
+*
+               IF ( INFO.NE.0 ) THEN
+                  WRITE ( NOUT, FMT = 99998 ) INFO
+               ELSE
+                  WRITE ( NOUT, FMT = 99997 )
+                  DO 20 I = 1, N
+                     CALL DCOPY( I-1, P(1,I), 1, P(I,1), LDP )
+                     WRITE ( NOUT, FMT = 99994 ) ( P(I,J), J = 1,N )
+   20             CONTINUE
+                  WRITE ( NOUT, FMT = 99996 )
+                  DO 40 I = 1, N
+                     WRITE ( NOUT, FMT = 99994 ) ( K(I,J), J = 1,L )
+   40             CONTINUE
+                  WRITE ( NOUT, FMT = 99995 )
+                  DO 60 I = 1, L
+                     WRITE ( NOUT, FMT = 99994 ) ( R(I,J), J = 1,L )
+   60             CONTINUE
+               END IF
+            END IF
+         END IF
+      END IF
+      STOP
+*
+99999 FORMAT (' FB01VD EXAMPLE PROGRAM RESULTS',/1X)
+99998 FORMAT (' INFO on exit from FB01VD = ',I3)
+99997 FORMAT (' The state covariance matrix is ')
+99996 FORMAT (/' The Kalman filter gain matrix is ')
+99995 FORMAT (/' The square root of the covariance matrix of the innov',
+     $          'ations is ')
+99994 FORMAT (20(1X,F8.4))
+99993 FORMAT (/' N is out of range.',/' N = ',I5)
+99992 FORMAT (/' M is out of range.',/' M = ',I5)
+99991 FORMAT (/' L is out of range.',/' P = ',I5)
+      END
+</PRE>
+<B>Program Data</B>
+<PRE>
+ FB01VD EXAMPLE PROGRAM DATA
+   4     3     2     0.0
+   0.5015  0.4368  0.2693  0.6325
+   0.4368  0.4818  0.2639  0.4148
+   0.2693  0.2639  0.1121  0.6856
+   0.6325  0.4148  0.6856  0.8906
+   0.2113  0.8497  0.7263  0.8833
+   0.7560  0.6857  0.1985  0.6525
+   0.0002  0.8782  0.5442  0.3076
+   0.3303  0.0683  0.2320  0.9329
+   0.0437  0.7783  0.5618
+   0.4818  0.2119  0.5896
+   0.2639  0.1121  0.6853
+   0.4148  0.6856  0.8906
+   0.9329  0.2146  0.3126
+   0.2146  0.2922  0.5664
+   0.3126  0.5664  0.5935
+   0.3873  0.9488  0.3760  0.0881
+   0.9222  0.3435  0.7340  0.4498
+   1.0000  0.0000
+   0.0000  1.0000
+</PRE>
+<B>Program Results</B>
+<PRE>
+ FB01VD EXAMPLE PROGRAM RESULTS
+
+ The state covariance matrix is 
+   1.6007   1.3283   1.1153   1.7177
+   1.3283   1.2763   1.0132   1.5137
+   1.1153   1.0132   0.8222   1.2722
+   1.7177   1.5137   1.2722   2.1562
+
+ The Kalman filter gain matrix is 
+   0.1648   0.2241
+   0.2115   0.1610
+   0.0728   0.1673
+   0.1304   0.3892
+
+ The square root of the covariance matrix of the innovations is 
+   1.5091   1.1543
+   0.0000   1.5072
+</PRE>
+
+<HR>
+<p>
+<A HREF=..\libindex.html><B>Return to index</B></A></BODY>
+</HTML>

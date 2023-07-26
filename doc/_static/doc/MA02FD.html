@@ -1,0 +1,90 @@
+<HTML>
+<HEAD><TITLE>MA02FD - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MA02FD">MA02FD</A></H2>
+<H3>
+Hyperbolic plane rotation
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To compute the coefficients c and s (c^2 + s^2 = 1) for a modified
+  hyperbolic plane rotation, such that,
+
+      y1 := 1/c * x1 - s/c * x2 = sqrt(x1^2 - x2^2),
+      y2 :=  -s * y1 +  c  * x2 = 0,
+
+  given two real numbers x1 and x2, satisfying either x1 = x2 = 0,
+  or abs(x2) &lt; abs(x1).
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MA02FD( X1, X2, C, S, INFO )
+C     .. Scalar Arguments ..
+      DOUBLE PRECISION  X1, X2, C, S
+      INTEGER           INFO
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  X1      (input/output) DOUBLE PRECISION
+          On entry, the real number x1.
+          On exit, the real number y1.
+
+  X2      (input) DOUBLE PRECISION
+          The real number x2.
+          The values x1 and x2 should satisfy either x1 = x2 = 0, or
+          abs(x2) &lt; abs(x1).
+
+  C       (output) DOUBLE PRECISION
+          The cosines c of the modified hyperbolic plane rotation.
+
+  S       (output) DOUBLE PRECISION
+          The sines s of the modified hyperbolic plane rotation.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  succesful exit;
+          = 1:  if abs(x2) &gt;= abs(x1) and either x1 &lt;&gt; 0 or x2 &lt;&gt; 0.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

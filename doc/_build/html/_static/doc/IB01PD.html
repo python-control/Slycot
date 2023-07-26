@@ -1,0 +1,406 @@
+<HTML>
+<HEAD><TITLE>IB01PD - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="IB01PD">IB01PD</A></H2>
+<H3>
+Estimating system matrices and covariances
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To estimate the matrices A, C, B, and D of a linear time-invariant
+  (LTI) state space model, using the singular value decomposition
+  information provided by other routines. Optionally, the system and
+  noise covariance matrices, needed for the Kalman gain, are also
+  determined.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE IB01PD( METH, JOB, JOBCV, NOBR, N, M, L, NSMPL, R,
+     $                   LDR, A, LDA, C, LDC, B, LDB, D, LDD, Q, LDQ,
+     $                   RY, LDRY, S, LDS, O, LDO, TOL, IWORK, DWORK,
+     $                   LDWORK, IWARN, INFO )
+C     .. Scalar Arguments ..
+      DOUBLE PRECISION   TOL
+      INTEGER            INFO, IWARN, L, LDA, LDB, LDC, LDD, LDO, LDQ,
+     $                   LDR, LDRY, LDS, LDWORK, M, N, NOBR, NSMPL
+      CHARACTER          JOB, JOBCV, METH
+C     .. Array Arguments ..
+      DOUBLE PRECISION   A(LDA, *), B(LDB, *), C(LDC, *), D(LDD, *),
+     $                   DWORK(*),  O(LDO, *), Q(LDQ, *), R(LDR, *),
+     $                   RY(LDRY, *), S(LDS, *)
+      INTEGER            IWORK( * )
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  METH    CHARACTER*1
+          Specifies the subspace identification method to be used,
+          as follows:
+          = 'M':  MOESP  algorithm with past inputs and outputs;
+          = 'N':  N4SID  algorithm.
+
+  JOB     CHARACTER*1
+          Specifies which matrices should be computed, as follows:
+          = 'A':  compute all system matrices, A, B, C, and D;
+          = 'C':  compute the matrices A and C only;
+          = 'B':  compute the matrix B only;
+          = 'D':  compute the matrices B and D only.
+
+  JOBCV   CHARACTER*1
+          Specifies whether or not the covariance matrices are to
+          be computed, as follows:
+          = 'C':  the covariance matrices should be computed;
+          = 'N':  the covariance matrices should not be computed.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  NOBR    (input) INTEGER
+          The number of block rows,  s,  in the input and output
+          Hankel matrices processed by other routines.  NOBR &gt; 1.
+
+  N       (input) INTEGER
+          The order of the system.  NOBR &gt; N &gt; 0.
+
+  M       (input) INTEGER
+          The number of system inputs.  M &gt;= 0.
+
+  L       (input) INTEGER
+          The number of system outputs.  L &gt; 0.
+
+  NSMPL   (input) INTEGER
+          If JOBCV = 'C', the total number of samples used for
+          calculating the covariance matrices.
+          NSMPL &gt;= 2*(M+L)*NOBR.
+          This parameter is not meaningful if  JOBCV = 'N'.
+
+  R       (input/workspace) DOUBLE PRECISION array, dimension
+          ( LDR,2*(M+L)*NOBR )
+          On entry, the leading  2*(M+L)*NOBR-by-2*(M+L)*NOBR  part
+          of this array must contain the relevant data for the MOESP
+          or N4SID algorithms, as constructed by SLICOT Library
+          routines IB01AD or IB01ND. Let  R_ij,  i,j = 1:4,  be the
+          ij submatrix of  R  (denoted  S  in IB01AD and IB01ND),
+          partitioned by  M*NOBR,  L*NOBR,  M*NOBR,  and  L*NOBR
+          rows and columns. The submatrix  R_22  contains the matrix
+          of left singular vectors used. Also needed, for
+          METH = 'N'  or  JOBCV = 'C',  are the submatrices  R_11,
+          R_14 : R_44,  and, for  METH = 'M'  and  JOB &lt;&gt; 'C',  the
+          submatrices  R_31  and  R_12,  containing the processed
+          matrices  R_1c  and  R_2c,  respectively, as returned by
+          SLICOT Library routines IB01AD or IB01ND.
+          Moreover, if  METH = 'N'  and  JOB = 'A' or 'C',  the
+          block-row  R_41 : R_43  must contain the transpose of the
+          block-column  R_14 : R_34  as returned by SLICOT Library
+          routines IB01AD or IB01ND.
+          The remaining part of  R  is used as workspace.
+          On exit, part of this array is overwritten. Specifically,
+          if  METH = 'M',  R_22  and  R_31  are overwritten if
+              JOB = 'B' or 'D',  and  R_12,  R_22,  R_14 : R_34,
+              and possibly  R_11  are overwritten if  JOBCV = 'C';
+          if  METH = 'N',  all needed submatrices are overwritten.
+
+  LDR     INTEGER
+          The leading dimension of the array  R.
+          LDR &gt;= 2*(M+L)*NOBR.
+
+  A       (input or output) DOUBLE PRECISION array, dimension
+          (LDA,N)
+          On entry, if  METH = 'N'  and  JOB = 'B' or 'D',  the
+          leading N-by-N part of this array must contain the system
+          state matrix.
+          If  METH = 'M'  or  (METH = 'N'  and JOB = 'A' or 'C'),
+          this array need not be set on input.
+          On exit, if  JOB = 'A' or 'C'  and  INFO = 0,  the
+          leading N-by-N part of this array contains the system
+          state matrix.
+
+  LDA     INTEGER
+          The leading dimension of the array A.
+          LDA &gt;= N,  if  JOB = 'A' or 'C',  or  METH = 'N'  and
+                         JOB = 'B' or 'D';
+          LDA &gt;= 1,  otherwise.
+
+  C       (input or output) DOUBLE PRECISION array, dimension
+          (LDC,N)
+          On entry, if  METH = 'N'  and  JOB = 'B' or 'D',  the
+          leading L-by-N part of this array must contain the system
+          output matrix.
+          If  METH = 'M'  or  (METH = 'N'  and JOB = 'A' or 'C'),
+          this array need not be set on input.
+          On exit, if  JOB = 'A' or 'C'  and  INFO = 0,  or
+          INFO = 3  (or  INFO &gt;= 0,  for  METH = 'M'),  the leading
+          L-by-N part of this array contains the system output
+          matrix.
+
+  LDC     INTEGER
+          The leading dimension of the array C.
+          LDC &gt;= L,  if  JOB = 'A' or 'C',  or  METH = 'N'  and
+                         JOB = 'B' or 'D';
+          LDC &gt;= 1,  otherwise.
+
+  B       (output) DOUBLE PRECISION array, dimension (LDB,M)
+          If  M &gt; 0,  JOB = 'A', 'B', or 'D'  and  INFO = 0,  the
+          leading N-by-M part of this array contains the system
+          input matrix. If  M = 0  or  JOB = 'C',  this array is
+          not referenced.
+
+  LDB     INTEGER
+          The leading dimension of the array B.
+          LDB &gt;= N,  if M &gt; 0 and JOB = 'A', 'B', or 'D';
+          LDB &gt;= 1,  if M = 0 or  JOB = 'C'.
+
+  D       (output) DOUBLE PRECISION array, dimension (LDD,M)
+          If  M &gt; 0,  JOB = 'A' or 'D'  and  INFO = 0,  the leading
+          L-by-M part of this array contains the system input-output
+          matrix. If  M = 0  or  JOB = 'C' or 'B',  this array is
+          not referenced.
+
+  LDD     INTEGER
+          The leading dimension of the array D.
+          LDD &gt;= L,  if M &gt; 0 and JOB = 'A' or 'D';
+          LDD &gt;= 1,  if M = 0 or  JOB = 'C' or 'B'.
+
+  Q       (output) DOUBLE PRECISION array, dimension (LDQ,N)
+          If JOBCV = 'C', the leading N-by-N part of this array
+          contains the positive semidefinite state covariance matrix
+          to be used as state weighting matrix when computing the
+          Kalman gain.
+          This parameter is not referenced if JOBCV = 'N'.
+
+  LDQ     INTEGER
+          The leading dimension of the array Q.
+          LDQ &gt;= N,  if JOBCV = 'C';
+          LDQ &gt;= 1,  if JOBCV = 'N'.
+
+  RY      (output) DOUBLE PRECISION array, dimension (LDRY,L)
+          If JOBCV = 'C', the leading L-by-L part of this array
+          contains the positive (semi)definite output covariance
+          matrix to be used as output weighting matrix when
+          computing the Kalman gain.
+          This parameter is not referenced if JOBCV = 'N'.
+
+  LDRY    INTEGER
+          The leading dimension of the array RY.
+          LDRY &gt;= L,  if JOBCV = 'C';
+          LDRY &gt;= 1,  if JOBCV = 'N'.
+
+  S       (output) DOUBLE PRECISION array, dimension (LDS,L)
+          If JOBCV = 'C', the leading N-by-L part of this array
+          contains the state-output cross-covariance matrix to be
+          used as cross-weighting matrix when computing the Kalman
+          gain.
+          This parameter is not referenced if JOBCV = 'N'.
+
+  LDS     INTEGER
+          The leading dimension of the array S.
+          LDS &gt;= N,  if JOBCV = 'C';
+          LDS &gt;= 1,  if JOBCV = 'N'.
+
+  O       (output) DOUBLE PRECISION array, dimension ( LDO,N )
+          If  METH = 'M'  and  JOBCV = 'C',  or  METH = 'N',
+          the leading  L*NOBR-by-N  part of this array contains
+          the estimated extended observability matrix, i.e., the
+          first  N  columns of the relevant singular vectors.
+          If  METH = 'M'  and  JOBCV = 'N',  this array is not
+          referenced.
+
+  LDO     INTEGER
+          The leading dimension of the array  O.
+          LDO &gt;= L*NOBR,  if  JOBCV = 'C'  or  METH = 'N';
+          LDO &gt;= 1,       otherwise.
+
+</PRE>
+<B>Tolerances</B>
+<PRE>
+  TOL     DOUBLE PRECISION
+          The tolerance to be used for estimating the rank of
+          matrices. If the user sets  TOL &gt; 0,  then the given value
+          of  TOL  is used as a lower bound for the reciprocal
+          condition number;  an m-by-n matrix whose estimated
+          condition number is less than  1/TOL  is considered to
+          be of full rank.  If the user sets  TOL &lt;= 0,  then an
+          implicitly computed, default tolerance, defined by
+          TOLDEF = m*n*EPS,  is used instead, where  EPS  is the
+          relative machine precision (see LAPACK Library routine
+          DLAMCH).
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  IWORK   INTEGER array, dimension (LIWORK)
+          LIWORK = N,                   if METH = 'M' and M = 0
+                                     or JOB = 'C' and JOBCV = 'N';
+          LIWORK = M*NOBR+N,            if METH = 'M', JOB = 'C',
+                                        and JOBCV = 'C';
+          LIWORK = max(L*NOBR,M*NOBR),  if METH = 'M', JOB &lt;&gt; 'C',
+                                        and JOBCV = 'N';
+          LIWORK = max(L*NOBR,M*NOBR+N),  if METH = 'M', JOB &lt;&gt; 'C',
+                                          and JOBCV = 'C';
+          LIWORK = max(M*NOBR+N,M*(N+L)), if METH = 'N'.
+
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+          On exit, if  INFO = 0,  DWORK(1) returns the optimal value
+          of LDWORK,  and  DWORK(2),  DWORK(3),  DWORK(4),  and
+          DWORK(5)  contain the reciprocal condition numbers of the
+          triangular factors of the matrices, defined in the code,
+          GaL  (GaL = Un(1:(s-1)*L,1:n)),  R_1c  (if  METH = 'M'),
+          M  (if  JOBCV = 'C'  or  METH = 'N'),  and  Q  or  T  (see
+          SLICOT Library routines IB01PY or IB01PX),  respectively.
+          If  METH = 'N',  DWORK(3)  is set to one without any
+          calculations. Similarly, if  METH = 'M'  and  JOBCV = 'N',
+          DWORK(4)  is set to one. If  M = 0  or  JOB = 'C',
+          DWORK(3)  and  DWORK(5)  are set to one.
+          On exit, if  INFO = -30,  DWORK(1)  returns the minimum
+          value of LDWORK.
+
+  LDWORK  INTEGER
+          The length of the array DWORK.
+          LDWORK &gt;= max( LDW1,LDW2 ), where, if METH = 'M',
+          LDW1 &gt;= max( 2*(L*NOBR-L)*N+2*N, (L*NOBR-L)*N+N*N+7*N ),
+                  if JOB = 'C' or JOB = 'A' and M = 0;
+          LDW1 &gt;= max( 2*(L*NOBR-L)*N+N*N+7*N,
+                       (L*NOBR-L)*N+N+6*M*NOBR, (L*NOBR-L)*N+N+
+                       max( L+M*NOBR, L*NOBR +
+                                      max( 3*L*NOBR+1, M ) ) )
+                  if M &gt; 0 and JOB = 'A', 'B', or 'D';
+          LDW2 &gt;= 0,                                 if JOBCV = 'N';
+          LDW2 &gt;= max( (L*NOBR-L)*N+Aw+2*N+max(5*N,(2*M+L)*NOBR+L),
+                       4*(M*NOBR+N)+1, M*NOBR+2*N+L ),
+                                                     if JOBCV = 'C',
+          where Aw = N+N*N, if M = 0 or JOB = 'C';
+                Aw = 0,     otherwise;
+          and, if METH = 'N',
+          LDW1 &gt;= max( (L*NOBR-L)*N+2*N+(2*M+L)*NOBR+L,
+                       2*(L*NOBR-L)*N+N*N+8*N, N+4*(M*NOBR+N)+1,
+                       M*NOBR+3*N+L );
+          LDW2 &gt;= 0, if M = 0 or JOB = 'C';
+          LDW2 &gt;= M*NOBR*(N+L)*(M*(N+L)+1)+
+                  max( (N+L)**2, 4*M*(N+L)+1 ),
+                  if M &gt; 0 and JOB = 'A', 'B', or 'D'.
+          For good performance,  LDWORK  should be larger.
+
+</PRE>
+<B>Warning Indicator</B>
+<PRE>
+  IWARN   INTEGER
+          = 0:  no warning;
+          = 4:  a least squares problem to be solved has a
+                rank-deficient coefficient matrix;
+          = 5:  the computed covariance matrices are too small.
+                The problem seems to be a deterministic one.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value;
+          = 2:  the singular value decomposition (SVD) algorithm did
+                not converge;
+          = 3:  a singular upper triangular matrix was found.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  In the MOESP approach, the matrices  A  and  C  are first
+  computed from an estimated extended observability matrix [1],
+  and then, the matrices  B  and  D  are obtained by solving an
+  extended linear system in a least squares sense.
+  In the N4SID approach, besides the estimated extended
+  observability matrix, the solutions of two least squares problems
+  are used to build another least squares problem, whose solution
+  is needed to compute the system matrices  A,  C,  B,  and  D.  The
+  solutions of the two least squares problems are also optionally
+  used by both approaches to find the covariance matrices.
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Verhaegen M., and Dewilde, P.
+      Subspace Model Identification. Part 1: The output-error state-
+      space model identification class of algorithms.
+      Int. J. Control, 56, pp. 1187-1210, 1992.
+
+  [2] Van Overschee, P., and De Moor, B.
+      N4SID: Two Subspace Algorithms for the Identification
+      of Combined Deterministic-Stochastic Systems.
+      Automatica, Vol.30, No.1, pp. 75-93, 1994.
+
+  [3] Van Overschee, P.
+      Subspace Identification : Theory - Implementation -
+      Applications.
+      Ph. D. Thesis, Department of Electrical Engineering,
+      Katholieke Universiteit Leuven, Belgium, Feb. 1995.
+
+  [4] Sima, V.
+      Subspace-based Algorithms for Multivariable System
+      Identification.
+      Studies in Informatics and Control, 5, pp. 335-344, 1996.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  The implemented method is numerically stable.
+
+</PRE>
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  In some applications, it is useful to compute the system matrices
+  using two calls to this routine, the first one with  JOB = 'C',
+  and the second one with  JOB = 'B' or 'D'.  This is slightly less
+  efficient than using a single call with  JOB = 'A',  because some
+  calculations are repeated. If  METH = 'N',  all the calculations
+  at the first call are performed again at the second call;
+  moreover, it is required to save the needed submatrices of  R
+  before the first call and restore them before the second call.
+  If the covariance matrices are desired,  JOBCV  should be set
+  to  'C'  at the second call. If  B  and  D  are both needed, they
+  should be computed at once.
+  It is possible to compute the matrices A and C using the MOESP
+  algorithm (METH = 'M'), and the matrices B and D using the N4SID
+  algorithm (METH = 'N'). This combination could be slightly more
+  efficient than N4SID algorithm alone and it could be more accurate
+  than MOESP algorithm. No saving/restoring is needed in such a
+  combination, provided  JOBCV  is set to  'N'  at the first call.
+  Recommended usage:  either one call with  JOB = 'A',  or
+     first  call with  METH = 'M',  JOB = 'C',  JOBCV = 'N',
+     second call with  METH = 'M',  JOB = 'D',  JOBCV = 'C',  or
+     first  call with  METH = 'M',  JOB = 'C',  JOBCV = 'N',
+     second call with  METH = 'N',  JOB = 'D',  JOBCV = 'C'.
+
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

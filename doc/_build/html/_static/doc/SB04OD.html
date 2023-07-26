@@ -1,0 +1,582 @@
+<HTML>
+<HEAD><TITLE>SB04OD - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="SB04OD">SB04OD</A></H2>
+<H3>
+Solution of generalized Sylvester equations with separation estimation
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To solve for R and L one of the generalized Sylvester equations
+
+     A * R - L * B = scale * C )
+                               )                                 (1)
+     D * R - L * E = scale * F )
+
+  or
+
+     A' * R + D' * L = scale * C    )
+                                    )                            (2)
+     R * B' + L * E' = scale * (-F) )
+
+  where A and D are M-by-M matrices, B and E are N-by-N matrices and
+  C, F, R and L are M-by-N matrices.
+
+  The solution (R, L) overwrites (C, F). 0 &lt;= SCALE &lt;= 1 is an
+  output scaling factor chosen to avoid overflow.
+
+  The routine also optionally computes a Dif estimate, which
+  measures the separation of the spectrum of the matrix pair (A,D)
+  from the spectrum of the matrix pair (B,E), Dif[(A,D),(B,E)].
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE SB04OD( REDUCE, TRANS, JOBD, M, N, A, LDA, B, LDB, C,
+     $                   LDC, D, LDD, E, LDE, F, LDF, SCALE, DIF, P,
+     $                   LDP, Q, LDQ, U, LDU, V, LDV, IWORK, DWORK,
+     $                   LDWORK, INFO )
+C     .. Scalar Arguments ..
+      CHARACTER         JOBD, REDUCE, TRANS
+      INTEGER           INFO, LDA, LDB, LDC, LDD, LDE, LDF, LDP, LDQ,
+     $                  LDU, LDV, LDWORK, M, N
+      DOUBLE PRECISION  DIF, SCALE
+C     .. Array Arguments ..
+      INTEGER           IWORK(*)
+      DOUBLE PRECISION  A(LDA,*), B(LDB,*), C(LDC,*), D(LDD,*),
+     $                  DWORK(*), E(LDE,*), F(LDF,*), P(LDP,*),
+     $                  Q(LDQ,*), U(LDU,*), V(LDV,*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  REDUCE  CHARACTER*1
+          Indicates whether the matrix pairs (A,D) and/or (B,E) are
+          to be reduced to generalized Schur form as follows:
+          = 'R':  The matrix pairs (A,D) and (B,E) are to be reduced
+                  to generalized (real) Schur canonical form;
+          = 'A':  The matrix pair (A,D) only is to be reduced
+                  to generalized (real) Schur canonical form,
+                  and the matrix pair (B,E) already is in this form;
+          = 'B':  The matrix pair (B,E) only is to be reduced
+                  to generalized (real) Schur canonical form,
+                  and the matrix pair (A,D) already is in this form;
+          = 'N':  The matrix pairs (A,D) and (B,E) are already in
+                  generalized (real) Schur canonical form, as
+                  produced by LAPACK routine DGGES.
+
+  TRANS   CHARACTER*1
+          Indicates which of the equations, (1) or (2), is to be
+          solved as follows:
+          = 'N':  The generalized Sylvester equation (1) is to be
+                  solved;
+          = 'T':  The "transposed" generalized Sylvester equation
+                  (2) is to be solved.
+
+  JOBD    CHARACTER*1
+          Indicates whether the Dif estimator is to be computed as
+          follows:
+          = '1':  Only the one-norm-based Dif estimate is computed
+                  and stored in DIF;
+          = '2':  Only the Frobenius norm-based Dif estimate is
+                  computed and stored in DIF;
+          = 'D':  The equation (1) is solved and the one-norm-based
+                  Dif estimate is computed and stored in DIF;
+          = 'F':  The equation (1) is solved and the Frobenius norm-
+                  based Dif estimate is computed and stored in DIF;
+          = 'N':  The Dif estimator is not required and hence DIF is
+                  not referenced. (Solve either (1) or (2) only.)
+          JOBD is not referenced if TRANS = 'T'.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  M       (input) INTEGER
+          The order of the matrices A and D and the number of rows
+          of the matrices C, F, R and L.  M &gt;= 0.
+
+  N       (input) INTEGER
+          The order of the matrices B and E and the number of
+          columns of the matrices C, F, R and L.  N &gt;= 0.
+          No computations are performed if N = 0 or M = 0, but SCALE
+          and DIF (if JOB &lt;&gt; 'N') are set to 1.
+
+  A       (input/output) DOUBLE PRECISION array, dimension (LDA,M)
+          On entry, the leading M-by-M part of this array must
+          contain the coefficient matrix A of the equation; A must
+          be in upper quasi-triangular form if REDUCE = 'B' or 'N'.
+          On exit, the leading M-by-M part of this array contains
+          the upper quasi-triangular form of A.
+
+  LDA     INTEGER
+          The leading dimension of array A.  LDA &gt;= MAX(1,M).
+
+  B       (input/output) DOUBLE PRECISION array, dimension (LDB,N)
+          On entry, the leading N-by-N part of this array must
+          contain the coefficient matrix B of the equation; B must
+          be in upper quasi-triangular form if REDUCE = 'A' or 'N'.
+          On exit, the leading N-by-N part of this array contains
+          the upper quasi-triangular form of B.
+
+  LDB     INTEGER
+          The leading dimension of array B.  LDB &gt;= MAX(1,N).
+
+  C       (input/output) DOUBLE PRECISION array, dimension (LDC,N)
+          On entry, the leading M-by-N part of this array must
+          contain the right-hand side matrix C of the first equation
+          in (1) or (2).
+          On exit, if JOBD = 'N', 'D' or 'F', the leading M-by-N
+          part of this array contains the solution matrix R of the
+          problem; if JOBD = '1' or '2' and TRANS = 'N', the leading
+          M-by-N part of this array contains the solution matrix R
+          achieved during the computation of the Dif estimate.
+
+  LDC     INTEGER
+          The leading dimension of array C.  LDC &gt;= MAX(1,M).
+
+  D       (input/output) DOUBLE PRECISION array, dimension (LDD,M)
+          On entry, the leading M-by-M part of this array must
+          contain the coefficient matrix D of the equation; D must
+          be in upper triangular form if REDUCE = 'B' or 'N'.
+          On exit, the leading M-by-M part of this array contains
+          the upper triangular form of D.
+
+  LDD     INTEGER
+          The leading dimension of array D.  LDD &gt;= MAX(1,M).
+
+  E       (input/output) DOUBLE PRECISION array, dimension (LDE,N)
+          On entry, the leading N-by-N part of this array must
+          contain the coefficient matrix E of the equation; E must
+          be in upper triangular form if REDUCE = 'A' or 'N'.
+          On exit, the leading N-by-N part of this array contains
+          the upper triangular form of E.
+
+  LDE     INTEGER
+          The leading dimension of array E.  LDE &gt;= MAX(1,N).
+
+  F       (input/output) DOUBLE PRECISION array, dimension (LDF,N)
+          On entry, the leading M-by-N part of this array must
+          contain the right-hand side matrix F of the second
+          equation in (1) or (2).
+          On exit, if JOBD = 'N', 'D' or 'F', the leading M-by-N
+          part of this array contains the solution matrix L of the
+          problem; if JOBD = '1' or '2' and TRANS = 'N', the leading
+          M-by-N part of this array contains the solution matrix L
+          achieved during the computation of the Dif estimate.
+
+  LDF     INTEGER
+          The leading dimension of array F.  LDF &gt;= MAX(1,M).
+
+  SCALE   (output) DOUBLE PRECISION
+          The scaling factor in (1) or (2). If 0 &lt; SCALE &lt; 1, C and
+          F hold the solutions R and L, respectively, to a slightly
+          perturbed system, but the computed generalized (real)
+          Schur canonical form matrices P'*A*Q, U'*B*V, P'*D*Q and
+          U'*E*V (see METHOD), or input matrices A, B, D, and E (if
+          already reduced to these forms), have not been changed.
+          If SCALE = 0, C and F hold the solutions R and L,
+          respectively, to the homogeneous system with C = F = 0.
+          Normally, SCALE = 1.
+
+  DIF     (output) DOUBLE PRECISION
+          If TRANS = 'N' and JOBD &lt;&gt; 'N', then DIF contains the
+          value of the Dif estimator, which is an upper bound of
+                                                 -1
+          Dif[(A,D),(B,E)] = sigma_min(Z) = 1/||Z  ||, in either the
+          one-norm, or Frobenius norm, respectively (see METHOD).
+          Otherwise, DIF is not referenced.
+
+  P       (output) DOUBLE PRECISION array, dimension (LDP,*)
+          If REDUCE = 'R' or 'A', then the leading M-by-M part of
+          this array contains the (left) transformation matrix used
+          to reduce (A,D) to generalized Schur form.
+          Otherwise, P is not referenced and can be supplied as a
+          dummy array (i.e. set parameter LDP = 1 and declare this
+          array to be P(1,1) in the calling program).
+
+  LDP     INTEGER
+          The leading dimension of array P.
+          LDP &gt;= MAX(1,M) if REDUCE = 'R' or 'A',
+          LDP &gt;= 1        if REDUCE = 'B' or 'N'.
+
+  Q       (output) DOUBLE PRECISION array, dimension (LDQ,*)
+          If REDUCE = 'R' or 'A', then the leading M-by-M part of
+          this array contains the (right) transformation matrix used
+          to reduce (A,D) to generalized Schur form.
+          Otherwise, Q is not referenced and can be supplied as a
+          dummy array (i.e. set parameter LDQ = 1 and declare this
+          array to be Q(1,1) in the calling program).
+
+  LDQ     INTEGER
+          The leading dimension of array Q.
+          LDQ &gt;= MAX(1,M) if REDUCE = 'R' or 'A',
+          LDQ &gt;= 1        if REDUCE = 'B' or 'N'.
+
+  U       (output) DOUBLE PRECISION array, dimension (LDU,*)
+          If REDUCE = 'R' or 'B', then the leading N-by-N part of
+          this array contains the (left) transformation matrix used
+          to reduce (B,E) to generalized Schur form.
+          Otherwise, U is not referenced and can be supplied as a
+          dummy array (i.e. set parameter LDU = 1 and declare this
+          array to be U(1,1) in the calling program).
+
+  LDU     INTEGER
+          The leading dimension of array U.
+          LDU &gt;= MAX(1,N) if REDUCE = 'R' or 'B',
+          LDU &gt;= 1        if REDUCE = 'A' or 'N'.
+
+  V       (output) DOUBLE PRECISION array, dimension (LDV,*)
+          If REDUCE = 'R' or 'B', then the leading N-by-N part of
+          this array contains the (right) transformation matrix used
+          to reduce (B,E) to generalized Schur form.
+          Otherwise, V is not referenced and can be supplied as a
+          dummy array (i.e. set parameter LDV = 1 and declare this
+          array to be V(1,1) in the calling program).
+
+  LDV     INTEGER
+          The leading dimension of array V.
+          LDV &gt;= MAX(1,N) if REDUCE = 'R' or 'B',
+          LDV &gt;= 1        if REDUCE = 'A' or 'N'.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  IWORK   INTEGER array, dimension (M+N+6)
+
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+          On exit, if INFO = 0, DWORK(1) returns the optimal value
+          of LDWORK.
+
+  LDWORK  INTEGER
+          The length of the array DWORK.
+          If TRANS = 'N' and JOBD = 'D' or 'F', then
+             LDWORK = MAX(1,11*MN,10*MN+23,2*M*N) if REDUCE = 'R';
+             LDWORK = MAX(1,11*M, 10*M+23, 2*M*N) if REDUCE = 'A';
+             LDWORK = MAX(1,11*N, 10*N+23, 2*M*N) if REDUCE = 'B';
+             LDWORK = MAX(1,2*M*N)                if REDUCE = 'N',
+          where MN = max(M,N).
+          Otherwise, the term 2*M*N above should be omitted.
+          For optimum performance LDWORK should be larger.
+
+          If LDWORK = -1  a workspace query is assumed; the
+          routine only calculates the optimal size of the DWORK
+          array, returns this value as the first entry of the DWORK
+          array, and no error message is issued by XERBLA.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value;
+          = 1:  if REDUCE &lt;&gt; 'N' and either (A,D) and/or (B,E)
+                cannot be reduced to generalized Schur form;
+          = 2:  if REDUCE = 'N' and either A or B is not in
+                upper quasi-triangular form;
+          = 3:  if a singular matrix was encountered during the
+                computation of the solution matrices R and L, that
+                is (A,D) and (B,E) have common or close eigenvalues.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  For the case TRANS = 'N', and REDUCE = 'R' or 'N', the algorithm
+  used by the routine consists of four steps (see [1] and [2]) as
+  follows:
+
+     (a) if REDUCE = 'R', then the matrix pairs (A,D) and (B,E) are
+         transformed to generalized Schur form, i.e. orthogonal
+         matrices P, Q, U and V are computed such that P' * A * Q
+         and U' * B * V are in upper quasi-triangular form and
+         P' * D * Q and U' * E * V are in upper triangular form;
+     (b) if REDUCE = 'R', then the matrices C and F are transformed
+         to give P' * C * V and P' * F * V respectively;
+     (c) if REDUCE = 'R', then the transformed system
+
+         P' * A * Q * R1 - L1 * U' * B * V = scale * P' * C * V
+         P' * D * Q * R1 - L1 * U' * E * V = scale * P' * F * V
+
+         is solved to give R1 and L1; otherwise, equation (1) is
+         solved to give R and L directly. The Dif estimator
+         is also computed if JOBD &lt;&gt; 'N'.
+     (d) if REDUCE = 'R', then the solution is transformed back
+         to give R = Q * R1 * V' and L = P * L1 * U'.
+
+  By using Kronecker products, equation (1) can also be written as
+  the system of linear equations Z * x = scale*y (see [1]), where
+
+         | I*A    I*D  |
+     Z = |             |.
+         |-B'*I  -E'*I |
+
+                                           -1
+  If JOBD &lt;&gt; 'N', then a lower bound on ||Z  ||, in either the one-
+  norm or Frobenius norm, is computed, which in most cases is
+  a reliable estimate of the true value. Notice that since Z is a
+  matrix of order 2 * M * N, the exact value of Dif (i.e., in the
+  Frobenius norm case, the smallest singular value of Z) may be very
+  expensive to compute.
+
+  The case TRANS = 'N', and REDUCE = 'A' or 'B', is similar, but
+  only one of the matrix pairs should be reduced and the
+  calculations simplify.
+
+  For the case TRANS = 'T', and REDUCE = 'R' or 'N', the algorithm
+  is similar, but the steps (b), (c), and (d) are as follows:
+
+     (b) if REDUCE = 'R', then the matrices C and F are transformed
+         to give Q' * C * V and P' * F * U respectively;
+     (c) if REDUCE = 'R', then the transformed system
+
+         Q' * A' * P * R1 + Q' * D' * P * L1 =  scale * Q' * C * V
+         R1 * V' * B' * U + L1 * V' * E' * U = -scale * P' * F * U
+
+         is solved to give R1 and L1; otherwise, equation (2) is
+         solved to give R and L directly.
+     (d) if REDUCE = 'R', then the solution is transformed back
+         to give R = P * R1 * V' and L = P * L1 * V'.
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Kagstrom, B. and Westin, L.
+      Generalized Schur Methods with Condition Estimators for
+      Solving the Generalized Sylvester Equation.
+      IEEE Trans. Auto. Contr., 34, pp. 745-751, 1989.
+  [2] Kagstrom, B. and Westin, L.
+      GSYLV - Fortran Routines for the Generalized Schur Method with
+      Dif Estimators for Solving the Generalized Sylvester
+      Equation.
+      Report UMINF-132.86, Institute of Information Processing,
+      Univ. of Umea, Sweden, July 1987.
+  [3] Golub, G.H., Nash, S. and Van Loan, C.F.
+      A Hessenberg-Schur Method for the Problem AX + XB = C.
+      IEEE Trans. Auto. Contr., AC-24, pp. 909-913, 1979.
+  [4] Kagstrom, B. and Van Dooren, P.
+      Additive Decomposition of a Transfer Function with respect to
+      a Specified Region.
+      In: "Signal Processing, Scattering and Operator Theory, and
+      Numerical Methods" (Eds. M.A. Kaashoek et al.).
+      Proceedings of MTNS-89, Vol. 3, pp. 469-477, Birkhauser Boston
+      Inc., 1990.
+  [5] Kagstrom, B. and Van Dooren, P.
+      A Generalized State-space Approach for the Additive
+      Decomposition of a Transfer Matrix.
+      Report UMINF-91.12, Institute of Information Processing, Univ.
+      of Umea, Sweden, April 1991.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  The algorithm is backward stable. A reliable estimate for the
+  condition number of Z in the Frobenius norm, is (see [1])
+
+     K(Z) = SQRT(  ||A||**2 + ||B||**2 + ||C||**2 + ||D||**2 )/DIF.
+
+  If mu is an upper bound on the relative error of the elements of
+  the matrices A, B, C, D, E and F, then the relative error in the
+  actual solution is approximately mu * K(Z).
+
+  The relative error in the computed solution (due to rounding
+  errors) is approximately EPS * K(Z), where EPS is the machine
+  precision (see LAPACK Library routine DLAMCH).
+
+</PRE>
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  For applications of the generalized Sylvester equation in control
+  theory, see [4] and [5].
+
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+*     SB04OD EXAMPLE PROGRAM TEXT
+*
+*     .. Parameters ..
+      DOUBLE PRECISION ONE
+      PARAMETER        ( ONE = 1.0D0 )
+      INTEGER          NIN, NOUT
+      PARAMETER        ( NIN = 5, NOUT = 6 )
+      INTEGER          MMAX, NMAX
+      PARAMETER        ( MMAX = 10, NMAX = 10 )
+      INTEGER          LDA, LDB, LDC, LDD, LDE, LDF, LDP, LDQ, LDU, LDV
+      PARAMETER        ( LDA = MMAX, LDB = NMAX, LDC = MMAX, LDD = MMAX,
+     $                   LDE = NMAX, LDF = MMAX, LDP = MMAX, LDQ = MMAX,
+     $                   LDU = NMAX, LDV = NMAX )
+      INTEGER          LDWORK, LIWORK
+      PARAMETER        ( LDWORK = MAX(11*MAX(MMAX,NMAX),
+     $                                10*MAX(MMAX,NMAX)+23,2*MMAX*NMAX),
+     $                   LIWORK = MMAX+NMAX+6 )
+*     .. Local Scalars ..
+      DOUBLE PRECISION DIF, SCALE
+      INTEGER          I, INFO, J, M, N
+      CHARACTER*1      JOBD, REDUCE, TRANS
+*     .. Local Arrays ..
+      DOUBLE PRECISION A(LDA,MMAX), B(LDB,NMAX), C(LDC,NMAX),
+     $                 D(LDD,MMAX), DWORK(LDWORK), E(LDE,NMAX),
+     $                 F(LDF,NMAX), P(LDP,MMAX), Q(LDQ,MMAX),
+     $                 U(LDU,NMAX), V(LDV,NMAX)
+      INTEGER          IWORK(LIWORK)
+*     .. External Functions ..
+      LOGICAL          LSAME
+      EXTERNAL         LSAME
+*     .. External Subroutines ..
+      EXTERNAL         SB04OD
+*     .. Intrinsic Functions ..
+      INTRINSIC        MAX
+*     .. Executable Statements ..
+*
+      WRITE ( NOUT, FMT = 99999 )
+*     Skip the heading in the data file and read the data.
+      READ ( NIN, FMT = '()' )
+      READ ( NIN, FMT = * ) M, N, REDUCE, TRANS, JOBD
+      IF ( M.LT.0 .OR. M.GT.MMAX ) THEN
+         WRITE ( NOUT, FMT = 99989 ) M
+      ELSE
+         READ ( NIN, FMT = * ) ( ( A(I,J), J = 1,M ), I = 1,M )
+         IF ( N.LT.0 .OR. N.GT.NMAX ) THEN
+            WRITE ( NOUT, FMT = 99988 ) N
+         ELSE
+            READ ( NIN, FMT = * ) ( ( B(I,J), J = 1,N ), I = 1,N )
+            READ ( NIN, FMT = * ) ( ( C(I,J), J = 1,N ), I = 1,M )
+            READ ( NIN, FMT = * ) ( ( D(I,J), J = 1,M ), I = 1,M )
+            READ ( NIN, FMT = * ) ( ( E(I,J), J = 1,N ), I = 1,N )
+            READ ( NIN, FMT = * ) ( ( F(I,J), J = 1,N ), I = 1,M )
+*           Find the solution matrices L and R.
+            CALL SB04OD( REDUCE, TRANS, JOBD, M, N, A, LDA, B, LDB, C,
+     $                   LDC, D, LDD, E, LDE, F, LDF, SCALE, DIF, P,
+     $                   LDP, Q, LDQ, U, LDU, V, LDV, IWORK, DWORK,
+     $                   LDWORK, INFO )
+*
+            IF ( INFO.NE.0 ) THEN
+               WRITE ( NOUT, FMT = 99998 ) INFO
+            ELSE
+               WRITE ( NOUT, FMT = 99997 )
+               DO 20 I = 1, M
+                  WRITE ( NOUT, FMT = 99991 ) ( F(I,J), J = 1,N )
+   20          CONTINUE
+               WRITE ( NOUT, FMT = 99996 )
+               DO 40 I = 1, M
+                  WRITE ( NOUT, FMT = 99991 ) ( C(I,J), J = 1,N )
+   40          CONTINUE
+               IF ( LSAME( REDUCE, 'R' ).OR.LSAME( REDUCE, 'A' ) ) THEN
+                  WRITE ( NOUT, FMT = 99995 )
+                  DO 60 I = 1, M
+                     WRITE ( NOUT, FMT = 99991 ) ( P(I,J), J = 1,M )
+   60             CONTINUE
+                  WRITE ( NOUT, FMT = 99994 )
+                  DO 80 I = 1, M
+                     WRITE ( NOUT, FMT = 99991 ) ( Q(I,J), J = 1,M )
+   80             CONTINUE
+               END IF
+               IF ( LSAME( REDUCE, 'R' ).OR.LSAME( REDUCE, 'B' ) ) THEN
+                  WRITE ( NOUT, FMT = 99993 )
+                  DO 100 I = 1, N
+                     WRITE ( NOUT, FMT = 99991 ) ( U(I,J), J = 1,N )
+  100             CONTINUE
+                  WRITE ( NOUT, FMT = 99992 )
+                  DO 120 I = 1, N
+                     WRITE ( NOUT, FMT = 99991 ) ( V(I,J), J = 1,N )
+  120             CONTINUE
+               END IF
+               IF ( SCALE.NE.ONE ) WRITE ( NOUT, FMT = 99987 ) SCALE
+               IF ( .NOT.LSAME( JOBD, 'N' ) )
+     $            WRITE ( NOUT, FMT = 99990 ) DIF
+            END IF
+         END IF
+      END IF
+*
+      STOP
+*
+99999 FORMAT (' SB04OD EXAMPLE PROGRAM RESULTS',/1X)
+99998 FORMAT (' INFO on exit from SB04OD = ',I2)
+99997 FORMAT (' The solution matrix L is ')
+99996 FORMAT (/' The solution matrix R is ')
+99995 FORMAT (/' The left transformation matrix P is ')
+99994 FORMAT (/' The right transformation matrix Q is ')
+99993 FORMAT (/' The left transformation matrix U is ')
+99992 FORMAT (/' The right transformation matrix V is ')
+99991 FORMAT (20(1X,F8.4))
+99990 FORMAT (/' DIF = ',F8.4)
+99989 FORMAT (/' M is out of range.',/' M = ',I5)
+99988 FORMAT (/' N is out of range.',/' N = ',I5)
+99987 FORMAT (/' SCALE = ',F8.4)
+      END
+</PRE>
+<B>Program Data</B>
+<PRE>
+ SB04OD EXAMPLE PROGRAM DATA
+   3     2     R     N     D
+    1.6   -3.1    1.9
+   -3.8    4.2    2.4
+    0.5    2.2   -4.5
+    1.1    0.1
+   -1.3   -3.1
+   -2.0   28.9
+   -5.7  -11.8
+   12.9  -31.7
+    2.5    0.1    1.7
+   -2.5    0.0    0.9
+    0.1    5.1   -7.3
+    6.0    2.4
+   -3.6    2.5
+    0.5   23.8
+  -11.0  -10.4
+   39.5  -74.8
+</PRE>
+<B>Program Results</B>
+<PRE>
+ SB04OD EXAMPLE PROGRAM RESULTS
+
+ The solution matrix L is 
+  -0.7538  -1.6210
+   2.1778   1.7005
+  -3.5029   2.7961
+
+ The solution matrix R is 
+   1.3064   2.7989
+   0.3698  -5.3376
+  -0.8767   6.7500
+
+ The left transformation matrix P is 
+  -0.3093  -0.9502   0.0383
+   0.9366  -0.2974   0.1851
+  -0.1645   0.0932   0.9820
+
+ The right transformation matrix Q is 
+  -0.6097  -0.7920  -0.0314
+   0.6310  -0.5090   0.5854
+   0.4796  -0.3371  -0.8102
+
+ The left transformation matrix U is 
+  -0.8121   0.5835
+   0.5835   0.8121
+
+ The right transformation matrix V is 
+  -0.9861   0.1660
+   0.1660   0.9861
+
+ DIF =   0.1147
+</PRE>
+
+<HR>
+<p>
+<A HREF=..\libindex.html><B>Return to index</B></A></BODY>
+</HTML>

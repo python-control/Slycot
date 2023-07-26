@@ -1,0 +1,185 @@
+<HTML>
+<HEAD><TITLE>MB04SU - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MB04SU">MB04SU</A></H2>
+<H3>
+Symplectic QR decomposition of a real 2M-by-N matrix
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To compute a symplectic QR decomposition of a real 2M-by-N matrix
+  [A; B],
+
+            [ A ]             [ R11  R12 ]
+            [   ] = Q * R = Q [          ],
+            [ B ]             [ R21  R22 ]
+
+  where Q is a symplectic orthogonal matrix, R11 is upper triangular
+  and R21 is strictly upper triangular.
+  If [A; B] is symplectic then, theoretically, R21 = 0 and
+  R22 = inv(R11)^T. Unblocked version.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MB04SU( M, N, A, LDA, B, LDB, CS, TAU, DWORK, LDWORK,
+     $                   INFO )
+C     .. Scalar Arguments ..
+      INTEGER           INFO, LDA, LDB, LDWORK, M, N
+C     .. Array Arguments ..
+      DOUBLE PRECISION  A(LDA,*), B(LDB,*), CS(*), DWORK(*), TAU(*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  M       (input) INTEGER
+          The number of rows of A and B. M &gt;= 0.
+
+  N       (input) INTEGER
+          The number of columns of A and B. N &gt;= 0.
+
+  A       (input/output) DOUBLE PRECISION array, dimension (LDA,N)
+          On entry, the leading M-by-N part of this array must
+          contain the matrix A.
+          On exit, the leading M-by-N part of this array contains
+          the matrix [ R11  R12 ] and, in the zero parts of R,
+          information about the elementary reflectors used to
+          compute the symplectic QR decomposition.
+
+  LDA     INTEGER
+          The leading dimension of the array A.  LDA &gt;= MAX(1,M).
+
+  B       (input/output) DOUBLE PRECISION array, dimension (LDB,N)
+          On entry, the leading M-by-N part of this array must
+          contain the matrix B.
+          On exit, the leading M-by-N part of this array contains
+          the matrix [ R21  R22 ] and, in the zero parts of B,
+          information about the elementary reflectors used to
+          compute the symplectic QR decomposition.
+
+  LDB     INTEGER
+          The leading dimension of the array B.  LDB &gt;= MAX(1,M).
+
+  CS      (output) DOUBLE PRECISION array, dimension (2 * min(M,N))
+          On exit, the first 2*min(M,N) elements of this array
+          contain the cosines and sines of the symplectic Givens
+          rotations used to compute the symplectic QR decomposition.
+
+  TAU     (output) DOUBLE PRECISION array, dimension (min(M,N))
+          On exit, the first min(M,N) elements of this array
+          contain the scalar factors of some of the elementary
+          reflectors.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+          On exit, if INFO = 0,  DWORK(1)  returns the optimal
+          value of LDWORK.
+          On exit, if  INFO = -10,  DWORK(1)  returns the minimum
+          value of LDWORK.
+
+  LDWORK  INTEGER
+          The length of the array DWORK.  LDWORK &gt;= MAX(1,N).
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  The matrix Q is represented as a product of symplectic reflectors
+  and Givens rotations
+
+  Q = diag( H(1),H(1) ) G(1) diag( F(1),F(1) )
+      diag( H(2),H(2) ) G(2) diag( F(2),F(2) )
+                        ....
+      diag( H(k),H(k) ) G(k) diag( F(k),F(k) ),
+
+  where k = min(m,n).
+
+  Each H(i) has the form
+
+        H(i) = I - tau * w * w'
+
+  where tau is a real scalar, and w is a real vector with
+  w(1:i-1) = 0 and w(i) = 1; w(i+1:m) is stored on exit in
+  B(i+1:m,i), and tau in B(i,i).
+
+  Each F(i) has the form
+
+        F(i) = I - nu * v * v'
+
+  where nu is a real scalar, and v is a real vector with
+  v(1:i-1) = 0 and v(i) = 1; v(i+1:m) is stored on exit in
+  A(i+1:m,i), and nu in TAU(i).
+
+  Each G(i) is a Givens rotation acting on rows i of A and B,
+  where the cosine is stored in CS(2*i-1) and the sine in
+  CS(2*i).
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Bunse-Gerstner, A.
+      Matrix factorizations for symplectic QR-like methods.
+      Linear Algebra Appl., 83, pp. 49-77, 1986.
+
+  [2] Byers, R.
+      Hamiltonian and Symplectic Algorithms for the Algebraic
+      Riccati Equation.
+      Ph.D. Dissertation, Center for Applied Mathematics,
+      Cornell University, Ithaca, NY, 1983.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  The algorithm requires
+     8*M*N*N - 8/3*N*N*N +  2*M*N + 6*N*N + 8/3*N,  if M &gt;= N,
+     8*M*M*N - 8/3*M*M*M + 14*M*N - 6*M*M + 8/3*N,  if M &lt;= N,
+  floating point operations and is numerically backward stable.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

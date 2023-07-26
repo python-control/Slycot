@@ -1,0 +1,299 @@
+<HTML>
+<HEAD><TITLE>SB08ND - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="SB08ND">SB08ND</A></H2>
+<H3>
+Spectral factorization of polynomials (discrete-time case)
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To compute a real polynomial E(z) such that
+
+     (a)  E(1/z) * E(z) = A(1/z) * A(z) and
+     (b)  E(z) is stable - that is, E(z) has no zeros with modulus
+          greater than 1,
+
+  which corresponds to computing the spectral factorization of the
+  real polynomial A(z) arising from discrete optimality problems.
+
+  The input polynomial may be supplied either in the form
+
+  A(z) = a(0) + a(1) * z + ... + a(DA) * z**DA
+
+  or as
+
+  B(z) = A(1/z) * A(z)
+       = b(0) + b(1) * (z + 1/z) + ... + b(DA) * (z**DA + 1/z**DA)
+                                                                 (1)
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE SB08ND( ACONA, DA, A, RES, E, DWORK, LDWORK, INFO )
+C     .. Scalar Arguments ..
+      CHARACTER         ACONA
+      INTEGER           DA, INFO, LDWORK
+      DOUBLE PRECISION  RES
+C     .. Array Arguments ..
+      DOUBLE PRECISION  A(*), DWORK(*), E(*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  ACONA   CHARACTER*1
+          Indicates whether the coefficients of A(z) or B(z) =
+          A(1/z) * A(z) are to be supplied as follows:
+          = 'A':  The coefficients of A(z) are to be supplied;
+          = 'B':  The coefficients of B(z) are to be supplied.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  DA      (input) INTEGER
+          The degree of the polynomials A(z) and E(z).  DA &gt;= 0.
+
+  A       (input/output) DOUBLE PRECISION array, dimension (DA+1)
+          On entry, if ACONA = 'A', this array must contain the
+          coefficients of the polynomial A(z) in increasing powers
+          of z, and if ACONA = 'B', this array must contain the
+          coefficients b ,b ,...,b   of the polynomial B(z) in
+                        0  1      DA
+          equation (1). That is, A(i) = b    for i = 1,2,...,DA+1.
+                                         i-1
+          On exit, this array contains the coefficients of the
+          polynomial B(z) in eqation (1). Specifically, A(i)
+          contains b   ,  for i = 1,2,...DA+1.
+                    i-1
+
+  RES     (output) DOUBLE PRECISION
+          An estimate of the accuracy with which the coefficients of
+          the polynomial E(z) have been computed (see also METHOD
+          and NUMERICAL ASPECTS).
+
+  E       (output) DOUBLE PRECISION array, dimension (DA+1)
+          The coefficients of the spectral factor E(z) in increasing
+          powers of z.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+
+  LDWORK  INTEGER
+          The length of the array DWORK.  LDWORK &gt;= 5*DA+5.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value;
+          = 2:  if on entry, ACONA = 'B' but the supplied
+                coefficients of the polynomial B(z) are not the
+                coefficients of A(1/z) * A(z) for some real A(z);
+                in this case, RES and E are unassigned;
+          = 3:  if the iterative process (see METHOD) has failed to
+                converge in 30 iterations;
+          = 4:  if the last computed iterate (see METHOD) is
+                unstable. If ACONA = 'B', then the supplied
+                coefficients of the polynomial B(z) may not be the
+                coefficients of A(1/z) * A(z) for some real A(z).
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>      _                                               _
+  Let A(z) be the conjugate polynomial of A(z), i.e., A(z) = A(1/z).
+
+  The method used by the routine is based on applying the
+  Newton-Raphson iteration to the function
+            _       _
+     F(e) = A * A - e * e,
+
+  which leads to the iteration formulae (see [1] and [2])
+
+     _(i)   (i)  _(i)   (i)     _      )
+     q   * x   + x   * q    = 2 A * A  )
+                                       )   for i = 0, 1, 2,...
+      (i+1)    (i)   (i)               )
+     q     = (q   + x   )/2            )
+
+  The iteration starts from
+
+      (0)                                        DA
+     q   (z) = (b(0) + b(1) * z + ... + b(DA) * z  ) / SQRT( b(0))
+
+  which is a Hurwitz polynomial that has no zeros in the closed unit
+                                         (i)
+  circle (see [2], Theorem 3). Then lim q   = e, the convergence is
+  uniform and e is a Hurwitz polynomial.
+
+  The iterates satisfy the following conditions:
+           (i)
+     (a)  q    has no zeros in the closed unit circle,
+           (i)     (i-1)
+     (b)  q    &lt;= q     and
+           0       0
+           DA   (i) 2    DA     2
+     (c)  SUM (q   )  - SUM (A )  &gt;= 0.
+          k=0   k       k=0   k
+                                  (i)
+  The iterative process stops if q    violates (a), (b) or (c),
+  or if the condition
+                    _(i) (i)  _
+     (d)  RES  = ||(q   q   - A A)|| &lt; tol,
+
+  is satisfied, where || . || denotes the largest coefficient of
+                  _(i) (i)  _
+  the polynomial (q   q   - A A) and tol is an estimate of the
+                                                 _(i)  (i)
+  rounding error in the computed coefficients of q    q   . If
+                                         (i-1)
+  condition (a) or (b) is violated then q      is taken otherwise
+   (i)
+  q    is used. Thus the computed reciprocal polynomial E(z) = z**DA
+  * q(1/z) is stable. If there is no convergence after 30 iterations
+  then the routine returns with the Error Indicator (INFO) set to 3,
+  and the value of RES may indicate whether or not the last computed
+  iterate is close to the solution.
+                                            (0)
+  If ACONA = 'B', then it is possible that q    is not a Hurwitz
+  polynomial, in which case the equation e(1/z) * e(z) = B(z) has no
+  real solution (see [2], Theorem 3).
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Kucera, V.
+      Discrete Linear Control, The polynomial Approach.
+      John Wiley & Sons, Chichester, 1979.
+
+  [2] Vostry, Z.
+      New Algorithm for Polynomial Spectral Factorization with
+      Quadratic Convergence I.
+      Kybernetika, 11, pp. 415-422, 1975.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  None.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+*     SB08ND EXAMPLE PROGRAM TEXT
+*
+*     .. Parameters ..
+      INTEGER          NIN, NOUT
+      PARAMETER        ( NIN = 5, NOUT = 6 )
+      INTEGER          DAMAX
+      PARAMETER        ( DAMAX = 10 )
+      INTEGER          LDWORK
+      PARAMETER        ( LDWORK = 5*DAMAX+5 )
+*     .. Local Scalars ..
+      DOUBLE PRECISION RES
+      INTEGER          DA, I, INFO
+      CHARACTER*1      ACONA
+*     .. Local Arrays ..
+      DOUBLE PRECISION A(DAMAX+1), DWORK(LDWORK), E(DAMAX+1)
+*     .. External Functions ..
+      LOGICAL          LSAME
+      EXTERNAL         LSAME
+*     .. External Subroutines ..
+      EXTERNAL         SB08ND
+*     .. Executable Statements ..
+*
+      WRITE ( NOUT, FMT = 99999 )
+      READ ( NIN, FMT = '()' )
+*     Skip the heading in the data file and read the data.
+      READ ( NIN, FMT = * ) DA, ACONA
+      IF ( DA.LE.-1 .OR. DA.GT.DAMAX ) THEN
+         WRITE ( NOUT, FMT = 99993 ) DA
+      ELSE
+         READ ( NIN, FMT = * ) ( A(I), I = 1,DA+1 )
+*        Compute the spectral factorization of the given polynomial.
+         CALL SB08ND( ACONA, DA, A, RES, E, DWORK, LDWORK, INFO )
+*
+         IF ( INFO.NE.0 ) THEN
+            WRITE ( NOUT, FMT = 99998 ) INFO
+         ELSE
+            IF ( LSAME( ACONA, 'A' ) ) THEN
+               WRITE ( NOUT, FMT = 99997 )
+               DO 20 I = 0, DA
+                  WRITE ( NOUT, FMT = 99995 ) I, A(I+1)
+   20          CONTINUE
+               WRITE ( NOUT, FMT = * )
+            END IF
+            WRITE ( NOUT, FMT = 99996 )
+            DO 40 I = 0, DA
+               WRITE ( NOUT, FMT = 99995 ) I, E(I+1)
+   40       CONTINUE
+            WRITE ( NOUT, FMT = 99994 ) RES
+         END IF
+      END IF
+*
+      STOP
+*
+99999 FORMAT (' SB08ND EXAMPLE PROGRAM RESULTS',/1X)
+99998 FORMAT (' INFO on exit from SB08ND = ',I2)
+99997 FORMAT (' The coefficients of the polynomial B(z) are ',//' powe',
+     $       'r of z     coefficient ')
+99996 FORMAT (' The coefficients of the spectral factor E(z) are ',
+     $       //' power of z     coefficient ')
+99995 FORMAT (2X,I5,9X,F9.4)
+99994 FORMAT (/' RES = ',1P,E8.1)
+99993 FORMAT (/' DA is out of range.',/' DA = ',I5)
+      END
+</PRE>
+<B>Program Data</B>
+<PRE>
+ SB08ND EXAMPLE PROGRAM DATA
+   2     A
+   2.0  4.5  1.0
+</PRE>
+<B>Program Results</B>
+<PRE>
+ SB08ND EXAMPLE PROGRAM RESULTS
+
+ The coefficients of the polynomial B(z) are 
+
+ power of z     coefficient 
+      0           25.2500
+      1           13.5000
+      2            2.0000
+ 
+ The coefficients of the spectral factor E(z) are 
+
+ power of z     coefficient 
+      0            0.5000
+      1            3.0000
+      2            4.0000
+
+ RES =  4.4E-16
+</PRE>
+
+<HR>
+<p>
+<A HREF=..\libindex.html><B>Return to index</B></A></BODY>
+</HTML>

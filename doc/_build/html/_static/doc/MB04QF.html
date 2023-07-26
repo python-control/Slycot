@@ -1,0 +1,182 @@
+<HTML>
+<HEAD><TITLE>MB04QF - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MB04QF">MB04QF</A></H2>
+<H3>
+Forming the triangular block factors of a symplectic block reflector
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To form the triangular block factors R, S and T of a symplectic
+  block reflector SH, which is defined as a product of 2k
+  concatenated Householder reflectors and k Givens rotations,
+
+      SH = diag( H(1),H(1) ) G(1) diag( F(1),F(1) )
+           diag( H(2),H(2) ) G(2) diag( F(2),F(2) )
+                             ....
+           diag( H(k),H(k) ) G(k) diag( F(k),F(k) ).
+
+  The upper triangular blocks of the matrices
+
+                              [ S1 ]       [ T11 T12 T13 ]
+      R  = [ R1 R2 R3 ],  S = [ S2 ],  T = [ T21 T22 T23 ],
+                              [ S3 ]       [ T31 T32 T33 ]
+
+  with R2 unit and S1, R3, T21, T31, T32 strictly upper triangular,
+  are stored rowwise in the arrays RS and T, respectively.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MB04QF( DIRECT, STOREV, STOREW, N, K, V, LDV, W, LDW,
+     $                   CS, TAU, RS, LDRS, T, LDT, DWORK )
+C     .. Scalar Arguments ..
+      CHARACTER         DIRECT, STOREV, STOREW
+      INTEGER           K, LDRS, LDT, LDV, LDW, N
+C     .. Array Arguments ..
+      DOUBLE PRECISION  CS(*), DWORK(*), RS(LDRS,*), T(LDT,*),
+     $                  TAU(*), V(LDV,*), W(LDW,*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  DIRECT  CHARACTER*1
+          This is a dummy argument, which is reserved for future
+          extensions of this subroutine. Not referenced.
+
+  STOREV  CHARACTER*1
+          Specifies how the vectors which define the concatenated
+          Householder F(i) reflectors are stored:
+          = 'C':  columnwise;
+          = 'R':  rowwise.
+
+  STOREW  CHARACTER*1
+          Specifies how the vectors which define the concatenated
+          Householder H(i) reflectors are stored:
+          = 'C':  columnwise;
+          = 'R':  rowwise.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The order of the Householder reflectors F(i) and H(i).
+          N &gt;= 0.
+
+  K       (input) INTEGER
+          The number of Givens rotations.  K &gt;= 1.
+
+  V       (input) DOUBLE PRECISION array, dimension
+                  (LDV,K) if STOREV = 'C',
+                  (LDV,N) if STOREV = 'R'
+          On entry with STOREV = 'C', the leading N-by-K part of
+          this array must contain in its i-th column the vector
+          which defines the elementary reflector F(i).
+          On entry with STOREV = 'R', the leading K-by-N part of
+          this array must contain in its i-th row the vector
+          which defines the elementary reflector F(i).
+
+  LDV     INTEGER
+          The leading dimension of the array V.
+          LDV &gt;= MAX(1,N),  if STOREV = 'C';
+          LDV &gt;= K,         if STOREV = 'R'.
+
+  W       (input) DOUBLE PRECISION array, dimension
+                  (LDW,K) if STOREW = 'C',
+                  (LDW,N) if STOREW = 'R'
+          On entry with STOREW = 'C', the leading N-by-K part of
+          this array must contain in its i-th column the vector
+          which defines the elementary reflector H(i).
+          On entry with STOREV = 'R', the leading K-by-N part of
+          this array must contain in its i-th row the vector
+          which defines the elementary reflector H(i).
+
+  LDW     INTEGER
+          The leading dimension of the array W.
+          LDW &gt;= MAX(1,N),  if STOREW = 'C';
+          LDW &gt;= K,         if STOREW = 'R'.
+
+  CS      (input) DOUBLE PRECISION array, dimension (2*K)
+          On entry, the first 2*K elements of this array must
+          contain the cosines and sines of the symplectic Givens
+          rotations G(i).
+
+  TAU     (input) DOUBLE PRECISION array, dimension (K)
+          On entry, the first K elements of this array must
+          contain the scalar factors of the elementary reflectors
+          F(i).
+
+  RS      (output) DOUBLE PRECISION array, dimension (K,6*K)
+          On exit, the leading K-by-6*K part of this array contains
+          the upper triangular matrices defining the factors R and
+          S of the symplectic block reflector SH. The (strictly)
+          lower portions of this array are not used.
+
+  LDRS    INTEGER
+          The leading dimension of the array RS.  LDRS &gt;= K.
+
+  T       (output) DOUBLE PRECISION array, dimension (K,9*K)
+          On exit, the leading K-by-9*K part of this array contains
+          the upper triangular matrices defining the factor T of the
+          symplectic block reflector SH. The (strictly) lower
+          portions of this array are not used.
+
+  LDT     INTEGER
+          The leading dimension of the array T.  LDT &gt;= K.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  DWORK   DOUBLE PRECISION array, dimension (3*K)
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Kressner, D.
+      Block algorithms for orthogonal symplectic factorizations.
+      BIT, 43 (4), pp. 775-790, 2003.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  The algorithm requires ( 4*K - 2 )*K*N + 19/3*K*K*K + 1/2*K*K
+  + 43/6*K - 4 floating point operations.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

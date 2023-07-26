@@ -1,0 +1,154 @@
+<HTML>
+<HEAD><TITLE>MB01UW - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MB01UW">MB01UW</A></H2>
+<H3>
+Computation of matrix expressions alpha H A or alpha A H, over A, H Hessenberg matrix
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To compute one of the matrix products
+
+     A : = alpha*op( H ) * A, or A : = alpha*A * op( H ),
+
+  where alpha is a scalar, A is an m-by-n matrix, H is an upper
+  Hessenberg matrix, and op( H ) is one of
+
+     op( H ) = H   or   op( H ) = H',  the transpose of H.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MB01UW( SIDE, TRANS, M, N, ALPHA, H, LDH, A, LDA,
+     $                   DWORK, LDWORK, INFO )
+C     .. Scalar Arguments ..
+      CHARACTER         SIDE, TRANS
+      INTEGER           INFO, LDA, LDH, LDWORK, M, N
+      DOUBLE PRECISION  ALPHA
+C     .. Array Arguments ..
+      DOUBLE PRECISION  A(LDA,*), DWORK(*), H(LDH,*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  SIDE    CHARACTER*1
+          Specifies whether the Hessenberg matrix H appears on the
+          left or right in the matrix product as follows:
+          = 'L':  A := alpha*op( H ) * A;
+          = 'R':  A := alpha*A * op( H ).
+
+  TRANS   CHARACTER*1
+          Specifies the form of op( H ) to be used in the matrix
+          multiplication as follows:
+          = 'N':  op( H ) = H;
+          = 'T':  op( H ) = H';
+          = 'C':  op( H ) = H'.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  M       (input) INTEGER
+          The number of rows of the matrix A.  M &gt;= 0.
+
+  N       (input) INTEGER
+          The number of columns of the matrix A.  N &gt;= 0.
+
+  ALPHA   (input) DOUBLE PRECISION
+          The scalar alpha. When alpha is zero then H is not
+          referenced and A need not be set before entry.
+
+  H       (input) DOUBLE PRECISION array, dimension (LDH,k)
+          where k is M when SIDE = 'L' and is N when SIDE = 'R'.
+          On entry with SIDE = 'L', the leading M-by-M upper
+          Hessenberg part of this array must contain the upper
+          Hessenberg matrix H.
+          On entry with SIDE = 'R', the leading N-by-N upper
+          Hessenberg part of this array must contain the upper
+          Hessenberg matrix H.
+          The elements below the subdiagonal are not referenced,
+          except possibly for those in the first column, which
+          could be overwritten, but are restored on exit.
+
+  LDH     INTEGER
+          The leading dimension of the array H.  LDH &gt;= max(1,k),
+          where k is M when SIDE = 'L' and is N when SIDE = 'R'.
+
+  A       (input/output) DOUBLE PRECISION array, dimension (LDA,N)
+          On entry, the leading M-by-N part of this array must
+          contain the matrix A.
+          On exit, the leading M-by-N part of this array contains
+          the computed product.
+
+  LDA     INTEGER
+          The leading dimension of the array A.  LDA &gt;= max(1,M).
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+          On exit, if INFO = 0, alpha &lt;&gt; 0, and LDWORK &gt;= M*N &gt; 0,
+          DWORK contains a copy of the matrix A, having the leading
+          dimension M.
+          This array is not referenced when alpha = 0.
+
+  LDWORK  The length of the array DWORK.
+          LDWORK &gt;= 0,   if  alpha =  0 or MIN(M,N) = 0;
+          LDWORK &gt;= M-1, if  SIDE  = 'L';
+          LDWORK &gt;= N-1, if  SIDE  = 'R'.
+          For maximal efficiency LDWORK should be at least M*N.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  The required matrix product is computed in two steps. In the first
+  step, the upper triangle of H is used; in the second step, the
+  contribution of the subdiagonal is added. If the workspace can
+  accomodate a copy of A, a fast BLAS 3 DTRMM operation is used in
+  the first step.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

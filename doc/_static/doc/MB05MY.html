@@ -1,0 +1,178 @@
+<HTML>
+<HEAD><TITLE>MB05MY - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MB05MY">MB05MY</A></H2>
+<H3>
+Computation of the orthogonal matrix reducing a given matrix to real Schur form T, of the eigenvalues, and of the upper triangular matrix of right eigenvectors of T
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To compute, for an N-by-N real nonsymmetric matrix A, the
+  orthogonal matrix Q reducing it to real Schur form T, the
+  eigenvalues, and the right eigenvectors of T.
+
+  The right eigenvector r(j) of T satisfies
+                   T * r(j) = lambda(j) * r(j)
+  where lambda(j) is its eigenvalue.
+
+  The matrix of right eigenvectors R is upper triangular, by
+  construction.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MB05MY( BALANC, N, A, LDA, WR, WI, R, LDR, Q, LDQ,
+     $                   DWORK, LDWORK, INFO )
+C     .. Scalar Arguments ..
+      CHARACTER         BALANC
+      INTEGER           INFO, LDA, LDQ, LDR, LDWORK, N
+C     .. Array Arguments ..
+      DOUBLE PRECISION  A( LDA, * ), DWORK( * ), Q( LDQ, * ),
+     $                  R( LDR, * ), WI( * ), WR( * )
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  BALANC  CHARACTER*1
+          Indicates how the input matrix should be diagonally scaled
+          to improve the conditioning of its eigenvalues as follows:
+          = 'N':  Do not diagonally scale;
+          = 'S':  Diagonally scale the matrix, i.e. replace A by
+                  D*A*D**(-1), where D is a diagonal matrix chosen
+                  to make the rows and columns of A more equal in
+                  norm. Do not permute.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The order of the matrix A.  N &gt;= 0.
+
+  A       (input/output) DOUBLE PRECISION array, dimension (LDA,N)
+          On entry, the leading N-by-N part of this array must
+          contain the given matrix A.
+          On exit, the leading N-by-N upper quasi-triangular part of
+          this array contains the real Schur canonical form of A.
+
+  LDA     INTEGER
+          The leading dimension of array A.  LDA &gt;= max(1,N).
+
+  WR      (output) DOUBLE PRECISION array, dimension (N)
+  WI      (output) DOUBLE PRECISION array, dimension (N)
+          WR and WI contain the real and imaginary parts,
+          respectively, of the computed eigenvalues. Complex
+          conjugate pairs of eigenvalues appear consecutively
+          with the eigenvalue having the positive imaginary part
+          first.
+
+  R       (output) DOUBLE PRECISION array, dimension (LDR,N)
+          The leading N-by-N upper triangular part of this array
+          contains the matrix of right eigenvectors R, in the same
+          order as their eigenvalues. The real and imaginary parts
+          of a complex eigenvector corresponding to an eigenvalue
+          with positive imaginary part are stored in consecutive
+          columns. (The corresponding conjugate eigenvector is not
+          stored.) The eigenvectors are not backward transformed
+          for balancing (when BALANC = 'S').
+
+  LDR     INTEGER
+          The leading dimension of array R.  LDR &gt;= max(1,N).
+
+  Q       (output) DOUBLE PRECISION array, dimension (LDQ,N)
+          The leading N-by-N part of this array contains the
+          orthogonal matrix Q which has reduced A to real Schur
+          form.
+
+  LDQ     INTEGER
+          The leading dimension of array Q.  LDQ &gt;= MAX(1,N).
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+          On exit, if INFO = 0, DWORK(1) returns the optimal LDWORK.
+          If BALANC = 'S' and LDWORK &gt; 0, DWORK(2),...,DWORK(N+1)
+          return the scaling factors used for balancing.
+
+  LDWORK  INTEGER
+          The length of the array DWORK.  LDWORK &gt;= max(1,4*N).
+          For good performance, LDWORK must generally be larger.
+
+          If LDWORK = -1, then a workspace query is assumed;
+          the routine only calculates the optimal size of the
+          DWORK array, returns this value as the first entry of
+          the DWORK array, and no error message related to LDWORK
+          is issued by XERBLA.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value;
+          &gt; 0:  if INFO = i, the QR algorithm failed to compute all
+                the eigenvalues, and no eigenvectors have been
+                computed; elements i+1:N of WR and WI contain
+                eigenvalues which have converged.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  This routine uses the QR algorithm to obtain the real Schur form
+  T of matrix A. Then, the right eigenvectors of T are computed,
+  but they are not backtransformed into the eigenvectors of A.
+  MB05MY is a modification of the LAPACK driver routine DGEEV.
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Anderson, E., Bai, Z., Bischof, C., Demmel, J., Dongarra, J.,
+      Du Croz, J., Greenbaum, A., Hammarling, S., McKenney, A.,
+      Ostrouchov, S., and Sorensen, D.
+      LAPACK Users' Guide: Second Edition.
+      SIAM, Philadelphia, 1995.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>                            3
+  The algorithm requires 0(N ) operations.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

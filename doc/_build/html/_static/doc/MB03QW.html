@@ -1,0 +1,153 @@
+<HTML>
+<HEAD><TITLE>MB03QW - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MB03QW">MB03QW</A></H2>
+<H3>
+Reduce a 2-by-2 diagonal block pair of an upper quasi-triangular pencil to standard form and compute eigenvalues
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To compute the eigenvalues of a selected 2-by-2 diagonal block
+  pair of an upper quasi-triangular pencil, to reduce the selected
+  block pair to the standard form and to split it in the case of
+  real eigenvalues, by constructing orthogonal matrices UT and VT.
+  The transformations UT and VT are applied to the pair (A,E) by
+  computing (UT'*A*VT, UT'*E*VT ), to the matrices U and V,
+  by computing U*UT and V*VT.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MB03QW( N, L, A, LDA, E, LDE, U, LDU, V, LDV,
+     $                   ALPHAR, ALPHAI, BETA, INFO )
+C     .. Scalar Arguments ..
+      INTEGER          INFO, L, LDA, LDE, LDU, LDV, N
+      DOUBLE PRECISION ALPHAI(*), ALPHAR(*), BETA(*)
+C     .. Array Arguments ..
+      DOUBLE PRECISION A(LDA,*), E(LDE,*), U(LDU,*), V(LDV,*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The order of the matrices A, E, UT and VT.  N &gt;= 2.
+
+  L       (input) INTEGER
+          Specifies the position of the block.  1 &lt;= L &lt; N.
+
+  A       (input/output) DOUBLE PRECISION array, dimension (LDA,N)
+          On entry, the leading N-by-N part of this array must
+          contain the upper quasi-triangular matrix A whose
+          selected 2-by-2 diagonal block is to be processed.
+          On exit, the leading N-by-N part of this array contains
+          the upper quasi-triangular matrix A after its selected
+          block has been split and/or put in the LAPACK standard
+          form.
+
+  LDA     INTEGER
+          The leading dimension of the array A.  LDA &gt;= N.
+
+  E       (input/output) DOUBLE PRECISION array, dimension (LDE,N)
+          On entry, the leading N-by-N part of this array must
+          contain the upper triangular matrix E whose selected
+          2-by-2 diagonal block is to be processed.
+          On exit, the leading N-by-N part of this array contains
+          the transformed upper triangular matrix E (in the LAPACK
+          standard form).
+
+  LDE     INTEGER
+          The leading dimension of the array E.  LDE &gt;= N.
+
+  U       (input/output) DOUBLE PRECISION array, dimension (LDU,N)
+          On entry, the leading N-by-N part of this array must
+          contain a transformation matrix U.
+          On exit, the leading N-by-N part of this array contains
+          U*UT, where UT is the transformation matrix used to
+          split and/or standardize the selected block pair.
+
+  LDU     INTEGER
+          The leading dimension of the array U.  LDU &gt;= N.
+
+  V       (input/output) DOUBLE PRECISION array, dimension (LDV,N)
+          On entry, the leading N-by-N part of this array must
+          contain a transformation matrix V.
+          On exit, the leading N-by-N part of this array contains
+          V*VT, where VT is the transformation matrix used to
+          split and/or standardize the selected block pair.
+
+  LDV     INTEGER
+          The leading dimension of the array V.  LDV &gt;= N.
+
+  ALPHAR  (output) DOUBLE PRECISION array, dimension (2)
+  ALPHAI  (output) DOUBLE PRECISION array, dimension (2)
+  BETA    (output) DOUBLE PRECISION array, dimension (2)
+          (ALPHAR(k)+i*ALPHAI(k))/BETA(k) are the eigenvalues of the
+          block pair of the pencil (A,B), k=1,2, i = sqrt(-1).
+          Note that BETA(k) may be zero.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  Let A1 = ( A(L,L)    A(L,L+1)   ), E1 = ( E(L,L)    E(L,L+1)   ),
+           ( A(L+1,L)  A(L+1,L+1) )       ( E(L+1,L)  E(L+1,L+1) )
+  be the specified 2-by-2 diagonal block pair of the pencil (A,B).
+  If the eigenvalues of (A1,E1) are complex, then they are computed
+  and stored in ER and EI, where the real part is stored in ER and
+  the positive imaginary part in EI. The 2-by-2 block pair is
+  reduced if necessary to the standard form, such that
+  A(L,L) = A(L+1,L+1), and A(L,L+1) and A(L+1,L) have oposite signs.
+  If the eigenvalues are real, the 2-by-2 block pair is reduced to
+  upper triangular form such that ABS(A(L,L)) &gt;= ABS(A(L+1,L+1)).
+  In both cases, an orthogonal rotation U1' is constructed such that
+  U1'*A1*U1 has the appropriate form. Let UT be an extension of U1
+  to an N-by-N orthogonal matrix, using identity submatrices. Then A
+  and E are replaced by UT'*A*UT and UT'*E*UT, and the contents of
+  the arrays U and V are U * UT and V * VT, respectively.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

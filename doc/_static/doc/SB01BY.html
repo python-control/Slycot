@@ -1,0 +1,124 @@
+<HTML>
+<HEAD><TITLE>SB01BY - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="SB01BY">SB01BY</A></H2>
+<H3>
+Pole placement for systems of order 1 or 2
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To solve an N-by-N pole placement problem for the simple cases
+  N = 1 or N = 2: given the N-by-N matrix A and N-by-M matrix B,
+  construct an M-by-N matrix F such that A + B*F has prescribed
+  eigenvalues. These eigenvalues are specified by their sum S and
+  product P (if N = 2). The resulting F has minimum Frobenius norm.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE SB01BY( N, M, S, P, A, B, F, TOL, DWORK, INFO )
+C     .. Scalar Arguments ..
+      INTEGER           INFO, M, N
+      DOUBLE PRECISION  P, S, TOL
+C     .. Array Arguments ..
+      DOUBLE PRECISION  A(N,*), B(N,*), DWORK(*), F(M,*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The order of the matrix A and also the number of rows of
+          the matrix B and the number of columns of the matrix F.
+          N is either 1, if a single real eigenvalue is prescribed
+          or 2, if a complex conjugate pair or a set of two real
+          eigenvalues are prescribed.
+
+  M       (input) INTEGER
+          The number of columns of the matrix B and also the number
+          of rows of the matrix F.  M &gt;= 1.
+
+  S       (input) DOUBLE PRECISION
+          The sum of the prescribed eigenvalues if N = 2 or the
+          value of prescribed eigenvalue if N = 1.
+
+  P       (input) DOUBLE PRECISION
+          The product of the prescribed eigenvalues if N = 2.
+          Not referenced if N = 1.
+
+  A       (input/output) DOUBLE PRECISION array, dimension (N,N)
+          On entry, this array must contain the N-by-N state
+          dynamics matrix whose eigenvalues have to be moved to
+          prescribed locations.
+          On exit, this array contains no useful information.
+
+  B       (input/output) DOUBLE PRECISION array, dimension (N,M)
+          On entry, this array must contain the N-by-M input/state
+          matrix B.
+          On exit, this array contains no useful information.
+
+  F       (output) DOUBLE PRECISION array, dimension (M,N)
+          The state feedback matrix F which assigns one pole or two
+          poles of the closed-loop matrix A + B*F.
+          If N = 2 and the pair (A,B) is not controllable
+          (INFO = 1), then F(1,1) and F(1,2) contain the elements of
+          an orthogonal rotation which can be used to remove the
+          uncontrollable part of the pair (A,B).
+
+</PRE>
+<B>Tolerances</B>
+<PRE>
+  TOL     DOUBLE PRECISION
+          The absolute tolerance level below which the elements of A
+          and B are considered zero (used for controllability test).
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  DWORK   DOUBLE PRECISION array, dimension (M)
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          = 1:  if uncontrollability of the pair (A,B) is detected.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

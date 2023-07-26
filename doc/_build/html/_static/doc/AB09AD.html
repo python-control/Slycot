@@ -1,0 +1,395 @@
+<HTML>
+<HEAD><TITLE>AB09AD - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="AB09AD">AB09AD</A></H2>
+<H3>
+Balance & Truncate model reduction for stable systems
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To compute a reduced order model (Ar,Br,Cr) for a stable original
+  state-space representation (A,B,C) by using either the square-root
+  or the balancing-free square-root Balance & Truncate (B & T)
+  model reduction method.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE AB09AD( DICO, JOB, EQUIL, ORDSEL, N, M, P, NR, A, LDA,
+     $                   B, LDB, C, LDC, HSV, TOL, IWORK, DWORK, LDWORK,
+     $                   IWARN, INFO )
+C     .. Scalar Arguments ..
+      CHARACTER         DICO, EQUIL, JOB, ORDSEL
+      INTEGER           INFO, IWARN, LDA, LDB, LDC, LDWORK, M, N, NR, P
+      DOUBLE PRECISION  TOL
+C     .. Array Arguments ..
+      INTEGER           IWORK(*)
+      DOUBLE PRECISION  A(LDA,*), B(LDB,*), C(LDC,*), DWORK(*), HSV(*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  DICO    CHARACTER*1
+          Specifies the type of the original system as follows:
+          = 'C':  continuous-time system;
+          = 'D':  discrete-time system.
+
+  JOB     CHARACTER*1
+          Specifies the model reduction approach to be used
+          as follows:
+          = 'B':  use the square-root Balance & Truncate method;
+          = 'N':  use the balancing-free square-root
+                  Balance & Truncate method.
+
+  EQUIL   CHARACTER*1
+          Specifies whether the user wishes to preliminarily
+          equilibrate the triplet (A,B,C) as follows:
+          = 'S':  perform equilibration (scaling);
+          = 'N':  do not perform equilibration.
+
+  ORDSEL  CHARACTER*1
+          Specifies the order selection method as follows:
+          = 'F':  the resulting order NR is fixed;
+          = 'A':  the resulting order NR is automatically determined
+                  on basis of the given tolerance TOL.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The order of the original state-space representation, i.e.
+          the order of the matrix A.  N &gt;= 0.
+
+  M       (input) INTEGER
+          The number of system inputs.  M &gt;= 0.
+
+  P       (input) INTEGER
+          The number of system outputs.  P &gt;= 0.
+
+  NR      (input/output) INTEGER
+          On entry with ORDSEL = 'F', NR is the desired order of the
+          resulting reduced order system.  0 &lt;= NR &lt;= N.
+          On exit, if INFO = 0, NR is the order of the resulting
+          reduced order model. NR is set as follows:
+          if ORDSEL = 'F', NR is equal to MIN(NR,NMIN), where NR
+          is the desired order on entry and NMIN is the order of a
+          minimal realization of the given system; NMIN is
+          determined as the number of Hankel singular values greater
+          than N*EPS*HNORM(A,B,C), where EPS is the machine
+          precision (see LAPACK Library Routine DLAMCH) and
+          HNORM(A,B,C) is the Hankel norm of the system (computed
+          in HSV(1));
+          if ORDSEL = 'A', NR is equal to the number of Hankel
+          singular values greater than MAX(TOL,N*EPS*HNORM(A,B,C)).
+
+  A       (input/output) DOUBLE PRECISION array, dimension (LDA,N)
+          On entry, the leading N-by-N part of this array must
+          contain the state dynamics matrix A.
+          On exit, if INFO = 0, the leading NR-by-NR part of this
+          array contains the state dynamics matrix Ar of the reduced
+          order system.
+
+  LDA     INTEGER
+          The leading dimension of array A.  LDA &gt;= MAX(1,N).
+
+  B       (input/output) DOUBLE PRECISION array, dimension (LDB,M)
+          On entry, the leading N-by-M part of this array must
+          contain the original input/state matrix B.
+          On exit, if INFO = 0, the leading NR-by-M part of this
+          array contains the input/state matrix Br of the reduced
+          order system.
+
+  LDB     INTEGER
+          The leading dimension of array B.  LDB &gt;= MAX(1,N).
+
+  C       (input/output) DOUBLE PRECISION array, dimension (LDC,N)
+          On entry, the leading P-by-N part of this array must
+          contain the original state/output matrix C.
+          On exit, if INFO = 0, the leading P-by-NR part of this
+          array contains the state/output matrix Cr of the reduced
+          order system.
+
+  LDC     INTEGER
+          The leading dimension of array C.  LDC &gt;= MAX(1,P).
+
+  HSV     (output) DOUBLE PRECISION array, dimension (N)
+          If INFO = 0, it contains the Hankel singular values of
+          the original system ordered decreasingly. HSV(1) is the
+          Hankel norm of the system.
+
+</PRE>
+<B>Tolerances</B>
+<PRE>
+  TOL     DOUBLE PRECISION
+          If ORDSEL = 'A', TOL contains the tolerance for
+          determining the order of reduced system.
+          For model reduction, the recommended value is
+          TOL = c*HNORM(A,B,C), where c is a constant in the
+          interval [0.00001,0.001], and HNORM(A,B,C) is the
+          Hankel-norm of the given system (computed in HSV(1)).
+          For computing a minimal realization, the recommended
+          value is TOL = N*EPS*HNORM(A,B,C), where EPS is the
+          machine precision (see LAPACK Library Routine DLAMCH).
+          This value is used by default if TOL &lt;= 0 on entry.
+          If ORDSEL = 'F', the value of TOL is ignored.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  IWORK   INTEGER array, dimension (LIWORK)
+          LIWORK = 0, if JOB = 'B';
+          LIWORK = N, if JOB = 'N'.
+
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+          On exit, if INFO = 0, DWORK(1) returns the optimal value
+          of LDWORK.
+
+  LDWORK  INTEGER
+          The length of the array DWORK.
+          LDWORK &gt;= MAX(1,N*(2*N+MAX(N,M,P)+5)+N*(N+1)/2).
+          For optimum performance LDWORK should be larger.
+
+</PRE>
+<B>Warning Indicator</B>
+<PRE>
+  IWARN   INTEGER
+          = 0:  no warning;
+          = 1:  with ORDSEL = 'F', the selected order NR is greater
+                than the order of a minimal realization of the
+                given system. In this case, the resulting NR is
+                set automatically to a value corresponding to the
+                order of a minimal realization of the system.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value;
+          = 1:  the reduction of A to the real Schur form failed;
+          = 2:  the state matrix A is not stable (if DICO = 'C')
+                or not convergent (if DICO = 'D');
+          = 3:  the computation of Hankel singular values failed.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  Let be the stable linear system
+
+       d[x(t)] = Ax(t) + Bu(t)
+       y(t)    = Cx(t)                               (1)
+
+  where d[x(t)] is dx(t)/dt for a continuous-time system and x(t+1)
+  for a discrete-time system. The subroutine AB09AD determines for
+  the given system (1), the matrices of a reduced order system
+
+       d[z(t)] = Ar*z(t) + Br*u(t)
+       yr(t)   = Cr*z(t)                             (2)
+
+  such that
+
+        HSV(NR) &lt;= INFNORM(G-Gr) &lt;= 2*[HSV(NR+1) + ... + HSV(N)],
+
+  where G and Gr are transfer-function matrices of the systems
+  (A,B,C) and (Ar,Br,Cr), respectively, and INFNORM(G) is the
+  infinity-norm of G.
+
+  If JOB = 'B', the square-root Balance & Truncate method of [1]
+  is used and, for DICO = 'C', the resulting model is balanced.
+  By setting TOL &lt;= 0, the routine can be used to compute balanced
+  minimal state-space realizations of stable systems.
+
+  If JOB = 'N', the balancing-free square-root version of the
+  Balance & Truncate method [2] is used.
+  By setting TOL &lt;= 0, the routine can be used to compute minimal
+  state-space realizations of stable systems.
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Tombs M.S. and Postlethwaite I.
+      Truncated balanced realization of stable, non-minimal
+      state-space systems.
+      Int. J. Control, Vol. 46, pp. 1319-1330, 1987.
+
+  [2] Varga A.
+      Efficient minimal realization procedure based on balancing.
+      Proc. of IMACS/IFAC Symp. MCTS, Lille, France, May 1991,
+      A. El Moudui, P. Borne, S. G. Tzafestas (Eds.),
+      Vol. 2, pp. 42-46.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  The implemented methods rely on accuracy enhancing square-root or
+  balancing-free square-root techniques.
+                                      3
+  The algorithms require less than 30N  floating point operations.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+*     AB09AD EXAMPLE PROGRAM TEXT
+*
+*     .. Parameters ..
+      INTEGER          NIN, NOUT
+      PARAMETER        ( NIN = 5, NOUT = 6 )
+      INTEGER          NMAX, MMAX, PMAX
+      PARAMETER        ( NMAX = 20, MMAX = 20, PMAX = 20 )
+      INTEGER          LDA, LDB, LDC
+      PARAMETER        ( LDA = NMAX, LDB = NMAX, LDC = PMAX )
+      INTEGER          LIWORK
+      PARAMETER        ( LIWORK = NMAX )
+      INTEGER          LDWORK
+      PARAMETER        ( LDWORK = NMAX*( 2*NMAX + 5 +
+     $                            MAX( NMAX, MMAX, PMAX ) ) +
+     $                          ( NMAX*( NMAX + 1 ) )/2 )
+*     .. Local Scalars ..
+      DOUBLE PRECISION TOL
+      INTEGER          I, INFO, IWARN, J, M, N, NR, P
+      CHARACTER*1      DICO, EQUIL, JOB, ORDSEL
+*     .. Local Arrays ..
+      DOUBLE PRECISION A(LDA,NMAX), B(LDB,MMAX), C(LDC,NMAX),
+     $                 DWORK(LDWORK), HSV(NMAX)
+      INTEGER          IWORK(LIWORK)
+*     .. External Subroutines ..
+      EXTERNAL         AB09AD
+*     .. Intrinsic Functions ..
+      INTRINSIC        MAX
+*     .. Executable Statements ..
+*
+      WRITE ( NOUT, FMT = 99999 )
+*     Skip the heading in the data file and read the data.
+      READ ( NIN, FMT = '()' )
+      READ ( NIN, FMT = * ) N, M, P, NR, TOL, DICO, JOB, EQUIL, ORDSEL
+      IF ( N.LT.0 .OR. N.GT.NMAX ) THEN
+         WRITE ( NOUT, FMT = 99990 ) N
+      ELSE
+         READ ( NIN, FMT = * ) ( ( A(I,J), J = 1,N ), I = 1,N )
+         IF ( M.LT.0 .OR. M.GT.MMAX ) THEN
+            WRITE ( NOUT, FMT = 99989 ) M
+         ELSE
+            READ ( NIN, FMT = * ) ( ( B(I,J), J = 1,M ), I = 1, N )
+            IF ( P.LT.0 .OR. P.GT.PMAX ) THEN
+               WRITE ( NOUT, FMT = 99988 ) P
+            ELSE
+               READ ( NIN, FMT = * ) ( ( C(I,J), J = 1,N ), I = 1,P )
+*              Find a reduced ssr for (A,B,C).
+               CALL AB09AD( DICO, JOB, EQUIL, ORDSEL, N, M, P, NR,
+     $                      A, LDA, B, LDB, C, LDC, HSV, TOL, IWORK,
+     $                      DWORK, LDWORK, IWARN, INFO )
+*
+               IF ( INFO.NE.0 ) THEN
+                  WRITE ( NOUT, FMT = 99998 ) INFO
+               ELSE
+                  WRITE ( NOUT, FMT = 99997 ) NR
+                  WRITE ( NOUT, FMT = 99987 )
+                  WRITE ( NOUT, FMT = 99995 ) ( HSV(J), J = 1,N )
+                  WRITE ( NOUT, FMT = 99996 )
+                  DO 20 I = 1, NR
+                     WRITE ( NOUT, FMT = 99995 ) ( A(I,J), J = 1,NR )
+   20             CONTINUE
+                  WRITE ( NOUT, FMT = 99993 )
+                  DO 40 I = 1, NR
+                     WRITE ( NOUT, FMT = 99995 ) ( B(I,J), J = 1,M )
+   40             CONTINUE
+                  WRITE ( NOUT, FMT = 99992 )
+                  DO 60 I = 1, P
+                     WRITE ( NOUT, FMT = 99995 ) ( C(I,J), J = 1,NR )
+   60             CONTINUE
+               END IF
+            END IF
+         END IF
+      END IF
+      STOP
+*
+99999 FORMAT (' AB09AD EXAMPLE PROGRAM RESULTS',/1X)
+99998 FORMAT (' INFO on exit from AB09AD = ',I2)
+99997 FORMAT (' The order of reduced model = ',I2)
+99996 FORMAT (/' The reduced state dynamics matrix Ar is ')
+99995 FORMAT (20(1X,F8.4))
+99993 FORMAT (/' The reduced input/state matrix Br is ')
+99992 FORMAT (/' The reduced state/output matrix Cr is ')
+99990 FORMAT (/' N is out of range.',/' N = ',I5)
+99989 FORMAT (/' M is out of range.',/' M = ',I5)
+99988 FORMAT (/' P is out of range.',/' P = ',I5)
+99987 FORMAT (/' The Hankel singular values HSV are')
+      END
+</PRE>
+<B>Program Data</B>
+<PRE>
+ AB09AD EXAMPLE PROGRAM DATA (Continuous system)
+  7     2     3     0   1.E-1      C     N     N     A
+ -0.04165  0.0000  4.9200  -4.9200  0.0000  0.0000  0.0000
+ -5.2100  -12.500  0.0000   0.0000  0.0000  0.0000  0.0000
+  0.0000   3.3300 -3.3300   0.0000  0.0000  0.0000  0.0000
+  0.5450   0.0000  0.0000   0.0000 -0.5450  0.0000  0.0000
+  0.0000   0.0000  0.0000   4.9200 -0.04165 0.0000  4.9200
+  0.0000   0.0000  0.0000   0.0000 -5.2100 -12.500  0.0000
+  0.0000   0.0000  0.0000   0.0000  0.0000  3.3300 -3.3300
+  0.0000   0.0000
+  12.500   0.0000
+  0.0000   0.0000
+  0.0000   0.0000
+  0.0000   0.0000
+  0.0000   12.500
+  0.0000   0.0000
+  1.0000   0.0000  0.0000   0.0000  0.0000  0.0000  0.0000
+  0.0000   0.0000  0.0000   1.0000  0.0000  0.0000  0.0000
+  0.0000   0.0000  0.0000   0.0000  1.0000  0.0000  0.0000
+</PRE>
+<B>Program Results</B>
+<PRE>
+ AB09AD EXAMPLE PROGRAM RESULTS
+
+ The order of reduced model =  5
+
+ The Hankel singular values HSV are
+   2.5139   2.0846   1.9178   0.7666   0.5473   0.0253   0.0246
+
+ The reduced state dynamics matrix Ar is 
+   1.3451   5.0399   0.0000   0.0000   4.5315
+  -4.0214  -3.6604   0.0000   0.0000  -0.9056
+   0.0000   0.0000   0.5124   1.7910   0.0000
+   0.0000   0.0000  -4.2167  -2.9900   0.0000
+   1.2402   1.6416   0.0000   0.0000  -0.0586
+
+ The reduced input/state matrix Br is 
+  -0.3857   0.3857
+  -3.1753   3.1753
+  -0.7447  -0.7447
+  -3.6872  -3.6872
+   1.8197  -1.8197
+
+ The reduced state/output matrix Cr is 
+  -0.6704   0.1828  -0.6582   0.2222  -0.0104
+   0.1089   0.4867   0.0000   0.0000   0.8651
+   0.6704  -0.1828  -0.6582   0.2222   0.0104
+</PRE>
+
+<HR>
+<p>
+<A HREF=..\libindex.html><B>Return to index</B></A></BODY>
+</HTML>

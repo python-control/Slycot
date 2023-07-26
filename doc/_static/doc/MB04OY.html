@@ -1,0 +1,121 @@
+<HTML>
+<HEAD><TITLE>MB04OY - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MB04OY">MB04OY</A></H2>
+<H3>
+Applying an elementary reflector (using in-line code for a low order) to a matrix C = trans( trans(A) trans(B) ), from the left, where A has one row
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To apply a real elementary reflector H to a real (m+1)-by-n
+  matrix C = [ A ], from the left, where A has one row. H is
+             [ B ]
+  represented in the form
+                                     ( 1 )
+        H = I - tau * u *u',    u  = (   ),
+                                     ( v )
+  where tau is a real scalar and v is a real m-vector.
+
+  If tau = 0, then H is taken to be the unit matrix.
+
+  In-line code is used if H has order &lt; 11.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MB04OY( M, N, V, TAU, A, LDA, B, LDB, DWORK )
+C     .. Scalar Arguments ..
+      INTEGER           LDA, LDB, M, N
+      DOUBLE PRECISION  TAU
+C     .. Array Arguments ..
+      DOUBLE PRECISION  A( LDA, * ), B( LDB, * ), DWORK( * ), V( * )
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  M       (input) INTEGER
+          The number of rows of the matrix B.  M &gt;= 0.
+
+  N       (input) INTEGER
+          The number of columns of the matrices A and B.  N &gt;= 0.
+
+  V       (input) DOUBLE PRECISION array, dimension (M)
+          The vector v in the representation of H.
+
+  TAU     (input) DOUBLE PRECISION
+          The scalar factor of the elementary reflector H.
+
+  A       (input/output) DOUBLE PRECISION array, dimension (LDA,N)
+          On entry, the leading 1-by-N part of this array must
+          contain the matrix A.
+          On exit, the leading 1-by-N part of this array contains
+          the updated matrix A (the first row of H * C).
+
+  LDA     INTEGER
+          The leading dimension of array A.  LDA &gt;= 1.
+
+  B       (input/output) DOUBLE PRECISION array, dimension (LDB,N)
+          On entry, the leading M-by-N part of this array must
+          contain the matrix B.
+          On exit, the leading M-by-N part of this array contains
+          the updated matrix B (the last m rows of H * C).
+
+  LDB     INTEGER
+          The leading dimension of array B.  LDB &gt;= MAX(1,M).
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  DWORK   DOUBLE PRECISION array, dimension (N)
+          DWORK is not referenced if H has order less than 11.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  The routine applies the elementary reflector H, taking the special
+  structure of C into account.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  The algorithm is backward stable.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

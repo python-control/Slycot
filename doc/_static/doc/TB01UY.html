@@ -1,0 +1,421 @@
+<HTML>
+<HEAD><TITLE>TB01UY - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="TB01UY">TB01UY</A></H2>
+<H3>
+Controllable realization of a standard multi-input system
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To find a controllable realization for the linear time-invariant
+  multi-input system
+
+          dX/dt = A * X + B1 * U1 + B2 * U2,
+             Y  = C * X,
+
+  where A, B1, B2 and C are N-by-N, N-by-M1, N-by-M2, and P-by-N
+  matrices, respectively, and A and [B1,B2] are reduced by this
+  routine to orthogonal canonical form using (and optionally
+  accumulating) orthogonal similarity transformations, which are
+  also applied to C.  Specifically, the system (A, [B1,B2], C) is
+  reduced to the triplet (Ac, [Bc1,Bc2], Cc), where
+  Ac = Z' * A * Z, [Bc1,Bc2] = Z' * [B1,B2], Cc = C * Z,  with
+
+          [ Acont     *    ]                [ Bcont1, Bcont2 ]
+     Ac = [                ],   [Bc1,Bc1] = [                ],
+          [   0    Auncont ]                [   0        0   ]
+
+     and
+
+             [ A11 A12  . . .  A1,p-2 A1,p-1 A1p ]
+             [ A21 A22  . . .  A2,p-2 A2,p-1 A2p ]
+             [ A31 A32  . . .  A3,p-2 A3,p-1 A3p ]
+             [  0  A42  . . .  A4,p-2 A4,p-1 A4p ]
+     Acont = [  .   .   . . .    .      .     .  ],
+             [  .   .     . .    .      .     .  ]
+             [  .   .       .    .      .     .  ]
+             [  0   0   . . .  Ap,p-2 Ap,p-1 App ]
+
+                 [ B11 B12 ]
+                 [  0  B22 ]
+                 [  0   0  ]
+                 [  0   0  ]
+     [Bc1,Bc2] = [  .   .  ],
+                 [  .   .  ]
+                 [  .   .  ]
+                 [  0   0  ]
+
+  where the blocks  B11, B22, A31, ..., Ap,p-2  have full row ranks and
+  p is the controllability index of the pair (A,[B1,B2]).  The size of the
+  block  Auncont  is equal to the dimension of the uncontrollable
+  subspace of the pair (A,[B1,B2]).
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE TB01UY( JOBZ, N, M1, M2, P, A, LDA, B, LDB, C, LDC,
+     $                   NCONT, INDCON, NBLK, Z, LDZ, TAU, TOL, IWORK,
+     $                   DWORK, LDWORK, INFO )
+C     .. Scalar Arguments ..
+      CHARACTER         JOBZ
+      INTEGER           INDCON, INFO, LDA, LDB, LDC, LDWORK, LDZ, M1,
+     $                  M2, N, NCONT, P
+      DOUBLE PRECISION  TOL
+C     .. Array Arguments ..
+      DOUBLE PRECISION  A(LDA,*), B(LDB,*), C(LDC,*), DWORK(*), TAU(*),
+     $                  Z(LDZ,*)
+      INTEGER           IWORK(*), NBLK(*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  JOBZ    CHARACTER*1
+          Indicates whether the user wishes to accumulate in a
+          matrix Z the orthogonal similarity transformations for
+          reducing the system, as follows:
+          = 'N':  Do not form Z and do not store the orthogonal
+                  transformations;
+          = 'F':  Do not form Z, but store the orthogonal
+                  transformations in the factored form;
+          = 'I':  Z is initialized to the unit matrix and the
+                  orthogonal transformation matrix Z is returned.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The order of the original state-space representation,
+          i.e., the order of the matrix A.  N &gt;= 0.
+
+  M1      (input) INTEGER
+          The number of system inputs in U1, or of columns of B1.
+          M1 &gt;= 0.
+
+  M2      (input) INTEGER
+          The number of system inputs in U2, or of columns of B2.
+          M2 &gt;= 0.
+
+  P       (input) INTEGER
+          The number of system outputs, or of rows of C.  P &gt;= 0.
+
+  A       (input/output) DOUBLE PRECISION array, dimension (LDA,N)
+          On entry, the leading N-by-N part of this array must
+          contain the original state dynamics matrix A.
+          On exit, the leading N-by-N part of this array contains
+          the transformed state dynamics matrix Ac = Z'*A*Z. The
+          leading NCONT-by-NCONT diagonal block of this matrix,
+          Acont, is the state dynamics matrix of a controllable
+          realization for the original system. The elements below
+          the second block-subdiagonal are set to zero.
+
+  LDA     INTEGER
+          The leading dimension of the array A.  LDA &gt;= MAX(1,N).
+
+  B       (input/output) DOUBLE PRECISION array, dimension
+          (LDB,M1+M2)
+          On entry, the leading N-by-(M1+M2) part of this array must
+          contain the compound input matrix B = [B1,B2], where B1 is
+          N-by-M1 and B2 is N-by-M2.
+          On exit, the leading N-by-(M1+M2) part of this array
+          contains the transformed compound input matrix [Bc1,Bc2] =
+          Z'*[B1,B2]. The leading NCONT-by-(M1+M2) part of this
+          array, [Bcont1, Bcont2], is the compound input matrix of
+          a controllable realization for the original system.
+          All elements below the first block-diagonal are set to
+          zero.
+
+  LDB     INTEGER
+          The leading dimension of the array B.  LDB &gt;= MAX(1,N).
+
+  C       (input/output) DOUBLE PRECISION array, dimension (LDC,N)
+          On entry, the leading P-by-N part of this array must
+          contain the output matrix C.
+          On exit, the leading P-by-N part of this array contains
+          the transformed output matrix Cc, given by C * Z.
+
+  LDC     INTEGER
+          The leading dimension of the array C.  LDC &gt;= MAX(1,P).
+
+  NCONT   (output) INTEGER
+          The order of the controllable state-space representation.
+
+  INDCON  (output) INTEGER
+          The controllability index of the controllable part of the
+          system representation.
+
+  NBLK    (output) INTEGER array, dimension (2*N)
+          The leading INDCON elements of this array contain the
+          orders of the diagonal blocks of Acont. INDCON is always
+          an even number, and the INDCON/2 odd and even components
+          of NBLK have decreasing values, respectively.
+          Note that some elements of NBLK can be zero.
+
+  Z       (output) DOUBLE PRECISION array, dimension (LDZ,N)
+          If JOBZ = 'I', then the leading N-by-N part of this
+          array contains the matrix of accumulated orthogonal
+          similarity transformations which reduces the given system
+          to orthogonal canonical form.
+          If JOBZ = 'F', the elements below the diagonal, with the
+          array TAU, represent the orthogonal transformation matrix
+          as a product of elementary reflectors. The transformation
+          matrix can then be obtained by calling the LAPACK Library
+          routine DORGQR.
+          If JOBZ = 'N', the array Z is not referenced and can be
+          supplied as a dummy array (i.e., set parameter LDZ = 1 and
+          declare this array to be Z(1,1) in the calling program).
+
+  LDZ     INTEGER
+          The leading dimension of the array Z. If JOBZ = 'I' or
+          JOBZ = 'F', LDZ &gt;= MAX(1,N); if JOBZ = 'N', LDZ &gt;= 1.
+
+  TAU     (output) DOUBLE PRECISION array, dimension (MIN(N,M1+M2))
+          The elements of TAU contain the scalar factors of the
+          elementary reflectors used in the reduction of [B1,B2]
+          and A.
+
+</PRE>
+<B>Tolerances</B>
+<PRE>
+  TOL     DOUBLE PRECISION
+          The tolerance to be used in rank determinations when
+          transforming (A, [B1,B2]). If the user sets TOL &gt; 0, then
+          the given value of TOL is used as a lower bound for the
+          reciprocal condition number (see the description of the
+          argument RCOND in the SLICOT routine MB03OD);  a
+          (sub)matrix whose estimated condition number is less than
+          1/TOL is considered to be of full rank.  If the user sets
+          TOL &lt;= 0, then an implicitly computed, default tolerance,
+          defined by  TOLDEF = N*N*EPS,  is used instead, where EPS
+          is the machine precision (see LAPACK Library routine
+          DLAMCH).
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  IWORK   INTEGER array, dimension (MAX(M1,M2))
+
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+          On exit, if INFO = 0, DWORK(1) returns the optimal value
+          of LDWORK.
+
+  LDWORK  INTEGER
+          The length of the array DWORK.  LDWORK &gt;= 1, and
+          LDWORK &gt;= MAX(N, 3*MAX(M1,M2), P), if MIN(N,M1+M2) &gt; 0.
+          For optimum performance LDWORK should be larger.
+
+          If LDWORK = -1, then a workspace query is assumed; the
+          routine only calculates the optimal size of the DWORK
+          array, returns this value as the first entry of the DWORK
+          array, and no error message related to LDWORK is issued by
+          XERBLA.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  The implemented algorithm [1] represents a specialization of the
+  controllability staircase algorithm of [2] to the special structure
+  of the input matrix B = [B1,B2].
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Varga, A.
+      Reliable algorithms for computing minimal dynamic covers.
+      Proc. CDC'2003, Hawaii, 2003.
+
+  [2] Varga, A.
+      Numerically stable algorithm for standard controllability
+      form determination.
+      Electronics Letters, vol. 17, pp. 74-75, 1981.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>                            3
+  The algorithm requires 0(N ) operations and is backward stable.
+
+</PRE>
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  If the system matrices A and B are badly scaled, it would be
+  useful to scale them with SLICOT routine TB01ID, before calling
+  the routine.
+
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+*     TB01UY EXAMPLE PROGRAM TEXT
+*
+*     .. Parameters ..
+      INTEGER          NIN, NOUT
+      PARAMETER        ( NIN = 5, NOUT = 6 )
+      INTEGER          NMAX, MMAX, PMAX
+      PARAMETER        ( NMAX = 20, MMAX = 20, PMAX = 20 )
+      INTEGER          LDA, LDB, LDC, LDZ
+      PARAMETER        ( LDA = NMAX, LDB = NMAX, LDC = PMAX,
+     $                   LDZ = NMAX )
+      INTEGER          LIWORK
+      PARAMETER        ( LIWORK = MMAX )
+      INTEGER          LDWORK
+      PARAMETER        ( LDWORK = MAX( NMAX, 3*MMAX, PMAX ) )
+*     .. Local Scalars ..
+      DOUBLE PRECISION TOL
+      INTEGER          I, INFO, INDCON, J, M, M1, M2, N, NCONT, P
+      CHARACTER*1      JOBZ
+*     .. Local Arrays ..
+      DOUBLE PRECISION A(LDA,NMAX), B(LDB,MMAX), C(LDC,NMAX),
+     $                 DWORK(LDWORK), TAU(MIN(NMAX,MMAX)), Z(LDZ,NMAX)
+      INTEGER          IWORK(LIWORK), NBLK(2*NMAX)
+*     .. External Functions ..
+      LOGICAL          LSAME
+      EXTERNAL         LSAME
+*     .. External Subroutines ..
+      EXTERNAL         DORGQR, TB01UY
+*     .. Intrinsic Functions ..
+      INTRINSIC        MAX, MIN
+*     .. Executable Statements ..
+*
+      WRITE ( NOUT, FMT = 99999 )
+*     Skip the heading in the data file and read the data.
+      READ ( NIN, FMT = '()' )
+      READ ( NIN, FMT = * ) N, M1, M2, P, TOL, JOBZ
+      M = M1 + M2
+      IF ( N.LE.0 .OR. N.GT.NMAX ) THEN
+         WRITE ( NOUT, FMT = 99990 ) N
+      ELSE
+         READ ( NIN, FMT = * ) ( ( A(I,J), J = 1,N ), I = 1,N )
+         IF ( M.LE.0 .OR. M.GT.MMAX ) THEN
+            WRITE ( NOUT, FMT = 99989 ) M
+         ELSE
+            READ ( NIN, FMT = * ) ( ( B(I,J), I = 1,N ), J = 1,M )
+            IF ( P.LE.0 .OR. P.GT.PMAX ) THEN
+               WRITE ( NOUT, FMT = 99988 ) P
+            ELSE
+               READ ( NIN, FMT = * ) ( ( C(I,J), J = 1,N ), I = 1,P )
+*              Find a controllable ssr for the given system.
+               CALL TB01UY( JOBZ, N, M1, M2, P, A, LDA, B, LDB, C, LDC,
+     $                      NCONT, INDCON, NBLK, Z, LDZ, TAU, TOL,
+     $                      IWORK, DWORK, LDWORK, INFO )
+*
+               IF ( INFO.NE.0 ) THEN
+                  WRITE ( NOUT, FMT = 99998 ) INFO
+               ELSE
+                  WRITE ( NOUT, FMT = 99997 ) NCONT
+                  WRITE ( NOUT, FMT = 99996 )
+                  DO 20 I = 1, NCONT
+                     WRITE ( NOUT, FMT = 99995 ) ( A(I,J), J = 1,NCONT )
+   20             CONTINUE
+                  WRITE ( NOUT, FMT = 99994 ) ( NBLK(I), I = 1,INDCON )
+                  WRITE ( NOUT, FMT = 99993 )
+                  DO 40 I = 1, NCONT
+                     WRITE ( NOUT, FMT = 99995 ) ( B(I,J), J = 1,M )
+   40             CONTINUE
+                  WRITE ( NOUT, FMT = 99987 )
+                  DO 60 I = 1, P
+                     WRITE ( NOUT, FMT = 99995 ) ( C(I,J), J = 1,NCONT )
+   60             CONTINUE
+                  WRITE ( NOUT, FMT = 99992 ) INDCON
+                  IF ( LSAME( JOBZ, 'F' ) )
+     $               CALL DORGQR( N, N, N, Z, LDZ, TAU, DWORK, LDWORK,
+     $                            INFO )
+                  IF ( LSAME( JOBZ, 'F' ).OR.LSAME( JOBZ, 'I' ) ) THEN
+                     WRITE ( NOUT, FMT = 99991 )
+                     DO 80 I = 1, N
+                        WRITE ( NOUT, FMT = 99995 ) ( Z(I,J), J = 1,N )
+   80                CONTINUE
+                  END IF
+               END IF
+            END IF
+         END IF
+      END IF
+      STOP
+*
+99999 FORMAT (' TB01UY EXAMPLE PROGRAM RESULTS',/1X)
+99998 FORMAT (' INFO on exit from TB01UY = ',I2)
+99997 FORMAT (' The order of the controllable state-space representati',
+     $       'on = ',I2)
+99996 FORMAT (/' The transformed state dynamics matrix of a controllab',
+     $       'le realization is ')
+99995 FORMAT (20(1X,F8.4))
+99994 FORMAT (/' and the dimensions of its diagonal blocks are ',
+     $       /20(1X,I2))
+99993 FORMAT (/' The transformed input/state matrix B of a controllabl',
+     $       'e realization is ')
+99992 FORMAT (/' The controllability index of the transformed system r',
+     $       'epresentation = ',I2)
+99991 FORMAT (/' The similarity transformation matrix Z is ')
+99990 FORMAT (/' N is out of range.',/' N = ',I5)
+99989 FORMAT (/' M is out of range.',/' M = ',I5)
+99988 FORMAT (/' P is out of range.',/' P = ',I5)
+99987 FORMAT (/' The transformed output/state matrix C of a controlla',
+     $       'ble realization is ')
+      END
+</PRE>
+<B>Program Data</B>
+<PRE>
+ TB01UY EXAMPLE PROGRAM DATA
+   3     1     1     2     0.0     I
+  -1.0   0.0   0.0
+  -2.0  -2.0  -2.0
+  -1.0   0.0  -3.0
+   1.0   0.0   0.0
+   0.0   2.0   1.0
+   0.0   2.0   1.0
+   1.0   0.0   0.0
+</PRE>
+<B>Program Results</B>
+<PRE>
+ TB01UY EXAMPLE PROGRAM RESULTS
+
+ The order of the controllable state-space representation =  2
+
+ The transformed state dynamics matrix of a controllable realization is 
+  -1.0000   0.0000
+   2.2361  -3.0000
+
+ and the dimensions of its diagonal blocks are 
+  1  1
+
+ The transformed input/state matrix B of a controllable realization is 
+   1.0000   0.0000
+   0.0000  -2.2361
+
+ The transformed output/state matrix C of a controllable realization is 
+   0.0000  -2.2361
+   1.0000   0.0000
+
+ The controllability index of the transformed system representation =  2
+
+ The similarity transformation matrix Z is 
+   1.0000   0.0000   0.0000
+   0.0000  -0.8944  -0.4472
+   0.0000  -0.4472   0.8944
+</PRE>
+
+<HR>
+<p>
+<A HREF=..\libindex.html><B>Return to index</B></A></BODY>
+</HTML>

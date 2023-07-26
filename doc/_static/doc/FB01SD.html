@@ -1,0 +1,528 @@
+<HTML>
+<HEAD><TITLE>FB01SD - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="FB01SD">FB01SD</A></H2>
+<H3>
+Time-varying square root information Kalman filter (dense matrices)
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To calculate a combined measurement and time update of one
+  iteration of the time-varying Kalman filter. This update is given
+  for the square root information filter, using dense matrices.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE FB01SD( JOBX, MULTAB, MULTRC, N, M, P, SINV, LDSINV,
+     $                   AINV, LDAINV, B, LDB, RINV, LDRINV, C, LDC,
+     $                   QINV, LDQINV, X, RINVY, Z, E, TOL, IWORK,
+     $                   DWORK, LDWORK, INFO )
+C     .. Scalar Arguments ..
+      CHARACTER         JOBX, MULTAB, MULTRC
+      INTEGER           INFO, LDAINV, LDB, LDC, LDQINV, LDRINV, LDSINV,
+     $                  LDWORK, M, N, P
+      DOUBLE PRECISION  TOL
+C     .. Array Arguments ..
+      INTEGER           IWORK(*)
+      DOUBLE PRECISION  AINV(LDAINV,*), B(LDB,*), C(LDC,*), DWORK(*),
+     $                  E(*), QINV(LDQINV,*), RINV(LDRINV,*), RINVY(*),
+     $                  SINV(LDSINV,*), X(*), Z(*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  JOBX    CHARACTER*1
+          Indicates whether X    is to be computed as follows:
+                             i+1
+          = 'X':  X    is computed and stored in array X;
+                   i+1
+          = 'N':  X    is not required.
+                   i+1
+
+  MULTAB  CHARACTER*1             -1
+          Indicates how matrices A   and B  are to be passed to
+                                  i       i
+          the routine as follows:                       -1
+          = 'P':  Array AINV must contain the matrix   A    and the
+                                                    -1  i
+                  array B must contain the product A  B ;
+                                                    i  i
+          = 'N':  Arrays AINV and B must contain the matrices
+                  as described below.
+
+  MULTRC  CHARACTER*1             -1/2
+          Indicates how matrices R     and C    are to be passed to
+                                  i+1       i+1
+          the routine as follows:
+          = 'P':  Array RINV is not used and the array C must
+                                       -1/2
+                  contain the product R    C   ;
+                                       i+1  i+1
+          = 'N':  Arrays RINV and C must contain the matrices
+                  as described below.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The actual state dimension, i.e., the order of the
+                    -1      -1
+          matrices S   and A  .  N &gt;= 0.
+                    i       i
+
+  M       (input) INTEGER
+          The actual input dimension, i.e., the order of the matrix
+           -1/2
+          Q    .  M &gt;= 0.
+           i
+
+  P       (input) INTEGER
+          The actual output dimension, i.e., the order of the matrix
+           -1/2
+          R    .  P &gt;= 0.
+           i+1
+
+  SINV    (input/output) DOUBLE PRECISION array, dimension
+          (LDSINV,N)
+          On entry, the leading N-by-N upper triangular part of this
+                              -1
+          array must contain S  , the inverse of the square root
+                              i
+          (right Cholesky factor) of the state covariance matrix
+          P    (hence the information square root) at instant i.
+           i|i
+          On exit, the leading N-by-N upper triangular part of this
+                          -1
+          array contains S   , the inverse of the square root (right
+                          i+1
+          Cholesky factor) of the state covariance matrix P
+                                                           i+1|i+1
+          (hence the information square root) at instant i+1.
+          The strict lower triangular part of this array is not
+          referenced.
+
+  LDSINV  INTEGER
+          The leading dimension of array SINV.  LDSINV &gt;= MAX(1,N).
+
+  AINV    (input) DOUBLE PRECISION array, dimension (LDAINV,N)
+                                                              -1
+          The leading N-by-N part of this array must contain A  ,
+                                                              i
+          the inverse of the state transition matrix of the discrete
+          system at instant i.
+
+  LDAINV  INTEGER
+          The leading dimension of array AINV.  LDAINV &gt;= MAX(1,N).
+
+  B       (input) DOUBLE PRECISION array, dimension (LDB,M)
+          The leading N-by-M part of this array must contain B ,
+                                                   -1         i
+          the input weight matrix (or the product A  B  if
+                                                   i  i
+          MULTAB = 'P') of the discrete system at instant i.
+
+  LDB     INTEGER
+          The leading dimension of array B.  LDB &gt;= MAX(1,N).
+
+  RINV    (input) DOUBLE PRECISION array, dimension (LDRINV,*)
+          If MULTRC = 'N', then the leading P-by-P upper triangular
+                                           -1/2
+          part of this array must contain R    , the inverse of the
+                                           i+1
+          covariance square root (right Cholesky factor) of the
+          output (measurement) noise (hence the information square
+          root) at instant i+1.
+          The strict lower triangular part of this array is not
+          referenced.
+          Otherwise, RINV is not referenced and can be supplied as a
+          dummy array (i.e., set parameter LDRINV = 1 and declare
+          this array to be RINV(1,1) in the calling program).
+
+  LDRINV  INTEGER
+          The leading dimension of array RINV.
+          LDRINV &gt;= MAX(1,P) if MULTRC = 'N';
+          LDRINV &gt;= 1        if MULTRC = 'P'.
+
+  C       (input) DOUBLE PRECISION array, dimension (LDC,N)
+          The leading P-by-N part of this array must contain C   ,
+                                                    -1/2      i+1
+          the output weight matrix (or the product R    C    if
+                                                    i+1  i+1
+          MULTRC = 'P') of the discrete system at instant i+1.
+
+  LDC     INTEGER
+          The leading dimension of array C.  LDC &gt;= MAX(1,P).
+
+  QINV    (input/output) DOUBLE PRECISION array, dimension
+          (LDQINV,M)
+          On entry, the leading M-by-M upper triangular part of this
+                              -1/2
+          array must contain Q    , the inverse of the covariance
+                              i
+          square root (right Cholesky factor) of the input (process)
+          noise (hence the information square root) at instant i.
+          On exit, the leading M-by-M upper triangular part of this
+                                 -1/2
+          array contains (QINOV )    , the inverse of the covariance
+                               i
+          square root (right Cholesky factor) of the process noise
+          innovation (hence the information square root) at
+          instant i.
+          The strict lower triangular part of this array is not
+          referenced.
+
+  LDQINV  INTEGER
+          The leading dimension of array QINV.  LDQINV &gt;= MAX(1,M).
+
+  X       (input/output) DOUBLE PRECISION array, dimension (N)
+          On entry, this array must contain X , the estimated
+                                             i
+          filtered state at instant i.
+          On exit, if JOBX = 'X', and INFO = 0, then this array
+          contains X   , the estimated filtered state at
+                    i+1
+          instant i+1.
+          On exit, if JOBX = 'N', or JOBX = 'X' and INFO = 1, then
+                               -1
+          this array contains S   X   .
+                               i+1 i+1
+
+  RINVY   (input) DOUBLE PRECISION array, dimension (P)
+                                   -1/2
+          This array must contain R    Y   , the product of the
+                                   i+1  i+1
+                                   -1/2
+          upper triangular matrix R     and the measured output
+                                   i+1
+          vector Y    at instant i+1.
+                  i+1
+
+  Z       (input) DOUBLE PRECISION array, dimension (M)
+          This array must contain Z , the mean value of the state
+                                   i
+          process noise at instant i.
+
+  E       (output) DOUBLE PRECISION array, dimension (P)
+          This array contains E   , the estimated error at instant
+                               i+1
+          i+1.
+
+</PRE>
+<B>Tolerances</B>
+<PRE>
+  TOL     DOUBLE PRECISION
+          If JOBX = 'X', then TOL is used to test for near
+                                     -1
+          singularity of the matrix S   . If the user sets
+                                     i+1
+          TOL &gt; 0, then the given value of TOL is used as a
+          lower bound for the reciprocal condition number of that
+          matrix; a matrix whose estimated condition number is less
+          than 1/TOL is considered to be nonsingular. If the user
+          sets TOL &lt;= 0, then an implicitly computed, default
+          tolerance, defined by TOLDEF = N*N*EPS, is used instead,
+          where EPS is the machine precision (see LAPACK Library
+          routine DLAMCH).
+          Otherwise, TOL is not referenced.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  IWORK   INTEGER array, dimension (LIWORK)
+          where LIWORK = N if JOBX = 'X',
+          and   LIWORK = 1 otherwise.
+
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+          On exit, if INFO = 0, DWORK(1) returns the optimal value
+          of LDWORK.  If INFO = 0 and JOBX = 'X', DWORK(2) returns
+          an estimate of the reciprocal of the condition number
+                              -1
+          (in the 1-norm) of S   .
+                              i+1
+
+  LDWORK  The length of the array DWORK.
+          LDWORK &gt;= MAX(1,N*(N+2*M)+3*M,(N+P)*(N+1)+2*N),
+                        if JOBX = 'N';
+          LDWORK &gt;= MAX(2,N*(N+2*M)+3*M,(N+P)*(N+1)+2*N,3*N),
+                        if JOBX = 'X'.
+          For optimum performance LDWORK should be larger.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value;                        -1
+          = 1:  if JOBX = 'X' and the matrix S   is singular,
+                                              i+1       -1
+                i.e., the condition number estimate of S    (in the
+                                                        i+1
+                                                      -1    -1/2
+                1-norm) exceeds 1/TOL.  The matrices S   , Q
+                                                      i+1   i
+                and E have been computed.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  The routine performs one recursion of the square root information
+  filter algorithm, summarized as follows:
+
+    |    -1/2             -1/2    |     |         -1/2             |
+    |   Q         0      Q    Z   |     | (QINOV )     *     *     |
+    |    i                i    i  |     |       i                  |
+    |                             |     |                          |
+    |  -1 -1     -1 -1    -1      |     |             -1    -1     |
+  T | S  A  B   S  A     S  X     |  =  |    0       S     S   X   |
+    |  i  i  i   i  i     i  i    |     |             i+1   i+1 i+1|
+    |                             |     |                          |
+    |           -1/2      -1/2    |     |                          |
+    |    0     R    C    R    Y   |     |    0         0     E     |
+    |           i+1  i+1  i+1  i+1|     |                     i+1  |
+
+               (Pre-array)                      (Post-array)
+
+  where T is an orthogonal transformation triangularizing the
+                     -1/2
+  pre-array, (QINOV )     is the inverse of the covariance square
+                   i
+  root (right Cholesky factor) of the process noise innovation
+  (hence the information square root) at instant i, and E    is the
+                                                         i+1
+  estimated error at instant i+1.
+
+  The inverse of the corresponding state covariance matrix P
+                                                            i+1|i+1
+  (hence the information matrix I) is then factorized as
+
+                -1         -1     -1
+     I       = P       = (S   )' S
+      i+1|i+1   i+1|i+1    i+1    i+1
+
+  and one combined time and measurement update for the state is
+  given by X   .
+            i+1
+
+  The triangularization is done entirely via Householder
+  transformations exploiting the zero pattern of the pre-array.
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Anderson, B.D.O. and Moore, J.B.
+      Optimal Filtering.
+      Prentice Hall, Englewood Cliffs, New Jersey, 1979.
+
+  [2] Verhaegen, M.H.G. and Van Dooren, P.
+      Numerical Aspects of Different Kalman Filter Implementations.
+      IEEE Trans. Auto. Contr., AC-31, pp. 907-917, Oct. 1986.
+
+  [3] Vanbegin, M., Van Dooren, P., and Verhaegen, M.H.G.
+      Algorithm 675: FORTRAN Subroutines for Computing the Square
+      Root Covariance Filter and Square Root Information Filter in
+      Dense or Hessenberg Forms.
+      ACM Trans. Math. Software, 15, pp. 243-256, 1989.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  The algorithm requires approximately
+
+        3    2                              2   2
+  (7/6)N  + N x (7/2 x M + P) + N x (1/2 x P + M )
+
+  operations and is backward stable (see [2]).
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+*     FB01SD EXAMPLE PROGRAM TEXT
+*
+*     .. Parameters ..
+      INTEGER          NIN, NOUT
+      PARAMETER        ( NIN = 5, NOUT = 6 )
+      INTEGER          NMAX, MMAX, PMAX
+      PARAMETER        ( NMAX = 20, MMAX = 20, PMAX = 20 )
+      INTEGER          LDAINV, LDB, LDC, LDQINV, LDRINV, LDSINV
+      PARAMETER        ( LDAINV = NMAX, LDB = NMAX, LDC = PMAX,
+     $                   LDQINV = MMAX, LDRINV = PMAX, LDSINV = NMAX )
+      INTEGER          LDWORK
+      PARAMETER        ( LDWORK = MAX( NMAX*(NMAX + 2*MMAX) + 3*MMAX,
+     $                                (NMAX + PMAX)*(NMAX + 1) + 2*NMAX,
+     $                                 3*NMAX ) )
+*     .. Local Scalars ..
+      DOUBLE PRECISION TOL
+      INTEGER          I, INFO, ISTEP, J, M, N, P
+      CHARACTER*1      JOBX, MULTAB, MULTRC
+*     .. Local Arrays ..
+      DOUBLE PRECISION AINV(LDAINV,NMAX), B(LDB,MMAX), C(LDC,NMAX),
+     $                 DIAG(MMAX), DWORK(LDWORK), E(PMAX),
+     $                 QINV(LDQINV,MMAX), RINV(LDRINV,PMAX),
+     $                 RINVY(PMAX), SINV(LDSINV,NMAX), X(NMAX), Z(MMAX)
+      INTEGER          IWORK(NMAX)
+*     .. External Functions ..
+      LOGICAL          LSAME
+      EXTERNAL         LSAME
+*     .. External Subroutines ..
+      EXTERNAL         DCOPY, FB01SD
+*     .. Intrinsic Functions ..
+      INTRINSIC        MAX
+*     .. Executable Statements ..
+*
+      WRITE ( NOUT, FMT = 99999 )
+*     Skip the heading in the data file and read the data.
+      READ ( NIN, FMT = '()' )
+      READ ( NIN, FMT = * ) N, M, P, JOBX, TOL, MULTAB, MULTRC
+      IF ( N.LE.0 .OR. N.GT.NMAX ) THEN
+         WRITE ( NOUT, FMT = 99993 ) N
+      ELSE
+         READ ( NIN, FMT = * ) ( ( AINV(I,J), J = 1,N ), I = 1,N )
+         IF ( P.LE.0 .OR. P.GT.PMAX ) THEN
+            WRITE ( NOUT, FMT = 99991 ) P
+         ELSE
+            READ ( NIN, FMT = * ) ( ( C(I,J), J = 1,N ), I = 1,P )
+            IF ( LSAME( MULTRC, 'N' ) ) READ ( NIN, FMT = * )
+     $                               ( ( RINV(I,J), J = 1,P ), I = 1,P )
+            IF ( M.LE.0 .OR. M.GT.MMAX ) THEN
+               WRITE ( NOUT, FMT = 99992 ) M
+            ELSE
+               READ ( NIN, FMT = * ) ( ( B(I,J), J = 1,M ), I = 1,N )
+               READ ( NIN, FMT = * ) ( ( QINV(I,J), J = 1,M ), I = 1,M )
+               READ ( NIN, FMT = * ) ( ( SINV(I,J), J = 1,N ), I = 1,N )
+               READ ( NIN, FMT = * ) ( Z(J), J = 1,M )
+               READ ( NIN, FMT = * ) ( X(J), J = 1,N )
+               READ ( NIN, FMT = * ) ( RINVY(J), J = 1,P )
+*              Save the strict upper triangle of QINV in its strict
+*              lower triangle and the diagonal in the array DIAG.
+               DO 10 I = 2, M
+                  CALL DCOPY( I, QINV(1,I), 1, QINV(I,1), LDQINV )
+   10          CONTINUE
+               CALL DCOPY( M, QINV, LDQINV+1, DIAG, 1 )
+*              Perform three iterations of the (Kalman) filter recursion
+*              (in square root information form).
+               ISTEP = 1
+   20          CONTINUE
+                  CALL FB01SD( JOBX, MULTAB, MULTRC, N, M, P, SINV,
+     $                         LDSINV, AINV, LDAINV, B, LDB, RINV,
+     $                         LDRINV, C, LDC, QINV, LDQINV, X, RINVY,
+     $                         Z, E, TOL, IWORK, DWORK, LDWORK, INFO )
+                  ISTEP = ISTEP + 1
+                  IF ( INFO.EQ.0 .AND. ISTEP.LE.3 ) THEN
+*                    Restore the upper triangle of QINV.
+                     DO 30 I = 2, M
+                        CALL DCOPY( I, QINV(I,1), LDQINV, QINV(1,I), 1 )
+   30                CONTINUE
+                     CALL DCOPY( M, DIAG, 1, QINV, LDQINV+1 )
+                     GO TO 20
+                  END IF
+*
+               IF ( INFO.NE.0 ) THEN
+                  WRITE ( NOUT, FMT = 99998 ) INFO
+               ELSE
+                  WRITE ( NOUT, FMT = 99997 )
+                  DO 40 I = 1, N
+                     WRITE ( NOUT, FMT = 99996 ) ( SINV(I,J), J = 1,N )
+   40             CONTINUE
+                  IF ( LSAME( JOBX, 'X' ) ) THEN
+                     WRITE ( NOUT, FMT = 99995 )
+                     DO 50 I = 1, N
+                        WRITE ( NOUT, FMT = 99994 ) I, X(I)
+   50                CONTINUE
+                  END IF
+               END IF
+            END IF
+         END IF
+      END IF
+      STOP
+*
+99999 FORMAT (' FB01SD EXAMPLE PROGRAM RESULTS',/1X)
+99998 FORMAT (' INFO on exit from FB01SD = ',I2)
+99997 FORMAT (' The inverse of the square root of the state covariance',
+     $       ' matrix is ')
+99996 FORMAT (20(1X,F8.4))
+99995 FORMAT (/' The components of the estimated filtered state are ',
+     $       //'   k       X(k)',/)
+99994 FORMAT (I4,3X,F8.4)
+99993 FORMAT (/' N is out of range.',/' N = ',I5)
+99992 FORMAT (/' M is out of range.',/' M = ',I5)
+99991 FORMAT (/' P is out of range.',/' P = ',I5)
+      END
+</PRE>
+<B>Program Data</B>
+<PRE>
+ FB01SD EXAMPLE PROGRAM DATA
+   4     2     2     X     0.0     P     N
+   0.2113  0.7560  0.0002  0.3303
+   0.8497  0.6857  0.8782  0.0683
+   0.7263  0.1985  0.5442  0.2320
+   0.8833  0.6525  0.3076  0.9329
+   0.3616  0.5664  0.5015  0.2693
+   0.2922  0.4826  0.4368  0.6325
+   1.0000  0.0000
+   0.0000  1.0000
+  -0.8805  1.3257
+   2.1039  0.5207
+  -0.6075  1.0386
+  -0.8531  1.1688
+   1.1159  0.2305
+   0.0000  0.6597
+   1.0000  0.0000  0.0000  0.0000
+   0.0000  1.0000  0.0000  0.0000
+   0.0000  0.0000  1.0000  0.0000
+   0.0000  0.0000  0.0000  1.0000
+   0.0019
+   0.5075
+   0.4076
+   0.8408
+   0.5017
+   0.9128
+   0.2129
+   0.5591
+</PRE>
+<B>Program Results</B>
+<PRE>
+ FB01SD EXAMPLE PROGRAM RESULTS
+
+ The inverse of the square root of the state covariance matrix is 
+   0.6897   0.7721   0.7079   0.6102
+   0.0000  -0.3363  -0.2252  -0.2642
+   0.0000   0.0000  -0.1650   0.0319
+   0.0000   0.0000   0.0000   0.3708
+
+ The components of the estimated filtered state are 
+
+   k       X(k)
+
+   1    -0.7125
+   2    -1.8324
+   3     1.7500
+   4     1.5854
+</PRE>
+
+<HR>
+<p>
+<A HREF=..\libindex.html><B>Return to index</B></A></BODY>
+</HTML>

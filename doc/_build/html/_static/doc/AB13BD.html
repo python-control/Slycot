@@ -1,0 +1,358 @@
+<HTML>
+<HEAD><TITLE>AB13BD - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="AB13BD">AB13BD</A></H2>
+<H3>
+H2 or L2 norm of a system
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To compute the H2 or L2 norm of the transfer-function matrix G
+  of the system (A,B,C,D). G must not have poles on the imaginary
+  axis, for a continuous-time system, or on the unit circle, for
+  a discrete-time system. If the H2-norm is computed, the system
+  must be stable.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      DOUBLE PRECISION FUNCTION AB13BD( DICO, JOBN, N, M, P, A, LDA,
+     $                                  B, LDB, C, LDC, D, LDD, NQ, TOL,
+     $                                  DWORK, LDWORK, IWARN, INFO)
+C     .. Scalar Arguments ..
+      CHARACTER         DICO, JOBN
+      INTEGER           INFO, IWARN, LDA, LDB, LDC, LDD, LDWORK, M,
+     $                  N, NQ, P
+      DOUBLE PRECISION  TOL
+C     .. Array Arguments ..
+      DOUBLE PRECISION  A(LDA,*), B(LDB,*), C(LDC,*), D(LDD,*), DWORK(*)
+
+</PRE>
+<B><FONT SIZE="+1">Function Value</FONT></B>
+<PRE>
+  AB13BD   DOUBLE PRECISION
+           The H2-norm of G, if JOBN = 'H', or the L2-norm of G,
+           if JOBN = 'L' (if INFO = 0).
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  DICO    CHARACTER*1
+          Specifies the type of the system as follows:
+          = 'C':  continuous-time system;
+          = 'D':  discrete-time system.
+
+  JOBN    CHARACTER*1
+          Specifies the norm to be computed as follows:
+          = 'H':  the H2-norm;
+          = 'L':  the L2-norm.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The order of the matrix A, the number of rows of the
+          matrix B, and the number of columns of the matrix C.
+          N represents the dimension of the state vector.  N &gt;= 0.
+
+  M       (input) INTEGER
+          The number of columns of the matrices B and D.
+          M represents the dimension of input vector.  M &gt;= 0.
+
+  P       (input) INTEGER
+          The number of rows of the matrices C and D.
+          P represents the dimension of output vector.  P &gt;= 0.
+
+  A       (input/output) DOUBLE PRECISION array, dimension (LDA,N)
+          On entry, the leading N-by-N part of this array must
+          contain the state dynamics matrix of the system.
+          On exit, the leading NQ-by-NQ part of this array contains
+          the state dynamics matrix (in a real Schur form) of the
+          numerator factor Q of the right coprime factorization with
+          inner denominator of G (see METHOD).
+
+  LDA     INTEGER
+          The leading dimension of array A.  LDA &gt;= MAX(1,N).
+
+  B       (input/output) DOUBLE PRECISION array, dimension (LDB,M)
+          On entry, the leading N-by-M part of this array must
+          contain the input/state matrix of the system.
+          On exit, the leading NQ-by-M part of this array contains
+          the input/state matrix of the numerator factor Q of the
+          right coprime factorization with inner denominator of G
+          (see METHOD).
+
+  LDB     INTEGER
+          The leading dimension of array B.  LDB &gt;= MAX(1,N).
+
+  C       (input/output) DOUBLE PRECISION array, dimension (LDC,N)
+          On entry, the leading P-by-N part of this array must
+          contain the state/output matrix of the system.
+          On exit, the leading P-by-NQ part of this array contains
+          the state/output matrix of the numerator factor Q of the
+          right coprime factorization with inner denominator of G
+          (see METHOD).
+
+  LDC     INTEGER
+          The leading dimension of array C.  LDC &gt;= MAX(1,P).
+
+  D       (input/output) DOUBLE PRECISION array, dimension (LDD,M)
+          On entry, the leading P-by-M part of this array must
+          contain the input/output matrix of the system.
+          If DICO = 'C', D must be a null matrix.
+          On exit, the leading P-by-M part of this array contains
+          the input/output matrix of the numerator factor Q of
+          the right coprime factorization with inner denominator
+          of G (see METHOD).
+
+  LDD     INTEGER
+          The leading dimension of array D.  LDD &gt;= MAX(1,P).
+
+  NQ      (output) INTEGER
+          The order of the resulting numerator Q of the right
+          coprime factorization with inner denominator of G (see
+          METHOD).
+          Generally, NQ = N - NS, where NS is the number of
+          uncontrollable unstable eigenvalues.
+
+</PRE>
+<B>Tolerances</B>
+<PRE>
+  TOL     DOUBLE PRECISION
+          The absolute tolerance level below which the elements of
+          B are considered zero (used for controllability tests).
+          If the user sets TOL &lt;= 0, then an implicitly computed,
+          default tolerance, defined by  TOLDEF = N*EPS*NORM(B),
+          is used instead, where EPS is the machine precision
+          (see LAPACK Library routine DLAMCH) and NORM(B) denotes
+          the 1-norm of B.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+          On exit, if INFO = 0, DWORK(1) returns the optimal value
+          of LDWORK.
+
+  LDWORK  INTEGER
+          The dimension of working array DWORK.
+          LDWORK &gt;= MAX( 1, M*(N+M) + MAX( N*(N+5), M*(M+2), 4*P ),
+                            N*( MAX( N, P ) + 4 ) + MIN( N, P ) ).
+          For optimum performance LDWORK should be larger.
+
+</PRE>
+<B>Warning Indicator</B>
+<PRE>
+  IWARN   INTEGER
+          = 0:  no warning;
+          = K:  K violations of the numerical stability condition
+                occured during the assignment of eigenvalues in
+                computing the right coprime factorization with inner
+                denominator of G (see the SLICOT subroutine SB08DD).
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value;
+          = 1:  the reduction of A to a real Schur form failed;
+          = 2:  a failure was detected during the reordering of the
+                real Schur form of A, or in the iterative process
+                for reordering the eigenvalues of Z'*(A + B*F)*Z
+                along the diagonal (see SLICOT routine SB08DD);
+          = 3:  if DICO = 'C' and the matrix A has a controllable
+                eigenvalue on the imaginary axis, or DICO = 'D'
+                and A has a controllable eigenvalue on the unit
+                circle;
+          = 4:  the solution of Lyapunov equation failed because
+                the equation is singular;
+          = 5:  if DICO = 'C' and D is a nonzero matrix;
+          = 6:  if JOBN = 'H' and the system is unstable.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  The subroutine is based on the algorithms proposed in [1] and [2].
+
+  If the given transfer-function matrix G is unstable, then a right
+  coprime factorization with inner denominator of G is first
+  computed
+            -1
+     G = Q*R  ,
+
+  where Q and R are stable transfer-function matrices and R is
+  inner. If G is stable, then Q = G and R = I.
+  Let (AQ,BQ,CQ,DQ) be the state-space representation of Q.
+
+  If DICO = 'C', then the L2-norm of G is computed as
+
+     NORM2(G) = NORM2(Q) = SQRT(TRACE(BQ'*X*BQ)),
+
+  where X satisfies the continuous-time Lyapunov equation
+
+     AQ'*X + X*AQ + CQ'*CQ = 0.
+
+  If DICO = 'D', then the l2-norm of G is computed as
+
+     NORM2(G) = NORM2(Q) = SQRT(TRACE(BQ'*X*BQ+DQ'*DQ)),
+
+  where X satisfies the discrete-time Lyapunov equation
+
+     AQ'*X*AQ - X + CQ'*CQ = 0.
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Varga A.
+      On computing 2-norms of transfer-function matrices.
+      Proc. 1992 ACC, Chicago, June 1992.
+
+  [2] Varga A.
+      A Schur method for computing coprime factorizations with
+      inner denominators and applications in model reduction.
+      Proc. ACC'93, San Francisco, CA, pp. 2130-2131, 1993.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>                                         3
+  The algorithm requires no more than 14N  floating point
+  operations.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+*     AB13BD EXAMPLE PROGRAM TEXT
+*
+*     .. Parameters ..
+      INTEGER          NIN, NOUT
+      PARAMETER        ( NIN = 5, NOUT = 6 )
+      INTEGER          NMAX, MMAX, PMAX
+      PARAMETER        ( NMAX = 20, MMAX = 20, PMAX = 20 )
+      INTEGER          LDA, LDB, LDC, LDD
+      PARAMETER        ( LDA = NMAX, LDB = NMAX, LDC = PMAX,
+     $                   LDD = PMAX )
+      INTEGER          LDWORK
+      PARAMETER        ( LDWORK = MAX( MMAX*( NMAX + MMAX ) +
+     $                                 MAX( NMAX*( NMAX + 5 ),
+     $                                      MMAX*( MMAX + 2 ), 4*PMAX ),
+     $                                 NMAX*( MAX( NMAX, PMAX ) + 4 ) +
+     $                                 MIN( NMAX, PMAX ) ) )
+*     .. Local Scalars ..
+      DOUBLE PRECISION S2NORM, TOL
+      INTEGER          I, INFO, IWARN, J, M, N, NQ, P
+      CHARACTER*1      DICO, JOBN
+*     .. Local Arrays ..
+      DOUBLE PRECISION A(LDA,NMAX), B(LDB,MMAX), C(LDC,NMAX),
+     $                 D(LDD,MMAX), DWORK(LDWORK)
+*     .. External Functions ..
+      LOGICAL          LSAME
+      DOUBLE PRECISION AB13BD
+      EXTERNAL         AB13BD, LSAME
+*     .. Intrinsic Functions ..
+      INTRINSIC        MAX, MIN
+*     .. Executable Statements ..
+*
+      WRITE ( NOUT, FMT = 99999 )
+*     Skip the heading in the data file and read the data.
+      READ ( NIN, FMT = '()' )
+      READ ( NIN, FMT = * ) N, M, P, TOL, DICO, JOBN
+      IF ( N.LT.0 .OR. N.GT.NMAX ) THEN
+         WRITE ( NOUT, FMT = 99990 ) N
+      ELSE
+         READ ( NIN, FMT = * ) ( ( A(I,J), J = 1, N ), I = 1,N )
+         IF ( M.LT.0 .OR. M.GT.MMAX ) THEN
+            WRITE ( NOUT, FMT = 99989 ) M
+         ELSE
+            READ ( NIN, FMT = * ) ( ( B(I,J), J = 1, M ), I = 1, N )
+            IF ( P.LT.0 .OR. P.GT.PMAX ) THEN
+               WRITE ( NOUT, FMT = 99988 ) P
+            ELSE
+               READ ( NIN, FMT = * ) ( ( C(I,J), J = 1, N ), I = 1, P )
+               READ ( NIN, FMT = * ) ( ( D(I,J), J = 1, M ), I = 1, P )
+*              Compute the H2 or L2 norm of (A,B,C,D).
+               S2NORM = AB13BD( DICO, JOBN, N, M, P, A, LDA, B, LDB,
+     *                          C, LDC, D, LDD, NQ, TOL, DWORK, LDWORK,
+     *                          IWARN, INFO)
+*
+               IF ( INFO.NE.0 ) THEN
+                  WRITE ( NOUT, FMT = 99998 ) INFO
+               ELSE
+                  IF( LSAME( JOBN, 'H' ) ) THEN
+                     WRITE ( NOUT, FMT = 99997 ) S2NORM
+                  ELSE
+                     WRITE ( NOUT, FMT = 99996 ) S2NORM
+                  END IF
+               END IF
+            END IF
+         END IF
+      END IF
+      STOP
+*
+99999 FORMAT (' AB13BD EXAMPLE PROGRAM RESULTS',/1X)
+99998 FORMAT (' INFO on exit from AB13BD = ',I2)
+99997 FORMAT (' The H2-norm of the system = ',1PD14.5)
+99996 FORMAT (' The L2-norm of the system = ',1PD14.5)
+99990 FORMAT (/' N is out of range.',/' N = ',I5)
+99989 FORMAT (/' M is out of range.',/' M = ',I5)
+99988 FORMAT (/' P is out of range.',/' P = ',I5)
+      END
+</PRE>
+<B>Program Data</B>
+<PRE>
+ AB13BD EXAMPLE PROGRAM DATA (Continuous system)
+  7  2  3   1.E-10 C L
+ -0.04165  0.0000  4.9200   0.4920  0.0000   0.0000  0.0000
+ -5.2100  -12.500  0.0000   0.0000  0.0000   0.0000  0.0000
+  0.0000   3.3300 -3.3300   0.0000  0.0000   0.0000  0.0000
+  0.5450   0.0000  0.0000   0.0000  0.0545   0.0000  0.0000
+  0.0000   0.0000  0.0000  -0.49200 0.004165 0.0000  4.9200
+  0.0000   0.0000  0.0000   0.0000  0.5210  -12.500  0.0000
+  0.0000   0.0000  0.0000   0.0000  0.0000   3.3300 -3.3300
+  0.0000   0.0000
+  12.500   0.0000
+  0.0000   0.0000
+  0.0000   0.0000
+  0.0000   0.0000
+  0.0000   12.500
+  0.0000   0.0000
+  1.0000   0.0000  0.0000   0.0000  0.0000  0.0000  0.0000
+  0.0000   0.0000  0.0000   1.0000  0.0000  0.0000  0.0000
+  0.0000   0.0000  0.0000   0.0000  1.0000  0.0000  0.0000
+  0.0000   0.0000  
+  0.0000   0.0000  
+  0.0000   0.0000  
+</PRE>
+<B>Program Results</B>
+<PRE>
+ AB13BD EXAMPLE PROGRAM RESULTS
+
+ The L2-norm of the system =    7.93948D+00
+</PRE>
+
+<HR>
+<p>
+<A HREF=..\libindex.html><B>Return to index</B></A></BODY>
+</HTML>

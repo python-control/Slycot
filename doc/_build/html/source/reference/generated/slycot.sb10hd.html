@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>slycot.sb10hd &mdash; Slycot 0.6 documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+        <script src="../../../_static/sphinx_highlight.js"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <link rel="next" title="slycot.sg02ad" href="slycot.sg02ad.html" />
+    <link rel="prev" title="slycot.sb10fd" href="slycot.sb10fd.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            Slycot
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../../intro.html">Introduction</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../index.html">Slycot reference</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="../slycot_outer.html">Outer function reference</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="../slycot_outer.html#analysis">Analysis</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../slycot_outer.html#mathematical-routines">Mathematical routines</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="../slycot_outer.html#synthesis">Synthesis</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="slycot.sb01bd.html">slycot.sb01bd</a></li>
+<li class="toctree-l4"><a class="reference internal" href="slycot.sb02md.html">slycot.sb02md</a></li>
+<li class="toctree-l4"><a class="reference internal" href="slycot.sb02mt.html">slycot.sb02mt</a></li>
+<li class="toctree-l4"><a class="reference internal" href="slycot.sb02od.html">slycot.sb02od</a></li>
+<li class="toctree-l4"><a class="reference internal" href="slycot.sb03md.html">slycot.sb03md</a></li>
+<li class="toctree-l4"><a class="reference internal" href="slycot.sb03md57.html">slycot.sb03md57</a></li>
+<li class="toctree-l4"><a class="reference internal" href="slycot.sb03od.html">slycot.sb03od</a></li>
+<li class="toctree-l4"><a class="reference internal" href="slycot.sb04md.html">slycot.sb04md</a></li>
+<li class="toctree-l4"><a class="reference internal" href="slycot.sb04qd.html">slycot.sb04qd</a></li>
+<li class="toctree-l4"><a class="reference internal" href="slycot.sb10ad.html">slycot.sb10ad</a></li>
+<li class="toctree-l4"><a class="reference internal" href="slycot.sb10dd.html">slycot.sb10dd</a></li>
+<li class="toctree-l4"><a class="reference internal" href="slycot.sb10fd.html">slycot.sb10fd</a></li>
+<li class="toctree-l4 current"><a class="current reference internal" href="#">slycot.sb10hd</a></li>
+<li class="toctree-l4"><a class="reference internal" href="slycot.sg02ad.html">slycot.sg02ad</a></li>
+<li class="toctree-l4"><a class="reference internal" href="slycot.sg03ad.html">slycot.sg03ad</a></li>
+<li class="toctree-l4"><a class="reference internal" href="slycot.sg03bd.html">slycot.sg03bd</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../slycot_outer.html#transformation-routines">Transformation Routines</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../slycot_inner.html">Inner function reference</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../dev/index.html">Development</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">Slycot</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Slycot reference</a></li>
+          <li class="breadcrumb-item"><a href="../slycot_outer.html">Outer function reference</a></li>
+      <li class="breadcrumb-item active">slycot.sb10hd</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../../_sources/source/reference/generated/slycot.sb10hd.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <div class="section" id="slycot-sb10hd">
+<h1>slycot.sb10hd<a class="headerlink" href="#slycot-sb10hd" title="Permalink to this heading"></a></h1>
+<dl class="py function">
+<dt class="sig sig-object py" id="slycot.sb10hd">
+<span class="sig-prename descclassname"><span class="pre">slycot.</span></span><span class="sig-name descname"><span class="pre">sb10hd</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">m</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">np</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ncon</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nmeas</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">a</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">b</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">c</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">d</span></span></em><span class="optional">[</span>, <em class="sig-param"><span class="n"><span class="pre">tol</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ldwork</span></span></em><span class="optional">]</span><span class="sig-paren">)</span><a class="headerlink" href="#slycot.sb10hd" title="Permalink to this definition"></a></dt>
+<dd><p>To compute the matrices of the H2 optimal n-state controller</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>    <span class="o">|</span> <span class="n">AK</span> <span class="o">|</span> <span class="n">BK</span> <span class="o">|</span>
+<span class="n">K</span> <span class="o">=</span> <span class="o">|----|----|</span>
+    <span class="o">|</span> <span class="n">CK</span> <span class="o">|</span> <span class="n">DK</span> <span class="o">|</span>
+</pre></div>
+</div>
+<p>for the system</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>    <span class="o">|</span> <span class="n">A</span>  <span class="o">|</span> <span class="n">B1</span>  <span class="n">B2</span>  <span class="o">|</span>   <span class="o">|</span> <span class="n">A</span> <span class="o">|</span> <span class="n">B</span> <span class="o">|</span>
+<span class="n">P</span> <span class="o">=</span> <span class="o">|----|---------|</span> <span class="o">=</span> <span class="o">|---|---|</span> <span class="p">,</span>
+    <span class="o">|</span> <span class="n">C1</span> <span class="o">|</span>  <span class="mi">0</span>  <span class="n">D12</span> <span class="o">|</span>   <span class="o">|</span> <span class="n">C</span> <span class="o">|</span> <span class="n">D</span> <span class="o">|</span>
+    <span class="o">|</span> <span class="n">C2</span> <span class="o">|</span> <span class="n">D21</span> <span class="n">D22</span> <span class="o">|</span>
+</pre></div>
+</div>
+<p>where B2 has as column size the number of control inputs (ncon)
+and C2 has as row size the number of measurements (nmeas) being
+provided to the controller.</p>
+<p>It is assumed that</p>
+<ul class="simple">
+<li><p>(A1) (A,B2) is stabilizable and (C2,A) is detectable,</p></li>
+<li><p>(A2) The block D11 of D is zero,</p></li>
+<li><p>(A3) D12 is full column rank and D21 is full row rank.</p></li>
+</ul>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>n</strong> (<em>int</em>) – The order of the system. (size of matrix A).</p></li>
+<li><p><strong>m</strong> (<em>int</em>) – The column size of the matrix B</p></li>
+<li><p><strong>np</strong> (<em>int</em>) – The row size of the matrix C</p></li>
+<li><p><strong>ncon</strong> (<em>int</em>) – The number of control inputs.  m &gt;= ncon &gt;= 0, np-nmeas &gt;= ncon.</p></li>
+<li><p><strong>nmeas</strong> (<em>int</em>) – The number of measurements.  np &gt;= nmeas &gt;= 0, m-ncon &gt;= nmeas.</p></li>
+<li><p><strong>A</strong> (<em>(</em><em>n</em><em>, </em><em>n</em><em>) </em><em>array_like</em>) – System Matrix</p></li>
+<li><p><strong>B</strong> (<em>(</em><em>n</em><em>, </em><em>m</em><em>) </em><em>array_like</em>) – Input Matrix</p></li>
+<li><p><strong>C</strong> (<em>(</em><em>np</em><em>, </em><em>n</em><em>) </em><em>array_like</em>) – Output Matrix</p></li>
+<li><p><strong>D</strong> (<em>(</em><em>np</em><em>, </em><em>m</em><em>) </em><em>array_like</em>) – Throughput Matrix</p></li>
+<li><p><strong>tol</strong> (<em>double</em><em>, </em><em>optional</em>) – Tolerance used for controlling the accuracy of the applied
+transformations for computing the normalized form in
+SLICOT Library routine SB10UD. Transformation matrices
+whose reciprocal condition numbers are less than tol are
+not allowed. If tol &lt;= 0, then a default value equal to
+sqrt(eps) is used, where eps is the relative machine
+precision.</p></li>
+<li><p><strong>ldwork</strong> (<em>int</em><em>, </em><em>optional</em>) – The dimension of the cache array.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>Ak</strong> (<em>(n, n) ndarray</em>) – The controller state matrix Ak.</p></li>
+<li><p><strong>Bk</strong> (<em>(n, nmeas) ndarray</em>) – The controller input matrix Bk.</p></li>
+<li><p><strong>Ck</strong> (<em>(ncon, n) ndarray</em>) – The controller output matrix Ck.</p></li>
+<li><p><strong>Dk</strong> (<em>(ncon, nmeas) ndarray</em>) – The controller input/output matrix Dk.</p></li>
+<li><p><strong>rcond</strong> (<em>(4) ndarray</em>) – For the last successful step:</p>
+<ul>
+<li><p>rcond(1) contains the reciprocal condition number of the
+control transformation matrix;</p></li>
+<li><p>rcond(2) contains the reciprocal condition number of the
+measurement transformation matrix;</p></li>
+<li><p>rcond(3) contains an estimate of the reciprocal condition
+number of the X-Riccati equation;</p></li>
+<li><p>rcond(4) contains an estimate of the reciprocal condition
+number of the Y-Riccati equation.</p></li>
+</ul>
+</li>
+</ul>
+</p>
+</dd>
+<dt class="field-odd">Raises</dt>
+<dd class="field-odd"><p><strong>SlycotArithmeticError</strong> – <dl class="field-list simple">
+<dt class="field-odd">info = 1</dt>
+<dd class="field-odd"><p>The matrix D12 had not full column rank in
+respect to the tolerance tol;</p>
+</dd>
+<dt class="field-even">info = 2</dt>
+<dd class="field-even"><p>The matrix D21 had not full row rank in respect
+to the tolerance tol;</p>
+</dd>
+<dt class="field-odd">info = 3</dt>
+<dd class="field-odd"><p>The singular value decomposition (SVD) algorithm
+did not converge (when computing the SVD of one of
+the matrices D12 or D21).</p>
+</dd>
+<dt class="field-even">info = 4</dt>
+<dd class="field-even"><p>The X-Riccati equation was not solved successfully;</p>
+</dd>
+<dt class="field-odd">info = 5</dt>
+<dd class="field-odd"><p>The Y-Riccati equation was not solved successfully.</p>
+</dd>
+</dl>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="slycot.sb10fd.html" class="btn btn-neutral float-left" title="slycot.sb10fd" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="slycot.sg02ad.html" class="btn btn-neutral float-right" title="slycot.sg02ad" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Slycot Developers.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,168 @@
+<HTML>
+<HEAD><TITLE>TB01XD - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="TB01XD">TB01XD</A></H2>
+<H3>
+Special similarity transformation of the dual state-space system
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To apply a special transformation to a system given as a triple
+  (A,B,C),
+
+     A &lt;-- P * A' * P,  B &lt;-- P * C',  C &lt;-- B' * P,
+
+  where P is a matrix with 1 on the secondary diagonal, and with 0
+  in the other entries. Matrix A can be specified as a band matrix.
+  Optionally, matrix D of the system can be transposed. This
+  transformation is actually a special similarity transformation of
+  the dual system.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE TB01XD( JOBD, N, M, P, KL, KU, A, LDA, B, LDB, C, LDC,
+     $                   D, LDD, INFO )
+C     .. Scalar Arguments ..
+      CHARACTER          JOBD
+      INTEGER            INFO, KL, KU, LDA, LDB, LDC, LDD, M, N, P
+C     .. Array Arguments ..
+      DOUBLE PRECISION   A( LDA, * ), B( LDB, * ), C( LDC, * ),
+     $                   D( LDD, * )
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  JOBD    CHARACTER*1
+          Specifies whether or not a non-zero matrix D appears in
+          the given state space model:
+          = 'D':  D is present;
+          = 'Z':  D is assumed a zero matrix.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The order of the matrix A, the number of rows of matrix B
+          and the number of columns of matrix C.
+          N represents the dimension of the state vector.  N &gt;= 0.
+
+  M       (input) INTEGER.
+          The number of columns of matrix B.
+          M represents the dimension of input vector.  M &gt;= 0.
+
+  P       (input) INTEGER.
+          The number of rows of matrix C.
+          P represents the dimension of output vector.  P &gt;= 0.
+
+  KL      (input) INTEGER
+          The number of subdiagonals of A to be transformed.
+          MAX( 0, N-1 ) &gt;= KL &gt;= 0.
+
+  KU      (input) INTEGER
+          The number of superdiagonals of A to be transformed.
+          MAX( 0, N-1 ) &gt;= KU &gt;= 0.
+
+  A       (input/output) DOUBLE PRECISION array, dimension (LDA,N)
+          On entry, the leading N-by-N part of this array must
+          contain the system state matrix A.
+          On exit, the leading N-by-N part of this array contains
+          the transformed (pertransposed) matrix P*A'*P.
+
+  LDA     INTEGER
+          The leading dimension of the array A.  LDA &gt;= MAX(1,N).
+
+  B       (input/output) DOUBLE PRECISION array, dimension
+          (LDB,MAX(M,P))
+          On entry, the leading N-by-M part of this array must
+          contain the original input/state matrix B.
+          On exit, the leading N-by-P part of this array contains
+          the dual input/state matrix P*C'.
+
+  LDB     INTEGER
+          The leading dimension of the array B.
+          LDB &gt;= MAX(1,N) if M &gt; 0 or  P &gt; 0.
+          LDB &gt;= 1        if M = 0 and P = 0.
+
+  C       (input/output) DOUBLE PRECISION array, dimension (LDC,N)
+          On entry, the leading P-by-N part of this array must
+          contain the original state/output matrix C.
+          On exit, the leading M-by-N part of this array contains
+          the dual state/output matrix B'*P.
+
+  LDC     INTEGER
+          The leading dimension of array C.
+          LDC &gt;= MAX(1,M,P) if N &gt; 0.
+          LDC &gt;= 1          if N = 0.
+
+  D       (input/output) DOUBLE PRECISION array, dimension
+          (LDD,MAX(M,P))
+          On entry, if JOBD = 'D', the leading P-by-M part of this
+          array must contain the original direct transmission
+          matrix D.
+          On exit, if JOBD = 'D', the leading M-by-P part of this
+          array contains the transposed direct transmission matrix
+          D'. The array D is not referenced if JOBD = 'Z'.
+
+  LDD     INTEGER
+          The leading dimension of array D.
+          LDD &gt;= MAX(1,M,P) if JOBD = 'D'.
+          LDD &gt;= 1          if JOBD = 'Z'.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit.
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  The rows and/or columns of the matrices of the triplet (A,B,C)
+  and, optionally, of the matrix D are swapped in a special way.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  None.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

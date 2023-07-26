@@ -1,0 +1,252 @@
+<HTML>
+<HEAD><TITLE>TB01UX - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="TB01UX">TB01UX</A></H2>
+<H3>
+Observable-unobservable decomposition of a standard system 
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To compute an orthogonal transformation matrix Z which reduces the
+  N-th order system (A,B,C) to the form
+
+             ( Ano  * )               ( Bno )
+    Z'*A*Z = (        ) ,      Z'*B = (     ) ,
+             ( 0   Ao )               ( Bo  )
+
+       C*Z = ( 0   Co ) ,
+
+  where the NOBSV-th order system (Ao,Bo,Co) is observable.
+  The matrix Ano of order N-NOBSV contains the unobservable
+  eigenvalues of A.
+
+  The pencil ( Ao-lambda*I ) has full column rank NOBSV for all
+             (      Co     )
+  lambda, and is in a staircase form, with
+                  _      _            _      _
+                ( Ak,k   Ak,k-1   ... Ak,2   Ak,1   )
+                ( _      _            _      _      )
+    ( Ao ) =    ( Ak-1,k Ak-1,k-1 ... Ak-1,2 Ak-1,1 ) ,          (1)
+    ( Co )      (  :       :      ... _ :    _ :    )
+                (  0       0      ... A1,2   A1,1   )
+                (                            _      )
+                (  0       0      ... 0      A0,1   )
+        _
+  where Ai-1,i is a CTAU(i-1)-by-CTAU(i) full column rank matrix
+  (with CTAU(0) = P).
+
+  The orthogonal transformation Z, performed to reduce the system
+  matrices, can be optionally accumulated.
+
+  The reduced order system (Ao,Bo,Co) has the same transfer-function
+  matrix as the original system (A,B,C).
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE TB01UX( COMPZ, N, M, P, A, LDA, B, LDB, C, LDC, Z, LDZ,
+     $                   NOBSV, NLBLCK, CTAU, TOL, IWORK, DWORK, INFO )
+C     .. Scalar Arguments ..
+      CHARACTER          COMPZ
+      INTEGER            INFO, LDA, LDB, LDC, LDZ, M, N, NLBLCK, NOBSV,
+     $                   P
+      DOUBLE PRECISION   TOL
+C     .. Array Arguments ..
+      INTEGER            CTAU( * ), IWORK( * )
+      DOUBLE PRECISION   A( LDA, * ), B( LDB, * ), C( LDC, *  ),
+     $                   DWORK( * ), Z( LDZ, * )
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  COMPZ   CHARACTER*1
+          = 'N':  do not compute Z;
+          = 'I':  Z is initialized to the unit matrix, and the
+                  orthogonal matrix Z is returned.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The dimension of the system state vector; also the order
+          of the square matrix A, the number of rows of the matrix B
+          and the number of columns of the matrix C.  N &gt;= 0.
+
+  M       (input) INTEGER
+          The dimension of system input vector; also the number of
+          columns of the matrix B.  M &gt;= 0.
+
+  P       (input) INTEGER
+          The dimension of system output vector; also the number of
+          rows of the matrix C.  P &gt;= 0.
+
+  A       (input/output) DOUBLE PRECISION array, dimension (LDA,N)
+          On entry, the leading N-by-N part of this array must
+          contain the N-by-N state matrix A.
+          On exit, the leading N-by-N part of this array contains
+          the transformed state matrix Z'*A*Z,
+
+                             ( Ano  *  )
+                    Z'*A*Z = (         ) ,
+                             ( 0    Ao )
+
+          where Ao is NOBSV-by-NOBSV and Ano is
+          (N-NOBSV)-by-(N-NOBSV).
+          The matrix ( Ao ) is in the observability staircase
+                     ( Co )
+          form (1).
+
+  LDA     INTEGER
+          The leading dimension of the array A.  LDA &gt;= MAX(1,N).
+
+  B       (input/output) DOUBLE PRECISION array, dimension
+          (LDB,MAX(M,P))
+          On entry, the leading N-by-M part of this array must
+          contain the N-by-M input matrix B.
+          On exit, the leading N-by-M part of this array contains
+          the transformed input matrix Z'*B.
+
+  LDB     INTEGER
+          The leading dimension of the array B.
+          LDB &gt;= MAX(1,N) if M &gt; 0 or  P &gt; 0;
+          LDB &gt;= 1        if M = 0 and P = 0.
+
+  C       (input/output) DOUBLE PRECISION array, dimension (LDC,N)
+          On entry, the leading P-by-N part of this array must
+          contain the state/output matrix C.
+          On exit, the leading P-by-N part of this array contains
+          the transformed matrix
+
+                  C*Z = (  0   Co ) ,
+
+          where Co is P-by-NOBSV.          
+          The matrix ( Ao ) is in the observability staircase
+                     ( Co )
+          form (1).
+
+  LDC     INTEGER
+          The leading dimension of the array C.
+          LDC &gt;= MAX(1,M,P) if N &gt; 0;
+          LDC &gt;= 1          if N = 0.
+
+  Z       (input/output) DOUBLE PRECISION array, dimension (LDZ,*)
+          If COMPZ = 'N': Z is not referenced.
+          If COMPZ = 'I': on entry, Z need not be set;
+                          on exit, the leading N-by-N part of this
+                          array contains the orthogonal matrix Z,
+                          i.e., the product of the transformations
+                          applied to A and C on the right.
+
+  LDZ     INTEGER
+          The leading dimension of the array Z.
+          LDZ &gt;= 1,        if COMPZ = 'N';
+          LDZ &gt;= MAX(1,N), if COMPZ = 'I'.
+
+  NOBSV   (output) INTEGER
+          The order of the reduced matrix Ao, and the number of
+          columns of the reduced matrix Co; also, the order of the
+          observable part of the pair (C, A-lambda*I).
+
+  NLBLCK  (output) INTEGER                         _
+          The number k, of full column rank blocks Ai-1,i in the
+          staircase form of the pencil (Ao-lambda*I) (see (1)).
+                                       (     Co    )
+
+  CTAU    (output) INTEGER array, dimension (N)
+          CTAU(i), for i = 1, ..., NLBLCK, is the column dimension
+                                        _
+          of the full column rank block Ai-1,i in the staircase
+          form (1).
+
+</PRE>
+<B>Tolerances</B>
+<PRE>
+  TOL     DOUBLE PRECISION
+          The tolerance to be used in rank determinations when
+          transforming the pair (A,C). If the user sets TOL &gt; 0,
+          then the given value of TOL is used as a lower bound for
+          reciprocal condition numbers in rank determinations; a
+          (sub)matrix whose estimated condition number is less than
+          1/TOL is considered to be of full rank.  If the user sets
+          TOL &lt;= 0, then an implicitly computed, default tolerance,
+          defined by  TOLDEF = N*N*EPS,  is used instead, where EPS
+          is the machine precision (see LAPACK Library routine
+          DLAMCH).  TOL &lt; 1.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  IWORK   INTEGER array, dimension (P)
+
+  DWORK   DOUBLE PRECISION array, dimension (N+MAX(1, N, 3*P, M))
+          On exit, if INFO = 0, DWORK(1) returns the optimal value
+          of LDWORK.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  The subroutine is based on the dual of the reduction
+  algorithms of [1].
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Varga, A.
+      Computation of Irreducible Generalized State-Space
+      Realizations.
+      Kybernetika, vol. 26, pp. 89-106, 1990.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  The algorithm is numerically backward stable and requires
+  0( N**3 )  floating point operations.
+
+</PRE>
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  If the system matrices A and C are badly scaled, it is
+  generally recommendable to scale them with the SLICOT routine
+  TB01ID, before calling TG01UX.
+
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

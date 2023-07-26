@@ -1,0 +1,452 @@
+<HTML>
+<HEAD><TITLE>AB13DD - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="AB13DD">AB13DD</A></H2>
+<H3>
+L-infinity norm of a state space system
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To compute the L-infinity norm of a continuous-time or
+  discrete-time system, either standard or in the descriptor form,
+
+                                  -1
+     G(lambda) = C*( lambda*E - A ) *B + D .
+
+  The norm is finite if and only if the matrix pair (A,E) has no
+  eigenvalue on the boundary of the stability domain, i.e., the
+  imaginary axis, or the unit circle, respectively. It is assumed
+  that the matrix E is nonsingular.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE AB13DD( DICO, JOBE, EQUIL, JOBD, N, M, P, FPEAK,
+     $                   A, LDA, E, LDE, B, LDB, C, LDC, D, LDD, GPEAK,
+     $                   TOL, IWORK, DWORK, LDWORK, CWORK, LCWORK,
+     $                   INFO )
+C     .. Scalar Arguments ..
+      CHARACTER          DICO, EQUIL, JOBD, JOBE
+      INTEGER            INFO, LCWORK, LDA, LDB, LDC, LDD, LDE, LDWORK,
+     $                   M, N, P
+      DOUBLE PRECISION   TOL
+C     .. Array Arguments ..
+      COMPLEX*16         CWORK(  * )
+      DOUBLE PRECISION   A( LDA, * ), B( LDB, * ), C( LDC, * ),
+     $                   D( LDD, * ), DWORK(  * ), E( LDE, * ),
+     $                   FPEAK(  2 ), GPEAK(  2 )
+      INTEGER            IWORK(  * )
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  DICO    CHARACTER*1
+          Specifies the type of the system, as follows:
+          = 'C':  continuous-time system;
+          = 'D':  discrete-time system.
+
+  JOBE    CHARACTER*1
+          Specifies whether E is a general square or an identity
+          matrix, as follows:
+          = 'G':  E is a general square matrix;
+          = 'I':  E is the identity matrix.
+
+  EQUIL   CHARACTER*1
+          Specifies whether the user wishes to preliminarily
+          equilibrate the system (A,E,B,C) or (A,B,C), as follows:
+          = 'S':  perform equilibration (scaling);
+          = 'N':  do not perform equilibration.
+
+  JOBD    CHARACTER*1
+          Specifies whether or not a non-zero matrix D appears in
+          the given state space model:
+          = 'D':  D is present;
+          = 'Z':  D is assumed a zero matrix.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The order of the system.  N &gt;= 0.
+
+  M       (input) INTEGER
+          The column size of the matrix B.  M &gt;= 0.
+
+  P       (input) INTEGER
+          The row size of the matrix C.  P &gt;= 0.
+
+  FPEAK   (input/output) DOUBLE PRECISION array, dimension (2)
+          On entry, this parameter must contain an estimate of the
+          frequency where the gain of the frequency response would
+          achieve its peak value. Setting FPEAK(2) = 0 indicates an
+          infinite frequency. An accurate estimate could reduce the
+          number of iterations of the iterative algorithm. If no
+          estimate is available, set FPEAK(1) = 0, and FPEAK(2) = 1.
+          FPEAK(1) &gt;= 0, FPEAK(2) &gt;= 0.
+          On exit, if INFO = 0, this array contains the frequency
+          OMEGA, where the gain of the frequency response achieves
+          its peak value GPEAK, i.e.,
+
+              || G ( j*OMEGA ) || = GPEAK ,  if DICO = 'C', or
+
+                      j*OMEGA
+              || G ( e       ) || = GPEAK ,  if DICO = 'D',
+
+          where OMEGA = FPEAK(1), if FPEAK(2) &gt; 0, and OMEGA is
+          infinite, if FPEAK(2) = 0.
+
+  A       (input) DOUBLE PRECISION array, dimension (LDA,N)
+          The leading N-by-N part of this array must contain the
+          state dynamics matrix A.
+
+  LDA     INTEGER
+          The leading dimension of the array A.  LDA &gt;= max(1,N).
+
+  E       (input) DOUBLE PRECISION array, dimension (LDE,N)
+          If JOBE = 'G', the leading N-by-N part of this array must
+          contain the descriptor matrix E of the system.
+          If JOBE = 'I', then E is assumed to be the identity
+          matrix and is not referenced.
+
+  LDE     INTEGER
+          The leading dimension of the array E.
+          LDE &gt;= MAX(1,N), if JOBE = 'G';
+          LDE &gt;= 1,        if JOBE = 'I'.
+
+  B       (input) DOUBLE PRECISION array, dimension (LDB,M)
+          The leading N-by-M part of this array must contain the
+          system input matrix B.
+
+  LDB     INTEGER
+          The leading dimension of the array B.  LDB &gt;= max(1,N).
+
+  C       (input) DOUBLE PRECISION array, dimension (LDC,N)
+          The leading P-by-N part of this array must contain the
+          system output matrix C.
+
+  LDC     INTEGER
+          The leading dimension of the array C.  LDC &gt;= max(1,P).
+
+  D       (input) DOUBLE PRECISION array, dimension (LDD,M)
+          If JOBD = 'D', the leading P-by-M part of this array must
+          contain the direct transmission matrix D.
+          The array D is not referenced if JOBD = 'Z'.
+
+  LDD     INTEGER
+          The leading dimension of array D.
+          LDD &gt;= MAX(1,P), if JOBD = 'D';
+          LDD &gt;= 1,        if JOBD = 'Z'.
+
+  GPEAK   (output) DOUBLE PRECISION array, dimension (2)
+          The L-infinity norm of the system, i.e., the peak gain
+          of the frequency response (as measured by the largest
+          singular value in the MIMO case), coded in the same way
+          as FPEAK.
+
+</PRE>
+<B>Tolerances</B>
+<PRE>
+  TOL     DOUBLE PRECISION
+          Tolerance used to set the accuracy in determining the
+          norm.  0 &lt;= TOL &lt; 1.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  IWORK   INTEGER array, dimension (N)
+
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+          On exit, if INFO = 0, DWORK(1) contains the optimal value
+          of LDWORK.
+
+  LDWORK  INTEGER
+          The dimension of the array DWORK.
+          LDWORK &gt;= K, where K can be computed using the following
+          pseudo-code (or the Fortran code included in the routine)
+
+             d = 6*MIN(P,M);
+             c = MAX( 4*MIN(P,M) + MAX(P,M), d );
+             if ( MIN(P,M) = 0 ) then
+                K = 1;
+             else if( N = 0 or B = 0 or C = 0 ) then
+                if( JOBD = 'D' ) then
+                   K = P*M + c;
+                else
+                   K = 1;
+                end
+             else
+                if ( DICO = 'D' ) then
+                   b = 0;  e = d;
+                else
+                   b = N*(N+M);  e = c;
+                   if ( JOBD = Z' ) then  b = b + P*M;  end
+                end
+                if ( JOBD = 'D' ) then
+                   r = P*M;
+                   if ( JOBE = 'I', DICO = 'C',
+                        N &gt; 0, B &lt;&gt; 0, C &lt;&gt; 0 ) then
+                      K = P*P + M*M;
+                      r = r + N*(P+M);
+                   else
+                      K = 0;
+                   end
+                   K = K + r + c;  r = r + MIN(P,M);
+                else
+                   r = 0;  K = 0;
+                end
+                r = r + N*(N+P+M);
+                if ( JOBE = 'G' ) then
+                   r = r + N*N;
+                   if ( EQUIL = 'S' ) then
+                      K = MAX( K, r + 9*N );
+                   end
+                   K = MAX( K, r + 4*N + MAX( M, 2*N*N, N+b+e ) );
+                else
+                   K = MAX( K, r + N +
+                               MAX( M, P, N*N+2*N, 3*N+b+e ) );
+                end
+                w = 0;
+                if ( JOBE = 'I', DICO = 'C' ) then
+                   w = r + 4*N*N + 11*N;
+                   if ( JOBD = 'D' ) then
+                      w = w + MAX(M,P) + N*(P+M);
+                   end
+                end
+                if ( JOBE = 'E' or DICO = 'D' or JOBD = 'D' ) then
+                   w = MAX( w, r + 6*N + (2*N+P+M)*(2*N+P+M) +
+                            MAX( 2*(N+P+M), 8*N*N + 16*N ) );
+                end
+                K = MAX( 1, K, w, r + 2*N + e );
+             end
+
+          For good performance, LDWORK must generally be larger.
+
+          An easily computable upper bound is
+
+          K = MAX( 1, 15*N*N + P*P + M*M + (6*N+3)*(P+M) + 4*P*M +
+                      N*M + 22*N + 7*MIN(P,M) ).
+
+          The smallest workspace is obtained for DICO = 'C',
+          JOBE = 'I', and JOBD = 'Z', namely
+
+          K = MAX( 1, N*N + N*P + N*M + N +
+                      MAX( N*N + N*M + P*M + 3*N + c,
+                           4*N*N + 10*N ) ).
+
+          for which an upper bound is
+
+          K = MAX( 1, 6*N*N + N*P + 2*N*M + P*M + 11*N + MAX(P,M) +
+                      6*MIN(P,M) ).
+
+  CWORK   COMPLEX*16 array, dimension (LCWORK)
+          On exit, if INFO = 0, CWORK(1) contains the optimal
+          LCWORK.
+
+  LCWORK  INTEGER
+          The dimension of the array CWORK.
+          LCWORK &gt;= 1,  if N = 0, or B = 0, or C = 0;
+          LCWORK &gt;= MAX(1, (N+M)*(N+P) + 2*MIN(P,M) + MAX(P,M)),
+                        otherwise.
+          For good performance, LCWORK must generally be larger.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value;
+          = 1:  the matrix E is (numerically) singular;
+          = 2:  the (periodic) QR (or QZ) algorithm for computing
+                eigenvalues did not converge;
+          = 3:  the SVD algorithm for computing singular values did
+                not converge;
+          = 4:  the tolerance is too small and the algorithm did
+                not converge.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  The routine implements the method presented in [1], with
+  extensions and refinements for improving numerical robustness and
+  efficiency. Structure-exploiting eigenvalue computations for
+  Hamiltonian matrices are used if JOBE = 'I', DICO = 'C', and the
+  symmetric matrices to be implicitly inverted are not too ill-
+  conditioned. Otherwise, generalized eigenvalue computations are
+  used in the iterative algorithm of [1].
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Bruinsma, N.A. and Steinbuch, M.
+      A fast algorithm to compute the Hinfinity-norm of a transfer
+      function matrix.
+      Systems & Control Letters, vol. 14, pp. 287-293, 1990.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  If the algorithm does not converge in MAXIT = 30 iterations
+  (INFO = 4), the tolerance must be increased.
+
+</PRE>
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  If the matrix E is singular, other SLICOT Library routines
+  could be used before calling AB13DD, for removing the singular
+  part of the system.
+
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+*     AB13DD EXAMPLE PROGRAM TEXT
+*
+*     .. Parameters ..
+      INTEGER          NIN, NOUT
+      PARAMETER        ( NIN = 5, NOUT = 6 )
+      INTEGER          NMAX, MMAX, PMAX
+      PARAMETER        ( NMAX = 10, MMAX = 10, PMAX = 10 )
+      INTEGER          LDA, LDB, LDC, LDD, LDE
+      PARAMETER        ( LDA = NMAX, LDB = NMAX, LDC = PMAX,
+     $                   LDD = PMAX, LDE = NMAX )
+      INTEGER          LIWORK
+      PARAMETER        ( LIWORK = NMAX )
+      INTEGER          LCWORK
+      PARAMETER        ( LCWORK = ( NMAX + MMAX )*( NMAX + PMAX ) +
+     $                             2*MIN( PMAX, MMAX ) +
+     $                             MAX( PMAX, MMAX ) )
+      INTEGER          LDWORK
+      PARAMETER        ( LDWORK = 15*NMAX*NMAX + PMAX*PMAX + MMAX*MMAX +
+     $                            ( 6*NMAX + 3 )*( PMAX + MMAX ) +
+     $                            4*PMAX*MMAX + NMAX*MMAX + 22*NMAX +
+     $                            7*MIN( PMAX, MMAX ) )
+      DOUBLE PRECISION   ZERO
+      PARAMETER          ( ZERO = 0.0D+0 )
+
+*     .. Local Scalars ..
+      DOUBLE PRECISION TOL
+      INTEGER          I, INFO, J, M, N, P
+      CHARACTER        DICO, EQUIL, JOBD, JOBE
+*     .. Local Arrays ..
+      INTEGER          IWORK( LIWORK )
+      DOUBLE PRECISION A( LDA, NMAX ), B( LDB, MMAX ),  C( LDC, NMAX ),
+     $                 D( LDD, MMAX ), DWORK( LDWORK ), E( LDE, NMAX ),
+     $                 FPEAK( 2 ), GPEAK( 2 )
+      COMPLEX*16       CWORK( LCWORK )
+*     .. External Functions ..
+      LOGICAL          LSAME
+      EXTERNAL         LSAME
+*     .. External Subroutines ..
+      EXTERNAL         AB13DD
+*     .. Intrinsic Functions ..
+      INTRINSIC        MAX, MIN
+*     .. Executable Statements ..
+*
+      WRITE ( NOUT, FMT = 99999 )
+*     Skip the heading in the data file and read the data.
+      READ ( NIN, FMT = '()' )
+      READ ( NIN, FMT = * ) N, M, P, FPEAK, TOL, DICO, JOBE, EQUIL, JOBD
+      IF ( N.LT.0 .OR. N.GT.NMAX ) THEN
+         WRITE ( NOUT, FMT = 99994 ) N
+      ELSE IF ( M.LT.0 .OR. M.GT.MMAX ) THEN
+         WRITE ( NOUT, FMT = 99993 ) M
+      ELSE IF ( P.LT.0 .OR. P.GT.PMAX ) THEN
+         WRITE ( NOUT, FMT = 99992 ) P
+      ELSE
+         READ ( NIN, FMT = * ) ( ( A(I,J), J = 1,N ), I = 1,N )
+         IF ( LSAME( JOBE, 'G' ) )
+     $      READ ( NIN, FMT = * ) ( ( E(I,J), J = 1,N ), I = 1,N )
+         READ ( NIN, FMT = * ) ( ( B(I,J), J = 1,M ), I = 1,N )
+         READ ( NIN, FMT = * ) ( ( C(I,J), J = 1,N ), I = 1,P )
+         IF ( LSAME( JOBD, 'D' ) )
+     $      READ ( NIN, FMT = * ) ( ( D(I,J), J = 1,M ), I = 1,P )
+*        Computing the Linf norm.
+         CALL AB13DD( DICO, JOBE, EQUIL, JOBD, N, M, P, FPEAK, A, LDA,
+     $                E, LDE, B, LDB, C, LDC, D, LDD, GPEAK, TOL, IWORK,
+     $                DWORK, LDWORK, CWORK, LCWORK, INFO )
+*
+         IF ( INFO.EQ.0 ) THEN
+            IF ( GPEAK( 2 ).EQ.ZERO ) THEN
+               WRITE ( NOUT, FMT = 99991 )
+            ELSE
+               WRITE ( NOUT, FMT = 99997 )
+               WRITE ( NOUT, FMT = 99995 ) GPEAK( 1 )
+            END IF
+            IF ( FPEAK( 2 ).EQ.ZERO ) THEN
+               WRITE ( NOUT, FMT = 99990 )
+            ELSE
+               WRITE ( NOUT, FMT = 99996 )
+               WRITE ( NOUT, FMT = 99995 ) FPEAK( 1 )
+            END IF
+         ELSE
+            WRITE( NOUT, FMT = 99998 ) INFO
+         END IF
+      END IF
+      STOP
+*
+99999 FORMAT (' AB13DD EXAMPLE PROGRAM RESULTS',/1X)
+99998 FORMAT (/' INFO on exit from AB13DD =',I2)
+99997 FORMAT (/' The L_infty norm of the system is'/)
+99996 FORMAT (/' The peak frequency is'/)
+99995 FORMAT (D17.10)
+99994 FORMAT (/' N is out of range.',/' N = ',I5)
+99993 FORMAT (/' M is out of range.',/' M = ',I5)
+99992 FORMAT (/' P is out of range.',/' P = ',I5)
+99991 FORMAT (/' The L_infty norm of the system is infinite')
+99990 FORMAT (/' The peak frequency is infinite'/)
+      END
+</PRE>
+<B>Program Data</B>
+<PRE>
+ AB13CD EXAMPLE PROGRAM DATA
+   6     1     1     0.0     1.0   0.000000001     C     I     N     D   
+   0.0  1.0     0.0   0.0      0.0  0.0
+  -0.5 -0.0002  0.0   0.0      0.0  0.0
+   0.0  0.0     0.0   1.0      0.0  0.0
+   0.0  0.0    -1.0  -0.00002  0.0  0.0
+   0.0  0.0     0.0   0.0      0.0  1.0
+   0.0  0.0     0.0   0.0     -2.0 -0.000002
+   1.0 
+   0.0  
+   1.0 
+   0.0 
+   1.0 
+   0.0
+   1.0  0.0  1.0  0.0  1.0  0.0
+   0.0
+
+</PRE>
+<B>Program Results</B>
+<PRE>
+ AB13DD EXAMPLE PROGRAM RESULTS
+
+
+ The L_infty norm of the system is
+
+ 0.5000000001D+06
+
+ The peak frequency is
+
+ 0.1414213562D+01
+</PRE>
+
+<HR>
+<p>
+<A HREF=..\libindex.html><B>Return to index</B></A></BODY>
+</HTML>

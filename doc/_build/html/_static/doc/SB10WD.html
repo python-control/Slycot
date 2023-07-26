@@ -1,0 +1,216 @@
+<HTML>
+<HEAD><TITLE>SB10WD - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="SB10WD">SB10WD</A></H2>
+<H3>
+H2 optimal controller matrices using state feedback and output injection matrices (continuous-time)
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To compute the matrices of the H2 optimal controller
+
+           | AK | BK |
+       K = |----|----|,
+           | CK | DK |
+
+  from the state feedback matrix F and output injection matrix H as
+  determined by the SLICOT Library routine SB10VD.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE SB10WD( N, M, NP, NCON, NMEAS, A, LDA, B, LDB, C, LDC,
+     $                   D, LDD, F, LDF, H, LDH, TU, LDTU, TY, LDTY,
+     $                   AK, LDAK, BK, LDBK, CK, LDCK, DK, LDDK, INFO )
+C     .. Scalar Arguments ..
+      INTEGER            INFO, LDA, LDAK, LDB, LDBK, LDC, LDCK, LDD,
+     $                   LDDK, LDF, LDH, LDTU, LDTY, M, N, NCON, NMEAS,
+     $                   NP
+C     .. Array Arguments ..
+      DOUBLE PRECISION   A( LDA, * ), AK( LDAK, * ), B( LDB, * ),
+     $                   BK( LDBK, * ), C( LDC, * ), CK( LDCK, * ),
+     $                   D( LDD, * ), DK( LDDK, * ), F( LDF, * ),
+     $                   H( LDH, * ), TU( LDTU, * ), TY( LDTY, * )
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The order of the system.  N &gt;= 0.
+
+  M       (input) INTEGER
+          The column size of the matrix B.  M &gt;= 0.
+
+  NP      (input) INTEGER
+          The row size of the matrix C.  NP &gt;= 0.
+
+  NCON    (input) INTEGER
+          The number of control inputs (M2).  M &gt;= NCON &gt;= 0.
+          NP-NMEAS &gt;= NCON.
+
+  NMEAS   (input) INTEGER
+          The number of measurements (NP2).  NP &gt;= NMEAS &gt;= 0.
+          M-NCON &gt;= NMEAS.
+
+  A       (input) DOUBLE PRECISION array, dimension (LDA,N)
+          The leading N-by-N part of this array must contain the
+          system state matrix A.
+
+  LDA     INTEGER
+          The leading dimension of the array A.  LDA &gt;= max(1,N).
+
+  B       (input) DOUBLE PRECISION array, dimension (LDB,M)
+          The leading N-by-M part of this array must contain the
+          system input matrix B. Only the submatrix
+          B2 = B(:,M-M2+1:M) is used.
+
+  LDB     INTEGER
+          The leading dimension of the array B.  LDB &gt;= max(1,N).
+
+  C       (input) DOUBLE PRECISION array, dimension (LDC,N)
+          The leading NP-by-N part of this array must contain the
+          system output matrix C. Only the submatrix
+          C2 = C(NP-NP2+1:NP,:) is used.
+
+  LDC     INTEGER
+          The leading dimension of the array C.  LDC &gt;= max(1,NP).
+
+  D       (input) DOUBLE PRECISION array, dimension (LDD,M)
+          The leading NP-by-M part of this array must contain the
+          system input/output matrix D. Only the submatrix
+          D22 = D(NP-NP2+1:NP,M-M2+1:M) is used.
+
+  LDD     INTEGER
+          The leading dimension of the array D.  LDD &gt;= max(1,NP).
+
+  F       (input) DOUBLE PRECISION array, dimension (LDF,N)
+          The leading NCON-by-N part of this array must contain the
+          state feedback matrix F.
+
+  LDF     INTEGER
+          The leading dimension of the array F.  LDF &gt;= max(1,NCON).
+
+  H       (input) DOUBLE PRECISION array, dimension (LDH,NMEAS)
+          The leading N-by-NMEAS part of this array must contain the
+          output injection matrix H.
+
+  LDH     INTEGER
+          The leading dimension of the array H.  LDH &gt;= max(1,N).
+
+  TU      (input) DOUBLE PRECISION array, dimension (LDTU,M2)
+          The leading M2-by-M2 part of this array must contain the
+          control transformation matrix TU, as obtained by the
+          SLICOT Library routine SB10UD.
+
+  LDTU    INTEGER
+          The leading dimension of the array TU.  LDTU &gt;= max(1,M2).
+
+  TY      (input) DOUBLE PRECISION array, dimension (LDTY,NP2)
+          The leading NP2-by-NP2 part of this array must contain the
+          measurement transformation matrix TY, as obtained by the
+          SLICOT Library routine SB10UD.
+
+  LDTY    INTEGER
+          The leading dimension of the array TY.
+          LDTY &gt;= max(1,NP2).
+
+  AK      (output) DOUBLE PRECISION array, dimension (LDAK,N)
+          The leading N-by-N part of this array contains the
+          controller state matrix AK.
+
+  LDAK    INTEGER
+          The leading dimension of the array AK.  LDAK &gt;= max(1,N).
+
+  BK      (output) DOUBLE PRECISION array, dimension (LDBK,NMEAS)
+          The leading N-by-NMEAS part of this array contains the
+          controller input matrix BK.
+
+  LDBK    INTEGER
+          The leading dimension of the array BK.  LDBK &gt;= max(1,N).
+
+  CK      (output) DOUBLE PRECISION array, dimension (LDCK,N)
+          The leading NCON-by-N part of this array contains the
+          controller output matrix CK.
+
+  LDCK    INTEGER
+          The leading dimension of the array CK.
+          LDCK &gt;= max(1,NCON).
+
+  DK      (output) DOUBLE PRECISION array, dimension (LDDK,NMEAS)
+          The leading NCON-by-NMEAS part of this array contains the
+          controller input/output matrix DK.
+
+  LDDK    INTEGER
+          The leading dimension of the array DK.
+          LDDK &gt;= max(1,NCON).
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  The routine implements the formulas given in [1], [2].
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Zhou, K., Doyle, J.C., and Glover, K.
+      Robust and Optimal Control.
+      Prentice-Hall, Upper Saddle River, NJ, 1996.
+
+  [2] Balas, G.J., Doyle, J.C., Glover, K., Packard, A., and
+      Smith, R.
+      mu-Analysis and Synthesis Toolbox.
+      The MathWorks Inc., Natick, Mass., 1995.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  The accuracy of the result depends on the condition numbers of the
+  input and output transformations.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

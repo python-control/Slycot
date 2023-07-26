@@ -1,0 +1,2726 @@
+<HTML>
+<HEAD><TITLE>IB01BD - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="IB01BD">IB01BD</A></H2>
+<H3>
+Estimating system matrices, Kalman gain, and covariances (driver)
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To estimate the system matrices A, C, B, and D, the noise
+  covariance matrices Q, Ry, and S, and the Kalman gain matrix K
+  of a linear time-invariant state space model, using the
+  processed triangular factor R of the concatenated block Hankel
+  matrices, provided by SLICOT Library routine IB01AD.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE IB01BD( METH, JOB, JOBCK, NOBR, N, M, L, NSMPL, R,
+     $                   LDR, A, LDA, C, LDC, B, LDB, D, LDD, Q, LDQ,
+     $                   RY, LDRY, S, LDS, K, LDK, TOL, IWORK, DWORK,
+     $                   LDWORK, BWORK, IWARN, INFO )
+C     .. Scalar Arguments ..
+      DOUBLE PRECISION   TOL
+      INTEGER            INFO, IWARN, L, LDA, LDB, LDC, LDD, LDK, LDQ,
+     $                   LDR, LDRY, LDS, LDWORK, M, N, NOBR, NSMPL
+      CHARACTER          JOB, JOBCK, METH
+C     .. Array Arguments ..
+      DOUBLE PRECISION   A(LDA, *), B(LDB, *), C(LDC, *), D(LDD, *),
+     $                   DWORK(*),  K(LDK, *), Q(LDQ, *), R(LDR, *),
+     $                   RY(LDRY, *), S(LDS, *)
+      INTEGER            IWORK( * )
+      LOGICAL            BWORK( * )
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  METH    CHARACTER*1
+          Specifies the subspace identification method to be used,
+          as follows:
+          = 'M':  MOESP  algorithm with past inputs and outputs;
+          = 'N':  N4SID  algorithm;
+          = 'C':  combined method:  MOESP  algorithm for finding the
+                  matrices A and C, and  N4SID  algorithm for
+                  finding the matrices B and D.
+
+  JOB     CHARACTER*1
+          Specifies which matrices should be computed, as follows:
+          = 'A':  compute all system matrices, A, B, C, and D;
+          = 'C':  compute the matrices A and C only;
+          = 'B':  compute the matrix B only;
+          = 'D':  compute the matrices B and D only.
+
+  JOBCK   CHARACTER*1
+          Specifies whether or not the covariance matrices and the
+          Kalman gain matrix are to be computed, as follows:
+          = 'C':  the covariance matrices only should be computed;
+          = 'K':  the covariance matrices and the Kalman gain
+                  matrix should be computed;
+          = 'N':  the covariance matrices and the Kalman gain matrix
+                  should not be computed.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  NOBR    (input) INTEGER
+          The number of block rows,  s,  in the input and output
+          Hankel matrices processed by other routines.  NOBR &gt; 1.
+
+  N       (input) INTEGER
+          The order of the system.  NOBR &gt; N &gt; 0.
+
+  M       (input) INTEGER
+          The number of system inputs.  M &gt;= 0.
+
+  L       (input) INTEGER
+          The number of system outputs.  L &gt; 0.
+
+  NSMPL   (input) INTEGER
+          If  JOBCK = 'C' or 'K',  the total number of samples used
+          for calculating the covariance matrices.
+          NSMPL &gt;= 2*(M+L)*NOBR.
+          This parameter is not meaningful if  JOBCK = 'N'.
+
+  R       (input/workspace) DOUBLE PRECISION array, dimension
+          ( LDR,2*(M+L)*NOBR )
+          On entry, the leading  2*(M+L)*NOBR-by-2*(M+L)*NOBR  part
+          of this array must contain the relevant data for the MOESP
+          or N4SID algorithms, as constructed by SLICOT Library
+          routine IB01AD. Let  R_ij,  i,j = 1:4,  be the
+          ij submatrix of  R  (denoted  S  in IB01AD),  partitioned
+          by  M*NOBR,  L*NOBR,  M*NOBR,  and  L*NOBR  rows and
+          columns. The submatrix  R_22  contains the matrix of left
+          singular vectors used. Also needed, for  METH = 'N'  or
+          JOBCK &lt;&gt; 'N',  are the submatrices  R_11,  R_14 : R_44,
+          and, for  METH = 'M' or 'C'  and  JOB &lt;&gt; 'C', the
+          submatrices  R_31  and  R_12,  containing the processed
+          matrices  R_1c  and  R_2c,  respectively, as returned by
+          SLICOT Library routine IB01AD.
+          Moreover, if  METH = 'N'  and  JOB = 'A' or 'C',  the
+          block-row  R_41 : R_43  must contain the transpose of the
+          block-column  R_14 : R_34  as returned by SLICOT Library
+          routine IB01AD.
+          The remaining part of  R  is used as workspace.
+          On exit, part of this array is overwritten. Specifically,
+          if  METH = 'M',  R_22  and  R_31  are overwritten if
+              JOB = 'B' or 'D',  and  R_12,  R_22,  R_14 : R_34,
+              and possibly  R_11  are overwritten if  JOBCK &lt;&gt; 'N';
+          if  METH = 'N',  all needed submatrices are overwritten.
+          The details of the contents of  R  need not be known if
+          this routine is called once just after calling the SLICOT
+          Library routine IB01AD.
+
+  LDR     INTEGER
+          The leading dimension of the array  R.
+          LDR &gt;= 2*(M+L)*NOBR.
+
+  A       (input or output) DOUBLE PRECISION array, dimension
+          (LDA,N)
+          On entry, if  METH = 'N' or 'C'  and  JOB = 'B' or 'D',
+          the leading N-by-N part of this array must contain the
+          system state matrix.
+          If  METH = 'M'  or  (METH = 'N' or 'C'  and JOB = 'A'
+          or 'C'),  this array need not be set on input.
+          On exit, if  JOB = 'A' or 'C'  and  INFO = 0,  the
+          leading N-by-N part of this array contains the system
+          state matrix.
+
+  LDA     INTEGER
+          The leading dimension of the array A.
+          LDA &gt;= N,  if  JOB = 'A' or 'C',  or  METH = 'N' or 'C'
+                         and  JOB = 'B' or 'D';
+          LDA &gt;= 1,  otherwise.
+
+  C       (input or output) DOUBLE PRECISION array, dimension
+          (LDC,N)
+          On entry, if  METH = 'N' or 'C'  and  JOB = 'B' or 'D',
+          the leading L-by-N part of this array must contain the
+          system output matrix.
+          If  METH = 'M'  or  (METH = 'N' or 'C'  and JOB = 'A'
+          or 'C'),  this array need not be set on input.
+          On exit, if  JOB = 'A' or 'C'  and  INFO = 0,  or
+          INFO = 3  (or  INFO &gt;= 0,  for  METH = 'M'),  the leading
+          L-by-N part of this array contains the system output
+          matrix.
+
+  LDC     INTEGER
+          The leading dimension of the array C.
+          LDC &gt;= L,  if  JOB = 'A' or 'C',  or  METH = 'N' or 'C'
+                         and  JOB = 'B' or 'D';
+          LDC &gt;= 1,  otherwise.
+
+  B       (output) DOUBLE PRECISION array, dimension (LDB,M)
+          If  M &gt; 0,  JOB = 'A', 'B', or 'D'  and  INFO = 0,  the
+          leading N-by-M part of this array contains the system
+          input matrix. If  M = 0  or  JOB = 'C',  this array is
+          not referenced.
+
+  LDB     INTEGER
+          The leading dimension of the array B.
+          LDB &gt;= N,  if M &gt; 0 and JOB = 'A', 'B', or 'D';
+          LDB &gt;= 1,  if M = 0 or  JOB = 'C'.
+
+  D       (output) DOUBLE PRECISION array, dimension (LDD,M)
+          If  M &gt; 0,  JOB = 'A' or 'D'  and  INFO = 0,  the leading
+          L-by-M part of this array contains the system input-output
+          matrix. If  M = 0  or  JOB = 'C' or 'B',  this array is
+          not referenced.
+
+  LDD     INTEGER
+          The leading dimension of the array D.
+          LDD &gt;= L,  if M &gt; 0 and JOB = 'A' or 'D';
+          LDD &gt;= 1,  if M = 0 or  JOB = 'C' or 'B'.
+
+  Q       (output) DOUBLE PRECISION array, dimension (LDQ,N)
+          If  JOBCK = 'C' or 'K',  the leading N-by-N part of this
+          array contains the positive semidefinite state covariance
+          matrix. If  JOBCK = 'K',  this matrix has been used as
+          state weighting matrix for computing the Kalman gain.
+          This parameter is not referenced if JOBCK = 'N'.
+
+  LDQ     INTEGER
+          The leading dimension of the array Q.
+          LDQ &gt;= N,  if JOBCK = 'C' or 'K';
+          LDQ &gt;= 1,  if JOBCK = 'N'.
+
+  RY      (output) DOUBLE PRECISION array, dimension (LDRY,L)
+          If  JOBCK = 'C' or 'K',  the leading L-by-L part of this
+          array contains the positive (semi)definite output
+          covariance matrix. If  JOBCK = 'K',  this matrix has been
+          used as output weighting matrix for computing the Kalman
+          gain.
+          This parameter is not referenced if JOBCK = 'N'.
+
+  LDRY    INTEGER
+          The leading dimension of the array RY.
+          LDRY &gt;= L,  if JOBCK = 'C' or 'K';
+          LDRY &gt;= 1,  if JOBCK = 'N'.
+
+  S       (output) DOUBLE PRECISION array, dimension (LDS,L)
+          If  JOBCK = 'C' or 'K',  the leading N-by-L part of this
+          array contains the state-output cross-covariance matrix.
+          If  JOBCK = 'K',  this matrix has been used as state-
+          output weighting matrix for computing the Kalman gain.
+          This parameter is not referenced if JOBCK = 'N'.
+
+  LDS     INTEGER
+          The leading dimension of the array S.
+          LDS &gt;= N,  if JOBCK = 'C' or 'K';
+          LDS &gt;= 1,  if JOBCK = 'N'.
+
+  K       (output) DOUBLE PRECISION array, dimension ( LDK,L )
+          If  JOBCK = 'K',  the leading  N-by-L  part of this array
+          contains the estimated Kalman gain matrix.
+          If  JOBCK = 'C' or 'N',  this array is not referenced.
+
+  LDK     INTEGER
+          The leading dimension of the array  K.
+          LDK &gt;= N,  if JOBCK = 'K';
+          LDK &gt;= 1,  if JOBCK = 'C' or 'N'.
+
+</PRE>
+<B>Tolerances</B>
+<PRE>
+  TOL     DOUBLE PRECISION
+          The tolerance to be used for estimating the rank of
+          matrices. If the user sets  TOL &gt; 0,  then the given value
+          of  TOL  is used as a lower bound for the reciprocal
+          condition number;  an m-by-n matrix whose estimated
+          condition number is less than  1/TOL  is considered to
+          be of full rank.  If the user sets  TOL &lt;= 0,  then an
+          implicitly computed, default tolerance, defined by
+          TOLDEF = m*n*EPS,  is used instead, where  EPS  is the
+          relative machine precision (see LAPACK Library routine
+          DLAMCH).
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  IWORK   INTEGER array, dimension (LIWORK)
+          LIWORK &gt;= max(LIW1,LIW2), where
+          LIW1 = N,                     if METH &lt;&gt; 'N' and M = 0
+                                     or JOB = 'C' and JOBCK = 'N';
+          LIW1 = M*NOBR+N,              if METH &lt;&gt; 'N', JOB = 'C',
+                                        and JOBCK &lt;&gt; 'N';
+          LIW1 = max(L*NOBR,M*NOBR),    if METH = 'M', JOB &lt;&gt; 'C',
+                                        and JOBCK = 'N';
+          LIW1 = max(L*NOBR,M*NOBR+N),  if METH = 'M', JOB &lt;&gt; 'C',
+                                        and JOBCK = 'C' or 'K';
+          LIW1 = max(M*NOBR+N,M*(N+L)), if METH = 'N', or METH = 'C'
+                                        and JOB  &lt;&gt; 'C';
+          LIW2 = 0,                     if JOBCK &lt;&gt; 'K';
+          LIW2 = N*N,                   if JOBCK =  'K'.
+
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+          On exit, if  INFO = 0,  DWORK(1) returns the optimal value
+          of LDWORK,  and  DWORK(2),  DWORK(3),  DWORK(4),  and
+          DWORK(5)  contain the reciprocal condition numbers of the
+          triangular factors of the following matrices (defined in
+          SLICOT Library routine IB01PD and in the lower level
+          routines):
+             GaL  (GaL = Un(1:(s-1)*L,1:n)),
+             R_1c (if  METH = 'M' or 'C'),
+             M    (if  JOBCK = 'C' or 'K'  or  METH = 'N'),  and
+             Q or T  (see SLICOT Library routine IB01PY or IB01PX),
+          respectively.
+          If  METH = 'N',  DWORK(3)  is set to one without any
+          calculations. Similarly, if  METH = 'M'  and  JOBCK = 'N',
+          DWORK(4)  is set to one. If  M = 0  or  JOB = 'C',
+          DWORK(3)  and  DWORK(5)  are set to one.
+          If  JOBCK = 'K'  and  INFO = 0,  DWORK(6)  to  DWORK(13)
+          contain information about the accuracy of the results when
+          computing the Kalman gain matrix, as follows:
+             DWORK(6)  - reciprocal condition number of the matrix
+                         U11  of the Nth order system of algebraic
+                         equations from which the solution matrix  X
+                         of the Riccati equation is obtained;
+             DWORK(7)  - reciprocal pivot growth factor for the LU
+                         factorization of the matrix  U11;
+             DWORK(8)  - reciprocal condition number of the matrix
+                         As = A - S*inv(Ry)*C,  which is inverted by
+                         the standard Riccati solver;
+             DWORK(9)  - reciprocal pivot growth factor for the LU
+                         factorization of the matrix  As;
+             DWORK(10) - reciprocal condition number of the matrix
+                         Ry;
+             DWORK(11) - reciprocal condition number of the matrix
+                         Ry + C*X*C';
+             DWORK(12) - reciprocal condition number for the Riccati
+                         equation solution;
+             DWORK(13) - forward error bound for the Riccati
+                         equation solution.
+          On exit, if  INFO = -30,  DWORK(1)  returns the minimum
+          value of LDWORK.
+
+  LDWORK  INTEGER
+          The length of the array DWORK.
+          LDWORK &gt;= max( LDW1,LDW2,LDW3 ), where, if METH = 'M',
+          LDW1 &gt;= max( 2*(L*NOBR-L)*N+2*N, (L*NOBR-L)*N+N*N+7*N ),
+                  if JOB = 'C' or JOB = 'A' and M = 0;
+          LDW1 &gt;= max( 2*(L*NOBR-L)*N+N*N+7*N,
+                       (L*NOBR-L)*N+N+6*M*NOBR, (L*NOBR-L)*N+N+
+                       max( L+M*NOBR, L*NOBR +
+                                      max( 3*L*NOBR+1, M ) ) ),
+                  if M &gt; 0 and JOB = 'A', 'B', or 'D';
+          LDW2 &gt;= 0,                          if JOBCK = 'N';
+          LDW2 &gt;= L*NOBR*N+
+                  max( (L*NOBR-L)*N+Aw+2*N+max(5*N,(2*M+L)*NOBR+L),
+                       4*(M*NOBR+N)+1, M*NOBR+2*N+L ),
+                                              if JOBCK = 'C' or 'K',
+          where Aw = N+N*N, if M = 0 or JOB = 'C';
+                Aw = 0,     otherwise;
+          if METH = 'N',
+          LDW1 &gt;= L*NOBR*N+max( (L*NOBR-L)*N+2*N+(2*M+L)*NOBR+L,
+                                2*(L*NOBR-L)*N+N*N+8*N,
+                                N+4*(M*NOBR+N)+1, M*NOBR+3*N+L );
+          LDW2 &gt;= 0, if M = 0 or JOB = 'C';
+          LDW2 &gt;= L*NOBR*N+M*NOBR*(N+L)*(M*(N+L)+1)+
+                             max( (N+L)**2, 4*M*(N+L)+1 ),
+                  if M &gt; 0 and JOB = 'A', 'B', or 'D';
+          and, if METH = 'C', LDW1 as
+          max( LDW1 for METH = 'M', JOB = 'C', LDW1 for METH = 'N'),
+          and LDW2 for METH = 'N' are used;
+          LDW3 &gt;= 0,                     if JOBCK &lt;&gt; 'K';
+          LDW3 &gt;= max(  4*N*N+2*N*L+L*L+max( 3*L,N*L ),
+                       14*N*N+12*N+5 ),  if JOBCK =  'K'.
+          For good performance,  LDWORK  should be larger.
+
+  BWORK   LOGICAL array, dimension (LBWORK)
+          LBWORK = 2*N, if JOBCK =  'K';
+          LBWORK = 0,   if JOBCK &lt;&gt; 'K'.
+
+</PRE>
+<B>Warning Indicator</B>
+<PRE>
+  IWARN   INTEGER
+          = 0:  no warning;
+          = 4:  a least squares problem to be solved has a
+                rank-deficient coefficient matrix;
+          = 5:  the computed covariance matrices are too small.
+                The problem seems to be a deterministic one; the
+                gain matrix is set to zero.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value;
+          = 2:  the singular value decomposition (SVD) algorithm did
+                not converge;
+          = 3:  a singular upper triangular matrix was found;
+          = 3+i:  if  JOBCK = 'K'  and the associated Riccati
+                equation could not be solved, where i = 1,...,6;
+                (see the description of the parameter INFO for the
+                SLICOT Library routine SB02RD for the meaning of
+                the i values);
+          = 10: the QR algorithm did not converge.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  In the MOESP approach, the matrices  A  and  C  are first
+  computed from an estimated extended observability matrix [1],
+  and then, the matrices  B  and  D  are obtained by solving an
+  extended linear system in a least squares sense.
+  In the N4SID approach, besides the estimated extended
+  observability matrix, the solutions of two least squares problems
+  are used to build another least squares problem, whose solution
+  is needed to compute the system matrices  A,  C,  B,  and  D.  The
+  solutions of the two least squares problems are also optionally
+  used by both approaches to find the covariance matrices.
+  The Kalman gain matrix is obtained by solving a discrete-time
+  algebraic Riccati equation.
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Verhaegen M., and Dewilde, P.
+      Subspace Model Identification. Part 1: The output-error
+      state-space model identification class of algorithms.
+      Int. J. Control, 56, pp. 1187-1210, 1992.
+
+  [2] Van Overschee, P., and De Moor, B.
+      N4SID: Two Subspace Algorithms for the Identification
+      of Combined Deterministic-Stochastic Systems.
+      Automatica, Vol.30, No.1, pp. 75-93, 1994.
+
+  [3] Van Overschee, P.
+      Subspace Identification : Theory - Implementation -
+      Applications.
+      Ph. D. Thesis, Department of Electrical Engineering,
+      Katholieke Universiteit Leuven, Belgium, Feb. 1995.
+
+  [4] Sima, V.
+      Subspace-based Algorithms for Multivariable System
+      Identification.
+      Studies in Informatics and Control, 5, pp. 335-344, 1996.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  The implemented method consists in numerically stable steps.
+
+</PRE>
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  The covariance matrices are computed using the N4SID approach.
+  Therefore, for efficiency reasons, it is advisable to set
+  METH = 'N',  if the Kalman gain matrix or covariance matrices
+  are needed  (JOBCK = 'K', or 'C').  When  JOBCK = 'N',  it could
+  be more efficient to use the combined method,  METH = 'C'.
+  Often, this combination will also provide better accuracy than
+  MOESP algorithm.
+  In some applications, it is useful to compute the system matrices
+  using two calls to this routine, the first one with  JOB = 'C',
+  and the second one with  JOB = 'B' or 'D'.  This is slightly less
+  efficient than using a single call with  JOB = 'A',  because some
+  calculations are repeated. If  METH = 'N',  all the calculations
+  at the first call are performed again at the second call;
+  moreover, it is required to save the needed submatrices of  R
+  before the first call and restore them before the second call.
+  If the covariance matrices and/or the Kalman gain are desired,
+  JOBCK  should be set to  'C'  or  'K'  at the second call.
+  If  B  and  D  are both needed, they should be computed at once.
+
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+*     IB01BD EXAMPLE PROGRAM TEXT
+*
+*     .. Parameters ..
+      INTEGER          NIN, NOUT
+      PARAMETER        ( NIN = 5, NOUT = 6 )
+      INTEGER          LDA, LDB, LDC, LDD, LDK, LDQ, LDR, LDRY, LDS,
+     $                 LDU, LDW1, LDW2, LDW3, LDWORK, LDY, LIWORK, LMAX,
+     $                 MMAX, NMAX, NOBRMX, NSMPMX
+      PARAMETER        ( LMAX = 5, MMAX = 5, NOBRMX = 20, NSMPMX = 2000,
+     $                   NMAX = NOBRMX - 1, LDA = NMAX, LDB = NMAX,
+     $                   LDC  = LMAX, LDD  = LMAX, LDK = NMAX,
+     $                   LDQ  = NMAX, LDRY = LMAX, LDS = NMAX,
+     $                   LDR  = MAX( 2*( MMAX + LMAX )*NOBRMX,
+     $                               3*MMAX*NOBRMX ), LDU = NSMPMX,
+     $                   LDW1 = MAX( LMAX*( NOBRMX - 1 )*NMAX + NMAX +
+     $                               MAX( 6*MMAX, 4*LMAX )*NOBRMX,
+     $                               LMAX*NOBRMX*NMAX +
+     $                               MAX( LMAX*( NOBRMX - 1 )*NMAX +
+     $                                    3*NMAX + LMAX +
+     $                                    ( 2*MMAX + LMAX )*NOBRMX,
+     $                                    2*LMAX*( NOBRMX - 1 )*NMAX +
+     $                                    NMAX*NMAX + 8*NMAX,
+     $                                    NMAX +
+     $                                    4*( MMAX*NOBRMX + NMAX ) ) ),
+     $                   LDW2 = LMAX*NOBRMX*NMAX +
+     $                          MMAX*NOBRMX*( NMAX + LMAX )*
+     $                          ( MMAX*( NMAX + LMAX ) + 1 ) +
+     $                          MAX( ( NMAX + LMAX )**2,
+     $                          4*MMAX*( NMAX + LMAX ) + 1 ),
+     $                   LDW3 = MAX( 4*NMAX*NMAX + 2*NMAX*LMAX +
+     $                               LMAX*LMAX +
+     $                               MAX( 3*LMAX, NMAX*LMAX ),
+     $                               14*NMAX*NMAX + 12*NMAX + 5 ),
+     $                   LDWORK = MAX( 6*( MMAX + LMAX )*NOBRMX,
+     $                                 ( MMAX + LMAX )*( 4*NOBRMX*
+     $                                 ( MMAX + LMAX + 2 ) - 2 ),
+     $                                 ( MMAX + LMAX )*4*NOBRMX*
+     $                                 ( NOBRMX + 1 ), LDW1, LDW2,
+     $                                 LDW3 ),
+     $                   LDY = NSMPMX,
+     $                   LIWORK = MAX( ( MMAX + LMAX )*NOBRMX,
+     $                                 MMAX*NOBRMX + NMAX, LMAX*NOBRMX,
+     $                                 MMAX*( NMAX + LMAX ), NMAX*NMAX )
+     $                 )
+*     .. Local Scalars ..
+      LOGICAL          NGIVEN
+      CHARACTER        ALG, BATCH, CONCT, CTRL, JOB, JOBCK, JOBD, JOBDA,
+     $                 METH, METHA
+      INTEGER          I, ICYCLE, II, INFO, IWARN, J, L, M, N, NCYCLE,
+     $                 NGIV, NOBR, NSAMPL, NSMP
+      DOUBLE PRECISION RCOND, TOL
+*     .. Local Arrays ..
+      DOUBLE PRECISION A(LDA, NMAX), B(LDB, MMAX), C(LDC, NMAX),
+     $                 D(LDD, MMAX), DWORK(LDWORK), K(LDK, LMAX),
+     $                 Q(LDQ, NMAX), R(LDR, 2*(MMAX+LMAX)*NOBRMX),
+     $                 RY(LDRY, LMAX), S(LDS, LMAX), SV(LMAX*NOBRMX),
+     $                 U(LDU, MMAX), Y(LDY, LMAX)
+      INTEGER          IWORK(LIWORK)
+      LOGICAL          BWORK(2*NMAX)
+*     .. External Functions ..
+      LOGICAL          LSAME
+      EXTERNAL         LSAME
+*     .. External Subroutines ..
+      EXTERNAL         IB01AD, IB01BD
+*     .. Intrinsic Functions ..
+      INTRINSIC        MAX
+*     .. Executable Statements ..
+*
+      WRITE ( NOUT, FMT = 99999 )
+*     Skip the heading in the data file and read the data.
+*     If the value of N is positive, it will be taken as system order.
+      READ ( NIN, FMT = '()' )
+      READ ( NIN, FMT = * ) NOBR, N, M, L, NSMP, RCOND, TOL
+      READ ( NIN, FMT = * ) METH, ALG, JOBD, BATCH, CONCT, CTRL, JOB,
+     $                      JOBCK
+      IF ( LSAME( BATCH, 'F' ) ) THEN
+         READ ( NIN, FMT = * ) NCYCLE
+      ELSE
+         NCYCLE = 1
+      END IF
+      NSAMPL = NCYCLE*NSMP
+*
+      NGIVEN = N.GT.0
+      IF( NGIVEN )
+     $   NGIV = N
+      IF ( NOBR.LE.0 .OR. NOBR.GT.NOBRMX ) THEN
+         WRITE ( NOUT, FMT = 99997 ) NOBR
+      ELSE IF ( M.LT.0 .OR. M.GT.MMAX ) THEN
+         WRITE ( NOUT, FMT = 99996 ) M
+      ELSE IF ( L.LE.0 .OR. L.GT.LMAX ) THEN
+         WRITE ( NOUT, FMT = 99995 ) L
+      ELSE IF ( NSMP.LT.0 .OR. NSMP.GT.NSMPMX .OR.
+     $        ( NSMP.LT.2*( M + L + 1 )*NOBR - 1 .AND.
+     $          LSAME( BATCH, 'O' ) ) .OR.
+     $        ( NSAMPL.LT.2*( M + L + 1 )*NOBR - 1 .AND.
+     $          LSAME( BATCH, 'L' ) ) .OR.
+     $          NSMP.LT.2*NOBR .AND. ( LSAME( BATCH, 'F' ) .OR.
+     $                                 LSAME( BATCH, 'I' ) ) ) THEN
+         WRITE ( NOUT, FMT = 99994 ) NSMP
+      ELSE IF ( NCYCLE.LE.0 .OR. NSAMPL.GT.NSMPMX ) THEN
+         WRITE ( NOUT, FMT = 99993 ) NCYCLE
+      ELSE IF ( N.LT.0 .OR. N.GT.NMAX ) THEN
+         WRITE ( NOUT, FMT = 99980 ) N
+      ELSE
+*        Read the matrices U and Y from the input file.
+         IF ( M.GT.0 )
+     $      READ ( NIN, FMT = * )
+     $                         ( ( U(I,J), J = 1, M ), I = 1, NSAMPL )
+         READ ( NIN, FMT = * ) ( ( Y(I,J), J = 1, L ), I = 1, NSAMPL )
+*        Read A and C matrices, if METH <> 'M' and JOB = 'B' or 'D'.
+         IF ( .NOT.LSAME( METH, 'M' ) .AND.
+     $           ( LSAME( JOB,  'B' ) .OR. LSAME( JOB, 'D' ) ) ) THEN
+            DO 10 I = 1, N
+               READ ( NIN, FMT = * ) ( A(I,J), J = 1, N )
+   10       CONTINUE
+            DO 20 I = 1, L
+               READ ( NIN, FMT = * ) ( C(I,J), J = 1, N )
+   20       CONTINUE
+         END IF
+*        Force some options for IB01AD, depending on the specifications.
+         IF ( LSAME( METH, 'C' ) ) THEN
+            METHA = 'M'
+            JOBDA = 'N'
+         ELSE
+            METHA = METH
+            JOBDA = JOBD
+         END IF
+*        Compute the  R  factor from a QR (or Cholesky) factorization
+*        of the Hankel-like matrix (or correlation matrix).
+         DO 30 ICYCLE = 1, NCYCLE
+            II = ( ICYCLE - 1 )*NSMP + 1
+            IF ( NCYCLE.GT.1 ) THEN
+               IF ( ICYCLE.GT.1 )      BATCH = 'I'
+               IF ( ICYCLE.EQ.NCYCLE ) BATCH = 'L'
+            END IF
+            CALL IB01AD( METHA, ALG, JOBDA, BATCH, CONCT, CTRL, NOBR, M,
+     $                   L, NSMP, U(II,1), LDU, Y(II,1), LDY, N, R, LDR,
+     $                   SV, RCOND, TOL, IWORK, DWORK, LDWORK, IWARN,
+     $                   INFO )
+   30    CONTINUE
+         IF ( INFO.NE.0 ) THEN
+            WRITE ( NOUT, FMT = 99998 ) INFO
+         ELSE
+            IF ( IWARN.NE.0 )
+     $         WRITE ( NOUT, FMT = 99990 ) IWARN
+            IF( NGIVEN )
+     $         N = NGIV
+*           Compute the system matrices.
+            CALL IB01BD( METH, JOB, JOBCK, NOBR, N, M, L, NSMP, R,
+     $                   LDR, A, LDA, C, LDC, B, LDB, D, LDD, Q, LDQ,
+     $                   RY, LDRY, S, LDS, K, LDK, RCOND, IWORK, DWORK,
+     $                   LDWORK, BWORK, IWARN, INFO )
+            IF ( INFO.NE.0 ) THEN
+               WRITE ( NOUT, FMT = 99992 ) INFO
+            ELSE
+               IF ( IWARN.NE.0 )
+     $            WRITE ( NOUT, FMT = 99991 ) IWARN
+               IF ( LSAME( JOB, 'A' ) .OR. LSAME( JOB, 'C' ) ) THEN
+                  WRITE ( NOUT, FMT = 99989 )
+                  DO 40 I = 1, N
+                     WRITE ( NOUT, FMT = 99988 ) ( A(I,J), J = 1,N )
+   40             CONTINUE
+                  WRITE ( NOUT, FMT = 99987 )
+                  DO 50 I = 1, L
+                     WRITE ( NOUT, FMT = 99988 ) ( C(I,J), J = 1,N )
+   50             CONTINUE
+               END IF
+               IF ( .NOT.LSAME( JOB, 'C' ) ) THEN
+                  WRITE ( NOUT, FMT = 99986 )
+                  DO 60 I = 1, N
+                     WRITE ( NOUT, FMT = 99988 ) ( B(I,J), J = 1,M )
+   60             CONTINUE
+               END IF
+               IF ( LSAME( JOB, 'A' ) .OR. LSAME( JOB, 'D' ) ) THEN
+                  WRITE ( NOUT, FMT = 99985 )
+                  DO 70 I = 1, L
+                     WRITE ( NOUT, FMT = 99988 ) ( D(I,J), J = 1,M )
+   70             CONTINUE
+               END IF
+               IF ( LSAME( JOBCK, 'K' ) ) THEN
+                  WRITE ( NOUT, FMT = 99984 )
+                  DO 80 I = 1, N
+                     WRITE ( NOUT, FMT = 99988 ) ( K(I,J), J = 1,L )
+   80             CONTINUE
+               END IF
+               IF ( .NOT.LSAME( JOBCK, 'N' ) ) THEN
+                  WRITE ( NOUT, FMT = 99983 )
+                  DO 90 I = 1, N
+                     WRITE ( NOUT, FMT = 99988 ) ( Q(I,J), J = 1,N )
+   90             CONTINUE
+                  WRITE ( NOUT, FMT = 99982 )
+                  DO 100 I = 1, L
+                     WRITE ( NOUT, FMT = 99988 ) ( RY(I,J), J = 1,L )
+  100             CONTINUE
+                  WRITE ( NOUT, FMT = 99981 )
+                  DO 110 I = 1, N
+                     WRITE ( NOUT, FMT = 99988 ) ( S(I,J), J = 1,L )
+  110             CONTINUE
+               END IF
+            END IF
+         END IF
+      END IF
+      STOP
+99999 FORMAT ( ' IB01BD EXAMPLE PROGRAM RESULTS', /1X)
+99998 FORMAT ( ' INFO on exit from IB01AD = ',I2)
+99997 FORMAT (/' NOBR is out of range.',/' NOBR = ', I5)
+99996 FORMAT (/' M is out of range.',/' M = ', I5)
+99995 FORMAT (/' L is out of range.',/' L = ', I5)
+99994 FORMAT (/' NSMP is out of range.',/' NSMP = ', I5)
+99993 FORMAT (/' NCYCLE is out of range.',/' NCYCLE = ', I5)
+99992 FORMAT ( ' INFO on exit from IB01BD = ',I2)
+99991 FORMAT ( ' IWARN on exit from IB01BD = ',I2)
+99990 FORMAT ( ' IWARN on exit from IB01AD = ',I2)
+99989 FORMAT (/' The system state matrix A is ')
+99988 FORMAT (20(1X,F8.4))
+99987 FORMAT (/' The system output matrix C is ')
+99986 FORMAT (/' The system input matrix B is ')
+99985 FORMAT (/' The system input-output matrix D is ')
+99984 FORMAT (/' The Kalman gain matrix K is ')
+99983 FORMAT (/' The state covariance matrix Q is ')
+99982 FORMAT (/' The output covariance matrix Ry is ')
+99981 FORMAT (/' The state-output cross-covariance matrix S is ')
+99980 FORMAT (/' N is out of range.',/' N = ', I5)
+      END
+</PRE>
+<B>Program Data</B>
+<PRE>
+ IB01BD EXAMPLE PROGRAM DATA
+  15     0     1     1  1000    0.0   -1.0
+   C     C     N     O     N     N     A     K
+   6.41
+   3.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   6.41
+   3.41
+   3.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   6.41
+   6.41
+   6.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   6.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   6.41
+   6.41
+   6.41
+   3.41
+   3.41
+   3.41
+   3.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   3.41
+   3.41
+   3.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   3.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   3.41
+   3.41
+   6.41
+   6.41
+   6.41
+   3.41
+   3.41
+   3.41
+   3.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   6.41
+   3.41
+   3.41
+   3.41
+   3.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   3.41
+   3.41
+   3.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   3.41
+   6.41
+   6.41
+   3.41
+   3.41
+   3.41
+   3.41
+   6.41
+   3.41
+   3.41
+   3.41
+   3.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   6.41
+   6.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   6.41
+   6.41
+   6.41
+   6.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   3.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   6.41
+   6.41
+   6.41
+   3.41
+   3.41
+   3.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   3.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   6.41
+   6.41
+   6.41
+   6.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   6.41
+   6.41
+   3.41
+   3.41
+   3.41
+   6.41
+   6.41
+   6.41
+   3.41
+   3.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   3.41
+   3.41
+   3.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   6.41
+   3.41
+   3.41
+   3.41
+   3.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   3.41
+   3.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   3.41
+   3.41
+   3.41
+   6.41
+   6.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   6.41
+   3.41
+   3.41
+   3.41
+   3.41
+   6.41
+   3.41
+   3.41
+   3.41
+   6.41
+   6.41
+   3.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   3.41
+   3.41
+   6.41
+   6.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   6.41
+   6.41
+   6.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   3.41
+   6.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   6.41
+   6.41
+   6.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   6.41
+   6.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   6.41
+   3.41
+   3.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   3.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   3.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   3.41
+   3.41
+   3.41
+   6.41
+   3.41
+   3.41
+   3.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   3.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   6.41
+   6.41
+   6.41
+   6.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   3.41
+   3.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   3.41
+   3.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   3.41
+   3.41
+   3.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   3.41
+   6.41
+   3.41
+   3.41
+   6.41
+   6.41
+   6.41
+   6.41
+   3.41
+   6.41
+   3.41
+   3.41
+   3.41
+   6.41
+   3.41
+   3.41
+   3.41
+   6.41
+   3.41
+   3.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   6.41
+   6.41
+   3.41
+   3.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   6.41
+   6.41
+   6.41
+   6.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   3.41
+   3.41
+   6.41
+   6.41
+   6.41
+   6.41
+   3.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   3.41
+   3.41
+   3.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   6.41
+   6.41
+   6.41
+   6.41
+   3.41
+   3.41
+   6.41
+   6.41
+   6.41
+   6.41
+   3.41
+   3.41
+   3.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   3.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   3.41
+   6.41
+   6.41
+   3.41
+   6.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   6.41
+   6.41
+   3.41
+   3.41
+   6.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   6.41
+   6.41
+   3.41
+   3.41
+   3.41
+   6.41
+   6.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   6.41
+   6.41
+   6.41
+   6.41
+   3.41
+   3.41
+   3.41
+   3.41
+   6.41
+   6.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   6.41
+   6.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   6.41
+   6.41
+   6.41
+   6.41
+   3.41
+   3.41
+   3.41
+   6.41
+   3.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   3.41
+   3.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   3.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   3.41
+   3.41
+   3.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   3.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   6.41
+   4.766099
+   4.763659
+   4.839359
+   5.002979
+   5.017629
+   5.056699
+   5.154379
+   5.361949
+   5.425439
+   5.569519
+   5.681849
+   5.742899
+   5.803949
+   5.918729
+   5.821049
+   5.447419
+   5.061589
+   4.629349
+   4.267939
+   4.011519
+   3.850349
+   3.711159
+   3.569519
+   3.518239
+   3.652549
+   3.818609
+   3.862559
+   4.011519
+   4.353409
+   4.705049
+   5.083559
+   5.344859
+   5.274039
+   5.127519
+   4.761219
+   4.451089
+   4.221539
+   4.045709
+   3.874769
+   3.730689
+   3.662319
+   3.576849
+   3.542659
+   3.479169
+   3.454749
+   3.359509
+   3.298459
+   3.225199
+   3.200779
+   3.225199
+   3.227639
+   3.274039
+   3.457189
+   3.867449
+   4.321659
+   4.492599
+   4.431549
+   4.243519
+   4.050599
+   3.857679
+   3.730689
+   3.791739
+   3.921169
+   3.955359
+   3.847909
+   3.725809
+   3.611039
+   3.716039
+   4.092109
+   4.480389
+   4.814939
+   5.054259
+   5.303339
+   5.486489
+   5.672089
+   5.779529
+   5.799069
+   5.664759
+   5.291129
+   4.880879
+   4.558529
+   4.184909
+   3.889419
+   3.708719
+   3.623249
+   3.569519
+   3.718479
+   4.033499
+   4.412009
+   4.629349
+   4.558529
+   4.394919
+   4.180019
+   4.197119
+   4.431549
+   4.714819
+   4.961459
+   5.300899
+   5.567079
+   5.681849
+   5.545099
+   5.188569
+   4.883319
+   4.600049
+   4.270379
+   4.038389
+   3.838139
+   3.711159
+   3.591499
+   3.535329
+   3.486489
+   3.476729
+   3.425439
+   3.381489
+   3.369279
+   3.364389
+   3.347299
+   3.381489
+   3.420559
+   3.413229
+   3.452309
+   3.635459
+   4.038389
+   4.375379
+   4.727029
+   5.056699
+   5.298459
+   5.532889
+   5.466959
+   5.195899
+   4.885759
+   4.763659
+   4.875989
+   5.042049
+   5.283809
+   5.491379
+   5.596379
+   5.672089
+   5.772209
+   5.830819
+   5.933379
+   5.899189
+   5.935819
+   5.894309
+   5.918729
+   5.994429
+   5.957799
+   6.031059
+   6.062809
+   6.040829
+   6.096999
+   6.123859
+   6.162929
+   6.040829
+   5.845469
+   5.772209
+   5.799069
+   5.923609
+   5.928499
+   6.001759
+   6.001759
+   6.060369
+   5.882099
+   5.510909
+   5.322879
+   5.371719
+   5.454749
+   5.437649
+   5.159269
+   4.902859
+   4.587839
+   4.502369
+   4.595159
+   4.824709
+   5.064029
+   5.271599
+   5.466959
+   5.615919
+   5.528009
+   5.254499
+   4.883319
+   4.517019
+   4.197119
+   4.001759
+   3.806399
+   3.904079
+   3.923609
+   3.869889
+   3.806399
+   3.720929
+   3.818609
+   4.140949
+   4.529229
+   4.805179
+   5.086009
+   5.339969
+   5.532889
+   5.576849
+   5.667199
+   5.791739
+   5.850349
+   5.923609
+   5.921169
+   5.977339
+   5.740459
+   5.388809
+   5.000539
+   4.849129
+   4.944369
+   5.173919
+   5.369279
+   5.447419
+   5.603709
+   5.730689
+   5.850349
+   5.979779
+   5.991989
+   6.084789
+   5.940709
+   5.803949
+   5.791739
+   5.603709
+   5.264269
+   4.946809
+   4.619579
+   4.514579
+   4.433989
+   4.285029
+   4.121419
+   3.945589
+   3.984659
+   4.219099
+   4.546319
+   4.873549
+   5.154379
+   5.388809
+   5.613479
+   5.835699
+   5.884539
+   5.955359
+   5.762439
+   5.459629
+   5.061589
+   4.707499
+   4.458409
+   4.267939
+   4.053039
+   3.943149
+   3.825929
+   3.967569
+   4.280149
+   4.480389
+   4.492599
+   4.390039
+   4.197119
+   4.111649
+   3.982219
+   3.867449
+   3.767319
+   3.872329
+   4.236189
+   4.663539
+   4.971229
+   5.066469
+   4.902859
+   4.675749
+   4.392479
+   4.099439
+   4.114089
+   4.326539
+   4.643999
+   4.971229
+   5.159269
+   5.388809
+   5.576849
+   5.652549
+   5.803949
+   5.913839
+   5.886979
+   5.799069
+   5.730689
+   5.762439
+   5.813719
+   5.821049
+   5.928499
+   6.013969
+   5.764879
+   5.413229
+   5.098219
+   4.678189
+   4.372939
+   4.392479
+   4.590279
+   4.919949
+   5.017629
+   4.858899
+   4.675749
+   4.619579
+   4.834479
+   5.090889
+   5.376599
+   5.681849
+   5.823489
+   5.952919
+   6.062809
+   6.089669
+   6.075019
+   6.026179
+   5.994429
+   6.077459
+   5.857679
+   5.701389
+   5.730689
+   5.784419
+   5.823489
+   5.894309
+   5.762439
+   5.415679
+   4.961459
+   4.595159
+   4.331429
+   4.297239
+   4.582949
+   4.861339
+   5.173919
+   5.166589
+   4.919949
+   4.607369
+   4.370499
+   4.182469
+   4.038389
+   4.145839
+   4.431549
+   4.556089
+   4.480389
+   4.375379
+   4.370499
+   4.558529
+   4.858899
+   4.895529
+   4.741679
+   4.744129
+   4.875989
+   5.105539
+   5.239849
+   5.518239
+   5.652549
+   5.723369
+   5.855239
+   5.962679
+   5.984659
+   5.984659
+   6.055479
+   6.062809
+   6.055479
+   6.070129
+   5.784419
+   5.440099
+   5.056699
+   4.941929
+   5.010299
+   5.134849
+   5.313109
+   5.479169
+   5.623249
+   5.562199
+   5.330209
+   5.010299
+   4.665979
+   4.414459
+   4.201999
+   4.048159
+   4.079899
+   4.189789
+   4.131179
+   4.004199
+   3.916289
+   3.960239
+   4.199559
+   4.624469
+   4.883319
+   5.137289
+   5.379049
+   5.623249
+   5.762439
+   5.833259
+   5.686739
+   5.366839
+   5.225199
+   5.239849
+   5.354629
+   5.508469
+   5.596379
+   5.752669
+   5.874769
+   5.906519
+   5.894309
+   5.742899
+   5.447419
+   5.024959
+   4.883319
+   4.885759
+   4.893089
+   4.714819
+   4.451089
+   4.233749
+   4.043269
+   3.864999
+   3.757559
+   3.669639
+   3.593939
+   3.547539
+   3.506029
+   3.454749
+   3.398579
+   3.361949
+   3.339969
+   3.374159
+   3.520679
+   3.713599
+   3.757559
+   3.779529
+   3.696509
+   3.777089
+   3.886979
+   3.904079
+   3.850349
+   3.965129
+   4.282589
+   4.521899
+   4.714819
+   4.971229
+   5.220319
+   5.532889
+   5.652549
+   5.781979
+   5.955359
+   6.035939
+   6.118969
+   6.133629
+   6.153159
+   6.192229
+   6.143389
+   6.167809
+   5.991989
+   5.652549
+   5.459629
+   5.437649
+   5.339969
+   5.098219
+   4.785639
+   4.492599
+   4.236189
+   4.067689
+   3.933379
+   3.823489
+   3.730689
+   3.611039
+   3.564639
+   3.549989
+   3.557309
+   3.513359
+   3.515799
+   3.694059
+   4.072579
+   4.480389
+   4.705049
+   4.612259
+   4.385149
+   4.201999
+   4.026179
+   3.904079
+   3.774649
+   3.691619
+   3.845469
+   4.201999
+   4.585399
+   4.902859
+   5.256949
+   5.510909
+   5.640339
+   5.843029
+   5.974889
+   5.935819
+   5.821049
+   5.528009
+   5.171479
+   4.810059
+   4.453529
+   4.380269
+   4.565859
+   4.805179
+   5.125079
+   5.354629
+   5.589059
+   5.764879
+   5.923609
+   5.940709
+   5.857679
+   5.694059
+   5.486489
+   5.149499
+   4.844249
+   4.541439
+   4.267939
+   4.060369
+   3.960239
+   3.789299
+   3.642779
+   3.525569
+   3.498699
+   3.454749
+   3.408349
+   3.379049
+   3.376599
+   3.361949
+   3.359509
+   3.369279
+   3.398579
+   3.579289
+   3.948029
+   4.412009
+   4.585399
+   4.514579
+   4.343639
+   4.155599
+   3.984659
+   4.043269
+   4.307009
+   4.421779
+   4.353409
+   4.223979
+   4.053039
+   3.940709
+   3.838139
+   3.730689
+   3.652549
+   3.611039
+   3.564639
+   3.496259
+   3.462069
+   3.454749
+   3.425439
+   3.379049
+   3.432769
+   3.623249
+   3.974889
+   4.380269
+   4.714819
+   5.073799
+   5.369279
+   5.603709
+   5.745349
+   5.652549
+   5.401019
+   5.015189
+   4.709939
+   4.416899
+   4.236189
+   4.236189
+   4.248399
+   4.221539
+   4.297239
+   4.590279
+   4.893089
+   5.134849
+   5.427889
+   5.379049
+   5.364389
+   5.452309
+   5.567079
+   5.672089
+   5.769769
+   5.830819
+   5.923609
+   5.965129
+   6.057919
+   6.050599
+   6.072579
+   6.111649
+   6.070129
+   5.896749
+   5.755109
+   5.718479
+   5.821049
+   6.001759
+   6.001759
+   5.901629
+   5.557309
+   5.173919
+   4.800289
+   4.431549
+   4.194679
+   4.006639
+   3.850349
+   3.747789
+   3.642779
+   3.591499
+   3.569519
+   3.528009
+   3.537779
+   3.554869
+   3.493819
+   3.447419
+   3.440099
+   3.408349
+   3.410789
+   3.452309
+   3.681849
+   4.060369
+   4.441319
+   4.854019
+   5.154379
+   5.425439
+   5.596379
+   5.586619
+   5.354629
+   5.027399
+   4.863779
+   4.761219
+   4.570739
+   4.368059
+   4.397359
+   4.573189
+   4.841809
+   5.203219
+   5.452309
+   5.652549
+   5.855239
+   5.906519
+   5.952919
+   5.828369
+   5.791739
+   5.799069
+   5.813719
+   5.877209
+   5.955359
+   5.781979
+   5.518239
+   5.127519
+   4.763659
+   4.492599
+   4.233749
+   4.011519
+   3.855239
+   3.691619
+   3.635459
+   3.818609
+   4.155599
+   4.590279
+   4.988329
+   5.076239
+   4.907739
+   4.648889
+   4.377829
+   4.216649
+   4.287469
+   4.590279
+   4.846689
+   5.139729
+   5.388809
+   5.689179
+   5.884539
+   6.043269
+   6.170259
+   6.211769
+   6.250839
+   6.209329
+   6.013969
+   5.701389
+   5.469399
+   5.479169
+   5.557309
+   5.728249
+   5.882099
+   5.984659
+   5.901629
+   5.581729
+   5.371719
+   5.418119
+   5.510909
+   5.667199
+   5.791739
+   5.698949
+   5.484049
+   5.154379
+   4.980999
+   5.061589
+   5.195899
+   5.359509
+   5.615919
+   5.762439
+   5.857679
+   5.948029
+   5.835699
+   5.706269
+   5.498699
+   5.188569
+   5.117749
+   5.191009
+   5.315549
+   5.532889
+   5.444979
+   5.396139
+   5.274039
+   5.027399
+   4.744129
+   4.668419
+   4.651329
+   4.514579
+   4.267939
+   4.260609
+   4.263049
+   4.189789
+   4.277699
+   4.600049
+   4.932159
+   5.283809
+   5.528009
+   5.740459
+   5.874769
+   5.955359
+   5.991989
+   5.845469
+   5.528009
+   5.061589
+   4.734359
+   4.534109
+   4.534109
+   4.697729
+   4.744129
+   4.619579
+   4.643999
+   4.832039
+   5.132399
+   5.410789
+   5.625689
+   5.603709
+   5.315549
+   4.961459
+   4.619579
+   4.358289
+   4.155599
+   4.033499
+   3.886979
+   3.772209
+   3.640339
+   3.532889
+   3.435209
+   3.427889
+   3.422999
+   3.398579
+   3.603709
+   4.023729
+   4.451089
+   4.792969
+   4.902859
+   4.780759
+   4.590279
+   4.336309
+   4.145839
+   4.216649
+   4.433989
+   4.714819
+   5.098219
+   5.359509
+   5.569519
+   5.772209
+   5.921169
+   6.055479
+   5.962679
+   5.642779
+   5.435209
+   5.388809
+   5.537779
+   5.681849
+   5.701389
+   5.615919
+   5.667199
+   5.740459
+   5.803949
+   5.882099
+   5.950469
+   6.072579
+   6.148279
+   6.116529
+   6.177579
+   6.201999
+   6.206889
+   5.991989
+   5.564639
+   5.178799
+   4.998089
+   5.051819
+   5.232529
+   5.484049
+   5.686739
+   5.899189
+   5.869889
+   5.977339
+   6.053039
+   6.079899
+   6.128739
+   6.079899
+   6.167809
+   6.194679
+   6.236189
+   6.053039
+   5.652549
+   5.274039
+   4.858899
+   4.534109
+   4.455969
+   4.619579
+   4.866229
+   5.117749
+   5.166589
+   5.056699
+   5.002979
+   5.098219
+   5.325319
+   5.567079
+   5.466959
+   5.252059
+   4.946809
+   4.880879
+   4.980999
+   5.225199
+   5.459629
+   5.723369
+   5.791739
+   5.906519
+   5.991989
+   5.835699
+   5.528009
+   5.142169
+   4.775869
+   4.490159
+   4.236189
+   4.023729
+   3.886979
+   3.752669
+   3.681849
+   3.806399
+   4.145839
+   4.600049
+   5.002979
+   5.303339
+   5.552429
+   5.615919
+   5.523119
+   5.611039
+   5.713599
+   5.845469
+   5.899189
+   5.994429
+   6.092109
+   6.092109
+   6.143389
+   6.153159
+   6.233749
+   6.187349
+   6.013969
+   5.835699
+   5.774649
+   5.686739
+   5.537779
+   5.327759
+   5.054259
+   4.700169
+   4.394919
+   4.180019
+   4.043269
+   3.877209
+   3.752669
+   3.728249
+   3.869889
+   4.206889
+   4.355849
+   4.426669
+   4.453529
+   4.521899
+   4.392479
+   4.155599
+   3.965129
+   3.877209
+   3.970009
+   4.258169
+   4.421779
+   4.336309
+   4.299679
+   4.392479
+   4.675749
+   4.761219
+   4.658659
+   4.490159
+   4.307009
+   4.126299
+   3.972449
+   4.077459
+   4.372939
+   4.741679
+   5.088449
+   5.186129
+   5.037169
+   4.785639
+   4.563419
+   4.534109
+   4.705049
+   4.741679
+   4.648889
+   4.431549
+   4.238629
+   4.065249
+   3.943149
+   3.811279
+   3.691619
+   3.652549
+   3.825929
+   4.223979
+   4.424219
+   4.429109
+   4.319219
+   4.138509
+   3.965129
+   3.886979
+   3.801509
+   3.701389
+   3.640339
+   3.767319
+   4.150719
+   4.648889
+   4.990769
+   5.088449
+   5.022509
+   4.783199
+   4.685519
+   4.665979
+   4.707499
+   4.912619
+   5.195899
+   5.415679
+   5.623249
+   5.740459
+   5.899189
+   5.928499
+   6.050599
+   6.153159
+   5.965129
+   5.586619
+   5.381489
+   5.371719
+   5.486489
+   5.567079
+   5.821049
+   5.913839
+   5.994429
+   6.011519
+   5.999309
+   6.018849
+   5.821049
+   5.728249
+   5.740459
+   5.764879
+   5.882099
+   5.926049
+   5.750229
+   5.415679
+   4.995649
+   4.861339
+   4.902859
+   5.103099
+   5.364389
+   5.596379
+   5.752669
+   5.845469
+   5.928499
+   6.006639
+   5.840579
+   5.518239
+   5.173919
+   4.739239
+   4.458409
+   4.426669
+   4.602489
+   4.822269
+   5.183689
+   5.430329
+   5.652549
+   5.821049
+   5.706269
+   5.369279
+   5.027399
+   4.705049
+   4.414459
+   4.145839
+   3.965129
+   4.033499
+   4.372939
+   4.683079
+</PRE>
+<B>Program Results</B>
+<PRE>
+ IB01BD EXAMPLE PROGRAM RESULTS
+
+
+ The system state matrix A is 
+   0.8924   0.3887   0.1285   0.1716
+  -0.0837   0.6186  -0.6273  -0.4582
+   0.0052   0.1307   0.6685  -0.6755
+   0.0055   0.0734  -0.2148   0.4788
+
+ The system output matrix C is 
+  -0.4442   0.6663   0.3961   0.4102
+
+ The system input matrix B is 
+  -0.2142
+  -0.1968
+   0.0525
+   0.0361
+
+ The system input-output matrix D is 
+  -0.0041
+
+ The Kalman gain matrix K is 
+  -1.9513
+  -0.1867
+   0.6348
+  -0.3486
+
+ The state covariance matrix Q is 
+   0.0052   0.0005  -0.0017   0.0009
+   0.0005   0.0000  -0.0002   0.0001
+  -0.0017  -0.0002   0.0006  -0.0003
+   0.0009   0.0001  -0.0003   0.0002
+
+ The output covariance matrix Ry is 
+   0.0012
+
+ The state-output cross-covariance matrix S is 
+  -0.0025
+  -0.0002
+   0.0008
+  -0.0005
+</PRE>
+
+<HR>
+<p>
+<A HREF=..\libindex.html><B>Return to index</B></A></BODY>
+</HTML>

@@ -1,0 +1,235 @@
+<HTML>
+<HEAD><TITLE>MB04DD - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MB04DD">MB04DD</A></H2>
+<H3>
+Balancing a real Hamiltonian matrix
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To balance a real Hamiltonian matrix,
+
+                [  A   G  ]
+           H =  [       T ] ,
+                [  Q  -A  ]
+
+  where A is an N-by-N matrix and G, Q are N-by-N symmetric
+  matrices. This involves, first, permuting H by a symplectic
+  similarity transformation to isolate eigenvalues in the first
+  1:ILO-1 elements on the diagonal of A; and second, applying a
+  diagonal similarity transformation to rows and columns
+  ILO:N, N+ILO:2*N to make the rows and columns as close in 1-norm
+  as possible. Both steps are optional.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MB04DD( JOB, N, A, LDA, QG, LDQG, ILO, SCALE, INFO )
+C     .. Scalar Arguments ..
+      CHARACTER         JOB
+      INTEGER           ILO, INFO, LDA, LDQG, N
+C     .. Array Arguments ..
+      DOUBLE PRECISION  A(LDA,*), QG(LDQG,*), SCALE(*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  JOB     CHARACTER*1
+          Specifies the operations to be performed on H:
+          = 'N':  none, set ILO = 1, SCALE(I) = 1.0, I = 1 .. N;
+          = 'P':  permute only;
+          = 'S':  scale only;
+          = 'B':  both permute and scale.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The order of the matrix A. N &gt;= 0.
+
+  A       (input/output) DOUBLE PRECISION array, dimension (LDA,N)
+          On entry, the leading N-by-N part of this array must
+          contain the matrix A.
+          On exit, the leading N-by-N part of this array contains
+          the matrix A of the balanced Hamiltonian. In particular,
+          the strictly lower triangular part of the first ILO-1
+          columns of A is zero.
+
+  LDA     INTEGER
+          The leading dimension of the array A.  LDA &gt;= MAX(1,N).
+
+  QG      (input/output) DOUBLE PRECISION array, dimension
+                         (LDQG,N+1)
+          On entry, the leading N-by-N+1 part of this array must
+          contain the lower triangular part of the matrix Q and
+          the upper triangular part of the matrix G.
+          On exit, the leading N-by-N+1 part of this array contains
+          the lower and upper triangular parts of the matrices Q and
+          G, respectively, of the balanced Hamiltonian. In
+          particular, the lower triangular part of the first ILO-1
+          columns of QG is zero.
+
+  LDQG    INTEGER
+          The leading dimension of the array QG.  LDQG &gt;= MAX(1,N).
+
+  ILO     (output) INTEGER
+          ILO-1 is the number of deflated eigenvalues in the
+          balanced Hamiltonian matrix.
+
+  SCALE   (output) DOUBLE PRECISION array of dimension (N)
+          Details of the permutations and scaling factors applied to
+          H.  For j = 1,...,ILO-1 let P(j) = SCALE(j). If P(j) &lt;= N,
+          then rows and columns P(j) and P(j)+N are interchanged
+          with rows and columns j and j+N, respectively. If
+          P(j) &gt; N, then row and column P(j)-N are interchanged with
+          row and column j+N by a generalized symplectic
+          permutation. For j = ILO,...,N the j-th element of SCALE
+          contains the factor of the scaling applied to row and
+          column j.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value.
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Benner, P.
+      Symplectic balancing of Hamiltonian matrices.
+      SIAM J. Sci. Comput., 22 (5), pp. 1885-1904, 2001.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+*     MB04DD EXAMPLE PROGRAM TEXT
+*
+*     .. Parameters ..
+      INTEGER          NIN, NOUT
+      PARAMETER        ( NIN = 5, NOUT = 6 )
+      INTEGER          NMAX
+      PARAMETER        ( NMAX = 100 )
+      INTEGER          LDA, LDQG
+      PARAMETER        ( LDA = NMAX, LDQG = NMAX )
+*     .. Local Scalars ..
+      CHARACTER*1      JOB
+      INTEGER          I, ILO, INFO, J, N
+*     .. Local Arrays ..
+      DOUBLE PRECISION A(LDA, NMAX), DUMMY(1), QG(LDQG, NMAX+1),
+     $                 SCALE(NMAX)
+*     .. External Functions ..
+      DOUBLE PRECISION DLANTR, DLAPY2
+      EXTERNAL         DLANTR, DLAPY2
+*     .. External Subroutines ..
+      EXTERNAL         MB04DD
+*     .. Executable Statements ..
+      WRITE ( NOUT, FMT = 99999 )
+*     Skip the heading in the data file and read the data.
+      READ ( NIN, FMT = '()' )
+      READ ( NIN, FMT = * )  N, JOB
+      IF( N.LE.0 .OR. N.GT.NMAX ) THEN
+         WRITE ( NOUT, FMT = 99994 ) N
+      ELSE
+         READ ( NIN, FMT = * ) ( ( A(I,J), J = 1,N ), I = 1,N )
+         READ ( NIN, FMT = * ) ( ( QG(I,J), J = 1,N+1 ), I = 1,N )
+         CALL MB04DD( JOB, N, A, LDA, QG, LDQG, ILO, SCALE, INFO )
+         IF ( INFO.NE.0 ) THEN
+            WRITE ( NOUT, FMT = 99998 ) INFO
+         ELSE
+            WRITE ( NOUT, FMT = 99997 )
+            DO 30  I = 1, N
+               WRITE (NOUT, FMT = 99995) ( A(I,J), J = 1,N )
+30          CONTINUE
+            WRITE ( NOUT, FMT = 99996 )
+            DO 40  I = 1, N
+               WRITE (NOUT, FMT = 99995) ( QG(I,J), J = 1,N+1 )
+40          CONTINUE
+            WRITE (NOUT, FMT = 99993)  ILO
+            IF ( ILO.GT.1 ) THEN
+                WRITE (NOUT, FMT = 99992) DLAPY2( DLANTR( 'Frobenius',
+     $                 'Lower', 'No Unit', N-1, ILO-1, A(2,1), LDA,
+     $                 DUMMY ), DLANTR( 'Frobenius', 'Lower', 'No Unit',
+     $                 N, ILO-1, QG(1,1), LDQG, DUMMY ) )
+            END IF
+         END IF
+      END IF
+*
+99999 FORMAT (' MB04DD EXAMPLE PROGRAM RESULTS',/1X)
+99998 FORMAT (' INFO on exit from MB04DD = ',I2)
+99997 FORMAT (' The balanced matrix A is ')
+99996 FORMAT (/' The balanced matrix QG is ')
+99995 FORMAT (20(1X,F12.4))
+99994 FORMAT (/' N is out of range.',/' N = ',I5)
+99993 FORMAT (/' ILO = ',I4)
+99992 FORMAT (/' Norm of subdiagonal blocks: ',G7.2)
+      END
+</PRE>
+<B>Program Data</B>
+<PRE>
+MB04DD EXAMPLE PROGRAM DATA
+       6       B
+         0         0         0         0         0         0
+    0.0994         0         0         0         0    0.9696
+    0.3248         0         0         0    0.4372    0.8308
+         0         0         0    0.0717         0         0
+         0         0         0         0         0    0.1976
+         0         0         0         0         0         0
+         0         0         0         0         0         0         0
+         0         0         0         0    0.0651         0         0
+         0         0         0         0         0         0         0
+         0         0    0.0444         0         0    0.1957         0
+    0.8144         0         0         0    0.3652         0    0.9121
+    0.9023         0         0         0         0         0    1.0945
+</PRE>
+<B>Program Results</B>
+<PRE>
+ MB04DD EXAMPLE PROGRAM RESULTS
+
+ The balanced matrix A is 
+       0.0000       0.0000       0.0000       0.0000       0.0000       0.9696
+       0.0000       0.0000       0.0000       0.0000      -0.8144      -0.9023
+       0.0000       0.0000       0.0000       0.0000       0.1093       0.2077
+       0.0000       0.0000       0.0000       0.0717       0.0000       0.0000
+       0.0000       0.0000       0.0000       0.0000       0.0000       0.1976
+       0.0000       0.0000       0.0000       0.0000       0.0000       0.0000
+
+ The balanced matrix QG is 
+       0.0000       0.0000       0.0994       0.0000       0.0651       0.0000       0.0000
+       0.0000       0.0000       0.0000       0.0812       0.0000       0.0000       0.0000
+       0.0000       0.0000       0.0000       0.0000       0.0000       0.0000       0.0000
+       0.0000       0.0000       0.1776       0.0000       0.0000       0.1957       0.0000
+       0.0000       0.0000       0.0000       0.0000       0.3652       0.0000       0.9121
+       0.0000       0.0000       0.0000       0.0000       0.0000       0.0000       1.0945
+
+ ILO =    3
+
+ Norm of subdiagonal blocks: 0.0    
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

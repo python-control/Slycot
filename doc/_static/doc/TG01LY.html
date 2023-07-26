@@ -1,0 +1,297 @@
+<HTML>
+<HEAD><TITLE>TG01LY - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="TG01LY">TG01LY</A></H2>
+<H3>
+Finite-infinite decomposition of a structured descriptor system
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To compute orthogonal transformation matrices Q and Z which reduce
+  the regular pole pencil A-lambda*E of the descriptor system
+  (A-lambda*E,B,C), with the A and E matrices in the form
+
+        ( A11 A12 A13 )             ( E11  0  0 )
+    A = ( A21 A22 A23 ) ,       E = (  0   0  0 ) ,              (1)
+        ( A31  0   0  )             (  0   0  0 )
+
+  where E11 and A22 are nonsingular and upper triangular matrices,
+  to the form
+
+             ( Af  *  )             ( Ef  *  )
+    Q'*A*Z = (        ) ,  Q'*E*Z = (        ) ,
+             ( 0   Ai )             ( 0   Ei )
+
+  where the subpencil Af-lambda*Ef contains the finite eigenvalues
+  and the subpencil Ai-lambda*Ei contains the infinite eigenvalues.
+  The subpencil Ai-lambda*Ei is in a staircase form with the
+  matrices Ai and Ei of form
+
+        ( A0,0  A0,k ... A0,1 )         ( 0  E0,k ... E0,1 )
+   Ai = (  0    Ak,k ... Ak,1 ) ,  Ei = ( 0   0   ... Ek,1 ) ,   (2)
+        (  :     :   ...   :  )         ( :   :   ...   :  )
+        (  0     0   ... A1,1 )         ( 0   0   ...   0  )
+
+  where Ai,i, for i = 0, 1, ..., k, are nonsingular upper triangular
+  matrices.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE TG01LY( COMPQ, COMPZ, N, M, P, RANKE, RNKA22, A, LDA,
+     $                   E, LDE, B, LDB, C, LDC, Q, LDQ, Z, LDZ, NF,
+     $                   NIBLCK, IBLCK, TOL, IWORK, DWORK, LDWORK,
+     $                   INFO )
+C     .. Scalar Arguments ..
+      LOGICAL            COMPQ, COMPZ
+      INTEGER            INFO, LDA, LDB, LDC, LDE, LDQ, LDWORK, LDZ, M,
+     $                   N, NF, NIBLCK, P, RANKE, RNKA22
+      DOUBLE PRECISION   TOL
+C     .. Array Arguments ..
+      INTEGER            IBLCK( * ), IWORK(*)
+      DOUBLE PRECISION   A( LDA, * ), B( LDB, * ), C( LDC, * ),
+     $                   DWORK(  * ), E( LDE, * ), Q( LDQ, * ),
+     $                   Z( LDZ, * )
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  COMPQ   LOGICAL
+          Specify the option to accumulate or not the performed
+          left transformations:
+          COMPQ = .FALSE. : do not accumulate the transformations;
+          COMPQ = .TRUE.  : accumulate the transformations; in this
+                  case, Q must contain an orthogonal matrix Q1
+                  on entry, and the product Q1*Q is returned.
+
+  COMPZ   LOGICAL
+          Specify the option to accumulate or not the performed
+          right transformations:
+          COMPZ = .FALSE. : do not accumulate the transformations;
+          COMPZ = .TRUE.  : accumulate the transformations; in this
+                  case, Z must contain an orthogonal matrix Z1
+                  on entry, and the product Z1*Z is returned.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The number of rows of the matrix B, the number of columns
+          of the matrix C and the order of the square matrices A
+          and E.  N &gt;= 0.
+
+  M       (input) INTEGER
+          The number of columns of the matrix B.  M &gt;= 0.
+
+  P       (input) INTEGER
+          The number of rows of the matrix C.  P &gt;= 0.
+
+  RANKE   (input) INTEGER
+          The rank of the matrix E; also, the order of the upper
+          triangular matrix E11.  0 &lt;= RANKE &lt;= N. 
+
+  RNKA22  (input) DOUBLE PRECISION
+          The order of the nonsingular submatrix A22 of A.
+          0 &lt;= RNKA22 &lt;= N - RANKE. 
+
+  A       (input/output) DOUBLE PRECISION array, dimension (LDA,N)
+          On entry, the leading N-by-N part of this array must
+          contain the N-by-N state matrix A in the form (1).
+          On exit, the leading N-by-N part of this array contains
+          the transformed state matrix Q'*A*Z,
+
+                             ( Af  *  )
+                    Q'*A*Z = (        ) ,
+                             ( 0   Ai )
+
+          where Af is NF-by-NF and Ai is (N-NF)-by-(N-NF).
+          The submatrix Ai is in the staircase form (2), where A0,0
+          is (N-RANKE)-by-(N-RANKE), and Ai,i , for i = 1, ...,
+          NIBLCK is IBLCK(i)-by-IBLCK(i).
+
+  LDA     INTEGER
+          The leading dimension of the array A.  LDA &gt;= MAX(1,N).
+
+  E       (input/output) DOUBLE PRECISION array, dimension (LDE,N)
+          On entry, the leading N-by-N part of this array must
+          contain the N-by-N descriptor matrix E in the form (1).
+          On exit, the leading N-by-N part of this array contains
+          the transformed descriptor matrix Q'*E*Z,
+
+                             ( Ef  *  )
+                    Q'*E*Z = (        ) ,
+                             ( 0   Ei )
+
+          where Ef is an NF-by-NF nonsingular matrix and Ei is an
+          (N-NF)-by-(N-NF) nilpotent matrix in the staircase
+          form (2).
+
+  LDE     INTEGER
+          The leading dimension of the array E.  LDE &gt;= MAX(1,N).
+
+  B       (input/output) DOUBLE PRECISION array, dimension (LDB,M)
+          On entry, the leading N-by-M part of this array must
+          contain the N-by-M input matrix B.
+          On exit, the leading N-by-M part of this array contains
+          the transformed input matrix Q'*B.
+
+  LDB     INTEGER
+          The leading dimension of the array B.  LDB &gt;= MAX(1,N).
+
+  C       (input/output) DOUBLE PRECISION array, dimension (LDC,N)
+          On entry, the leading P-by-N part of this array must
+          contain the state/output matrix C.
+          On exit, the leading P-by-N part of this array contains
+          the transformed matrix C*Z.
+
+  LDC     INTEGER
+          The leading dimension of the array C.  LDC &gt;= MAX(1,P).
+
+  Q       (input/output) DOUBLE PRECISION array, dimension (LDQ,N)
+          If COMPQ = .FALSE., Q is not referenced.
+          If COMPQ = .TRUE., on entry, the leading N-by-N part of
+                      this array must contain an orthogonal matrix
+                      Q1; on exit, the leading N-by-N part of this
+                      array contains the orthogonal matrix Q1*Q.
+
+  LDQ     INTEGER
+          The leading dimension of the array Q.
+          LDQ &gt;= 1,        if COMPQ = .FALSE.;
+          LDQ &gt;= MAX(1,N), if COMPQ = .TRUE. .
+
+  Z       (input/output) DOUBLE PRECISION array, dimension (LDZ,N)
+          If COMPZ = .FALSE., Z is not referenced.
+          If COMPZ = .TRUE., on entry, the leading N-by-N part of
+                     this array must contain an orthogonal matrix
+                     Z1; on exit, the leading N-by-N part of this
+                     array contains the orthogonal matrix Z1*Z.
+
+  LDZ     INTEGER
+          The leading dimension of the array Z.
+          LDZ &gt;= 1,        if COMPZ = .FALSE.;
+          LDZ &gt;= MAX(1,N), if COMPZ = .TRUE. .
+
+  NF      (output) INTEGER
+          The order of the reduced matrices Af and Ef; also, the
+          number of finite generalized eigenvalues of the pencil
+          A-lambda*E.
+
+  NIBLCK  (output) INTEGER
+          If RANKE &lt; N, the number of infinite blocks minus one.
+          If RANKE = N, NIBLCK = 0.
+
+  IBLCK   (output) INTEGER array, dimension (N)
+          IBLCK(i) contains the dimension of the i-th block in the
+          staircase form (2), where i = 1, 2, ..., NIBLCK.
+
+</PRE>
+<B>Tolerances</B>
+<PRE>
+  TOL     DOUBLE PRECISION
+          A tolerance used in rank decisions to determine the
+          effective rank, which is defined as the order of the
+          largest leading (or trailing) triangular submatrix in the
+          QR factorization with column pivoting whose estimated
+          condition number is less than 1/TOL.  If the user sets
+          TOL &lt;= 0, then an implicitly computed, default tolerance,
+          TOLDEF = N**2*EPS,  is used instead, where EPS is the
+          machine precision (see LAPACK Library routine DLAMCH).
+          TOL &lt; 1.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  IWORK   INTEGER array, dimension (N-RANKE)
+
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+          On exit, if INFO = 0, DWORK(1) returns the optimal value
+          of LDWORK.
+
+  LDWORK  INTEGER
+          The length of the array DWORK.
+          LDWORK &gt;= 1, if RANKE = N; otherwise,
+          LDWORK &gt;= MAX(4*(N-RANKE)-1, N-RANKE-RNKA22+MAX(N,M)).
+          For optimal performance, LDWORK should be larger.
+
+          If LDWORK = -1, then a workspace query is assumed;
+          the routine only calculates the optimal size of the
+          DWORK array, returns this value as the first entry of
+          the DWORK array, and no error message related to LDWORK
+          is issued by XERBLA.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value;
+          = 1:  the pencil A-lambda*E is not regular.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  The subroutine is based on the reduction algorithm of [1].
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Misra, P., Van Dooren, P., and Varga, A.
+      Computation of structural invariants of generalized
+      state-space systems.
+      Automatica, 30, pp. 1921-1936, 1994.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  The algorithm is numerically backward stable and requires
+  0( N**3 )  floating point operations.
+
+</PRE>
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  The number of infinite poles is computed as
+
+         NIBLCK
+          Sum  IBLCK(i) = RANKE - NF.
+          i=1
+
+  The multiplicities of infinite poles can be computed as follows:
+  there are IBLCK(k)-IBLCK(k+1) infinite poles of multiplicity
+  k, for k = 1, ..., NIBLCK, where IBLCK(NIBLCK+1) = 0.
+  Note that each infinite pole of multiplicity k corresponds to
+  an infinite eigenvalue of multiplicity k+1.
+
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

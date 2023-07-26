@@ -1,0 +1,95 @@
+<HTML>
+<HEAD><TITLE>MA02BD - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MA02BD">MA02BD</A></H2>
+<H3>
+Reversing the order of rows and/or columns of a matrix
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To reverse the order of rows and/or columns of a given matrix A
+  by pre-multiplying and/or post-multiplying it, respectively, with
+  a permutation matrix P, where P is a square matrix of appropriate
+  order, with ones down the secondary diagonal.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MA02BD( SIDE, M, N, A, LDA )
+C     .. Scalar Arguments ..
+      CHARACTER          SIDE
+      INTEGER            LDA, M, N
+C     .. Array Arguments ..
+      DOUBLE PRECISION   A(LDA,*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  SIDE    CHARACTER*1
+          Specifies the operation to be performed, as follows:
+          = 'L': the order of rows of A is to be reversed by
+                 pre-multiplying A with P;
+          = 'R': the order of columns of A is to be reversed by
+                 post-multiplying A with P;
+          = 'B': both the order of rows and the order of columns
+                 of A is to be reversed by pre-multiplying and
+                 post-multiplying A with P.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  M       (input) INTEGER
+          The number of rows of the matrix A.  M &gt;= 0.
+
+  N       (input) INTEGER
+          The number of columns of the matrix A.  N &gt;= 0.
+
+  A       (input/output) DOUBLE PRECISION array, dimension (LDA,N)
+          On entry, the leading M-by-N part of this array must
+          contain the given matrix whose rows and/or columns are to
+          be permuted.
+          On exit, the leading M-by-N part of this array contains
+          the matrix P*A if SIDE = 'L', or A*P if SIDE = 'R', or
+          P*A*P if SIDE = 'B'.
+
+  LDA     INTEGER
+          The leading dimension of the array A.  LDA &gt;= max(1,M).
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

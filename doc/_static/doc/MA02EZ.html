@@ -1,0 +1,105 @@
+<HTML>
+<HEAD><TITLE>MA02EZ - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MA02EZ">MA02EZ</A></H2>
+<H3>
+Store by (skew-)symmetry the upper or lower triangle of a (skew-)symmetric/Hermitian complex matrix, given the other triangle
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To store by (skew-)symmetry the upper or lower triangle of a
+  (skew-)symmetric/Hermitian complex matrix, given the other
+  triangle. The option SKEW = 'G' allows to suitably deal with the
+  diagonal of a general square triangular matrix.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MA02EZ( UPLO, TRANS, SKEW, N, A, LDA )
+C     .. Scalar Arguments ..
+      CHARACTER          SKEW, TRANS, UPLO
+      INTEGER            LDA, N
+C     .. Array Arguments ..
+      COMPLEX*16         A(LDA,*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  UPLO    CHARACTER*1
+          Specifies which part of the matrix is given as follows:
+          = 'U':  Upper triangular part;
+          = 'L':  Lower triangular part.
+          For all other values, the array A is not referenced.
+
+  TRANS   CHARACTER*1
+          Specifies whether to use transposition or conjugate
+          transposition as follows:
+          = 'T':  Use transposition;
+          = 'C':  Use conjugate transposition.
+
+  SKEW    CHARACTER*1
+          Specifies whether the matrix is symmetric/Hermitian or
+          skew-symmetric/Hermitian as follows:
+          = 'G':  The matrix is not symmetric/Hermitian (general);
+          = 'N':  The matrix is symmetric/Hermitian;
+          = 'S':  The matrix is skew-symmetric/Hermitian.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The order of the matrix A.  N &gt;= 0.
+
+  A       (input/output) COMPLEX*16 array, dimension (LDA,N)
+          On entry, the leading N-by-N upper triangular part
+          (if UPLO = 'U'), or lower triangular part (if UPLO = 'L'),
+          of this array must contain the corresponding upper or
+          lower triangle of the (skew-)symmetric/Hermitian matrix A.
+          On exit, the leading N-by-N part of this array contains
+          the (skew-)symmetric/Hermitian matrix A with all elements
+          stored. If the resulted matrix should be Hermitian, the
+          imaginary parts of the diagonal entries are set to zero.
+          If the resulted matrix should be skew-Hermitian, the real
+          parts of the diagonal entries are set to zero.
+
+  LDA     INTEGER
+          The leading dimension of the array A.  LDA &gt;= max(1,N).
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

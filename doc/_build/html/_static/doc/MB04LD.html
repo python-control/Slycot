@@ -1,0 +1,166 @@
+<HTML>
+<HEAD><TITLE>MB04LD - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MB04LD">MB04LD</A></H2>
+<H3>
+LQ factorization of a special structured block matrix
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To calculate an LQ factorization of the first block row and apply
+  the orthogonal transformations (from the right) also to the second
+  block row of a structured matrix, as follows
+                     _
+     [ L   A ]     [ L   0 ]
+     [       ]*Q = [       ]
+     [ 0   B ]     [ C   D ]
+              _
+  where L and L are lower triangular. The matrix A can be full or
+  lower trapezoidal/triangular. The problem structure is exploited.
+  This computation is useful, for instance, in combined measurement
+  and time update of one iteration of the Kalman filter (square
+  root covariance filter).
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MB04LD( UPLO, N, M, P, L, LDL, A, LDA, B, LDB, C, LDC,
+     $                   TAU, DWORK )
+C     .. Scalar Arguments ..
+      CHARACTER         UPLO
+      INTEGER           LDA, LDB, LDC, LDL, M, N, P
+C     .. Array Arguments ..
+      DOUBLE PRECISION  A(LDA,*), B(LDB,*), C(LDC,*), DWORK(*),
+     $                  L(LDL,*), TAU(*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  UPLO    CHARACTER*1
+          Indicates if the matrix A is or not triangular as follows:
+          = 'L':  Matrix A is lower trapezoidal/triangular;
+          = 'F':  Matrix A is full.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER                 _
+          The order of the matrices L and L.  N &gt;= 0.
+
+  M       (input) INTEGER
+          The number of columns of the matrices A, B and D.  M &gt;= 0.
+
+  P       (input) INTEGER
+          The number of rows of the matrices B, C and D.  P &gt;= 0.
+
+  L       (input/output) DOUBLE PRECISION array, dimension (LDL,N)
+          On entry, the leading N-by-N lower triangular part of this
+          array must contain the lower triangular matrix L.
+          On exit, the leading N-by-N lower triangular part of this
+                                                     _
+          array contains the lower triangular matrix L.
+          The strict upper triangular part of this array is not
+          referenced.
+
+  LDL     INTEGER
+          The leading dimension of array L.  LDL &gt;= MAX(1,N).
+
+  A       (input/output) DOUBLE PRECISION array, dimension (LDA,M)
+          On entry, if UPLO = 'F', the leading N-by-M part of this
+          array must contain the matrix A. If UPLO = 'L', the
+          leading N-by-MIN(N,M) part of this array must contain the
+          lower trapezoidal (lower triangular if N &lt;= M) matrix A,
+          and the elements above the diagonal are not referenced.
+          On exit, the leading N-by-M part (lower trapezoidal or
+          triangular, if UPLO = 'L') of this array contains the
+          trailing components (the vectors v, see Method) of the
+          elementary reflectors used in the factorization.
+
+  LDA     INTEGER
+          The leading dimension of array A.  LDA &gt;= MAX(1,N).
+
+  B       (input/output) DOUBLE PRECISION array, dimension (LDB,M)
+          On entry, the leading P-by-M part of this array must
+          contain the matrix B.
+          On exit, the leading P-by-M part of this array contains
+          the computed matrix D.
+
+  LDB     INTEGER
+          The leading dimension of array B.  LDB &gt;= MAX(1,P).
+
+  C       (output) DOUBLE PRECISION array, dimension (LDC,N)
+          The leading P-by-N part of this array contains the
+          computed matrix C.
+
+  LDC     INTEGER
+          The leading dimension of array C.  LDC &gt;= MAX(1,P).
+
+  TAU     (output) DOUBLE PRECISION array, dimension (N)
+          The scalar factors of the elementary reflectors used.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  DWORK   DOUBLE PRECISION array, dimension (N)
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  The routine uses N Householder transformations exploiting the zero
+  pattern of the block matrix.  A Householder matrix has the form
+
+                                  ( 1 ),
+     H  = I - tau *u *u',    u  = ( v )
+      i          i  i  i      i   (  i)
+
+  where v  is an M-vector, if UPLO = 'F', or an min(i,M)-vector, if
+         i
+  UPLO = 'L'.  The components of v  are stored in the i-th row of A,
+                                  i
+  and tau  is stored in TAU(i).
+         i
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  The algorithm is backward stable.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<p>
+<A HREF=..\libindex.html><B>Return to index</B></A></BODY>
+</HTML>

@@ -1,0 +1,156 @@
+<HTML>
+<HEAD><TITLE>SB10ZP - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="SB10ZP">SB10ZP</A></H2>
+<H3>
+Transforming a SISO system into a stable and minimum phase one
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To transform a SISO (single-input single-output) system [A,B;C,D]
+  by mirroring its unstable poles and zeros in the boundary of the
+  stability domain, thus preserving the frequency response of the
+  system, but making it stable and minimum phase. Specifically, for
+  a continuous-time system, the positive real parts of its poles
+  and zeros are exchanged with their negatives. Discrete-time
+  systems are first converted to continuous-time systems using a
+  bilinear transformation, and finally converted back.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE SB10ZP( DISCFL, N, A, LDA, B, C, D, IWORK, DWORK,
+     $                   LDWORK, INFO )
+C     .. Scalar Arguments ..
+      INTEGER            DISCFL, INFO, LDA, LDWORK, N
+C     .. Array Arguments ..
+      INTEGER            IWORK( * )
+      DOUBLE PRECISION   A( LDA, * ), B( * ), C( * ), D( * ), DWORK( * )
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  DISCFL  (input) INTEGER
+          Indicates the type of the system, as follows:
+          = 0: continuous-time system;
+          = 1: discrete-time system.
+
+  N       (input/output) INTEGER
+          On entry, the order of the original system.  N &gt;= 0.
+          On exit, the order of the transformed, minimal system.
+
+  A       (input/output) DOUBLE PRECISION array, dimension (LDA,N)
+          On entry, the leading N-by-N part of this array must
+          contain the original system matrix A.
+          On exit, the leading N-by-N part of this array contains
+          the transformed matrix A, in an upper Hessenberg form.
+
+  LDA     INTEGER
+          The leading dimension of the array A.  LDA &gt;= MAX(1,N).
+
+  B       (input/output) DOUBLE PRECISION array, dimension (N)
+          On entry, this array must contain the original system
+          vector B.
+          On exit, this array contains the transformed vector B.
+
+  C       (input/output) DOUBLE PRECISION array, dimension (N)
+          On entry, this array must contain the original system
+          vector C.
+          On exit, this array contains the transformed vector C.
+          The first N-1 elements are zero (for the exit value of N).
+
+  D       (input/output) DOUBLE PRECISION array, dimension (1)
+          On entry, this array must contain the original system
+          scalar D.
+          On exit, this array contains the transformed scalar D.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  IWORK   INTEGER array, dimension (max(2,N+1))
+
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+          On exit, if INFO = 0, DWORK(1) returns the optimal value
+          of LDWORK.
+
+  LDWORK  INTEGER
+          The length of the array DWORK.
+          LDWORK &gt;= max(N*N + 5*N, 6*N + 1 + min(1,N)).
+          For optimum performance LDWORK should be larger.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value;
+          = 1:  if the discrete --&gt; continuous transformation cannot
+                be made;
+          = 2:  if the system poles cannot be found;
+          = 3:  if the inverse system cannot be found, i.e., D is
+                (close to) zero;
+          = 4:  if the system zeros cannot be found;
+          = 5:  if the state-space representation of the new
+                transfer function T(s) cannot be found;
+          = 6:  if the continuous --&gt; discrete transformation cannot
+                be made.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  First, if the system is discrete-time, it is transformed to
+  continuous-time using alpha = beta = 1 in the bilinear
+  transformation implemented in the SLICOT routine AB04MD.
+  Then the eigenvalues of A, i.e., the system poles, are found.
+  Then, the inverse of the original system is found and its poles,
+  i.e., the system zeros, are evaluated.
+  The obtained system poles Pi and zeros Zi are checked and if a
+  positive real part is detected, it is exchanged by -Pi or -Zi.
+  Then the polynomial coefficients of the transfer function
+  T(s) = Q(s)/P(s) are found.
+  The state-space representation of T(s) is then obtained.
+  The system matrices B, C, D are scaled so that the transformed
+  system has the same system gain as the original system.
+  If the original system is discrete-time, then the result (which is
+  continuous-time) is converted back to discrete-time.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

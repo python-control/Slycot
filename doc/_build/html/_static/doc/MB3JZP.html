@@ -1,0 +1,239 @@
+<HTML>
+<HEAD><TITLE>MB3JZP - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MB3JZP">MB3JZP</A></H2>
+<H3>
+Moving eigenvalues with negative real parts of a complex skew-Hamiltonian/Hamiltonian pencil in structured Schur form to the leading subpencil (applying transformations on panels of columns)
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To move the eigenvalues with strictly negative real parts of an
+  N-by-N complex skew-Hamiltonian/Hamiltonian pencil aS - bH in
+  structured Schur form to the leading principal subpencil, while
+  keeping the triangular form. On entry, we have
+
+        (  A  D  )      (  B  F  )
+    S = (        ), H = (        ),
+        (  0  A' )      (  0 -B' )
+
+  where A and B are upper triangular.
+  S and H are transformed by a unitary matrix Q such that
+
+                         (  Aout  Dout  )
+    Sout = J Q' J' S Q = (              ), and
+                         (    0   Aout' )
+                                                                 (1)
+                         (  Bout  Fout  )           (  0  I  )
+    Hout = J Q' J' H Q = (              ), with J = (        ),
+                         (    0  -Bout' )           ( -I  0  )
+
+  where Aout and Bout remain in upper triangular form. The notation
+  M' denotes the conjugate transpose of the matrix M.
+  Optionally, if COMPQ = 'I' or COMPQ = 'U', the unitary matrix Q
+  that fulfills (1) is computed.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MB3JZP( COMPQ, N, A, LDA, D, LDD, B, LDB, F, LDF, Q,
+     $                   LDQ, NEIG, TOL, DWORK, ZWORK, INFO )
+C     .. Scalar Arguments ..
+      CHARACTER          COMPQ
+      INTEGER            INFO, LDA, LDB, LDD, LDF, LDQ, N, NEIG
+      DOUBLE PRECISION   TOL
+C     .. Array Arguments ..
+      COMPLEX*16         A( LDA, * ), B( LDB, * ), D( LDD, * ),
+     $                   F( LDF, * ), Q( LDQ, * ), ZWORK( * ) 
+      DOUBLE PRECISION   DWORK( * )
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  COMPQ   CHARACTER*1
+          Specifies whether or not the unitary transformations
+          should be accumulated in the array Q, as follows:
+          = 'N':  Q is not computed;
+          = 'I':  the array Q is initialized internally to the unit
+                  matrix, and the unitary matrix Q is returned;
+          = 'U':  the array Q contains a unitary matrix Q0 on
+                  entry, and the matrix Q0*Q is returned, where Q
+                  is the product of the unitary transformations
+                  that are applied to the pencil aS - bH to reorder
+                  the eigenvalues.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The order of the pencil aS - bH.  N &gt;= 0, even.
+
+  A       (input/output) COMPLEX*16 array, dimension (LDA, N/2)
+          On entry, the leading N/2-by-N/2 part of this array must
+          contain the upper triangular matrix A.
+          On exit, the leading  N/2-by-N/2 part of this array
+          contains the transformed matrix Aout.
+          The strictly lower triangular part of this array is not
+          referenced.
+
+  LDA     INTEGER
+          The leading dimension of the array A.  LDA &gt;= MAX(1, N/2).
+
+  D       (input/output) COMPLEX*16 array, dimension (LDD, N/2)
+          On entry, the leading N/2-by-N/2 part of this array must
+          contain the upper triangular part of the skew-Hermitian
+          matrix D.
+          On exit, the leading  N/2-by-N/2 part of this array
+          contains the transformed matrix Dout.
+          The strictly lower triangular part of this array is not
+          referenced.
+
+  LDD     INTEGER
+          The leading dimension of the array D.  LDD &gt;= MAX(1, N/2).
+
+  B       (input/output) COMPLEX*16 array, dimension (LDB, N/2)
+          On entry, the leading N/2-by-N/2 part of this array must
+          contain the upper triangular matrix B.
+          On exit, the leading  N/2-by-N/2 part of this array
+          contains the transformed matrix Bout.
+          The strictly lower triangular part of this array is not
+          referenced.
+
+  LDB     INTEGER
+          The leading dimension of the array B.  LDB &gt;= MAX(1, N/2).
+
+  F       (input/output) COMPLEX*16 array, dimension (LDF, N/2)
+          On entry, the leading N/2-by-N/2 part of this array must
+          contain the upper triangular part of the Hermitian matrix
+          F.
+          On exit, the leading  N/2-by-N/2 part of this array
+          contains the transformed matrix Fout.
+          The strictly lower triangular part of this array is not
+          referenced.
+
+  LDF     INTEGER
+          The leading dimension of the array F.  LDF &gt;= MAX(1, N/2).
+
+  Q       (input/output) COMPLEX*16 array, dimension (LDQ, N)
+          On entry, if COMPQ = 'U', then the leading N-by-N part of
+          this array must contain a given matrix Q0, and on exit,
+          the leading N-by-N part of this array contains the product
+          of the input matrix Q0 and the transformation matrix Q
+          used to transform the matrices S and H.
+          On exit, if COMPQ = 'I', then the leading N-by-N part of
+          this array contains the unitary transformation matrix Q.
+          If COMPQ = 'N' this array is not referenced.
+
+  LDQ     INTEGER
+          The leading dimension of the array Q.
+          LDQ &gt;= 1,         if COMPQ = 'N';
+          LDQ &gt;= MAX(1, N), if COMPQ = 'I' or COMPQ = 'U'.
+
+  NEIG    (output) INTEGER
+          The number of eigenvalues in aS - bH with strictly
+          negative real part.
+
+</PRE>
+<B>Tolerances</B>
+<PRE>
+  TOL     DOUBLE PRECISION
+          The tolerance used to decide the sign of the eigenvalues.
+          If the user sets TOL &gt; 0, then the given value of TOL is
+          used. If the user sets TOL &lt;= 0, then an implicitly
+          computed, default tolerance, defined by MIN(N,10)*EPS, is
+          used instead, where EPS is the machine precision (see
+          LAPACK Library routine DLAMCH). A larger value might be
+          needed for pencils with multiple eigenvalues.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  DWORK   DOUBLE PRECISION array, dimension (N/2)
+
+  ZWORK   COMPLEX*16 array, dimension (N/2)
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0: succesful exit;
+          &lt; 0: if INFO = -i, the i-th argument had an illegal value.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  The algorithm reorders the eigenvalues like the following scheme:
+
+  Step 1: Reorder the eigenvalues in the subpencil aA - bB.
+       I. Reorder the eigenvalues with negative real parts to the
+          top.
+      II. Reorder the eigenvalues with positive real parts to the
+          bottom.
+
+  Step 2: Reorder the remaining eigenvalues with negative real parts.
+       I. Exchange the eigenvalues between the last diagonal block
+          in aA - bB and the last diagonal block in aS - bH.
+      II. Move the eigenvalues in the N/2-th place to the (MM+1)-th
+          place, where MM denotes the current number of eigenvalues
+          with negative real parts in aA - bB.
+
+  The algorithm uses a sequence of unitary transformations as
+  described on page 43 in [1]. To achieve those transformations the
+  elementary SLICOT Library subroutines MB03DZ and MB03HZ are called
+  for the corresponding matrix structures.
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Benner, P., Byers, R., Mehrmann, V. and Xu, H.
+      Numerical Computation of Deflating Subspaces of Embedded
+      Hamiltonian Pencils.
+      Tech. Rep. SFB393/99-15, Technical University Chemnitz,
+      Germany, June 1999.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>                                                            3
+  The algorithm is numerically backward stable and needs O(N )
+  complex floating point operations.
+
+</PRE>
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  For large values of N, the routine applies the transformations on
+  panels of columns. The user may specify in INFO the desired number
+  of columns. If on entry INFO &lt;= 0, then the routine estimates a
+  suitable value of this number.
+
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

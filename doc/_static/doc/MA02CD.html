@@ -1,0 +1,90 @@
+<HTML>
+<HEAD><TITLE>MA02CD - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MA02CD">MA02CD</A></H2>
+<H3>
+Pertransposing the central band of a square matrix
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To compute the pertranspose of a central band of a square matrix.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MA02CD( N, KL, KU, A, LDA )
+C     .. Scalar Arguments ..
+      INTEGER          KL, KU, LDA, N
+C     .. Array Arguments ..
+      DOUBLE PRECISION A(LDA,*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The order of the square matrix A.  N &gt;= 0.
+
+  KL      (input) INTEGER
+          The number of subdiagonals of A to be pertransposed.
+          0 &lt;= KL &lt;= N-1.
+
+  KU      (input) INTEGER
+          The number of superdiagonals of A to be pertransposed.
+          0 &lt;= KU &lt;= N-1.
+
+  A       (input/output) DOUBLE PRECISION array, dimension (LDA,N)
+          On entry, the leading N-by-N part of this array must
+          contain a square matrix whose central band formed from
+          the KL subdiagonals, the main diagonal and the KU
+          superdiagonals will be pertransposed.
+          On exit, the leading N-by-N part of this array contains
+          the matrix A with its central band (the KL subdiagonals,
+          the main diagonal and the KU superdiagonals) pertransposed
+          (that is the elements of each antidiagonal appear in
+          reversed order). This is equivalent to forming P*B'*P,
+          where B is the matrix formed from the central band of A
+          and P is a permutation matrix with ones down the secondary
+          diagonal.
+
+  LDA     INTEGER
+          The leading dimension of the array A.  LDA &gt;= max(1,N).
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

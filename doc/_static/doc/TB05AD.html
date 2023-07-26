@@ -1,0 +1,374 @@
+<HTML>
+<HEAD><TITLE>TB05AD - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="TB05AD">TB05AD</A></H2>
+<H3>
+Frequency response matrix of a given state-space representation (A,B,C)
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To find the complex frequency response matrix (transfer matrix)
+  G(freq) of the state-space representation (A,B,C) given by
+                                -1
+     G(freq) = C * ((freq*I - A)  ) * B
+
+  where A, B and C are real N-by-N, N-by-M and P-by-N matrices
+  respectively and freq is a complex scalar.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE TB05AD( BALEIG, INITA, N, M, P, FREQ, A, LDA, B, LDB,
+     $                   C, LDC, RCOND, G, LDG, EVRE, EVIM, HINVB,
+     $                   LDHINV, IWORK, DWORK, LDWORK, ZWORK, LZWORK,
+     $                   INFO )
+C     .. Scalar Arguments ..
+      CHARACTER         BALEIG, INITA
+      INTEGER           INFO, LDA, LDB, LDC, LDG, LDHINV, LDWORK,
+     $                  LZWORK, M, N, P
+      DOUBLE PRECISION  RCOND
+      COMPLEX*16        FREQ
+C     .. Array Arguments ..
+      INTEGER           IWORK(*)
+      DOUBLE PRECISION  A(LDA,*), B(LDB,*), C(LDC,*), DWORK(*), EVIM(*),
+     $                  EVRE(*)
+      COMPLEX*16        ZWORK(*), G(LDG,*), HINVB(LDHINV,*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  BALEIG  CHARACTER*1
+          Determines whether the user wishes to balance matrix A
+          and/or compute its eigenvalues and/or estimate the
+          condition number of the problem as follows:
+          = 'N':  The matrix A should not be balanced and neither
+                  the eigenvalues of A nor the condition number
+                  estimate of the problem are to be calculated;
+          = 'C':  The matrix A should not be balanced and only an
+                  estimate of the condition number of the problem
+                  is to be calculated;
+          = 'B' or 'E' and INITA = 'G':  The matrix A is to be
+                  balanced and its eigenvalues calculated;
+          = 'A' and INITA = 'G':  The matrix A is to be balanced,
+                  and its eigenvalues and an estimate of the
+                  condition number of the problem are to be
+                  calculated.
+
+  INITA   CHARACTER*1
+          Specifies whether or not the matrix A is already in upper
+          Hessenberg form as follows:
+          = 'G':  The matrix A is a general matrix;
+          = 'H':  The matrix A is in upper Hessenberg form and
+                  neither balancing nor the eigenvalues of A are
+                  required.
+          INITA must be set to 'G' for the first call to the
+          routine, unless the matrix A is already in upper
+          Hessenberg form and neither balancing nor the eigenvalues
+          of A are required. Thereafter, it must be set to 'H' for
+          all subsequent calls.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The number of states, i.e. the order of the state
+          transition matrix A.  N &gt;= 0.
+
+  M       (input) INTEGER
+          The number of inputs, i.e. the number of columns in the
+          matrix B.  M &gt;= 0.
+
+  P       (input) INTEGER
+          The number of outputs, i.e. the number of rows in the
+          matrix C.  P &gt;= 0.
+
+  FREQ    (input) COMPLEX*16
+          The frequency freq at which the frequency response matrix
+          (transfer matrix) is to be evaluated.
+
+  A       (input/output) DOUBLE PRECISION array, dimension (LDA,N)
+          On entry, the leading N-by-N part of this array must
+          contain the state transition matrix A.
+          If INITA = 'G', then, on exit, the leading N-by-N part of
+          this array contains an upper Hessenberg matrix similar to
+          (via an orthogonal matrix consisting of a sequence of
+          Householder transformations) the original state transition
+          matrix A.
+
+  LDA     INTEGER
+          The leading dimension of array A.  LDA &gt;= MAX(1,N).
+
+  B       (input/output) DOUBLE PRECISION array, dimension (LDB,M)
+          On entry, the leading N-by-M part of this array must
+          contain the input/state matrix B.
+          If INITA = 'G', then, on exit, the leading N-by-M part of
+          this array contains the product of the transpose of the
+          orthogonal transformation matrix used to reduce A to upper
+          Hessenberg form and the original input/state matrix B.
+
+  LDB     INTEGER
+          The leading dimension of array B.  LDB &gt;= MAX(1,N).
+
+  C       (input/output) DOUBLE PRECISION array, dimension (LDC,N)
+          On entry, the leading P-by-N part of this array must
+          contain the state/output matrix C.
+          If INITA = 'G', then, on exit, the leading P-by-N part of
+          this array contains the product of the original output/
+          state matrix C and the orthogonal transformation matrix
+          used to reduce A to upper Hessenberg form.
+
+  LDC     INTEGER
+          The leading dimension of array C.  LDC &gt;= MAX(1,P).
+
+  RCOND   (output) DOUBLE PRECISION
+          If BALEIG = 'C' or BALEIG = 'A', then RCOND contains an
+          estimate of the reciprocal of the condition number of
+          matrix H with respect to inversion (see METHOD).
+
+  G       (output) COMPLEX*16 array, dimension (LDG,M)
+          The leading P-by-M part of this array contains the
+          frequency response matrix G(freq).
+
+  LDG     INTEGER
+          The leading dimension of array G.  LDG &gt;= MAX(1,P).
+
+  EVRE,   (output) DOUBLE PRECISION arrays, dimension (N)
+  EVIM    If INITA = 'G' and BALEIG = 'B' or 'E' or BALEIG = 'A',
+          then these arrays contain the real and imaginary parts,
+          respectively, of the eigenvalues of the matrix A.
+          Otherwise, these arrays are not referenced.
+
+  HINVB   (output) COMPLEX*16 array, dimension (LDHINV,M)
+          The leading N-by-M part of this array contains the
+                   -1
+          product H  B.
+
+  LDHINV  INTEGER
+          The leading dimension of array HINVB.  LDHINV &gt;= MAX(1,N).
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  IWORK   INTEGER array, dimension (N)
+
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+          On exit, if INFO = 0, DWORK(1) returns the optimal value
+          of LDWORK.
+
+  LDWORK  INTEGER
+          The length of the array DWORK.
+          LDWORK &gt;= MAX(1, N - 1 + MAX(N,M,P)),
+                    if INITA = 'G' and BALEIG = 'N', or 'B', or 'E';
+          LDWORK &gt;= MAX(1, N + MAX(N,M-1,P-1)),
+                    if INITA = 'G' and BALEIG = 'C', or 'A';
+          LDWORK &gt;= MAX(1, 2*N),
+                    if INITA = 'H' and BALEIG = 'C', or 'A';
+          LDWORK &gt;= 1, otherwise.
+          For optimum performance when INITA = 'G' LDWORK should be
+          larger.
+
+  ZWORK   COMPLEX*16 array, dimension (LZWORK)
+
+  LZWORK  INTEGER
+          The length of the array ZWORK.
+          LZWORK &gt;= MAX(1,N*N+2*N), if BALEIG = 'C', or 'A';
+          LZWORK &gt;= MAX(1,N*N),     otherwise.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value;
+          = 1:  if more than 30*N iterations are required to
+                isolate all the eigenvalues of the matrix A; the
+                computations are continued;
+          = 2:  if either FREQ is too near to an eigenvalue of the
+                matrix A, or RCOND is less than EPS, where EPS is
+                the machine  precision (see LAPACK Library routine
+                DLAMCH).
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  The matrix A is first balanced (if BALEIG = 'B' or 'E', or
+  BALEIG = 'A') and then reduced to upper Hessenberg form; the same
+  transformations are applied to the matrix B and the matrix C.
+  The complex Hessenberg matrix  H = (freq*I - A) is then used
+                    -1
+  to solve for C * H  * B.
+
+  Depending on the input values of parameters BALEIG and INITA,
+  the eigenvalues of matrix A and the condition number of
+  matrix H with respect to inversion are also calculated.
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Laub, A.J.
+      Efficient Calculation of Frequency Response Matrices from
+      State-Space Models.
+      ACM TOMS, 12, pp. 26-33, 1986.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>                            3
+  The algorithm requires 0(N ) operations.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+*     TB05AD EXAMPLE PROGRAM TEXT
+*
+*     .. Parameters ..
+      INTEGER          NIN, NOUT
+      PARAMETER        ( NIN = 5, NOUT = 6 )
+      INTEGER          NMAX, MMAX, PMAX
+      PARAMETER        ( NMAX = 20, MMAX = 20, PMAX = 20 )
+      INTEGER          LDA, LDB, LDC, LDG, LDHINV
+      PARAMETER        ( LDA = NMAX, LDB = NMAX, LDC = PMAX, LDG = PMAX,
+     $                   LDHINV = NMAX )
+      INTEGER          LIWORK
+      PARAMETER        ( LIWORK = NMAX )
+      INTEGER          LDWORK
+      PARAMETER        ( LDWORK = 2*NMAX )
+      INTEGER          LZWORK
+      PARAMETER        ( LZWORK = NMAX*( NMAX+2 ) )
+*     .. Local Scalars ..
+      COMPLEX*16       FREQ
+      DOUBLE PRECISION RCOND
+      INTEGER          I, INFO, J, M, N, P
+      CHARACTER*1      BALEIG, INITA
+      LOGICAL          LBALBA, LBALEA, LBALEB, LBALEC, LINITA
+*     .. Local Arrays ..
+      COMPLEX*16       G(LDG,MMAX), HINVB(LDHINV,MMAX), ZWORK(LZWORK)
+      DOUBLE PRECISION A(LDA,NMAX), B(LDB,MMAX), C(LDC,NMAX),
+     $                 DWORK(LDWORK), EVIM(NMAX), EVRE(NMAX)
+      INTEGER          IWORK(LIWORK)
+*     .. External Functions ..
+      LOGICAL          LSAME
+      EXTERNAL         LSAME
+*     .. External Subroutines ..
+      EXTERNAL         TB05AD
+*     .. Executable Statements ..
+*
+      WRITE ( NOUT, FMT = 99999 )
+*     Skip the heading in the data file and read the data.
+      READ ( NIN, FMT = '()' )
+      READ ( NIN, FMT = * ) N, M, P, FREQ, INITA, BALEIG
+      LBALEC = LSAME( BALEIG, 'C' )
+      LBALEB = LSAME( BALEIG, 'B' ) .OR. LSAME( BALEIG, 'E' )
+      LBALEA = LSAME( BALEIG, 'A' )
+      LBALBA = LBALEB.OR.LBALEA
+      LINITA = LSAME( INITA,  'G' )
+      IF ( N.LE.0 .OR. N.GT.NMAX ) THEN
+         WRITE ( NOUT, FMT = 99992 ) N
+      ELSE
+         READ ( NIN, FMT = * ) ( ( A(I,J), J = 1,N ), I = 1,N )
+         IF ( M.LE.0 .OR. M.GT.MMAX ) THEN
+            WRITE ( NOUT, FMT = 99991 ) M
+         ELSE
+            READ ( NIN, FMT = * ) ( ( B(I,J), J = 1,M ), I = 1,N )
+            IF ( P.LE.0 .OR. P.GT.PMAX ) THEN
+               WRITE ( NOUT, FMT = 99990 ) P
+            ELSE
+               READ ( NIN, FMT = * ) ( ( C(I,J), J = 1,N ), I = 1,P )
+*              Find the frequency response matrix of the ssr (A,B,C).
+               CALL TB05AD( BALEIG, INITA, N, M, P, FREQ, A, LDA, B,
+     $                      LDB, C, LDC, RCOND, G, LDG, EVRE, EVIM,
+     $                      HINVB, LDHINV, IWORK, DWORK, LDWORK, ZWORK,
+     $                      LZWORK, INFO )
+*
+               IF ( INFO.NE.0 ) THEN
+                  WRITE ( NOUT, FMT = 99998 ) INFO
+               ELSE
+                  IF ( ( LBALEC ) .OR. ( LBALEA ) ) WRITE ( NOUT,
+     $                FMT = 99997 ) RCOND
+                  IF ( ( LINITA ) .AND. ( LBALBA ) )
+     $               WRITE ( NOUT, FMT = 99996 )
+     $                       ( EVRE(I), EVIM(I), I = 1,N )
+                  WRITE ( NOUT, FMT = 99995 )
+                  DO 20 I = 1, P
+                     WRITE ( NOUT, FMT = 99994 ) ( G(I,J), J = 1,M )
+   20             CONTINUE
+                  WRITE ( NOUT, FMT = 99993 )
+                  DO 40 I = 1, N
+                     WRITE ( NOUT, FMT = 99994 ) ( HINVB(I,J), J = 1,M )
+   40             CONTINUE
+               END IF
+            END IF
+         END IF
+      END IF
+      STOP
+*
+99999 FORMAT (' TB05AD EXAMPLE PROGRAM RESULTS',/1X)
+99998 FORMAT (' INFO on exit from TB05AD = ',I2)
+99997 FORMAT (' RCOND = ',F4.2)
+99996 FORMAT (/' Eigenvalues of the state transmission matrix A are ',
+     $       /(1X,2F7.2,'*j'))
+99995 FORMAT (/' The frequency response matrix G(freq) is ')
+99994 FORMAT (20(' (',F5.2,',',F5.2,') ',:))
+99993 FORMAT (/' H(inverse)*B is ')
+99992 FORMAT (/' N is out of range.',/' N = ',I5)
+99991 FORMAT (/' M is out of range.',/' M = ',I5)
+99990 FORMAT (/' P is out of range.',/' P = ',I5)
+      END
+</PRE>
+<B>Program Data</B>
+<PRE>
+ TB05AD EXAMPLE PROGRAM DATA
+   3     1     2     (0.0,0.5)     G     A
+   1.0   2.0   0.0
+   4.0  -1.0   0.0
+   0.0   0.0   1.0
+   1.0   0.0   1.0
+   1.0   0.0  -1.0
+   0.0   0.0   1.0
+</PRE>
+<B>Program Results</B>
+<PRE>
+ TB05AD EXAMPLE PROGRAM RESULTS
+
+ RCOND = 0.22
+
+ Eigenvalues of the state transmission matrix A are 
+    3.00   0.00*j
+   -3.00   0.00*j
+    1.00   0.00*j
+
+ The frequency response matrix G(freq) is 
+ ( 0.69, 0.35) 
+ (-0.80,-0.40) 
+
+ H(inverse)*B is 
+ (-0.11,-0.05) 
+ (-0.43, 0.00) 
+ (-0.80,-0.40) 
+</PRE>
+
+<HR>
+<p>
+<A HREF=..\libindex.html><B>Return to index</B></A></BODY>
+</HTML>

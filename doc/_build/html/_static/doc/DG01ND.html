@@ -1,0 +1,296 @@
+<HTML>
+<HEAD><TITLE>DG01ND - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="DG01ND">DG01ND</A></H2>
+<H3>
+Discrete Fourier transform, or inverse Fourier transform, of a real signal
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To compute the discrete Fourier transform, or inverse Fourier
+  transform, of a real signal.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE DG01ND( INDI, N, XR, XI, INFO )
+C     .. Scalar Arguments ..
+      CHARACTER         INDI
+      INTEGER           INFO, N
+C     .. Array Arguments ..
+      DOUBLE PRECISION  XI(*), XR(*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  INDI    CHARACTER*1
+          Indicates whether a Fourier transform or inverse Fourier
+          transform is to be performed as follows:
+          = 'D':  (Direct) Fourier transform;
+          = 'I':  Inverse Fourier transform.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          Half the number of real samples.  N must be a power of 2.
+          N &gt;= 2.
+
+  XR      (input/output) DOUBLE PRECISION array, dimension (N+1)
+          On entry with INDI = 'D', the first N elements of this
+          array must contain the odd part of the input signal; for
+          example, XR(I) = A(2*I-1) for I = 1,2,...,N.
+          On entry with INDI = 'I', the first N+1 elements of this
+          array must contain the the real part of the input discrete
+          Fourier transform (computed, for instance, by a previous
+          call of the routine).
+          On exit with INDI = 'D', the first N+1 elements of this
+          array contain the real part of the output signal, that is
+          of the computed discrete Fourier transform.
+          On exit with INDI = 'I', the first N elements of this
+          array contain the odd part of the output signal, that is
+          of the computed inverse discrete Fourier transform.
+
+  XI      (input/output) DOUBLE PRECISION array, dimension (N+1)
+          On entry with INDI = 'D', the first N elements of this
+          array must contain the even part of the input signal; for
+          example, XI(I) = A(2*I) for I = 1,2,...,N.
+          On entry with INDI = 'I', the first N+1 elements of this
+          array must contain the the imaginary part of the input
+          discrete Fourier transform (computed, for instance, by a
+          previous call of the routine).
+          On exit with INDI = 'D', the first N+1 elements of this
+          array contain the imaginary part of the output signal,
+          that is of the computed discrete Fourier transform.
+          On exit with INDI = 'I', the first N elements of this
+          array contain the even part of the output signal, that is
+          of the computed inverse discrete Fourier transform.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  Let A(1),....,A(2*N) be a real signal of 2*N samples. Then the
+  first N+1 samples of the discrete Fourier transform of this signal
+  are given by the formula:
+
+               2*N           ((m-1)*(i-1))
+       FA(m) = SUM ( A(i) * W              ),
+               i=1
+                                               2
+  where m = 1,2,...,N+1, W = exp(-pi*j/N) and j = -1.
+
+  This transform can be computed as follows. First, transform A(i),
+  i = 1,2,...,2*N, into the complex signal Z(i) = (X(i),Y(i)),
+  i = 1,2,...,N. That is, X(i) = A(2*i-1) and Y(i) = A(2*i). Next,
+  perform a discrete Fourier transform on Z(i) by calling SLICOT
+  Library routine DG01MD. This gives a new complex signal FZ(k),
+  such that
+
+                N            ((k-1)*(i-1))
+       FZ(k) = SUM ( Z(i) * V              ),
+               i=1
+
+  where k = 1,2,...,N, V = exp(-2*pi*j/N).  Using the values of
+  FZ(k), the components of the discrete Fourier transform FA can be
+  computed by simple linear relations, implemented in the DG01NY
+  subroutine.
+
+  Finally, let
+
+       XR(k) = Re(FZ(k)), XI(k) = Im(FZ(k)),   k = 1,2,...,N,
+
+  be the contents of the arrays XR and XI on entry to DG01NY with
+  INDI = 'D', then on exit XR and XI contain the real and imaginary
+  parts of the Fourier transform of the original real signal A.
+  That is,
+
+       XR(m) = Re(FA(m)),  XI(m) = Im(FA(m)),
+
+  where m = 1,2,...,N+1.
+
+  If INDI = 'I', then the routine evaluates the inverse Fourier
+  transform of a complex signal which may itself be the discrete
+  Fourier transform of a real signal.
+
+  Let FA(m), m = 1,2,...,2*N, denote the full discrete Fourier
+  transform of a real signal A(i), i=1,2,...,2*N. The relationship
+  between FA and A is given by the formula:
+
+              2*N            ((m-1)*(i-1))
+       A(i) = SUM ( FA(m) * W              ),
+              m=1
+
+  where W = exp(pi*j/N).
+
+  Let
+
+       XR(m) = Re(FA(m)) and XI(m) = Im(FA(m)) for m = 1,2,...,N+1,
+
+  be the contents of the arrays XR and XI on entry to the routine
+  DG01NY with INDI = 'I', then on exit the first N samples of the
+  complex signal FZ are returned in XR and XI such that
+
+       XR(k) = Re(FZ(k)), XI(k) = Im(FZ(k)) and k = 1,2,...,N.
+
+  Next, an inverse Fourier transform is performed on FZ (e.g. by
+  calling SLICOT Library routine DG01MD), to give the complex signal
+  Z, whose i-th component is given by the formula:
+
+               N             ((k-1)*(i-1))
+       Z(i) = SUM ( FZ(k) * V              ),
+              k=1
+
+  where i = 1,2,...,N and V = exp(2*pi*j/N).
+
+  Finally, the 2*N samples of the real signal A can then be obtained
+  directly from Z. That is,
+
+       A(2*i-1) = Re(Z(i)) and A(2*i) = Im(Z(i)), for i = 1,2,...N.
+
+  Note that a discrete Fourier transform, followed by an inverse
+  transform will result in a signal which is a factor 2*N larger
+  than the original input signal.
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Rabiner, L.R. and Rader, C.M.
+      Digital Signal Processing.
+      IEEE Press, 1972.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  The algorithm requires 0( N*log(N) ) operations.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+*     DG01ND EXAMPLE PROGRAM TEXT
+*
+*     .. Parameters ..
+      INTEGER          NIN, NOUT
+      PARAMETER        ( NIN = 5, NOUT = 6 )
+      INTEGER          NMAX
+      PARAMETER        ( NMAX = 128 )
+*     .. Local Scalars ..
+      INTEGER          I, IEND, INFO, N
+      CHARACTER*1      INDI
+*     .. Local Arrays ..
+      DOUBLE PRECISION A(2*NMAX), XI(NMAX+1), XR(NMAX+1)
+*     .. External Functions ..
+      LOGICAL          LSAME
+      EXTERNAL         LSAME
+*     .. External Subroutines ..
+      EXTERNAL         DG01ND
+*     .. Executable Statements ..
+*
+      WRITE ( NOUT, FMT = 99999 )
+*     Skip the heading in the data file and read the data.
+      READ ( NIN, FMT = '()' )
+      READ ( NIN, FMT = * ) N, INDI
+      IF ( N.LE.0 .OR. N.GT.NMAX ) THEN
+         WRITE ( NOUT, FMT = 99995 ) N
+      ELSE
+         READ ( NIN, FMT = * ) ( A(I), I = 1,2*N )
+*        Copy the odd and even parts of A into XR and XI respectively.
+         DO 20 I = 1, N
+            XR(I) = A(2*I-1)
+            XI(I) = A(2*I)
+   20    CONTINUE
+*        Find the Fourier transform of the given real signal.
+         CALL DG01ND( INDI, N, XR, XI, INFO )
+         IF ( INFO.NE.0 ) THEN
+            WRITE ( NOUT, FMT = 99998 ) INFO
+         ELSE
+            WRITE ( NOUT, FMT = 99997 )
+            IEND = N
+            IF ( LSAME( INDI, 'D' ) ) IEND = N + 1
+            DO 40 I = 1, IEND
+               WRITE ( NOUT, FMT = 99996 ) I, XR(I), XI(I)
+   40       CONTINUE
+         END IF
+      END IF
+      STOP
+*
+99999 FORMAT (' DG01ND EXAMPLE PROGRAM RESULTS',/1X)
+99998 FORMAT (' INFO on exit from DG01ND = ',I2)
+99997 FORMAT (' Components of Fourier transform are',//'   i',6X,
+     $       'XR(i)',6X,'XI(i)',/)
+99996 FORMAT (I4,3X,F8.4,3X,F8.4)
+99995 FORMAT (/' N is out of range.',/' N = ',I5)
+      END
+</PRE>
+<B>Program Data</B>
+<PRE>
+ DG01ND EXAMPLE PROGRAM DATA
+   8     D
+  -0.1862
+   0.1288
+   0.3948
+   0.0671
+   0.6788
+  -0.2417
+   0.1861
+   0.8875
+   0.7254
+   0.9380
+   0.5815
+  -0.2682
+   0.4904
+   0.9312
+  -0.9599
+  -0.3116
+</PRE>
+<B>Program Results</B>
+<PRE>
+ DG01ND EXAMPLE PROGRAM RESULTS
+
+ Components of Fourier transform are
+
+   i      XR(i)      XI(i)
+
+   1     4.0420     0.0000
+   2    -3.1322    -0.2421
+   3     0.1862    -1.4675
+   4    -2.1312    -1.1707
+   5     1.5059    -1.3815
+   6     2.1927    -0.1908
+   7    -1.4462     2.0327
+   8    -0.5757     1.4914
+   9    -0.2202     0.0000
+</PRE>
+
+<HR>
+<p>
+<A HREF=..\libindex.html><B>Return to index</B></A></BODY>
+</HTML>

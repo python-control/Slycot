@@ -1,0 +1,581 @@
+<HTML>
+<HEAD><TITLE>SG03BD - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="SG03BD">SG03BD</A></H2>
+<H3>
+Solving (for Cholesky factor) generalized stable continuous- or discrete-time Lyapunov equations
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To compute the Cholesky factor U of the matrix X,
+
+              T
+     X = op(U)  * op(U),
+
+  which is the solution of either the generalized c-stable
+  continuous-time Lyapunov equation
+
+          T                    T
+     op(A)  * X * op(E) + op(E)  * X * op(A)
+
+              2        T
+     = - SCALE  * op(B)  * op(B),                                (1)
+
+  or the generalized d-stable discrete-time Lyapunov equation
+
+          T                    T
+     op(A)  * X * op(A) - op(E)  * X * op(E)
+
+              2        T
+     = - SCALE  * op(B)  * op(B),                                (2)
+
+  without first finding X and without the need to form the matrix
+  op(B)**T * op(B).
+
+  op(K) is either K or K**T for K = A, B, E, U. A and E are N-by-N
+  matrices, op(B) is an M-by-N matrix. The resulting matrix U is an
+  N-by-N upper triangular matrix with non-negative entries on its
+  main diagonal. SCALE is an output scale factor set to avoid
+  overflow in U.
+
+  In the continuous-time case (1) the pencil A - lambda * E must be
+  c-stable (that is, all eigenvalues must have negative real parts).
+  In the discrete-time case (2) the pencil A - lambda * E must be
+  d-stable (that is, the moduli of all eigenvalues must be smaller
+  than one).
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE SG03BD( DICO, FACT, TRANS, N, M, A, LDA, E, LDE, Q,
+     $                   LDQ, Z, LDZ, B, LDB, SCALE, ALPHAR, ALPHAI,
+     $                   BETA, DWORK, LDWORK, INFO )
+C     .. Scalar Arguments ..
+      DOUBLE PRECISION  SCALE
+      INTEGER           INFO, LDA, LDB, LDE, LDQ, LDWORK, LDZ, M, N
+      CHARACTER         DICO, FACT, TRANS
+C     .. Array Arguments ..
+      DOUBLE PRECISION  A(LDA,*), ALPHAI(*), ALPHAR(*), B(LDB,*),
+     $                  BETA(*), DWORK(*), E(LDE,*), Q(LDQ,*), Z(LDZ,*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  DICO    CHARACTER*1
+          Specifies which type of the equation is considered:
+          = 'C':  Continuous-time equation (1);
+          = 'D':  Discrete-time equation (2).
+
+  FACT    CHARACTER*1
+          Specifies whether the generalized real Schur
+          factorization of the pencil A - lambda * E is supplied on
+          entry or not:
+          = 'N':  Factorization is not supplied;
+          = 'F':  Factorization is supplied.
+
+  TRANS   CHARACTER*1
+          Specifies whether the transposed equation is to be solved
+          or not:
+          = 'N':  op(A) = A,    op(E) = E;
+          = 'T':  op(A) = A**T, op(E) = E**T.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The order of the matrix A.  N &gt;= 0.
+
+  M       (input) INTEGER
+          The number of rows in the matrix op(B).  M &gt;= 0.
+
+  A       (input/output) DOUBLE PRECISION array, dimension (LDA,N)
+          On entry, if FACT = 'F', then the leading N-by-N upper
+          Hessenberg part of this array must contain the generalized
+          Schur factor A_s of the matrix A (see definition (3) in
+          section METHOD). A_s must be an upper quasitriangular
+          matrix. The elements below the upper Hessenberg part of
+          the array A are not referenced.
+          If FACT = 'N', then the leading N-by-N part of this array
+          must contain the matrix A.
+          On exit, if FACT = 'N', the leading N-by-N upper
+          Hessenberg part of this array contains the generalized
+          Schur factor A_s of the matrix A. (A_s is an upper
+          quasitriangular matrix.) If FACT = 'F', the leading N-by-N
+          upper triangular part of this array is unchanged.
+
+  LDA     INTEGER
+          The leading dimension of the array A.  LDA &gt;= MAX(1,N).
+
+  E       (input/output) DOUBLE PRECISION array, dimension (LDE,N)
+          On entry, if FACT = 'F', then the leading N-by-N upper
+          triangular part of this array must contain the generalized
+          Schur factor E_s of the matrix E (see definition (4) in
+          section METHOD). E_s must be an upper triangular matrix.
+          The elements below the upper triangular part of the array
+          E are not referenced.
+          If FACT = 'N', then the leading N-by-N part of this array
+          must contain the coefficient matrix E of the equation.
+          On exit, if FACT = 'N', the leading N-by-N upper
+          triangular part of this array contains the generalized
+          Schur factor E_s of the matrix E. (E_s is an upper
+          triangular matrix.) If FACT = 'F', the leading N-by-N
+          upper triangular part of this array is unchanged.
+
+  LDE     INTEGER
+          The leading dimension of the array E.  LDE &gt;= MAX(1,N).
+
+  Q       (input/output) DOUBLE PRECISION array, dimension (LDQ,N)
+          On entry, if FACT = 'F', then the leading N-by-N part of
+          this array must contain the orthogonal matrix Q from the
+          generalized Schur factorization (see definitions (3) and
+          (4) in section METHOD), or an identity matrix (if the
+          original equation has upper triangular matrices A and E).
+          If FACT = 'N', Q need not be set on entry.
+          On exit, if FACT = 'N', the leading N-by-N part of this
+          array contains the orthogonal matrix Q from the
+          generalized Schur factorization. If FACT = 'F', this array
+          is unchanged.
+
+  LDQ     INTEGER
+          The leading dimension of the array Q.  LDQ &gt;= MAX(1,N).
+
+  Z       (input/output) DOUBLE PRECISION array, dimension (LDZ,N)
+          On entry, if FACT = 'F', then the leading N-by-N part of
+          this array must contain the orthogonal matrix Z from the
+          generalized Schur factorization (see definitions (3) and
+          (4) in section METHOD), or an identity matrix (if the
+          original equation has upper triangular matrices A and E).
+          If FACT = 'N', Z need not be set on entry.
+          On exit, if FACT = 'N', the leading N-by-N part of this
+          array contains the orthogonal matrix Z from the
+          generalized Schur factorization. If FACT = 'F', this array
+          is unchanged.
+
+  LDZ     INTEGER
+          The leading dimension of the array Z.  LDZ &gt;= MAX(1,N).
+
+  B       (input/output) DOUBLE PRECISION array, dimension (LDB,N1)
+          On entry, if TRANS = 'T', the leading N-by-M part of this
+          array must contain the matrix B and N1 &gt;= MAX(M,N).
+          If TRANS = 'N', the leading M-by-N part of this array
+          must contain the matrix B and N1 &gt;= N.
+          On exit, if INFO = 0, the leading N-by-N part of this
+          array contains the Cholesky factor U of the solution
+          matrix X of the problem, X = op(U)**T * op(U).
+          If M = 0 and N &gt; 0, then U is set to zero.
+
+  LDB     INTEGER
+          The leading dimension of the array B.
+          If TRANS = 'T',  LDB &gt;= MAX(1,N).
+          If TRANS = 'N',  LDB &gt;= MAX(1,M,N).
+
+  SCALE   (output) DOUBLE PRECISION
+          The scale factor set to avoid overflow in U.
+          0 &lt; SCALE &lt;= 1.
+
+  ALPHAR  (output) DOUBLE PRECISION array, dimension (N)
+  ALPHAI  (output) DOUBLE PRECISION array, dimension (N)
+  BETA    (output) DOUBLE PRECISION array, dimension (N)
+          If INFO = 0, 3, 5, 6, or 7, then
+          (ALPHAR(j) + ALPHAI(j)*i)/BETA(j), j = 1, ... ,N, are the
+          eigenvalues of the matrix pencil A - lambda * E.
+          All BETA(j) are non-negative numbers.
+          ALPHAR and ALPHAI will be always less than and usually
+          comparable with norm(A) in magnitude, and BETA always less
+          than and usually comparable with norm(B).
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+          On exit, if INFO = 0, DWORK(1) returns the optimal value
+          of LDWORK.
+          On exit, if INFO = -21, DWORK(1) returns the minimum value
+          of LDWORK.
+
+  LDWORK  INTEGER
+          The dimension of the array DWORK.
+          LDWORK &gt;= MAX(1,8*N+16),  if FACT = 'N';
+          LDWORK &gt;= MAX(1,2*N,6*N-6),  if FACT = 'F'.
+          For good performance, LDWORK should be larger.
+
+          If LDWORK = -1, then a workspace query is assumed; the
+          routine only calculates the optimal size of the DWORK
+          array, returns this value as the first entry of the DWORK
+          array, and no error message related to LDWORK is issued by
+          XERBLA.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value;
+          = 1:  the pencil A - lambda * E is (nearly) singular;
+                perturbed values were used to solve the equation
+                (but the reduced (quasi)triangular matrices A and E
+                are unchanged);
+          = 2:  FACT = 'F' and the matrix contained in the upper
+                Hessenberg part of the array A is not in upper
+                quasitriangular form;
+          = 3:  FACT = 'F' and there is a 2-by-2 block on the main
+                diagonal of the pencil A_s - lambda * E_s whose
+                eigenvalues are not conjugate complex;
+          = 4:  FACT = 'N' and the pencil A - lambda * E cannot be
+                reduced to generalized Schur form: LAPACK routine
+                or DGGES has failed to converge;
+          = 5:  DICO = 'C' and the pencil A - lambda * E is not
+                c-stable;
+          = 6:  DICO = 'D' and the pencil A - lambda * E is not
+                d-stable;
+          = 7:  the LAPACK routine DSYEVX utilized to factorize M3
+                failed to converge in the discrete-time case (see
+                section METHOD for SLICOT Library routine SG03BU).
+                This error is unlikely to occur.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  An extension [2] of Hammarling's method [1] to generalized
+  Lyapunov equations is utilized to solve (1) or (2).
+
+  First the pencil A - lambda * E is reduced to real generalized
+  Schur form A_s - lambda * E_s by means of orthogonal
+  transformations (QZ-algorithm):
+
+     A_s = Q**T * A * Z   (upper quasitriangular),               (3)
+
+     E_s = Q**T * E * Z   (upper triangular).                    (4)
+
+  If the pencil A - lambda * E has already been factorized prior to
+  calling the routine, however, then the factors A_s, E_s, Q and Z
+  may be supplied and the initial factorization omitted.
+
+  Depending on the parameters TRANS and M, the N-by-N upper
+  triangular matrix B_s is defined as follows. In any case Q_B is
+  an M-by-M orthogonal matrix, which need not be accumulated.
+
+  1. If TRANS = 'N' and M &lt; N, B_s is the upper triangular matrix
+     from the QR-factorization
+
+        ( Q_B  O )           ( B * Z )
+        (        ) * B_s  =  (       ),
+        (  O   I )           (   O   )
+
+     where the O's are zero matrices of proper size and I is the
+     identity matrix of order N-M.
+
+  2. If TRANS = 'N' and M &gt;= N, B_s is the upper triangular matrix
+     from the (rectangular) QR-factorization
+
+              ( B_s )
+        Q_B * (     )  =  B * Z,
+              (  O  )
+
+     where O is the (M-N)-by-N zero matrix.
+
+  3. If TRANS = 'T' and M &lt; N, B_s is the upper triangular matrix
+     from the RQ-factorization
+
+                    ( Q_B  O )
+        (B_s  O ) * (        )  =  ( Q**T * B   O ).
+                    (  O   I )
+
+  4. If TRANS = 'T' and M &gt;= N, B_s is the upper triangular matrix
+     from the (rectangular) RQ-factorization
+
+        ( B_s   O ) * Q_B  =  Q**T * B,
+
+     where O is the N-by-(M-N) zero matrix.
+
+  Assuming SCALE = 1, the transformation of A, E and B described
+  above leads to the reduced continuous-time equation
+
+              T        T
+       op(A_s)  op(U_s)  op(U_s) op(E_s)
+
+              T        T
+     + op(E_s)  op(U_s)  op(U_s) op(A_s)
+
+                 T
+     =  - op(B_s)  op(B_s)                                       (5)
+
+  or to the reduced discrete-time equation
+
+              T        T
+       op(A_s)  op(U_s)  op(U_s) op(A_s)
+
+              T        T
+     - op(E_s)  op(U_s)  op(U_s) op(E_s)
+
+                 T
+     =  - op(B_s)  op(B_s).                                      (6)
+
+  For brevity we restrict ourself to equation (5) and the case
+  TRANS = 'N'. The other three cases can be treated in a similar
+  fashion.
+
+  We use the following partitioning for the matrices A_s, E_s, B_s,
+  and U_s
+
+              ( A11   A12 )          ( E11   E12 )
+        A_s = (           ),   E_s = (           ),
+              (   0   A22 )          (   0   E22 )
+
+              ( B11   B12 )          ( U11   U12 )
+        B_s = (           ),   U_s = (           ).              (7)
+              (   0   B22 )          (   0   U22 )
+
+  The size of the (1,1)-blocks is 1-by-1 (iff A_s(2,1) = 0.0) or
+  2-by-2.
+
+  We compute U11, U12**T, and U22 in three steps.
+
+  Step I:
+
+     From (5) and (7) we get the 1-by-1 or 2-by-2 equation
+
+             T      T                   T      T
+          A11  * U11  * U11 * E11  + E11  * U11  * U11 * A11
+
+                 T
+          = - B11  * B11.
+
+     For brevity, details are omitted here. See [2]. The technique
+     for computing U11 is similar to those applied to standard
+     Lyapunov equations in Hammarling's algorithm ([1], section 6).
+
+     Furthermore, the auxiliary matrices M1 and M2 defined as
+     follows
+
+                            -1      -1
+        M1 = U11 * A11 * E11   * U11
+
+                      -1      -1
+        M2 = B11 * E11   * U11
+
+     are computed in a numerically reliable way.
+
+  Step II:
+
+     The generalized Sylvester equation
+
+           T      T      T      T
+        A22  * U12  + E22  * U12  * M1  =
+
+             T           T      T      T      T
+        - B12  * M2 - A12  * U11  - E12  * U11  * M1
+
+     is solved for U12**T.
+
+  Step III:
+
+     It can be shown that
+
+           T      T                  T      T
+        A22  * U22  * U22 * E22 + E22  * U22  * U22 * A22  =
+
+             T              T
+        - B22  * B22 - y * y                                     (8)
+
+     holds, where y is defined as
+
+               T        T      T      T      T       T
+        y = B12  - ( E12  * U11  + E22  * U12  ) * M2 .
+
+     If B22_tilde is the square triangular matrix arising from the
+     (rectangular) QR-factorization
+
+                    ( B22_tilde )     ( B22  )
+        Q_B_tilde * (           )  =  (      ),
+                    (     O     )     ( y**T )
+
+     where Q_B_tilde is an orthogonal matrix of order N, then
+
+             T              T                T
+        - B22  * B22 - y * y   =  - B22_tilde  * B22_tilde.
+
+     Replacing the right hand side in (8) by the term
+     - B22_tilde**T * B22_tilde leads to a reduced generalized
+     Lyapunov equation of lower dimension compared to (5).
+
+  The recursive application of the steps I to III yields the
+  solution U_s of the equation (5).
+
+  It remains to compute the solution matrix U of the original
+  problem (1) or (2) from the matrix U_s. To this end we transform
+  the solution back (with respect to the transformation that led
+  from (1) to (5) (from (2) to (6)) and apply the QR-factorization
+  (RQ-factorization). The upper triangular solution matrix U is
+  obtained by
+
+     Q_U * U  =  U_s * Q**T     (if TRANS = 'N'),
+
+  or
+
+     U * Q_U  =  Z * U_s        (if TRANS = 'T'),
+
+  where Q_U is an N-by-N orthogonal matrix. Again, the orthogonal
+  matrix Q_U need not be accumulated.
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Hammarling, S.J.
+      Numerical solution of the stable, non-negative definite
+      Lyapunov equation.
+      IMA J. Num. Anal., 2, pp. 303-323, 1982.
+
+  [2] Penzl, T.
+      Numerical solution of generalized Lyapunov equations.
+      Advances in Comp. Math., vol. 8, pp. 33-48, 1998.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  The number of flops required by the routine is given by the
+  following table. Note that we count a single floating point
+  arithmetic operation as one flop.
+
+              |           FACT = 'F'                  FACT = 'N'
+     ---------+--------------------------------------------------
+      M &lt;= N  |     (13*N**3+6*M*N**2         (211*N**3+6*M*N**2
+              |   +6*M**2*N-2*M**3)/3        +6*M**2*N-2*M**3)/3
+              |
+       M &gt; N  | (11*N**3+12*M*N**2)/3     (209*N**3+12*M*N**2)/3
+
+</PRE>
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  The Lyapunov equation may be very ill-conditioned. In particular,
+  if DICO = 'D' and the pencil A - lambda * E has a pair of almost
+  reciprocal eigenvalues, or DICO = 'C' and the pencil has an almost
+  degenerate pair of eigenvalues, then the Lyapunov equation will be
+  ill-conditioned. Perturbed values were used to solve the equation.
+  A condition estimate can be obtained from the routine SG03AD.
+  When setting the error indicator INFO, the routine does not test
+  for near instability in the equation but only for exact
+  instability.
+
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+*     SG03BD EXAMPLE PROGRAM TEXT
+*
+*     .. Parameters ..
+      INTEGER           NIN, NOUT
+      PARAMETER         ( NIN = 5, NOUT = 6 )
+      INTEGER           NMAX
+      PARAMETER         ( NMAX = 20 )
+      INTEGER           LDA, LDB, LDE, LDQ, LDZ
+      PARAMETER         ( LDA = NMAX, LDB = NMAX, LDE = NMAX,
+     $                    LDQ = NMAX, LDZ = NMAX )
+      INTEGER           LDWORK
+      PARAMETER         ( LDWORK = MAX( 1, 4*NMAX, 6*NMAX-6 ) )
+*     .. Local Scalars ..
+      CHARACTER*1       DICO, FACT, TRANS
+      DOUBLE PRECISION  SCALE
+      INTEGER           I, INFO, J, N, M
+*     .. Local Arrays ..
+      DOUBLE PRECISION  A(LDA,NMAX), ALPHAI(NMAX), ALPHAR(NMAX),
+     $                  B(LDB,NMAX), BETA(NMAX), DWORK(LDWORK),
+     $                  E(LDE,NMAX), Q(LDQ,NMAX), Z(LDZ,NMAX)
+*     .. External Functions ..
+      LOGICAL           LSAME
+      EXTERNAL          LSAME
+*     .. External Subroutines ..
+      EXTERNAL          SG03BD
+*     .. Intrinsic Functions ..
+      INTRINSIC         MAX
+*     .. Executable Statements ..
+*
+      WRITE ( NOUT, FMT = 99999 )
+*     Skip the heading in the data file and read the data.
+      READ ( NIN, FMT = '()' )
+      READ ( NIN, FMT = * ) N, M, DICO, FACT, TRANS
+      IF ( N.LT.0 .OR. N.GT.NMAX ) THEN
+         WRITE ( NOUT, FMT = 99995 ) N
+      ELSE IF ( M.LT.0 .OR. M.GT.NMAX ) THEN
+         WRITE ( NOUT, FMT = 99994 ) M
+      ELSE
+         READ ( NIN, FMT = * ) ( ( A(I,J), J = 1,N ), I = 1,N )
+         READ ( NIN, FMT = * ) ( ( E(I,J), J = 1,N ), I = 1,N )
+         IF ( LSAME( FACT, 'F' ) ) THEN
+            READ ( NIN, FMT = * ) ( ( Q(I,J), J = 1,N ), I = 1,N )
+            READ ( NIN, FMT = * ) ( ( Z(I,J), J = 1,N ), I = 1,N )
+         END IF
+         IF ( LSAME( FACT, 'T' ) ) THEN
+            READ ( NIN, FMT = * ) ( ( B(I,J), J = 1,M ), I = 1,N )
+         ELSE
+            READ ( NIN, FMT = * ) ( ( B(I,J), J = 1,N ), I = 1,M )
+         END IF
+*        Find the Cholesky factor U of the solution matrix.
+         CALL SG03BD( DICO, FACT, TRANS, N, M, A, LDA, E, LDE, Q, LDQ,
+     $                Z, LDZ, B, LDB, SCALE, ALPHAR, ALPHAI, BETA,
+     $                DWORK, LDWORK, INFO )
+*
+         IF ( INFO.NE.0 ) THEN
+            WRITE ( NOUT, FMT = 99998 ) INFO
+         ELSE
+            WRITE ( NOUT, FMT = 99997 ) SCALE
+            DO 20 I = 1, N
+               WRITE ( NOUT, FMT = 99996 ) ( B(I,J), J = 1,N )
+   20       CONTINUE
+         END IF
+      END IF
+      STOP
+*
+99999 FORMAT (' SG03BD EXAMPLE PROGRAM RESULTS',/1X)
+99998 FORMAT (' INFO on exit from SG03BD = ',I2)
+99997 FORMAT (' SCALE = ',F8.4,//' The Cholesky factor U of the solution
+     $ matrix is')
+99996 FORMAT (20(1X,F8.4))
+99995 FORMAT (/' N is out of range.',/' N = ',I5)
+99994 FORMAT (/' M is out of range.',/' M = ',I5)
+      END
+</PRE>
+<B>Program Data</B>
+<PRE>
+ SG03BD EXAMPLE PROGRAM DATA
+   3      1      C      N      N
+  -1.0    3.0   -4.0
+   0.0    5.0   -2.0
+  -4.0    4.0    1.0
+   2.0    1.0    3.0
+   2.0    0.0    1.0
+   4.0    5.0    1.0
+   2.0   -1.0    7.0
+</PRE>
+<B>Program Results</B>
+<PRE>
+ SG03BD EXAMPLE PROGRAM RESULTS
+
+ SCALE =   1.0000
+
+ The Cholesky factor U of the solution matrix is
+   1.6003  -0.4418  -0.1523
+   0.0000   0.6795  -0.2499
+   0.0000   0.0000   0.2041
+</PRE>
+
+<HR>
+<p>
+<A HREF=..\libindex.html><B>Return to index</B></A></BODY>
+</HTML>

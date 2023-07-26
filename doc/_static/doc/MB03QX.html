@@ -1,0 +1,86 @@
+<HTML>
+<HEAD><TITLE>MB03QX - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MB03QX">MB03QX</A></H2>
+<H3>
+Eigenvalues of an upper quasi-triangular matrix
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To compute the eigenvalues of an upper quasi-triangular matrix.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MB03QX( N, T, LDT, WR, WI, INFO )
+C     .. Scalar Arguments ..
+      INTEGER          INFO, LDT, N
+C     .. Array Arguments ..
+      DOUBLE PRECISION T(LDT, *), WI(*), WR(*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The order of the matrix T.  N &gt;= 0.
+
+  T       (input) DOUBLE PRECISION array, dimension(LDT,N)
+          The upper quasi-triangular matrix T.
+
+  LDT     INTEGER
+          The leading dimension of the array T.  LDT &gt;= max(1,N).
+
+  WR, WI  (output) DOUBLE PRECISION arrays, dimension (N)
+          The real and imaginary parts, respectively, of the
+          eigenvalues of T. The eigenvalues are stored in the same
+          order as on the diagonal of T. If T(i:i+1,i:i+1) is a
+          2-by-2 diagonal block with complex conjugated eigenvalues
+          then WI(i) &gt; 0 and WI(i+1) = -WI(i).
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

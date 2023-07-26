@@ -1,0 +1,229 @@
+<HTML>
+<HEAD><TITLE>MC01SD - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MC01SD">MC01SD</A></H2>
+<H3>
+Scaling coefficients of a real polynomial for having minimal variation
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To scale the coefficients of the real polynomial P(x) such that
+  the coefficients of the scaled polynomial Q(x) = sP(tx) have
+  minimal variation, where s and t are real scalars.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MC01SD( DP, P, S, T, MANT, E, IWORK, INFO )
+C     .. Scalar Arguments ..
+      INTEGER           DP, INFO, S, T
+C     .. Array Arguments ..
+      INTEGER           E(*), IWORK(*)
+      DOUBLE PRECISION  MANT(*), P(*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  DP      (input) INTEGER
+          The degree of the polynomial P(x).  DP &gt;= 0.
+
+  P       (input/output) DOUBLE PRECISION array, dimension (DP+1)
+          On entry, this array must contain the coefficients of P(x)
+          in increasing powers of x.
+          On exit, this array contains the coefficients of the
+          scaled polynomial Q(x) in increasing powers of x.
+
+  S       (output) INTEGER
+          The exponent of the floating-point representation of the
+          scaling factor s = BASE**S, where BASE is the base of the
+          machine representation of floating-point numbers (see
+          LAPACK Library Routine DLAMCH).
+
+  T       (output) INTEGER
+          The exponent of the floating-point representation of the
+          scaling factor t = BASE**T.
+
+  MANT    (output) DOUBLE PRECISION array, dimension (DP+1)
+          This array contains the mantissas of the standard
+          floating-point representation of the coefficients of the
+          scaled polynomial Q(x) in increasing powers of x.
+
+  E       (output) INTEGER array, dimension (DP+1)
+          This array contains the exponents of the standard
+          floating-point representation of the coefficients of the
+          scaled polynomial Q(x) in increasing powers of x.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  IWORK   INTEGER array, dimension (DP+1)
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value;
+          = 1:  if on entry, P(x) is the zero polynomial.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  Define the variation of the coefficients of the real polynomial
+
+                                      2                DP
+     P(x) = p(0) + p(1) * x + p(2) * x  + ... + p(DP) x
+
+  whose non-zero coefficients can be represented as
+                       e(i)
+     p(i) = m(i) * BASE     (where 1 &lt;= ABS(m(i)) &lt; BASE)
+
+  by
+
+     V = max(e(i)) - min(e(i)),
+
+  where max and min are taken over the indices i for which p(i) is
+  non-zero.
+                                     DP         i    i
+  For the scaled polynomial P(cx) = SUM p(i) * c  * x  with
+                                    i=0
+             j
+  c  = (BASE) , the variation V(j) is given by
+
+    V(j) = max(e(i) + j * i) - min(e(i) + j * i).
+
+  Using the fact that V(j) is a convex function of j, the routine
+  determines scaling factors s = (BASE)**S and t = (BASE)**T such
+  that the coefficients of the scaled polynomial Q(x) = sP(tx)
+  satisfy the following conditions:
+
+    (a) 1 &lt;= q(0) &lt; BASE and
+
+    (b) the variation of the coefficients of Q(x) is minimal.
+
+  Further details can be found in [1].
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Dunaway, D.K.
+      Calculation of Zeros of a Real Polynomial through
+      Factorization using Euclid's Algorithm.
+      SIAM J. Numer. Anal., 11, pp. 1087-1104, 1974.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  Since the scaling is performed on the exponents of the floating-
+  point representation of the coefficients of P(x), no rounding
+  errors occur during the computation of the coefficients of Q(x).
+
+</PRE>
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  The scaling factors s and t are BASE dependent.
+
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+*     MC01SD EXAMPLE PROGRAM TEXT
+*
+*     .. Parameters ..
+      INTEGER          NIN, NOUT
+      PARAMETER        ( NIN = 5, NOUT = 6 )
+      INTEGER          DPMAX
+      PARAMETER        ( DPMAX = 10 )
+*     .. Local Scalars ..
+      INTEGER          BETA, DP, I, INFO, S, T
+*     .. Local Arrays ..
+      DOUBLE PRECISION MANT(DPMAX+1), P(DPMAX+1)
+      INTEGER          E(DPMAX+1), IWORK(DPMAX+1)
+C     .. External Functions ..
+      DOUBLE PRECISION DLAMCH
+      EXTERNAL         DLAMCH
+*     .. External Subroutines ..
+      EXTERNAL         MC01SD
+*     .. Executable Statements ..
+*
+      WRITE ( NOUT, FMT = 99999 )
+*     Skip the heading in the data file and read the data.
+      READ ( NIN, FMT = '()' )
+      READ ( NIN, FMT = * ) DP
+      IF ( DP.LE.-1 .OR. DP.GT.DPMAX ) THEN
+         WRITE ( NOUT, FMT = 99994 ) DP
+      ELSE
+         READ ( NIN, FMT = * ) ( P(I), I = 1,DP+1 )
+*        Compute the coefficients of the scaled polynomial Q(x).
+         CALL MC01SD( DP, P, S, T, MANT, E, IWORK, INFO )
+*
+         IF ( INFO.NE.0 ) THEN
+            WRITE ( NOUT, FMT = 99998 ) INFO
+         ELSE
+            BETA = DLAMCH( 'Base' )
+            WRITE ( NOUT, FMT = 99995 ) BETA, S, T
+            WRITE ( NOUT,FMT = 99997 )
+            DO 20 I = 0, DP
+               WRITE ( NOUT, FMT = 99996 ) I, P(I+1)
+   20       CONTINUE
+         END IF
+      END IF
+*
+      STOP
+*
+99999 FORMAT (' MC01SD EXAMPLE PROGRAM RESULTS',/1X)
+99998 FORMAT (' INFO on exit from MC01SD = ',I2)
+99997 FORMAT (/' The coefficients of the scaled polynomial Q(x) = s*P(',
+     $       'tx) are ',//' power of x     coefficient ')
+99996 FORMAT (2X,I5,9X,F9.4)
+99995 FORMAT (' The base of the machine (BETA) = ',I2,//' The scaling ',
+     $       'factors are s = BETA**(',I3,') and t = BETA**(',I3,')')
+99994 FORMAT (/' DP is out of range.',/' DP =',I5)
+      END
+</PRE>
+<B>Program Data</B>
+<PRE>
+ MC01SD EXAMPLE PROGRAM DATA
+   5
+  10.0  -40.5  159.5  0.0  2560.0  -10236.5
+</PRE>
+<B>Program Results</B>
+<PRE>
+ MC01SD EXAMPLE PROGRAM RESULTS
+
+ The base of the machine (BETA) =  2
+
+ The scaling factors are s = BETA**( -3) and t = BETA**( -2)
+
+ The coefficients of the scaled polynomial Q(x) = s*P(tx) are 
+
+ power of x     coefficient 
+      0            1.2500
+      1           -1.2656
+      2            1.2461
+      3            0.0000
+      4            1.2500
+      5           -1.2496
+</PRE>
+
+<HR>
+<p>
+<A HREF=..\libindex.html><B>Return to index</B></A></BODY>
+</HTML>

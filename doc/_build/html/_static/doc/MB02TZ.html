@@ -1,0 +1,132 @@
+<HTML>
+<HEAD><TITLE>MB02TZ - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MB02TZ">MB02TZ</A></H2>
+<H3>
+Estimation of the reciprocal condition number of a complex upper Hessenberg matrix
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To estimate the reciprocal of the condition number of a complex
+  upper Hessenberg matrix H, in either the 1-norm or the
+  infinity-norm, using the LU factorization computed by MB02SZ.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MB02TZ( NORM, N, HNORM, H, LDH, IPIV, RCOND, DWORK,
+     $                   ZWORK, INFO )
+C     .. Scalar Arguments ..
+      CHARACTER          NORM
+      INTEGER            INFO, LDH, N
+      DOUBLE PRECISION   HNORM, RCOND
+C     .. Array Arguments ..
+      INTEGER            IPIV(*)
+      DOUBLE PRECISION   DWORK( * )
+      COMPLEX*16         H( LDH, * ), ZWORK( * )
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  NORM    CHARACTER*1
+          Specifies whether the 1-norm condition number or the
+          infinity-norm condition number is required:
+          = '1' or 'O':  1-norm;
+          = 'I':         Infinity-norm.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The order of the matrix H.  N &gt;= 0.
+
+  HNORM   (input) DOUBLE PRECISION
+          If NORM = '1' or 'O', the 1-norm of the original matrix H.
+          If NORM = 'I', the infinity-norm of the original matrix H.
+
+  H       (input) COMPLEX*16 array, dimension (LDH,N)
+          The factors L and U from the factorization H = P*L*U
+          as computed by MB02SZ.
+
+  LDH     INTEGER
+          The leading dimension of the array H.  LDH &gt;= max(1,N).
+
+  IPIV    (input) INTEGER array, dimension (N)
+          The pivot indices; for 1 &lt;= i &lt;= N, row i of the matrix
+          was interchanged with row IPIV(i).
+
+  RCOND   (output) DOUBLE PRECISION
+          The reciprocal of the condition number of the matrix H,
+          computed as RCOND = 1/(norm(H) * norm(inv(H))).
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  DWORK   DOUBLE PRECISION array, dimension (N)
+
+  ZWORK   COMPLEX*16 array, dimension (2*N)
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  An estimate is obtained for norm(inv(H)), and the reciprocal of
+  the condition number is computed as
+     RCOND = 1 / ( norm(H) * norm(inv(H)) ).
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  -
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>                             2
+  The algorithm requires 0( N ) complex operations.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<p>
+<A HREF=..\libindex.html><B>Return to index</B></A></BODY>
+</HTML>

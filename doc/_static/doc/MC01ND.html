@@ -1,0 +1,163 @@
+<HTML>
+<HEAD><TITLE>MC01ND - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MC01ND">MC01ND</A></H2>
+<H3>
+Value of a real polynomial at a given complex point
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To compute the value of the real polynomial P(x) at a given
+  complex point x = x0 using Horner's algorithm.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MC01ND( DP, XR, XI, P, VR, VI, INFO )
+C     .. Scalar Arguments ..
+      INTEGER           DP, INFO
+      DOUBLE PRECISION  VI, VR, XI, XR
+C     .. Array Arguments ..
+      DOUBLE PRECISION  P(*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  DP      (input) INTEGER
+          The degree of the polynomial P(x).  DP &gt;= 0.
+
+  XR      (input) DOUBLE PRECISION
+  XI      (input) DOUBLE PRECISION
+          The real and imaginary parts, respectively, of x0.
+
+  P       (input) DOUBLE PRECISION array, dimension (DP+1)
+          This array must contain the coefficients of the polynomial
+          P(x) in increasing powers of x.
+
+  VR      (output) DOUBLE PRECISION
+  VI      (output) DOUBLE PRECISION
+          The real and imaginary parts, respectively, of P(x0).
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  Given the real polynomial
+                                      2                   DP
+     P(x) = p(1) + p(2) * x + p(3) * x + ... + p(DP+1) * x  ,
+
+  the routine computes the value of P(x0) using the recursion
+
+     q(DP+1) = p(DP+1),
+     q(i) = x0*q(i+1) + p(i) for i = DP, DP-1, ..., 1,
+
+  which is known as Horner's algorithm (see [1]). Then q(1) = P(x0).
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] STOER, J and BULIRSCH, R.
+      Introduction to Numerical Analysis.
+      Springer-Verlag. 1980.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  The algorithm requires DP operations for real arguments and 4*DP
+  for complex arguments.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+*     MC01ND EXAMPLE PROGRAM TEXT
+*
+*     .. Parameters ..
+      INTEGER          NIN, NOUT
+      PARAMETER        ( NIN = 5, NOUT = 6 )
+      INTEGER          DPMAX
+      PARAMETER        ( DPMAX = 20 )
+*     .. Local Scalars ..
+      DOUBLE PRECISION VI, VR, XI, XR
+      INTEGER          DP, I, INFO
+*     .. Local Arrays ..
+      DOUBLE PRECISION P(DPMAX+1)
+*     .. External Subroutines ..
+      EXTERNAL         MC01ND
+*     .. Executable Statements ..
+*
+      WRITE ( NOUT, FMT = 99999 )
+*     Skip the heading in the data file and read the data.
+      READ ( NIN, FMT = '()' )
+      READ ( NIN, FMT = * ) DP, XR, XI
+      IF ( DP.LE.-1 .OR. DP.GT.DPMAX ) THEN
+         WRITE ( NOUT, FMT = 99995 ) DP
+      ELSE
+         READ ( NIN, FMT = * ) ( P(I), I = 1,DP+1 )
+*        Evaluate the polynomial at the given (complex) point.
+         CALL MC01ND( DP, XR, XI, P, VR, VI, INFO )
+*
+         IF ( INFO.NE.0 ) THEN
+            WRITE ( NOUT, FMT = 99998 ) INFO
+         ELSE
+            WRITE ( NOUT, FMT = 99997 ) XR, XI, VR
+            WRITE ( NOUT, FMT = 99996 ) XR, XI, VI
+         END IF
+      END IF
+*
+      STOP
+*
+99999 FORMAT (' MC01ND EXAMPLE PROGRAM RESULTS',/1X)
+99998 FORMAT (' INFO on exit from MC01ND = ',I2)
+99997 FORMAT (' Real      part of P(',F6.2,SP,F6.2,'*j ) = ',SS,F8.4)
+99996 FORMAT (/' Imaginary part of P(',F6.2,SP,F6.2,'*j ) = ',SS,F8.4)
+99995 FORMAT (/' DP is out of range.',/' DP = ',I5)
+      END
+</PRE>
+<B>Program Data</B>
+<PRE>
+ MC01ND EXAMPLE PROGRAM DATA
+   4     -1.56     0.29
+   5.0  3.0  -1.0  2.0  1.0
+</PRE>
+<B>Program Results</B>
+<PRE>
+ MC01ND EXAMPLE PROGRAM RESULTS
+
+ Real      part of P( -1.56 +0.29*j ) =  -4.1337
+
+ Imaginary part of P( -1.56 +0.29*j ) =   1.7088
+</PRE>
+
+<HR>
+<p>
+<A HREF=..\libindex.html><B>Return to index</B></A></BODY>
+</HTML>

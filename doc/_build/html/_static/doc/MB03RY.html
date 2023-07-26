@@ -1,0 +1,173 @@
+<HTML>
+<HEAD><TITLE>MB03RY - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MB03RY">MB03RY</A></H2>
+<H3>
+Solution of a Sylvester equation -AX + XB = C, with A and B in real Schur form, aborting the computations when the norm of X is too large
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To solve the Sylvester equation -AX + XB = C, where A and B are
+  M-by-M and N-by-N matrices, respectively, in real Schur form.
+
+  This routine is intended to be called only by SLICOT Library
+  routine MB03RD. For efficiency purposes, the computations are
+  aborted when the infinity norm of an elementary submatrix of X is
+  greater than a given value PMAX.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MB03RY( M, N, PMAX, A, LDA, B, LDB, C, LDC, INFO )
+C     .. Scalar Arguments ..
+      INTEGER           INFO, LDA, LDB, LDC, M, N
+      DOUBLE PRECISION  PMAX
+C     .. Array Arguments ..
+      DOUBLE PRECISION  A(LDA,*), B(LDB,*), C(LDC,*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  M       (input) INTEGER
+          The order of the matrix A and the number of rows of the
+          matrices C and X.  M &gt;= 0.
+
+  N       (input) INTEGER
+          The order of the matrix B and the number of columns of the
+          matrices C and X.  N &gt;= 0.
+
+  PMAX    (input) DOUBLE PRECISION
+          An upper bound for the infinity norm of an elementary
+          submatrix of X (see METHOD).
+
+  A       (input) DOUBLE PRECISION array, dimension (LDA,M)
+          The leading M-by-M part of this array must contain the
+          matrix A of the Sylvester equation, in real Schur form.
+          The elements below the real Schur form are not referenced.
+
+  LDA     INTEGER
+          The leading dimension of array A.  LDA &gt;= MAX(1,M).
+
+  B       (input) DOUBLE PRECISION array, dimension (LDB,N)
+          The leading N-by-N part of this array must contain the
+          matrix B of the Sylvester equation, in real Schur form.
+          The elements below the real Schur form are not referenced.
+
+  LDB     INTEGER
+          The leading dimension of array B.  LDB &gt;= MAX(1,N).
+
+  C       (input/output) DOUBLE PRECISION array, dimension (LDC,N)
+          On entry, the leading M-by-N part of this array must
+          contain the matrix C of the Sylvester equation.
+          On exit, if INFO = 0, the leading M-by-N part of this
+          array contains the solution matrix X of the Sylvester
+          equation, and each elementary submatrix of X (see METHOD)
+          has the infinity norm less than or equal to PMAX.
+          On exit, if INFO = 1, the solution matrix X has not been
+          computed completely, because an elementary submatrix of X
+          had the infinity norm greater than PMAX. Part of the
+          matrix C has possibly been overwritten with the
+          corresponding part of X.
+
+  LDC     INTEGER
+          The leading dimension of array C.  LDC &gt;= MAX(1,M).
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          = 1:  an elementary submatrix of X had the infinity norm
+                greater than the given value PMAX.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  The routine uses an adaptation of the standard method for solving
+  Sylvester equations [1], which controls the magnitude of the
+  individual elements of the computed solution [2]. The equation
+  -AX + XB = C can be rewritten as
+                              p            l-1
+    -A  X   + X  B   = C   + sum  A  X   - sum  X  B
+      kk kl    kl ll    kl  i=k+1  ki il   j=1   kj jl
+
+  for l = 1:q, and k = p:-1:1, where A  , B  , C  , and X  , are
+                                      kk   ll   kl       kl
+  block submatrices defined by the partitioning induced by the Schur
+  form of A and B, and p and q are the numbers of the diagonal
+  blocks of A and B, respectively. So, the elementary submatrices of
+  X are found block column by block column, starting from the
+  bottom. If any such elementary submatrix has the infinity norm
+  greater than the given value PMAX, the calculations are ended.
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Bartels, R.H. and Stewart, G.W.  T
+      Solution of the matrix equation A X + XB = C.
+      Comm. A.C.M., 15, pp. 820-826, 1972.
+
+  [2] Bavely, C. and Stewart, G.W.
+      An Algorithm for Computing Reducing Subspaces by Block
+      Diagonalization.
+      SIAM J. Numer. Anal., 16, pp. 359-367, 1979.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>                            2      2
+  The algorithm requires 0(M N + MN ) operations.
+
+</PRE>
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  Let
+
+         ( A   C )       ( I   X )
+     M = (       ),  Y = (       ).
+         ( 0   B )       ( 0   I )
+
+  Then
+
+      -1      ( A   0 )
+     Y  M Y = (       ),
+              ( 0   B )
+
+  hence Y is an non-orthogonal transformation matrix which performs
+  the reduction of M to a block-diagonal form. Bounding a norm of
+  X is equivalent to setting an upper bound to the condition number
+  of the transformation matrix Y.
+
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

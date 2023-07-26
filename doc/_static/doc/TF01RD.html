@@ -1,0 +1,263 @@
+<HTML>
+<HEAD><TITLE>TF01RD - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="TF01RD">TF01RD</A></H2>
+<H3>
+Markov parameters of a multivariable system from the state-space representation
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To compute N Markov parameters M(1), M(2),..., M(N) from the
+  parameters (A,B,C) of a linear time-invariant system, where each
+  M(k) is an NC-by-NB matrix and k = 1,2,...,N.
+
+  All matrices are treated as dense, and hence TF01RD is not
+  intended for large sparse problems.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE TF01RD( NA, NB, NC, N, A, LDA, B, LDB, C, LDC, H, LDH,
+     $                   DWORK, LDWORK, INFO )
+C     .. Scalar Arguments ..
+      INTEGER           INFO, LDA, LDB, LDC, LDH, LDWORK, N, NA, NB, NC
+C     .. Array Arguments ..
+      DOUBLE PRECISION  A(LDA,*), B(LDB,*), C(LDC,*), DWORK(*), H(LDH,*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  NA      (input) INTEGER
+          The order of the matrix A.  NA &gt;= 0.
+
+  NB      (input) INTEGER
+          The number of system inputs.  NB &gt;= 0.
+
+  NC      (input) INTEGER
+          The number of system outputs.  NC &gt;= 0.
+
+  N       (input) INTEGER
+          The number of Markov parameters M(k) to be computed.
+          N &gt;= 0.
+
+  A       (input) DOUBLE PRECISION array, dimension (LDA,NA)
+          The leading NA-by-NA part of this array must contain the
+          state matrix A of the system.
+
+  LDA     INTEGER
+          The leading dimension of array A.  LDA &gt;= MAX(1,NA).
+
+  B       (input) DOUBLE PRECISION array, dimension (LDB,NB)
+          The leading NA-by-NB part of this array must contain the
+          input matrix B of the system.
+
+  LDB     INTEGER
+          The leading dimension of array B.  LDB &gt;= MAX(1,NA).
+
+  C       (input) DOUBLE PRECISION array, dimension (LDC,NA)
+          The leading NC-by-NA part of this array must contain the
+          output matrix C of the system.
+
+  LDC     INTEGER
+          The leading dimension of array C.  LDC &gt;= MAX(1,NC).
+
+  H       (output) DOUBLE PRECISION array, dimension (LDH,N*NB)
+          The leading NC-by-N*NB part of this array contains the
+          multivariable parameters M(k), where each parameter M(k)
+          is an NC-by-NB matrix and k = 1,2,...,N. The Markov
+          parameters are stored such that H(i,(k-1)xNB+j) contains
+          the (i,j)-th element of M(k) for i = 1,2,...,NC and
+          j = 1,2,...,NB.
+
+  LDH     INTEGER
+          The leading dimension of array H.  LDH &gt;= MAX(1,NC).
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+
+  LDWORK  INTEGER
+          The length of the array DWORK.
+          LDWORK &gt;= MAX(1, 2*NA*NC).
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  For the linear time-invariant discrete-time system
+
+         x(k+1) = A x(k) + B u(k)
+          y(k)  = C x(k) + D u(k),
+
+  the transfer function matrix G(z) is given by
+                         -1
+           G(z) = C(zI-A)  B + D
+                          -1        -2     2   -3
+                = D + CB z   + CAB z   + CA B z   + ...          (1)
+
+  Using Markov parameters, G(z) can also be written as
+                              -1        -2        -3
+           G(z) = M(0) + M(1)z   + M(2)z   + M(3)z   + ...       (2)
+
+                                                            k-1
+  Equating (1) and (2), we find that M(0) = D and M(k) = C A    B
+  for k &gt; 0, from which the Markov parameters M(1),M(2)...,M(N) are
+  computed.
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Chen, C.T.
+      Introduction to Linear System Theory.
+      H.R.W. Series in Electrical Engineering, Electronics and
+      Systems, Holt, Rinehart and Winston Inc., London, 1970.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  The algorithm requires approximately (NA + NB) x NA x NC x N
+  multiplications and additions.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+*     TF01RD EXAMPLE PROGRAM TEXT
+*
+*     .. Parameters ..
+      INTEGER          NIN, NOUT
+      PARAMETER        ( NIN = 5, NOUT = 6 )
+      INTEGER          NMAX, NAMAX, NBMAX, NCMAX
+      PARAMETER        ( NMAX = 20, NAMAX = 20, NBMAX = 20, NCMAX = 20 )
+      INTEGER          LDA, LDB, LDC, LDH
+      PARAMETER        ( LDA = NAMAX, LDB = NAMAX, LDC = NCMAX,
+     $                   LDH = NCMAX )
+      INTEGER          LDWORK
+      PARAMETER        ( LDWORK = 2*NAMAX*NCMAX )
+*     .. Local Scalars ..
+      INTEGER          I, INFO, J, K, N, NA, NB, NC
+*     .. Local Arrays ..
+      DOUBLE PRECISION A(LDA,NAMAX), B(LDB,NBMAX), C(LDC,NAMAX),
+     $                 H(LDH,NMAX*NBMAX), DWORK(LDWORK)
+*     .. External Subroutines ..
+      EXTERNAL         TF01RD
+*     .. Executable Statements ..
+*
+      WRITE ( NOUT, FMT = 99999 )
+*     Skip the heading in the data file and read the data.
+      READ ( NIN, FMT = '()' )
+      READ ( NIN, FMT = * ) N, NA, NB, NC
+      IF ( N.LE.0 .OR. N.GT.NMAX ) THEN
+         WRITE ( NOUT, FMT = 99994 ) N
+      ELSE IF ( NA.LE.0 .OR. NA.GT.NAMAX ) THEN
+         WRITE ( NOUT, FMT = 99993 ) NA
+      ELSE
+         READ ( NIN, FMT = * ) ( ( A(I,J), I = 1,NA ), J = 1,NA )
+         IF ( NB.LE.0 .OR. NB.GT.NBMAX ) THEN
+            WRITE ( NOUT, FMT = 99992 ) NB
+         ELSE
+            READ ( NIN, FMT = * ) ( ( B(I,J), I = 1,NA ), J = 1,NB )
+            IF ( NC.LE.0 .OR. NC.GT.NCMAX ) THEN
+               WRITE ( NOUT, FMT = 99991 ) NC
+            ELSE
+               READ ( NIN, FMT = * ) ( ( C(I,J), I = 1,NC ), J = 1,NA )
+*              Compute M(1),...,M(N) from the system (A,B,C).
+               CALL TF01RD( NA, NB, NC, N, A, LDA, B, LDB, C, LDC, H,
+     $                      LDH, DWORK, LDWORK, INFO )
+*
+               IF ( INFO.NE.0 ) THEN
+                  WRITE ( NOUT, FMT = 99998 ) INFO
+               ELSE
+                  WRITE ( NOUT, FMT = 99997 ) N
+                  DO 40 K = 1, N
+                     WRITE ( NOUT, FMT = 99996 ) K,
+     $                     ( H(1,(K-1)*NB+J), J = 1,NB )
+                     DO 20 I = 2, NC
+                        WRITE ( NOUT, FMT = 99995 )
+     $                        ( H(I,(K-1)*NB+J), J = 1,NB )
+   20                CONTINUE
+   40             CONTINUE
+               END IF
+            END IF
+         END IF
+      END IF
+      STOP
+*
+99999 FORMAT (' TF01RD EXAMPLE PROGRAM RESULTS',/1X)
+99998 FORMAT (' INFO on exit from TF01RD = ',I2)
+99997 FORMAT (' The Markov Parameters M(1),...,M(',I1,') are ')
+99996 FORMAT (/' M(',I1,') : ',20(1X,F8.4))
+99995 FORMAT (8X,20(1X,F8.4))
+99994 FORMAT (/' N is out of range.',/' N = ',I5)
+99993 FORMAT (/' NA is out of range.',/' NA = ',I5)
+99992 FORMAT (/' NB is out of range.',/' NB = ',I5)
+99991 FORMAT (/' NC is out of range.',/' NC = ',I5)
+      END
+</PRE>
+<B>Program Data</B>
+<PRE>
+ TF01RD EXAMPLE PROGRAM DATA
+   5     3     2     2
+   0.000 -0.070  0.015
+   1.000  0.800 -0.150
+   0.000  0.000  0.500
+   0.000  2.000  1.000
+  -1.000 -0.100  1.000
+   0.000  1.000  0.000
+   0.000  1.000  0.000
+</PRE>
+<B>Program Results</B>
+<PRE>
+ TF01RD EXAMPLE PROGRAM RESULTS
+
+ The Markov Parameters M(1),...,M(5) are 
+
+ M(1) :    1.0000   1.0000
+           0.0000  -1.0000
+
+ M(2) :    0.2000   0.5000
+           2.0000  -0.1000
+
+ M(3) :   -0.1100   0.2500
+           1.6000  -0.0100
+
+ M(4) :   -0.2020   0.1250
+           1.1400  -0.0010
+
+ M(5) :   -0.2039   0.0625
+           0.8000  -0.0001
+</PRE>
+
+<HR>
+<p>
+<A HREF=..\libindex.html><B>Return to index</B></A></BODY>
+</HTML>

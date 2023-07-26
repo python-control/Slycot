@@ -1,0 +1,218 @@
+<HTML>
+<HEAD><TITLE>MB04PA - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MB04PA">MB04PA</A></H2>
+<H3>
+Special reduction of a (skew-)Hamiltonian like matrix
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To reduce a Hamiltonian like matrix
+
+                [  A   G  ]           T          T
+           H =  [       T ] ,    G = G ,    Q = Q,
+                [  Q  -A  ]
+
+  or a skew-Hamiltonian like matrix
+
+                [  A   G  ]            T          T
+           W =  [       T ] ,    G = -G ,   Q = -Q,
+                [  Q   A  ]
+
+  so that elements below the (k+1)-th subdiagonal in the first nb
+  columns of the (k+n)-by-n matrix A, and offdiagonal elements
+  in the first nb columns and rows of the n-by-n matrix Q are zero.
+
+  The reduction is performed by an orthogonal symplectic
+  transformation UU'*H*UU and matrices U, XA, XG, XQ, and YA are
+  returned so that
+
+                 [ Aout + U*XA'+ YA*U'   Gout + U*XG'+ XG*U' ]
+      UU'*H*UU = [                                           ].
+                 [ Qout + U*XQ'+ XQ*U'  -Aout'- XA*U'- U*YA' ]
+
+  Similarly,
+
+                 [ Aout + U*XA'+ YA*U'   Gout + U*XG'- XG*U' ]
+      UU'*W*UU = [                                           ].
+                 [ Qout + U*XQ'- XQ*U'   Aout'+ XA*U'+ U*YA' ]
+
+  This is an auxiliary routine called by MB04PB.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MB04PA( LHAM, N, K, NB, A, LDA, QG, LDQG, XA, LDXA,
+     $                   XG, LDXG, XQ, LDXQ, YA, LDYA, CS, TAU, DWORK )
+C     .. Scalar Arguments ..
+      LOGICAL           LHAM
+      INTEGER           K, LDA, LDQG, LDXA, LDXG, LDXQ, LDYA, N, NB
+C     .. Array Arguments ..
+      DOUBLE PRECISION  A(LDA,*), CS(*), DWORK(*), QG(LDQG,*), TAU(*),
+     $                  XA(LDXA,*), XG(LDXG,*), XQ(LDXQ,*), YA(LDYA,*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  LHAM    LOGICAL
+          Specifies the type of matrix to be reduced:
+          = .FALSE. :  skew-Hamiltonian like W;
+          = .TRUE.  :  Hamiltonian like H.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The number of columns of the matrix A.  N &gt;= 0.
+
+  K       (input) INTEGER
+          The offset of the reduction. Elements below the (K+1)-th
+          subdiagonal in the first NB columns of A are reduced
+          to zero.  K &gt;= 0.
+
+  NB      (input) INTEGER
+          The number of columns/rows to be reduced.  N &gt; NB &gt;= 0.
+
+  A       (input/output) DOUBLE PRECISION array, dimension (LDA,N)
+          On entry, the leading (K+N)-by-N part of this array must
+          contain the matrix A.
+          On exit, the leading (K+N)-by-N part of this array
+          contains the matrix Aout and in the zero part
+          information about the elementary reflectors used to
+          compute the reduction.
+
+  LDA     INTEGER
+          The leading dimension of the array A.  LDA &gt;= MAX(1,K+N).
+
+  QG      (input/output) DOUBLE PRECISION array, dimension
+                         (LDQG,N+1)
+          On entry, the leading N+K-by-N+1 part of this array must
+          contain in the bottom left part the lower triangular part
+          of the N-by-N matrix Q and in the remainder the upper
+          trapezoidal part of the last N columns of the N+K-by-N+K
+          matrix G.
+          On exit, the leading N+K-by-N+1 part of this array
+          contains parts of the matrices Q and G in the same fashion
+          as on entry only that the zero parts of Q contain
+          information about the elementary reflectors used to
+          compute the reduction. Note that if LHAM = .FALSE. then
+          the (K-1)-th and K-th subdiagonals are not referenced.
+
+  LDQG    INTEGER
+          The leading dimension of the array QG. LDQG &gt;= MAX(1,N+K).
+
+  XA      (output) DOUBLE PRECISION array, dimension (LDXA,2*NB)
+          On exit, the leading N-by-(2*NB) part of this array
+          contains the matrix XA.
+
+  LDXA    INTEGER
+          The leading dimension of the array XA.  LDXA &gt;= MAX(1,N).
+
+  XG      (output) DOUBLE PRECISION array, dimension (LDXG,2*NB)
+          On exit, the leading (K+N)-by-(2*NB) part of this array
+          contains the matrix XG.
+
+  LDXG    INTEGER
+          The leading dimension of the array XG. LDXG &gt;= MAX(1,K+N).
+
+  XQ      (output) DOUBLE PRECISION array, dimension (LDXQ,2*NB)
+          On exit, the leading N-by-(2*NB) part of this array
+          contains the matrix XQ.
+
+  LDXQ    INTEGER
+          The leading dimension of the array XQ.  LDXQ &gt;= MAX(1,N).
+
+  YA      (output) DOUBLE PRECISION array, dimension (LDYA,2*NB)
+          On exit, the leading (K+N)-by-(2*NB) part of this array
+          contains the matrix YA.
+
+  LDYA    INTEGER
+          The leading dimension of the array YA. LDYA &gt;= MAX(1,K+N).
+
+  CS      (output) DOUBLE PRECISION array, dimension (2*NB)
+          On exit, the first 2*NB elements of this array contain the
+          cosines and sines of the symplectic Givens rotations used
+          to compute the reduction.
+
+  TAU     (output) DOUBLE PRECISION array, dimension (NB)
+          On exit, the first NB elements of this array contain the
+          scalar factors of some of the elementary reflectors.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  DWORK   DOUBLE PRECISION array, dimension (3*NB)
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  For details regarding the representation of the orthogonal
+  symplectic matrix UU within the arrays A, QG, CS, TAU see the
+  description of MB04PU.
+
+  The contents of A and QG on exit are illustrated by the following
+  example with n = 5, k = 2 and nb = 2:
+
+        ( a  r  r  a  a  )         ( g  g  r  r  g  g  )
+        ( a  r  r  a  a  )         ( g  g  r  r  g  g  )
+        ( a  r  r  a  a  )         ( q  g  r  r  g  g  )
+    A = ( r  r  r  r  r  ),   QG = ( t  r  r  r  r  r  ),
+        ( u2 r  r  r  r  )         ( u1 t  r  r  r  r  )
+        ( u2 u2 r  a  a  )         ( u1 u1 r  q  g  g  )
+        ( u2 u2 r  a  a  )         ( u1 u1 r  q  q  g  )
+
+  where a, g and q denote elements of the original matrices, r
+  denotes a modified element, t denotes a scalar factor of an
+  applied elementary reflector and ui denote elements of the
+  matrix U.
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] C. F. VAN LOAN:
+      A symplectic method for approximating all the eigenvalues of
+      a Hamiltonian matrix.
+      Linear Algebra and its Applications, 61, pp. 233-251, 1984.
+
+  [2] D. KRESSNER:
+      Block algorithms for orthogonal symplectic factorizations.
+      BIT, 43 (4), pp. 775-790, 2003.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

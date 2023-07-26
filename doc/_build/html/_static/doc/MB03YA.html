@@ -1,0 +1,213 @@
+<HTML>
+<HEAD><TITLE>MB03YA - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MB03YA">MB03YA</A></H2>
+<H3>
+Annihilation of one or two entries on the subdiagonal of a Hessenberg matrix corresponding to zero elements on the diagonal of a triangular matrix
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To annihilate one or two entries on the subdiagonal of the
+  Hessenberg matrix A for dealing with zero elements on the diagonal
+  of the triangular matrix B.
+
+  MB03YA is an auxiliary routine called by SLICOT Library routines
+  MB03XP and MB03YD.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MB03YA( WANTT, WANTQ, WANTZ, N, ILO, IHI, ILOQ, IHIQ,
+     $                   POS, A, LDA, B, LDB, Q, LDQ, Z, LDZ, INFO )
+C     .. Scalar Arguments ..
+      LOGICAL            WANTQ, WANTT, WANTZ
+      INTEGER            IHI, IHIQ, ILO, ILOQ, INFO, LDA, LDB, LDQ, LDZ,
+     $                   N, POS
+C     .. Array Arguments ..
+      DOUBLE PRECISION   A(LDA,*), B(LDB,*), Q(LDQ,*), Z(LDZ,*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  WANTT   LOGICAL
+          Indicates whether the user wishes to compute the full
+          Schur form or the eigenvalues only, as follows:
+          = .TRUE. :  Compute the full Schur form;
+          = .FALSE.:  compute the eigenvalues only.
+
+  WANTQ   LOGICAL
+          Indicates whether or not the user wishes to accumulate
+          the matrix Q as follows:
+          = .TRUE. :  The matrix Q is updated;
+          = .FALSE.:  the matrix Q is not required.
+
+  WANTZ   LOGICAL
+          Indicates whether or not the user wishes to accumulate
+          the matrix Z as follows:
+          = .TRUE. :  The matrix Z is updated;
+          = .FALSE.:  the matrix Z is not required.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The order of the matrices A and B. N &gt;= 0.
+
+  ILO     (input) INTEGER
+  IHI     (input) INTEGER
+          It is assumed that the matrices A and B are already
+          (quasi) upper triangular in rows and columns 1:ILO-1 and
+          IHI+1:N. The routine works primarily with the submatrices
+          in rows and columns ILO to IHI, but applies the
+          transformations to all the rows and columns of the
+          matrices A and B, if WANTT = .TRUE..
+          1 &lt;= ILO &lt;= max(1,N); min(ILO,N) &lt;= IHI &lt;= N.
+
+  ILOQ    (input) INTEGER
+  IHIQ    (input) INTEGER
+          Specify the rows of Q and Z to which transformations
+          must be applied if WANTQ = .TRUE. and WANTZ = .TRUE.,
+          respectively.
+          1 &lt;= ILOQ &lt;= ILO; IHI &lt;= IHIQ &lt;= N.
+
+  POS     (input) INTEGER
+          The position of the zero element on the diagonal of B.
+          ILO &lt;= POS &lt;= IHI.
+
+  A       (input/output) DOUBLE PRECISION array, dimension (LDA,N)
+          On entry, the leading N-by-N part of this array must
+          contain the upper Hessenberg matrix A.
+          On exit, the leading N-by-N part of this array contains
+          the updated matrix A where A(POS,POS-1) = 0, if POS &gt; ILO,
+          and A(POS+1,POS) = 0, if POS &lt; IHI.
+
+  LDA     INTEGER
+          The leading dimension of the array A.  LDA &gt;= MAX(1,N).
+
+  B       (input/output) DOUBLE PRECISION array, dimension (LDB,N)
+          On entry, the leading N-by-N part of this array must
+          contain an upper triangular matrix B with B(POS,POS) = 0.
+          On exit, the leading N-by-N part of this array contains
+          the updated upper triangular matrix B.
+
+  LDB     INTEGER
+          The leading dimension of the array B.  LDB &gt;= MAX(1,N).
+
+  Q       (input/output) DOUBLE PRECISION array, dimension (LDQ,N)
+          On entry, if WANTQ = .TRUE., then the leading N-by-N part
+          of this array must contain the current matrix Q of
+          transformations accumulated by MB03XP.
+          On exit, if WANTQ = .TRUE., then the leading N-by-N part
+          of this array contains the matrix Q updated in the
+          submatrix Q(ILOQ:IHIQ,ILO:IHI).
+          If WANTQ = .FALSE., Q is not referenced.
+
+  LDQ     INTEGER
+          The leading dimension of the array Q.  LDQ &gt;= 1.
+          If WANTQ = .TRUE., LDQ &gt;= MAX(1,N).
+
+  Z       (input/output) DOUBLE PRECISION array, dimension (LDZ,N)
+          On entry, if WANTZ = .TRUE., then the leading N-by-N part
+          of this array must contain the current matrix Z of
+          transformations accumulated by MB03XP.
+          On exit, if WANTZ = .TRUE., then the leading N-by-N part
+          of this array contains the matrix Z updated in the
+          submatrix Z(ILOQ:IHIQ,ILO:IHI).
+          If WANTZ = .FALSE., Z is not referenced.
+
+  LDZ     INTEGER
+          The leading dimension of the array Z.  LDZ &gt;= 1.
+          If WANTZ = .TRUE., LDZ &gt;= MAX(1,N).
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  The method is illustrated by Wilkinson diagrams for N = 5,
+  POS = 3:
+
+        [ x x x x x ]       [ x x x x x ]
+        [ x x x x x ]       [ o x x x x ]
+    A = [ o x x x x ],  B = [ o o o x x ].
+        [ o o x x x ]       [ o o o x x ]
+        [ o o o x x ]       [ o o o o x ]
+
+  First, a QR factorization is applied to A(1:3,1:3) and the
+  resulting nonzero in the updated matrix B is immediately
+  annihilated by a Givens rotation acting on columns 1 and 2:
+
+        [ x x x x x ]       [ x x x x x ]
+        [ x x x x x ]       [ o x x x x ]
+    A = [ o o x x x ],  B = [ o o o x x ].
+        [ o o x x x ]       [ o o o x x ]
+        [ o o o x x ]       [ o o o o x ]
+
+  Secondly, an RQ factorization is applied to A(4:5,4:5) and the
+  resulting nonzero in the updated matrix B is immediately
+  annihilated by a Givens rotation acting on rows 4 and 5:
+
+        [ x x x x x ]       [ x x x x x ]
+        [ x x x x x ]       [ o x x x x ]
+    A = [ o o x x x ],  B = [ o o o x x ].
+        [ o o o x x ]       [ o o o x x ]
+        [ o o o x x ]       [ o o o o x ]
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Bojanczyk, A.W., Golub, G.H., and Van Dooren, P.
+      The periodic Schur decomposition: Algorithms and applications.
+      Proc. of the SPIE Conference (F.T. Luk, Ed.), 1770, pp. 31-42,
+      1992.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  The algorithm requires O(N**2) floating point operations and is
+  backward stable.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

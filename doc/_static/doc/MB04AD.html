@@ -1,0 +1,688 @@
+<HTML>
+<HEAD><TITLE>MB04AD - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MB04AD">MB04AD</A></H2>
+<H3>
+Eigenvalues of a real skew-Hamiltonian/Hamiltonian pencil in factored form
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To compute the eigenvalues of a real N-by-N skew-Hamiltonian/
+  Hamiltonian pencil aS - bH with
+
+                                   (  0  I  )
+    S = T Z = J Z' J' Z, where J = (        ),                   (1)
+                                   ( -I  0  )
+
+  via generalized symplectic URV decomposition. That is, orthogonal
+  matrices Q1 and Q2 and orthogonal symplectic matrices U1 and U2
+  are computed such that
+
+                                ( T11  T12 )
+    Q1' T U1 = Q1' J Z' J' U1 = (          ) = Tout,
+                                (  0   T22 )
+
+               ( Z11  Z12 )
+    U2' Z Q2 = (          ) = Zout,                              (2)
+               (  0   Z22 )
+
+               ( H11  H12 )
+    Q1' H Q2 = (          ) = Hout,
+               (  0   H22 )
+
+  where T11, T22', Z11, Z22', H11 are upper triangular and H22' is
+  upper quasi-triangular. The notation M' denotes the transpose of
+  the matrix M.
+  Optionally, if COMPQ1 = 'I' or COMPQ1 = 'U', the orthogonal
+  transformation matrix Q1 will be computed.
+  Optionally, if COMPQ2 = 'I' or COMPQ2 = 'U', the orthogonal
+  transformation matrix Q2 will be computed.
+  Optionally, if COMPU1 = 'I' or COMPU1 = 'U', the orthogonal
+  symplectic transformation matrix
+
+         (  U11  U12  )
+    U1 = (            )
+         ( -U12  U11  )
+
+  will be computed.
+  Optionally, if COMPU2 = 'I' or COMPU2 = 'U', the orthogonal
+  symplectic transformation matrix
+
+         (  U21  U22  )
+    U2 = (            )
+         ( -U22  U21  )
+
+  will be computed.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MB04AD( JOB, COMPQ1, COMPQ2, COMPU1, COMPU2, N, Z, LDZ,
+     $                   H, LDH, Q1, LDQ1, Q2, LDQ2, U11, LDU11, U12,
+     $                   LDU12, U21, LDU21, U22, LDU22, T, LDT, ALPHAR,
+     $                   ALPHAI, BETA, IWORK, LIWORK, DWORK, LDWORK,
+     $                   INFO )
+C     .. Scalar Arguments ..
+      CHARACTER          COMPQ1, COMPQ2, COMPU1, COMPU2, JOB
+      INTEGER            INFO, LDH, LDQ1, LDQ2, LDT, LDU11, LDU12,
+     $                   LDU21, LDU22, LDWORK, LDZ, LIWORK, N
+C     .. Array Arguments ..
+      INTEGER            IWORK( * )
+      DOUBLE PRECISION   ALPHAI( * ), ALPHAR( * ), BETA( * ),
+     $                   DWORK( * ), H( LDH, * ), Q1( LDQ1, * ),
+     $                   Q2( LDQ2, * ), T( LDT, * ), U11( LDU11, * ),
+     $                   U12( LDU12, * ), U21( LDU21, * ),
+     $                   U22( LDU22, * ), Z( LDZ, * )
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  JOB     CHARACTER*1
+          Specifies the computation to be performed, as follows:
+          = 'E': compute the eigenvalues only; Z, T, and H will not
+                 necessarily be put into the forms in (2); H22' is
+                 upper Hessenberg;
+          = 'T': put Z, T, and H into the forms in (2), and return
+                 the eigenvalues in ALPHAR, ALPHAI and BETA.
+
+  COMPQ1  CHARACTER*1
+          Specifies whether to compute the orthogonal transformation
+          matrix Q1, as follows:
+          = 'N': Q1 is not computed;
+          = 'I': the array Q1 is initialized internally to the unit
+                 matrix, and the orthogonal matrix Q1 is returned;
+          = 'U': the array Q1 contains an orthogonal matrix Q01 on
+                 entry, and the product Q01*Q1 is returned, where Q1
+                 is the product of the orthogonal transformations
+                 that are applied to the pencil aT*Z - bH on the
+                 left to reduce T, Z, and H to the forms in (2),
+                 for COMPQ1 = 'I'.
+
+  COMPQ2  CHARACTER*1
+          Specifies whether to compute the orthogonal transformation
+          matrix Q2, as follows:
+          = 'N': Q2 is not computed;
+          = 'I': the array Q2 is initialized internally to the unit
+                 matrix, and the orthogonal matrix Q2 is returned;
+          = 'U': the array Q2 contains an orthogonal matrix Q02 on
+                 entry, and the product Q02*Q2 is returned, where Q2
+                 is the product of the orthogonal transformations
+                 that are applied to the pencil aT*Z - bH on the
+                 right to reduce T, Z, and H to the forms in (2),
+                 for COMPQ2 = 'I'.
+
+  COMPU1  CHARACTER*1
+          Specifies whether to compute the orthogonal symplectic
+          transformation matrix U1, as follows:
+          = 'N': U1 is not computed;
+          = 'I': the arrays U11 and U12 are initialized internally
+                 to the unit and zero matrices, respectively, and
+                 the corresponding submatrices of the orthogonal
+                 symplectic matrix U1 are returned;
+          = 'U': the arrays U11 and U12 contain the corresponding
+                 submatrices of an orthogonal symplectic matrix U01
+                 on entry, and the updated submatrices U11 and U12
+                 of the matrix product U01*U1 are returned, where U1
+                 is the product of the orthogonal symplectic
+                 transformations that are applied to the pencil
+                 aT*Z - bH to reduce T, Z, and H to the forms in
+                 (2), for COMPU1 = 'I'.
+
+  COMPU2  CHARACTER*1
+          Specifies whether to compute the orthogonal symplectic
+          transformation matrix U2, as follows:
+          = 'N': U2 is not computed;
+          = 'I': the arrays U21 and U22 are initialized internally
+                 to the unit and zero matrices, respectively, and
+                 the corresponding submatrices of the orthogonal
+                 symplectic matrix U2 are returned;
+          = 'U': the arrays U21 and U22 contain the corresponding
+                 submatrices of an orthogonal symplectic matrix U02
+                 on entry, and the updated submatrices U21 and U22
+                 of the matrix product U02*U2 are returned, where U2
+                 is the product of the orthogonal symplectic
+                 transformations that are applied to the pencil
+                 aT*Z - bH to reduce T, Z, and H to the forms in
+                 (2), for COMPU2 = 'I'.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The order of the pencil aS - bH.  N &gt;= 0, even.
+
+  Z       (input/output) DOUBLE PRECISION array, dimension (LDZ, N)
+          On entry, the leading N-by-N part of this array must
+          contain the matrix Z.
+          On exit, if JOB = 'T', the leading N-by-N part of this
+          array contains the matrix Zout; otherwise, it contains the
+          matrix Z obtained just before the application of the
+          periodic QZ algorithm.
+          The elements of the (2,1) block, i.e., in the rows N/2+1
+          to N and in the columns 1 to N/2 are not set to zero, but
+          are unchanged on exit.
+
+  LDZ     INTEGER
+          The leading dimension of the array Z.  LDZ &gt;= MAX(1, N).
+
+  H       (input/output) DOUBLE PRECISION array, dimension (LDH, N)
+          On entry, the leading N-by-N part of this array must
+          contain the Hamiltonian matrix H (H22 = -H11', H12 = H12',
+          H21 = H21').
+          On exit, if JOB = 'T', the leading N-by-N part of this
+          array contains the matrix Hout; otherwise, it contains the
+          matrix H obtained just before the application of the
+          periodic QZ algorithm.
+
+  LDH     INTEGER
+          The leading dimension of the array H.  LDH &gt;= MAX(1, N).
+
+  Q1      (input/output) DOUBLE PRECISION array, dimension (LDQ1, N)
+          On entry, if COMPQ1 = 'U', then the leading N-by-N part of
+          this array must contain a given matrix Q01, and on exit,
+          the leading N-by-N part of this array contains the product
+          of the input matrix Q01 and the transformation matrix Q1
+          used to transform the matrices Z, T and H.
+          On exit, if COMPQ1 = 'I', then the leading N-by-N part of
+          this array contains the orthogonal transformation matrix
+          Q1.
+          If COMPQ1 = 'N', this array is not referenced.
+
+  LDQ1    INTEGER
+          The leading dimension of the array Q1.
+          LDQ1 &gt;= 1,         if COMPQ1 = 'N';
+          LDQ1 &gt;= MAX(1, N), if COMPQ1 = 'I' or COMPQ1 = 'U'.
+
+  Q2      (input/output) DOUBLE PRECISION array, dimension (LDQ2, N)
+          On entry, if COMPQ2 = 'U', then the leading N-by-N part of
+          this array must contain a given matrix Q02, and on exit,
+          the leading N-by-N part of this array contains the product
+          of the input matrix Q02 and the transformation matrix Q2
+          used to transform the matrices Z, T and H.
+          On exit, if COMPQ2 = 'I', then the leading N-by-N part of
+          this array contains the orthogonal transformation matrix
+          Q2.
+          If COMPQ2 = 'N', this array is not referenced.
+
+  LDQ2    INTEGER
+          The leading dimension of the array Q2.
+          LDQ2 &gt;= 1,         if COMPQ2 = 'N';
+          LDQ2 &gt;= MAX(1, N), if COMPQ2 = 'I' or COMPQ2 = 'U'.
+
+  U11     (input/output) DOUBLE PRECISION array, dimension
+                         (LDU11, N/2)
+          On entry, if COMPU1 = 'U', then the leading N/2-by-N/2
+          part of this array must contain the upper left block of a
+          given matrix U01, and on exit, the leading N/2-by-N/2 part
+          of this array contains the updated upper left block U11 of
+          the product of the input matrix U01 and the transformation
+          matrix U1 used to transform the matrices Z, T, and H.
+          On exit, if COMPU1 = 'I', then the leading N/2-by-N/2 part
+          of this array contains the upper left block U11 of the
+          orthogonal symplectic transformation matrix U1.
+          If COMPU1 = 'N' this array is not referenced.
+
+  LDU11   INTEGER
+          The leading dimension of the array U11.
+          LDU11 &gt;= 1,           if COMPU1 = 'N';
+          LDU11 &gt;= MAX(1, N/2), if COMPU1 = 'I' or COMPU1 = 'U'.
+
+  U12     (input/output) DOUBLE PRECISION array, dimension
+                         (LDU12, N/2)
+          On entry, if COMPU1 = 'U', then the leading N/2-by-N/2
+          part of this array must contain the upper right block of a
+          given matrix U01, and on exit, the leading N/2-by-N/2 part
+          of this array contains the updated upper right block U12
+          of the product of the input matrix U01 and the
+          transformation matrix U1 used to transform the matrices
+          Z, T, and H.
+          On exit, if COMPU1 = 'I', then the leading N/2-by-N/2 part
+          of this array contains the upper right block U12 of the
+          orthogonal symplectic transformation matrix U1.
+          If COMPU1 = 'N' this array is not referenced.
+
+  LDU12   INTEGER
+          The leading dimension of the array U12.
+          LDU12 &gt;= 1,           if COMPU1 = 'N';
+          LDU12 &gt;= MAX(1, N/2), if COMPU1 = 'I' or COMPU1 = 'U'.
+
+  U21     (input/output) DOUBLE PRECISION array, dimension
+                         (LDU21, N/2)
+          On entry, if COMPU2 = 'U', then the leading N/2-by-N/2
+          part of this array must contain the upper left block of a
+          given matrix U02, and on exit, the leading N/2-by-N/2 part
+          of this array contains the updated upper left block U21 of
+          the product of the input matrix U02 and the transformation
+          matrix U2 used to transform the matrices Z, T, and H.
+          On exit, if COMPU2 = 'I', then the leading N/2-by-N/2 part
+          of this array contains the upper left block U21 of the
+          orthogonal symplectic transformation matrix U2.
+          If COMPU2 = 'N' this array is not referenced.
+
+  LDU21   INTEGER
+          The leading dimension of the array U21.
+          LDU21 &gt;= 1,           if COMPU2 = 'N';
+          LDU21 &gt;= MAX(1, N/2), if COMPU2 = 'I' or COMPU2 = 'U'.
+
+  U22     (input/output) DOUBLE PRECISION array, dimension
+                         (LDU22, N/2)
+          On entry, if COMPU2 = 'U', then the leading N/2-by-N/2
+          part of this array must contain the upper right block of a
+          given matrix U02, and on exit, the leading N/2-by-N/2 part
+          of this array contains the updated upper right block U22
+          of the product of the input matrix U02 and the
+          transformation matrix U2 used to transform the matrices
+          Z, T, and H.
+          On exit, if COMPU2 = 'I', then the leading N/2-by-N/2 part
+          of this array contains the upper right block U22 of the
+          orthogonal symplectic transformation matrix U2.
+          If COMPU2 = 'N' this array is not referenced.
+
+  LDU22   INTEGER
+          The leading dimension of the array U22.
+          LDU22 &gt;= 1,           if COMPU2 = 'N';
+          LDU22 &gt;= MAX(1, N/2), if COMPU2 = 'I' or COMPU2 = 'U'.
+
+  T       (output) DOUBLE PRECISION array, dimension (LDT, N)
+          If JOB = 'T', the leading N-by-N part of this array
+          contains the matrix Tout; otherwise, it contains the
+          matrix T obtained just before the application of the
+          periodic QZ algorithm.
+
+  LDT     INTEGER
+          The leading dimension of the array T.  LDT &gt;= MAX(1, N).
+
+  ALPHAR  (output) DOUBLE PRECISION array, dimension (N/2)
+          The real parts of each scalar alpha defining an eigenvalue
+          of the pencil aS - bH.
+
+  ALPHAI  (output) DOUBLE PRECISION array, dimension (N/2)
+          The imaginary parts of each scalar alpha defining an
+          eigenvalue of the pencil aS - bH.
+          If ALPHAI(j) is zero, then the j-th eigenvalue is real.
+
+  BETA    (output) DOUBLE PRECISION array, dimension (N/2)
+          The scalars beta defining the eigenvalues of the pencil
+          aS - bH.
+          Together, the quantities alpha = (ALPHAR(j),ALPHAI(j)) and
+          beta = BETA(j) represent the j-th eigenvalue of the pencil
+          aS - bH, in the form lambda = alpha/beta. Since lambda may
+          overflow, the ratios should not, in general, be computed.
+          Due to the skew-Hamiltonian/Hamiltonian structure of the
+          pencil, for every eigenvalue lambda, -lambda is also an
+          eigenvalue, and thus it has only to be saved once in
+          ALPHAR, ALPHAI and BETA.
+          Specifically, only eigenvalues with imaginary parts
+          greater than or equal to zero are stored; their conjugate
+          eigenvalues are not stored. If imaginary parts are zero
+          (i.e., for real eigenvalues), only positive eigenvalues
+          are stored. The remaining eigenvalues have opposite signs.
+          As a consequence, pairs of complex eigenvalues, stored in
+          consecutive locations, are not complex conjugate.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  IWORK   INTEGER array, dimension (LIWORK)
+          On exit, if INFO = 3, IWORK(1) contains the number of
+          (pairs of) possibly inaccurate eigenvalues, q &lt;= N/2, and
+          IWORK(2), ..., IWORK(q+1) indicate their indices.
+          Specifically, a positive value is an index of a real or
+          purely imaginary eigenvalue, corresponding to a 1-by-1
+          block, while the absolute value of a negative entry in
+          IWORK is an index to the first eigenvalue in a pair of
+          consecutively stored eigenvalues, corresponding to a
+          2-by-2 block. A 2-by-2 block may have two complex, two
+          real, two purely imaginary, or one real and one purely
+          imaginary eigenvalue.
+          For i = q+2, ..., 2*q+1, IWORK(i) contains a pointer to
+          the starting location in DWORK of the i-th quadruple of
+          1-by-1 blocks, if IWORK(i-q) &gt; 0, or 2-by-2 blocks,
+          if IWORK(i-q) &lt; 0, defining unreliable eigenvalues.
+          IWORK(2*q+2) contains the number of the 1-by-1 blocks, and
+          IWORK(2*q+3) contains the number of the 2-by-2 blocks,
+          corresponding to unreliable eigenvalues. IWORK(2*q+4)
+          contains the total number t of the 2-by-2 blocks.
+          If INFO = 0, then q = 0, therefore IWORK(1) = 0.
+
+  LIWORK  INTEGER
+          The dimension of the array IWORK.   LIWORK &gt;= N+18.
+
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+          On exit, if INFO = 0 or INFO = 3, DWORK(1) returns the
+          optimal LDWORK, and DWORK(2), ..., DWORK(7) contain the
+          Frobenius norms of the factors of the formal matrix
+          product used by the algorithm. In addition, DWORK(8), ...,
+          DWORK(7+6*s) contain the s sextuple values corresponding
+          to the 1-by-1 blocks. Their eigenvalues are real or purely
+          imaginary. Such an eigenvalue is obtained from
+          -i*sqrt((a1/a2/a3)*(a4/a5/a6)), but always taking a
+          positive sign, where a1, ..., a6 are the corresponding
+          sextuple values.
+          Moreover, DWORK(8+6*s), ..., DWORK(7+6*s+24*t) contain the
+          t groups of sextuple 2-by-2 matrices corresponding to the
+          2-by-2 blocks. Their eigenvalue pairs are either complex,
+          or placed on the real and imaginary axes. Such an
+          eigenvalue pair is obtained as -1i*sqrt(ev), but taking
+          positive imaginary parts, where ev are the eigenvalues of
+          the product A1*inv(A2)*inv(A3)*A4*inv(A5)*inv(A6), where
+          A1, ..., A6 define the corresponding 2-by-2 matrix
+          sextuple.
+          On exit, if INFO = -31, DWORK(1) returns the minimum value
+          of LDWORK.
+
+  LDWORK  INTEGER
+          The dimension of the array DWORK.
+          If JOB = 'E' and COMPQ1 = 'N' and COMPQ2 = 'N' and
+          COMPU1 = 'N' and COMPU2 = 'N', then
+                LDWORK &gt;= 3/2*N**2 + MAX(6*N,54);
+          else, LDWORK &gt;=   3*N**2 + MAX(6*N,54).
+          For good performance LDWORK should generally be larger.
+
+          If LDWORK = -1, then a workspace query is assumed; the
+          routine only calculates the optimal size of the DWORK
+          array, returns this value as the first entry of the DWORK
+          array, and no error message related to LDWORK is issued by
+          XERBLA.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0: succesful exit;
+          &lt; 0: if INFO = -i, the i-th argument had an illegal value;
+          = 1: the periodic QZ algorithm was not able to reveal
+               information about the eigenvalues from the 2-by-2
+               blocks in the SLICOT Library routine MB03BD;
+          = 2: the periodic QZ algorithm did not converge in the
+               SLICOT Library routine MB03BD;
+          = 3: some eigenvalues might be inaccurate, and details can
+               be found in IWORK and DWORK. This is a warning.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  The algorithm uses Givens rotations and Householder reflections to
+  annihilate elements in T, Z, and H such that T11, T22', Z11, Z22',
+  and H11 are upper triangular and H22' is upper Hessenberg. Finally
+  the periodic QZ algorithm is applied to transform H22' to upper
+  quasi-triangular form while T11, T22', Z11, Z22', and H11 stay in
+  upper triangular form.
+  See also page 17 in [1] for more details.
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Benner, P., Byers, R., Losse, P., Mehrmann, V. and Xu, H.
+      Numerical Solution of Real Skew-Hamiltonian/Hamiltonian
+      Eigenproblems.
+      Tech. Rep., Technical University Chemnitz, Germany,
+      Nov. 2007.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>                                                            3
+  The algorithm is numerically backward stable and needs O(N ) real
+  floating point operations.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+*     MB04AD EXAMPLE PROGRAM TEXT
+*
+*     .. Parameters ..
+      INTEGER            NIN, NOUT
+      PARAMETER          ( NIN = 5, NOUT = 6 )
+      INTEGER            NMAX
+      PARAMETER          ( NMAX = 50 )
+      INTEGER            LDH, LDQ1, LDQ2, LDT, LDU11, LDU12, LDU21,
+     $                   LDU22, LDWORK, LDZ, LIWORK
+      PARAMETER          ( LDH = NMAX, LDQ1  = NMAX,   LDQ2 = NMAX,
+     $                     LDT = NMAX, LDU11 = NMAX/2, LDU12 = NMAX/2,
+     $                     LDU21  = NMAX/2, LDU22 = NMAX/2,
+     $                     LDWORK = 3*NMAX*NMAX + MAX( NMAX, 48 ) + 6,
+     $                     LDZ = NMAX,  LIWORK = NMAX + 18 )
+      DOUBLE PRECISION  ZERO
+      PARAMETER         ( ZERO = 0.0D0 )
+*
+*     .. Local Scalars ..
+      CHARACTER          COMPQ1, COMPQ2, COMPU1, COMPU2, JOB
+      INTEGER            I, INFO, J, M, N
+*
+*     .. Local Arrays ..
+      INTEGER            IWORK( LIWORK )
+      DOUBLE PRECISION   ALPHAI( NMAX/2 ), ALPHAR( NMAX/2 ),
+     $                   BETA( NMAX/2 ), DWORK( LDWORK ),
+     $                   H( LDH, NMAX ), Q1( LDQ1, NMAX ),
+     $                   Q2( LDQ2, NMAX ), T( LDT, NMAX ),
+     $                   U11( LDU11, NMAX/2 ), U12( LDU12, NMAX/2 ),
+     $                   U21( LDU21, NMAX/2 ), U22( LDU22, NMAX/2 ),
+     $                   Z( LDZ, NMAX )
+*
+*     .. External Functions ..
+      LOGICAL            LSAME
+      EXTERNAL           LSAME
+*
+*     .. External Subroutines ..
+      EXTERNAL           DLASET, MB04AD
+*
+*     .. Intrinsic Functions ..
+      INTRINSIC          MAX
+*
+*     .. Executable Statements ..
+*
+      WRITE( NOUT, FMT = 99999 )
+*     Skip the heading in the data file and read in the data.
+      READ( NIN, FMT = * )
+      READ( NIN, FMT = * ) JOB, COMPQ1, COMPQ2, COMPU1, COMPU2, N
+      IF( N.LT.0 .OR. N.GT.NMAX ) THEN
+         WRITE( NOUT, FMT = 99998 ) N
+      ELSE
+         READ( NIN, FMT = * ) ( ( Z( I, J ), J = 1, N ), I = 1, N )
+         READ( NIN, FMT = * ) ( ( H( I, J ), J = 1, N ), I = 1, N )
+*        Compute the eigenvalues of a real skew-Hamiltonian/Hamiltonian
+*        pencil (factored version).
+         CALL MB04AD( JOB, COMPQ1, COMPQ2, COMPU1, COMPU2, N, Z, LDZ, H,
+     $                LDH, Q1, LDQ1, Q2, LDQ2, U11, LDU11, U12, LDU12,
+     $                U21, LDU21, U22, LDU22, T, LDT, ALPHAR, ALPHAI,
+     $                BETA, IWORK, LIWORK, DWORK, LDWORK, INFO )
+*
+         IF( INFO.NE.0 ) THEN
+            WRITE( NOUT, FMT = 99997 ) INFO
+         ELSE
+            M = N/2
+            CALL DLASET( 'Full', M, M, ZERO, ZERO, Z( M+1, 1 ), LDZ )
+            WRITE( NOUT, FMT = 99996 )
+            DO 10 I = 1, N
+               WRITE( NOUT, FMT = 99995 ) ( T( I, J ), J = 1, N )
+   10       CONTINUE
+            WRITE( NOUT, FMT = 99994 )
+            DO 20 I = 1, N
+               WRITE( NOUT, FMT = 99995 ) ( Z( I, J ), J = 1, N )
+   20       CONTINUE
+            WRITE( NOUT, FMT = 99993 )
+            DO 30 I = 1, N
+               WRITE( NOUT, FMT = 99995 ) ( H( I, J ), J = 1, N )
+   30       CONTINUE
+            IF( LSAME( COMPQ1, 'I' ) ) THEN
+               WRITE( NOUT, FMT = 99992 )
+               DO 40 I = 1, N
+                  WRITE( NOUT, FMT = 99995 ) ( Q1( I, J ), J = 1, N )
+   40          CONTINUE
+            END IF
+            IF( LSAME( COMPQ2, 'I' ) ) THEN
+               WRITE( NOUT, FMT = 99991 )
+               DO 50 I = 1, N
+                  WRITE( NOUT, FMT = 99995 ) ( Q2( I, J ), J = 1, N )
+   50          CONTINUE
+            END IF
+            IF( LSAME( COMPU1, 'I' ) ) THEN
+               WRITE( NOUT, FMT = 99990 )
+               DO 60 I = 1, M
+                  WRITE( NOUT, FMT = 99995 ) ( U11( I, J ), J = 1, M )
+   60          CONTINUE
+               WRITE( NOUT, FMT = 99989 )
+               DO 70 I = 1, M
+                  WRITE( NOUT, FMT = 99995 ) ( U12( I, J ), J = 1, M )
+   70          CONTINUE
+            END IF
+            IF( LSAME( COMPU2, 'I' ) ) THEN
+               WRITE( NOUT, FMT = 99988 )
+               DO 80 I = 1, M
+                  WRITE( NOUT, FMT = 99995 ) ( U21( I, J ), J = 1, M )
+   80          CONTINUE
+               WRITE( NOUT, FMT = 99987 )
+               DO 90 I = 1, M
+                  WRITE( NOUT, FMT = 99995 ) ( U22( I, J ), J = 1, M )
+   90          CONTINUE
+            END IF
+            WRITE( NOUT, FMT = 99986 )
+            WRITE( NOUT, FMT = 99995 ) ( ALPHAR( I ), I = 1, M )
+            WRITE( NOUT, FMT = 99985 )
+            WRITE( NOUT, FMT = 99995 ) ( ALPHAI( I ), I = 1, M )
+            WRITE( NOUT, FMT = 99984 )
+            WRITE( NOUT, FMT = 99995 ) (   BETA( I ), I = 1, M )
+         END IF
+      END IF
+      STOP
+* 
+99999 FORMAT( 'MB04AD EXAMPLE PROGRAM RESULTS', 1X )
+99998 FORMAT( 'N is out of range.', /, 'N = ', I5 )
+99997 FORMAT( 'INFO on exit from MB04AD = ', I2 )
+99996 FORMAT( 'The matrix T on exit is ' )
+99995 FORMAT( 50( 1X, F8.4 ) )
+99994 FORMAT( 'The matrix Z on exit is ' )
+99993 FORMAT( 'The matrix H is ' )
+99992 FORMAT( 'The matrix Q1 is ' )
+99991 FORMAT( 'The matrix Q2 is ' )
+99990 FORMAT( 'The upper left block of the matrix U1 is ' )
+99989 FORMAT( 'The upper right block of the matrix U1 is ' )
+99988 FORMAT( 'The upper left block of the matrix U2 is ' )
+99987 FORMAT( 'The upper right block of the matrix U2 is ' )
+99986 FORMAT( 'The vector ALPHAR is ' )
+99985 FORMAT( 'The vector ALPHAI is ' )
+99984 FORMAT( 'The vector BETA is ' )
+      END
+</PRE>
+<B>Program Data</B>
+<PRE>
+MB04AD EXAMPLE PROGRAM DATA
+   T   I   I   I   I   8
+   3.1472    4.5751   -0.7824    1.7874   -2.2308   -0.6126    2.0936    4.5974
+   4.0579    4.6489    4.1574    2.5774   -4.5383   -1.1844    2.5469   -1.5961
+  -3.7301   -3.4239    2.9221    2.4313   -4.0287    2.6552   -2.2397    0.8527
+   4.1338    4.7059    4.5949   -1.0777    3.2346    2.9520    1.7970   -2.7619
+   1.3236    4.5717    1.5574    1.5548    1.9483   -3.1313    1.5510    2.5127
+  -4.0246   -0.1462   -4.6429   -3.2881   -1.8290   -0.1024   -3.3739   -2.4490
+  -2.2150    3.0028    3.4913    2.0605    4.5022   -0.5441   -3.8100    0.0596
+   0.4688   -3.5811    4.3399   -4.6817   -4.6555    1.4631   -0.0164    1.9908
+   3.9090   -3.5071    3.1428   -3.0340   -1.4834    3.7401   -0.1715    0.4026
+   4.5929   -2.4249   -2.5648   -2.4892    3.7401   -2.1416    1.6251    2.6645
+   0.4722    3.4072    4.2926    1.1604   -0.1715    1.6251   -4.2415   -0.0602
+  -3.6138   -2.4572   -1.5002   -0.2671    0.4026    2.6645   -0.0602   -3.7009
+   0.6882   -1.8421   -4.1122    0.1317   -3.9090   -4.5929   -0.4722    3.6138
+  -1.8421    2.9428   -0.4340    1.3834    3.5071    2.4249   -3.4072    2.4572
+  -4.1122   -0.4340   -2.3703    0.5231   -3.1428    2.5648   -4.2926    1.5002
+   0.1317    1.3834    0.5231   -4.1618    3.0340    2.4892   -1.1604    0.2671
+</PRE>
+<B>Program Results</B>
+<PRE>
+MB04AD EXAMPLE PROGRAM RESULTS
+The matrix T on exit is 
+  -3.9699   3.7658   5.5815  -1.7750  -0.8818  -0.0511  -4.2158   1.9054
+   0.0000   5.3686  -5.9166   4.9163   1.3839   0.8870   3.9458  -4.9167
+   0.0000   0.0000   5.9641   1.9432  -2.0680   2.4402  -1.4091   5.8512
+   0.0000   0.0000   0.0000   5.9983  -3.8172   4.0147  -2.0739  -1.2570
+   0.0000   0.0000   0.0000   0.0000   8.2005   0.0000   0.0000   0.0000
+   0.0000   0.0000   0.0000   0.0000   1.5732   8.0098   0.0000   0.0000
+   0.0000   0.0000   0.0000   0.0000   0.6017   2.4397   5.9751   0.0000
+   0.0000   0.0000   0.0000   0.0000  -2.5869   0.5598   0.2544   5.2129
+The matrix Z on exit is 
+  -6.4705  -2.5511  -4.0551  -1.9895  -2.7642   0.7532  -4.1047  -2.2046
+   0.0000   7.3589  -4.4480  -2.7491  -1.5465  -1.4345  -0.9272   1.3121
+   0.0000   0.0000   4.9125  -0.4968   5.3574   3.8579   5.2547  -1.7324
+   0.0000   0.0000   0.0000   9.0822   0.0460  -0.3382   3.9302   3.1084
+   0.0000   0.0000   0.0000   0.0000   6.1869   0.0000   0.0000   0.0000
+   0.0000   0.0000   0.0000   0.0000   5.5573   6.6549   0.0000   0.0000
+   0.0000   0.0000   0.0000   0.0000   2.7456  -3.5789   4.3432   0.0000
+   0.0000   0.0000   0.0000   0.0000   0.1549   3.5335   3.1346   4.1062
+The matrix H is 
+  -7.4834   0.4404   2.3558   1.6724  -0.4630   1.9533   1.5724  -2.7254
+   0.0000  -7.3500   3.7414   3.7466   0.2837   0.6849   0.7727  -4.2140
+   0.0000   0.0000  -2.3493  -3.7994  -0.6872   1.1773  -2.6901  -5.1494
+   0.0000   0.0000   0.0000  -3.4719   5.3322   0.4182   1.9779   1.5175
+   0.0000   0.0000   0.0000   0.0000  -6.1880   0.0000   0.0000   0.0000
+   0.0000   0.0000   0.0000   0.0000  -3.3324   9.0833   0.0000   0.0000
+   0.0000   0.0000   0.0000   0.0000  -1.8703   0.0799  -2.8180   0.0000
+   0.0000   0.0000   0.0000   0.0000  -2.3477   3.3110   0.6561   0.7281
+The matrix Q1 is 
+  -0.2489  -0.1409   0.3615   0.6458   0.0113   0.6063  -0.0470   0.0238
+  -0.2436   0.1294  -0.0874  -0.4103   0.3408   0.3628  -0.3267   0.6272
+  -0.4316  -0.2352   0.5553  -0.2811  -0.2198  -0.2880  -0.4564  -0.1773
+   0.1992  -0.2176  -0.5198   0.1561  -0.1523   0.1299  -0.7281  -0.2197
+   0.0161   0.7390   0.1125  -0.2226  -0.1003   0.3608  -0.1118  -0.4886
+  -0.5824   0.0984  -0.3052   0.1996   0.5889  -0.2442   0.0060  -0.3341
+  -0.3246   0.4661  -0.1835   0.3523  -0.5153  -0.3034  -0.0865   0.3931
+  -0.4559  -0.2961  -0.3790  -0.3127  -0.4356   0.3452   0.3642  -0.1467
+The matrix Q2 is 
+   0.0288  -0.1842  -0.6791  -0.2115  -0.4790   0.4212  -0.0417  -0.2253
+  -0.0666  -0.0787  -0.3711   0.1737  -0.0482  -0.5770  -0.6785   0.1607
+   0.1506   0.6328   0.0518  -0.6266   0.0652  -0.0790  -0.2854  -0.2994
+  -0.2900  -0.2737  -0.0076  -0.3671  -0.2017  -0.6241   0.4521  -0.2675
+   0.3353   0.4107   0.0326   0.1400  -0.6447  -0.2043   0.2561   0.4187
+   0.0905  -0.1648  -0.2363  -0.5323   0.3180   0.0286   0.1252   0.7126
+  -0.7246   0.0468   0.3328  -0.1794  -0.3639   0.2257  -0.2623   0.2786
+   0.4922  -0.5353   0.4803  -0.2501  -0.2723   0.0199  -0.3194  -0.0371
+The upper left block of the matrix U1 is 
+   0.4144   0.2249   0.6015  -0.1964
+  -0.0198   0.5131  -0.2823  -0.3058
+  -0.6620   0.1508   0.2237   0.0240
+  -0.0743  -0.4323  -0.0332  -0.7263
+The upper right block of the matrix U1 is 
+  -0.3474   0.1306  -0.3391  -0.3530
+  -0.3760   0.1550   0.6087  -0.1646
+   0.1707   0.6553  -0.1262  -0.1177
+   0.3048  -0.0773   0.0767  -0.4173
+The upper left block of the matrix U2 is 
+   0.1403  -0.6447  -0.6536  -0.3707
+   0.7069   0.2609  -0.0091  -0.1702
+  -0.1218  -0.1120   0.3766  -0.5154
+   0.0773   0.6349  -0.5070  -0.1810
+The upper right block of the matrix U2 is 
+   0.0000   0.0000   0.0000   0.0000
+   0.1182   0.1587   0.1930  -0.5716
+   0.6051  -0.2720   0.3364   0.1089
+   0.2823  -0.0386  -0.1529   0.4434
+The vector ALPHAR is 
+   0.0000   0.7122   0.0000   0.7450
+The vector ALPHAI is 
+   0.7540   0.0000   0.7465   0.0000
+The vector BETA is 
+   4.0000   4.0000   8.0000  16.0000
+</PRE>
+
+<HR>
+<p>
+<A HREF=..\libindex.html><B>Return to index</B></A></BODY>
+</HTML>

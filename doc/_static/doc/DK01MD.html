@@ -1,0 +1,188 @@
+<HTML>
+<HEAD><TITLE>DK01MD - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="DK01MD">DK01MD</A></H2>
+<H3>
+Anti-aliasing window applied to a real signal
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To apply an anti-aliasing window to a real signal.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE DK01MD( TYPE, N, A, INFO )
+C     .. Scalar Arguments ..
+      CHARACTER         TYPE
+      INTEGER           INFO, N
+C     .. Array Arguments ..
+      DOUBLE PRECISION  A(*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  TYPE    CHARACTER*1
+          Indicates the type of window to be applied to the signal
+          as follows:
+          = 'M':  Hamming window;
+          = 'N':  Hann window;
+          = 'Q':  Quadratic window.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The number of samples.  N &gt;= 1.
+
+  A       (input/output) DOUBLE PRECISION array, dimension (N)
+          On entry, this array must contain the signal to be
+          processed.
+          On exit, this array contains the windowing function.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  If TYPE = 'M', then a Hamming window is applied to A(1),...,A(N),
+  which yields
+    _
+    A(i) = (0.54 + 0.46*cos(pi*(i-1)/(N-1)))*A(i), i = 1,2,...,N.
+
+  If TYPE = 'N', then a Hann window is applied to A(1),...,A(N),
+  which yields
+    _
+    A(i) = 0.5*(1 + cos(pi*(i-1)/(N-1)))*A(i), i = 1,2,...,N.
+
+  If TYPE = 'Q', then a quadratic window is applied to A(1),...,
+  A(N), which yields
+    _
+    A(i) = (1 - 2*((i-1)/(N-1))**2)*(1 - (i-1)/(N-1))*A(i),
+                                          i = 1,2,...,(N-1)/2+1;
+    _
+    A(i) = 2*(1 - ((i-1)/(N-1))**3)*A(i), i = (N-1)/2+2,...,N.
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Rabiner, L.R. and Rader, C.M.
+      Digital Signal Processing.
+      IEEE Press, 1972.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  The algorithm requires 0( N ) operations.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+*     DK01MD EXAMPLE PROGRAM TEXT
+*
+*     .. Parameters ..
+      INTEGER          NIN, NOUT
+      PARAMETER        ( NIN = 5, NOUT = 6 )
+      INTEGER          NMAX
+      PARAMETER        ( NMAX = 20 )
+*     .. Local Scalars ..
+      CHARACTER*1      TYPE
+      INTEGER          I, INFO, N
+*     .. Local Arrays ..
+      DOUBLE PRECISION A(NMAX)
+*     .. External Subroutines ..
+      EXTERNAL         DK01MD
+*     .. Executable Statements ..
+*
+      WRITE ( NOUT, FMT = 99999 )
+*     Skip the heading in the data file and read the data.
+      READ ( NIN, FMT = '()' )
+      READ ( NIN, FMT = * ) N, TYPE
+      IF ( N.LE.0 .OR. N.GT.NMAX ) THEN
+         WRITE ( NOUT, FMT = 99995 ) N
+      ELSE
+         READ ( NIN, FMT = * ) ( A(I), I = 1,N )
+*        Apply a Hamming window to the given signal.
+         CALL DK01MD( TYPE, N, A, INFO )
+*
+         IF ( INFO.NE.0 ) THEN
+            WRITE ( NOUT, FMT = 99998 ) INFO
+         ELSE
+            WRITE ( NOUT, FMT = 99997 )
+            DO 20 I = 1, N
+               WRITE ( NOUT, FMT = 99996 ) I, A(I)
+   20       CONTINUE
+         END IF
+      END IF
+      STOP
+*
+99999 FORMAT (' DK01MD EXAMPLE PROGRAM RESULTS',/1X)
+99998 FORMAT (' INFO on exit from DK01MD = ',I2)
+99997 FORMAT (' Components of the windowing function are',//'   k     ',
+     $       ' A(k)',/)
+99996 FORMAT (I4,3X,F8.4)
+99995 FORMAT (/' N is out of range.',/' N = ',I5)
+      END
+</PRE>
+<B>Program Data</B>
+<PRE>
+ DK01MD EXAMPLE PROGRAM DATA
+   8     M
+   0.3262
+   0.8723
+  -0.7972
+   0.6673
+  -0.1722
+   0.3237
+   0.5263
+  -0.3275
+</PRE>
+<B>Program Results</B>
+<PRE>
+ DK01MD EXAMPLE PROGRAM RESULTS
+
+ Components of the windowing function are
+
+   k      A(k)
+
+   1     0.3262
+   2     0.8326
+   3    -0.6591
+   4     0.4286
+   5    -0.0754
+   6     0.0820
+   7     0.0661
+   8    -0.0262
+</PRE>
+
+<HR>
+<p>
+<A HREF=..\libindex.html><B>Return to index</B></A></BODY>
+</HTML>

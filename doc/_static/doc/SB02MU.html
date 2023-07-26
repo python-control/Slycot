@@ -1,0 +1,210 @@
+<HTML>
+<HEAD><TITLE>SB02MU - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="SB02MU">SB02MU</A></H2>
+<H3>
+Constructing the 2n-by-2n Hamiltonian or symplectic matrix for linear-quadratic optimization problems
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To construct the 2n-by-2n Hamiltonian or symplectic matrix S
+  associated to the linear-quadratic optimization problem, used to
+  solve the continuous- or discrete-time algebraic Riccati equation,
+  respectively.
+
+  For a continuous-time problem, S is defined by
+
+          (  A  -G )
+      S = (        ),                                       (1)
+          ( -Q  -A')
+
+  and for a discrete-time problem by
+
+              -1       -1
+          (  A        A  *G     )
+      S = (   -1           -1   ),                          (2)
+          ( QA     A' + Q*A  *G )
+
+  or
+
+                    -T         -T
+          (  A + G*A  *Q   -G*A   )
+      S = (      -T            -T ),                        (3)
+          (    -A  *Q         A   )
+
+  where A, G, and Q are N-by-N matrices, with G and Q symmetric.
+  Matrix A must be nonsingular in the discrete-time case.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE SB02MU( DICO, HINV, UPLO, N, A, LDA, G, LDG, Q, LDQ, S,
+     $                   LDS, IWORK, DWORK, LDWORK, INFO )
+C     .. Scalar Arguments ..
+      CHARACTER         DICO, HINV, UPLO
+      INTEGER           INFO, LDA, LDG, LDQ, LDS, LDWORK, N
+C     .. Array Arguments ..
+      INTEGER           IWORK(*)
+      DOUBLE PRECISION  A(LDA,*), DWORK(*), G(LDG,*), Q(LDQ,*),
+     $                  S(LDS,*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  DICO    CHARACTER*1
+          Specifies the type of the system as follows:
+          = 'C':  Continuous-time system;
+          = 'D':  Discrete-time system.
+
+  HINV    CHARACTER*1
+          If DICO = 'D', specifies which of the matrices (2) or (3)
+          is constructed, as follows:
+          = 'D':  The matrix S in (2) is constructed;
+          = 'I':  The (inverse) matrix S in (3) is constructed.
+          HINV is not referenced if DICO = 'C'.
+
+  UPLO    CHARACTER*1
+          Specifies which triangle of the matrices G and Q is
+          stored, as follows:
+          = 'U':  Upper triangle is stored;
+          = 'L':  Lower triangle is stored.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The order of the matrices A, G, and Q.  N &gt;= 0.
+
+  A       (input/output) DOUBLE PRECISION array, dimension (LDA,N)
+          On entry, the leading N-by-N part of this array must
+          contain the matrix A.
+          On exit, if DICO = 'D', and INFO = 0, the leading N-by-N
+                                                  -1
+          part of this array contains the matrix A  .
+          Otherwise, the array A is unchanged on exit.
+
+  LDA     INTEGER
+          The leading dimension of array A.  LDA &gt;= MAX(1,N).
+
+  G       (input) DOUBLE PRECISION array, dimension (LDG,N)
+          The leading N-by-N upper triangular part (if UPLO = 'U')
+          or lower triangular part (if UPLO = 'L') of this array
+          must contain the upper triangular part or lower triangular
+          part, respectively, of the symmetric matrix G.
+          The strictly lower triangular part (if UPLO = 'U') or
+          strictly upper triangular part (if UPLO = 'L') is not
+          referenced.
+
+  LDG     INTEGER
+          The leading dimension of array G.  LDG &gt;= MAX(1,N).
+
+  Q       (input) DOUBLE PRECISION array, dimension (LDQ,N)
+          The leading N-by-N upper triangular part (if UPLO = 'U')
+          or lower triangular part (if UPLO = 'L') of this array
+          must contain the upper triangular part or lower triangular
+          part, respectively, of the symmetric matrix Q.
+          The strictly lower triangular part (if UPLO = 'U') or
+          strictly upper triangular part (if UPLO = 'L') is not
+          referenced.
+
+  LDQ     INTEGER
+          The leading dimension of array Q.  LDQ &gt;= MAX(1,N).
+
+  S       (output) DOUBLE PRECISION array, dimension (LDS,2*N)
+          If INFO = 0, the leading 2N-by-2N part of this array
+          contains the Hamiltonian or symplectic matrix of the
+          problem.
+
+  LDS     INTEGER
+          The leading dimension of array S.  LDS &gt;= MAX(1,2*N).
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  IWORK   INTEGER array, dimension (2*N)
+
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+          On exit, if INFO = 0, DWORK(1) returns the optimal value
+          of LDWORK; if DICO = 'D', DWORK(2) returns the reciprocal
+          condition number of the given matrix  A.
+
+  LDWORK  INTEGER
+          The length of the array DWORK.
+          LDWORK &gt;= 1          if DICO = 'C';
+          LDWORK &gt;= MAX(2,4*N) if DICO = 'D'.
+          For optimum performance LDWORK should be larger, if
+          DICO = 'D'.
+
+          If LDWORK = -1, then a workspace query is assumed;
+          the routine only calculates the optimal size of the
+          DWORK array, returns this value as the first entry of
+          the DWORK array, and no error message related to LDWORK
+          is issued by XERBLA.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value;
+          = i:  if the leading i-by-i (1 &lt;= i &lt;= N) upper triangular
+                submatrix of A is singular in discrete-time case;
+          = N+1:  if matrix A is numerically singular in discrete-
+                time case.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  For a continuous-time problem, the 2n-by-2n Hamiltonian matrix (1)
+  is constructed.
+  For a discrete-time problem, the 2n-by-2n symplectic matrix (2) or
+  (3) - the inverse of the matrix in (2) - is constructed.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  The discrete-time case needs the inverse of the matrix A, hence
+  the routine should not be used when A is ill-conditioned.
+                            3
+  The algorithm requires 0(n ) floating point operations in the
+  discrete-time case.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

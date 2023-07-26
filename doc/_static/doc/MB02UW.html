@@ -1,0 +1,143 @@
+<HTML>
+<HEAD><TITLE>MB02UW - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MB02UW">MB02UW</A></H2>
+<H3>
+Solving a set of linear systems of order at most 2 with possible scaling and perturbation of system matrix
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To solve a system of the form  A X = s B  or  A' X = s B  with
+  possible scaling ("s") and perturbation of A.  (A' means
+  A-transpose.)  A is an N-by-N real matrix, and X and B are
+  N-by-M matrices.  N may be 1 or 2.  The scalar "s" is a scaling
+  factor (.LE. 1), computed by this subroutine, which is so chosen
+  that X can be computed without overflow.  X is further scaled if
+  necessary to assure that norm(A)*norm(X) is less than overflow.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MB02UW( LTRANS, N, M, PAR, A, LDA, B, LDB, SCALE,
+     $                   IWARN )
+C     .. Scalar Arguments ..
+      LOGICAL            LTRANS
+      INTEGER            IWARN, LDA, LDB, N, M
+      DOUBLE PRECISION   SCALE, SMIN
+C     .. Array Arguments ..
+      DOUBLE PRECISION   A( LDA, * ), B( LDB, * ), PAR( * )
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  LTRANS  LOGICAL
+          Specifies if A or A-transpose is to be used, as follows:
+          =.TRUE. :  A-transpose will be used;
+          =.FALSE.:  A will be used (not transposed).
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The order of the matrix A.  It may (only) be 1 or 2.
+
+  M       (input) INTEGER
+          The number of right hand size vectors.
+
+  PAR     (input) DOUBLE PRECISION array, dimension (3)
+          Machine related parameters:
+          PAR(1) =: PREC  (machine precision)*base, DLAMCH( 'P' );
+          PAR(2) =: SFMIN safe minimum,             DLAMCH( 'S' );
+          PAR(3) =: SMIN  The desired lower bound on the singular
+                          values of A.  This should be a safe
+                          distance away from underflow or overflow,
+                          say, between (underflow/machine precision)
+                          and (machine precision * overflow).
+
+  A       (input) DOUBLE PRECISION array, dimension (LDA,N)
+          The leading N-by-N part of this array must contain the
+          matrix A.
+
+  LDA     INTEGER
+          The leading dimension of the array A.  LDA &gt;= N.
+
+  B       (input/output) DOUBLE PRECISION array, dimension (LDB,M)
+          On entry, the leading N-by-M part of this array must
+          contain the matrix B (right-hand side).
+          On exit, the leading N-by-M part of this array contains
+          the N-by-M matrix X (unknowns).
+
+  LDB     INTEGER
+          The leading dimension of the array B.  LDB &gt;= N.
+
+  SCALE   (output) DOUBLE PRECISION
+          The scale factor that B must be multiplied by to insure
+          that overflow does not occur when computing X.  Thus,
+          A X  will be SCALE*B, not B (ignoring perturbations of A).
+          SCALE will be at most 1.
+
+</PRE>
+<B>Warning Indicator</B>
+<PRE>
+  IWARN   INTEGER
+          = 0:  no warnings (A did not have to be perturbed);
+          = 1:  A had to be perturbed to make its smallest (or only)
+                singular value greater than SMIN (see below).
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  Gaussian elimination with complete pivoting is used. The matrix A
+  is slightly perturbed if it is (close to being) singular.
+
+</PRE>
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  If both singular values of A are less than SMIN, SMIN*identity
+  will be used instead of A.  If only one singular value is less
+  than SMIN, one element of A will be perturbed enough to make the
+  smallest singular value roughly SMIN.  If both singular values
+  are at least SMIN, A will not be perturbed.  In any case, the
+  perturbation will be at most some small multiple of
+  max( SMIN, EPS*norm(A) ), where EPS is the machine precision
+  (see LAPACK Library routine DLAMCH).  The singular values are
+  computed by infinity-norm approximations, and thus will only be
+  correct to a factor of 2 or so.
+
+  Note: all input quantities are assumed to be smaller than overflow
+  by a reasonable factor.  (See BIGNUM.)  In the interests of speed,
+  this routine does not check the inputs for errors.
+
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

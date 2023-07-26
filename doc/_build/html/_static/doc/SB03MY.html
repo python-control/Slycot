@@ -1,0 +1,142 @@
+<HTML>
+<HEAD><TITLE>SB03MY - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="SB03MY">SB03MY</A></H2>
+<H3>
+Solving a continuous-time Lyapunov equation with matrix A quasi-triangular
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To solve the real Lyapunov matrix equation
+
+         op(A)'*X + X*op(A) = scale*C
+
+  where op(A) = A or A' (A**T), A is upper quasi-triangular and C is
+  symmetric (C = C'). (A' denotes the transpose of the matrix A.)
+  A is N-by-N, the right hand side C and the solution X are N-by-N,
+  and scale is an output scale factor, set less than or equal to 1
+  to avoid overflow in X. The solution matrix X is overwritten
+  onto C.
+
+  A must be in Schur canonical form (as returned by LAPACK routines
+  DGEES or DHSEQR), that is, block upper triangular with 1-by-1 and
+  2-by-2 diagonal blocks; each 2-by-2 diagonal block has its
+  diagonal elements equal and its off-diagonal elements of opposite
+  sign.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE SB03MY( TRANA, N, A, LDA, C, LDC, SCALE, INFO )
+C     .. Scalar Arguments ..
+      CHARACTER          TRANA
+      INTEGER            INFO, LDA, LDC, N
+      DOUBLE PRECISION   SCALE
+C     .. Array Arguments ..
+      DOUBLE PRECISION   A( LDA, * ), C( LDC, * )
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  TRANA   CHARACTER*1
+          Specifies the form of op(A) to be used, as follows:
+          = 'N':  op(A) = A    (No transpose);
+          = 'T':  op(A) = A**T (Transpose);
+          = 'C':  op(A) = A**T (Conjugate transpose = Transpose).
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The order of the matrices A, X, and C.  N &gt;= 0.
+
+  A       (input) DOUBLE PRECISION array, dimension (LDA,N)
+          The leading N-by-N part of this array must contain the
+          upper quasi-triangular matrix A, in Schur canonical form.
+          The part of A below the first sub-diagonal is not
+          referenced.
+
+  LDA     INTEGER
+          The leading dimension of array A.  LDA &gt;= MAX(1,N).
+
+  C       (input/output) DOUBLE PRECISION array, dimension (LDC,N)
+          On entry, the leading N-by-N part of this array must
+          contain the symmetric matrix C.
+          On exit, if INFO &gt;= 0, the leading N-by-N part of this
+          array contains the symmetric solution matrix X.
+
+  LDC     INTEGER
+          The leading dimension of array C.  LDC &gt;= MAX(1,N).
+
+  SCALE   (output) DOUBLE PRECISION
+          The scale factor, scale, set less than or equal to 1 to
+          prevent the solution overflowing.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value;
+          = 1:  if A and -A have common or very close eigenvalues;
+                perturbed values were used to solve the equation
+                (but the matrix A is unchanged).
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  Bartels-Stewart algorithm is used. A set of equivalent linear
+  algebraic systems of equations of order at most four are formed
+  and solved using Gaussian elimination with complete pivoting.
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Bartels, R.H. and Stewart, G.W.  T
+      Solution of the matrix equation A X + XB = C.
+      Comm. A.C.M., 15, pp. 820-826, 1972.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>                            3
+  The algorithm requires 0(N ) operations.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

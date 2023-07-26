@@ -1,0 +1,123 @@
+<HTML>
+<HEAD><TITLE>MB04PY - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MB04PY">MB04PY</A></H2>
+<H3>
+Applying an elementary reflector (using in-line code for a low order) to a matrix, from either the left or the right
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To apply a real elementary reflector H to a real m-by-n matrix
+  C, from either the left or the right. H is represented in the form
+                                     ( 1 )
+        H = I - tau * u *u',    u  = (   ),
+                                     ( v )
+  where tau is a real scalar and v is a real vector.
+
+  If tau = 0, then H is taken to be the unit matrix.
+
+  In-line code is used if H has order &lt; 11.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MB04PY( SIDE, M, N, V, TAU, C, LDC, DWORK )
+C     .. Scalar Arguments ..
+      CHARACTER          SIDE
+      INTEGER            LDC, M, N
+      DOUBLE PRECISION   TAU
+C     .. Array Arguments ..
+      DOUBLE PRECISION   C( LDC, * ), DWORK( * ), V( * )
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  SIDE    CHARACTER*1
+          Indicates whether the elementary reflector should be
+          applied from the left or from the right, as follows:
+          = 'L':  Compute H * C;
+          = 'R':  Compute C * H.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  M       (input) INTEGER
+          The number of rows of the matrix C.  M &gt;= 0.
+
+  N       (input) INTEGER
+          The number of columns of the matrix C.  N &gt;= 0.
+
+  V       (input) DOUBLE PRECISION array, dimension
+          (M-1), if SIDE = 'L', or
+          (N-1), if SIDE = 'R'.
+          The vector v in the representation of H.
+
+  TAU     (input) DOUBLE PRECISION
+          The scalar factor of the elementary reflector H.
+
+  C       (input/output) DOUBLE PRECISION array, dimension (LDC,N)
+          On entry, the leading M-by-N part of this array must
+          contain the matrix C.
+          On exit, the leading M-by-N part of this array contains
+          the matrix H * C, if SIDE = 'L', or C * H, if SIDE = 'R'.
+
+  LDC     INTEGER
+          The leading dimension of array C.  LDC &gt;= MAX(1,M).
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  DWORK   DOUBLE PRECISION array, dimension (N), if SIDE = 'L', or
+                                            (M), if SIDE = 'R'.
+          DWORK is not referenced if H has order less than 11.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  The routine applies the elementary reflector H, taking its special
+  structure into account. The multiplications by the first component
+  of u (which is 1) are avoided, to increase the efficiency.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  The algorithm is backward stable.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

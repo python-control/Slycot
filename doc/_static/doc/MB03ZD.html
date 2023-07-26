@@ -1,0 +1,576 @@
+<HTML>
+<HEAD><TITLE>MB03ZD - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MB03ZD">MB03ZD</A></H2>
+<H3>
+Computing the stable and unstable invariant subspaces for a Hamiltonian matrix with no eigenvalues on the imaginary axis
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To compute the stable and unstable invariant subspaces for a
+  Hamiltonian matrix with no eigenvalues on the imaginary axis,
+  using the output of the SLICOT Library routine MB03XD.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MB03ZD( WHICH, METH, STAB, BALANC, ORTBAL, SELECT, N,
+     $                   MM, ILO, SCALE, S, LDS, T, LDT, G, LDG, U1,
+     $                   LDU1, U2, LDU2, V1, LDV1, V2, LDV2, M, WR, WI,
+     $                   US, LDUS, UU, LDUU, LWORK, IWORK, DWORK,
+     $                   LDWORK, INFO )
+C     .. Scalar Arguments ..
+      CHARACTER         BALANC, METH, ORTBAL, STAB, WHICH
+      INTEGER           ILO, INFO, LDG, LDS, LDT, LDU1, LDU2, LDUS,
+     $                  LDUU, LDV1, LDV2, LDWORK, M, MM, N
+C     .. Array Arguments ..
+      LOGICAL           LWORK(*), SELECT(*)
+      INTEGER           IWORK(*)
+      DOUBLE PRECISION  DWORK(*), G(LDG,*), S(LDS,*), SCALE(*),
+     $                  T(LDT,*), U1(LDU1,*), U2(LDU2,*), US(LDUS,*),
+     $                  UU(LDUU,*), V1(LDV1,*), V2(LDV2,*), WI(*),
+     $                  WR(*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  WHICH   CHARACTER*1
+          Specifies the cluster of eigenvalues for which the
+          invariant subspaces are computed:
+          = 'A':  select all n eigenvalues;
+          = 'S':  select a cluster of eigenvalues specified by
+                  SELECT.
+
+  METH    CHARACTER*1
+          If WHICH = 'A' this parameter specifies the method to be
+          used for computing bases of the invariant subspaces:
+          = 'S':  compute the n-dimensional basis from a set of
+                  n vectors;
+          = 'L':  compute the n-dimensional basis from a set of
+                  2*n vectors;
+          = 'Q':  quick return of the set of n vectors;
+          = 'R':  quick return of the set of 2*n vectors.
+          When in doubt, use METH = 'S'. In some cases, METH = 'L'
+          may result in more accurately computed invariant
+          subspaces, see [1].
+          Options METH = 'Q' or METH = 'R' return the range vectors
+          Y = [ Y1; Y2 ], where Y1 and Y2 have 2*n rows and n or 2*n
+          columns, respectively, which can be directly used, e.g.,
+          for finding the (stabilizing) solution of a Riccati
+          equation, by solving X*Y1 = Y2. Note that Y1 might be
+          singular when METH = 'Q'.
+
+  STAB    CHARACTER*1
+          Specifies the type of invariant subspaces to be computed:
+          = 'S':  compute the stable invariant subspace, i.e., the
+                  invariant subspace belonging to those selected
+                  eigenvalues that have negative real part;
+          = 'U':  compute the unstable invariant subspace, i.e.,
+                  the invariant subspace belonging to those
+                  selected eigenvalues that have positive real
+                  part;
+          = 'B':  compute both the stable and unstable invariant
+                  subspaces.
+
+  BALANC  CHARACTER*1
+          Specifies the type of inverse balancing transformation
+          required:
+          = 'N':  do nothing;
+          = 'P':  do inverse transformation for permutation only;
+          = 'S':  do inverse transformation for scaling only;
+          = 'B':  do inverse transformations for both permutation
+                  and scaling.
+          BALANC must be the same as the argument BALANC supplied to
+          MB03XD. Note that if the data is further post-processed,
+          e.g., for solving an algebraic Riccati equation, it is
+          recommended to delay inverse balancing (in particular the
+          scaling part) and apply it to the final result only,
+          see [2]. Inverse balancing is not used by this routine
+          if METH = 'Q' or METH = 'R'.
+
+  ORTBAL  CHARACTER*1
+          If BALANC &lt;&gt; 'N', this option specifies how inverse
+          balancing is applied to the computed invariant subspaces:
+          = 'B':  apply inverse balancing before orthogonal bases
+                  for the invariant subspaces are computed;
+          = 'A':  apply inverse balancing after orthogonal bases
+                  for the invariant subspaces have been computed;
+                  this may yield non-orthogonal bases if
+                  BALANC = 'S' or BALANC = 'B'.
+
+  SELECT  (input) LOGICAL array, dimension (N)
+          If WHICH = 'S', SELECT specifies the eigenvalues
+          corresponding to the positive and negative square
+          roots of the eigenvalues of S*T in the selected cluster.
+          To select a real eigenvalue w(j), SELECT(j) must be set
+          to .TRUE.. To select a complex conjugate pair of
+          eigenvalues w(j) and w(j+1), corresponding to a 2-by-2
+          diagonal block, both SELECT(j) and SELECT(j+1) must be set
+          to .TRUE.; a complex conjugate pair of eigenvalues must be
+          either both included in the cluster or both excluded.
+          This array is not referenced if WHICH = 'A'.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The order of the matrices S, T and G. N &gt;= 0.
+
+  MM      (input) INTEGER
+          The number of columns in the arrays US and/or UU.
+          If WHICH = 'A' and (METH = 'S' or METH = 'Q'),  MM =   N;
+          if WHICH = 'A' and (METH = 'L' or METH = 'R'),  MM = 2*N;
+          if WHICH = 'S',                                 MM =   M.
+          The values above for MM give the numbers of vectors to be
+          returned, if METH = 'Q' or METH = 'R', or the numbers of
+          vectors to be used for computing a basis for the invariant
+          subspace(s), if METH = 'S' or METH = 'L', or WHICH = 'S'.
+
+  ILO     (input) INTEGER
+          If BALANC &lt;&gt; 'N', then ILO is the integer returned by
+          MB03XD.  1 &lt;= ILO &lt;= N+1.
+
+  SCALE   (input) DOUBLE PRECISION array, dimension (N)
+          If BALANC &lt;&gt; 'N', the leading N elements of this array
+          must contain details of the permutation and scaling
+          factors, as returned by MB03XD.
+          This array is not referenced if BALANC = 'N'.
+
+  S       (input/output) DOUBLE PRECISION array, dimension (LDS,N)
+          On entry, the leading N-by-N part of this array must
+          contain the matrix S in real Schur form.
+          On exit, the leading N-by-N part of this array is
+          overwritten.
+
+  LDS     INTEGER
+          The leading dimension of the array S.  LDS &gt;= max(1,N).
+
+  T       (input/output) DOUBLE PRECISION array, dimension (LDT,N)
+          On entry, the leading N-by-N part of this array must
+          contain the upper triangular matrix T.
+          On exit, the leading N-by-N part of this array is
+          overwritten.
+
+  LDT     INTEGER
+          The leading dimension of the array T.  LDT &gt;= max(1,N).
+
+  G       (input/output) DOUBLE PRECISION array, dimension (LDG,N)
+          On entry, if METH = 'L' or METH = 'R', the leading N-by-N
+          part of this array must contain a general matrix G.
+          On exit, if METH = 'L' or METH = 'R', the leading N-by-N
+          part of this array is overwritten.
+          This array is not referenced if METH = 'S' or METH = 'Q'.
+
+  LDG     INTEGER
+          The leading dimension of the array G.  LDG &gt;= 1.
+          LDG &gt;= max(1,N) if METH = 'L' or METH = 'R'.
+
+  U1      (input/output) DOUBLE PRECISION array, dimension (LDU1,N)
+          On entry, the leading N-by-N part of this array must
+          contain the (1,1) block of an orthogonal symplectic
+          matrix U.
+          On exit, this array is overwritten.
+
+  LDU1    INTEGER
+          The leading dimension of the array U1.  LDU1 &gt;= MAX(1,N).
+
+  U2      (input/output) DOUBLE PRECISION array, dimension (LDU2,N)
+          On entry, the leading N-by-N part of this array must
+          contain the (2,1) block of an orthogonal symplectic
+          matrix U.
+          On exit, this array is overwritten.
+
+  LDU2    INTEGER
+          The leading dimension of the array U2.  LDU2 &gt;= MAX(1,N).
+
+  V1      (input/output) DOUBLE PRECISION array, dimension (LDV1,N)
+          On entry, the leading N-by-N part of this array must
+          contain the (1,1) block of an orthogonal symplectic
+          matrix V.
+          On exit, this array is overwritten.
+
+  LDV1    INTEGER
+          The leading dimension of the array V1.  LDV1 &gt;= MAX(1,N).
+
+  V2      (input/output) DOUBLE PRECISION array, dimension (LDV1,N)
+          On entry, the leading N-by-N part of this array must
+          contain the (2,1) block of an orthogonal symplectic
+          matrix V.
+          On exit, this array is overwritten.
+
+  LDV2    INTEGER
+          The leading dimension of the array V2.  LDV2 &gt;= MAX(1,N).
+
+  M       (output) INTEGER
+          The number of selected eigenvalues.
+
+  WR      (output) DOUBLE PRECISION array, dimension (M)
+  WI      (output) DOUBLE PRECISION array, dimension (M)
+          On exit, the leading M elements of WR and WI contain the
+          real and imaginary parts, respectively, of the selected
+          eigenvalues that have nonpositive real part. Complex
+          conjugate pairs of eigenvalues with real part not equal
+          to zero will appear consecutively with the eigenvalue
+          having the positive imaginary part first. Note that, due
+          to roundoff errors, these numbers may differ from the
+          eigenvalues computed by MB03XD.
+
+  US      (output) DOUBLE PRECISION array, dimension (LDUS,MM)
+          On exit, if STAB = 'S' or STAB = 'B', the leading
+          2*N-by-MM part of this array contains a basis for the
+          stable invariant subspace belonging to the selected
+          eigenvalues, if METH = 'S' or METH = 'L', or the range
+          vectors Y, if METH = 'Q' or METH = 'R' (see parameter
+          METH). This basis is orthogonal unless ORTBAL = 'A'.
+
+  LDUS    INTEGER
+          The leading dimension of the array US.  LDUS &gt;= 1.
+          If STAB = 'S' or STAB = 'B',  LDUS &gt;= 2*N.
+
+  UU      (output) DOUBLE PRECISION array, dimension (LDUU,MM)
+          On exit, if STAB = 'U' or STAB = 'B', the leading
+          2*N-by-MM part of this array contains a basis for the
+          unstable invariant subspace belonging to the selected
+          eigenvalues, if METH = 'S' or METH = 'L', or the range
+          vectors Y, if METH = 'Q' or METH = 'R' (see parameter
+          METH). This basis is orthogonal unless ORTBAL = 'A'.
+
+  LDUU    INTEGER
+          The leading dimension of the array UU.  LDUU &gt;= 1.
+          If STAB = 'U' or STAB = 'B',  LDUU &gt;= 2*N.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  LWORK   LOGICAL array, dimension (2*N)
+          This array is only referenced if WHICH = 'A' and
+          (METH = 'L' or METH = 'R').
+
+  IWORK   INTEGER array, dimension (LIWORK)
+          LIWORK = 2*N, if WHICH = 'A' and METH = 'L';
+          LIWORK = N,   if WHICH = 'A' and METH = 'S';
+          LIWORK = 0,   if WHICH = 'A' and METH = 'Q' or METH = 'R';
+          LIWORK = M,   if WHICH = 'S'.
+
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+          On exit, if INFO = 0,  DWORK(1)  returns the optimal
+          value of LDWORK.
+          On exit, if  INFO = -35,  DWORK(1)  returns the minimum
+          value of LDWORK.
+
+  LDWORK  INTEGER
+          The length of the array DWORK.
+          If WHICH = 'S' or METH = 'S' or METH = 'Q':
+             LDWORK &gt;= MAX( 1, 4*M*M + MAX( 8*M, 4*N ) ).
+          If WHICH = 'A' and (METH = 'L' or METH = 'R') and
+             ( STAB = 'U' or STAB = 'S' ):
+             LDWORK &gt;= MAX( 1, 2*N*N + 2*N, 8*N ).
+          If WHICH = 'A' and (METH = 'L' or METH = 'R') and
+             STAB = 'B':
+             LDWORK &gt;= 8*N + 1.
+
+          If LDWORK = -1, then a workspace query is assumed;
+          the routine only calculates the optimal size of the
+          DWORK array, returns this value as the first entry of
+          the DWORK array, and no error message related to LDWORK
+          is issued by XERBLA.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value;
+          = 1:  some of the selected eigenvalues are on or too close
+                to the imaginary axis;
+          = 2:  reordering of the product S*T in routine MB03ZA
+                failed because some eigenvalues are too close to
+                separate;
+          = 3:  the QR algorithm failed to compute some Schur form
+                in MB03ZA;
+          = 4:  reordering of the Hamiltonian Schur form in routine
+                MB03TD failed because some eigenvalues are too close
+                to separate;
+          = 5:  the computed stable invariant subspace for
+                METH = 'S' is inaccurate. This may be taken as a
+                warning and a suggestion to try METH = 'L';
+          = 6:  the computed unstable invariant subspace for
+                METH = 'S' is inaccurate. This may be taken as a
+                warning and a suggestion to try METH = 'L'.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  This is an implementation of Algorithm 1 in [1].
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  The method is strongly backward stable for an embedded
+  (skew-)Hamiltonian matrix, see [1]. Although good results have
+  been reported if the eigenvalues are not too close to the
+  imaginary axis, the method is not backward stable for the original
+  Hamiltonian matrix itself.
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Benner, P., Mehrmann, V., and Xu, H.
+      A new method for computing the stable invariant subspace of a
+      real Hamiltonian matrix, J. Comput. Appl. Math., 86,
+      pp. 17-43, 1997.
+
+  [2] Benner, P.
+      Symplectic balancing of Hamiltonian matrices.
+      SIAM J. Sci. Comput., 22 (5), pp. 1885-1904, 2001.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+*     MB03ZD EXAMPLE PROGRAM TEXT
+*
+*     .. Parameters ..
+      DOUBLE PRECISION ZERO, ONE
+      PARAMETER        ( ZERO = 0.0D0, ONE = 1.0D0 )
+      INTEGER          NIN, NOUT
+      PARAMETER        ( NIN = 5, NOUT = 6 )
+      INTEGER          NMAX
+      PARAMETER        ( NMAX = 200 )
+      INTEGER          LDG, LDRES, LDS, LDT, LDU1, LDU2, LDUS, LDUU,
+     $                 LDV1, LDV2, LDWORK
+      PARAMETER        ( LDG = NMAX, LDRES = 2*NMAX, LDS = NMAX,
+     $                   LDT = NMAX, LDU1 = NMAX, LDU2 = NMAX,
+     $                   LDUS = 2*NMAX, LDUU = 2*NMAX, LDV1 = NMAX,
+     $                   LDV2 = NMAX, LDWORK = 3*NMAX*NMAX + 7*NMAX )
+*     .. Local Scalars ..
+      CHARACTER*1      BALANC, METH, ORTBAL, STAB, WHICH
+      INTEGER          I, ILO, INFO, J, M, N
+*     .. Local Arrays ..
+      LOGICAL          LWORK(2*NMAX), SELECT(NMAX)
+      INTEGER          IWORK(2*NMAX)
+      DOUBLE PRECISION DWORK(LDWORK), G(LDG, NMAX), RES(LDRES,NMAX),
+     $                 S(LDS, NMAX), SCALE(NMAX), T(LDT,NMAX),
+     $                 U1(LDU1,NMAX), U2(LDU2, NMAX), US(LDUS,2*NMAX),
+     $                 UU(LDUU,2*NMAX), V1(LDV1,NMAX), V2(LDV2, NMAX),
+     $                 WI(NMAX), WR(NMAX)
+*     .. External Functions ..
+      EXTERNAL         DLANGE, LSAME
+      LOGICAL          LSAME
+      DOUBLE PRECISION DLANGE
+*     .. External Subroutines ..
+      EXTERNAL         MB03ZD
+*     .. Executable Statements ..
+      WRITE ( NOUT, FMT = 99999 )
+*     Skip the heading in the data file and read the data.
+      READ ( NIN, FMT = '()' )
+      READ ( NIN, FMT = * )  N, ILO, WHICH, METH, STAB, BALANC, ORTBAL
+      IF ( N.LE.0 .OR. N.GT.NMAX ) THEN
+         WRITE ( NOUT, FMT = 99992 ) N
+      ELSE
+*
+         IF ( LSAME( WHICH, 'S' ) )
+     $      READ ( NIN, FMT = * ) ( SELECT(I), I = 1,N )
+         READ ( NIN, FMT = * ) ( ( S(I,J), J = 1,N ), I = 1,N )
+         READ ( NIN, FMT = * ) ( ( T(I,J), J = 1,N ), I = 1,N )
+         IF ( LSAME( WHICH, 'A' ).AND.LSAME( METH, 'L' ) )
+     $      READ ( NIN, FMT = * ) ( ( G(I,J), J = 1,N ), I = 1,N )
+         IF ( LSAME( BALANC, 'P' ).OR.LSAME( BALANC, 'S' ).OR.
+     $        LSAME( BALANC, 'B' ) )
+     $      READ ( NIN, FMT = * ) ( SCALE(I), I = 1,N )
+         READ ( NIN, FMT = * ) ( ( U1(I,J), J = 1,N ), I = 1,N )
+         READ ( NIN, FMT = * ) ( ( U2(I,J), J = 1,N ), I = 1,N )
+         READ ( NIN, FMT = * ) ( ( V1(I,J), J = 1,N ), I = 1,N )
+         READ ( NIN, FMT = * ) ( ( V2(I,J), J = 1,N ), I = 1,N )
+*
+         CALL MB03ZD( WHICH, METH, STAB, BALANC, ORTBAL, SELECT, N, 2*N,
+     $                ILO, SCALE, S, LDS, T, LDT, G, LDG, U1, LDU1, U2,
+     $                LDU2, V1, LDV1, V2, LDV2, M, WR, WI, US, LDUS,
+     $                UU, LDUU, LWORK, IWORK, DWORK, LDWORK, INFO )
+*
+         IF ( INFO.NE.0 ) THEN
+            WRITE ( NOUT, FMT = 99998 ) INFO
+         ELSE
+            WRITE ( NOUT, FMT = 99997 )
+            DO 20  I = 1, N
+               WRITE ( NOUT, FMT = 99996 ) I, WR(I), WI(I)
+20          CONTINUE
+*
+            IF ( LSAME( STAB, 'S' ).OR.LSAME( STAB, 'B' ) ) THEN
+               WRITE ( NOUT, FMT = 99995 )
+               DO 30  I = 1, 2*N
+                  WRITE ( NOUT, FMT = 99993 ) ( US(I,J), J = 1,M )
+30             CONTINUE
+               IF ( LSAME( ORTBAL, 'B' ).OR.LSAME( BALANC, 'N' ).OR.
+     $            LSAME( BALANC, 'P' ) ) THEN
+                  CALL DGEMM( 'Transpose', 'No Transpose', M, M, 2*N,
+     $                        ONE, US, LDUS, US, LDUS, ZERO, RES,
+     $                        LDRES )
+                  DO 40  I = 1, M
+                     RES(I,I) = RES(I,I) - ONE
+40                CONTINUE
+                  WRITE ( NOUT, FMT = 99991 ) DLANGE( 'Frobenius', M, M,
+     $                    RES, LDRES, DWORK )
+               END IF
+               CALL DGEMM( 'Transpose', 'No Transpose', M, M, N, ONE,
+     $                     US, LDUS, US(N+1,1), LDUS, ZERO, RES, LDRES )
+               CALL DGEMM( 'Transpose', 'No Transpose', M, M, N, -ONE,
+     $                     US(N+1,1), LDUS, US, LDUS, ONE, RES, LDRES )
+               WRITE ( NOUT, FMT = 99990 ) DLANGE( 'Frobenius', M, M,
+     $                 RES, LDRES, DWORK )
+            END IF
+*
+            IF ( LSAME( STAB, 'U' ).OR.LSAME( STAB, 'B' ) ) THEN
+               WRITE ( NOUT, FMT = 99994 )
+               DO 50  I = 1, 2*N
+                  WRITE ( NOUT, FMT = 99993 ) ( UU(I,J), J = 1,M )
+50             CONTINUE
+               IF ( LSAME( ORTBAL, 'B' ).OR.LSAME( BALANC, 'N' ).OR.
+     $            LSAME( BALANC, 'P' ) ) THEN
+                  CALL DGEMM( 'Transpose', 'No Transpose', M, M, 2*N,
+     $                        ONE, UU, LDUU, UU, LDUU, ZERO, RES,
+     $                        LDRES )
+                  DO 60  I = 1, M
+                     RES(I,I) = RES(I,I) - ONE
+60                CONTINUE
+                  WRITE ( NOUT, FMT = 99989 ) DLANGE( 'Frobenius', M, M,
+     $                    RES, LDRES, DWORK )
+               END IF
+               CALL DGEMM( 'Transpose', 'No Transpose', M, M, N, ONE,
+     $                     UU, LDUU, UU(N+1,1), LDUU, ZERO, RES, LDRES )
+               CALL DGEMM( 'Transpose', 'No Transpose', M, M, N, -ONE,
+     $                     UU(N+1,1), LDUU, UU, LDUU, ONE, RES, LDRES )
+               WRITE ( NOUT, FMT = 99988 ) DLANGE( 'Frobenius', M, M,
+     $                 RES, LDRES, DWORK )
+            END IF
+         END IF
+      END IF
+*
+99999 FORMAT (' MB03ZD EXAMPLE PROGRAM RESULTS',/1X)
+99998 FORMAT (' INFO on exit from MB03ZD = ',I2)
+99997 FORMAT (' The stable eigenvalues are',//'   i',6X,
+     $        'WR(i)',6X,'WI(i)',/)
+99996 FORMAT (I4,3X,F8.4,3X,F8.4)
+99995 FORMAT (/' A basis for the stable invariant subspace is')
+99994 FORMAT (/' A basis for the unstable invariant subspace is')
+99993 FORMAT (20(1X,F9.3))
+99992 FORMAT (/' N is out of range.',/' N = ',I5)
+99991 FORMAT (/' Orthogonality of US: || US''*US - I ||_F = ',G7.2)
+99990 FORMAT (/' Symplecticity of US: || US''*J*US   ||_F = ',G7.2)
+99989 FORMAT (/' Orthogonality of UU: || UU''*UU - I ||_F = ',G7.2)
+99988 FORMAT (/' Symplecticity of UU: || UU''*J*UU   ||_F = ',G7.2)
+
+      END
+</PRE>
+<B>Program Data</B>
+<PRE>
+MB03ZD EXAMPLE PROGRAM DATA
+	5	1	A	L	B	N	B
+ -3.1844761777714732  0.1612357243439331 -0.0628592203751138  0.2449004200921981  0.1974400149992579
+  0.0000000000000000 -0.1510667773167784  0.4260444411622838 -0.1775026035208615  0.3447278421198472
+  0.0000000000000000 -0.1386140422054264 -0.3006779624777515  0.2944143257134196  0.3456440339120323
+  0.0000000000000000  0.0000000000000000  0.0000000000000000 -0.2710128384740570  0.0933189808067138
+  0.0000000000000000  0.0000000000000000  0.0000000000000000  0.4844146572359603  0.2004347508746697
+  3.2038208121776366  0.1805955192510651  0.2466389119377561 -0.2539149302433368 -0.0359238844381195
+  0.0000000000000000 -0.7196686433290816  0.0000000000000000  0.2428659121580384 -0.0594190100670832
+  0.0000000000000000  0.0000000000000000 -0.1891741194498107 -0.3309578443491266 -0.0303520731950515
+  0.0000000000000000  0.0000000000000000  0.0000000000000000 -0.4361574461961550  0.0000000000000000
+  0.0000000000000000  0.0000000000000000  0.0000000000000000  0.0000000000000000  0.1530894573304220
+ -0.0370982242678464  0.0917788436945724 -0.0560402416315252  0.1345152517579192  0.0256668227276700
+  0.0652183678916931 -0.0700457231988297  0.0350041175858839 -0.2233868768749268 -0.1171980260782843
+ -0.0626428681377119  0.2327575351902772 -0.1251515732208170 -0.0177816046663201  0.3696921118421182
+  0.0746042309265599 -0.0828007611045140  0.0217427473546043 -0.1157775118548851 -0.3161183681200527
+  0.1374372236164812  0.1002727885506992  0.4021556774753973 -0.0431072263235579  0.1067394572547867
+  0.3806883009357247 -0.0347810363019649 -0.5014665065895758  0.5389691288472394  0.2685446895251367
+  0.4642712665555326 -0.5942766860716395  0.4781179763952615  0.2334370556238151  0.0166790369048933
+  0.2772789197782788 -0.0130145392695876 -0.2123817030594055 -0.2550292626960107 -0.5049268366774490
+  0.4209268575081796  0.1499593172661228 -0.1925590746592156 -0.5472292877802402  0.4543329704184054
+  0.3969669479129449  0.6321903535930828  0.3329156356041961  0.0163533225344433 -0.2638879466190024
+ -0.1795922007470742  0.1908329820840911  0.0868799433942070  0.3114741142062388 -0.2579907627915167
+ -0.2447897730222852 -0.1028403314750045 -0.1157840914576285 -0.1873268885694406  0.1700708002861580
+ -0.2243335325285328  0.3180998613802520  0.3315380214794822  0.1977859924739963  0.5072476567310013
+ -0.2128397588651423 -0.2740560593051881  0.1941418870268881 -0.3096684962457369 -0.0581576193198714
+ -0.2002027567371932 -0.0040094115506855 -0.3979373387545264  0.1520881534833910 -0.2010804514091372
+  0.4447147692018334 -0.6830166755147440 -0.0002576861753487  0.5781954611783305 -0.0375091627893805
+  0.5121756358795817  0.0297197140254773  0.4332229148788766 -0.3240527006890552  0.5330850295256511
+  0.3664711365265602  0.3288511296455119  0.0588396016404451  0.1134221597062257  0.1047567336850078
+  0.4535357098437908  0.1062866148880792 -0.3964092656837774 -0.2211800890450674  0.0350667323996222
+  0.4450432900616097  0.2950206358263853 -0.1617837757183893 -0.0376369332204927 -0.6746752660482623
+  0.0000000000000000  0.0000000000000000  0.0000000000000000  0.0000000000000000  0.0000000000000000
+  0.0299719306696789 -0.2322624725320701 -0.0280846899680325 -0.3044255686880000 -0.1077641482535519
+ -0.0069083614679702  0.3351358347080056 -0.4922707032978891  0.4293545450291714  0.4372821269062001
+  0.0167847133528843  0.2843629278945327  0.5958979805231146  0.3097336757510886 -0.2086733033047188
+  0.0248567764822071 -0.2810759958040470 -0.1653113624869834 -0.3528780198620412 -0.0254898556119252
+</PRE>
+<B>Program Results</B>
+<PRE>
+MB03ZD EXAMPLE PROGRAM RESULTS
+
+The stable eigenvalues are
+
+  i      WR(i)      WI(i)
+
+  1    -3.1941     0.0000
+  2    -0.1350     0.3179
+  3    -0.1350    -0.3179
+  4    -0.0595     0.2793
+  5    -0.0595    -0.2793
+
+A basis for the stable invariant subspace is
+   -0.102    -0.116     0.627     0.118    -0.605
+   -0.100    -0.510    -0.266     0.504     0.124
+   -0.179     0.015    -0.112    -0.142     0.413
+   -0.055     0.252     0.182    -0.134     0.100
+   -0.078     0.576    -0.271    -0.252    -0.177
+    0.340    -0.135     0.053    -0.234    -0.110
+    0.528     0.108    -0.205     0.219    -0.096
+    0.397    -0.429     0.161    -0.598     0.199
+    0.444     0.342     0.447     0.406     0.440
+    0.434     0.014    -0.383     0.072    -0.391
+
+Orthogonality of US: || US'*US - I ||_F = .62E-15
+
+Symplecticity of US: || US'*J*US   ||_F = .23E-14
+
+A basis for the unstable invariant subspace is
+   -0.428     0.383     0.048     0.105     0.187
+   -0.506    -0.100     0.541     0.245     0.223
+   -0.334    -0.524    -0.044    -0.153     0.126
+   -0.453     0.076     0.103    -0.525    -0.268
+   -0.436     0.098    -0.752     0.209    -0.251
+   -0.093    -0.089     0.258    -0.114    -0.725
+   -0.112    -0.196    -0.186    -0.302     0.394
+   -0.120    -0.286     0.027     0.680    -0.119
+   -0.102     0.630     0.079     0.040     0.127
+   -0.091    -0.171    -0.136    -0.136     0.231
+
+Orthogonality of UU: || UU'*UU - I ||_F = .69E-15
+
+Symplecticity of UU: || UU'*J*UU   ||_F = .10E-13
+</PRE>
+
+<HR>
+<p>
+<A HREF=..\libindex.html><B>Return to index</B></A></BODY>
+</HTML>

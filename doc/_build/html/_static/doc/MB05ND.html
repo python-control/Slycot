@@ -1,0 +1,246 @@
+<HTML>
+<HEAD><TITLE>MB05ND - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MB05ND">MB05ND</A></H2>
+<H3>
+Matrix exponential and integral for a real matrix
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To compute
+
+  (a)    F(delta) =  exp(A*delta) and
+
+  (b)    H(delta) =  Int[F(s) ds] from s = 0 to s = delta,
+
+  where A is a real N-by-N matrix and delta is a scalar value.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MB05ND( N, DELTA, A, LDA, EX, LDEX, EXINT, LDEXIN,
+     $                   TOL, IWORK, DWORK, LDWORK, INFO )
+C     .. Scalar Arguments ..
+      INTEGER           INFO, LDA, LDEX, LDEXIN, LDWORK, N
+      DOUBLE PRECISION  DELTA, TOL
+C     .. Array Arguments ..
+      INTEGER           IWORK(*)
+      DOUBLE PRECISION  A(LDA,*), DWORK(*), EX(LDEX,*), EXINT(LDEXIN,*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The order of the matrix A.  N &gt;= 0.
+
+  DELTA   (input) DOUBLE PRECISION
+          The scalar value delta of the problem.
+
+  A       (input) DOUBLE PRECISION array, dimension (LDA,N)
+          The leading N-by-N part of this array must contain the
+          matrix A of the problem. (Array A need not be set if
+          DELTA = 0.)
+
+  LDA     INTEGER
+          The leading dimension of array A.  LDA &gt;= max(1,N).
+
+  EX      (output) DOUBLE PRECISION array, dimension (LDEX,N)
+          The leading N-by-N part of this array contains an
+          approximation to F(delta).
+
+  LDEX    INTEGER
+          The leading dimension of array EX.  LDEX &gt;= MAX(1,N).
+
+  EXINT   (output) DOUBLE PRECISION array, dimension (LDEXIN,N)
+          The leading N-by-N part of this array contains an
+          approximation to H(delta).
+
+  LDEXIN  INTEGER
+          The leading dimension of array EXINT.  LDEXIN &gt;= MAX(1,N).
+
+</PRE>
+<B>Tolerances</B>
+<PRE>
+  TOL     DOUBLE PRECISION
+          The tolerance to be used in determining the order of the
+          Pade approximation to H(t), where t is a scale factor
+          determined by the routine. A reasonable value for TOL may
+          be SQRT(EPS), where EPS is the machine precision (see
+          LAPACK Library routine DLAMCH).
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  IWORK   INTEGER array, dimension (N)
+
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+          On exit, if INFO = 0, DWORK(1) returns the optimal value
+          of LDWORK.
+
+  LDWORK  INTEGER
+          The length of the array DWORK. LDWORK &gt;= MAX(1,N*(N+1)).
+          For optimum performance LDWORK should be larger (2*N*N).
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value;
+          &gt; 0:  if INFO = i, the (i,i) element of the denominator of
+                the Pade approximation is zero, so the denominator
+                is exactly singular;
+          = N+1:  if DELTA = (delta * frobenius norm of matrix A) is
+                probably too large to permit meaningful computation.
+                That is, DELTA &gt; SQRT(BIG), where BIG is a
+                representable number near the overflow threshold of
+                the machine (see LAPACK Library Routine DLAMCH).
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  This routine uses a Pade approximation to H(t) for some small
+  value of t (where 0 &lt; t &lt;= delta) and then calculates F(t) from
+  H(t). Finally, the results are re-scaled to give F(delta) and
+  H(delta). For a detailed description of the implementation of this
+  algorithm see [1].
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Benson, C.J.
+      The numerical evaluation of the matrix exponential and its
+      integral.
+      Report 82/03, Control Systems Research Group,
+      School of Electronic Engineering and Computer
+      Science, Kingston Polytechnic, January 1982.
+
+  [2] Ward, R.C.
+      Numerical computation of the matrix exponential with accuracy
+      estimate.
+      SIAM J. Numer. Anal., 14, pp. 600-610, 1977.
+
+  [3] Moler, C.B. and Van Loan, C.F.
+      Nineteen Dubious Ways to Compute the Exponential of a Matrix.
+      SIAM Rev., 20, pp. 801-836, 1978.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>                            3
+  The algorithm requires 0(N ) operations.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+*     MB05ND EXAMPLE PROGRAM TEXT.
+*
+*     .. Parameters ..
+      INTEGER          NIN, NOUT
+      PARAMETER        ( NIN = 5, NOUT = 6 )
+      INTEGER          NMAX
+      PARAMETER        ( NMAX = 20 )
+      INTEGER          LDA, LDEX, LDEXIN, LDWORK
+      PARAMETER        ( LDA = NMAX, LDEX = NMAX, LDEXIN = NMAX,
+     $                   LDWORK = NMAX*( NMAX+1 ) )
+*     .. Local Scalars ..
+      DOUBLE PRECISION DELTA, TOL
+      INTEGER          I, INFO, J, N
+*     .. Local Arrays ..
+      DOUBLE PRECISION A(LDA,NMAX), DWORK(LDWORK), EX(LDEX,NMAX),
+     $                 EXINT(LDEXIN,NMAX)
+      INTEGER          IWORK(NMAX)
+*     .. External Subroutines ..
+      EXTERNAL         MB05ND
+*     .. Executable Statements ..
+*
+      WRITE ( NOUT, FMT = 99999 )
+*     Skip the heading in the data file and read the data.
+      READ ( NIN, FMT = '()' )
+      READ ( NIN, FMT = * ) N, DELTA, TOL
+      IF ( N.LE.0 .OR. N.GT.NMAX ) THEN
+         WRITE ( NOUT, FMT = 99994 ) N
+      ELSE
+         READ ( NIN, FMT = * ) ( ( A(I,J), J = 1,N ), I = 1,N )
+*        Find the matrix exponential of A*DELTA and its integral.
+         CALL MB05ND( N, DELTA, A, LDA, EX, LDEX, EXINT, LDEXIN, TOL,
+     $                IWORK, DWORK, LDWORK, INFO )
+*
+         IF ( INFO.NE.0 ) THEN
+            WRITE ( NOUT, FMT = 99998 ) INFO
+         ELSE
+            WRITE ( NOUT, FMT = 99997 )
+            DO 20 I = 1, N
+               WRITE ( NOUT, FMT = 99996 ) ( EX(I,J), J = 1,N )
+   20       CONTINUE
+            WRITE ( NOUT, FMT = 99995 )
+            DO 40 I = 1, N
+               WRITE ( NOUT, FMT = 99996 ) ( EXINT(I,J), J = 1,N )
+   40       CONTINUE
+         END IF
+      END IF
+      STOP
+*
+99999 FORMAT (' MB05ND EXAMPLE PROGRAM RESULTS',/1X)
+99998 FORMAT (' INFO on exit from MB05ND = ',I2)
+99997 FORMAT (' The solution matrix exp(A*DELTA) is ')
+99996 FORMAT (20(1X,F8.4))
+99995 FORMAT (/' and its integral is ')
+99994 FORMAT (/' N is out of range.',/' N = ',I5)
+      END
+</PRE>
+<B>Program Data</B>
+<PRE>
+ MB05ND EXAMPLE PROGRAM DATA
+   5     0.1     0.0001
+   5.0   4.0   3.0   2.0   1.0
+   1.0   6.0   0.0   4.0   3.0
+   2.0   0.0   7.0   6.0   5.0
+   1.0   3.0   1.0   8.0   7.0
+   2.0   5.0   7.0   1.0   9.0
+</PRE>
+<B>Program Results</B>
+<PRE>
+ MB05ND EXAMPLE PROGRAM RESULTS
+
+ The solution matrix exp(A*DELTA) is 
+   1.8391   0.9476   0.7920   0.8216   0.7811
+   0.3359   2.2262   0.4013   1.0078   1.0957
+   0.6335   0.6776   2.6933   1.6155   1.8502
+   0.4804   1.1561   0.9110   2.7461   2.0854
+   0.7105   1.4244   1.8835   1.0966   3.4134
+
+ and its integral is 
+   0.1347   0.0352   0.0284   0.0272   0.0231
+   0.0114   0.1477   0.0104   0.0369   0.0368
+   0.0218   0.0178   0.1624   0.0580   0.0619
+   0.0152   0.0385   0.0267   0.1660   0.0732
+   0.0240   0.0503   0.0679   0.0317   0.1863
+</PRE>
+
+<HR>
+<p>
+<A HREF=..\libindex.html><B>Return to index</B></A></BODY>
+</HTML>

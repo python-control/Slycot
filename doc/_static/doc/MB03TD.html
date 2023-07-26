@@ -1,0 +1,393 @@
+<HTML>
+<HEAD><TITLE>MB03TD - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MB03TD">MB03TD</A></H2>
+<H3>
+Reordering the diagonal blocks of a matrix in (skew-)Hamiltonian Schur form
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To reorder a matrix X in skew-Hamiltonian Schur form:
+
+                [  A   G  ]          T
+          X  =  [       T ],   G = -G,
+                [  0   A  ]
+
+  or in Hamiltonian Schur form:
+
+                [  A   G  ]          T
+          X  =  [       T ],   G =  G,
+                [  0  -A  ]
+
+  where A is in upper quasi-triangular form, so that a selected
+  cluster of eigenvalues appears in the leading diagonal blocks
+  of the matrix A (in X) and the leading columns of [ U1; -U2 ] form
+  an orthonormal basis for the corresponding right invariant
+  subspace.
+
+  If X is skew-Hamiltonian, then each eigenvalue appears twice; one
+  copy corresponds to the j-th diagonal element and the other to the
+  (n+j)-th diagonal element of X. The logical array LOWER controls
+  which copy is to be reordered to the leading part of A.
+
+  If X is Hamiltonian then the eigenvalues appear in pairs
+  (lambda,-lambda); lambda corresponds to the j-th diagonal
+  element and -lambda to the (n+j)-th diagonal element of X.
+  The logical array LOWER controls whether lambda or -lambda is to
+  be reordered to the leading part of A.
+
+  The matrix A must be in Schur canonical form (as returned by the
+  LAPACK routine DHSEQR), that is, block upper triangular with
+  1-by-1 and 2-by-2 diagonal blocks; each 2-by-2 diagonal block has
+  its diagonal elements equal and its off-diagonal elements of
+  opposite sign.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MB03TD( TYP, COMPU, SELECT, LOWER, N, A, LDA, G, LDG,
+     $                   U1, LDU1, U2, LDU2, WR, WI, M, DWORK, LDWORK,
+     $                   INFO )
+C     .. Scalar Arguments ..
+      CHARACTER         COMPU, TYP
+      INTEGER           INFO, LDA, LDG, LDU1, LDU2, LDWORK, M, N
+C     .. Array Arguments ..
+      LOGICAL           LOWER(*), SELECT(*)
+      DOUBLE PRECISION  A(LDA,*), DWORK(*), G(LDG,*), U1(LDU1,*),
+     $                  U2(LDU2,*), WI(*), WR(*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  TYP     CHARACTER*1
+          Specifies the type of the input matrix X:
+          = 'S': X is skew-Hamiltonian;
+          = 'H': X is Hamiltonian.
+
+  COMPU   CHARACTER*1
+          = 'U': update the matrices U1 and U2 containing the
+                 Schur vectors;
+          = 'N': do not update U1 and U2.
+
+  SELECT  (input/output) LOGICAL array, dimension (N)
+          SELECT specifies the eigenvalues in the selected cluster.
+          To select a real eigenvalue w(j), SELECT(j) must be set
+          to .TRUE.. To select a complex conjugate pair of
+          eigenvalues w(j) and w(j+1), corresponding to a 2-by-2
+          diagonal block, both SELECT(j) and SELECT(j+1) must be set
+          to .TRUE.; a complex conjugate pair of eigenvalues must be
+          either both included in the cluster or both excluded.
+
+  LOWER   (input/output) LOGICAL array, dimension (N)
+          LOWER controls which copy of a selected eigenvalue is
+          included in the cluster. If SELECT(j) is set to .TRUE.
+          for a real eigenvalue w(j); then LOWER(j) must be set to
+          .TRUE. if the eigenvalue corresponding to the (n+j)-th
+          diagonal element of X is to be reordered to the leading
+          part; and LOWER(j) must be set to .FALSE. if the
+          eigenvalue corresponding to the j-th diagonal element of
+          X is to be reordered to the leading part. Similarly, for
+          a complex conjugate pair of eigenvalues w(j) and w(j+1),
+          both LOWER(j) and LOWER(j+1) must be set to .TRUE. if the
+          eigenvalues corresponding to the (n+j:n+j+1,n+j:n+j+1)
+          diagonal block of X are to be reordered to the leading
+          part.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The order of the matrix A. N &gt;= 0.
+
+  A       (input/output) DOUBLE PRECISION array, dimension (LDA,N)
+          On entry, the leading N-by-N part of this array must
+          contain the upper quasi-triangular matrix A in Schur
+          canonical form.
+          On exit, the leading N-by-N part of this array contains
+          the reordered matrix A, again in Schur canonical form,
+          with the selected eigenvalues in the diagonal blocks.
+
+  LDA     INTEGER
+          The leading dimension of the array A.  LDA &gt;= MAX(1,N).
+
+  G       (input/output) DOUBLE PRECISION array, dimension (LDG,N)
+          On entry, if TYP = 'S', the leading N-by-N part of this
+          array must contain the strictly upper triangular part of
+          the skew-symmetric matrix G. The rest of this array is not
+          referenced.
+          On entry, if TYP = 'H', the leading N-by-N part of this
+          array must contain the upper triangular part of the
+          symmetric matrix G. The rest of this array is not
+          referenced.
+          On exit, if TYP = 'S', the leading N-by-N part of this
+          array contains the strictly upper triangular part of the
+          skew-symmetric matrix G, updated by the orthogonal
+          symplectic transformation which reorders X.
+          On exit, if TYP = 'H', the leading N-by-N part of this
+          array contains the upper triangular part of the symmetric
+          matrix G, updated by the orthogonal symplectic
+          transformation which reorders X.
+
+  LDG     INTEGER
+          The leading dimension of the array G.  LDG &gt;= MAX(1,N).
+
+  U1      (input/output) DOUBLE PRECISION array, dimension (LDU1,N)
+          On entry, if COMPU = 'U', the leading N-by-N part of this
+          array must contain U1, the (1,1) block of an orthogonal
+          symplectic matrix U = [ U1, U2; -U2, U1 ].
+          On exit, if COMPU = 'U', the leading N-by-N part of this
+          array contains the (1,1) block of the matrix U,
+          postmultiplied by the orthogonal symplectic transformation
+          which reorders X. The leading M columns of U form an
+          orthonormal basis for the specified invariant subspace.
+          If COMPU = 'N', this array is not referenced.
+
+  LDU1    INTEGER
+          The leading dimension of the array U1.
+          LDU1 &gt;= MAX(1,N),  if COMPU = 'U';
+          LDU1 &gt;= 1,         otherwise.
+
+  U2      (input/output) DOUBLE PRECISION array, dimension (LDU2,N)
+          On entry, if COMPU = 'U', the leading N-by-N part of this
+          array must contain U2, the (1,2) block of an orthogonal
+          symplectic matrix U = [ U1, U2; -U2, U1 ].
+          On exit, if COMPU = 'U', the leading N-by-N part of this
+          array contains the (1,2) block of the matrix U,
+          postmultiplied by the orthogonal symplectic transformation
+          which reorders X.
+          If COMPU = 'N', this array is not referenced.
+
+  LDU2    INTEGER
+          The leading dimension of the array U2.
+          LDU2 &gt;= MAX(1,N),  if COMPU = 'U';
+          LDU2 &gt;= 1,         otherwise.
+
+  WR      (output) DOUBLE PRECISION array, dimension (N)
+  WI      (output) DOUBLE PRECISION array, dimension (N)
+          The real and imaginary parts, respectively, of the
+          reordered eigenvalues of A. The eigenvalues are stored
+          in the same order as on the diagonal of A, with
+          WR(i) = A(i,i) and, if A(i:i+1,i:i+1) is a 2-by-2 diagonal
+          block, WI(i) &gt; 0 and WI(i+1) = -WI(i). Note that if an
+          eigenvalue is sufficiently ill-conditioned, then its value
+          may differ significantly from its value before reordering.
+
+  M       (output) INTEGER
+          The dimension of the specified invariant subspace.
+          0 &lt;= M &lt;= N.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+          On exit, if INFO = 0,  DWORK(1)  returns the optimal
+          value of LDWORK.
+          On exit, if  INFO = -18,  DWORK(1)  returns the minimum
+          value of LDWORK.
+
+  LDWORK  INTEGER
+          The length of the array DWORK.  LDWORK &gt;= MAX(1,N).
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value.
+          = 1:  reordering of X failed because some eigenvalue pairs
+                are too close to separate (the problem is very
+                ill-conditioned); X may have been partially
+                reordered, and WR and WI contain the eigenvalues in
+                the same order as in X.
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Bai, Z. and Demmel, J.W.
+      On Swapping Diagonal Blocks in Real Schur Form.
+      Linear Algebra Appl., 186, pp. 73-95, 1993.
+
+  [2] Benner, P., Kressner, D., and Mehrmann, V.
+      Skew-Hamiltonian and Hamiltonian Eigenvalue Problems: Theory,
+      Algorithms and Applications. Techn. Report, TU Berlin, 2003.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+*     MB03TD EXAMPLE PROGRAM TEXT
+*
+*     .. Parameters ..
+      DOUBLE PRECISION ZERO
+      PARAMETER        ( ZERO = 0.0D0 )
+      INTEGER          NIN, NOUT
+      PARAMETER        ( NIN = 5, NOUT = 6 )
+      INTEGER          NMAX
+      PARAMETER        ( NMAX = 100 )
+      INTEGER          LDA, LDG, LDRES, LDU1, LDU2, LDWORK
+      PARAMETER        ( LDA  = NMAX, LDG  = NMAX, LDRES  = NMAX,
+     $                   LDU1 = NMAX, LDU2 = NMAX, LDWORK = 8*NMAX )
+*     .. Local Scalars ..
+      CHARACTER*1      COMPU, TYP
+      INTEGER          I, INFO, J, N, M
+*     .. Local Arrays ..
+      LOGICAL          LOWER(NMAX), SELECT(NMAX)
+      DOUBLE PRECISION A(LDA, NMAX), DWORK(LDWORK), G(LDG, NMAX),
+     $                 RES(LDRES,NMAX), U1(LDU1,NMAX), U2(LDU2,NMAX),
+     $                 WR(NMAX), WI(NMAX)
+*     .. External Functions ..
+      LOGICAL          LSAME
+      DOUBLE PRECISION MA02JD
+      EXTERNAL         LSAME, MA02JD
+*     .. External Subroutines ..
+      EXTERNAL         MB03TD
+*     .. Executable Statements ..
+      WRITE ( NOUT, FMT = 99999 )
+*     Skip the heading in the data file and read the data.
+      READ ( NIN, FMT = '()' )
+      READ ( NIN, FMT = * )  N, TYP, COMPU
+      IF( N.LE.0 .OR. N.GT.NMAX ) THEN
+         WRITE ( NOUT, FMT = 99993 ) N
+      ELSE
+         READ ( NIN, FMT = * ) ( SELECT(J), J = 1,N )
+         READ ( NIN, FMT = * ) ( LOWER(J), J = 1,N )
+         READ ( NIN, FMT = * ) ( ( A(I,J), J = 1,N ), I = 1,N )
+         READ ( NIN, FMT = * ) ( ( G(I,J), J = 1,N ), I = 1,N )
+         IF ( LSAME( COMPU, 'U' ) ) THEN
+            READ ( NIN, FMT = * ) ( ( U1(I,J), J = 1,N ), I = 1,N )
+            READ ( NIN, FMT = * ) ( ( U2(I,J), J = 1,N ), I = 1,N )
+         END IF
+         CALL MB03TD( TYP, COMPU, SELECT, LOWER, N, A, LDA, G, LDG, U1,
+     $                LDU1, U2, LDU2, WR, WI, M, DWORK, LDWORK, INFO )
+         IF ( INFO.NE.0 ) THEN
+            WRITE ( NOUT, FMT = 99998 ) INFO
+         ELSE
+            IF ( LSAME( COMPU, 'U' ) ) THEN
+               WRITE ( NOUT, FMT = 99997 )
+               DO 10  I = 1, N
+                  WRITE ( NOUT, FMT = 99994 )
+     $                  ( U1(I,J), J = 1,N ), ( U2(I,J), J = 1,N )
+10             CONTINUE
+               DO 20  I = 1, N
+                  WRITE ( NOUT, FMT = 99994 )
+     $                  ( -U2(I,J), J = 1,N ), ( U1(I,J), J = 1,N )
+20             CONTINUE
+               WRITE ( NOUT, FMT = 99992 ) MA02JD( .FALSE., .FALSE., N,
+     $                 U1, LDU1, U2, LDU2, RES, LDRES )
+            END IF
+*
+            WRITE ( NOUT, FMT = 99996 )
+            DO 30  I = 1, N
+               WRITE ( NOUT, FMT = 99994 ) ( A(I,J), J = 1,N )
+30          CONTINUE
+*
+            WRITE ( NOUT, FMT = 99995 )
+            IF ( LSAME( TYP, 'S' ) ) THEN
+               DO 40  I = 1, N
+                  WRITE ( NOUT, FMT = 99994 )
+     $               ( -G(J,I), J = 1,I-1 ), ZERO, ( G(I,J), J = I+1,N )
+40             CONTINUE
+            ELSE
+               DO 50  I = 1, N
+                  WRITE ( NOUT, FMT = 99994 )
+     $               ( G(J,I), J = 1,I-1 ), ( G(I,J), J = I,N )
+50             CONTINUE
+           END IF
+         END IF
+      END IF
+*
+99999 FORMAT (' MB03TD EXAMPLE PROGRAM RESULTS',/1X)
+99998 FORMAT (' INFO on exit from MB03TD = ',I2)
+99997 FORMAT (' The orthogonal symplectic factor U is ')
+99996 FORMAT (/' The matrix A in reordered Schur canonical form is ')
+99995 FORMAT (/' The matrix G is ')
+99994 FORMAT (20(1X,F9.4))
+99993 FORMAT (/' N is out of range.',/' N = ',I5)
+99992 FORMAT (/' Orthogonality of U: || U''*U - I ||_F = ',G7.2)
+      END
+</PRE>
+<B>Program Data</B>
+<PRE>
+MB03TD EXAMPLE PROGRAM DATA
+	5	S	U
+	.F. .T. .T. .F. .F.
+	.F. .T. .T. .F. .F.
+    0.9501    0.7621    0.6154    0.4057    0.0579
+         0    0.4565    0.7919    0.9355    0.3529
+         0   -0.6822    0.4565    0.9169    0.8132
+         0         0         0    0.4103    0.0099
+         0         0         0         0    0.1389
+         0   -0.1834   -0.1851    0.5659    0.3040
+         0         0    0.4011   -0.9122    0.2435
+         0         0         0    0.4786   -0.2432
+         0         0         0         0   -0.5272
+         0         0         0         0         0
+     1     0     0     0     0
+     0     1     0     0     0
+     0     0     1     0     0
+     0     0     0     1     0
+     0     0     0     0     1
+     0     0     0     0     0
+     0     0     0     0     0
+     0     0     0     0     0
+     0     0     0     0     0
+     0     0     0     0     0
+</PRE>
+<B>Program Results</B>
+<PRE>
+MB03TD EXAMPLE PROGRAM RESULTS
+
+The orthogonal symplectic factor U is 
+   0.0407    0.4847    0.8737    0.0000    0.0000    0.0000    0.0000    0.0000    0.0000    0.0000
+   0.1245   -0.3866    0.2087    0.4509   -0.1047    0.3229    0.1248   -0.0843    0.1967    0.6415
+  -0.0933    0.4089   -0.2225   -0.4085    0.0709   -0.2171    0.2156   -0.1095    0.4348    0.5551
+  -0.1059   -0.5250    0.2962   -0.0295    0.2207   -0.6789    0.1133   -0.0312    0.2979   -0.1112
+   0.3937    0.3071   -0.1887    0.5332   -0.4351   -0.4423    0.0600   -0.0127    0.1679   -0.1179
+   0.0000    0.0000    0.0000    0.0000    0.0000    0.0407    0.4847    0.8737    0.0000    0.0000
+  -0.3229   -0.1248    0.0843   -0.1967   -0.6415    0.1245   -0.3866    0.2087    0.4509   -0.1047
+   0.2171   -0.2156    0.1095   -0.4348   -0.5551   -0.0933    0.4089   -0.2225   -0.4085    0.0709
+   0.6789   -0.1133    0.0312   -0.2979    0.1112   -0.1059   -0.5250    0.2962   -0.0295    0.2207
+   0.4423   -0.0600    0.0127   -0.1679    0.1179    0.3937    0.3071   -0.1887    0.5332   -0.4351
+
+Orthogonality of U: || U'*U - I ||_F = .21E-14
+
+The matrix A in reordered Schur canonical form is 
+   0.4565   -0.4554    0.2756   -0.8651   -1.2050
+   1.1863    0.4565    0.2186   -0.0233    0.8293
+   0.0000    0.0000    0.9501    0.0625   -0.0064
+   0.0000    0.0000    0.0000    0.4103    0.5597
+   0.0000    0.0000    0.0000    0.0000    0.1389
+
+The matrix G is 
+   0.0000    0.3298   -0.0292   -0.1571    0.1751
+  -0.3298    0.0000   -0.0633   -0.2951    0.2396
+   0.0292    0.0633    0.0000    0.9567    0.7485
+   0.1571    0.2951   -0.9567    0.0000    0.2960
+  -0.1751   -0.2396   -0.7485   -0.2960    0.0000
+</PRE>
+
+<HR>
+<p>
+<A HREF=..\libindex.html><B>Return to index</B></A></BODY>
+</HTML>

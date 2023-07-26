@@ -1,0 +1,532 @@
+<HTML>
+<HEAD><TITLE>AB08ND - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="AB08ND">AB08ND</A></H2>
+<H3>
+Construction of a regular pencil for a given system such that its generalized eigenvalues are invariant zeros of the system
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To construct for a linear multivariable system described by a
+  state-space model (A,B,C,D) a regular pencil (A - lambda*B ) which
+                                                 f          f
+  has the invariant zeros of the system as generalized eigenvalues.
+  The routine also computes the orders of the infinite zeros and the
+  right and left Kronecker indices of the system (A,B,C,D).
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE AB08ND( EQUIL, N, M, P, A, LDA, B, LDB, C, LDC, D, LDD,
+     $                   NU, RANK, DINFZ, NKROR, NKROL, INFZ, KRONR,
+     $                   KRONL, AF, LDAF, BF, LDBF, TOL, IWORK, DWORK,
+     $                   LDWORK, INFO )
+C     .. Scalar Arguments ..
+      CHARACTER         EQUIL
+      INTEGER           DINFZ, INFO, LDA, LDAF, LDB, LDBF, LDC, LDD,
+     $                  LDWORK, M, N, NKROL, NKROR, NU, P, RANK
+      DOUBLE PRECISION  TOL
+C     .. Array Arguments ..
+      INTEGER           INFZ(*), IWORK(*), KRONL(*), KRONR(*)
+      DOUBLE PRECISION  A(LDA,*), AF(LDAF,*), B(LDB,*), BF(LDBF,*),
+     $                  C(LDC,*), D(LDD,*), DWORK(*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  EQUIL   CHARACTER*1
+          Specifies whether the user wishes to balance the compound
+          matrix (see METHOD) as follows:
+          = 'S':  Perform balancing (scaling);
+          = 'N':  Do not perform balancing.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The number of state variables, i.e., the order of the
+          matrix A.  N &gt;= 0.
+
+  M       (input) INTEGER
+          The number of system inputs.  M &gt;= 0.
+
+  P       (input) INTEGER
+          The number of system outputs.  P &gt;= 0.
+
+  A       (input) DOUBLE PRECISION array, dimension (LDA,N)
+          The leading N-by-N part of this array must contain the
+          state dynamics matrix A of the system.
+
+  LDA     INTEGER
+          The leading dimension of array A.  LDA &gt;= MAX(1,N).
+
+  B       (input) DOUBLE PRECISION array, dimension (LDB,M)
+          The leading N-by-M part of this array must contain the
+          input/state matrix B of the system.
+
+  LDB     INTEGER
+          The leading dimension of array B.  LDB &gt;= MAX(1,N).
+
+  C       (input) DOUBLE PRECISION array, dimension (LDC,N)
+          The leading P-by-N part of this array must contain the
+          state/output matrix C of the system.
+
+  LDC     INTEGER
+          The leading dimension of array C.  LDC &gt;= MAX(1,P).
+
+  D       (input) DOUBLE PRECISION array, dimension (LDD,M)
+          The leading P-by-M part of this array must contain the
+          direct transmission matrix D of the system.
+
+  LDD     INTEGER
+          The leading dimension of array D.  LDD &gt;= MAX(1,P).
+
+  NU      (output) INTEGER
+          The number of (finite) invariant zeros.
+
+  RANK    (output) INTEGER
+          The normal rank of the transfer function matrix.
+
+  DINFZ   (output) INTEGER
+          The maximum degree of infinite elementary divisors.
+
+  NKROR   (output) INTEGER
+          The number of right Kronecker indices.
+
+  NKROL   (output) INTEGER
+          The number of left Kronecker indices.
+
+  INFZ    (output) INTEGER array, dimension (N)
+          The leading DINFZ elements of INFZ contain information
+          on the infinite elementary divisors as follows:
+          the system has INFZ(i) infinite elementary divisors
+          of degree i, where i = 1,2,...,DINFZ.
+
+  KRONR   (output) INTEGER array, dimension (MAX(N,M)+1)
+          The leading NKROR elements of this array contain the
+          right Kronecker (column) indices.
+
+  KRONL   (output) INTEGER array, dimension (MAX(N,P)+1)
+          The leading NKROL elements of this array contain the
+          left Kronecker (row) indices.
+
+  AF      (output) DOUBLE PRECISION array, dimension
+          (LDAF,N+MIN(P,M))
+          The leading NU-by-NU part of this array contains the
+          coefficient matrix A  of the reduced pencil. The remainder
+                              f
+          of the leading (N+M)-by-(N+MIN(P,M)) part is used as
+          internal workspace.
+
+  LDAF    INTEGER
+          The leading dimension of array AF.  LDAF &gt;= MAX(1,N+M).
+
+  BF      (output) DOUBLE PRECISION array, dimension (LDBF,N+M)
+          The leading NU-by-NU part of this array contains the
+          coefficient matrix B  of the reduced pencil. The
+                              f
+          remainder of the leading (N+P)-by-(N+M) part is used as
+          internal workspace.
+
+  LDBF    INTEGER
+          The leading dimension of array BF.  LDBF &gt;= MAX(1,N+P).
+
+</PRE>
+<B>Tolerances</B>
+<PRE>
+  TOL     DOUBLE PRECISION
+          A tolerance used in rank decisions to determine the
+          effective rank, which is defined as the order of the
+          largest leading (or trailing) triangular submatrix in the
+          QR (or RQ) factorization with column (or row) pivoting
+          whose estimated condition number is less than 1/TOL.
+          If the user sets TOL to be less than SQRT((N+P)*(N+M))*EPS
+          then the tolerance is taken as SQRT((N+P)*(N+M))*EPS,
+          where EPS is the machine precision (see LAPACK Library
+          Routine DLAMCH).
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  IWORK   INTEGER array, dimension (MAX(M,P))
+
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+          On exit, if INFO = 0, DWORK(1) returns the optimal value
+          of LDWORK.
+
+  LDWORK  INTEGER
+          The length of the array DWORK.
+          LDWORK &gt;= MAX( 1, MIN(P,M) + MAX(3*M-1,N),
+                            MIN(P,N) + MAX(3*P-1,N+P,N+M),
+                            MIN(M,N) + MAX(3*M-1,N+M) ).
+          An upper bound is MAX(s,N) + MAX(3*s-1,N+s), with
+          s = MAX(M,P).
+          For optimum performance LDWORK should be larger.
+
+          If LDWORK = -1, then a workspace query is assumed;
+          the routine only calculates the optimal size of the
+          DWORK array, returns this value as the first entry of
+          the DWORK array, and no error message related to LDWORK
+          is issued by XERBLA.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  The routine extracts from the system matrix of a state-space
+  system (A,B,C,D) a regular pencil A - lambda*B  which has the
+                                     f          f
+  invariant zeros of the system as generalized eigenvalues as
+  follows:
+
+     (a) construct the (N+P)-by-(N+M) compound matrix (B  A);
+                                                      (D  C)
+
+     (b) reduce the above system to one with the same invariant
+         zeros and with D of full row rank;
+
+     (c) pertranspose the system;
+
+     (d) reduce the system to one with the same invariant zeros and
+         with D square invertible;
+
+     (e) perform a unitary transformation on the columns of
+         (A - lambda*I  B) in order to reduce it to
+         (      C       D)
+
+         (A  - lambda*B   X)
+         ( f           f   ), with Y and B  square invertible;
+         (      0         Y)              f
+
+     (f) compute the right and left Kronecker indices of the system
+         (A,B,C,D), which together with the orders of the infinite
+         zeros (determined by steps (a) - (e)) constitute the
+         complete set of structural invariants under strict
+         equivalence transformations of a linear system.
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Svaricek, F.
+      Computation of the Structural Invariants of Linear
+      Multivariable Systems with an Extended Version of
+      the Program ZEROS.
+      System & Control Letters, 6, pp. 261-266, 1985.
+
+  [2] Emami-Naeini, A. and Van Dooren, P.
+      Computation of Zeros of Linear Multivariable Systems.
+      Automatica, 18, pp. 415-430, 1982.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  The algorithm is backward stable (see [2] and [1]).
+
+</PRE>
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  In order to compute the invariant zeros of the system explicitly,
+  a call to this routine may be followed by a call to the LAPACK
+  Library routine DGGEV with A = A , B = B  and N = NU.
+                                  f       f
+  If RANK = 0, the routine DGEEV can be used (since B = I).
+                                                     f
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+*     AB08ND EXAMPLE PROGRAM TEXT
+*
+*     .. Parameters ..
+      DOUBLE PRECISION ZERO
+      PARAMETER        ( ZERO = 0.0D0 )
+      INTEGER          NIN, NOUT
+      PARAMETER        ( NIN = 5, NOUT = 6 )
+      INTEGER          NMAX, MMAX, PMAX
+      PARAMETER        ( NMAX = 20, MMAX = 20, PMAX = 20 )
+      INTEGER          MPMAX
+      PARAMETER        ( MPMAX = MAX( MMAX, PMAX ) )
+      INTEGER          LDA, LDB, LDC, LDD, LDAF, LDBF, LDQ, LDZ
+      PARAMETER        ( LDA = NMAX, LDB = NMAX, LDC = PMAX,
+     $                   LDD = PMAX, LDAF = NMAX+MPMAX,
+     $                   LDBF = NMAX+PMAX, LDQ = 1, LDZ = 1 )
+      INTEGER          LDWORK
+      PARAMETER        ( LDWORK = MAX( MAX( MPMAX+1, NMAX ) +
+     $                                 MAX( 3*(MPMAX+1), NMAX+MPMAX ),
+     $                                 8*NMAX ) )
+*     .. Local Scalars ..
+      DOUBLE PRECISION TOL
+      INTEGER          DINFZ, I, INFO, J, M, N, NINFZ, NKROL, NKROR,
+     $                 NU, P, RANK
+      CHARACTER*1      EQUIL
+*     .. Local Arrays ..
+      DOUBLE PRECISION A(LDA,NMAX), AF(LDAF,NMAX+PMAX), ALFI(NMAX),
+     $                 ALFR(NMAX), B(LDB,MMAX), BETA(NMAX),
+     $                 BF(LDBF,MMAX+NMAX), C(LDC,NMAX), D(LDD,MMAX),
+     $                 DWORK(LDWORK), Q(LDQ,1), Z(LDZ,1)
+      INTEGER          INFZ(NMAX), IWORK(MPMAX+1), KRONL(NMAX+1),
+     $                 KRONR(NMAX+1)
+*     .. External Subroutines ..
+      EXTERNAL         AB08ND, DGEGV
+*     .. Intrinsic Functions ..
+      INTRINSIC        MAX
+*     .. Executable Statements ..
+*
+      WRITE ( NOUT, FMT = 99999 )
+*     Skip the heading in the data file and read the data.
+      READ ( NIN, FMT = '()' )
+      READ ( NIN, FMT = * ) N, M, P, TOL, EQUIL
+      IF ( N.LT.0 .OR. N.GT.NMAX ) THEN
+         WRITE ( NOUT, FMT = 99972 ) N
+      ELSE
+         READ ( NIN, FMT = * ) ( ( A(I,J), J = 1,N ), I = 1,N )
+         IF ( M.LT.0 .OR. M.GT.MMAX ) THEN
+            WRITE ( NOUT, FMT = 99971 ) M
+         ELSE
+            READ ( NIN, FMT = * ) ( ( B(I,J), J = 1,M ), I = 1,N )
+            IF ( P.LT.0 .OR. P.GT.PMAX ) THEN
+               WRITE ( NOUT, FMT = 99970 ) P
+            ELSE
+               READ ( NIN, FMT = * ) ( ( C(I,J), J = 1,N ), I = 1,P )
+               READ ( NIN, FMT = * ) ( ( D(I,J), J = 1,M ), I = 1,P )
+*              Check the observability and compute the ordered set of
+*              the observability indices (call the routine with M = 0).
+               CALL AB08ND( EQUIL, N, 0, P, A, LDA, B, LDB, C, LDC, D,
+     $                      LDD, NU, RANK, DINFZ, NKROR, NKROL, INFZ,
+     $                      KRONR, KRONL, AF, LDAF, BF, LDBF, TOL,
+     $                      IWORK, DWORK, LDWORK, INFO )
+*
+               IF ( INFO.NE.0 ) THEN
+                  WRITE ( NOUT, FMT = 99998 ) INFO
+               ELSE
+                  WRITE ( NOUT, FMT = 99994 ) ( KRONL(I), I = 1,P )
+                  IF ( NU.EQ.0 ) THEN
+                     WRITE ( NOUT, FMT = 99993 )
+                  ELSE
+                     WRITE ( NOUT, FMT = 99992 ) N - NU
+                     WRITE ( NOUT, FMT = 99991 )
+                     WRITE ( NOUT, FMT = 99990 )
+                     DO 20 I = 1, NU
+                        WRITE ( NOUT, FMT = 99989 )
+     $                        ( AF(I,J), J = 1,NU )
+   20                CONTINUE
+                  END IF
+               END IF
+*              Check the controllability and compute the ordered set of
+*              the controllability indices (call the routine with P = 0)
+               CALL AB08ND( EQUIL, N, M, 0, A, LDA, B, LDB, C, LDC, D,
+     $                      LDD, NU, RANK, DINFZ, NKROR, NKROL, INFZ,
+     $                      KRONR, KRONL, AF, LDAF, BF, LDBF, TOL,
+     $                      IWORK, DWORK, LDWORK, INFO )
+*
+               IF ( INFO.NE.0 ) THEN
+                  WRITE ( NOUT, FMT = 99998 ) INFO
+               ELSE
+                  WRITE ( NOUT, FMT = 99988 ) ( KRONR(I), I = 1,M )
+                  IF ( NU.EQ.0 ) THEN
+                     WRITE ( NOUT, FMT = 99987 )
+                  ELSE
+                     WRITE ( NOUT, FMT = 99986 ) N - NU
+                     WRITE ( NOUT, FMT = 99985 )
+                     WRITE ( NOUT, FMT = 99990 )
+                     DO 40 I = 1, NU
+                        WRITE ( NOUT, FMT = 99989 )
+     $                        ( AF(I,J), J = 1,NU )
+   40                CONTINUE
+                  END IF
+               END IF
+*              Compute the structural invariants of the given system.
+               CALL AB08ND( EQUIL, N, M, P, A, LDA, B, LDB, C, LDC, D,
+     $                      LDD, NU, RANK, DINFZ, NKROR, NKROL, INFZ,
+     $                      KRONR, KRONL, AF, LDAF, BF, LDBF, TOL,
+     $                      IWORK, DWORK, LDWORK, INFO )
+*
+               IF ( INFO.NE.0 ) THEN
+                  WRITE ( NOUT, FMT = 99998 ) INFO
+               ELSE
+                  WRITE ( NOUT, FMT = 99984 ) NU
+                  IF ( NU.GT.0 ) THEN
+*                    Compute the invariant zeros of the given system.
+*                    Workspace: need 8*NU.
+                     WRITE ( NOUT, FMT = 99983 )
+                     CALL DGEGV( 'No vectors', 'No vectors', NU, AF,
+     $                           LDAF, BF, LDBF, ALFR, ALFI, BETA, Q,
+     $                           LDQ, Z, LDZ, DWORK, LDWORK, INFO )
+*
+                     IF ( INFO.NE.0 ) THEN
+                        WRITE ( NOUT, FMT = 99997 ) INFO
+                     ELSE
+                        WRITE ( NOUT, FMT = 99981 )
+                        DO 60 I = 1, NU
+                           IF ( ALFI(I).EQ.ZERO ) THEN
+                              WRITE ( NOUT, FMT = 99980 )
+     $                                ALFR(I)/BETA(I)
+                           ELSE
+                              WRITE ( NOUT, FMT = 99979 )
+     $                                ALFR(I)/BETA(I),
+     $                                ALFI(I)/BETA(I)
+                           END IF
+   60                   CONTINUE
+                        WRITE ( NOUT, FMT = 99982 )
+                     END IF
+                  END IF
+                  NINFZ = 0
+                  DO 80 I = 1, DINFZ
+                     IF ( INFZ(I).GT.0 ) THEN
+                        NINFZ = NINFZ + INFZ(I)*I
+                     END IF
+   80             CONTINUE
+                  WRITE ( NOUT, FMT = 99978 ) NINFZ
+                  IF ( NINFZ.GT.0 ) THEN
+                     DO 100 I = 1, DINFZ
+                        WRITE ( NOUT, FMT = 99977 ) INFZ(I), I
+  100                CONTINUE
+                  END IF
+                  WRITE ( NOUT, FMT = 99976 ) NKROR
+                  IF ( NKROR.GT.0 ) WRITE ( NOUT, FMT = 99975 )
+     $                                      ( KRONR(I), I = 1,NKROR )
+                  WRITE ( NOUT, FMT = 99974 ) NKROL
+                  IF ( NKROL.GT.0 ) WRITE ( NOUT, FMT = 99973 )
+     $                                      ( KRONL(I), I = 1,NKROL )
+               END IF
+            END IF
+         END IF
+      END IF
+*
+      STOP
+*
+99999 FORMAT (' AB08ND EXAMPLE PROGRAM RESULTS',/1X)
+99998 FORMAT (' INFO on exit from AB08ND = ',I2)
+99997 FORMAT (' INFO on exit from DGEGV = ',I2)
+99994 FORMAT (' The left Kronecker indices of (A,C) are ',/(20(I3,2X)))
+99993 FORMAT (/' The system (A,C) is completely observable ')
+99992 FORMAT (/' The dimension of the observable subspace = ',I3)
+99991 FORMAT (/' The output decoupling zeros are the eigenvalues of th',
+     $       'e matrix AF. ')
+99990 FORMAT (/' The matrix AF is ')
+99989 FORMAT (20(1X,F8.4))
+99988 FORMAT (//' The right Kronecker indices of (A,B) are ',/(20(I3,2X)
+     $       ))
+99987 FORMAT (/' The system (A,B) is completely controllable ')
+99986 FORMAT (/' The dimension of the controllable subspace = ',I3)
+99985 FORMAT (/' The input decoupling zeros are the eigenvalues of the',
+     $       ' matrix AF. ')
+99984 FORMAT (//' The number of finite invariant zeros = ',I3)
+99983 FORMAT (/' The finite invariant zeros are ')
+99982 FORMAT (/' which correspond to the generalized eigenvalues of (l',
+     $       'ambda*BF - AF).')
+99981 FORMAT (/' real  part     imag  part ')
+99980 FORMAT (1X,F9.4)
+99979 FORMAT (1X,F9.4,6X,F9.4)
+99978 FORMAT (//' The number of infinite zeros = ',I3)
+99977 FORMAT ( I4,' infinite zero(s) of order ',I3)
+99976 FORMAT (/' The number of right Kronecker indices = ',I3)
+99975 FORMAT (/' Right Kronecker (column) indices of (A,B,C,D) are ',
+     $       /(20(I3,2X)))
+99974 FORMAT (/' The number of left Kronecker indices = ',I3)
+99973 FORMAT (/' The left Kronecker (row) indices of (A,B,C,D) are ',
+     $       /(20(I3,2X)))
+99972 FORMAT (/' N is out of range.',/' N = ',I5)
+99971 FORMAT (/' M is out of range.',/' M = ',I5)
+99970 FORMAT (/' P is out of range.',/' P = ',I5)
+      END
+</PRE>
+<B>Program Data</B>
+<PRE>
+ AB08ND EXAMPLE PROGRAM DATA
+   6     2     3     0.0     N
+   1.0   0.0   0.0   0.0   0.0   0.0
+   0.0   1.0   0.0   0.0   0.0   0.0
+   0.0   0.0   3.0   0.0   0.0   0.0
+   0.0   0.0   0.0  -4.0   0.0   0.0
+   0.0   0.0   0.0   0.0  -1.0   0.0
+   0.0   0.0   0.0   0.0   0.0   3.0
+   0.0  -1.0
+  -1.0   0.0
+   1.0  -1.0
+   0.0   0.0
+   0.0   1.0
+  -1.0  -1.0
+   1.0   0.0   0.0   1.0   0.0   0.0
+   0.0   1.0   0.0   1.0   0.0   1.0
+   0.0   0.0   1.0   0.0   0.0   1.0
+   0.0   0.0
+   0.0   0.0
+   0.0   0.0
+</PRE>
+<B>Program Results</B>
+<PRE>
+ AB08ND EXAMPLE PROGRAM RESULTS
+
+ The left Kronecker indices of (A,C) are 
+  1    2    2
+
+ The dimension of the observable subspace =   5
+
+ The output decoupling zeros are the eigenvalues of the matrix AF. 
+
+ The matrix AF is 
+  -1.0000
+
+
+ The right Kronecker indices of (A,B) are 
+  2    3
+
+ The dimension of the controllable subspace =   5
+
+ The input decoupling zeros are the eigenvalues of the matrix AF. 
+
+ The matrix AF is 
+  -4.0000
+
+
+ The number of finite invariant zeros =   2
+
+ The finite invariant zeros are 
+
+ real  part     imag  part 
+    2.0000
+   -1.0000
+
+ which correspond to the generalized eigenvalues of (lambda*BF - AF).
+
+
+ The number of infinite zeros =   2
+
+ The orders of the infinite zeros are 
+  1    1
+
+ The number of right Kronecker indices =   0
+
+ The number of left Kronecker indices =   1
+
+ The left Kronecker (row) indices of (A,B,C,D) are 
+  2
+</PRE>
+
+<HR>
+<p>
+<A HREF=..\libindex.html><B>Return to index</B></A></BODY>
+</HTML>

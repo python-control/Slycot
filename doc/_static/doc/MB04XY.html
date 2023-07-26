@@ -1,0 +1,162 @@
+<HTML>
+<HEAD><TITLE>MB04XY - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MB04XY">MB04XY</A></H2>
+<H3>
+Applying the Householder transformations for bidiagonalization (stored in factored form) to specified one or two matrices, from the left
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To apply the Householder transformations Pj stored in factored
+  form into the columns of the array X, to the desired columns of
+  the matrix U by premultiplication, and/or the Householder
+  transformations Qj stored in factored form into the rows of the
+  array X, to the desired columns of the matrix V by
+  premultiplication. The Householder transformations Pj and Qj
+  are stored as produced by LAPACK Library routine DGEBRD.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MB04XY( JOBU, JOBV, M, N, X, LDX, TAUP, TAUQ, U,
+     $                   LDU, V, LDV, INUL, INFO )
+C     .. Scalar Arguments ..
+      CHARACTER         JOBU, JOBV
+      INTEGER           INFO, LDU, LDV, LDX, M, N
+C     .. Array Arguments ..
+      LOGICAL           INUL(*)
+      DOUBLE PRECISION  TAUP(*), TAUQ(*), U(LDU,*), V(LDV,*),
+     $                  X(LDX,*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  JOBU    CHARACTER*1
+          Specifies whether to transform the columns in U as
+          follows:
+          = 'N':  Do not transform the columns in U;
+          = 'A':  Transform the columns in U (U has M columns);
+          = 'S':  Transform the columns in U (U has min(M,N)
+                  columns).
+
+  JOBV    CHARACTER*1
+          Specifies whether to transform the columns in V as
+          follows:
+          = 'N':  Do not transform the columns in V;
+          = 'A':  Transform the columns in V (V has N columns);
+          = 'S':  Transform the columns in V (V has min(M,N)
+                  columns).
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  M       (input) INTEGER
+          The number of rows of the matrix X.  M &gt;= 0.
+
+  N       (input) INTEGER
+          The number of columns of the matrix X.  N &gt;= 0.
+
+  X       (input) DOUBLE PRECISION array, dimension (LDX,N)
+          The leading M-by-N part contains in the columns of its
+          lower triangle the Householder transformations Pj, and
+          in the rows of its upper triangle the Householder
+          transformations Qj in factored form.
+          X is modified by the routine but restored on exit.
+
+  LDX     INTEGER
+          The leading dimension of the array X.   LDX &gt;= MAX(1,M).
+
+  TAUP    (input) DOUBLE PRECISION array, dimension (MIN(M,N))
+          The scalar factors of the Householder transformations Pj.
+
+  TAUQ    (input) DOUBLE PRECISION array, dimension (MIN(M,N))
+          The scalar factors of the Householder transformations Qj.
+
+  U       (input/output) DOUBLE PRECISION array, dimension (LDU,*)
+          On entry, U contains the M-by-M (if JOBU = 'A') or
+          M-by-min(M,N) (if JOBU = 'S') matrix U.
+          On exit, the Householder transformations Pj have been
+          applied to each column i of U corresponding to a parameter
+          INUL(i) = .TRUE.
+          NOTE that U is not referenced if JOBU = 'N'.
+
+  LDU     INTEGER
+          The leading dimension of the array U.
+          LDU &gt;= MAX(1,M), if JOBU = 'A' or JOBU = 'S';
+          LDU &gt;= 1,        if JOBU = 'N'.
+
+  V       (input/output) DOUBLE PRECISION array, dimension (LDV,*)
+          On entry, V contains the N-by-N (if JOBV = 'A') or
+          N-by-min(M,N) (if JOBV = 'S') matrix V.
+          On exit, the Householder transformations Qj have been
+          applied to each column i of V corresponding to a parameter
+          INUL(i) = .TRUE.
+          NOTE that V is not referenced if JOBV = 'N'.
+
+  LDV     INTEGER
+          The leading dimension of the array V.
+          LDV &gt;= MAX(1,M), if JOBV = 'A' or JOBV = 'S';
+          LDV &gt;= 1,        if JOBV = 'N'.
+
+  INUL    (input) LOGICAL array, dimension (MAX(M,N))
+          INUL(i) = .TRUE. if the i-th column of U and/or V is to be
+          transformed, and INUL(i) = .FALSE., otherwise.
+          (1 &lt;= i &lt;= MAX(M,N)).
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  The Householder transformations Pj or Qj are applied to the
+  columns of U or V indexed by I for which INUL(I) = .TRUE..
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  The algorithm is backward stable.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

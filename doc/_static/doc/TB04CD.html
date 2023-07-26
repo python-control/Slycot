@@ -1,0 +1,455 @@
+<HTML>
+<HEAD><TITLE>TB04CD - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="TB04CD">TB04CD</A></H2>
+<H3>
+Pole-zero-gain representation for a given state-space representation
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To compute the transfer function matrix G of a state-space
+  representation (A,B,C,D) of a linear time-invariant multivariable
+  system, using the pole-zeros method. The transfer function matrix
+  is returned in a minimal pole-zero-gain form.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE TB04CD( JOBD, EQUIL, N, M, P, NPZ, A, LDA, B, LDB, C,
+     $                   LDC, D, LDD, NZ, LDNZ, NP, LDNP, ZEROSR,
+     $                   ZEROSI, POLESR, POLESI, GAINS, LDGAIN, TOL,
+     $                   IWORK, DWORK, LDWORK, INFO )
+C     .. Scalar Arguments ..
+      CHARACTER          EQUIL, JOBD
+      DOUBLE PRECISION   TOL
+      INTEGER            INFO, LDA, LDB, LDC, LDD, LDGAIN, LDNP, LDNZ,
+     $                   LDWORK, M, N, NPZ, P
+C     .. Array Arguments ..
+      DOUBLE PRECISION   A(LDA,*), B(LDB,*), C(LDC,*), D(LDD,*),
+     $                   DWORK(*), GAINS(LDGAIN,*), POLESI(*),
+     $                   POLESR(*), ZEROSI(*), ZEROSR(*)
+      INTEGER            IWORK(*), NP(LDNP,*), NZ(LDNZ,*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  JOBD    CHARACTER*1
+          Specifies whether or not a non-zero matrix D appears in
+          the given state-space model:
+          = 'D':  D is present;
+          = 'Z':  D is assumed to be a zero matrix.
+
+  EQUIL   CHARACTER*1
+          Specifies whether the user wishes to preliminarily
+          equilibrate the triplet (A,B,C) as follows:
+          = 'S':  perform equilibration (scaling);
+          = 'N':  do not perform equilibration.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The order of the system (A,B,C,D).  N &gt;= 0.
+
+  M       (input) INTEGER
+          The number of the system inputs.  M &gt;= 0.
+
+  P       (input) INTEGER
+          The number of the system outputs.  P &gt;= 0.
+
+  NPZ     (input) INTEGER
+          The maximum number of poles or zeros of the single-input
+          single-output channels in the system. An upper bound
+          for NPZ is N.  NPZ &gt;= 0.
+
+  A       (input/output) DOUBLE PRECISION array, dimension (LDA,N)
+          On entry, the leading N-by-N part of this array must
+          contain the original state dynamics matrix A.
+          On exit, if EQUIL = 'S', the leading N-by-N part of this
+          array contains the balanced matrix inv(S)*A*S, as returned
+          by SLICOT Library routine TB01ID.
+          If EQUIL = 'N', this array is unchanged on exit.
+
+  LDA     INTEGER
+          The leading dimension of array A.  LDA &gt;= MAX(1,N).
+
+  B       (input/output) DOUBLE PRECISION array, dimension (LDB,M)
+          On entry, the leading N-by-M part of this array must
+          contain the input matrix B.
+          On exit, the contents of B are destroyed: all elements but
+          those in the first row are set to zero.
+
+  LDB     INTEGER
+          The leading dimension of array B.  LDB &gt;= MAX(1,N).
+
+  C       (input/output) DOUBLE PRECISION array, dimension (LDC,N)
+          On entry, the leading P-by-N part of this array must
+          contain the output matrix C.
+          On exit, if EQUIL = 'S', the leading P-by-N part of this
+          array contains the balanced matrix C*S, as returned by
+          SLICOT Library routine TB01ID.
+          If EQUIL = 'N', this array is unchanged on exit.
+
+  LDC     INTEGER
+          The leading dimension of array C.  LDC &gt;= MAX(1,P).
+
+  D       (input) DOUBLE PRECISION array, dimension (LDD,M)
+          If JOBD = 'D', the leading P-by-M part of this array must
+          contain the matrix D.
+          If JOBD = 'Z', the array D is not referenced.
+
+  LDD     INTEGER
+          The leading dimension of array D.
+          LDD &gt;= MAX(1,P), if JOBD = 'D';
+          LDD &gt;= 1,        if JOBD = 'Z'.
+
+  NZ      (output) INTEGER array, dimension (LDNZ,M)
+          The leading P-by-M part of this array contains the numbers
+          of zeros of the elements of the transfer function
+          matrix G. Specifically, the (i,j) element of NZ contains
+          the number of zeros of the transfer function G(i,j) from
+          the j-th input to the i-th output.
+
+  LDNZ    INTEGER
+          The leading dimension of array NZ.  LDNZ &gt;= max(1,P).
+
+  NP      (output) INTEGER array, dimension (LDNP,M)
+          The leading P-by-M part of this array contains the numbers
+          of poles of the elements of the transfer function
+          matrix G. Specifically, the (i,j) element of NP contains
+          the number of poles of the transfer function G(i,j).
+
+  LDNP    INTEGER
+          The leading dimension of array NP.  LDNP &gt;= max(1,P).
+
+  ZEROSR  (output) DOUBLE PRECISION array, dimension (P*M*NPZ)
+          This array contains the real parts of the zeros of the
+          transfer function matrix G. The real parts of the zeros
+          are stored in a column-wise order, i.e., for the transfer
+          functions (1,1), (2,1), ..., (P,1), (1,2), (2,2), ...,
+          (P,2), ..., (1,M), (2,M), ..., (P,M); NPZ memory locations
+          are reserved for each transfer function, hence, the real
+          parts of the zeros for the (i,j) transfer function
+          are stored starting from the location ((j-1)*P+i-1)*NPZ+1.
+          Pairs of complex conjugate zeros are stored in consecutive
+          memory locations. Note that only the first NZ(i,j) entries
+          are initialized for the (i,j) transfer function.
+
+  ZEROSI  (output) DOUBLE PRECISION array, dimension (P*M*NPZ)
+          This array contains the imaginary parts of the zeros of
+          the transfer function matrix G, stored in a similar way
+          as the real parts of the zeros.
+
+  POLESR  (output) DOUBLE PRECISION array, dimension (P*M*NPZ)
+          This array contains the real parts of the poles of the
+          transfer function matrix G, stored in the same way as
+          the zeros. Note that only the first NP(i,j) entries are
+          initialized for the (i,j) transfer function.
+
+  POLESI  (output) DOUBLE PRECISION array, dimension (P*M*NPZ)
+          This array contains the imaginary parts of the poles of
+          the transfer function matrix G, stored in the same way as
+          the poles.
+
+  GAINS   (output) DOUBLE PRECISION array, dimension (LDGAIN,M)
+          The leading P-by-M part of this array contains the gains
+          of the transfer function matrix G. Specifically,
+          GAINS(i,j) contains the gain of the transfer function
+          G(i,j).
+
+  LDGAIN  INTEGER
+          The leading dimension of array GAINS.  LDGAIN &gt;= max(1,P).
+
+</PRE>
+<B>Tolerances</B>
+<PRE>
+  TOL     DOUBLE PRECISION
+          The tolerance to be used in determining the
+          controllability of a single-input system (A,b) or (A',c'),
+          where b and c' are columns in B and C' (C transposed). If
+          the user sets TOL &gt; 0, then the given value of TOL is used
+          as an absolute tolerance; elements with absolute value
+          less than TOL are considered neglijible. If the user sets
+          TOL &lt;= 0, then an implicitly computed, default tolerance,
+          defined by TOLDEF = N*EPS*MAX( NORM(A), NORM(bc) ) is used
+          instead, where EPS is the machine precision (see LAPACK
+          Library routine DLAMCH), and bc denotes the currently used
+          column in B or C' (see METHOD).
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  IWORK   INTEGER array, dimension (N)
+
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+          On exit, if INFO = 0, DWORK(1) returns the optimal value
+          of LDWORK.
+
+  LDWORK  INTEGER
+          The length of the array DWORK.
+          LDWORK &gt;= MAX(1, N*(N+P) +
+                           MAX( N + MAX( N,P ), N*(2*N+3)))
+          If N &gt;= P, N &gt;= 1, the formula above can be written as
+          LDWORK &gt;= N*(3*N + P + 3).
+          For optimum performance LDWORK should be larger.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value;
+          = 1:  the QR algorithm failed to converge when trying to
+                compute the zeros of a transfer function;
+          = 2:  the QR algorithm failed to converge when trying to
+                compute the poles of a transfer function.
+                The errors INFO = 1 or 2 are unlikely to appear.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  The routine implements the pole-zero method proposed in [1].
+  This method is based on an algorithm for computing the transfer
+  function of a single-input single-output (SISO) system.
+  Let (A,b,c,d) be a SISO system. Its transfer function is computed
+  as follows:
+
+  1) Find a controllable realization (Ac,bc,cc) of (A,b,c).
+  2) Find an observable realization (Ao,bo,co) of (Ac,bc,cc).
+  3) Compute the r eigenvalues of Ao (the poles of (Ao,bo,co)).
+  4) Compute the zeros of (Ao,bo,co,d).
+  5) Compute the gain of (Ao,bo,co,d).
+
+  This algorithm can be implemented using only orthogonal
+  transformations [1]. However, for better efficiency, the
+  implementation in TB04CD uses one elementary transformation
+  in Step 4 and r elementary transformations in Step 5 (to reduce
+  an upper Hessenberg matrix to upper triangular form). These
+  special elementary transformations are numerically stable
+  in practice.
+
+  In the multi-input multi-output (MIMO) case, the algorithm
+  computes each element (i,j) of the transfer function matrix G,
+  for i = 1 : P, and for j = 1 : M. For efficiency reasons, Step 1
+  is performed once for each value of j (each column of B). The
+  matrices Ac and Ao result in Hessenberg form.
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Varga, A. and Sima, V.
+      Numerically Stable Algorithm for Transfer Function Matrix
+      Evaluation.
+      Int. J. Control, vol. 33, nr. 6, pp. 1123-1133, 1981.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  The algorithm is numerically stable in practice and requires about
+  20*N**3 floating point operations at most, but usually much less.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+*     TB04CD EXAMPLE PROGRAM TEXT
+*
+*     .. Parameters ..
+      INTEGER          NIN, NOUT
+      PARAMETER        ( NIN = 5, NOUT = 6 )
+      INTEGER          NMAX, MMAX, PMAX, NPZMAX
+      PARAMETER        ( NMAX = 20, MMAX = 20, PMAX = 20,
+     $                   NPZMAX = NMAX )
+      INTEGER          PMNMAX
+      PARAMETER        ( PMNMAX = PMAX*MMAX*NPZMAX )
+      INTEGER          LDA, LDB, LDC, LDD, LDGAIN, LDNP, LDNZ
+      PARAMETER        ( LDA = NMAX, LDB = NMAX, LDC = PMAX,
+     $                   LDD = PMAX, LDGAIN = PMAX, LDNP = PMAX,
+     $                   LDNZ = PMAX )
+      INTEGER          LIWORK
+      PARAMETER        ( LIWORK = NMAX )
+      INTEGER          LDWORK
+      PARAMETER        ( LDWORK = NMAX*( NMAX + PMAX ) +
+     $                            MAX( NMAX + MAX( NMAX, PMAX ),
+     $                                 NMAX*( 2*NMAX + 3 ) ) )
+*     .. Local Scalars ..
+      DOUBLE PRECISION TOL
+      INTEGER          I, IJ, INFO, J, K, M, N, NPZ, P
+      CHARACTER*1      JOBD, EQUIL
+*     .. Local Arrays ..
+      DOUBLE PRECISION A(LDA,NMAX), B(LDB,MMAX), C(LDC,NMAX),
+     $                 D(LDD,MMAX), DWORK(LDWORK), GAINS(LDGAIN,MMAX),
+     $                 POLESI(PMNMAX), POLESR(PMNMAX), ZEROSI(PMNMAX),
+     $                 ZEROSR(PMNMAX)
+      INTEGER          IWORK(LIWORK), NP(LDNP,MMAX), NZ(LDNZ,MMAX)
+*     .. External Subroutines ..
+      EXTERNAL         TB04CD
+*     .. Intrinsic Functions ..
+      INTRINSIC        MAX
+*     .. Executable Statements ..
+*
+      WRITE ( NOUT, FMT = 99999 )
+*     Skip the heading in the data file and read the data.
+      READ ( NIN, FMT = '()' )
+      READ ( NIN, FMT = * ) N, M, P, TOL, JOBD, EQUIL
+      NPZ = N
+      IF ( N.LT.0 .OR. N.GT.NMAX ) THEN
+         WRITE ( NOUT, FMT = 99992 ) N
+      ELSE
+         READ ( NIN, FMT = * ) ( ( A(I,J), J = 1,N ), I = 1,N )
+         IF ( M.LT.0 .OR. M.GT.MMAX ) THEN
+            WRITE ( NOUT, FMT = 99991 ) M
+         ELSE
+            READ ( NIN, FMT = * ) ( ( B(I,J), I = 1,N ), J = 1,M )
+            IF ( P.LT.0 .OR. P.GT.PMAX ) THEN
+               WRITE ( NOUT, FMT = 99990 ) P
+            ELSE
+               READ ( NIN, FMT = * ) ( ( C(I,J), J = 1,N ), I = 1,P )
+               READ ( NIN, FMT = * ) ( ( D(I,J), J = 1,M ), I = 1,P )
+*              Find the transfer matrix T(s) of (A,B,C,D) in the
+*              pole-zero-gain form.
+               CALL TB04CD( JOBD, EQUIL, N, M, P, NPZ, A, LDA, B, LDB,
+     $                      C, LDC, D, LDD, NZ, LDNZ, NP, LDNP, ZEROSR,
+     $                      ZEROSI, POLESR, POLESI, GAINS, LDGAIN, TOL,
+     $                      IWORK, DWORK, LDWORK, INFO )
+*
+               IF ( INFO.NE.0 ) THEN
+                  WRITE ( NOUT, FMT = 99998 ) INFO
+               ELSE
+                  WRITE ( NOUT, FMT = 99997 )
+                  DO 60 J = 1, M
+                     DO 40 I = 1, P
+                        IJ = ( (J-1)*P + I-1 )*NPZ + 1
+                        IF ( NZ(I,J).EQ.0 ) THEN
+                           WRITE ( NOUT, FMT = 99996 ) I, J
+                        ELSE
+                           WRITE ( NOUT, FMT = 99995 ) I, J,
+     $                        ( ZEROSR(K), ZEROSI(K),
+     $                                 K = IJ,IJ+NZ(I,J)-1 )
+                        END IF
+                        WRITE ( NOUT, FMT = 99994 ) I, J,
+     $                     ( POLESR(K), POLESI(K), K = IJ,IJ+NP(I,J)-1 )
+                        WRITE ( NOUT, FMT = 99993 ) I, J, ( GAINS(I,J) )
+   40                CONTINUE
+   60             CONTINUE
+               END IF
+            END IF
+         END IF
+      END IF
+      STOP
+*
+99999 FORMAT (' TB04CD EXAMPLE PROGRAM RESULTS',/1X)
+99998 FORMAT (' INFO on exit from TB04CD = ',I2)
+99997 FORMAT (/' The poles, zeros and gains of the transfer matrix',
+     $         ' elements: ')
+99996 FORMAT (/' no zeros for element (',I2,',',I2,')')
+99995 FORMAT (/' zeros of element (',I2,',',I2,') are ',//
+     $         '   real part     imag part '// (2X,F9.4,5X,F9.4))
+99994 FORMAT (/' poles of element (',I2,',',I2,') are ',//
+     $         '   real part     imag part '// (2X,F9.4,5X,F9.4))
+99993 FORMAT (/' gain of element (',I2,',',I2,') is ', F9.4)
+99992 FORMAT (/' N is out of range.',/' N = ',I5)
+99991 FORMAT (/' M is out of range.',/' M = ',I5)
+99990 FORMAT (/' P is out of range.',/' P = ',I5)
+      END
+</PRE>
+<B>Program Data</B>
+<PRE>
+ TB04CD EXAMPLE PROGRAM DATA
+   3     2     2  0.0         D     N
+  -1.0   0.0   0.0
+   0.0  -2.0   0.0
+   0.0   0.0  -3.0
+   0.0   1.0  -1.0
+   1.0   1.0   0.0
+   0.0   1.0   1.0
+   1.0   1.0   1.0
+   1.0   0.0
+   0.0   1.0
+</PRE>
+<B>Program Results</B>
+<PRE>
+ TB04CD EXAMPLE PROGRAM RESULTS
+
+
+ The poles, zeros and gains of the transfer matrix elements: 
+
+ zeros of element ( 1, 1) are 
+
+   real part     imag part 
+
+    -2.5000        0.8660
+    -2.5000       -0.8660
+
+ poles of element ( 1, 1) are 
+
+   real part     imag part 
+
+    -2.0000        0.0000
+    -3.0000        0.0000
+
+ gain of element ( 1, 1) is    1.0000
+
+ no zeros for element ( 2, 1)
+
+ poles of element ( 2, 1) are 
+
+   real part     imag part 
+
+    -2.0000        0.0000
+    -3.0000        0.0000
+
+ gain of element ( 2, 1) is    1.0000
+
+ no zeros for element ( 1, 2)
+
+ poles of element ( 1, 2) are 
+
+   real part     imag part 
+
+    -2.0000        0.0000
+
+ gain of element ( 1, 2) is    1.0000
+
+ zeros of element ( 2, 2) are 
+
+   real part     imag part 
+
+    -3.6180        0.0000
+    -1.3820        0.0000
+
+ poles of element ( 2, 2) are 
+
+   real part     imag part 
+
+    -1.0000        0.0000
+    -2.0000        0.0000
+
+ gain of element ( 2, 2) is    1.0000
+</PRE>
+
+<HR>
+<p>
+<A HREF=..\libindex.html><B>Return to index</B></A></BODY>
+</HTML>

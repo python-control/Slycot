@@ -1,0 +1,207 @@
+<HTML>
+<HEAD><TITLE>TF01OD - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="TF01OD">TF01OD</A></H2>
+<H3>
+Block Hankel expansion of a multivariable parameter sequence
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To construct the block Hankel expansion T of a multivariable
+  parameter sequence M(1),...,M(NR+NC-1), where each parameter M(k)
+  is an NH1-by-NH2 block matrix and k = 1,2,...,(NR+NC-1).
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE TF01OD( NH1, NH2, NR, NC, H, LDH, T, LDT, INFO )
+C     .. Scalar Arguments ..
+      INTEGER           INFO, LDH, LDT, NC, NH1, NH2, NR
+C     .. Array Arguments ..
+      DOUBLE PRECISION  H(LDH,*), T(LDT,*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  NH1     (input) INTEGER
+          The number of rows in each parameter M(k).  NH1 &gt;= 0.
+
+  NH2     (input) INTEGER
+          The number of columns in each parameter M(k).  NH2 &gt;= 0.
+
+  NR      (input) INTEGER
+          The number of parameters required in each column of the
+          block Hankel expansion matrix T.  NR &gt;= 0.
+
+  NC      (input) INTEGER
+          The number of parameters required in each row of the
+          block Hankel expansion matrix T.  NC &gt;= 0.
+
+  H       (input) DOUBLE PRECISION array, dimension
+          (LDH,(NR+NC-1)*NH2)
+          The leading NH1-by-(NR+NC-1)*NH2 part of this array must
+          contain the multivariable sequence M(k), where k = 1,2,
+          ...,(NR+NC-1). Specifically, each parameter M(k) is an
+          NH1-by-NH2 matrix whose (i,j)-th element must be stored in
+          H(i,(k-1)*NH2+j) for i = 1,2,...,NH1 and j = 1,2,...,NH2.
+
+  LDH     INTEGER
+          The leading dimension of array H.  LDH &gt;= MAX(1,NH1).
+
+  T       (output) DOUBLE PRECISION array, dimension (LDT,NH2*NC)
+          The leading NH1*NR-by-NH2*NC part of this array contains
+          the block Hankel expansion of the multivariable sequence
+          M(k).
+
+  LDT     INTEGER
+          The leading dimension of array T.  LDT &gt;= MAX(1,NH1*NR).
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  The NH1-by-NH2 dimensional parameters M(k) of a multivariable
+  sequence are arranged into a matrix T in Hankel form such that
+
+           | M(1)   M(2)    M(3)    . . .  M(NC)     |
+           |                                         |
+           | M(2)   M(3)    M(4)    . . .  M(NC+1)   |
+      T =  |  .      .       .              .        |.
+           |  .      .       .              .        |
+           |  .      .       .              .        |
+           |                                         |
+           | M(NR)  M(NR+1) M(NR+2) . . .  M(NR+NC-1)|
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Johvidov, J.S.
+      Hankel and Toeplitz Matrices and Forms: Algebraic Theory,
+      (translated by G.P.A. Thijsse, I. Gohberg, ed.).
+      Birkhaeuser, Boston, 1982.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  The time taken is approximately proportional to
+  NH1 x NH2 x NR x NC.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+*     TF01OD EXAMPLE PROGRAM TEXT
+*
+*     .. Parameters ..
+      INTEGER          NIN, NOUT
+      PARAMETER        ( NIN = 5, NOUT = 6 )
+      INTEGER          NH1MAX, NH2MAX, NRMAX, NCMAX
+      PARAMETER        ( NH1MAX = 20, NH2MAX = 20, NRMAX = 20,
+     $                   NCMAX = 20 )
+      INTEGER          LDH, LDT
+      PARAMETER        ( LDH = NH1MAX, LDT = NH1MAX*NRMAX )
+*     .. Local Scalars ..
+      INTEGER          I, INFO, J, NC, NCT, NH1, NH2, NR, NRT
+*     .. Local Arrays ..
+      DOUBLE PRECISION H(LDH,(NRMAX+NCMAX-1)*NH2MAX),
+     $                 T(LDT,NH2MAX*NCMAX)
+*     .. External Subroutines ..
+      EXTERNAL         TF01OD
+*     .. Executable Statements ..
+*
+      WRITE ( NOUT, FMT = 99999 )
+*     Skip the heading in the data file and read the data.
+      READ ( NIN, FMT = '()' )
+      READ ( NIN, FMT = * ) NH1, NH2, NR, NC
+      IF ( NH1.LE.0 .OR. NH1.GE.NH1MAX ) THEN
+         WRITE ( NOUT, FMT = 99995 ) NH1
+      ELSE IF ( NH2.LE.0 .OR. NH2.GT.NH2MAX ) THEN
+         WRITE ( NOUT, FMT = 99994 ) NH2
+      ELSE IF ( NR.LE.0 .OR. NR.GT.NRMAX ) THEN
+         WRITE ( NOUT, FMT = 99993 ) NR
+      ELSE IF ( NC.LE.0 .OR. NC.GT.NCMAX ) THEN
+         WRITE ( NOUT, FMT = 99992 ) NC
+      ELSE
+         READ ( NIN, FMT = * )
+     $      ( ( H(I,J), I = 1,NH1 ), J = 1,( NR+NC-1 )*NH2 )
+*        Construct the NRT by NCT block Hankel expansion of M(k).
+         CALL TF01OD( NH1, NH2, NR, NC, H, LDH, T, LDT, INFO )
+*
+         IF ( INFO.NE.0 ) THEN
+            WRITE ( NOUT, FMT = 99998 ) INFO
+         ELSE
+            NRT = NH1*NR
+            NCT = NH2*NC
+            WRITE ( NOUT, FMT = 99997 ) NRT, NCT
+            DO 20 I = 1, NRT
+               WRITE ( NOUT, FMT = 99996 ) ( T(I,J), J = 1,NCT )
+   20       CONTINUE
+         END IF
+      END IF
+      STOP
+*
+99999 FORMAT (' TF01OD EXAMPLE PROGRAM RESULTS',/1X)
+99998 FORMAT (' INFO on exit from TF01OD = ',I2)
+99997 FORMAT (' The ',I2,' by ',I2,' matrix T is ')
+99996 FORMAT (20(1X,F8.4))
+99995 FORMAT (/' NH1 is out of range.',/' NH1 = ',I5)
+99994 FORMAT (/' NH2 is out of range.',/' NH2 = ',I5)
+99993 FORMAT (/' NR is out of range.',/' NR = ',I5)
+99992 FORMAT (/' NC is out of range.',/' NC = ',I5)
+      END
+</PRE>
+<B>Program Data</B>
+<PRE>
+ TF01OD EXAMPLE PROGRAM DATA
+   2     2     3     3
+   1.0647 -0.4282 -0.4922 -1.2072
+  -0.3043  0.6883 -0.0926  0.7167
+  -0.1844 -0.8507  0.4441 -0.0478
+   0.7195  0.0500 -0.3955  0.5674
+   1.3387 -0.2801  0.1073 -0.5315
+</PRE>
+<B>Program Results</B>
+<PRE>
+ TF01OD EXAMPLE PROGRAM RESULTS
+
+ The  6 by  6 matrix T is 
+   1.0647  -0.4922  -0.3043  -0.0926  -0.1844   0.4441
+  -0.4282  -1.2072   0.6883   0.7167  -0.8507  -0.0478
+  -0.3043  -0.0926  -0.1844   0.4441   0.7195  -0.3955
+   0.6883   0.7167  -0.8507  -0.0478   0.0500   0.5674
+  -0.1844   0.4441   0.7195  -0.3955   1.3387   0.1073
+  -0.8507  -0.0478   0.0500   0.5674  -0.2801  -0.5315
+</PRE>
+
+<HR>
+<p>
+<A HREF=..\libindex.html><B>Return to index</B></A></BODY>
+</HTML>

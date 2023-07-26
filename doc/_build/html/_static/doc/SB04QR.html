@@ -1,0 +1,118 @@
+<HTML>
+<HEAD><TITLE>SB04QR - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="SB04QR">SB04QR</A></H2>
+<H3>
+Solving a linear algebraic system whose coefficient matrix (stored compactly) has zeros below the third subdiagonal
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To solve a linear algebraic system of order M whose coefficient
+  matrix has zeros below the third subdiagonal and zero elements on
+  the third subdiagonal with even column indices. The matrix is
+  stored compactly, row-wise.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE SB04QR( M, D, IPR, INFO )
+C     .. Scalar Arguments ..
+      INTEGER           INFO, M
+C     .. Array Arguments ..
+      INTEGER           IPR(*)
+      DOUBLE PRECISION  D(*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  M       (input) INTEGER
+          The order of the system.  M &gt;= 0, M even.
+          Note that parameter M should have twice the value in the
+          original problem (see SLICOT Library routine SB04QU).
+
+  D       (input/output) DOUBLE PRECISION array, dimension
+          (M*M/2+4*M)
+          On entry, the first M*M/2 + 3*M elements of this array
+          must contain the coefficient matrix, stored compactly,
+          row-wise, and the next M elements must contain the right
+          hand side of the linear system, as set by SLICOT Library
+          routine SB04QU.
+          On exit, the content of this array is updated, the last M
+          elements containing the solution with components
+          interchanged (see IPR).
+
+  IPR     (output) INTEGER array, dimension (2*M)
+          The leading M elements contain information about the
+          row interchanges performed for solving the system.
+          Specifically, the i-th component of the solution is
+          specified by IPR(i).
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          = 1:  if a singular matrix was encountered.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  Gaussian elimination with partial pivoting is used. The rows of
+  the matrix are not actually permuted, only their indices are
+  interchanged in array IPR.
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Golub, G.H., Nash, S. and Van Loan, C.F.
+      A Hessenberg-Schur method for the problem AX + XB = C.
+      IEEE Trans. Auto. Contr., AC-24, pp. 909-913, 1979.
+
+  [2] Sima, V.
+      Algorithms for Linear-quadratic Optimization.
+      Marcel Dekker, Inc., New York, 1996.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  None.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

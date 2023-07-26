@@ -1,0 +1,121 @@
+<HTML>
+<HEAD><TITLE>MC03NX - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MC03NX">MC03NX</A></H2>
+<H3>
+Construction of a pencil sE-A related to a given polynomial matrix
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  Given an MP-by-NP polynomial matrix of degree dp
+                                 dp-1            dp
+  P(s) = P(0) + ... + P(dp-1) * s     + P(dp) * s            (1)
+
+  the routine composes the related pencil s*E-A where
+
+      | I              |           | O          -P(dp) |
+      |   .            |           | I .           .   |
+  A = |     .          |  and  E = |   . .         .   |.    (2)
+      |       .        |           |     . O       .   |
+      |         I      |           |       I  O -P(2)  |
+      |           P(0) |           |          I -P(1)  |
+
+  ==================================================================
+  REMARK: This routine is intended to be called only from the SLICOT
+          routine MC03ND.
+  ==================================================================
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MC03NX( MP, NP, DP, P, LDP1, LDP2, A, LDA, E, LDE )
+C     .. Scalar Arguments ..
+      INTEGER           DP, LDA, LDE, LDP1, LDP2, MP, NP
+C     .. Array Arguments ..
+      DOUBLE PRECISION  A(LDA,*), E(LDE,*), P(LDP1,LDP2,*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  MP      (input) INTEGER
+          The number of rows of the polynomial matrix P(s).
+          MP &gt;= 0.
+
+  NP      (input) INTEGER
+          The number of columns of the polynomial matrix P(s).
+          NP &gt;= 0.
+
+  DP      (input) INTEGER
+          The degree of the polynomial matrix P(s).  DP &gt;= 1.
+
+  P       (input) DOUBLE PRECISION array, dimension (LDP1,LDP2,DP+1)
+          The leading MP-by-NP-by-(DP+1) part of this array must
+          contain the coefficients of the polynomial matrix P(s)
+          in (1) in increasing powers of s.
+
+  LDP1    INTEGER
+          The leading dimension of array P.  LDP1 &gt;= MAX(1,MP).
+
+  LDP2    INTEGER
+          The second dimension of array P.   LDP2 &gt;= MAX(1,NP).
+
+  A       (output) DOUBLE PRECISION array, dimension
+          (LDA,(DP-1)*MP+NP)
+          The leading DP*MP-by-((DP-1)*MP+NP) part of this array
+          contains the matrix A as described in (2).
+
+  LDA     INTEGER
+          The leading dimension of array A.  LDA &gt;= MAX(1,DP*MP).
+
+  E       (output) DOUBLE PRECISION array, dimension
+          (LDE,(DP-1)*MP+NP)
+          The leading DP*MP-by-((DP-1)*MP+NP) part of this array
+          contains the matrix E as described in (2).
+
+  LDE     INTEGER
+          The leading dimension of array E.  LDE &gt;= MAX(1,DP*MP).
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  None.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

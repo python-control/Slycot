@@ -1,0 +1,187 @@
+<HTML>
+<HEAD><TITLE>TF01MY - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="TF01MY">TF01MY</A></H2>
+<H3>
+Output sequence of a linear time-invariant open-loop system (variant)
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To compute the output sequence of a linear time-invariant
+  open-loop system given by its discrete-time state-space model
+  (A,B,C,D), where A is an N-by-N general matrix.
+
+  The initial state vector x(1) must be supplied by the user.
+
+  This routine differs from SLICOT Library routine TF01MD in the
+  way the input and output trajectories are stored.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE TF01MY( N, M, P, NY, A, LDA, B, LDB, C, LDC, D, LDD,
+     $                   U, LDU, X, Y, LDY, DWORK, LDWORK, INFO )
+C     .. Scalar Arguments ..
+      INTEGER           INFO, LDA, LDB, LDC, LDD, LDU, LDWORK, LDY, M,
+     $                  N, NY, P
+C     .. Array Arguments ..
+      DOUBLE PRECISION  A(LDA,*), B(LDB,*), C(LDC,*), D(LDD,*),
+     $                  DWORK(*), U(LDU,*), X(*), Y(LDY,*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The order of the matrix A.  N &gt;= 0.
+
+  M       (input) INTEGER
+          The number of system inputs.  M &gt;= 0.
+
+  P       (input) INTEGER
+          The number of system outputs.  P &gt;= 0.
+
+  NY      (input) INTEGER
+          The number of output vectors y(k) to be computed.
+          NY &gt;= 0.
+
+  A       (input) DOUBLE PRECISION array, dimension (LDA,N)
+          The leading N-by-N part of this array must contain the
+          state matrix A of the system.
+
+  LDA     INTEGER
+          The leading dimension of array A.  LDA &gt;= MAX(1,N).
+
+  B       (input) DOUBLE PRECISION array, dimension (LDB,M)
+          The leading N-by-M part of this array must contain the
+          input matrix B of the system.
+
+  LDB     INTEGER
+          The leading dimension of array B.  LDB &gt;= MAX(1,N).
+
+  C       (input) DOUBLE PRECISION array, dimension (LDC,N)
+          The leading P-by-N part of this array must contain the
+          output matrix C of the system.
+
+  LDC     INTEGER
+          The leading dimension of array C.  LDC &gt;= MAX(1,P).
+
+  D       (input) DOUBLE PRECISION array, dimension (LDD,M)
+          The leading P-by-M part of this array must contain the
+          direct link matrix D of the system.
+
+  LDD     INTEGER
+          The leading dimension of array D.  LDD &gt;= MAX(1,P).
+
+  U       (input) DOUBLE PRECISION array, dimension (LDU,M)
+          The leading NY-by-M part of this array must contain the
+          input vector sequence u(k), for k = 1,2,...,NY.
+          Specifically, the k-th row of U must contain u(k)'.
+
+  LDU     INTEGER
+          The leading dimension of array U.  LDU &gt;= MAX(1,NY).
+
+  X       (input/output) DOUBLE PRECISION array, dimension (N)
+          On entry, this array must contain the initial state vector
+          x(1) which consists of the N initial states of the system.
+          On exit, this array contains the final state vector
+          x(NY+1) of the N states of the system at instant NY+1.
+
+  Y       (output) DOUBLE PRECISION array, dimension (LDY,P)
+          The leading NY-by-P part of this array contains the output
+          vector sequence y(1),y(2),...,y(NY) such that the k-th
+          row of Y contains y(k)' (the outputs at instant k),
+          for k = 1,2,...,NY.
+
+  LDY     INTEGER
+          The leading dimension of array Y.  LDY &gt;= MAX(1,NY).
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+          On exit, if INFO = 0, DWORK(1) returns the optimal LDWORK.
+
+  LDWORK  INTEGER
+          The length of the array DWORK.  LDWORK &gt;= MAX(1,N).
+          For better performance, LDWORK should be larger.
+
+          If LDWORK = -1, then a workspace query is assumed;
+          the routine only calculates the optimal size of the
+          DWORK array, returns this value as the first entry of
+          the DWORK array, and no error message related to LDWORK
+          is issued by XERBLA.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  Given an initial state vector x(1), the output vector sequence
+  y(1), y(2),..., y(NY) is obtained via the formulae
+
+     x(k+1) = A x(k) + B u(k)
+     y(k)   = C x(k) + D u(k),
+
+  where each element y(k) is a vector of length P containing the
+  outputs at instant k and k = 1,2,...,NY.
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Luenberger, D.G.
+      Introduction to Dynamic Systems: Theory, Models and
+      Applications.
+      John Wiley & Sons, New York, 1979.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  The algorithm requires approximately (N + M) x (N + P) x NY
+  multiplications and additions.
+
+</PRE>
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  The implementation exploits data locality and uses BLAS 3
+  operations as much as possible, given the workspace length.
+
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

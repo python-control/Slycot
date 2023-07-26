@@ -1,0 +1,220 @@
+<HTML>
+<HEAD><TITLE>SB10UD - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="SB10UD">SB10UD</A></H2>
+<H3>
+Normalization of a system for H2 controller design
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To reduce the matrices D12 and D21 of the linear time-invariant
+  system
+
+                | A  | B1  B2  |   | A | B |
+            P = |----|---------| = |---|---|
+                | C1 |  0  D12 |   | C | D |
+                | C2 | D21 D22 |
+
+  to unit diagonal form, and to transform the matrices B and C to
+  satisfy the formulas in the computation of the H2 optimal
+  controller.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE SB10UD( N, M, NP, NCON, NMEAS, B, LDB, C, LDC, D, LDD,
+     $                   TU, LDTU, TY, LDTY, RCOND, TOL, DWORK, LDWORK,
+     $                   INFO )
+C     .. Scalar Arguments ..
+      INTEGER            INFO, LDB, LDC, LDD, LDTU, LDTY, LDWORK, M, N,
+     $                   NCON, NMEAS, NP
+      DOUBLE PRECISION   TOL
+C     .. Array Arguments ..
+      DOUBLE PRECISION   B( LDB, * ), C( LDC, * ), D( LDD, * ),
+     $                   DWORK( * ), RCOND( 2 ), TU( LDTU, * ),
+     $                   TY( LDTY, * )
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The order of the system.  N &gt;= 0.
+
+  M       (input) INTEGER
+          The column size of the matrix B.  M &gt;= 0.
+
+  NP      (input) INTEGER
+          The row size of the matrix C.  NP &gt;= 0.
+
+  NCON    (input) INTEGER
+          The number of control inputs (M2).  M &gt;= NCON &gt;= 0,
+          NP-NMEAS &gt;= NCON.
+
+  NMEAS   (input) INTEGER
+          The number of measurements (NP2).  NP &gt;= NMEAS &gt;= 0,
+          M-NCON &gt;= NMEAS.
+
+  B       (input/output) DOUBLE PRECISION array, dimension (LDB,M)
+          On entry, the leading N-by-M part of this array must
+          contain the system input matrix B.
+          On exit, the leading N-by-M part of this array contains
+          the transformed system input matrix B.
+
+  LDB     INTEGER
+          The leading dimension of the array B.  LDB &gt;= max(1,N).
+
+  C       (input/output) DOUBLE PRECISION array, dimension (LDC,N)
+          On entry, the leading NP-by-N part of this array must
+          contain the system output matrix C.
+          On exit, the leading NP-by-N part of this array contains
+          the transformed system output matrix C.
+
+  LDC     INTEGER
+          The leading dimension of the array C.  LDC &gt;= max(1,NP).
+
+  D       (input/output) DOUBLE PRECISION array, dimension (LDD,M)
+          On entry, the leading NP-by-M part of this array must
+          contain the system input/output matrix D.
+          The (NP-NMEAS)-by-(M-NCON) leading submatrix D11 is not
+          referenced.
+          On exit, the trailing NMEAS-by-NCON part (in the leading
+          NP-by-M part) of this array contains the transformed
+          submatrix D22.
+          The transformed submatrices D12 = [ 0  Im2 ]' and
+          D21 = [ 0  Inp2 ] are not stored. The corresponding part
+          of this array contains no useful information.
+
+  LDD     INTEGER
+          The leading dimension of the array D.  LDD &gt;= max(1,NP).
+
+  TU      (output) DOUBLE PRECISION array, dimension (LDTU,M2)
+          The leading M2-by-M2 part of this array contains the
+          control transformation matrix TU.
+
+  LDTU    INTEGER
+          The leading dimension of the array TU.  LDTU &gt;= max(1,M2).
+
+  TY      (output) DOUBLE PRECISION array, dimension (LDTY,NP2)
+          The leading NP2-by-NP2 part of this array contains the
+          measurement transformation matrix TY.
+
+  LDTY    INTEGER
+          The leading dimension of the array TY.
+          LDTY &gt;= max(1,NP2).
+
+  RCOND   (output) DOUBLE PRECISION array, dimension (2)
+          RCOND(1) contains the reciprocal condition number of the
+                   control transformation matrix TU;
+          RCOND(2) contains the reciprocal condition number of the
+                   measurement transformation matrix TY.
+          RCOND is set even if INFO = 1 or INFO = 2; if INFO = 1,
+          then RCOND(2) was not computed, but it is set to 0.
+
+</PRE>
+<B>Tolerances</B>
+<PRE>
+  TOL     DOUBLE PRECISION
+          Tolerance used for controlling the accuracy of the applied
+          transformations. Transformation matrices TU and TY whose
+          reciprocal condition numbers are less than TOL are not
+          allowed. If TOL &lt;= 0, then a default value equal to
+          sqrt(EPS) is used, where EPS is the relative machine
+          precision.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+          On exit, if INFO = 0, DWORK(1) contains the optimal
+          LDWORK.
+
+  LDWORK  INTEGER
+          The dimension of the array DWORK.
+          LDWORK &gt;= MAX( M2 + NP1*NP1 + MAX(NP1*N,3*M2+NP1,5*M2),
+                         NP2 + M1*M1  + MAX(M1*N,3*NP2+M1,5*NP2),
+                         N*M2, NP2*N, NP2*M2, 1 )
+          where M1 = M - M2 and NP1 = NP - NP2.
+          For good performance, LDWORK must generally be larger.
+          Denoting Q = MAX(M1,M2,NP1,NP2), an upper bound is
+          MAX(1,Q*(Q+MAX(N,5)+1)).
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value;
+          = 1:  if the matrix D12 had not full column rank in
+                respect to the tolerance TOL;
+          = 2:  if the matrix D21 had not full row rank in respect
+                to the tolerance TOL;
+          = 3:  if the singular value decomposition (SVD) algorithm
+                did not converge (when computing the SVD of D12 or
+                D21).
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  The routine performs the transformations described in [1], [2].
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Zhou, K., Doyle, J.C., and Glover, K.
+      Robust and Optimal Control.
+      Prentice-Hall, Upper Saddle River, NJ, 1996.
+
+  [2] Balas, G.J., Doyle, J.C., Glover, K., Packard, A., and
+      Smith, R.
+      mu-Analysis and Synthesis Toolbox.
+      The MathWorks Inc., Natick, Mass., 1995.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  The precision of the transformations can be controlled by the
+  condition numbers of the matrices TU and TY as given by the
+  values of RCOND(1) and RCOND(2), respectively. An error return
+  with INFO = 1 or INFO = 2 will be obtained if the condition
+  number of TU or TY, respectively, would exceed 1/TOL.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

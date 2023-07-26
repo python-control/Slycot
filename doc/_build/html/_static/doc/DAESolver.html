@@ -1,0 +1,1408 @@
+<!doctype html public "-//w3c//dtd html 4.0 transitional//en">
+<html>
+<head>
+   <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+   <meta name="GENERATOR" content="Mozilla/4.72 [en] (Windows NT 5.0; I) [Netscape]">
+   <title>DAESolver - SLICOT Library Routine Documentation</title>
+</head>
+<body>
+
+<h2>
+<a NAME="DAESolver"></a>DAESolver</h2>
+
+<h3>
+Solver for Algebraic Differential Equations (driver)</h3>
+<b><a href="#Specification">[Specification]</a><a href="#Arguments">[Arguments]</a><a href="#Method">[Method]</a><a href="#References">[References]</a><a href="#Comments">[Comments]</a><a href="#Example">[Example]</a></b>
+<p><b><font size=+1>Purpose</font></b>
+<pre>&nbsp; Interface for using a common entry point, DSblock compatible for
+&nbsp; defining Differential Algebraic Equations using several packages.</pre>
+
+<pre>&nbsp; The equations follow the form (CASE A):
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; F(dx(t)/dt, x(t), u(t), p, t) = 0
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; y(t) = g(dx(t)/dx, x(t), u(t), p, t)
+
+&nbsp; for the most general model which can only be solved by DASSL and
+&nbsp; DASSPK.
+
+&nbsp; A restricted case can be solved with RADAU5, LSODI, LSOIBT, if
+&nbsp; the system is expressed as (CASE B):
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; F(x(t), u(t), p, t)*dx(t)/dt = A(x(t), u(t), p, t)
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; y(t) = g(dx(t)/dx, x(t), u(t), p, t)
+
+&nbsp; And finally, the GELDA package is able to solve DAEs with the&nbsp;
+&nbsp; expression (CASE C):
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; F(u(t), p, t)*dx(t)/dt = A(u(t), p, t)*x(t) + E(u(t), p, t)
+
+&nbsp; The user must define the subroutines:
+&nbsp;&nbsp;&nbsp;&nbsp; DAEDF:&nbsp;&nbsp;&nbsp; F(dx(t)/dt, x(t), u(t), p, t)&nbsp; for CASES: A, B and C
+&nbsp;&nbsp;&nbsp;&nbsp; DAEDA:&nbsp;&nbsp;&nbsp; A(x(t), u(t), p, t)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; for CASES: B and C
+&nbsp;&nbsp;&nbsp;&nbsp; DAEDE:&nbsp;&nbsp;&nbsp; E(u(t), p, t)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; for CASES: C
+&nbsp;&nbsp;&nbsp;&nbsp; DAEOUT:&nbsp;&nbsp; g(dx(t)/dx, x(t), u(t), p, t)
+&nbsp; and the Jacobians (JACFX, JACFU, JACFP) if used. The interface&nbsp;
+&nbsp; adapts the structure to fit all the codes</pre>
+<a NAME="Specification"></a><b><font size=+1>Specification</font></b>
+<pre>&nbsp;&nbsp;&nbsp;&nbsp; SUBROUTINE DAESolver(ISOLVER,CDAEDF_,CDAEDA_,CDAEDE_,CDAEOUT_,
+&nbsp;&nbsp; $&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; CJACFX_,CJACFU_,CJACFP_,CJACFXDOT_,
+&nbsp;&nbsp; $&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; NX, NY, NU, NP, TINI, TOUT,
+&nbsp;&nbsp; $&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; X, XDOTI, Y, U, P,
+&nbsp;&nbsp; $&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; IPAR, RPAR, RTOL, ATOL,
+&nbsp;&nbsp; $&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; IWORK, LIWORK, DWORK, LDWORK,
+&nbsp;&nbsp; $&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; IWARN, INFO)&nbsp;
+&nbsp;&nbsp;&nbsp; .. Scalar Arguments ..
+&nbsp;&nbsp;&nbsp; DOUBLE PRECISION&nbsp;&nbsp;&nbsp; TINI, TOUT
+&nbsp;&nbsp;&nbsp; INTEGER&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ISOLVER, IWARN, INFO,
+&nbsp;&nbsp; $&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; NX, NY, NU, NP,
+&nbsp;&nbsp; $&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; LDWORK, LIWORK&nbsp;&nbsp;&nbsp;&nbsp;
+&nbsp;&nbsp;&nbsp; CHARACTER*9&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; CDAEDF_, CDAEDA_,CDAEDE_, CDAEOUT_,
+&nbsp;&nbsp; $&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; CJACFX_, CJACFU_, CJACFP_, CJACFXDOT_,
+&nbsp;&nbsp; $&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; CDAEDF, CDAEDA,CDAEDE, CDAEOUT,
+&nbsp;&nbsp; $&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; CJACFX, CJACFU, CJACFP, CJACFXDOT
+&nbsp;&nbsp;&nbsp; .. Array Arguments ..
+&nbsp;&nbsp;&nbsp; DOUBLE PRECISION&nbsp;&nbsp;&nbsp; DWORK(LDWORK), RPAR(*), ATOL(*), RTOL(*)
+&nbsp;&nbsp; $&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; X(NX), XDOTI(NX), Y(NY), U(NU), P(NP)
+&nbsp;&nbsp;&nbsp; INTEGER&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; IWORK(LIWORK), IPAR(*)</pre>
+<a NAME="Arguments"></a><b><font size=+1>Arguments</font></b>
+<p><b>Mode Parameters</b>
+<pre>&nbsp;&nbsp; ISOLVER INTEGER
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Indicates the nonlinear solver packages to be used
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; = 1: LSODI,
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; = 2: LSOIBT,
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; = 3: RADAU5,
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; = 4: DASSL,
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; = 5: DASPK,
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; = 6: DGELDA.</pre>
+<b>Input/Output Parameters</b>
+<br>&nbsp;
+<pre><tt>&nbsp;&nbsp;&nbsp;&nbsp; DAEDF&nbsp;&nbsp; (input) EXTERNAL
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Evaluates the F(dx(t)/dt, x(t), u(t), p, t).
+
+&nbsp;&nbsp;&nbsp;&nbsp; DAEDA&nbsp;&nbsp; (input) EXTERNAL
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Evaluates the A(x(t), u(t), p, t).
+
+&nbsp;&nbsp;&nbsp;&nbsp; DAEDE&nbsp;&nbsp; (input) EXTERNAL
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Evaluates the E(u(t), p, t).
+
+&nbsp;&nbsp;&nbsp;&nbsp; DAEOUT&nbsp; (input) EXTERNAL
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Evaluates the output signals function g.
+
+&nbsp;&nbsp;&nbsp;&nbsp; JACFX&nbsp;&nbsp; (input) EXTERNAL
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Evaluates the jacobian matrix with respect to X.
+
+&nbsp;&nbsp;&nbsp;&nbsp; JACFU&nbsp;&nbsp; (input) EXTERNAL
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Evaluates the jacobian matrix with respect to U.
+
+&nbsp;&nbsp;&nbsp;&nbsp; JACFP&nbsp;&nbsp; (input) EXTERNAL
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Evaluates the jacobian matrix with respect to P.
+
+&nbsp;&nbsp;&nbsp;&nbsp; NX&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; (input) INTEGER
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Dimension of the state vector.
+
+&nbsp;&nbsp;&nbsp;&nbsp; NY&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; (input) INTEGER
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Dimension of the output vector.
+
+&nbsp;&nbsp;&nbsp;&nbsp; NU&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; (input) INTEGER
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Dimension of the input vector.
+
+&nbsp;&nbsp;&nbsp;&nbsp; NP&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; (input) INTEGER
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Dimension of the parameter vector.
+
+&nbsp;&nbsp;&nbsp;&nbsp; TINI&nbsp;&nbsp;&nbsp; (input) DOUBLE PRECISION
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Initial value of time.
+
+&nbsp;&nbsp;&nbsp;&nbsp; TOUT&nbsp;&nbsp;&nbsp; (input) DOUBLE PRECISION
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Final value of time.
+&nbsp;&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp; X&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; (input/output) DOUBLE PRECISION array, dimension (NX)
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; On entry, array containing the initial state variables.
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; On exit, it has the last value of the state variables.
+&nbsp;&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp; XDOTI&nbsp;&nbsp; (input) DOUBLE PRECISION array, dimension (NX)
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Array containing dx(t)/dt at initial point.
+
+&nbsp;&nbsp;&nbsp;&nbsp; Y&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; (input/output) DOUBLE PRECISION array, dimension (NY)
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; On entry, array containing the initial values of Y.
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; On exit, it has the results of the system.
+
+&nbsp;&nbsp;&nbsp;&nbsp; U&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; (input) DOUBLE PRECISION array, dimension (NU)
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Array containing the input initial values.
+&nbsp;&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp; P&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; (input) DOUBLE PRECISION array, dimension (NP)
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Array containing the parameter variables.
+&nbsp;&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp; IPAR&nbsp;&nbsp;&nbsp; (input/output) INTEGER array, dimension (201)
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; INPUT:
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 1..15&nbsp;&nbsp; General
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 16..25&nbsp;&nbsp; ODEPACK
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 26..35&nbsp;&nbsp; RADAU5
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 36..50&nbsp;&nbsp; DASSL/PK
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 51..60&nbsp;&nbsp; GELDA
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 61..100&nbsp; Reserved
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; OUTPUT:
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 101..110&nbsp; General
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 111..125&nbsp; ODEPACK
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 126..135&nbsp; RADAU5
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 136..145&nbsp; DASSL/PK
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 146..155&nbsp; GELDA
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 156..200&nbsp; Reserved
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Any Mode:
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 201..&nbsp;&nbsp;&nbsp;&nbsp; User Available
+&nbsp;&nbsp;&nbsp;&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Common integer parameters for SOLVERS:
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; IPAR(1), Tolerance mode
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 0 : both rtol and atol are scalars
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 1 : rtol is a scalar and atol is a vector
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 2 : both rtol and atol are vectors
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; IPAR(2), Compute Output Values only at TOUT (and not
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; at the intermediate step). (1:Yes, 0:No)
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; IPAR(3), mfjac, Method flag for jacobian
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 0 : No jacobian used (non-stiff method).
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 1 : User supplied full jacobian (stiff).
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 2 : User supplied banded jacobian (stiff).
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 3 : User supplied sparse jacobian (stiff).
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 10 : internally generated full jacobian (stiff).
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 11 : internally generated banded jacobian (stiff).
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 12 : internally generated sparse jacobian (stiff).
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; IPAR(6), ml, lower half-bandwithds of the banded
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; jacobian, excluding tne main diagonal.
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; IPAR(7), mu, upper half-bandwithds of the banded
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; jacobian, excluding the main diagonal.
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; (Note: IPAR(6) and IPAR(7) are obligatories only if the
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; jacobian matrix is banded)
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; IPAR(101) = Number of steps taken for the problem.
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; IPAR(102) = Number of residual evaluations.
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; IPAR(103) = Number of jacobian evaluations.
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Common parameters for RADAU5, ODEPACK and DGELDA:
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; IPAR(9), mfmass, Method flag for mass-matrix
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 0 : No mass-matrix used (non-stiff method).
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 1 : User supplied full mass-matrix (stiff).
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 2 : User supplied banded mass-matrix (stiff).
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 10 : Identity mass-matrix is used (stiff).
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; IPAR(10), mlmass, lower half-bandwithds of the banded
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; mass matrix, excluding the main diagonal.
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; IPAR(11), mumass, upper half-bandwithds of the banded
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; mass matrix, excluding the main diagonal.
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; IPAR(12), Maximum number of steps allowed during one
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; call to the solver.
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Common parameters for ODEPACK, DASSL, DASPK and DGELDA:
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; IPAR(13), Maximum order to be allowed.
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; default values : 12 if meth = 1
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 5 if meth = 2
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; If exceds the default value, it will be reduced
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; to the default value.
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; In DASSL, DASPK and DGELDA : (1 .LE. MAXORD .LE. 5)
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; IPAR(111) = The method order last used(successfully).
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; IPAR(112) = The order to be attempted on the next step.
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Common parameters for ODEPACK package:
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; IPAR(16), Status Flag
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; IPAR(17), Optional inputs, must be 0
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; IPAR(18), Maximum number of messages printed,
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; default value is 10.
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; IPAR(113) = Index of the component of largest in the
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; weighted local error vector ( e(i)/ewt(i) ).
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; IPAR(114) = Length of rwork actually required.
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; IPAR(115) = Length of iwork actually required.
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; - LSOIBIT
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; IPAR(24), mb, block size.
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; (mb .GE. 1) and mb*IPAR(28) = NX
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; IPAR(25), nb, number of blocks in the main diagonal.
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; (nb .ge. 4) and nb*IPAR(27) = NX
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; - RADAU5
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; IPAR(26) Transforms the Jacobian matrix to Hessenberg
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; form.(Only if IPAR(9)=1 and IPAR(3)=1 or 10)
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; IPAR(27) Maximum number of Newton iterations in
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; each step.
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; IPAR(28) Starting values for Newton's method
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; .EQ. 0 -> is taken the extrapolated collocation
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; solution
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; .NE. 0 -> zero values are used.
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; IPAR(29) Dimension of the index 1 variables( >0 ).
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; IPAR(30) Dimension of the index 2 variables.
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; IPAR(31) Dimension of the index 3 variables.
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; IPAR(32) Switch for step size strategy
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 0,1 Mod. Predictive controller(Gustafsson)
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 2&nbsp;&nbsp; Classical step size control
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; IPAR(33) Value of M1 (default 0).
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; IPAR(34) Value of M2 (default(M2=M1).
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; IPAR(126), Number of accepted steps.
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; IPAR(127), Number of rejected steps.
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; IPAR(128), Number of LU-Decompositions of both
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; matrices
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; IPAR(129), Number of forward-backward substitutions,
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; of both systems.
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Common parameters for DASSL, DASPK and DGELDA solvers:
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; IPAR(36),&nbsp; this parameter enables the code to
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; initialize itself. Must set to 0 to indicate the
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; start of every new problem.
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 0: Yes. (On each new problem)
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 1: No. (Allows 500 new steps)
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; IPAR(38), Solver try to compute the initial T, X
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; and XPRIME:
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 0: The initial T, X and XPRIME are
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; consistent.
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 1: Given X_d calculate X_a and X'_d
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 2: Given X' calculate X.
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ( X_d differential variables in X
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; X_a algebrac variables in X )
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; IPAR(136), Total number of error test failures so far.
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Common parameters for DASSL and DASPK solvers:
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; IPAR(37),&nbsp; code solve the problem without invoking
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; any special non negativity constraints:
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 0: Yes
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 1: To have constraint checking only in the
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; initial condition calculation.
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 2: To enforze nonnegativity in X during the
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; integration.
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 3: To enforce both options 1 and 2.
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; IPAR(137), Total number of convergence test failures.
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; - DASPK
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; IPAR(39), DASPK use:
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 0: direct methods (dense or band)
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 1: Krylov method&nbsp; (iterative)
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 2: Krylov method + Jac (iterative)
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; IPAR(41), Proceed to the integration after the initial
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; condition calculation is done. Used when
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; IPAR(38) > 0:&nbsp;&nbsp;&nbsp; 0: Yes
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 1: No
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; IPAR(42), Errors are controled localy on all the
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; variables:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 0:Yes
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 1: No
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; IPAR(8), Extra printing
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 0, no printing
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 1, for minimal printing
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 2, for full printing
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; IPAR(44), maximum number of iterations in the SPIGMR
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; algorithm. (.LE. NX)
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; IPAR(45), number of vectors on which orthogonalization
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; is done in the SPIGMR algorithm. (.LE. IPAR(44))
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; IPAR(46), maximum number of restarts of the SPIGMR
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; algorithm per nonlinear iteration. (.GE. 0)
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; IPAR(47), maximum number of Newton iterations per
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Jacobian or preconditioner evaluation. (> 0)
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; IPAR(48), maximum number of Jacobian or preconditioner
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; evaluations. (> 0)
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; IPAR(49), maximum number of values of the artificial
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; stepsize parameter H to be tried if IPAR(38) = 1.
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; (> 0).
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; IPAR(50), flag to turn off the linesearch algorithm.
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 0 : ON
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 1 : OFF (default)
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; IPAR(138), number of convergence failures of the linear
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; iteration
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; IPAR(139), length of IWORK actually required.
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; IPAR(140), length of RWORK actually required.
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; IPAR(141), total number of nonlinear iterations.
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; IPAR(142), total number of linear (Krylov) iterations
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; IPAR(143), number of PSOL calls.
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; - DGELDA
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; IPAR(51), contains the strangeness index.
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; IPAR(52), number of differential components
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; IPAR(53), number of algebraic components
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; IPAR(54), number of undetermined components
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; IPAR(55), method used:
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; if 1 then uses the BDF solver
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 2 then uses the Runge-Kutta solver
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; IPAR(56), E(t) and A(t) are: 1&nbsp; time dependent
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 0&nbsp; constants
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; IPAR(57), Maximum index of the problem. ( .GE. 0 )
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; IPAR(58), Step size strategy:
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 0, Mod. predictive controlled of Gustafsson(safer)
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 1, classical step size control(faster)
+
+&nbsp;&nbsp;&nbsp;&nbsp; RPAR&nbsp;&nbsp;&nbsp; (input/output) DOUBLE PRECISION array, dimension (201)
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; INPUT:
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 1..15&nbsp;&nbsp; General
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 16..25&nbsp;&nbsp; ODEPACK
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 26..35&nbsp;&nbsp; RADAU5
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 36..50&nbsp;&nbsp; DASSL/PK
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 51..60&nbsp;&nbsp; GELDA
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 61..100&nbsp; Reserved
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; OUTPUT:
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 101..110&nbsp; General
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 111..125&nbsp; ODEPACK
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 126..135&nbsp; RADAU5
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 136..145&nbsp; DASSL/PK
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 146..155&nbsp; GELDA
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 156..200&nbsp; Reserved
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Any Mode:
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 201..&nbsp;&nbsp;&nbsp;&nbsp; User Available
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Common parameters for solvers:
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; RPAR(1), Initial step size guess.Obligatory in RADAU5.
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; RPAR(2), Maximum absolute step size allowed.
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Common parameters for ODEPACK, DASSL, DASPK and DGELDA:
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; RPAR(111), Step size in t last used (successfully).
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; RPAR(112), Step size to be attempted on the next step.
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; RPAR(113), Current value of the independent variable
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; which the solver has actually reached
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Common parameters for ODEPACK solver:
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; RPAR(16), Critical value of t which the solver is not
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; overshoot.
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; RPAR(17), Minimum absolute step size allowed.
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; RPAR(18), Tolerance scale factor, greater than 1.0.
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Parameters for RADAU5 solver:
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; RPAR(26), The rounding unit, default 1E-16.
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; RPAR(27), The safety factor in step size prediction,
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; default 0.9D0.
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; RPAR(28), Decides whether the jacobian should be
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; recomputed, default 0.001D0.
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Increase when jacobian evaluations are costly
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; For small systems should be smaller.
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; RPAR(29), Stopping criterion for Newton's method,
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; default MIN(0.03D0, RTOL(1)**0.5D0).
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; RPAR(30), RPAR(31): This saves, together with a
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; large RPAR(28), LU-decompositions and computing
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; time for large systems.
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Small systems: RPAR(30)=1.D0, RPAR(31)=1.2D0
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Large full systems: RPAR(30)=0.99D0, RPAR(31)=2.D0
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; might be good.
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; RPAR(32), RPAR(33), Parameters for step size
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; selection.Condition: RPAR(32)&lt;=HNEW/HOLD&lt;=RPAR(33)
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Parameters for DASSL, DASPK and DGELDA solvers:
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; RPAR(36), Stopping point (Tstop)
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; - DASPK
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; RPAR(37), convergence test constant in SPIGMR
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; algorithm. (0 .LT. RPAR(37) .LT. 1.0)
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; RPAR(38), minimum scaled step in linesearch algorithm.
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; The default is&nbsp; = (unit roundoff)**(2/3). (> 0)
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; RPAR(39), swing factor in the Newton iteration
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; convergence test. (default 0.1) (> 0)
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; - DASPK
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; RPAR(40), safety factor used in step size prediction.
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; RPAR(41) and RPAR(42) restric the relation between the
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; new and old stepsize in step size selection.
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 1/RPAR(41) .LE. Hnew/Hold .LE. 1/RPAR(42)
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; RPAR(43), RPAR(44) QUOT1 and QUOT2 repectively.
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; If QUOT1 &lt; Hnew/Hold &lt; QUOT2 and A and E are
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; constants, the work can be saved by setting
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Hnew=Hold and using the system matrix of the
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; previous step.</tt></pre>
+<b>Tolerances</b>
+<pre>&nbsp;&nbsp;&nbsp;&nbsp; RTOL&nbsp;&nbsp;&nbsp; DOUBLE PRECISION
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Relative Tolerance.
+
+&nbsp;&nbsp;&nbsp;&nbsp; ATOL&nbsp;&nbsp;&nbsp; DOUBLE PRECISION
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Absolute Tolerance.</pre>
+<b>Workspace</b>
+<pre>&nbsp;&nbsp;&nbsp;&nbsp; IWORK&nbsp;&nbsp; INTEGER array, dimension (LIWORK)
+
+&nbsp;&nbsp;&nbsp;&nbsp; LIWORK&nbsp; INTEGER
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Minimum size of DWORK, depending on solver:
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; - LSODI, LSOIBT, DASSL
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 20 + NX
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; - RADAU5
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 3*N+20
+
+&nbsp;&nbsp;&nbsp;&nbsp; DWORK&nbsp;&nbsp; DOUBLE PRECISION array, dimension (LDWORK)
+
+&nbsp;&nbsp;&nbsp;&nbsp; LDWORK&nbsp; INTEGER
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Size of DWORK, depending on solver:
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; - LSODI
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 22 +&nbsp; 9*NX + NX**2&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; , IPAR(3) = 1 or 10
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 22 + 10*NX + (2*ML + MU)*NX&nbsp;&nbsp;&nbsp; , IPAR(3) = 2 or 11
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; - LSOIBT
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 20 + nyh*(maxord + 1) + 3*NX + lenw&nbsp;&nbsp;&nbsp;&nbsp; where&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; nyh&nbsp;&nbsp;&nbsp; = Initial value of NX
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; maxord = Maximum order allowed(default or IPAR(13)
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; lenw&nbsp;&nbsp; = 3*mb*mb*nb + 2&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; - RADAU5
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; N*(LJAC+LMAS+3*LE+12)+20
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; where&nbsp; LJAC=N&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; if (full jacobian)
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; LJAC=MLJAC+MUJAC+1&nbsp;&nbsp; if (banded jacobian)
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; and&nbsp; LMAS=0&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; if (IPAR(9) = 10 or 11)
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; LMAS=N&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; if (IPAR(9) = 1)
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; LMAS=MLMAS+MUMAS+1&nbsp;&nbsp; if (IPAR(9) = 2)
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; and&nbsp; LE=N&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; if (IPAR(9) = 1 or 10)
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; LE=2*MLJAC+MUJAC+1&nbsp;&nbsp; if (IPAR(9) = 2 or 11)
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; - DASSL
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; >= 40 LRW .GE. 40+(MAXORD+4)*NEQ+NEQ**2, IPAR(3) = 1 or 10
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; >= 40+(MAXORD+4)*NEQ+(2*ML+MU+1)*NEQ,&nbsp;&nbsp;&nbsp; IPAR(3) = 2
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; >= 40+(MAXORD+4)*NEQ+(2*ML+MU+1)*NEQ
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; +2*(NEQ/(ML+MU+1)+1),&nbsp;&nbsp;&nbsp;&nbsp; IPAR(3) = 11</pre>
+<b>Warning Indicator</b>
+<pre>&nbsp;&nbsp;&nbsp;&nbsp; IWARN&nbsp;&nbsp; INTEGER
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; = 0:&nbsp; no warning;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; = 1:&nbsp; LSODI/LSOIBT/RADAU5 do not use the input vector as argument;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; = 2:&nbsp; LSODI/LSOIBT do not use the param vector as argument;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; = 3:&nbsp; RTOL and ATOL are used as scalars;</pre>
+<b>Error Indicator</b>
+<pre>&nbsp;&nbsp;&nbsp;&nbsp; INFO&nbsp;&nbsp;&nbsp; INTEGER
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; = 0:&nbsp; Successful exit;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt; 0:&nbsp; If INFO = -i, the i-th argument had an illegal
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; value;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; = 1:&nbsp; Wrong tolerance mode;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; = 2:&nbsp; Method (IPAR(9)) is not allowed for ODEPACK/RADAU5;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; = 3:&nbsp; Method (IPAR(3)) is not allowed for LSODE/RADAU5/DASSL;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; = 4:&nbsp; Option not allowed for IPAR(37);
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; = 5:&nbsp; Option not allowed for IPAR(38);
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; = 100+ERROR: RADAU5 returned -ERROR;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; = 200+ERROR: DASSL returned -ERROR;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; = 300+ERROR: DASPK returned -ERROR;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; = 400+ERROR: DGELDA returned -ERROR.</pre>
+<a NAME="Method"></a><b><font size=+1>Method</font></b>
+<pre><tt><font color="#000000">Since the package integrates 8 different solvers, it is possible to solve differential&nbsp;
+equations by means of Backward Differential Formulas, Runge-Kutta, using direct or&nbsp;
+iterative methods (including preconditioning) for the linear system associated, differential&nbsp;
+equations with time-varying coefficients or of order higher than one. The interface facilitates&nbsp;&nbsp;
+the user the work of changing the integrator and testing the results, thus leading a more robust&nbsp;
+and efficient integrated package.</font></tt></pre>
+<a NAME="References"></a><b><font size=+1>References</font></b>
+<pre>&nbsp; [1]&nbsp; A.C. Hindmarsh, Brief Description of ODEPACK: A Systematized Collection&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; of ODE Solvers, http://www.netlib.org/odepack/doc&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+&nbsp; [2]&nbsp; L.R. Petzold DASSL Library Documentation, http://www.netlib.org/ode/&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+&nbsp; [3]&nbsp; P.N. Brown, A.C. Hindmarsh, L.R. Petzold, DASPK Package 1995 Revision&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+
+&nbsp; [4]&nbsp; R.S. Maier, Using DASPK on the TMC CM5. Experiences with Two Programming&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Models, Minesota Supercomputer Center, Technical Report.&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+&nbsp; [5]&nbsp; E. Hairer, G. Wanner, Solving Ordinary Dirential Equations II. Sti&aacute;nd&nbsp;&nbsp;&nbsp;&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Dirential- Algebraic Problems., Springer Seried in Computational&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Mathermatics 14, Springer-Verlag 1991, Second Edition 1996.&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+
+&nbsp; [6]&nbsp; P. Kunkel, V. Mehrmann, W. Rath und J. Weickert, `GELDA: A Software&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Package for the Solution of General Linear Dirential Algebraic&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; equations', SIAM Journal Scienti^Lc Computing, Vol. 18, 1997, pp.&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 115 - 138.&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+&nbsp; [7]&nbsp; M. Otter, DSblock: A neutral description of dynamic systems.&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Version 3.3, http://www.netlib.org/odepack/doc&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+&nbsp; [8]&nbsp; M. Otter, H. Elmqvist, The DSblock model interface for exchanging model&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; components, Proceedings of EUROSIM 95, ed. F.Brenenecker, Vienna, Sep.&nbsp;&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 11-15, 1995&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+&nbsp; [9]&nbsp; M. Otter, The DSblock model interface, version 4.0, Incomplete Draft,&nbsp;&nbsp;&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; http://dv.op.dlr.de/~otter7dsblock/dsblock4.0a.html&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+&nbsp; [10] Ch. Lubich, U. Novak, U. Pohle, Ch. Engstler, MEXX - Numerical&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Software for the Integration of Constrained Mechanical Multibody&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Systems, http://www.netlib.org/odepack/doc&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+&nbsp; [11] Working Group on Software (WGS), SLICOT Implementation and Documentation
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Standards (version 1.0), WGS-Report 90-1, Eindhoven University of&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Technology, May 1990.&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+&nbsp; [12] P. Kunkel and V. Mehrmann, Canonical forms for linear differential-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; algebraic equations with variable coe&AElig;cients., J. Comput. Appl.&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Math., 56:225{259, 1994.&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+&nbsp; [13] Working Group on Software (WGS), SLICOT Implementation and Documentation
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Standards, WGS-Report 96-1, Eindhoven University of Technology, updated:
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Feb. 1998, ../../REPORTS/rep96-1.ps.Z.&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+&nbsp; [14] A. Varga, Standarization of Interface for Nonlinear Systems Software&nbsp;&nbsp;&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; in SLICOT, Deutsches Zentrum ur Luft un Raumfahrt, DLR. SLICOT-Working&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Note 1998-4, 1998, Available at&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ../../REPORTS/SLWN1998-4.ps.Z.&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+&nbsp; [15] D. Kirk, Optimal Control Theory: An Introduction, Prentice-Hall.&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Englewood Cli, NJ, 1970.&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+&nbsp; [16] F.L. Lewis and V.L. Syrmos, Optimal Control, Addison-Wesley.&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; New York, 1995.&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+&nbsp; [17] W.M.Lioen, J.J.B de Swart, Test Set for Initial Value Problem Solvers,
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Technical Report NM-R9615, CWI, Amsterdam, 1996.&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; http://www.cwi.nl/cwi/projects/IVPTestset/.&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+&nbsp; [18] V.Hernandez, I.Blanquer, E.Arias, and P.Ruiz,&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Definition and Implementation of a SLICOT Standard Interface and the&nbsp;&nbsp;&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; associated MATLAB Gateway for the Solution of Nonlinear Control Systems
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; by using ODE and DAE Packages}, Universidad Politecnica de Valencia,&nbsp;&nbsp;&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; DSIC. SLICOT Working Note 2000-3: July 2000. Available at&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ../../REPORTS/SLWN2000-3.ps.Z.&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+&nbsp; [19] J.J.B. de Swart, W.M. Lioen, W.A. van der Veen, SIDE, November 25,&nbsp;&nbsp;&nbsp;&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 1998. Available at http://www.cwi.nl/cwi/projects/PSIDE/.&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+&nbsp; [20] Kim, H.Young, F.L.Lewis, D.M.Dawson, Intelligent optimal control of&nbsp;&nbsp;&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; robotic manipulators using neural networks.&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+&nbsp; [21] J.C.Fernandez, E.Arias, V.Hernandez, L.Penalver, High Performance&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Algorithm for Tracking Trajectories of Robot Manipulators,&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Preprints of the Proceedings of the 6th IFAC International Workshop on
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Algorithms and Architectures for Real-Time Control (AARTC-2000),&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; pages 127-134.</pre>
+<a NAME="Numerical Aspects"></a><b><font size=+1>Numerical Aspects</font></b>
+<pre>&nbsp; The numerical aspects of the routine lie on the features of the&nbsp;
+&nbsp; different packages integrated. Several packages are more robust
+&nbsp; than others, and other packages simply cannot deal with problems&nbsp;
+&nbsp; that others do. For a detailed description of the numerical aspects&nbsp;
+&nbsp; of each method is recommended to check the references above.</pre>
+<a NAME="Comments"></a><b><font size=+1>Further Comments</font></b>
+<pre>&nbsp; Several packages (LSODES, LSOIBT) deal only with sparse matrices.&nbsp;&nbsp;
+&nbsp; The interface checks the suitability of the methods to the&nbsp;
+&nbsp; parameters and show a warning message if problems could arise.</pre>
+<a NAME="Example"></a><b><font size=+1>Example</font></b>
+<p><b>Program Text</b>
+<br>&nbsp;
+<p><tt>*&nbsp;&nbsp;&nbsp;&nbsp; DAESOLVER EXAMPLE PROGRAM TEXT FOR LSODIX
+PROBLEM</tt>
+<br><tt>*</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp; .. Parameters ..</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; INTEGER&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+NIN, NOUT</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; PARAMETER&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+( NIN = 5, NOUT = 6 )</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; INTEGER LSODI_, LSOIBT_, RADAU5_,
+DASSL_, DASPK_, GELDA_</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; PARAMETER (LSODI_&nbsp; = 1, LSOIBT_
+= 2)</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; PARAMETER (RADAU5_ = 3, DASSL_&nbsp;
+= 4, DASPK_&nbsp; = 5)</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; PARAMETER (GELDA_&nbsp; = 6)</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp; .. Executable Statements ..</tt>
+<br><tt>*</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; EXTERNAL IARGC_</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; INTEGER IARGC_</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; INTEGER NUMARGS</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; CHARACTER*80 NAME</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; CHARACTER*80 SOLVER</tt>
+<br><tt>*</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp; .. Executable Statements ..</tt>
+<br><tt>*</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; WRITE ( NOUT, FMT = 99999 )</tt>
+<br><tt>*</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; NUMARGS = IARGC_()</tt>
+<br><tt>*</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; CALL GETARG_(0, NAME)</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; IF (NUMARGS .NE. 1) THEN</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; WRITE (*,*) 'Syntax
+Error: ',NAME(1:8),' &lt;solver>'</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; WRITE (*,*) 'Solvers
+: LSODI, LSOIBT, RADAU5, DASSL, DASPK, GELD</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp; &amp;A'</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ELSE</tt>
+<br><tt>*</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; CALL GETARG_(1, SOLVER)</tt>
+<br><tt>*</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; WRITE (*,*) 'Problem:
+LSODIX&nbsp;&nbsp; Solver: ',SOLVER(1:7)</tt>
+<br><tt>*</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; IF (SOLVER(1:5) .EQ.
+'LSODI') THEN</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; CALL TEST(LSODI_)</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ELSEIF (SOLVER(1:6)
+.EQ. 'LSOIBT') THEN</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; CALL TEST(LSOIBT_)</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ELSEIF (SOLVER(1:6)
+.EQ. 'RADAU5') THEN</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; CALL TEST(RADAU5_)</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ELSEIF (SOLVER(1:5)
+.EQ. 'GELDA') THEN</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; CALL TEST(GELDA_)</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ELSEIF (SOLVER(1:5)
+.EQ. 'DASSL') THEN</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; CALL TEST(DASSL_)</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ELSEIF (SOLVER(1:5)
+.EQ. 'DASPK') THEN</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; CALL TEST(DASPK_)</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ELSE</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; WRITE (*,*)
+'Error: Solver: ', SOLVER,' unknown'</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ENDIF</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ENDIF</tt>
+<br><tt>*</tt>
+<br><tt>99999 FORMAT (' DAESOLVER EXAMPLE PROGRAM RESULTS FOR LSODIX PROBLEM'</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp; .&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+,/1X)</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; END</tt>
+<br>&nbsp;
+<br>&nbsp;
+<br>&nbsp;
+<p><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; SUBROUTINE TEST( ISOLVER )</tt>
+<br><tt>*</tt>
+<br><tt>*</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp; PURPOSE</tt>
+<br><tt>*</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp; Testing subroutine DAESolver</tt>
+<br><tt>*</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp; ARGUMENTS</tt>
+<br><tt>*</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp; Input/Output Parameters</tt>
+<br><tt>*</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp; ISOLVER&nbsp; (input) INTEGER</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Indicates the nonlinear solver package to be used:</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+= 1: LSODI,</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+= 2: LSOIBT,</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+= 3: RADAU5,</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+= 4: DASSL,</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+= 5: DASPK,</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+= 6: DGELDA.</tt>
+<br><tt>*</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp; METHOD</tt>
+<br><tt>*</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp; REFERENCES</tt>
+<br><tt>*</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp; CONTRIBUTORS</tt>
+<br><tt>*</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp; REVISIONS</tt>
+<br><tt>*</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp; -</tt>
+<br><tt>*</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp; KEYWORDS</tt>
+<br><tt>*</tt>
+<br><tt>*</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp; ******************************************************************</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp; .. Parameters ..</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; INTEGER LSODI_, LSOIBT_, RADAU5_,
+DASSL_, DASPK_, GELDA_</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; PARAMETER (LSODI_&nbsp; = 1, LSOIBT_
+= 2)</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; PARAMETER (RADAU5_ = 3, DASSL_&nbsp;
+= 4, DASPK_&nbsp; = 5)</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; PARAMETER (GELDA_&nbsp; = 6)</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; INTEGER&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+NIN, NOUT</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; PARAMETER&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+( NIN = 5, NOUT = 6 )</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; INTEGER&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+MD, ND, LPAR, LWORK</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; PARAMETER&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+( MD = 400, ND = 100, LPAR = 201,</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp; $&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+LWORK = 10000 )</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp; .. Common variables ..</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; COMMON /TESTING/ ISOLVER2</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; INTEGER ISOLVER2</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp; .. Scalar Arguments ..</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; INTEGER&nbsp; ISOLVER</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp; .. Local Scalars ..</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; INTEGER&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+NEQN, NDISC, MLJAC, MUJAC, MLMAS, MUMAS</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; INTEGER&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+IWARN, INFO</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; DOUBLE PRECISION ATOL, RTOL, NORM</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; LOGICAL&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+NUMJAC, NUMMAS, CONSIS</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp; .. Local Arrays ..</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; CHARACTER FULLNM*40, PROBLM*8, TYPE*3</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; CHARACTER*9 CDAEDF,CDAEDA,CDAEDE,CDAEOUT,</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp; $&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+CJACFX,CJACFU,CJACFP,CJACFXDOT</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; INTEGER&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+IND(MD), IPAR(LPAR), IWORK(LWORK)</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; DOUBLE PRECISION T(0:ND), RPAR(LPAR),
+DWORK(LWORK)</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; DOUBLE PRECISION X(MD), XPRIME(MD),
+Y(MD), U(MD), P(MD), SOLU(MD)</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp; .. External Functions ..</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; DOUBLE PRECISION DNRM2</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; EXTERNAL&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+DNRM2</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp; .. External Subroutines ..</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; EXTERNAL&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+PLSODIX, ILSODIX, SLSODIX</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; EXTERNAL&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+DAXPY</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp; .. Executable Statements ..</tt>
+<br><tt>*</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ISOLVER2 = ISOLVER</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; DO 20 I=1,NEQN</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Y(I)=0D0</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; U(I)=0D0</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; P(I)=0D0</tt>
+<br><tt>&nbsp;&nbsp; 20 CONTINUE</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; DO 40 I=1,LPAR</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; IPAR(I)=0</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; RPAR(I)=0D0</tt>
+<br><tt>&nbsp;&nbsp; 40 CONTINUE</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; DO 60 I=1,LWORK</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; IWORK(I)=0</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; DWORK(I)=0D0</tt>
+<br><tt>&nbsp;&nbsp; 60 CONTINUE</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp; Get the problem dependent parameters.</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; RTOL=1D-4</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ATOL=1D-6</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; IPAR(1)=0</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; IPAR(2)=1</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; IPAR(3)=1</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; IPAR(12)= 10000</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; IF (ISOLVER .EQ. LSODI_ .OR. ISOLVER
+.EQ. RADAU5_) THEN</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; IPAR(9)=1</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; IPAR(16)=1</tt>
+<br><tt>C&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; IPAR(17)=0</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; RPAR(1)=1D-3</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ELSE</tt>
+<br><tt>C&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; (ISOLVER
+.EQ. DASSL_ .OR. ISOLVER .EQ. DASPK_)</tt>
+<br><tt>C&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; IPAR(36)=0</tt>
+<br><tt>C&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; IPAR(37)=0</tt>
+<br><tt>C&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; IPAR(38)=0</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; IPAR(39)=1</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; END IF</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; CALL PLSODIX(FULLNM,PROBLM,TYPE,NEQN,NDISC,T,NUMJAC,MLJAC,</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp; $&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+MUJAC,NUMMAS,MLMAS,MUMAS,IND)</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; CALL ILSODIX(NEQN,T(0),X,XPRIME,CONSIS)</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; x(1) = 1.0d0</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; x(2) = 0.0d0</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; x(3) = 0.0d0</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; xprime(1) = -0.04D0</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; xprime(2) =&nbsp; 0.04D0</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; xprime(3) =&nbsp; 0.0D0</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; CALL SLSODIX(NEQN,T(1),SOLU)</tt>
+<p><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; IF ( TYPE.NE.'DAE' ) THEN</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; WRITE ( NOUT,
+FMT = 99998 )</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ELSE</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; WRITE ( NOUT,
+FMT = 99997 ) FULLNM, PROBLM, TYPE, ISOLVER</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; CDAEDF=''</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; CDAEDA=''</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; CDAEDE=''</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; CDAEOUT=''</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; CJACFX=''</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; CJACFU=''</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; CJACFP=''</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; CJACFXDOT=''</tt>
+<p><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; CALL DAESolver(
+ISOLVER, CDAEDF, CDAEDA, CDAEDE, CDAEOUT,</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp; $&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+CJACFX, CJACFU, CJACFP, CJACFXDOT,</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp; $&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+NEQN, NEQN, NEQN, NEQN, T(0), T(1),</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp; $&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+X, XPRIME, Y, U, P,</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp; $&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+IPAR, RPAR, RTOL, ATOL,</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp; $&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+IWORK, LWORK, DWORK, LWORK, IWARN, INFO )</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; IF ( INFO.NE.0
+) THEN</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+WRITE ( NOUT, FMT = 99996 ) INFO</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ELSE</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+IF ( IWARN.NE.0 ) THEN</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+WRITE ( NOUT, FMT = 99995 ) IWARN</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+ENDIF</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+IF ( NEQN .LE. 30 ) THEN</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+WRITE ( NOUT, FMT = 99994 )</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+DO 80 I=1,NEQN</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+WRITE ( NOUT, FMT = 99993 ) I, X(I), SOLU(I)</tt>
+<br><tt>&nbsp;&nbsp; 80&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+CONTINUE</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+END IF</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+NORM=DNRM2(NEQN,SOLU,1)</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+IF ( NORM.EQ.0D0 ) THEN</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+NORM=1D0</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+END IF</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+CALL DAXPY(NEQN,-1D0,X,1,SOLU,1)</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+NORM=DNRM2(NEQN,SOLU,1)/NORM</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+WRITE ( NOUT, FMT = 99992 ) NORM</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; END IF</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; END IF</tt>
+<br><tt>*</tt>
+<br><tt>99998 FORMAT (' ERROR: This test is only intended for DAE problems')</tt>
+<br><tt>99997 FORMAT (' ',A,' (',A,' , ',A,') with SOLVER ',I2)</tt>
+<br><tt>99996 FORMAT (' INFO on exit from DAESolver = ',I3)</tt>
+<br><tt>99995 FORMAT (' IWARN on exit from DAESolver = ',I3)</tt>
+<br><tt>99994 FORMAT (' Solution: (calculated) (reference)')</tt>
+<br><tt>99993 FORMAT (I,F,F)</tt>
+<br><tt>99992 FORMAT (' Relative error comparing with the reference solution:'</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp; $&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+,E,/1X)</tt>
+<br><tt>* *** Last line of TEST ***</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; END</tt>
+<br>&nbsp;
+<br>&nbsp;
+<br>&nbsp;
+<p><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; SUBROUTINE DAEDA_( RPAR, NRP, IPAR,
+NIP, X, NX, U, NU, P, NP,</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp; $&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+F, LDF, T, INFO )</tt>
+<br><tt>*</tt>
+<br><tt>*</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp; PURPOSE</tt>
+<br><tt>*</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp; Interface routine between DAESolver and
+the problem function FEVAL</tt>
+<br><tt>*</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp; ARGUMENTS</tt>
+<br><tt>*</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp; Input/Output Parameters</tt>
+<br><tt>*</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp; RPAR&nbsp;&nbsp;&nbsp;&nbsp; (input/output)
+DOUBLE PRECISION array, dimension (NRP)</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Array for communication between the driver and FEVAL.</tt>
+<br><tt>*</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp; NRP&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; (input)
+INTEGER</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Dimension of RPAR array.</tt>
+<br><tt>*</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp; IPAR&nbsp;&nbsp;&nbsp;&nbsp; (input/output)
+INTEGER array, dimension (NIP)</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Array for communication between the driver and FEVAL.</tt>
+<br><tt>*</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp; NIP&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; (input)
+INTEGER</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Dimension of IPAR array.</tt>
+<br><tt>*</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp; X&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+(input) DOUBLE PRECISION array, dimension (NX)</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Array containing the state variables.</tt>
+<br><tt>*</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp; NX&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+(input) INTEGER</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Dimension of the state vector.</tt>
+<br><tt>*</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp; U&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+(input) DOUBLE PRECISION array, dimension (NU)</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Array containing the input values.</tt>
+<br><tt>*</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp; NU&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+(input) INTEGER</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Dimension of the input vector.</tt>
+<br><tt>*</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp; P&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+(input) DOUBLE PRECISION array, dimension (NP)</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Array containing the parameter values.</tt>
+<br><tt>*</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp; NP&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+(input) INTEGER</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Dimension of the parameter vector.</tt>
+<br><tt>*</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp; F&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+(output) DOUBLE PRECISION array, dimension (LDF,NX)</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+The resulting function value f(T,X).</tt>
+<br><tt>*</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp; LDF&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; (input)
+INTEGER</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+The leading dimension of F.</tt>
+<br><tt>*</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp; T&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+(input) INTEGER</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+The time point where the function is evaluated.</tt>
+<br><tt>*</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp; Error Indicator</tt>
+<br><tt>*</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp; INFO&nbsp;&nbsp;&nbsp;&nbsp; INTEGER</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Returns values of error from FEVAL or 100 in case</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+a bad problem was choosen.</tt>
+<br><tt>*</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp; METHOD</tt>
+<br><tt>*</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp; REFERENCES</tt>
+<br><tt>*</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp; CONTRIBUTORS</tt>
+<br><tt>*</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp; REVISIONS</tt>
+<br><tt>*</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp; -</tt>
+<br><tt>*</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp; KEYWORDS</tt>
+<br><tt>*</tt>
+<br><tt>*</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp; ******************************************************************</tt>
+<br><tt>*</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp; .. Common variables ..</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; COMMON /TESTING/ ISOLVER</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; INTEGER LSODI_, LSOIBT_, RADAU5_,
+DASSL_, DASPK_, GELDA_</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; PARAMETER (LSODI_&nbsp; = 1, LSOIBT_
+= 2)</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; PARAMETER (RADAU5_ = 3, DASSL_&nbsp;
+= 4, DASPK_&nbsp; = 5)</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; PARAMETER (GELDA_&nbsp; = 6)</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp; .. Scalar Arguments ..</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; INTEGER&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+NRP, NIP, NX, NU, NP, LDF, INFO</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; DOUBLE PRECISION T</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp; .. Array Arguments ..</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; INTEGER&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+IPAR(NIP)</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; DOUBLE PRECISION RPAR(NRP), X(NX),
+U(NU), P(NP),</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp; $&nbsp; F(LDF,NX)</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp; .. External Subroutines ..</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; EXTERNAL&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+FLSODIX</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp; .. Executable Statements ..</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; CALL FLSODIX(NX,T,X,X,F,INFO,RPAR,IPAR)</tt>
+<br><tt>* *** Last line of DAEDA_ ***</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; END</tt>
+<br>&nbsp;
+<br>&nbsp;
+<br>&nbsp;
+<p><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; SUBROUTINE DAEDF_( RPAR, NRP, IPAR,
+NIP, X, XPRIME, NX,</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp; $&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+U, NU, P, NP, T, F, LDF, INFO )</tt>
+<br><tt>*</tt>
+<br><tt>*</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp; PURPOSE</tt>
+<br><tt>*</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp; Interface routine between DAESolver and
+the problem function MEVAL</tt>
+<br><tt>*</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp; ARGUMENTS</tt>
+<br><tt>*</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp; Input/Output Parameters</tt>
+<br><tt>*</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp; RPAR&nbsp;&nbsp;&nbsp;&nbsp; (input/output)
+DOUBLE PRECISION array, dimension (NRP)</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Array for communication between the driver and MEVAL.</tt>
+<br><tt>*</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp; NRP&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; (input)
+INTEGER</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Dimension of RPAR array.</tt>
+<br><tt>*</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp; IPAR&nbsp;&nbsp;&nbsp;&nbsp; (input/output)
+INTEGER array, dimension (NIP)</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Array for communication between the driver and MEVAL.</tt>
+<br><tt>*</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp; NIP&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; (input)
+INTEGER</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Dimension of IPAR array.</tt>
+<br><tt>*</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp; X&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+(input) DOUBLE PRECISION array, dimension (NX)</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Array containing the state variables.</tt>
+<br><tt>*</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp; XPRIME&nbsp;&nbsp; (input) DOUBLE PRECISION
+array, dimension (NX)</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Array containing the state variables derivative.</tt>
+<br><tt>*</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp; NX&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+(input) INTEGER</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Dimension of the state vector.</tt>
+<br><tt>*</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp; U&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+(input) DOUBLE PRECISION array, dimension (NU)</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Array containing the input values.</tt>
+<br><tt>*</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp; NU&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+(input) INTEGER</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Dimension of the input vector.</tt>
+<br><tt>*</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp; P&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+(input) DOUBLE PRECISION array, dimension (NP)</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Array containing the parameter values.</tt>
+<br><tt>*</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp; NP&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+(input) INTEGER</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Dimension of the parameter vector.</tt>
+<br><tt>*</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp; T&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+(input) INTEGER</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+The time point where the function is evaluated.</tt>
+<br><tt>*</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp; F&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+(output) DOUBLE PRECISION array, dimension (LDF,NX)</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+The resulting function value f(T,X).</tt>
+<br><tt>*</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp; LDF&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; (input)
+INTEGER</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+The leading dimension of F.</tt>
+<br><tt>*</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp; Error Indicator</tt>
+<br><tt>*</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp; INFO&nbsp;&nbsp;&nbsp;&nbsp; INTEGER</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Returns values of error from MEVAL or 100 in case</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+a bad problem was choosen.</tt>
+<br><tt>*</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp; METHOD</tt>
+<br><tt>*</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp; REFERENCES</tt>
+<br><tt>*</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp; CONTRIBUTORS</tt>
+<br><tt>*</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp; REVISIONS</tt>
+<br><tt>*</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp; -</tt>
+<br><tt>*</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp; KEYWORDS</tt>
+<br><tt>*</tt>
+<br><tt>*</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp; ******************************************************************</tt>
+<br><tt>*</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp; .. Common variables ..</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; COMMON /TESTING/ ISOLVER</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; INTEGER ISOLVER</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; INTEGER LSODI_, LSOIBT_, RADAU5_,
+DASSL_, DASPK_, GELDA_</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; PARAMETER (LSODI_&nbsp; = 1, LSOIBT_
+= 2)</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; PARAMETER (RADAU5_ = 3, DASSL_&nbsp;
+= 4, DASPK_&nbsp; = 5)</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; PARAMETER (GELDA_&nbsp; = 6)</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp; .. Scalar Arguments ..</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; INTEGER&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+NRP, NIP, NX, NU, NP, LDF, INFO</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; DOUBLE PRECISION T</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp; .. Array Arguments ..</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; INTEGER&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+IPAR(NIP)</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; DOUBLE PRECISION RPAR(NRP), X(NX),
+XPRIME(NX), U(NU), P(NP),</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp; $&nbsp; F(LDF,NX)</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp; .. Local Scalars ..</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; INTEGER&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+I</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp; .. External Subroutines ..</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; EXTERNAL&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+MLSODIX, RLSODIX</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp; .. Executable Statements ..</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; IF (ISOLVER .EQ. DASSL_ .OR. ISOLVER
+.EQ. DASPK_) THEN</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; CALL RLSODIX(LDF,NX,T,X,XPRIME,F,INFO,RPAR,IPAR)</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ELSE</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; CALL MLSODIX(LDF,NX,T,X,XPRIME,F,INFO,RPAR,IPAR)</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ENDIF</tt>
+<br><tt>* *** Last line of DAEDF_ ***</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; END</tt>
+<br>&nbsp;
+<br>&nbsp;
+<br>&nbsp;
+<p><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; SUBROUTINE&nbsp; JACFX_( NRP, NIP,
+RPAR, IPAR, NX, NU,</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp; $&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+NP, X, U, P, T, FX, LDFX,</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp; $&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+INFO )</tt>
+<br><tt>*</tt>
+<br><tt>*</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp; PURPOSE</tt>
+<br><tt>*</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp; Interface routine between DAESolver and
+the problem function JEVAL</tt>
+<br><tt>*</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp; ARGUMENTS</tt>
+<br><tt>*</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp; Input/Output Parameters</tt>
+<br><tt>*</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp; NRP&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; (input)
+INTEGER</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Dimension of RPAR array.</tt>
+<br><tt>*</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp; NIP&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; (input)
+INTEGER</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Dimension of IPAR array.</tt>
+<br><tt>*</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp; RPAR&nbsp;&nbsp;&nbsp;&nbsp; (input/output)
+DOUBLE PRECISION array</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Array for communication between the driver and JEVAL.</tt>
+<br><tt>*</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp; IPAR&nbsp;&nbsp;&nbsp;&nbsp; (input/output)
+INTEGER array</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Array for communication between the driver and JEVAL.</tt>
+<br><tt>*</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp; NX&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+(input) INTEGER</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Dimension of the state vector.</tt>
+<br><tt>*</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp; NU&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+(input) INTEGER</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Dimension of the input vector.</tt>
+<br><tt>*</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp; NP&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+(input) INTEGER</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Dimension of the parameter vector.</tt>
+<br><tt>*</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp; X&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+(input) DOUBLE PRECISION array, dimension (NX)</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Array containing the state variables.</tt>
+<br><tt>*</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp; U&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+(input) DOUBLE PRECISION array, dimension (NU)</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Array containing the input values.</tt>
+<br><tt>*</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp; P&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+(input) DOUBLE PRECISION array, dimension (NP)</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Array containing the parameter values.</tt>
+<br><tt>*</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp; T&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+(input) INTEGER</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+The time point where the derivative is evaluated.</tt>
+<br><tt>*</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp; FX&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+(output) DOUBLE PRECISION array, dimension (LDFX,NX)</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+The array with the resulting Jacobian matrix.</tt>
+<br><tt>*</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp; LDFX&nbsp;&nbsp;&nbsp;&nbsp; (input)
+INTEGER</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+The leading dimension of the array FX.</tt>
+<br><tt>*</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp; Error Indicator</tt>
+<br><tt>*</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp; INFO&nbsp;&nbsp;&nbsp;&nbsp; INTEGER</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Returns values of error from JEVAL or 100 in case</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+a bad problem was choosen.</tt>
+<br><tt>*</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp; METHOD</tt>
+<br><tt>*</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp; REFERENCES</tt>
+<br><tt>*</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp; CONTRIBUTORS</tt>
+<br><tt>*</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp; REVISIONS</tt>
+<br><tt>*</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp; -</tt>
+<br><tt>*</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp; KEYWORDS</tt>
+<br><tt>*</tt>
+<br><tt>*</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp; ******************************************************************</tt>
+<br><tt>*</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp; .. Common variables ..</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; COMMON /TESTING/ ISOLVER</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; INTEGER LSODI_, LSOIBT_, RADAU5_,
+DASSL_, DASPK_, GELDA_</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; PARAMETER (LSODI_&nbsp; = 1, LSOIBT_
+= 2)</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; PARAMETER (RADAU5_ = 3, DASSL_&nbsp;
+= 4, DASPK_&nbsp; = 5)</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; PARAMETER (GELDA_&nbsp; = 6)</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp; .. Scalar Arguments ..</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; INTEGER&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+NRP, NIP, NX, NU, NP, LDFX, INFO</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; DOUBLE PRECISION T</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp; .. Array Arguments ..</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; INTEGER&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+IPAR(NIP)</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; DOUBLE PRECISION X(NX), U(NU), P(NP),
+RPAR(NRP), FX(LDFX,NX)</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp; .. External Subroutines ..</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; EXTERNAL&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+JLSODIX</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp; .. Executable Statements ..</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; CALL JLSODIX(LDFX,NX,T,X,X,FX,INFO,RPAR,IPAR)</tt>
+<br><tt>* *** Last line of JACFX_ ***</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; END</tt>
+<br>&nbsp;
+<br>&nbsp;
+<p><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; SUBROUTINE JACFXDOT_( NRP, NIP, RPAR,
+IPAR,</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp; $&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+NX, NU, NP, XPRIME, U, P, T, J, LDJ, INFO )</tt>
+<br><tt>*</tt>
+<br><tt>*</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp; PURPOSE</tt>
+<br><tt>*</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp; MATJACFXDOT routine for TRANSAMP problem</tt>
+<br><tt>*</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp; ARGUMENTS</tt>
+<br><tt>*</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp; Input/Output Parameters</tt>
+<br><tt>*</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp; NRP&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; (input)
+INTEGER</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Dimension of RPAR array.</tt>
+<br><tt>*</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp; NIP&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; (input)
+INTEGER</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Dimension of IPAR array.</tt>
+<br><tt>*</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp; RPAR&nbsp;&nbsp;&nbsp;&nbsp; (input/output)
+DOUBLE PRECISION array</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Array for communication with the driver.</tt>
+<br><tt>*</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp; IPAR&nbsp;&nbsp;&nbsp;&nbsp; (input/output)
+INTEGER array</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Array for communication with the driver.</tt>
+<br><tt>*</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp; NX&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+(input) INTEGER</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Dimension of the state vector.</tt>
+<br><tt>*</tt>
+<br><tt>*</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp; NU&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+(input) INTEGER</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Dimension of the input vector.</tt>
+<br><tt>*</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp; NP&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+(input) INTEGER</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Dimension of the parameter vector.</tt>
+<br><tt>*</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp; XPRIME&nbsp;&nbsp; (input) DOUBLE PRECISION
+array, dimension (NX)</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Array containing the derivative of the state variables.</tt>
+<br><tt>*</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp; U&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+(input) DOUBLE PRECISION array, dimension (NU)</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Array containing the input values.</tt>
+<br><tt>*</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp; P&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+(input) DOUBLE PRECISION array, dimension (NP)</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Array containing the parameter values.</tt>
+<br><tt>*</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp; T&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+(input) INTEGER</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+The time point where the derivative is evaluated.</tt>
+<br><tt>*</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp; J&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+(output) DOUBLE PRECISION array, dimension (LDJ,NX)</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+The array with the resulting derivative matrix.</tt>
+<br><tt>*</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp; LDJ&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; (input)
+INTEGER</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+The leading dimension of the array J.</tt>
+<br><tt>*</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp; Error Indicator</tt>
+<br><tt>*</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp; INFO&nbsp;&nbsp;&nbsp;&nbsp; INTEGER</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Returns 1 in case a bad problem was choosen.</tt>
+<br><tt>*</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp; METHOD</tt>
+<br><tt>*</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp; REFERENCES</tt>
+<br><tt>*</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp; CONTRIBUTORS</tt>
+<br><tt>*</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp; REVISIONS</tt>
+<br><tt>*</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp; -</tt>
+<br><tt>*</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp; KEYWORDS</tt>
+<br><tt>*</tt>
+<br><tt>*</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp; ******************************************************************</tt>
+<br><tt>*</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp; .. Common variables ..</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; COMMON /TESTING/ ISOLVER</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; INTEGER LSODI_, LSOIBT_, RADAU5_,
+DASSL_, DASPK_, GELDA_</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; PARAMETER (LSODI_&nbsp; = 1, LSOIBT_
+= 2)</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; PARAMETER (RADAU5_ = 3, DASSL_&nbsp;
+= 4, DASPK_&nbsp; = 5)</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; PARAMETER (GELDA_&nbsp; = 6)</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp; .. Scalar Arguments ..</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; INTEGER&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+NRP, NIP, NX, NU, NP, LDJ, INFO</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; DOUBLE PRECISION T</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp; .. Array Arguments ..</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; INTEGER&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+IPAR(NIP)</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; DOUBLE PRECISION XPRIME(NX), U(NU),
+P(NP), RPAR(NRP), J(LDJ,NX)</tt>
+<br><tt>*&nbsp;&nbsp;&nbsp;&nbsp; .. Executable Statements ..</tt>
+<br><tt>*</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; CALL JDOTLSODIX(LDJ,NX,T,XPRIME,XPRIME,J,INFO,RPAR,IPAR)</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ENDIF</tt>
+<br><tt>* *** Last line of JACFXDOT_ ***</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; END</tt>
+<br><tt></tt>&nbsp;
+<p><b>Program Data</b>
+<pre>No data required</pre>
+<b>Program Results</b>
+<pre>&nbsp;DAESOLVER EXAMPLE PROGRAM RESULTS
+&nbsp;
+&nbsp;Problem: LSODIX&nbsp;&nbsp; Solver: LSODI&nbsp;&nbsp;
+&nbsp;lsodix&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; (lsodix&nbsp;&nbsp; , DAE) with SOLVER&nbsp; 1
+&nbsp;IWARN on exit from DAESolver =&nbsp;&nbsp; 2
+&nbsp;Solution: (calculated) (reference)
+&nbsp;6.462112224297606E-07
+&nbsp;1.255974374648338E-10
+&nbsp;6.117680951077711E-07
+&nbsp;Relative error comparing with the reference solution:&nbsp;&nbsp;&nbsp; .8898590685949503E-06</pre>
+
+<hr>
+<p><!--Click <b><a href="../../SLICOT/arc/DAESolver.tgz">here</a></b> to get a compressed (gzip)
+tar file containing the source code of the routine, the example program,
+data, documentation, and related files.-->
+<br><b><a href="..\libindex.html">Return to index</a></b>
+</body>
+</html>

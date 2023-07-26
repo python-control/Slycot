@@ -1,0 +1,163 @@
+<HTML>
+<HEAD><TITLE>SB10JD - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="SB10JD">SB10JD</A></H2>
+<H3>
+Converting a descriptor state-space system into regular state-space form
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To convert the descriptor state-space system
+
+  E*dx/dt = A*x + B*u
+        y = C*x + D*u
+
+  into regular state-space form
+
+   dx/dt = Ad*x + Bd*u
+       y = Cd*x + Dd*u .
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE SB10JD( N, M, NP, A, LDA, B, LDB, C, LDC, D, LDD, E,
+     $                   LDE, NSYS, DWORK, LDWORK, INFO )
+C     .. Scalar Arguments ..
+      INTEGER            INFO, LDA, LDB, LDC, LDD, LDE, LDWORK, M, N,
+     $                   NP, NSYS
+C     .. Array Arguments ..
+      DOUBLE PRECISION   A( LDA, * ), B( LDB, * ), C( LDC, * ),
+     $                   D( LDD, * ), DWORK( * ),  E( LDE, * )
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The order of the descriptor system.  N &gt;= 0.
+
+  M       (input) INTEGER
+          The column size of the matrix B.  M &gt;= 0.
+
+  NP      (input) INTEGER
+          The row size of the matrix C.  NP &gt;= 0.
+
+  A       (input/output) DOUBLE PRECISION array, dimension (LDA,N)
+          On entry, the leading N-by-N part of this array must
+          contain the state matrix A of the descriptor system.
+          On exit, the leading NSYS-by-NSYS part of this array
+          contains the state matrix Ad of the converted system.
+
+  LDA     INTEGER
+          The leading dimension of the array A.  LDA &gt;= max(1,N).
+
+  B       (input/output) DOUBLE PRECISION array, dimension (LDB,M)
+          On entry, the leading N-by-M part of this array must
+          contain the input matrix B of the descriptor system.
+          On exit, the leading NSYS-by-M part of this array
+          contains the input matrix Bd of the converted system.
+
+  LDB     INTEGER
+          The leading dimension of the array B.  LDB &gt;= max(1,N).
+
+  C       (input/output) DOUBLE PRECISION array, dimension (LDC,N)
+          On entry, the leading NP-by-N part of this array must
+          contain the output matrix C of the descriptor system.
+          On exit, the leading NP-by-NSYS part of this array
+          contains the output matrix Cd of the converted system.
+
+  LDC     INTEGER
+          The leading dimension of the array C.  LDC &gt;= max(1,NP).
+
+  D       (input/output) DOUBLE PRECISION array, dimension (LDD,M)
+          On entry, the leading NP-by-M part of this array must
+          contain the matrix D of the descriptor system.
+          On exit, the leading NP-by-M part of this array contains
+          the matrix Dd of the converted system.
+
+  LDD     INTEGER
+          The leading dimension of the array D.  LDD &gt;= max(1,NP).
+
+  E       (input/output) DOUBLE PRECISION array, dimension (LDE,N)
+          On entry, the leading N-by-N part of this array must
+          contain the matrix E of the descriptor system.
+          On exit, this array contains no useful information.
+
+  LDE     INTEGER
+          The leading dimension of the array E.  LDE &gt;= max(1,N).
+
+  NSYS    (output) INTEGER
+          The order of the converted state-space system.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+          On exit, if INFO = 0, DWORK(1) contains the optimal value
+          of LDWORK.
+
+  LDWORK  INTEGER
+          The dimension of the array DWORK.
+          LDWORK &gt;= max( 1, 2*N*N + 2*N + N*MAX( 5, N + M + NP ) ).
+          For good performance, LDWORK must generally be larger.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value;
+          = 1:  the iteration for computing singular value
+                decomposition did not converge.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  The routine performs the transformations described in [1].
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Chiang, R.Y. and Safonov, M.G.
+      Robust Control Toolbox User's Guide.
+      The MathWorks Inc., Natick, Mass., 1992.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

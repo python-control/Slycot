@@ -1,0 +1,148 @@
+<HTML>
+<HEAD><TITLE>NF01AY - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="NF01AY">NF01AY</A></H2>
+<H3>
+Computing the output of a set of neural networks
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To calculate the output of a set of neural networks with the
+  structure
+
+          - tanh(w1'*z+b1) -
+        /      :             \
+      z ---    :           --- sum(ws(i)*...)+ b(n+1)  --- y,
+        \      :             /
+          - tanh(wn'*z+bn) -
+
+  given the input z and the parameter vectors wi, ws, and b,
+  where z, w1, ..., wn are vectors of length NZ, ws is a vector
+  of length n, b(1), ..., b(n+1) are scalars, and n is called the
+  number of neurons in the hidden layer, or just number of neurons.
+  Such a network is used for each L output variables.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE NF01AY( NSMP, NZ, L, IPAR, LIPAR, WB, LWB, Z, LDZ,
+     $                   Y, LDY, DWORK, LDWORK, INFO )
+C     .. Scalar Arguments ..
+      INTEGER           INFO, L, LDWORK, LDY, LDZ, LIPAR, LWB, NSMP, NZ
+C     .. Array Arguments ..
+      DOUBLE PRECISION  DWORK(*), WB(*), Y(LDY,*), Z(LDZ,*)
+      INTEGER           IPAR(*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  NSMP    (input) INTEGER
+          The number of training samples.  NSMP &gt;= 0.
+
+  NZ      (input) INTEGER
+          The length of each input sample.  NZ &gt;= 0.
+
+  L       (input) INTEGER
+          The length of each output sample.  L &gt;= 0.
+
+  IPAR    (input) INTEGER array, dimension (LIPAR)
+          The integer parameters needed.
+          IPAR(1) must contain the number of neurons, n, per output
+          variable, denoted NN in the sequel.  NN &gt;= 0.
+
+  LIPAR   (input) INTEGER
+          The length of the vector IPAR.  LIPAR &gt;= 1.
+
+  WB      (input) DOUBLE PRECISION array, dimension (LWB)
+          The leading (NN*(NZ+2)+1)*L part of this array must
+          contain the weights and biases of the network. This vector
+          is partitioned into L vectors of length NN*(NZ+2)+1,
+          WB = [ wb(1), ..., wb(L) ]. Each wb(k), k = 1, ..., L,
+          corresponds to one output variable, and has the structure
+          wb(k) = [ w1(1), ..., w1(NZ), ..., wn(1), ..., wn(NZ),
+                    ws(1), ..., ws(n), b(1), ..., b(n+1) ],
+          where wi(j) are the weights of the hidden layer,
+          ws(i) are the weights of the linear output layer, and
+          b(i) are the biases, as in the scheme above.
+
+  LWB     (input) INTEGER
+          The length of the array WB.
+          LWB &gt;= ( NN*(NZ + 2) + 1 )*L.
+
+  Z       (input) DOUBLE PRECISION array, dimension (LDZ, NZ)
+          The leading NSMP-by-NZ part of this array must contain the
+          set of input samples,
+          Z = ( Z(1,1),...,Z(1,NZ); ...; Z(NSMP,1),...,Z(NSMP,NZ) ).
+
+  LDZ     INTEGER
+          The leading dimension of the array Z.  LDZ &gt;= MAX(1,NSMP).
+
+  Y       (output) DOUBLE PRECISION array, dimension (LDY, L)
+          The leading NSMP-by-L part of this array contains the set
+          of output samples,
+          Y = ( Y(1,1),...,Y(1,L); ...; Y(NSMP,1),...,Y(NSMP,L) ).
+
+  LDY     INTEGER
+          The leading dimension of the array Y.  LDY &gt;= MAX(1,NSMP).
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+
+  LDWORK  INTEGER
+          The length of the array DWORK.  LDWORK &gt;= 2*NN.
+          For better performance, LDWORK should be larger.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  BLAS routines are used to compute the matrix-vector products.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

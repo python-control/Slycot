@@ -1,0 +1,447 @@
+<HTML>
+<HEAD><TITLE>SB08ED - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="SB08ED">SB08ED</A></H2>
+<H3>
+Left coprime factorization with prescribed stability degree
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To construct, for a given system G = (A,B,C,D), an output
+  injection matrix H and an orthogonal transformation matrix Z, such
+  that the systems
+
+       Q = (Z'*(A+H*C)*Z, Z'*(B+H*D), C*Z, D)
+  and
+       R = (Z'*(A+H*C)*Z, Z'*H, C*Z, I)
+
+  provide a stable left coprime factorization of G in the form
+                -1
+           G = R  * Q,
+
+  where G, Q and R are the corresponding transfer-function matrices.
+  The resulting state dynamics matrix of the systems Q and R has
+  eigenvalues lying inside a given stability domain.
+  The Z matrix is not explicitly computed.
+
+  Note: If the given state-space representation is not detectable,
+  the undetectable part of the original system is automatically
+  deflated and the order of the systems Q and R is accordingly
+  reduced.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE SB08ED( DICO, N, M, P, ALPHA, A, LDA, B, LDB, C, LDC,
+     $                   D, LDD, NQ, NR, BR, LDBR, DR, LDDR, TOL, DWORK,
+     $                   LDWORK, IWARN, INFO )
+C     .. Scalar Arguments ..
+      CHARACTER         DICO
+      INTEGER           INFO, IWARN, LDA, LDB, LDBR, LDC, LDD, LDDR,
+     $                  LDWORK, M, N, NQ, NR, P
+      DOUBLE PRECISION  TOL
+C     .. Array Arguments ..
+      DOUBLE PRECISION  A(LDA,*), ALPHA(*), B(LDB,*), BR(LDBR,*),
+     $                  C(LDC,*), D(LDD,*), DR(LDDR,*), DWORK(*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  DICO    CHARACTER*1
+          Specifies the type of the original system as follows:
+          = 'C':  continuous-time system;
+          = 'D':  discrete-time system.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The dimension of the state vector, i.e. the order of the
+          matrix A, and also the number of rows of the matrices B
+          and BR, and the number of columns of the matrix C.
+          N &gt;= 0.
+
+  M       (input) INTEGER
+          The dimension of input vector, i.e. the number of columns
+          of the matrices B and D.  M &gt;= 0.
+
+  P       (input) INTEGER
+          The dimension of output vector, i.e. the number of rows
+          of the matrices C, D and DR, and the number of columns of
+          the matrices BR and DR.  P &gt;= 0.
+
+  ALPHA   (input) DOUBLE PRECISION array, dimension (2)
+          ALPHA(1) contains the desired stability degree to be
+          assigned for the eigenvalues of A+H*C, and ALPHA(2)
+          the stability margin. The eigenvalues outside the
+          ALPHA(2)-stability region will be assigned to have the
+          real parts equal to ALPHA(1) &lt; 0 and unmodified
+          imaginary parts for a continuous-time system
+          (DICO = 'C'), or moduli equal to 0 &lt;= ALPHA(2) &lt; 1
+          for a discrete-time system (DICO = 'D').
+
+  A       (input/output) DOUBLE PRECISION array, dimension (LDA,N)
+          On entry, the leading N-by-N part of this array must
+          contain the state dynamics matrix A.
+          On exit, the leading NQ-by-NQ part of this array contains
+          the leading NQ-by-NQ part of the matrix Z'*(A+H*C)*Z, the
+          state dynamics matrix of the numerator factor Q, in a
+          real Schur form. The leading NR-by-NR part of this matrix
+          represents the state dynamics matrix of a minimal
+          realization of the denominator factor R.
+
+  LDA     INTEGER
+          The leading dimension of array A.  LDA &gt;= MAX(1,N).
+
+  B       (input/output) DOUBLE PRECISION array, dimension
+          (LDB,MAX(M,P))
+          On entry, the leading N-by-M part of this array must
+          contain the input/state matrix of the system.
+          On exit, the leading NQ-by-M part of this array contains
+          the leading NQ-by-M part of the matrix Z'*(B+H*D), the
+          input/state matrix of the numerator factor Q.
+          The remaining part of this array is needed as workspace.
+
+  LDB     INTEGER
+          The leading dimension of array B.  LDB &gt;= MAX(1,N).
+
+  C       (input/output) DOUBLE PRECISION array, dimension (LDC,N)
+          On entry, the leading P-by-N part of this array must
+          contain the state/output matrix of the system.
+          On exit, the leading P-by-NQ part of this array contains
+          the leading P-by-NQ part of the matrix C*Z, the
+          state/output matrix of the numerator factor Q.
+          The first NR columns of this array represent the
+          state/output matrix of a minimal realization of the
+          denominator factor R.
+          The remaining part of this array is needed as workspace.
+
+  LDC     INTEGER
+          The leading dimension of array C.
+          LDC &gt;= MAX(1,M,P), if N &gt; 0.
+          LDC &gt;= 1,          if N = 0.
+
+  D       (input) DOUBLE PRECISION array, dimension (LDD,MAX(M,P))
+          The leading P-by-M part of this array must contain the
+          input/output matrix. D represents also the input/output
+          matrix of the numerator factor Q.
+          This array is modified internally, but restored on exit.
+          The remaining part of this array is needed as workspace.
+
+  LDD     INTEGER
+          The leading dimension of array D.  LDD &gt;= MAX(1,M,P).
+
+  NQ      (output) INTEGER
+          The order of the resulting factors Q and R.
+          Generally, NQ = N - NS, where NS is the number of
+          unobservable eigenvalues outside the stability region.
+
+  NR      (output) INTEGER
+          The order of the minimal realization of the factor R.
+          Generally, NR is the number of observable eigenvalues
+          of A outside the stability region (the number of modified
+          eigenvalues).
+
+  BR      (output) DOUBLE PRECISION array, dimension (LDBR,P)
+          The leading NQ-by-P part of this array contains the
+          leading NQ-by-P part of the output injection matrix
+          Z'*H, which moves the eigenvalues of A lying outside
+          the ALPHA-stable region to values on the ALPHA-stability
+          boundary. The first NR rows of this matrix form the
+          input/state matrix of a minimal realization of the
+          denominator factor R.
+
+  LDBR    INTEGER
+          The leading dimension of array BR.  LDBR &gt;= MAX(1,N).
+
+  DR      (output) DOUBLE PRECISION array, dimension (LDDR,P)
+          The leading P-by-P part of this array contains an
+          identity matrix representing the input/output matrix
+          of the denominator factor R.
+
+  LDDR    INTEGER
+          The leading dimension of array DR.  LDDR &gt;= MAX(1,P).
+
+</PRE>
+<B>Tolerances</B>
+<PRE>
+  TOL     DOUBLE PRECISION
+          The absolute tolerance level below which the elements of
+          C are considered zero (used for observability tests).
+          If the user sets TOL &lt;= 0, then an implicitly computed,
+          default tolerance, defined by  TOLDEF = N*EPS*NORM(C),
+          is used instead, where EPS is the machine precision
+          (see LAPACK Library routine DLAMCH) and NORM(C) denotes
+          the infinity-norm of C.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+          On exit, if INFO = 0, DWORK(1) returns the optimal value
+          of LDWORK.
+
+  LDWORK  INTEGER
+          The dimension of working array DWORK.
+          LDWORK &gt;= MAX( 1, N*P + MAX( N*(N+5), 5*P, 4*M ) ).
+          For optimum performance LDWORK should be larger.
+
+</PRE>
+<B>Warning Indicator</B>
+<PRE>
+  IWARN   INTEGER
+          = 0:  no warning;
+          = K:  K violations of the numerical stability condition
+                NORM(H) &lt;= 10*NORM(A)/NORM(C) occured during the
+                assignment of eigenvalues.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value;
+          = 1:  the reduction of A to a real Schur form failed;
+          = 2:  a failure was detected during the ordering of the
+                real Schur form of A, or in the iterative process
+                for reordering the eigenvalues of Z'*(A + H*C)*Z
+                along the diagonal.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  The subroutine uses the right coprime factorization algorithm
+  of [1] applied to G'.
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Varga A.
+      Coprime factors model reduction method based on
+      square-root balancing-free techniques.
+      System Analysis, Modelling and Simulation,
+      vol. 11, pp. 303-311, 1993.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>                                         3
+  The algorithm requires no more than 14N  floating point
+  operations.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+*     SB08ED EXAMPLE PROGRAM TEXT
+*
+*     .. Parameters ..
+      INTEGER          NIN, NOUT
+      PARAMETER        ( NIN = 5, NOUT = 6 )
+      INTEGER          NMAX, MMAX, PMAX
+      PARAMETER        ( NMAX = 20, MMAX = 20, PMAX = 20 )
+      INTEGER          MPMAX
+      PARAMETER        ( MPMAX = MAX( MMAX, PMAX ) )
+      INTEGER          LDA, LDB, LDBR, LDC, LDD, LDDR
+      PARAMETER        ( LDA = NMAX, LDB = NMAX, LDC = MPMAX,
+     $                   LDD = MPMAX, LDBR = NMAX, LDDR = PMAX )
+      INTEGER          LDWORK
+      PARAMETER        ( LDWORK = NMAX*PMAX + MAX( NMAX*( NMAX + 5 ),
+     $                                             5*PMAX, 4*MMAX ) )
+*     .. Local Scalars ..
+      DOUBLE PRECISION TOL
+      INTEGER          I, INFO, IWARN, J, M, N, NQ, NR, P
+      CHARACTER*1      DICO
+*     .. Local Arrays ..
+      DOUBLE PRECISION A(LDA,NMAX), ALPHA(2), B(LDB,MPMAX),
+     $                 BR(LDBR,PMAX), C(LDC,NMAX), D(LDD,MPMAX),
+     $                 DR(LDDR,PMAX), DWORK(LDWORK)
+*     .. External Subroutines ..
+      EXTERNAL         SB08ED
+*     .. Intrinsic Functions ..
+      INTRINSIC        MAX
+*     .. Executable Statements ..
+*
+      WRITE ( NOUT, FMT = 99999 )
+*     Skip the heading in the data file and read the data.
+      READ ( NIN, FMT = '()' )
+      READ ( NIN, FMT = * ) N, M, P, ALPHA(1), TOL, DICO
+      ALPHA(2) = ALPHA(1)
+      IF ( N.LT.0 .OR. N.GT.NMAX ) THEN
+         WRITE ( NOUT, FMT = 99990 ) N
+      ELSE
+         READ ( NIN, FMT = * ) ( ( A(I,J), J = 1, N ), I = 1, N )
+         IF ( M.LT.0 .OR. M.GT.MMAX ) THEN
+            WRITE ( NOUT, FMT = 99989 ) M
+         ELSE
+            READ ( NIN, FMT = * ) ( ( B(I,J), J = 1, M ), I = 1, N )
+            IF ( P.LT.0 .OR. P.GT.PMAX ) THEN
+               WRITE ( NOUT, FMT = 99988 ) P
+            ELSE
+               READ ( NIN, FMT = * ) ( ( C(I,J), J = 1, N ), I = 1, P )
+               READ ( NIN, FMT = * ) ( ( D(I,J), J = 1, M ), I = 1, P )
+*              Find a LCF for (A,B,C,D).
+               CALL SB08ED( DICO, N, M, P, ALPHA, A, LDA, B, LDB, C,
+     $                      LDC, D, LDD, NQ, NR, BR, LDBR, DR, LDDR,
+     $                      TOL, DWORK, LDWORK, IWARN, INFO )
+*
+               IF ( INFO.NE.0 ) THEN
+                  WRITE ( NOUT, FMT = 99998 ) INFO
+               ELSE
+                  IF( NQ.GT.0 ) WRITE ( NOUT, FMT = 99996 )
+                  DO 20 I = 1, NQ
+                     WRITE ( NOUT, FMT = 99995 ) ( A(I,J), J = 1, NQ )
+   20             CONTINUE
+                  IF( NQ.GT.0 ) WRITE ( NOUT, FMT = 99993 )
+                  DO 40 I = 1, NQ
+                     WRITE ( NOUT, FMT = 99995 ) ( B(I,J), J = 1, M )
+   40             CONTINUE
+                  IF( NQ.GT.0 ) WRITE ( NOUT, FMT = 99992 )
+                  DO 60 I = 1, P
+                     WRITE ( NOUT, FMT = 99995 ) ( C(I,J), J = 1, NQ )
+   60             CONTINUE
+                  WRITE ( NOUT, FMT = 99991 )
+                  DO 70 I = 1, P
+                     WRITE ( NOUT, FMT = 99995 ) ( D(I,J), J = 1, M )
+   70             CONTINUE
+                  IF( NR.GT.0 ) WRITE ( NOUT, FMT = 99986 )
+                  DO 80 I = 1, NR
+                     WRITE ( NOUT, FMT = 99995 )
+     $                     ( A(I,J), J = 1, NR )
+   80             CONTINUE
+                  IF( NR.GT.0 ) WRITE ( NOUT, FMT = 99985 )
+                  DO 90 I = 1, NR
+                     WRITE ( NOUT, FMT = 99995 ) ( BR(I,J), J = 1, P )
+   90             CONTINUE
+                  IF( NR.GT.0 ) WRITE ( NOUT, FMT = 99984 )
+                  DO 100 I = 1, P
+                     WRITE ( NOUT, FMT = 99995 )
+     $                     ( C(I,J), J = 1, NR )
+  100             CONTINUE
+                  WRITE ( NOUT, FMT = 99983 )
+                  DO 110 I = 1, P
+                     WRITE ( NOUT, FMT = 99995 ) ( DR(I,J), J = 1, P )
+  110             CONTINUE
+               END IF
+            END IF
+         END IF
+      END IF
+      STOP
+*
+99999 FORMAT (' SB08ED EXAMPLE PROGRAM RESULTS',/1X)
+99998 FORMAT (' INFO on exit from SB08ED = ',I2)
+99996 FORMAT (/' The numerator state dynamics matrix AQ is ')
+99995 FORMAT (20(1X,F8.4))
+99993 FORMAT (/' The numerator input/state matrix BQ is ')
+99992 FORMAT (/' The numerator state/output matrix CQ is ')
+99991 FORMAT (/' The numerator input/output matrix DQ is ')
+99990 FORMAT (/' N is out of range.',/' N = ',I5)
+99989 FORMAT (/' M is out of range.',/' M = ',I5)
+99988 FORMAT (/' P is out of range.',/' P = ',I5)
+99986 FORMAT (/' The denominator state dynamics matrix AR is ')
+99985 FORMAT (/' The denominator input/state matrix BR is ')
+99984 FORMAT (/' The denominator state/output matrix CR is ')
+99983 FORMAT (/' The denominator input/output matrix DR is ')
+      END
+</PRE>
+<B>Program Data</B>
+<PRE>
+ SB08ED EXAMPLE PROGRAM DATA (Continuous system)
+  7  2  3 -1.0   1.E-10 C
+ -0.04165  0.0000  4.9200   0.4920  0.0000   0.0000  0.0000
+ -5.2100  -12.500  0.0000   0.0000  0.0000   0.0000  0.0000
+  0.0000   3.3300 -3.3300   0.0000  0.0000   0.0000  0.0000
+  0.5450   0.0000  0.0000   0.0000  0.0545   0.0000  0.0000
+  0.0000   0.0000  0.0000  -0.49200 0.004165 0.0000  4.9200
+  0.0000   0.0000  0.0000   0.0000  0.5210  -12.500  0.0000
+  0.0000   0.0000  0.0000   0.0000  0.0000   3.3300 -3.3300
+  0.0000   0.0000
+  12.500   0.0000
+  0.0000   0.0000
+  0.0000   0.0000
+  0.0000   0.0000
+  0.0000   12.500
+  0.0000   0.0000
+  1.0000   0.0000  0.0000   0.0000  0.0000  0.0000  0.0000
+  0.0000   0.0000  0.0000   1.0000  0.0000  0.0000  0.0000
+  0.0000   0.0000  0.0000   0.0000  1.0000  0.0000  0.0000
+  0.0000   0.0000  
+  0.0000   0.0000  
+  0.0000   0.0000  
+</PRE>
+<B>Program Results</B>
+<PRE>
+ SB08ED EXAMPLE PROGRAM RESULTS
+
+
+ The numerator state dynamics matrix AQ is 
+  -1.0000   0.0526  -0.1408  -0.3060   0.4199   0.2408   1.7274
+  -0.4463  -1.0000   2.0067   4.3895   0.0062   0.1813   0.0895
+   0.0000   0.0000 -12.4245   3.5463  -0.0057   0.0254  -0.0053
+   0.0000   0.0000   0.0000  -3.5957  -0.0153  -0.0290  -0.0616
+   0.0000   0.0000   0.0000   0.0000 -13.1627  -1.9835  -3.6182
+   0.0000   0.0000   0.0000   0.0000   0.0000  -1.4178   5.6218
+   0.0000   0.0000   0.0000   0.0000   0.0000  -0.8374  -1.4178
+
+ The numerator input/state matrix BQ is 
+  -1.1544  -0.0159
+  -0.0631   0.5122
+   0.0056 -11.6989
+   0.0490   4.3728
+  11.7198  -0.0038
+  -2.8173   0.0308
+   3.1018  -0.0009
+
+ The numerator state/output matrix CQ is 
+   0.2238   0.0132  -0.0006  -0.0083   0.1279   0.8797   0.3994
+   0.9639   0.0643  -0.0007  -0.0041   0.0305  -0.2562   0.0122
+  -0.0660   0.9962   0.0248  -0.0506   0.0000   0.0022  -0.0017
+
+ The numerator input/output matrix DQ is 
+   0.0000   0.0000
+   0.0000   0.0000
+   0.0000   0.0000
+
+ The denominator state dynamics matrix AR is 
+  -1.0000   0.0526
+  -0.4463  -1.0000
+
+ The denominator input/state matrix BR is 
+  -0.2623  -1.1297   0.0764
+  -0.0155  -0.0752  -1.1676
+
+ The denominator state/output matrix CR is 
+   0.2238   0.0132
+   0.9639   0.0643
+  -0.0660   0.9962
+
+ The denominator input/output matrix DR is 
+   1.0000   0.0000   0.0000
+   0.0000   1.0000   0.0000
+   0.0000   0.0000   1.0000
+</PRE>
+
+<HR>
+<p>
+<A HREF=..\libindex.html><B>Return to index</B></A></BODY>
+</HTML>

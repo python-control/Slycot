@@ -1,0 +1,249 @@
+<HTML>
+<HEAD><TITLE>MB03UD - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MB03UD">MB03UD</A></H2>
+<H3>
+Computation of the singular value decomposition of a real upper triangular matrix
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To compute all, or part, of the singular value decomposition of a
+  real upper triangular matrix.
+
+  The N-by-N upper triangular matrix A is factored as  A = Q*S*P',
+  where Q and P are N-by-N orthogonal matrices and S is an
+  N-by-N diagonal matrix with non-negative diagonal elements,
+  SV(1), SV(2), ..., SV(N), ordered such that
+
+     SV(1) &gt;= SV(2) &gt;= ... &gt;= SV(N) &gt;= 0.
+
+  The columns of Q are the left singular vectors of A, the diagonal
+  elements of S are the singular values of A and the columns of P
+  are the right singular vectors of A.
+
+  Either or both of Q and P' may be requested.
+  When P' is computed, it is returned in A.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MB03UD( JOBQ, JOBP, N, A, LDA, Q, LDQ, SV, DWORK,
+     $                   LDWORK, INFO )
+C     .. Scalar Arguments ..
+      CHARACTER         JOBP, JOBQ
+      INTEGER           INFO, LDA, LDQ, LDWORK, N
+C     .. Array Arguments ..
+      DOUBLE PRECISION  A(LDA,*), DWORK(*), Q(LDQ,*), SV(*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  JOBQ    CHARACTER*1
+          Specifies whether the user wishes to compute the matrix Q
+          of left singular vectors as follows:
+          = 'V':  Left singular vectors are computed;
+          = 'N':  No left singular vectors are computed.
+
+  JOBP    CHARACTER*1
+          Specifies whether the user wishes to compute the matrix P'
+          of right singular vectors as follows:
+          = 'V':  Right singular vectors are computed;
+          = 'N':  No right singular vectors are computed.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The order of the matrix A.  N &gt;= 0.
+
+  A       (input/output) DOUBLE PRECISION array, dimension (LDA,N)
+          On entry, the leading N-by-N upper triangular part of this
+          array must contain the upper triangular matrix A.
+          On exit, if JOBP = 'V', the leading N-by-N part of this
+          array contains the N-by-N orthogonal matrix  P'; otherwise
+          the N-by-N upper triangular part of A is used as internal
+          workspace. The strictly lower triangular part of A is set
+          internally to zero before the reduction to bidiagonal form
+          is performed.
+
+  LDA     INTEGER
+          The leading dimension of array A.  LDA &gt;= MAX(1,N).
+
+  Q       (output) DOUBLE PRECISION array, dimension (LDQ,N)
+          If JOBQ = 'V', the leading N-by-N part of this array
+          contains the orthogonal matrix Q.
+          If JOBQ = 'N', Q is not referenced.
+
+  LDQ     INTEGER
+          The leading dimension of array Q.
+          LDQ &gt;= 1,  and when JOBQ = 'V',  LDQ &gt;= MAX(1,N).
+
+  SV      (output) DOUBLE PRECISION array, dimension (N)
+          The N singular values of the matrix A, sorted in
+          descending order.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+          On exit, if INFO = 0, DWORK(1) returns the optimal LDWORK;
+          if INFO &gt; 0, DWORK(2:N) contains the unconverged
+          superdiagonal elements of an upper bidiagonal matrix B
+          whose diagonal is in SV (not necessarily sorted).
+          B satisfies A = Q*B*P', so it has the same singular
+          values as A, and singular vectors related by Q and P'.
+
+  LDWORK  INTEGER
+          The length of the array DWORK.
+          LDWORK &gt;= MAX(1,5*N).
+          For optimum performance LDWORK should be larger.
+
+          If LDWORK = -1, then a workspace query is assumed;
+          the routine only calculates the optimal size of the
+          DWORK array, returns this value as the first entry of
+          the DWORK array, and no error message related to LDWORK
+          is issued by XERBLA.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value;
+          &gt; 0:  the QR algorithm has failed to converge. In this
+                case INFO specifies how many superdiagonals did not
+                converge (see the description of DWORK).
+                This failure is not likely to occur.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  The routine reduces A to bidiagonal form by means of elementary
+  reflectors and then uses the QR algorithm on the bidiagonal form.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+*     MB03UD EXAMPLE PROGRAM TEXT
+*
+*     .. Parameters ..
+      INTEGER          NIN, NOUT
+      PARAMETER        ( NIN = 5, NOUT = 6 )
+      INTEGER          NMAX
+      PARAMETER        ( NMAX = 10 )
+      INTEGER          LDA, LDQ
+      PARAMETER        ( LDA = NMAX, LDQ = NMAX )
+      INTEGER          LDWORK
+      PARAMETER        ( LDWORK = MAX( 1, 5*NMAX ) )
+*     .. Local Scalars ..
+      CHARACTER*1      JOBQ, JOBP
+      INTEGER          I, INFO, J, N
+*     .. Local Arrays ..
+      DOUBLE PRECISION A(LDA,NMAX), DWORK(LDWORK), Q(LDQ,NMAX),
+     $                 SV(NMAX)
+*     .. External Functions ..
+      LOGICAL          LSAME
+*     .. External Subroutines ..
+      EXTERNAL         MB03UD
+*     .. Intrinsic Functions ..
+      INTRINSIC        MAX
+*     .. Executable Statements ..
+*
+      WRITE ( NOUT, FMT = 99999 )
+*     Skip the heading in the data file and read the data.
+      READ ( NIN, FMT = '()' )
+      READ ( NIN, FMT = * ) N, JOBQ, JOBP
+      IF ( N.LT.0 .OR. N.GT.NMAX ) THEN
+         WRITE ( NOUT, FMT = 99993 ) N
+      ELSE
+         READ ( NIN, FMT = * ) ( ( A(I,J), J = 1,N ), I = 1,N )
+*        Compute the singular values and vectors.
+         CALL MB03UD( JOBQ, JOBP, N, A, LDA, Q, LDQ, SV, DWORK,
+     $                LDWORK, INFO )
+         IF ( INFO.NE.0 ) THEN
+            WRITE ( NOUT, FMT = 99998 ) INFO
+         ELSE
+            WRITE ( NOUT, FMT = 99997 )
+            WRITE ( NOUT, FMT = 99995 ) ( SV(I), I = 1,N )
+            IF ( LSAME( JOBP, 'V' ) ) THEN
+               WRITE ( NOUT, FMT = 99996 )
+               DO 10 I = 1, N
+                  WRITE ( NOUT, FMT = 99995 ) ( A(I,J), J = 1,N )
+   10          CONTINUE
+            END IF
+            IF ( LSAME( JOBQ, 'V' ) ) THEN
+               WRITE ( NOUT, FMT = 99994 )
+               DO 20 I = 1, N
+                  WRITE ( NOUT, FMT = 99995 ) ( Q(I,J), J = 1,N )
+   20          CONTINUE
+            END IF
+         END IF
+      END IF
+*
+      STOP
+*
+99999 FORMAT (' MB03UD EXAMPLE PROGRAM RESULTS',/1X)
+99998 FORMAT (' INFO on exit from MB03UD = ',I2)
+99997 FORMAT (' Singular values are ',I5)
+99996 FORMAT (/' The transpose of the right singular vectors matrix is '
+     $       )
+99995 FORMAT (8X,20(1X,F8.4))
+99994 FORMAT (/' The left singular vectors matrix is ')
+99993 FORMAT (/' N is out of range.',/' N = ',I5)
+      END
+</PRE>
+<B>Program Data</B>
+<PRE>
+ MB03UD EXAMPLE PROGRAM DATA
+   4     V      V
+  -1.0  37.0 -12.0 -12.0
+   0.0 -10.0   0.0   4.0
+   0.0   0.0   7.0  -6.0
+   0.0   0.0   0.0  -9.0
+</PRE>
+<B>Program Results</B>
+<PRE>
+ MB03UD EXAMPLE PROGRAM RESULTS
+
+ Singular values are 
+          42.0909  11.7764   5.4420   0.2336
+
+ The transpose of the right singular vectors matrix is 
+           0.0230  -0.9084   0.2759   0.3132
+           0.0075  -0.1272   0.5312  -0.8376
+           0.0092   0.3978   0.8009   0.4476
+           0.9997   0.0182  -0.0177  -0.0050
+
+ The left singular vectors matrix is 
+          -0.9671  -0.0882  -0.0501  -0.2335
+           0.2456  -0.1765  -0.4020  -0.8643
+           0.0012   0.7425   0.5367  -0.4008
+          -0.0670   0.6401  -0.7402   0.1945
+</PRE>
+
+<HR>
+<p>
+<A HREF=..\libindex.html><B>Return to index</B></A></BODY>
+</HTML>

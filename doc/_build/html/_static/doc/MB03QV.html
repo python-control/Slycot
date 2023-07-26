@@ -1,0 +1,100 @@
+<HTML>
+<HEAD><TITLE>MB03QV - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MB03QV">MB03QV</A></H2>
+<H3>
+Compute eigenvalues of an upper quasi-triangular matrix pencil
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To compute the eigenvalues of an upper quasi-triangular matrix
+  pencil.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MB03QV( N, S, LDS, T, LDT, ALPHAR, ALPHAI, BETA, INFO )
+C     .. Scalar Arguments ..
+      INTEGER          INFO, LDS, LDT, N
+C     .. Array Arguments ..
+      DOUBLE PRECISION ALPHAI(*), ALPHAR(*), BETA(*), S(LDS,*), T(LDT,*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The order of the matrices S and T.  N &gt;= 0.
+
+  S       (input) DOUBLE PRECISION array, dimension(LDS,N)
+          The upper quasi-triangular matrix S.
+
+  LDS     INTEGER
+          The leading dimension of the array S.  LDS &gt;= max(1,N).
+
+  T       (input) DOUBLE PRECISION array, dimension(LDT,N)
+          The upper triangular matrix T.
+
+  LDT     INTEGER
+          The leading dimension of the array T.  LDT &gt;= max(1,N).
+
+  ALPHAR  (output) DOUBLE PRECISION array, dimension (N)
+  ALPHAI  (output) DOUBLE PRECISION array, dimension (N)
+  BETA    (output) DOUBLE PRECISION array, dimension (N)
+          On exit, (ALPHAR(j) + ALPHAI(j)*i)/BETA(j), j=1,...,N,
+          are the generalized eigenvalues.
+          ALPHAR(j) + ALPHAI(j)*i, and  BETA(j),j=1,...,N, are the
+          diagonals of the complex Schur form (S,T) that would
+          result if the 2-by-2 diagonal blocks of the real Schur
+          form of (A,B) were further reduced to triangular form
+          using 2-by-2 complex unitary transformations.
+          If ALPHAI(j) is zero, then the j-th eigenvalue is real; if
+          positive, then the j-th and (j+1)-st eigenvalues are a
+          complex conjugate pair, with ALPHAI(j+1) negative.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

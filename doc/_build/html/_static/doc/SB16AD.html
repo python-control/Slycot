@@ -1,0 +1,650 @@
+<HTML>
+<HEAD><TITLE>SB16AD - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="SB16AD">SB16AD</A></H2>
+<H3>
+Stability/performance enforcing frequency-weighted controller reduction
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To compute a reduced order controller (Acr,Bcr,Ccr,Dcr) for an
+  original state-space controller representation (Ac,Bc,Cc,Dc) by
+  using the frequency-weighted square-root or balancing-free
+  square-root Balance & Truncate (B&T) or Singular Perturbation
+  Approximation (SPA) model reduction methods. The algorithm tries
+  to minimize the norm of the frequency-weighted error
+
+        ||V*(K-Kr)*W||
+
+  where K and Kr are the transfer-function matrices of the original
+  and reduced order controllers, respectively. V and W are special
+  frequency-weighting transfer-function matrices constructed
+  to enforce closed-loop stability and/or closed-loop performance.
+  If G is the transfer-function matrix of the open-loop system, then
+  the following weightings V and W can be used:
+                   -1
+   (a)   V = (I-G*K) *G, W = I - to enforce closed-loop stability;
+                           -1
+   (b)   V = I,  W = (I-G*K) *G - to enforce closed-loop stability;
+                   -1              -1
+   (c)   V = (I-G*K) *G, W = (I-G*K)  - to enforce closed-loop
+         stability and performance.
+
+  G has the state space representation (A,B,C,D).
+  If K is unstable, only the ALPHA-stable part of K is reduced.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE SB16AD( DICO, JOBC, JOBO, JOBMR, WEIGHT, EQUIL, ORDSEL,
+     $                   N, M, P, NC, NCR, ALPHA, A, LDA, B, LDB,
+     $                   C, LDC, D, LDD, AC, LDAC, BC, LDBC, CC, LDCC,
+     $                   DC, LDDC, NCS, HSVC, TOL1, TOL2, IWORK, DWORK,
+     $                   LDWORK, IWARN, INFO )
+C     .. Scalar Arguments ..
+      CHARACTER         DICO, EQUIL, JOBC, JOBO, JOBMR, ORDSEL, WEIGHT
+      INTEGER           INFO, IWARN, LDA, LDAC, LDB, LDBC, LDC, LDCC,
+     $                  LDD, LDDC, LDWORK, M, N, NC, NCR, NCS, P
+      DOUBLE PRECISION  ALPHA, TOL1, TOL2
+C     .. Array Arguments ..
+      INTEGER           IWORK(*)
+      DOUBLE PRECISION  A(LDA,*), AC(LDAC,*), B(LDB,*), BC(LDBC,*),
+     $                  C(LDC,*), CC(LDCC,*), D(LDD,*), DC(LDDC,*),
+     $                  DWORK(*), HSVC(*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  DICO    CHARACTER*1
+          Specifies the type of the original controller as follows:
+          = 'C':  continuous-time controller;
+          = 'D':  discrete-time controller.
+
+  JOBC    CHARACTER*1
+          Specifies the choice of frequency-weighted controllability
+          Grammian as follows:
+          = 'S': choice corresponding to standard Enns' method [1];
+          = 'E': choice corresponding to the stability enhanced
+                 modified Enns' method of [2].
+
+  JOBO    CHARACTER*1
+          Specifies the choice of frequency-weighted observability
+          Grammian as follows:
+          = 'S': choice corresponding to standard Enns' method [1];
+          = 'E': choice corresponding to the stability enhanced
+                 modified combination method of [2].
+
+  JOBMR   CHARACTER*1
+          Specifies the model reduction approach to be used
+          as follows:
+          = 'B':  use the square-root B&T method;
+          = 'F':  use the balancing-free square-root B&T method;
+          = 'S':  use the square-root SPA method;
+          = 'P':  use the balancing-free square-root SPA method.
+
+  WEIGHT  CHARACTER*1
+          Specifies the type of frequency-weighting, as follows:
+          = 'N':  no weightings are used (V = I, W = I);
+          = 'O':  stability enforcing left (output) weighting
+                            -1
+                  V = (I-G*K) *G is used (W = I);
+          = 'I':  stability enforcing right (input) weighting
+                            -1
+                  W = (I-G*K) *G is used (V = I);
+          = 'P':  stability and performance enforcing weightings
+                            -1                -1
+                  V = (I-G*K) *G ,  W = (I-G*K)  are used.
+
+  EQUIL   CHARACTER*1
+          Specifies whether the user wishes to preliminarily
+          equilibrate the triplets (A,B,C) and (Ac,Bc,Cc) as
+          follows:
+          = 'S':  perform equilibration (scaling);
+          = 'N':  do not perform equilibration.
+
+  ORDSEL  CHARACTER*1
+          Specifies the order selection method as follows:
+          = 'F':  the resulting order NCR is fixed;
+          = 'A':  the resulting order NCR is automatically
+                  determined on basis of the given tolerance TOL1.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The order of the open-loop system state-space
+          representation, i.e., the order of the matrix A.  N &gt;= 0.
+
+  M       (input) INTEGER
+          The number of system inputs.  M &gt;= 0.
+
+  P       (input) INTEGER
+          The number of system outputs.  P &gt;= 0.
+
+  NC      (input) INTEGER
+          The order of the controller state-space representation,
+          i.e., the order of the matrix AC.  NC &gt;= 0.
+
+  NCR     (input/output) INTEGER
+          On entry with ORDSEL = 'F', NCR is the desired order of
+          the resulting reduced order controller.  0 &lt;= NCR &lt;= NC.
+          On exit, if INFO = 0, NCR is the order of the resulting
+          reduced order controller. For a controller with NCU
+          ALPHA-unstable eigenvalues and NCS ALPHA-stable
+          eigenvalues (NCU+NCS = NC), NCR is set as follows:
+          if ORDSEL = 'F', NCR is equal to
+          NCU+MIN(MAX(0,NCR-NCU),NCMIN), where NCR is the desired
+          order on entry, NCMIN is the number of frequency-weighted
+          Hankel singular values greater than NCS*EPS*S1, EPS is the
+          machine precision (see LAPACK Library Routine DLAMCH) and
+          S1 is the largest Hankel singular value (computed in
+          HSVC(1)); NCR can be further reduced to ensure
+          HSVC(NCR-NCU) &gt; HSVC(NCR+1-NCU);
+          if ORDSEL = 'A', NCR is the sum of NCU and the number of
+          Hankel singular values greater than MAX(TOL1,NCS*EPS*S1).
+
+  ALPHA   (input) DOUBLE PRECISION
+          Specifies the ALPHA-stability boundary for the eigenvalues
+          of the state dynamics matrix AC. For a continuous-time
+          controller (DICO = 'C'), ALPHA &lt;= 0 is the boundary value
+          for the real parts of eigenvalues; for a discrete-time
+          controller (DICO = 'D'), 0 &lt;= ALPHA &lt;= 1 represents the
+          boundary value for the moduli of eigenvalues.
+          The ALPHA-stability domain does not include the boundary.
+
+  A       (input/output) DOUBLE PRECISION array, dimension (LDA,N)
+          On entry, the leading N-by-N part of this array must
+          contain the state dynamics matrix A of the open-loop
+          system.
+          On exit, if INFO = 0 and EQUIL = 'S', the leading N-by-N
+          part of this array contains the scaled state dynamics
+          matrix of the open-loop system.
+          If EQUIL = 'N', this array is unchanged on exit.
+
+  LDA     INTEGER
+          The leading dimension of array A.  LDA &gt;= MAX(1,N).
+
+  B       (input/output) DOUBLE PRECISION array, dimension (LDB,M)
+          On entry, the leading N-by-M part of this array must
+          contain the input/state matrix B of the open-loop system.
+          On exit, if INFO = 0 and EQUIL = 'S', the leading N-by-M
+          part of this array contains the scaled input/state matrix
+          of the open-loop system.
+          If EQUIL = 'N', this array is unchanged on exit.
+
+  LDB     INTEGER
+          The leading dimension of array B.  LDB &gt;= MAX(1,N).
+
+  C       (input/output) DOUBLE PRECISION array, dimension (LDC,N)
+          On entry, the leading P-by-N part of this array must
+          contain the state/output matrix C of the open-loop system.
+          On exit, if INFO = 0 and EQUIL = 'S', the leading P-by-N
+          part of this array contains the scaled state/output matrix
+          of the open-loop system.
+          If EQUIL = 'N', this array is unchanged on exit.
+
+  LDC     INTEGER
+          The leading dimension of array C.  LDC &gt;= MAX(1,P).
+
+  D       (input) DOUBLE PRECISION array, dimension (LDD,M)
+          The leading P-by-M part of this array must contain the
+          input/output matrix D of the open-loop system.
+
+  LDD     INTEGER
+          The leading dimension of array D.  LDD &gt;= MAX(1,P).
+
+  AC      (input/output) DOUBLE PRECISION array, dimension (LDAC,NC)
+          On entry, the leading NC-by-NC part of this array must
+          contain the state dynamics matrix Ac of the original
+          controller.
+          On exit, if INFO = 0, the leading NCR-by-NCR part of this
+          array contains the state dynamics matrix Acr of the
+          reduced controller. The resulting Ac has a
+          block-diagonal form with two blocks.
+          For a system with NCU ALPHA-unstable eigenvalues and
+          NCS ALPHA-stable eigenvalues (NCU+NCS = NC), the leading
+          NCU-by-NCU block contains the unreduced part of Ac
+          corresponding to the ALPHA-unstable eigenvalues.
+          The trailing (NCR+NCS-NC)-by-(NCR+NCS-NC) block contains
+          the reduced part of Ac corresponding to ALPHA-stable
+          eigenvalues.
+
+  LDAC    INTEGER
+          The leading dimension of array AC.  LDAC &gt;= MAX(1,NC).
+
+  BC      (input/output) DOUBLE PRECISION array, dimension (LDBC,P)
+          On entry, the leading NC-by-P part of this array must
+          contain the input/state matrix Bc of the original
+          controller.
+          On exit, if INFO = 0, the leading NCR-by-P part of this
+          array contains the input/state matrix Bcr of the reduced
+          controller.
+
+  LDBC    INTEGER
+          The leading dimension of array BC.  LDBC &gt;= MAX(1,NC).
+
+  CC      (input/output) DOUBLE PRECISION array, dimension (LDCC,NC)
+          On entry, the leading M-by-NC part of this array must
+          contain the state/output matrix Cc of the original
+          controller.
+          On exit, if INFO = 0, the leading M-by-NCR part of this
+          array contains the state/output matrix Ccr of the reduced
+          controller.
+
+  LDCC    INTEGER
+          The leading dimension of array CC.  LDCC &gt;= MAX(1,M).
+
+  DC      (input/output) DOUBLE PRECISION array, dimension (LDDC,P)
+          On entry, the leading M-by-P part of this array must
+          contain the input/output matrix Dc of the original
+          controller.
+          On exit, if INFO = 0, the leading M-by-P part of this
+          array contains the input/output matrix Dcr of the reduced
+          controller.
+
+  LDDC    INTEGER
+          The leading dimension of array DC.  LDDC &gt;= MAX(1,M).
+
+  NCS     (output) INTEGER
+          The dimension of the ALPHA-stable part of the controller.
+
+  HSVC    (output) DOUBLE PRECISION array, dimension (NC)
+          If INFO = 0, the leading NCS elements of this array
+          contain the frequency-weighted Hankel singular values,
+          ordered decreasingly, of the ALPHA-stable part of the
+          controller.
+
+</PRE>
+<B>Tolerances</B>
+<PRE>
+  TOL1    DOUBLE PRECISION
+          If ORDSEL = 'A', TOL1 contains the tolerance for
+          determining the order of the reduced controller.
+          For model reduction, the recommended value is
+          TOL1 = c*S1, where c is a constant in the
+          interval [0.00001,0.001], and S1 is the largest
+          frequency-weighted Hankel singular value of the
+          ALPHA-stable part of the original controller
+          (computed in HSVC(1)).
+          If TOL1 &lt;= 0 on entry, the used default value is
+          TOL1 = NCS*EPS*S1, where NCS is the number of
+          ALPHA-stable eigenvalues of Ac and EPS is the machine
+          precision (see LAPACK Library Routine DLAMCH).
+          If ORDSEL = 'F', the value of TOL1 is ignored.
+
+  TOL2    DOUBLE PRECISION
+          The tolerance for determining the order of a minimal
+          realization of the ALPHA-stable part of the given
+          controller. The recommended value is TOL2 = NCS*EPS*S1.
+          This value is used by default if TOL2 &lt;= 0 on entry.
+          If TOL2 &gt; 0 and ORDSEL = 'A', then TOL2 &lt;= TOL1.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  IWORK   INTEGER array, dimension (MAX(1,LIWRK1,LIWRK2))
+          LIWRK1 = 0,       if JOBMR  = 'B';
+          LIWRK1 = NC,      if JOBMR  = 'F';
+          LIWRK1 = 2*NC,    if JOBMR  = 'S' or 'P';
+          LIWRK2 = 0,       if WEIGHT = 'N';
+          LIWRK2 = 2*(M+P), if WEIGHT = 'O', 'I', or 'P'.
+          On exit, if INFO = 0, IWORK(1) contains NCMIN, the order
+          of the computed minimal realization of the stable part of
+          the controller.
+
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+          On exit, if INFO = 0, DWORK(1) returns the optimal value
+          of LDWORK.
+
+  LDWORK  INTEGER
+          The length of the array DWORK.
+          LDWORK &gt;= 2*NC*NC + MAX( 1, LFREQ, LSQRED ),
+          where
+          LFREQ = (N+NC)*(N+NC+2*M+2*P)+
+                  MAX((N+NC)*(N+NC+MAX(N+NC,M,P)+7), (M+P)*(M+P+4))
+                                   if WEIGHT = 'I' or 'O' or 'P';
+          LFREQ  = NC*(MAX(M,P)+5) if WEIGHT = 'N' and EQUIL = 'N';
+          LFREQ  = MAX(N,NC*(MAX(M,P)+5)) if WEIGHT = 'N' and
+                                             EQUIL  = 'S';
+          LSQRED = MAX( 1, 2*NC*NC+5*NC );
+          For optimum performance LDWORK should be larger.
+
+</PRE>
+<B>Warning Indicator</B>
+<PRE>
+  IWARN   INTEGER
+          = 0:  no warning;
+          = 1:  with ORDSEL = 'F', the selected order NCR is greater
+                than NSMIN, the sum of the order of the
+                ALPHA-unstable part and the order of a minimal
+                realization of the ALPHA-stable part of the given
+                controller; in this case, the resulting NCR is set
+                equal to NSMIN;
+          = 2:  with ORDSEL = 'F', the selected order NCR
+                corresponds to repeated singular values for the
+                ALPHA-stable part of the controller, which are
+                neither all included nor all excluded from the
+                reduced model; in this case, the resulting NCR is
+                automatically decreased to exclude all repeated
+                singular values;
+          = 3:  with ORDSEL = 'F', the selected order NCR is less
+                than the order of the ALPHA-unstable part of the
+                given controller. In this case NCR is set equal to
+                the order of the ALPHA-unstable part.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value;
+          = 1:  the closed-loop system is not well-posed;
+                its feedthrough matrix is (numerically) singular;
+          = 2:  the computation of the real Schur form of the
+                closed-loop state matrix failed;
+          = 3:  the closed-loop state matrix is not stable;
+          = 4:  the solution of a symmetric eigenproblem failed;
+          = 5:  the computation of the ordered real Schur form of Ac
+                failed;
+          = 6:  the separation of the ALPHA-stable/unstable
+                diagonal blocks failed because of very close
+                eigenvalues;
+          = 7:  the computation of Hankel singular values failed.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  Let K be the transfer-function matrix of the original linear
+  controller
+
+       d[xc(t)] = Ac*xc(t) + Bc*y(t)
+       u(t)     = Cc*xc(t) + Dc*y(t),                      (1)
+
+  where d[xc(t)] is dxc(t)/dt for a continuous-time system and
+  xc(t+1) for a discrete-time system. The subroutine SB16AD
+  determines the matrices of a reduced order controller
+
+       d[z(t)] = Acr*z(t) + Bcr*y(t)
+       u(t)    = Ccr*z(t) + Dcr*y(t),                      (2)
+
+  such that the corresponding transfer-function matrix Kr minimizes
+  the norm of the frequency-weighted error
+
+          V*(K-Kr)*W,                                      (3)
+
+  where V and W are special stable transfer-function matrices
+  chosen to enforce stability and/or performance of the closed-loop
+  system [3] (see description of the parameter WEIGHT).
+
+  The following procedure is used to reduce K in conjunction
+  with the frequency-weighted balancing approach of [2]
+  (see also [3]):
+
+  1) Decompose additively K, of order NC, as
+
+       K = K1 + K2,
+
+     such that K1 has only ALPHA-stable poles and K2, of order NCU,
+     has only ALPHA-unstable poles.
+
+  2) Compute for K1 a B&T or SPA frequency-weighted approximation
+     K1r of order NCR-NCU using the frequency-weighted balancing
+     approach of [1] in conjunction with accuracy enhancing
+     techniques specified by the parameter JOBMR.
+
+  3) Assemble the reduced model Kr as
+
+        Kr = K1r + K2.
+
+  For the reduction of the ALPHA-stable part, several accuracy
+  enhancing techniques can be employed (see [2] for details).
+
+  If JOBMR = 'B', the square-root B&T method of [1] is used.
+
+  If JOBMR = 'F', the balancing-free square-root version of the
+  B&T method [1] is used.
+
+  If JOBMR = 'S', the square-root version of the SPA method [2,3]
+  is used.
+
+  If JOBMR = 'P', the balancing-free square-root version of the
+  SPA method [2,3] is used.
+
+  For each of these methods, two left and right truncation matrices
+  are determined using the Cholesky factors of an input
+  frequency-weighted controllability Grammian P and an output
+  frequency-weighted observability Grammian Q.
+  P and Q are determined as the leading NC-by-NC diagonal blocks
+  of the controllability Grammian of K*W and of the
+  observability Grammian of V*K. Special techniques developed in [2]
+  are used to compute the Cholesky factors of P and Q directly
+  (see also SLICOT Library routine SB16AY).
+  The frequency-weighted Hankel singular values HSVC(1), ....,
+  HSVC(NC) are computed as the square roots of the eigenvalues
+  of the product P*Q.
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Enns, D.
+      Model reduction with balanced realizations: An error bound
+      and a frequency weighted generalization.
+      Proc. 23-th CDC, Las Vegas, pp. 127-132, 1984.
+
+  [2] Varga, A. and Anderson, B.D.O.
+      Square-root balancing-free methods for frequency-weighted
+      balancing related model reduction.
+      (report in preparation)
+
+  [3] Anderson, B.D.O and Liu, Y.
+      Controller reduction: concepts and approaches.
+      IEEE Trans. Autom. Control, Vol. 34, pp. 802-812, 1989.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  The implemented methods rely on accuracy enhancing square-root
+  techniques.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+*     SB16AD EXAMPLE PROGRAM TEXT
+*
+*     .. Parameters ..
+      INTEGER          NIN, NOUT
+      PARAMETER        ( NIN = 5, NOUT = 6 )
+      INTEGER          NMAX, MMAX, PMAX, NCMAX
+      PARAMETER        ( NMAX = 20, MMAX = 20, PMAX = 20,
+     $                   NCMAX = 20 )
+      INTEGER          MPMAX, NNCMAX
+      PARAMETER        ( MPMAX  = MMAX + PMAX, NNCMAX = NMAX + NCMAX )
+      INTEGER          LDA, LDB, LDC, LDD, LDAC, LDBC, LDCC, LDDC
+      PARAMETER        ( LDA = NMAX, LDB = NMAX, LDC = PMAX,
+     $                   LDD = PMAX, LDAC = NCMAX, LDBC = NCMAX,
+     $                   LDCC = PMAX, LDDC = PMAX )
+      INTEGER          LIWORK
+      PARAMETER        ( LIWORK = 2*MAX( NCMAX, MPMAX ) )
+      INTEGER          LDWORK
+      PARAMETER        ( LDWORK = 2*NCMAX*NCMAX +
+     $                            NNCMAX*( NNCMAX + 2*MPMAX ) +
+     $                            MAX( NNCMAX*( NNCMAX +
+     $                                 MAX( NNCMAX, MMAX, PMAX ) + 7 ),
+     $                                 MPMAX*( MPMAX + 4 ) ) )
+*     .. Local Scalars ..
+      DOUBLE PRECISION ALPHA, TOL1, TOL2
+      INTEGER          I, INFO, IWARN, J, M, N, NCR, NCS, NC, P
+      CHARACTER*1      DICO, EQUIL, JOBC, JOBO, JOBMR, ORDSEL, WEIGHT
+*     .. Local Arrays ..
+      DOUBLE PRECISION A(LDA,NMAX), B(LDB,MMAX), C(LDC,NMAX),
+     $                 D(LDD,MMAX), DWORK(LDWORK), HSVC(NMAX),
+     $                 AC(LDAC,NCMAX), BC(LDBC,PMAX), CC(LDCC,NMAX),
+     $                 DC(LDDC,PMAX)
+      INTEGER          IWORK(LIWORK)
+*     .. External Subroutines ..
+      EXTERNAL         SB16AD
+*     .. External Functions ..
+      LOGICAL          LSAME
+      EXTERNAL         LSAME
+*     .. Intrinsic Functions ..
+      INTRINSIC        MAX
+*     .. Executable Statements ..
+*
+      WRITE ( NOUT, FMT = 99999 )
+*     Skip the heading in the data file and read the data.
+      READ ( NIN, FMT = '()' )
+      READ ( NIN, FMT = * ) N, M, P, NC, NCR, ALPHA, TOL1, TOL2, DICO,
+     $                      JOBC, JOBO, JOBMR, WEIGHT, EQUIL, ORDSEL
+      IF( N.LE.0 .OR. N.GT.NMAX ) THEN
+         WRITE ( NOUT, FMT = 99990 ) N
+      ELSE
+         READ ( NIN, FMT = * ) ( ( A(I,J), J = 1,N ), I = 1,N )
+         IF( M.LE.0 .OR. M.GT.MMAX ) THEN
+            WRITE ( NOUT, FMT = 99989 ) M
+         ELSE
+            READ ( NIN, FMT = * ) ( ( B(I,J), J = 1,M ), I = 1, N )
+            IF( P.GT.PMAX ) THEN
+               WRITE ( NOUT, FMT = 99988 ) P
+            ELSE
+               READ ( NIN, FMT = * ) ( ( C(I,J), J = 1,N ), I = 1,P )
+               READ ( NIN, FMT = * ) ( ( D(I,J), J = 1,M ), I = 1,P )
+               IF( NC.LT.0 .OR. NC.GT.NCMAX ) THEN
+                  WRITE ( NOUT, FMT = 99986 ) NC
+               ELSE
+                  IF( NC.GT.0 ) THEN
+                     READ ( NIN, FMT = * )
+     $                 ( ( AC(I,J), J = 1,NC ), I = 1,NC )
+                     READ ( NIN, FMT = * )
+     $                 ( ( BC(I,J), J = 1,P ), I = 1, NC )
+                     READ ( NIN, FMT = * )
+     $                 ( ( CC(I,J), J = 1,NC ), I = 1,M )
+                  END IF
+                  READ ( NIN, FMT = * )
+     $                 ( ( DC(I,J), J = 1,P ), I = 1,M )
+               END IF
+*              Find a reduced ssr for (AC,BC,CC,DC).
+               CALL SB16AD( DICO, JOBC, JOBO, JOBMR, WEIGHT, EQUIL,
+     $                      ORDSEL, N, M, P, NC, NCR, ALPHA, A, LDA,
+     $                      B, LDB, C, LDC, D, LDD, AC, LDAC, BC, LDBC,
+     $                      CC, LDCC, DC, LDDC, NCS, HSVC, TOL1, TOL2,
+     $                      IWORK, DWORK, LDWORK, IWARN, INFO )
+*
+               IF ( INFO.NE.0 ) THEN
+                  WRITE ( NOUT, FMT = 99998 ) INFO
+               ELSE
+                  IF( IWARN.NE.0) WRITE ( NOUT, FMT = 99984 ) IWARN
+                  WRITE ( NOUT, FMT = 99997 ) NCR
+                  WRITE ( NOUT, FMT = 99987 )
+                  WRITE ( NOUT, FMT = 99995 ) ( HSVC(J), J = 1, NCS )
+                  IF( NCR.GT.0 ) WRITE ( NOUT, FMT = 99996 )
+                  DO 20 I = 1, NCR
+                     WRITE ( NOUT, FMT = 99995 ) ( AC(I,J), J = 1,NCR )
+   20             CONTINUE
+                  IF( NCR.GT.0 ) WRITE ( NOUT, FMT = 99993 )
+                  DO 40 I = 1, NCR
+                     WRITE ( NOUT, FMT = 99995 ) ( BC(I,J), J = 1,P )
+   40             CONTINUE
+                  IF( NCR.GT.0 ) WRITE ( NOUT, FMT = 99992 )
+                  DO 60 I = 1, M
+                     WRITE ( NOUT, FMT = 99995 ) ( CC(I,J), J = 1,NCR )
+   60             CONTINUE
+                  WRITE ( NOUT, FMT = 99991 )
+                  DO 70 I = 1, M
+                     WRITE ( NOUT, FMT = 99995 ) ( DC(I,J), J = 1,P )
+   70             CONTINUE
+               END IF
+            END IF
+         END IF
+      END IF
+      STOP
+*
+99999 FORMAT (' SB16AD EXAMPLE PROGRAM RESULTS',/1X)
+99998 FORMAT (' INFO on exit from SB16AD = ',I2)
+99997 FORMAT (/' The order of reduced controller = ',I2)
+99996 FORMAT (/' The reduced controller state dynamics matrix Ac is ')
+99995 FORMAT (20(1X,F8.4))
+99993 FORMAT (/' The reduced controller input/state matrix Bc is ')
+99992 FORMAT (/' The reduced controller state/output matrix Cc is ')
+99991 FORMAT (/' The reduced controller input/output matrix Dc is ')
+99990 FORMAT (/' N is out of range.',/' N = ',I5)
+99989 FORMAT (/' M is out of range.',/' M = ',I5)
+99988 FORMAT (/' P is out of range.',/' P = ',I5)
+99987 FORMAT (/' The Hankel singular values of weighted ALPHA-stable',
+     $         ' part are')
+99986 FORMAT (/' NC is out of range.',/' NC = ',I5)
+99984 FORMAT (' IWARN on exit from SB16AD = ',I2)
+      END
+</PRE>
+<B>Program Data</B>
+<PRE>
+ SB16AD EXAMPLE PROGRAM DATA (Continuous system)
+  3  1  1   3  2   0.0  0.1E0  0.0    C  S  S  F   I  N   F 
+  -1.  0.   4.
+   0.  2.   0.
+   0.  0.  -3.
+   1.
+   1.
+   1.
+   1.  1.   1.
+   0. 
+  -26.4000    6.4023    4.3868
+   32.0000         0         0
+         0    8.0000         0
+    -16
+     0
+     0
+    9.2994    1.1624    0.1090
+     0
+
+</PRE>
+<B>Program Results</B>
+<PRE>
+ SB16AD EXAMPLE PROGRAM RESULTS
+
+
+ The order of reduced controller =  2
+
+ The Hankel singular values of weighted ALPHA-stable part are
+   3.8253   0.2005
+
+ The reduced controller state dynamics matrix Ac is 
+   9.1900   0.0000
+   0.0000 -34.5297
+
+ The reduced controller input/state matrix Bc is 
+ -11.9593
+  86.3137
+
+ The reduced controller state/output matrix Cc is 
+   2.8955  -1.3566
+
+ The reduced controller input/output matrix Dc is 
+   0.0000
+</PRE>
+
+<HR>
+<p>
+<A HREF=..\libindex.html><B>Return to index</B></A></BODY>
+</HTML>

@@ -1,0 +1,305 @@
+<HTML>
+<HEAD><TITLE>MB03IZ - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MB03IZ">MB03IZ</A></H2>
+<H3>
+Moving eigenvalues with negative real parts of a complex skew-Hamiltonian/Hamiltonian pencil in structured Schur form to the leading subpencil (factored version)
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To move the eigenvalues with strictly negative real parts of an
+  N-by-N complex skew-Hamiltonian/Hamiltonian pencil aS - bH in
+  structured Schur form, with
+
+                             (  0  I  )
+    S = J Z' J' Z, where J = (        ),
+                             ( -I  0  )
+
+  to the leading principal subpencil, while keeping the triangular
+  form. On entry, we have
+
+        (  A  D  )      (  B  F  )
+    Z = (        ), H = (        ),
+        (  0  C  )      (  0 -B' )
+
+  where A and B are upper triangular and C is lower triangular.
+  Z and H are transformed by a unitary symplectic matrix U and a
+  unitary matrix Q such that
+
+                    (  Aout  Dout  )
+    Zout = U' Z Q = (              ), and
+                    (    0   Cout  )
+                                                                 (1)
+                         (  Bout  Fout  )
+    Hout = J Q' J' H Q = (              ), 
+                         (    0  -Bout' )
+
+  where Aout, Bout and Cout remain in triangular form. The notation
+  M' denotes the conjugate transpose of the matrix M.
+  Optionally, if COMPQ = 'I' or COMPQ = 'U', the unitary matrix Q
+  that fulfills (1) is computed.
+  Optionally, if COMPU = 'I' or COMPU = 'U', the unitary symplectic
+  matrix 
+
+        (  U1  U2  )
+    U = (          )
+        ( -U2  U1  )   
+
+  that fulfills (1) is computed.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MB03IZ( COMPQ, COMPU, N, A, LDA, C, LDC, D, LDD, B,
+     $                   LDB, F, LDF, Q, LDQ, U1, LDU1, U2, LDU2, NEIG,
+     $                   TOL, INFO )
+C     .. Scalar Arguments ..
+      CHARACTER          COMPQ, COMPU
+      INTEGER            INFO, LDA, LDB, LDC, LDD, LDF, LDQ, LDU1, LDU2,
+     $                   N, NEIG
+      DOUBLE PRECISION   TOL
+C     .. Array Arguments ..
+      COMPLEX*16         A( LDA, * ), B( LDB, * ), C( LDC, * ),
+     $                   D( LDD, * ), F( LDF, * ), Q( LDQ, * ),
+     $                   U1( LDU1, * ), U2( LDU2, * )
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  COMPQ   CHARACTER*1
+          Specifies whether or not the unitary transformations
+          should be accumulated in the array Q, as follows:
+          = 'N':  Q is not computed;
+          = 'I':  the array Q is initialized internally to the unit
+                  matrix, and the unitary matrix Q is returned;
+          = 'U':  the array Q contains a unitary matrix Q0 on
+                  entry, and the matrix Q0*Q is returned, where Q
+                  is the product of the unitary transformations
+                  that are applied to the pencil aS - bH to reorder
+                  the eigenvalues.
+
+  COMPU   CHARACTER*1
+          Specifies whether or not the unitary symplectic
+          transformations should be accumulated in the arrays U1 and
+          U2, as follows:
+          = 'N':  U1 and U2 are not computed;
+          = 'I':  the arrays U1 and U2 are initialized internally,
+                  and the submatrices U1 and U2 defining the
+                  unitary symplectic matrix U are returned;
+          = 'U':  the arrays U1 and U2 contain the corresponding
+                  submatrices of a unitary symplectic matrix U0
+                  on entry, and the updated submatrices U1 and U2
+                  of the matrix product U0*U are returned, where U
+                  is the product of the unitary symplectic
+                  transformations that are applied to the pencil
+                  aS - bH to reorder the eigenvalues.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The order of the pencil aS - bH.  N &gt;= 0, even.
+
+  A       (input/output) COMPLEX*16 array, dimension (LDA, N/2)
+          On entry, the leading N/2-by-N/2 part of this array must
+          contain the upper triangular matrix A.
+          On exit, the leading  N/2-by-N/2 part of this array
+          contains the transformed matrix Aout.
+          The strictly lower triangular part of this array is not
+          referenced.
+
+  LDA     INTEGER
+          The leading dimension of the array A.  LDA &gt;= MAX(1, N/2).
+
+  C       (input/output) COMPLEX*16 array, dimension (LDC, N/2)
+          On entry, the leading N/2-by-N/2 part of this array must
+          contain the lower triangular matrix C.
+          On exit, the leading  N/2-by-N/2 part of this array
+          contains the transformed matrix Cout.
+          The strictly upper triangular part of this array is not
+          referenced.
+
+  LDC     INTEGER
+          The leading dimension of the array C.  LDC &gt;= MAX(1, N/2).
+
+  D       (input/output) COMPLEX*16 array, dimension (LDD, N/2)
+          On entry, the leading N/2-by-N/2 part of this array must
+          contain the matrix D.
+          On exit, the leading  N/2-by-N/2 part of this array
+          contains the transformed matrix Dout.
+
+  LDD     INTEGER
+          The leading dimension of the array D.  LDD &gt;= MAX(1, N/2).
+
+  B       (input/output) COMPLEX*16 array, dimension (LDB, N/2)
+          On entry, the leading N/2-by-N/2 part of this array must
+          contain the upper triangular matrix B.
+          On exit, the leading  N/2-by-N/2 part of this array
+          contains the transformed matrix Bout.
+          The strictly lower triangular part of this array is not
+          referenced.
+
+  LDB     INTEGER
+          The leading dimension of the array B.  LDB &gt;= MAX(1, N/2).
+
+  F       (input/output) COMPLEX*16 array, dimension (LDF, N/2)
+          On entry, the leading N/2-by-N/2 part of this array must
+          contain the upper triangular part of the Hermitian matrix
+          F.
+          On exit, the leading  N/2-by-N/2 part of this array
+          contains the transformed matrix Fout.
+          The strictly lower triangular part of this array is not
+          referenced.
+
+  LDF     INTEGER
+          The leading dimension of the array F.  LDF &gt;= MAX(1, N/2).
+
+  Q       (input/output) COMPLEX*16 array, dimension (LDQ, N)
+          On entry, if COMPQ = 'U', then the leading N-by-N part of
+          this array must contain a given matrix Q0, and on exit,
+          the leading N-by-N part of this array contains the product
+          of the input matrix Q0 and the transformation matrix Q
+          used to transform the matrices S and H.
+          On exit, if COMPQ = 'I', then the leading N-by-N part of
+          this array contains the unitary transformation matrix Q.
+          If COMPQ = 'N' this array is not referenced.
+
+  LDQ     INTEGER
+          The leading dimension of the array Q.
+          LDQ &gt;= 1,         if COMPQ = 'N';
+          LDQ &gt;= MAX(1, N), if COMPQ = 'I' or COMPQ = 'U'.
+
+  U1      (input/output) COMPLEX*16 array, dimension (LDU1, N/2)
+          On entry, if COMPU = 'U', then the leading N/2-by-N/2 part
+          of this array must contain the upper left block of a
+          given matrix U0, and on exit, the leading N/2-by-N/2 part
+          of this array contains the updated upper left block U1 of
+          the product of the input matrix U0 and the transformation
+          matrix U used to transform the matrices S and H.
+          On exit, if COMPU = 'I', then the leading N/2-by-N/2 part
+          of this array contains the upper left block U1 of the
+          unitary symplectic transformation matrix U.
+          If COMPU = 'N' this array is not referenced.
+
+  LDU1    INTEGER
+          The leading dimension of the array U1.
+          LDU1 &gt;= 1,           if COMPU = 'N';
+          LDU1 &gt;= MAX(1, N/2), if COMPU = 'I' or COMPU = 'U'.
+
+  U2      (input/output) COMPLEX*16 array, dimension (LDU2, N/2)
+          On entry, if COMPU = 'U', then the leading N/2-by-N/2 part
+          of this array must contain the upper right block of a
+          given matrix U0, and on exit, the leading N/2-by-N/2 part
+          of this array contains the updated upper right block U2 of
+          the product of the input matrix U0 and the transformation
+          matrix U used to transform the matrices S and H.
+          On exit, if COMPU = 'I', then the leading N/2-by-N/2 part
+          of this array contains the upper right block U2 of the
+          unitary symplectic transformation matrix U.
+          If COMPU = 'N' this array is not referenced.
+
+  LDU2    INTEGER
+          The leading dimension of the array U2.
+          LDU2 &gt;= 1,           if COMPU = 'N';
+          LDU2 &gt;= MAX(1, N/2), if COMPU = 'I' or COMPU = 'U'.
+
+  NEIG    (output) INTEGER
+          The number of eigenvalues in aS - bH with strictly
+          negative real part.
+
+</PRE>
+<B>Tolerances</B>
+<PRE>
+  TOL     DOUBLE PRECISION
+          The tolerance used to decide the sign of the eigenvalues.
+          If the user sets TOL &gt; 0, then the given value of TOL is
+          used. If the user sets TOL &lt;= 0, then an implicitly
+          computed, default tolerance, defined by MIN(N,10)*EPS, is
+          used instead, where EPS is the machine precision (see
+          LAPACK Library routine DLAMCH). A larger value might be
+          needed for pencils with multiple eigenvalues.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0: succesful exit;
+          &lt; 0: if INFO = -i, the i-th argument had an illegal value.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  The algorithm reorders the eigenvalues like the following scheme:
+                                                     
+  Step 1: Reorder the eigenvalues in the subpencil aC'*A - bB.
+       I. Reorder the eigenvalues with negative real parts to the
+          top.
+      II. Reorder the eigenvalues with positive real parts to the
+          bottom.
+
+  Step 2: Reorder the remaining eigenvalues with negative real
+          parts.
+       I. Exchange the eigenvalues between the last diagonal block
+          in aC'*A - bB and the last diagonal block in aS - bH.
+      II. Move the eigenvalues in the N/2-th place to the (MM+1)-th
+          place, where MM denotes the current number of eigenvalues
+          with negative real parts in aC'*A - bB.
+
+  The algorithm uses a sequence of unitary transformations as
+  described on page 38 in [1]. To achieve those transformations the
+  elementary SLICOT Library subroutines MB03CZ and MB03GZ are called
+  for the corresponding matrix structures.
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Benner, P., Byers, R., Mehrmann, V. and Xu, H.
+      Numerical Computation of Deflating Subspaces of Embedded
+      Hamiltonian Pencils.
+      Tech. Rep. SFB393/99-15, Technical University Chemnitz,
+      Germany, June 1999.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>                                                            3
+  The algorithm is numerically backward stable and needs O(N )
+  complex floating point operations.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

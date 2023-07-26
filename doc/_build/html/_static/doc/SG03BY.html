@@ -1,0 +1,83 @@
+<HTML>
+<HEAD><TITLE>SG03BY - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="SG03BY">SG03BY</A></H2>
+<H3>
+Compute a complex Givens rotation in real arithmetic
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To compute the parameters for the complex Givens rotation
+
+     (  CR-CI*I   SR-SI*I )   ( XR+XI*I )   ( Z )
+     (                    ) * (         ) = (   ),
+     ( -SR-SI*I   CR+CI*I )   ( YR+YI*I )   ( 0 )
+
+  where CR, CI, SR, SI, XR, XI, YR, YI are real numbers and I is the
+  imaginary unit, I = SQRT(-1). Z is a non-negative real number.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE SG03BY( XR, XI, YR, YI, CR, CI, SR, SI, Z )
+C     .. Scalar Arguments ..
+       DOUBLE PRECISION  CI, CR, SI, SR, XI, XR, YI, YR, Z
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  XR, XI, (input) DOUBLE PRECISION
+  YR, YI  (input) DOUBLE PRECISION
+          The given real scalars XR, XI, YR, YI.
+
+  CR, CI, (output) DOUBLE PRECISION
+  SR, SI, (output) DOUBLE PRECISION
+  Z       (output) DOUBLE PRECISION
+          The computed real scalars CR, CI, SR, SI, Z, defining the
+          complex Givens rotation and Z.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  The subroutine avoids unnecessary overflow.
+
+</PRE>
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  In the interest of speed, this routine does not check the input
+  for errors.
+
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

@@ -1,0 +1,346 @@
+<HTML>
+<HEAD><TITLE>MB02KD - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MB02KD">MB02KD</A></H2>
+<H3>
+Computation of the product C = alpha op( T ) B + beta C, with T a block Toeplitz matrix
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To compute the matrix product
+
+            C = alpha*op( T )*B + beta*C,
+
+  where alpha and beta are scalars and T is a block Toeplitz matrix
+  specified by its first block column TC and first block row TR;
+  B and C are general matrices of appropriate dimensions.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MB02KD( LDBLK, TRANS, K, L, M, N, R, ALPHA, BETA,
+     $                   TC, LDTC, TR, LDTR, B, LDB, C, LDC, DWORK,
+     $                   LDWORK, INFO )
+C     .. Scalar Arguments ..
+      CHARACTER         LDBLK, TRANS
+      INTEGER           INFO, K, L, LDB, LDC, LDTC, LDTR, LDWORK, M, N,
+     $                  R
+      DOUBLE PRECISION  ALPHA, BETA
+C     .. Array Arguments ..
+      DOUBLE PRECISION  B(LDB,*), C(LDC,*), DWORK(*), TC(LDTC,*),
+     $                  TR(LDTR,*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  LDBLK   CHARACTER*1
+          Specifies where the (1,1)-block of T is stored, as
+          follows:
+          = 'C':  in the first block of TC;
+          = 'R':  in the first block of TR.
+
+  TRANS   CHARACTER*1
+          Specifies the form of op( T ) to be used in the matrix
+          multiplication as follows:
+          = 'N':  op( T ) = T;
+          = 'T':  op( T ) = T';
+          = 'C':  op( T ) = T'.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  K       (input) INTEGER
+          The number of rows in the blocks of T.  K &gt;= 0.
+
+  L       (input) INTEGER
+          The number of columns in the blocks of T.  L &gt;= 0.
+
+  M       (input) INTEGER
+          The number of blocks in the first block column of T.
+          M &gt;= 0.
+
+  N       (input) INTEGER
+          The number of blocks in the first block row of T.  N &gt;= 0.
+
+  R       (input) INTEGER
+          The number of columns in B and C.  R &gt;= 0.
+
+  ALPHA   (input) DOUBLE PRECISION
+          The scalar alpha. When alpha is zero then TC, TR and B
+          are not referenced.
+
+  BETA    (input) DOUBLE PRECISION
+          The scalar beta. When beta is zero then C need not be set
+          before entry.
+
+  TC      (input)  DOUBLE PRECISION array, dimension (LDTC,L)
+          On entry with LDBLK = 'C', the leading M*K-by-L part of
+          this array must contain the first block column of T.
+          On entry with LDBLK = 'R', the leading (M-1)*K-by-L part
+          of this array must contain the 2nd to the M-th blocks of
+          the first block column of T.
+
+  LDTC    INTEGER
+          The leading dimension of the array TC.
+          LDTC &gt;= MAX(1,M*K),      if LDBLK = 'C';
+          LDTC &gt;= MAX(1,(M-1)*K),  if LDBLK = 'R'.
+
+  TR      (input)  DOUBLE PRECISION array, dimension (LDTR,k)
+          where k is (N-1)*L when LDBLK = 'C' and is N*L when
+          LDBLK = 'R'.
+          On entry with LDBLK = 'C', the leading K-by-(N-1)*L part
+          of this array must contain the 2nd to the N-th blocks of
+          the first block row of T.
+          On entry with LDBLK = 'R', the leading K-by-N*L part of
+          this array must contain the first block row of T.
+
+  LDTR    INTEGER
+          The leading dimension of the array TR.  LDTR &gt;= MAX(1,K).
+
+  B       (input)  DOUBLE PRECISION array, dimension (LDB,R)
+          On entry with TRANS = 'N', the leading N*L-by-R part of
+          this array must contain the matrix B.
+          On entry with TRANS = 'T' or TRANS = 'C', the leading
+          M*K-by-R part of this array must contain the matrix B.
+
+  LDB     INTEGER
+          The leading dimension of the array B.
+          LDB &gt;= MAX(1,N*L),  if TRANS = 'N';
+          LDB &gt;= MAX(1,M*K),  if TRANS = 'T' or TRANS = 'C'.
+
+  C       (input/output)  DOUBLE PRECISION array, dimension (LDC,R)
+          On entry with TRANS = 'N', the leading M*K-by-R part of
+          this array must contain the matrix C.
+          On entry with TRANS = 'T' or TRANS = 'C', the leading
+          N*L-by-R part of this array must contain the matrix C.
+          On exit with TRANS = 'N', the leading M*K-by-R part of
+          this array contains the updated matrix C.
+          On exit with TRANS = 'T' or TRANS = 'C', the leading
+          N*L-by-R part of this array contains the updated matrix C.
+
+  LDC     INTEGER
+          The leading dimension of the array C.
+          LDC &gt;= MAX(1,M*K),  if TRANS = 'N';
+          LDC &gt;= MAX(1,N*L),  if TRANS = 'T' or TRANS = 'C'.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+          On exit, if INFO = 0,  DWORK(1)  returns the optimal
+          value of LDWORK.
+          On exit, if  INFO = -19,  DWORK(1)  returns the minimum
+          value of LDWORK.
+
+  LDWORK  INTEGER
+          The length of the array DWORK.  LDWORK &gt;= 1.
+          For optimum performance LDWORK should be larger.
+
+          If LDWORK = -1, then a workspace query is assumed;
+          the routine only calculates the optimal size of the
+          DWORK array, returns this value as the first entry of
+          the DWORK array, and no error message related to LDWORK
+          is issued by XERBLA.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  For point Toeplitz matrices or sufficiently large block Toeplitz
+  matrices, this algorithm uses convolution algorithms based on
+  the fast Hartley transforms [1]. Otherwise, TC is copied in
+  reversed order into the workspace such that C can be computed from
+  barely M matrix-by-matrix multiplications.
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Van Loan, Charles.
+      Computational frameworks for the fast Fourier transform.
+      SIAM, 1992.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  The algorithm requires O( (K*L+R*L+K*R)*(N+M)*log(N+M) + K*L*R )
+  floating point operations.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+*     MB02KD EXAMPLE PROGRAM TEXT
+*
+*     .. Parameters ..
+      DOUBLE PRECISION  ZERO, ONE
+      PARAMETER         ( ZERO = 0.0D0, ONE = 1.0D0 )
+      INTEGER          NIN, NOUT
+      PARAMETER        ( NIN = 5, NOUT = 6 )
+      INTEGER          KMAX, LMAX, MMAX, NMAX, RMAX
+      PARAMETER        ( KMAX = 20, LMAX = 20, MMAX = 20, NMAX = 20,
+     $                   RMAX = 20 )
+      INTEGER          LDB, LDC, LDTC, LDTR, LDWORK
+      PARAMETER        ( LDB  = LMAX*NMAX, LDC  = KMAX*MMAX,
+     $                   LDTC = MMAX*KMAX, LDTR = KMAX,
+     $                   LDWORK = 2*( KMAX*LMAX + KMAX*RMAX
+     $                            + LMAX*RMAX + 1 )*( MMAX + NMAX ) )
+*     .. Local Scalars ..
+      INTEGER          I, INFO, J, K, L, M, N, R
+      CHARACTER        LDBLK, TRANS
+      DOUBLE PRECISION ALPHA, BETA
+*     .. Local Arrays .. (Dimensioned for TRANS = 'N'.)
+      DOUBLE PRECISION B(LDB,RMAX), C(LDC,RMAX), DWORK(LDWORK),
+     $                 TC(LDTC,LMAX), TR(LDTR,NMAX*LMAX)
+*     .. External Functions ..
+      LOGICAL          LSAME
+      EXTERNAL         LSAME
+*     .. External Subroutines ..
+      EXTERNAL         MB02KD
+*     .. Intrinsic Functions ..
+      INTRINSIC        MAX
+*
+*     .. Executable Statements ..
+      WRITE ( NOUT, FMT = 99999 )
+*     Skip the heading in the data file and read the data.
+      READ ( NIN, FMT = '()' )
+      READ ( NIN, FMT = * )  K, L, M, N, R, LDBLK, TRANS
+      IF( K.LE.0 .OR. K.GT.KMAX ) THEN
+         WRITE ( NOUT, FMT = 99994 ) K
+      ELSE IF( L.LE.0 .OR. L.GT.LMAX ) THEN
+         WRITE ( NOUT, FMT = 99993 ) L
+      ELSE IF( M.LE.0 .OR. M.GT.MMAX ) THEN
+         WRITE ( NOUT, FMT = 99992 ) M
+      ELSE IF( N.LE.0 .OR. N.GT.NMAX ) THEN
+         WRITE ( NOUT, FMT = 99991 ) N
+      ELSE IF( R.LE.0 .OR. R.GT.RMAX ) THEN
+         WRITE ( NOUT, FMT = 99990 ) N
+      ELSE
+         IF ( LSAME( LDBLK, 'R' ) ) THEN
+            READ ( NIN, FMT = * ) ( ( TC(I,J), J = 1,L ),
+     $                              I = 1,(M-1)*K )
+            READ ( NIN, FMT = * ) ( ( TR(I,J), J = 1,N*L ), I = 1,K )
+         ELSE
+            READ ( NIN, FMT = * ) ( ( TC(I,J), J = 1,L ), I = 1,M*K )
+            READ ( NIN, FMT = * ) ( ( TR(I,J), J = 1,(N-1)*L ),
+     $                              I = 1,K )
+         END IF
+         IF ( LSAME( TRANS, 'N' ) ) THEN
+            READ ( NIN, FMT = * ) ( ( B(I,J), J = 1,R ), I = 1,N*L )
+         ELSE
+            READ ( NIN, FMT = * ) ( ( B(I,J), J = 1,R ), I = 1,M*K )
+         END IF
+         ALPHA = ONE
+         BETA  = ZERO
+         CALL MB02KD( LDBLK, TRANS, K, L, M, N, R, ALPHA, BETA, TC,
+     $                LDTC, TR, LDTR, B, LDB, C, LDC, DWORK, LDWORK,
+     $                INFO )
+         IF ( INFO.NE.0 ) THEN
+            WRITE ( NOUT, FMT = 99998 ) INFO
+         ELSE
+            IF ( LSAME( TRANS, 'N' ) ) THEN
+               WRITE ( NOUT, FMT = 99997 )
+               DO 10  I = 1, M*K
+                  WRITE ( NOUT, FMT = 99995 ) ( C(I,J), J = 1,R )
+   10          CONTINUE
+            ELSE
+               WRITE ( NOUT, FMT = 99996 )
+               DO 20  I = 1, N*L
+                  WRITE ( NOUT, FMT = 99995 ) ( C(I,J), J = 1,R )
+   20          CONTINUE
+            END IF
+         END IF
+      END IF
+      STOP
+*
+99999 FORMAT (' MB02KD EXAMPLE PROGRAM RESULTS',/1X)
+99998 FORMAT (' INFO on exit from MB02KD = ',I2)
+99997 FORMAT (' The product C = T * B is ')
+99996 FORMAT (' The product C = T^T * B is ')
+99995 FORMAT (20(1X,F8.4))
+99994 FORMAT (/' K is out of range.',/' K = ',I5)
+99993 FORMAT (/' L is out of range.',/' L = ',I5)
+99992 FORMAT (/' M is out of range.',/' M = ',I5)
+99991 FORMAT (/' N is out of range.',/' N = ',I5)
+99990 FORMAT (/' R is out of range.',/' R = ',I5)
+      END
+</PRE>
+<B>Program Data</B>
+<PRE>
+MB02KD EXAMPLE PROGRAM DATA
+   3    2   4    5    1    C    N
+     4.0     1.0
+     3.0     5.0
+     2.0     1.0
+     4.0     1.0
+     3.0     4.0
+     2.0     4.0
+     3.0     1.0
+     3.0     0.0
+     4.0     4.0
+     5.0     1.0
+     3.0     1.0
+     4.0     3.0
+     5.0     2.0     2.0     2.0     2.0     1.0     1.0     3.0
+     4.0     1.0     5.0     4.0     5.0     4.0     1.0     2.0
+     2.0     3.0     4.0     1.0     3.0     3.0     3.0     3.0
+     0.0
+     2.0
+     2.0
+     2.0
+     1.0
+     3.0
+     3.0
+     4.0
+     2.0
+     3.0
+</PRE>
+<B>Program Results</B>
+<PRE>
+ MB02KD EXAMPLE PROGRAM RESULTS
+
+ The product C = T * B is 
+  45.0000
+  76.0000
+  55.0000
+  44.0000
+  84.0000
+  56.0000
+  52.0000
+  70.0000
+  54.0000
+  49.0000
+  63.0000
+  59.0000
+</PRE>
+
+<HR>
+<p>
+<A HREF=..\libindex.html><B>Return to index</B></A></BODY>
+</HTML>

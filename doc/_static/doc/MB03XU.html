@@ -1,0 +1,304 @@
+<HTML>
+<HEAD><TITLE>MB03XU - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MB03XU">MB03XU</A></H2>
+<H3>
+Panel reduction of columns and rows of a real (k+2n)-by-(k+2n) matrix by orthogonal symplectic transformations
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To reduce 2*nb columns and rows of a real (k+2n)-by-(k+2n)
+  matrix H:
+
+          [ op(A)   G   ]
+      H = [             ],
+          [  Q    op(B) ]
+
+  so that elements in the first nb columns below the k-th
+  subdiagonal of the (k+n)-by-n matrix op(A), in the first nb
+  columns and rows of the n-by-n matrix Q and in the first nb rows
+  above the diagonal of the n-by-(k+n) matrix op(B) are zero.
+  The reduction is performed by orthogonal symplectic
+  transformations UU'*H*VV and matrices U, V, YA, YB, YG, YQ, XA,
+  XB, XG, and XQ are returned so that
+
+                 [ op(Aout)+U*YA'+XA*V'     G+U*YG'+XG*V'    ]
+      UU' H VV = [                                           ].
+                 [   Qout+U*YQ'+XQ*V'   op(Bout)+U*YB'+XB*V' ]
+
+  This is an auxiliary routine called by MB04TB.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MB03XU( LTRA, LTRB, N, K, NB, A, LDA, B, LDB, G, LDG,
+     $                   Q, LDQ, XA, LDXA, XB, LDXB, XG, LDXG, XQ, LDXQ,
+     $                   YA, LDYA, YB, LDYB, YG, LDYG, YQ, LDYQ, CSL,
+     $                   CSR, TAUL, TAUR, DWORK )
+C     .. Scalar Arguments ..
+      LOGICAL           LTRA, LTRB
+      INTEGER           K, LDA, LDB, LDG, LDQ, LDXA, LDXB, LDXG, LDXQ,
+     $                  LDYA, LDYB, LDYG, LDYQ, N, NB
+C     .. Array Arguments ..
+      DOUBLE PRECISION  A(LDA,*), B(LDB,*), CSL(*), CSR(*), DWORK(*),
+     $                  G(LDG,*), Q(LDQ,*), TAUL(*), TAUR(*),
+     $                  XA(LDXA,*), XB(LDXB,*), XG(LDXG,*), XQ(LDXQ,*),
+     $                  YA(LDYA,*), YB(LDYB,*), YG(LDYG,*), YQ(LDYQ,*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  LTRA    LOGICAL
+          Specifies the form of op( A ) as follows:
+          = .FALSE.:  op( A ) = A;
+          = .TRUE.:   op( A ) = A'.
+
+  LTRB    LOGICAL
+          Specifies the form of op( B ) as follows:
+          = .FALSE.:  op( B ) = B;
+          = .TRUE.:   op( B ) = B'.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The order of the matrix Q. N &gt;= 0.
+
+  K       (input) INTEGER
+          The offset of the reduction. Elements below the K-th
+          subdiagonal in the first NB columns of op(A) are
+          reduced to zero. K &gt;= 0.
+
+  NB      (input) INTEGER
+          The number of columns/rows to be reduced. N &gt; NB &gt;= 0.
+
+  A       (input/output) DOUBLE PRECISION array, dimension
+                  (LDA,N)     if LTRA = .FALSE.
+                  (LDA,K+N)   if LTRA = .TRUE.
+          On entry with LTRA = .FALSE., the leading (K+N)-by-N part
+          of this array must contain the matrix A.
+          On entry with LTRA = .TRUE., the leading N-by-(K+N) part
+          of this array must contain the matrix A.
+          On exit with LTRA = .FALSE., the leading (K+N)-by-N part
+          of this array contains the matrix Aout and, in the zero
+          parts, information about the elementary reflectors used to
+          compute the reduction.
+          On exit with LTRA = .TRUE., the leading N-by-(K+N) part of
+          this array contains the matrix Aout and in the zero parts
+          information about the elementary reflectors.
+
+  LDA     INTEGER
+          The leading dimension of the array A.
+          LDA &gt;= MAX(1,K+N),  if LTRA = .FALSE.;
+          LDA &gt;= MAX(1,N),    if LTRA = .TRUE..
+
+  B       (input/output) DOUBLE PRECISION array, dimension
+                  (LDB,K+N)   if LTRB = .FALSE.
+                  (LDB,N)     if LTRB = .TRUE.
+          On entry with LTRB = .FALSE., the leading N-by-(K+N) part
+          of this array must contain the matrix B.
+          On entry with LTRB = .TRUE., the leading (K+N)-by-N part
+          of this array must contain the matrix B.
+          On exit with LTRB = .FALSE., the leading N-by-(K+N) part
+          of this array contains the matrix Bout and, in the zero
+          parts, information about the elementary reflectors used to
+          compute the reduction.
+          On exit with LTRB = .TRUE., the leading (K+N)-by-N part of
+          this array contains the matrix Bout and in the zero parts
+          information about the elementary reflectors.
+
+  LDB     INTEGER
+          The leading dimension of the array B.
+          LDB &gt;= MAX(1,N),    if LTRB = .FALSE.;
+          LDB &gt;= MAX(1,K+N),  if LTRB = .TRUE..
+
+  G       (input/output) DOUBLE PRECISION array, dimension (LDG,N)
+          On entry, the leading N-by-N part of this array must
+          contain the matrix G.
+          On exit, the leading N-by-N part of this array contains
+          the matrix Gout.
+
+  LDG     INTEGER
+          The leading dimension of the array G.  LDG &gt;= MAX(1,N).
+
+  Q       (input/output) DOUBLE PRECISION array, dimension (LDQ,N)
+          On entry, the leading N-by-N part of this array must
+          contain the matrix Q.
+          On exit, the leading N-by-N part of this array contains
+          the matrix Qout and in the zero parts information about
+          the elementary reflectors used to compute the reduction.
+
+  LDQ     INTEGER
+          The leading dimension of the array Q.  LDQ &gt;= MAX(1,N).
+
+  XA      (output) DOUBLE PRECISION array, dimension (LDXA,2*NB)
+          On exit, the leading N-by-(2*NB) part of this array
+          contains the matrix XA.
+
+  LDXA    INTEGER
+          The leading dimension of the array XA.  LDXA &gt;= MAX(1,N).
+
+  XB      (output) DOUBLE PRECISION array, dimension (LDXB,2*NB)
+          On exit, the leading (K+N)-by-(2*NB) part of this array
+          contains the matrix XB.
+
+  LDXB    INTEGER
+          The leading dimension of the array XB. LDXB &gt;= MAX(1,K+N).
+
+  XG      (output) DOUBLE PRECISION array, dimension (LDXG,2*NB)
+          On exit, the leading (K+N)-by-(2*NB) part of this array
+          contains the matrix XG.
+
+  LDXG    INTEGER
+          The leading dimension of the array XG. LDXG &gt;= MAX(1,K+N).
+
+  XQ      (output) DOUBLE PRECISION array, dimension (LDXQ,2*NB)
+          On exit, the leading N-by-(2*NB) part of this array
+          contains the matrix XQ.
+
+  LDXQ    INTEGER
+          The leading dimension of the array XQ.  LDXQ &gt;= MAX(1,N).
+
+  YA      (output) DOUBLE PRECISION array, dimension (LDYA,2*NB)
+          On exit, the leading (K+N)-by-(2*NB) part of this array
+          contains the matrix YA.
+
+  LDYA    INTEGER
+          The leading dimension of the array YA. LDYA &gt;= MAX(1,K+N).
+
+  YB      (output) DOUBLE PRECISION array, dimension (LDYB,2*NB)
+          On exit, the leading N-by-(2*NB) part of this array
+          contains the matrix YB.
+
+  LDYB    INTEGER
+          The leading dimension of the array YB.  LDYB &gt;= MAX(1,N).
+
+  YG      (output) DOUBLE PRECISION array, dimension (LDYG,2*NB)
+          On exit, the leading (K+N)-by-(2*NB) part of this array
+          contains the matrix YG.
+
+  LDYG    INTEGER
+          The leading dimension of the array YG. LDYG &gt;= MAX(1,K+N).
+
+  YQ      (output) DOUBLE PRECISION array, dimension (LDYQ,2*NB)
+          On exit, the leading N-by-(2*NB) part of this array
+          contains the matrix YQ.
+
+  LDYQ    INTEGER
+          The leading dimension of the array YQ.  LDYQ &gt;= MAX(1,N).
+
+  CSL     (output) DOUBLE PRECISION array, dimension (2*NB)
+          On exit, the first 2NB elements of this array contain the
+          cosines and sines of the symplectic Givens rotations
+          applied from the left-hand side used to compute the
+          reduction.
+
+  CSR     (output) DOUBLE PRECISION array, dimension (2*NB)
+          On exit, the first 2NB-2 elements of this array contain
+          the cosines and sines of the symplectic Givens rotations
+          applied from the right-hand side used to compute the
+          reduction.
+
+  TAUL    (output) DOUBLE PRECISION array, dimension (NB)
+          On exit, the first NB elements of this array contain the
+          scalar factors of some of the elementary reflectors
+          applied form the left-hand side.
+
+  TAUR    (output) DOUBLE PRECISION array, dimension (NB)
+          On exit, the first NB-1 elements of this array contain the
+          scalar factors of some of the elementary reflectors
+          applied form the right-hand side.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  DWORK   DOUBLE PRECISION array, dimension (5*NB)
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  For details regarding the representation of the orthogonal
+  symplectic matrices UU and VV within the arrays A, B, CSL, CSR, Q,
+  TAUL and TAUR see the description of MB04TB.
+
+  The contents of A, B, G and Q on exit are illustrated by the
+  following example with op(A) = A, op(B) = B, n = 5, k = 2 and
+  nb = 2:
+
+       ( a  r  r  a  a  )       ( g  g  g  r  r  g  g  )
+       ( a  r  r  a  a  )       ( g  g  g  r  r  g  g  )
+       ( r  r  r  r  r  )       ( r  r  r  r  r  r  r  )
+   A = ( u2 r  r  r  r  ),  G = ( r  r  r  r  r  r  r  ),
+       ( u2 u2 r  a  a  )       ( g  g  g  r  r  g  g  )
+       ( u2 u2 r  a  a  )       ( g  g  g  r  r  g  g  )
+       ( u2 u2 r  a  a  )       ( g  g  g  r  r  g  g  )
+
+       ( t  t  v1 v1 v1 )       ( r  r  r  r  r  v2 v2 )
+       ( u1 t  t  v1 v1 )       ( r  r  r  r  r  r  v2 )
+   Q = ( u1 u1 r  q  q  ),  B = ( b  b  b  r  r  b  b  ).
+       ( u1 u1 r  q  q  )       ( b  b  b  r  r  b  b  )
+       ( u1 u1 r  q  q  )       ( b  b  b  r  r  b  b  )
+
+  where a, b, g and q denote elements of the original matrices, r
+  denotes a modified element, t denotes a scalar factor of an
+  applied elementary reflector, ui and vi denote elements of the
+  matrices U and V, respectively.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  The algorithm requires ( 16*K + 32*N + 42 )*N*NB +
+  ( 16*K + 112*N - 208/3*NB - 69 )*NB*NB - 29/3*NB floating point
+  operations and is numerically backward stable.
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Benner, P., Mehrmann, V., and Xu, H.
+      A numerically stable, structure preserving method for
+      computing the eigenvalues of real Hamiltonian or symplectic
+      pencils.
+      Numer. Math., Vol. 78 (3), pp. 329-358, 1998.
+
+  [2] Kressner, D.
+      Block algorithms for orthogonal symplectic factorizations.
+      BIT Numerical Mathematics, 43 (4), pp. 775-790, 2003.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

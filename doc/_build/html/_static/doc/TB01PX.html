@@ -1,0 +1,370 @@
+<HTML>
+<HEAD><TITLE>TB01PX - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="TB01PX">TB01PX</A></H2>
+<H3>
+Reduced (controllable, observable, or minimal) state-space representation of a standard system (variant)
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To find a reduced (controllable, observable, or minimal) state-
+  space representation (Ar,Br,Cr) for any original state-space
+  representation (A,B,C). The matrix Ar is in an upper block
+  Hessenberg staircase form.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE TB01PX( JOB, EQUIL, N, M, P, A, LDA, B, LDB, C, LDC,
+     $                   NR, INFRED, TOL, IWORK, DWORK, LDWORK, INFO )
+C     .. Scalar Arguments ..
+      CHARACTER         EQUIL, JOB
+      INTEGER           INFO, LDA, LDB, LDC, LDWORK, M, N, NR, P
+      DOUBLE PRECISION  TOL
+C     .. Array Arguments ..
+      INTEGER           INFRED(*), IWORK(*)
+      DOUBLE PRECISION  A(LDA,*), B(LDB,*), C(LDC,*), DWORK(*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  JOB     CHARACTER*1
+          Indicates whether the user wishes to remove the
+          uncontrollable and/or unobservable parts as follows:
+          = 'M':  Remove both the uncontrollable and unobservable
+                  parts to get a minimal state-space representation;
+          = 'C':  Remove the uncontrollable part only to get a
+                  controllable state-space representation;
+          = 'O':  Remove the unobservable part only to get an
+                  observable state-space representation.
+
+  EQUIL   CHARACTER*1
+          Specifies whether the user wishes to preliminarily balance
+          the triplet (A,B,C) as follows:
+          = 'S':  Perform balancing (scaling);
+          = 'N':  Do not perform balancing.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The order of the original state-space representation, i.e.
+          the order of the matrix A.  N &gt;= 0.
+
+  M       (input) INTEGER
+          The number of system inputs.  M &gt;= 0.
+
+  P       (input) INTEGER
+          The number of system outputs.   P &gt;= 0.
+
+  A       (input/output) DOUBLE PRECISION array, dimension (LDA,N)
+          On entry, the leading N-by-N part of this array must
+          contain the original state dynamics matrix A.
+          On exit, if INFRED(1) &gt;= 0 and/or INFRED(2) &gt;= 0, the
+          leading NR-by-NR part of this array contains the upper
+          block Hessenberg state dynamics matrix Ar of a minimal,
+          controllable, or observable realization for the original
+          system, depending on the value of JOB, JOB = 'M',
+          JOB = 'C', or JOB = 'O', respectively.
+          The block structure of the resulting staircase form is
+          contained in the leading INFRED(4) elements of IWORK.
+          If INFRED(1:2) &lt; 0, then A contains the original matrix.
+
+  LDA     INTEGER
+          The leading dimension of the array A.  LDA &gt;= MAX(1,N).
+
+  B       (input/output) DOUBLE PRECISION array, dimension (LDB,M),
+          if JOB = 'C', or (LDB,MAX(M,P)), otherwise.
+          On entry, the leading N-by-M part of this array must
+          contain the original input/state matrix B; if JOB = 'M',
+          or JOB = 'O', the remainder of the leading N-by-MAX(M,P)
+          part is used as internal workspace.
+          On exit, if INFRED(1) &gt;= 0 and/or INFRED(2) &gt;= 0, the
+          leading NR-by-M part of this array contains the
+          input/state matrix Br of a minimal, controllable, or
+          observable realization for the original system, depending
+          on the value of JOB, JOB = 'M', JOB = 'C', or JOB = 'O',
+          respectively. If JOB = 'C', only the first IWORK(1) rows
+          of B are nonzero.
+          If INFRED(1:2) &lt; 0, then B contains the original matrix.
+
+  LDB     INTEGER
+          The leading dimension of the array B.  LDB &gt;= MAX(1,N).
+
+  C       (input/output) DOUBLE PRECISION array, dimension (LDC,N)
+          On entry, the leading P-by-N part of this array must
+          contain the original state/output matrix C; if JOB = 'M',
+          or JOB = 'O', the remainder of the leading MAX(M,P)-by-N
+          part is used as internal workspace.
+          On exit, if INFRED(1) &gt;= 0 and/or INFRED(2) &gt;= 0, the
+          leading P-by-NR part of this array contains the
+          state/output matrix Cr of a minimal, controllable, or
+          observable realization for the original system, depending
+          on the value of JOB, JOB = 'M', JOB = 'C', or JOB = 'O',
+          respectively. If JOB = 'M', or JOB = 'O', only the last
+          IWORK(1) columns (in the first NR columns) of C are
+          nonzero.
+          If INFRED(1:2) &lt; 0, then C contains the original matrix.
+
+  LDC     INTEGER
+          The leading dimension of the array C.
+          LDC &gt;= MAX(1,M,P), if N &gt; 0.
+          LDC &gt;= 1,          if N = 0.
+
+  NR      (output) INTEGER
+          The order of the reduced state-space representation
+          (Ar,Br,Cr) of a minimal, controllable, or observable
+          realization for the original system, depending on
+          JOB = 'M', JOB = 'C', or JOB = 'O'.
+
+  INFRED  (output) INTEGER array, dimension 4
+          This array contains information on the performed reduction
+          and on structure of resulting system matrices, as follows:
+          INFRED(k) &gt;= 0 (k = 1 or 2) if Phase k of the reduction
+                         (see METHOD) has been performed. In this
+                         case, INFRED(k) is the achieved order
+                         reduction in Phase k.
+          INFRED(k) &lt; 0  (k = 1 or 2) if Phase k was not performed.
+                         This can also appear when Phase k was
+                         tried, but did not reduce the order, if
+                         enough workspace is provided for saving the
+                         system matrices (see LDWORK description).
+          INFRED(3)  -   the number of nonzero subdiagonals of A.
+          INFRED(4)  -   the number of blocks in the resulting
+                         staircase form at the last performed
+                         reduction phase. The block dimensions are
+                         contained in the first INFRED(4) elements
+                         of IWORK.
+
+</PRE>
+<B>Tolerances</B>
+<PRE>
+  TOL     DOUBLE PRECISION
+          The tolerance to be used in rank determinations when
+          transforming (A, B, C). If the user sets TOL &gt; 0, then
+          the given value of TOL is used as a lower bound for the
+          reciprocal condition number (see the description of the
+          argument RCOND in the SLICOT routine MB03OD);  a
+          (sub)matrix whose estimated condition number is less than
+          1/TOL is considered to be of full rank.  If the user sets
+          TOL &lt;= 0, then an implicitly computed, default tolerance
+          (determined by the SLICOT routine TB01UD) is used instead.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  IWORK   INTEGER array, dimension (c*N+MAX(M,P)), where
+          c = 2, if JOB = 'M', and c = 1, otherwise.
+          On exit, if INFO = 0, the first INFRED(4) elements of
+          IWORK return the orders of the diagonal blocks of A.
+
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+          On exit, if INFO = 0, DWORK(1) returns the optimal value
+          of LDWORK.
+
+  LDWORK  INTEGER
+          The length of the array DWORK.  LDWORK &gt;= 1, and if N &gt; 0,
+          LDWORK &gt;= N + MAX(N, 3*M, 3*P).
+          For optimum performance LDWORK should be larger.
+          If LDWORK &gt;= MAX(1, N + MAX(N, 3*M, 3*P) + N*(N+M+P) ),
+          then more accurate results are to be expected by accepting
+          only those reductions phases (see METHOD), where effective
+          order reduction occurs. This is achieved by saving the
+          system matrices before each phase and restoring them if
+          no order reduction took place in that phase.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  The order reduction is performed in two phases:
+
+  Phase 1:
+  If JOB = 'M' or 'C', the pair (A,B) is reduced by orthogonal
+  similarity transformations to the controllability staircase form
+  (see [1]) and a controllable realization (Ac,Bc,Cc) is extracted.
+  Ac results in an upper block Hessenberg form.
+
+  Phase 2:
+  If JOB = 'M' or 'O', the same algorithm is applied to the dual
+  of the controllable realization (Ac,Bc,Cc), or to the dual of
+  the original system, respectively, to extract an observable
+  realization (Ar,Br,Cr). If JOB = 'M', the resulting realization
+  is also controllable, and thus minimal.
+  Ar results in an upper block Hessenberg form.
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Van Dooren, P.
+      The Generalized Eigenstructure Problem in Linear System
+      Theory. (Algorithm 1)
+      IEEE Trans. Auto. Contr., AC-26, pp. 111-129, 1981.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>                            3
+  The algorithm requires 0(N ) operations and is backward stable.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+*     TB01PX EXAMPLE PROGRAM TEXT
+*
+*     .. Parameters ..
+      INTEGER          NIN, NOUT
+      PARAMETER        ( NIN = 5, NOUT = 6 )
+      INTEGER          NMAX, MMAX, PMAX
+      PARAMETER        ( NMAX = 20, MMAX = 20, PMAX = 20 )
+      INTEGER          MAXMP
+      PARAMETER        ( MAXMP = MAX( MMAX, PMAX ) )
+      INTEGER          LDA, LDB, LDC
+      PARAMETER        ( LDA = NMAX, LDB = NMAX, LDC = MAXMP )
+      INTEGER          LIWORK
+      PARAMETER        ( LIWORK = 2*NMAX+MAXMP )
+      INTEGER          LDWORK
+      PARAMETER        ( LDWORK = NMAX+MAX( NMAX, 3*MAXMP +
+     $                   NMAX*( NMAX+MMAX+PMAX ) ) )
+*     .. Local Scalars ..
+      DOUBLE PRECISION TOL
+      INTEGER          I, INFO, J, M, N, NR, P
+      CHARACTER        JOB, EQUIL
+*     .. Local Arrays ..
+      DOUBLE PRECISION A(LDA,NMAX), B(LDB,MAXMP), C(LDC,NMAX),
+     $                 DWORK(LDWORK)
+      INTEGER          INFRED(4), IWORK(LIWORK)
+*     .. External Subroutines ..
+      EXTERNAL         TB01PX
+*     .. Intrinsic Functions ..
+      INTRINSIC        MAX
+*     .. Executable Statements ..
+*
+      WRITE ( NOUT, FMT = 99999 )
+*     Skip the heading in the data file and read the data.
+      READ ( NIN, FMT = '()' )
+      READ ( NIN, FMT = * ) N, M, P, TOL, JOB, EQUIL
+      IF ( N.LT.0 .OR. N.GT.NMAX ) THEN
+         WRITE ( NOUT, FMT = 99990 ) N
+      ELSE
+         READ ( NIN, FMT = * ) ( ( A(I,J), J = 1,N ), I = 1,N )
+         IF ( M.LT.0 .OR. M.GT.MMAX ) THEN
+            WRITE ( NOUT, FMT = 99989 ) M
+         ELSE
+            READ ( NIN, FMT = * ) ( ( B(I,J), I = 1,N ), J = 1,M )
+            IF ( P.LT.0 .OR. P.GT.PMAX ) THEN
+               WRITE ( NOUT, FMT = 99988 ) P
+            ELSE
+               READ ( NIN, FMT = * ) ( ( C(I,J), J = 1,N ), I = 1,P )
+*              Find a minimal ssr for (A,B,C).
+               CALL TB01PX( JOB, EQUIL, N, M, P, A, LDA, B, LDB, C, LDC,
+     $                      NR, INFRED, TOL, IWORK, DWORK, LDWORK, INFO)
+*
+               IF ( INFO.NE.0 ) THEN
+                  WRITE ( NOUT, FMT = 99998 ) INFO
+               ELSE
+                  WRITE ( NOUT, FMT = 99997 ) NR
+                  WRITE ( NOUT, FMT = 99996 )
+                  DO 20 I = 1, NR
+                     WRITE ( NOUT, FMT = 99995 ) ( A(I,J), J = 1,NR )
+   20             CONTINUE
+                  WRITE ( NOUT, FMT = 99993 )
+                  DO 40 I = 1, NR
+                     WRITE ( NOUT, FMT = 99995 ) ( B(I,J), J = 1,M )
+   40             CONTINUE
+                  WRITE ( NOUT, FMT = 99992 )
+                  DO 60 I = 1, P
+                     WRITE ( NOUT, FMT = 99995 ) ( C(I,J), J = 1,NR )
+   60             CONTINUE
+                  WRITE ( NOUT, FMT = 99994 ) ( INFRED(I), I = 1,4 )
+                  IF ( INFRED(4).GT.0 )
+     $               WRITE ( NOUT, FMT = 99991 ) ( IWORK(I),
+     $                                             I = 1,INFRED(4) )
+               END IF
+            END IF
+         END IF
+      END IF
+      STOP
+*
+99999 FORMAT (' TB01PX EXAMPLE PROGRAM RESULTS',/1X)
+99998 FORMAT (' INFO on exit from TB01PX = ',I2)
+99997 FORMAT (' The order of the minimal realization = ',I2)
+99996 FORMAT (/' The transformed state dynamics matrix of a minimal re',
+     $       'alization is ')
+99995 FORMAT (20(1X,F8.4))
+99994 FORMAT (/' Information on the performed reduction is ', 4I5)
+99993 FORMAT (/' The transformed input/state matrix of a minimal reali',
+     $       'zation is ')
+99992 FORMAT (/' The transformed state/output matrix of a minimal real',
+     $       'ization is ')
+99991 FORMAT (/' The block dimensions are ',/ 20I5)
+99990 FORMAT (/' N is out of range.',/' N = ',I5)
+99989 FORMAT (/' M is out of range.',/' M = ',I5)
+99988 FORMAT (/' P is out of range.',/' P = ',I5)
+      END
+</PRE>
+<B>Program Data</B>
+<PRE>
+ TB01PX EXAMPLE PROGRAM DATA
+   3     1     2     0.0     M     N
+   1.0   2.0   0.0
+   4.0  -1.0   0.0
+   0.0   0.0   1.0
+   1.0   0.0   1.0
+   0.0   1.0  -1.0
+   0.0   0.0   1.0
+</PRE>
+<B>Program Results</B>
+<PRE>
+ TB01PX EXAMPLE PROGRAM RESULTS
+
+ The order of the minimal realization =  3
+
+ The transformed state dynamics matrix of a minimal realization is 
+   1.0000   2.0000   0.0000
+   4.0000  -1.0000   0.0000
+   0.0000   0.0000   1.0000
+
+ The transformed input/state matrix of a minimal realization is 
+   1.0000
+   0.0000
+   1.0000
+
+ The transformed state/output matrix of a minimal realization is 
+   0.0000   1.0000  -1.0000
+   0.0000   0.0000   1.0000
+
+ Information on the performed reduction is    -1   -1    2    0
+</PRE>
+
+<HR>
+<p>
+<A HREF=..\libindex.html><B>Return to index</B></A></BODY>
+</HTML>

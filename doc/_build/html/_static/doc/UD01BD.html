@@ -1,0 +1,212 @@
+<HTML>
+<HEAD><TITLE>UD01BD - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="UD01BD">UD01BD</A></H2>
+<H3>
+Reading a matrix polynomial
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To read the coefficients of a matrix polynomial
+                                                 dp-1           dp
+     P(s) = P(0) + P(1) * s + . . . + P(dp-1) * s    + P(dp) * s  .
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE UD01BD( MP, NP, DP, NIN, P, LDP1, LDP2, INFO )
+C     .. Scalar Arguments ..
+      INTEGER           DP, INFO, LDP1, LDP2, MP, NP, NIN
+C     .. Array Arguments ..
+      DOUBLE PRECISION  P(LDP1,LDP2,*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  MP      (input) INTEGER
+          The number of rows of the matrix polynomial P(s).
+          MP &gt;= 1.
+
+  NP      (input) INTEGER
+          The number of columns of the matrix polynomial P(s).
+          NP &gt;= 1.
+
+  DP      (input) INTEGER
+          The degree of the matrix polynomial P(s).  DP &gt;= 0.
+
+  NIN     (input) INTEGER
+          The input channel from which the elements of P(s) are
+          read.  NIN &gt;= 0.
+
+  P       (output) DOUBLE PRECISION array, dimension
+          (LDP1,LDP2,DP+1)
+          The leading MP-by-NP-by-(DP+1) part of this array contains
+          the coefficients of the matrix polynomial P(s).
+          Specifically, P(i,j,k) contains the coefficient of
+          s**(k-1) of the polynomial which is the (i,j)-th element
+          of P(s), where i = 1,2,...,MP, j = 1,2,...,NP and
+          k = 1,2,...,DP+1.
+
+  LDP1    INTEGER
+          The leading dimension of array P.  LDP1 &gt;= MP.
+
+  LDP2    INTEGER
+          The second dimension of array P.  LDP2 &gt;= NP.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  The coefficients P(i), i = 0, ..., DP, which are MP-by-NP
+  matrices, are read from the input file NIN row by row. Each P(i)
+  must be preceded by a text line. This text line can be used to
+  indicate the coefficient matrices.
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  None.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  None.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+*     UD01BD EXAMPLE PROGRAM TEXT
+*
+*     .. Parameters ..
+      INTEGER          NIN, NOUT
+      PARAMETER        ( NIN = 5, NOUT = 6 )
+      INTEGER          MPMAX, NPMAX, DPMAX
+      PARAMETER        ( MPMAX = 10, NPMAX = 10, DPMAX = 5 )
+      INTEGER          LDP1, LDP2
+      PARAMETER        ( LDP1 = MPMAX, LDP2 = NPMAX )
+*     .. Local Scalars ..
+      INTEGER          DP, INFO, L, MP, NP
+*     .. Local Arrays ..
+      DOUBLE PRECISION P(LDP1,LDP2,DPMAX)
+*     .. External Subroutines ..
+      EXTERNAL         UD01BD, UD01ND
+*     .. Executable Statements ..
+*
+      WRITE ( NOUT, FMT = 99999 )
+*     Skip the heading in the data file and read the data.
+      READ ( NIN, FMT = '()' )
+      READ ( NIN, FMT = * ) MP, NP, DP
+      IF ( MP.LE.0 .OR. MP.GT.MPMAX ) THEN
+         WRITE ( NOUT, FMT = 99994 ) MP
+      ELSE IF ( NP.LE.0 .OR. NP.GT.NPMAX ) THEN
+         WRITE ( NOUT, FMT = 99995 ) NP
+      ELSE IF ( DP.LT.0 .OR. DP.GT.DPMAX ) THEN
+         WRITE ( NOUT, FMT = 99993 ) DP
+      ELSE
+*        Read the coefficients of the matrix polynomial P(s).
+         CALL UD01BD( MP, NP, DP, NIN, P, LDP1, LDP2, INFO )
+         IF ( INFO.EQ.0 ) THEN
+            WRITE ( NOUT, 99996 ) MP, NP, DP
+*           Write the coefficients of the matrix polynomial P(s).
+            L = 5
+            CALL UD01ND( MP, NP, DP, L, NOUT, P, LDP1, LDP2, ' P',
+     $                   INFO )
+            IF ( INFO.NE.0 )
+     $         WRITE ( NOUT, FMT = 99997 ) INFO
+         ELSE
+            WRITE ( NOUT, FMT = 99998 ) INFO
+         END IF
+      END IF
+      STOP
+*
+99999 FORMAT (' UD01BD EXAMPLE PROGRAM RESULTS', /1X)
+99998 FORMAT (' INFO on exit from UD01BD = ',I2)
+99997 FORMAT (' INFO on exit from UD01ND = ',I2)
+99996 FORMAT (' MP =', I2, 2X, ' NP =', I2, 3X, 'DP =', I2)
+99995 FORMAT (/' NP is out of range.',/' NP = ',I5)
+99994 FORMAT (/' MP is out of range.',/' MP = ',I5)
+99993 FORMAT (/' DP is out of range.',/' DP = ',I5)
+      END
+</PRE>
+<B>Program Data</B>
+<PRE>
+UD01BD EXAMPLE PROGRAM DATA
+   4   3   2 
+P0
+ 1.0D-00  0.0D-00  0.0D-00
+ 0.0D-00  2.0D-00  4.0D-00
+ 0.0D-00  4.0D-00  8.0D-00
+ 0.0D-00  6.0D-00  1.2D+01
+P1
+ 0.0D-00  1.0D-00  2.0D-00
+ 1.0D-00  0.0D-00  0.0D-00
+ 2.0D-00  0.0D-00  0.0D-00
+ 3.0D-00  0.0D-00  0.0D-00
+P2
+ 1.0D-00  0.0D-00  0.0D-00
+ 0.0D-00  0.0D-00  0.0D-00
+ 0.0D-00  0.0D-00  0.0D-00
+ 0.0D-00  0.0D-00  0.0D-00
+</PRE>
+<B>Program Results</B>
+<PRE>
+ UD01BD EXAMPLE PROGRAM RESULTS
+
+ MP = 4   NP = 3   DP = 2
+
+  P( 0) ( 4X 3)
+            1              2              3
+  1    0.1000000D+01  0.0000000D+00  0.0000000D+00
+  2    0.0000000D+00  0.2000000D+01  0.4000000D+01
+  3    0.0000000D+00  0.4000000D+01  0.8000000D+01
+  4    0.0000000D+00  0.6000000D+01  0.1200000D+02
+
+  P( 1) ( 4X 3)
+            1              2              3
+  1    0.0000000D+00  0.1000000D+01  0.2000000D+01
+  2    0.1000000D+01  0.0000000D+00  0.0000000D+00
+  3    0.2000000D+01  0.0000000D+00  0.0000000D+00
+  4    0.3000000D+01  0.0000000D+00  0.0000000D+00
+
+  P( 2) ( 4X 3)
+            1              2              3
+  1    0.1000000D+01  0.0000000D+00  0.0000000D+00
+  2    0.0000000D+00  0.0000000D+00  0.0000000D+00
+  3    0.0000000D+00  0.0000000D+00  0.0000000D+00
+  4    0.0000000D+00  0.0000000D+00  0.0000000D+00
+ 
+</PRE>
+
+<HR>
+<p>
+<A HREF=..\libindex.html><B>Return to index</B></A></BODY>
+</HTML>

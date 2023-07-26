@@ -1,0 +1,357 @@
+<HTML>
+<HEAD><TITLE>SB02OY - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="SB02OY">SB02OY</A></H2>
+<H3>
+Constructing the extended Hamiltonian or symplectic matrix pairs for linear-quadratic optimization problems, and compressing them to 2N-by-2N matrices
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To construct the extended matrix pairs for the computation of the
+  solution of the algebraic matrix Riccati equations arising in the
+  problems of optimal control, both discrete and continuous-time,
+  and of spectral factorization, both discrete and continuous-time.
+  These matrix pairs, of dimension 2N + M, are given by
+
+        discrete-time                   continuous-time
+
+  |A   0   B|     |E   0   0|    |A   0   B|     |E   0   0|
+  |Q  -E'  L| - z |0  -A'  0|,   |Q   A'  L| - s |0  -E'  0|.   (1)
+  |L'  0   R|     |0  -B'  0|    |L'  B'  R|     |0   0   0|
+
+  After construction, these pencils are compressed to a form
+  (see [1])
+
+     lambda x A  - B ,
+               f    f
+
+  where A  and B  are 2N-by-2N matrices.
+         f      f
+                           -1
+  Optionally, matrix G = BR  B' may be given instead of B and R;
+  then, for L = 0, 2N-by-2N matrix pairs are directly constructed as
+
+      discrete-time            continuous-time
+
+  |A   0 |     |E   G |    |A  -G |     |E   0 |
+  |      | - z |      |,   |      | - s |      |.               (2)
+  |Q  -E'|     |0  -A'|    |Q   A'|     |0  -E'|
+
+  Similar pairs are obtained for non-zero L, if SLICOT Library
+  routine SB02MT is called before SB02OY.
+  Other options include the case with E identity matrix, L a zero
+  matrix, or Q and/or R given in a factored form, Q = C'C, R = D'D.
+  For spectral factorization problems, there are minor differences
+  (e.g., B is replaced by C').
+  The second matrix in (2) is not constructed in the continuous-time
+  case if E is specified as being an identity matrix.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE SB02OY( TYPE, DICO, JOBB, FACT, UPLO, JOBL, JOBE, N, M,
+     $                   P, A, LDA, B, LDB, Q, LDQ, R, LDR, L, LDL, E,
+     $                   LDE, AF, LDAF, BF, LDBF, TOL, IWORK, DWORK,
+     $                   LDWORK, INFO )
+C     .. Scalar Arguments ..
+      CHARACTER         DICO, FACT, JOBB, JOBE, JOBL, TYPE, UPLO
+      INTEGER           INFO, LDA, LDAF, LDB, LDBF, LDE, LDL, LDQ, LDR,
+     $                  LDWORK, M, N, P
+      DOUBLE PRECISION  TOL
+C     .. Array Arguments ..
+      INTEGER           IWORK(*)
+      DOUBLE PRECISION  A(LDA,*), AF(LDAF,*), B(LDB,*), BF(LDBF,*),
+     $                  DWORK(*), E(LDE,*), L(LDL,*), Q(LDQ,*), R(LDR,*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  TYPE    CHARACTER*1
+          Specifies the type of problem to be addressed as follows:
+          = 'O':  Optimal control problem;
+          = 'S':  Spectral factorization problem.
+
+  DICO    CHARACTER*1
+          Specifies the type of linear system considered as follows:
+          = 'C':  Continuous-time system;
+          = 'D':  Discrete-time system.
+
+  JOBB    CHARACTER*1
+          Specifies whether or not the matrix G is given, instead
+          of the matrices B and R, as follows:
+          = 'B':  B and R are given;
+          = 'G':  G is given.
+          For JOBB = 'G', a 2N-by-2N matrix pair is directly
+          obtained assuming L = 0 (see the description of JOBL).
+
+  FACT    CHARACTER*1
+          Specifies whether or not the matrices Q and/or R (if
+          JOBB = 'B') are factored, as follows:
+          = 'N':  Not factored, Q and R are given;
+          = 'C':  C is given, and Q = C'C;
+          = 'D':  D is given, and R = D'D (if TYPE = 'O'), or
+                  R = D + D' (if TYPE = 'S');
+          = 'B':  Both factors C and D are given, Q = C'C, R = D'D
+                  (or R = D + D').
+
+  UPLO    CHARACTER*1
+          If JOBB = 'G', or FACT = 'N', specifies which triangle of
+          the matrices G and Q (if FACT = 'N'), or Q and R (if
+          JOBB = 'B'), is stored, as follows:
+          = 'U':  Upper triangle is stored;
+          = 'L':  Lower triangle is stored.
+
+  JOBL    CHARACTER*1
+          Specifies whether or not the matrix L is zero, as follows:
+          = 'Z':  L is zero;
+          = 'N':  L is nonzero.
+          JOBL is not used if JOBB = 'G' and JOBL = 'Z' is assumed.
+          Using SLICOT Library routine SB02MT to compute the
+          corresponding A and Q in this case, before calling SB02OY,
+          enables to obtain 2N-by-2N matrix pairs directly.
+
+  JOBE    CHARACTER*1
+          Specifies whether or not the matrix E is identity, as
+          follows:
+          = 'I':  E is the identity matrix;
+          = 'N':  E is a general matrix.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The order of the matrices A, Q, and E, and the number
+          of rows of the matrices B and L.  N &gt;= 0.
+
+  M       (input) INTEGER
+          If JOBB = 'B', M is the order of the matrix R, and the
+          number of columns of the matrix B.  M &gt;= 0.
+          M is not used if JOBB = 'G'.
+
+  P       (input) INTEGER
+          If FACT = 'C' or 'D' or 'B', or if TYPE = 'S', P is the
+          number of rows of the matrix C and/or D, respectively.
+          P &gt;= 0, and if JOBB = 'B' and TYPE = 'S', then P = M.
+          Otherwise, P is not used.
+
+  A       (input) DOUBLE PRECISION array, dimension (LDA,N)
+          The leading N-by-N part of this array must contain the
+          state matrix A of the system.
+
+  LDA     INTEGER
+          The leading dimension of array A.  LDA &gt;= MAX(1,N).
+
+  B       (input) DOUBLE PRECISION array, dimension (LDB,*)
+          If JOBB = 'B', the leading N-by-M part of this array must
+          contain the input matrix B of the system.
+          If JOBB = 'G', the leading N-by-N upper triangular part
+          (if UPLO = 'U') or lower triangular part (if UPLO = 'L')
+          of this array must contain the upper triangular part or
+          lower triangular part, respectively, of the matrix
+                -1
+          G = BR  B'. The strictly lower triangular part (if
+          UPLO = 'U') or strictly upper triangular part (if
+          UPLO = 'L') is not referenced.
+
+  LDB     INTEGER
+          The leading dimension of array B.  LDB &gt;= MAX(1,N).
+
+  Q       (input) DOUBLE PRECISION array, dimension (LDQ,N)
+          If FACT = 'N' or 'D', the leading N-by-N upper triangular
+          part (if UPLO = 'U') or lower triangular part (if UPLO =
+          'L') of this array must contain the upper triangular part
+          or lower triangular part, respectively, of the symmetric
+          output weighting matrix Q. The strictly lower triangular
+          part (if UPLO = 'U') or strictly upper triangular part (if
+          UPLO = 'L') is not referenced.
+          If FACT = 'C' or 'B', the leading P-by-N part of this
+          array must contain the output matrix C of the system.
+
+  LDQ     INTEGER
+          The leading dimension of array Q.
+          LDQ &gt;= MAX(1,N) if FACT = 'N' or 'D',
+          LDQ &gt;= MAX(1,P) if FACT = 'C' or 'B'.
+
+  R       (input) DOUBLE PRECISION array, dimension (LDR,M)
+          If FACT = 'N' or 'C', the leading M-by-M upper triangular
+          part (if UPLO = 'U') or lower triangular part (if UPLO =
+          'L') of this array must contain the upper triangular part
+          or lower triangular part, respectively, of the symmetric
+          input weighting matrix R. The strictly lower triangular
+          part (if UPLO = 'U') or strictly upper triangular part (if
+          UPLO = 'L') is not referenced.
+          If FACT = 'D' or 'B', the leading P-by-M part of this
+          array must contain the direct transmission matrix D of the
+          system.
+          If JOBB = 'G', this array is not referenced.
+
+  LDR     INTEGER
+          The leading dimension of array R.
+          LDR &gt;= MAX(1,M) if JOBB = 'B' and FACT = 'N' or 'C';
+          LDR &gt;= MAX(1,P) if JOBB = 'B' and FACT = 'D' or 'B';
+          LDR &gt;= 1        if JOBB = 'G'.
+
+  L       (input) DOUBLE PRECISION array, dimension (LDL,M)
+          If JOBL = 'N' (and JOBB = 'B'), the leading N-by-M part of
+          this array must contain the cross weighting matrix L.
+          If JOBL = 'Z' or JOBB = 'G', this array is not referenced.
+
+  LDL     INTEGER
+          The leading dimension of array L.
+          LDL &gt;= MAX(1,N) if JOBL = 'N';
+          LDL &gt;= 1        if JOBL = 'Z' or JOBB = 'G'.
+
+  E       (input) DOUBLE PRECISION array, dimension (LDE,N)
+          If JOBE = 'N', the leading N-by-N part of this array must
+          contain the matrix E of the descriptor system.
+          If JOBE = 'I', E is taken as identity and this array is
+          not referenced.
+
+  LDE     INTEGER
+          The leading dimension of array E.
+          LDE &gt;= MAX(1,N) if JOBE = 'N';
+          LDE &gt;= 1        if JOBE = 'I'.
+
+  AF      (output) DOUBLE PRECISION array, dimension (LDAF,*)
+          The leading 2N-by-2N part of this array contains the
+          matrix A  in the matrix pencil.
+                  f
+          Array AF must have 2*N+M columns if JOBB = 'B', and 2*N
+          columns, otherwise.
+
+  LDAF    INTEGER
+          The leading dimension of array AF.
+          LDAF &gt;= MAX(1,2*N+M) if JOBB = 'B',
+          LDAF &gt;= MAX(1,2*N)   if JOBB = 'G'.
+
+  BF      (output) DOUBLE PRECISION array, dimension (LDBF,2*N)
+          If DICO = 'D' or JOBB = 'B' or JOBE = 'N', the leading
+          2N-by-2N part of this array contains the matrix B  in the
+                                                           f
+          matrix pencil.
+          The last M zero columns are never constructed.
+          If DICO = 'C' and JOBB = 'G' and JOBE = 'I', this array
+          is not referenced.
+
+  LDBF    INTEGER
+          The leading dimension of array BF.
+          LDBF &gt;= MAX(1,2*N+M) if JOBB = 'B',
+          LDBF &gt;= MAX(1,2*N)   if JOBB = 'G' and ( DICO = 'D' or
+                                                   JOBE = 'N' ),
+          LDBF &gt;= 1            if JOBB = 'G' and ( DICO = 'C' and
+                                                   JOBE = 'I' ).
+
+</PRE>
+<B>Tolerances</B>
+<PRE>
+  TOL     DOUBLE PRECISION
+          The tolerance to be used to test for near singularity of
+          the original matrix pencil, specifically of the triangular
+          factor obtained during the reduction process. If the user
+          sets TOL &gt; 0, then the given value of TOL is used as a
+          lower bound for the reciprocal condition number of that
+          matrix; a matrix whose estimated condition number is less
+          than 1/TOL is considered to be nonsingular. If the user
+          sets TOL &lt;= 0, then a default tolerance, defined by
+          TOLDEF = EPS, is used instead, where EPS is the machine
+          precision (see LAPACK Library routine DLAMCH).
+          This parameter is not referenced if JOBB = 'G'.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  IWORK   INTEGER array, dimension (LIWORK)
+          LIWORK &gt;= M if JOBB = 'B',
+          LIWORK &gt;= 1 if JOBB = 'G'.
+
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+          On exit, if INFO = 0, DWORK(1) returns the optimal value
+          of LDWORK. If JOBB = 'B', DWORK(2) returns the reciprocal
+          of the condition number of the M-by-M lower triangular
+          matrix obtained after compression.
+
+  LDWORK  INTEGER
+          The length of the array DWORK.
+          LDWORK &gt;= 1                  if JOBB = 'G',
+          LDWORK &gt;= MAX(1,2*N + M,3*M) if JOBB = 'B'.
+          For optimum performance LDWORK should be larger.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value;
+          = 1:  if the computed extended matrix pencil is singular,
+                possibly due to rounding errors.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  The extended matrix pairs are constructed, taking various options
+  into account. If JOBB = 'B', the problem order is reduced from
+  2N+M to 2N (see [1]).
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Van Dooren, P.
+      A Generalized Eigenvalue Approach for Solving Riccati
+      Equations.
+      SIAM J. Sci. Stat. Comp., 2, pp. 121-135, 1981.
+
+  [2] Mehrmann, V.
+      The Autonomous Linear Quadratic Control Problem. Theory and
+      Numerical Solution.
+      Lect. Notes in Control and Information Sciences, vol. 163,
+      Springer-Verlag, Berlin, 1991.
+
+  [3] Sima, V.
+      Algorithms for Linear-Quadratic Optimization.
+      Pure and Applied Mathematics: A Series of Monographs and
+      Textbooks, vol. 200, Marcel Dekker, Inc., New York, 1996.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  The algorithm is backward stable.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

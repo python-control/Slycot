@@ -1,0 +1,144 @@
+<HTML>
+<HEAD><TITLE>MB01OT - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MB01OT">MB01OT</A></H2>
+<H3>
+Computation of matrix expression alpha R + beta ( op(E) op(T)' + op(T) op(E)' ) with R symmetric and E, T upper triangular
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To compute one of the symmetric rank 2k operations
+
+     R := alpha*R + beta*E*T' + beta*T*E',
+
+  or
+
+     R := alpha*R + beta*E'*T + beta*T'*E,
+
+  where alpha and beta are scalars, R, T, and E are N-by-N matrices,
+  with T and E upper triangular.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MB01OT( UPLO, TRANS, N, ALPHA, BETA, R, LDR, E, LDE, T,
+     $                   LDT )
+C     .. Scalar Arguments ..
+      DOUBLE PRECISION  ALPHA, BETA
+      INTEGER           LDE, LDR, LDT, N
+      CHARACTER         TRANS, UPLO
+C     .. Array Arguments ..
+      DOUBLE PRECISION  E(LDE,*), R(LDR,*), T(LDT,*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  UPLO    CHARACTER*1
+          Specifies which triangle of the symmetric matrix R is
+          given as follows:
+          = 'U':  the upper triangular part is given;
+          = 'L':  the lower triangular part is given.
+
+  TRANS   CHARACTER*1
+          Specifies the form of E to be used in the matrix
+          multiplication as follows:
+          = 'N':  R := alpha*R + beta*E*T' + beta*T*E';
+          = 'T':  R := alpha*R + beta*E'*T + beta*T'*E;
+          = 'C':  R := alpha*R + beta*E'*T + beta*T'*E.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The order of the matrices R, T, and E.  N &gt;= 0.
+
+  ALPHA   (input) DOUBLE PRECISION
+          The scalar alpha. When alpha is zero then R need not be
+          set before entry.
+
+  BETA    (input) DOUBLE PRECISION
+          The scalar beta. When beta is zero then T and E are not
+          referenced.
+
+  R       (input/output) DOUBLE PRECISION array, dimension (LDR,N)
+          On entry with UPLO = 'U', the leading N-by-N upper
+          triangular part of this array must contain the upper
+          triangular part of the symmetric matrix R.
+          On entry with UPLO = 'L', the leading N-by-N lower
+          triangular part of this array must contain the lower
+          triangular part of the symmetric matrix R.
+          In both cases, the other strictly triangular part is not
+          referenced.
+          On exit, the leading N-by-N upper triangular part (if
+          UPLO = 'U'), or lower triangular part (if UPLO = 'L'), of
+          this array contains the corresponding triangular part of
+          the computed matrix R.
+
+  LDR     INTEGER
+          The leading dimension of array R.  LDR &gt;= MAX(1,N).
+
+  E       (input) DOUBLE PRECISION array, dimension (LDE,N)
+          On entry, the leading N-by-N upper triangular part of this
+          array must contain the upper triangular matrix E.
+          The remaining part of this array is not referenced.
+
+  LDE     INTEGER
+          The leading dimension of array E.  LDE &gt;= MAX(1,N).
+
+  T       (input) DOUBLE PRECISION array, dimension (LDT,N)
+          On entry, the leading N-by-N upper triangular part of this
+          array must contain the upper triangular matrix T.
+          The remaining part of this array is not referenced.
+
+  LDT     INTEGER
+          The leading dimension of array T.  LDT &gt;= MAX(1,N).
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  A particularization of the algorithm used in the BLAS 3 routine
+  DSYR2K is used.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  The algorithm requires approximately N**3/3 operations.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

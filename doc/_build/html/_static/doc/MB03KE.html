@@ -1,0 +1,191 @@
+<HTML>
+<HEAD><TITLE>MB03KE - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MB03KE">MB03KE</A></H2>
+<H3>
+Solving periodic Sylvester-like equations with matrices of order at most 2
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To solve small periodic Sylvester-like equations (PSLE)
+
+   op(A(i))*X( i ) + isgn*X(i+1)*op(B(i)) = -scale*C(i), S(i) =  1,
+   op(A(i))*X(i+1) + isgn*X( i )*op(B(i)) = -scale*C(i), S(i) = -1.
+
+  i = 1, ..., K, where op(A) means A or A**T, for the K-periodic
+  matrix sequence X(i) = X(i+K), where A, B and C are K-periodic
+  matrix sequences and A and B are in periodic real Schur form. The
+  matrices A(i) are M-by-M and B(i) are N-by-N, with 1 &lt;= M, N &lt;= 2.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MB03KE( TRANA, TRANB, ISGN, K, M, N, PREC, SMIN, S, A,
+     $                   B, C, SCALE, DWORK, LDWORK, INFO )
+C     .. Scalar Arguments ..
+      LOGICAL            TRANA, TRANB
+      INTEGER            INFO, ISGN, K, LDWORK, M, N
+      DOUBLE PRECISION   PREC, SCALE, SMIN
+C     .. Array Arguments ..
+      INTEGER            S( * )
+      DOUBLE PRECISION   A( * ), B( * ), C( * ), DWORK( * )
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  TRANA   LOGICAL
+          Specifies the form of op(A) to be used, as follows:
+          = .FALSE.:  op(A) = A,
+          = .TRUE. :  op(A) = A**T.
+
+  TRANB   LOGICAL
+          Specifies the form of op(B) to be used, as follows:
+          = .FALSE.:  op(B) = B,
+          = .TRUE. :  op(B) = B**T.
+
+  ISGN    INTEGER
+          Specifies which sign variant of the equations to solve.
+          ISGN = 1 or ISGN = -1.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  K       (input) INTEGER
+          The period of the periodic matrix sequences A, B, C and X.
+          K &gt;= 2. (For K = 1, a standard Sylvester equation is
+          obtained.)
+
+  M       (input) INTEGER
+          The order of the matrices A(i) and the number of rows of
+          the matrices C(i) and X(i), i = 1, ..., K.  1 &lt;= M &lt;= 2.
+
+  N       (input) INTEGER
+          The order of the matrices B(i) and the number of columns
+          of the matrices C(i) and X(i), i = 1, ..., K.
+          1 &lt;= N &lt;= 2.
+
+  PREC    (input) DOUBLE PRECISION
+          The relative machine precision. See the LAPACK Library
+          routine DLAMCH.
+
+  SMIN    (input) DOUBLE PRECISION
+          The machine safe minimum divided by PREC.
+
+  S       (input) INTEGER array, dimension (K)
+          The leading K elements of this array must contain the
+          signatures (exponents) of the factors in the K-periodic
+          matrix sequences for A and B. Each entry in S must be
+          either 1 or -1. Notice that it is assumed that the same
+          exponents are tied to both A and B on reduction to the
+          periodic Schur form.
+
+  A       (input) DOUBLE PRECISION array, dimension (M*M*K)
+          On entry, this array must contain the M-by-M matrices
+          A(i), for i = 1, ..., K, stored with the leading dimension
+          M. Matrix A(i) is stored starting at position M*M*(i-1)+1.
+
+  B       (input) DOUBLE PRECISION array, dimension (N*N*K)
+          On entry, this array must contain the N-by-N matrices
+          B(i), for i = 1, ..., K, stored with the leading dimension
+          N. Matrix B(i) is stored starting at position N*N*(i-1)+1.
+
+  C       (input/output) DOUBLE PRECISION array, dimension (M*N*K)
+          On entry, this array must contain the M-by-N matrices
+          C(i), for i = 1, ..., K, stored with the leading dimension
+          M. Matrix C(i) is stored starting at position M*N*(i-1)+1.
+          On exit, the matrices C(i) are overwritten by the solution
+          sequence X(i).
+
+  SCALE   (output) DOUBLE PRECISION
+          The scale factor, scale, set less than or equal to 1 to
+          avoid overflow in X.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+          On exit, if INFO = 0, DWORK(1) returns the optimal LDWORK.
+          On exit, if INFO = -21, DWORK(1) returns the minimum value
+          of LDWORK.
+
+  LDWORK  INTEGER
+          The dimension of the array DWORK.
+          LDWORK &gt;= (4*K-3) * (M*N)**2 + K * M*N.
+
+          If LDWORK = -1  a workspace query is assumed; the
+          routine only calculates the optimal size of the DWORK
+          array, returns this value as the first entry of the DWORK
+          array, and no error message is issued by XERBLA.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -21, then LDWORK is too small; appropriate
+                value for LDWORK is returned in DWORK(1); the other
+                arguments are not tested, for efficiency;
+          = 1:  the solution would overflow with scale = 1, so
+                SCALE was set less than 1. This is a warning, not
+                an error.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  A version of the algorithm described in [1] is used. The routine
+  uses a sparse Kronecker product representation Z of the PSLE and
+  solves for X(i) from an associated linear system Z*x = c using
+  structured (overlapping) variants of QR factorization and backward
+  substitution.
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Granat, R., Kagstrom, B. and Kressner, D.
+      Computing periodic deflating subspaces associated with a
+      specified set of eigenvalues.
+      BIT Numerical Mathematics, vol. 47, 763-791, 2007.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  The implemented method is numerically backward stable.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

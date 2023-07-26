@@ -1,0 +1,318 @@
+<HTML>
+<HEAD><TITLE>AB04MD - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="AB04MD">AB04MD</A></H2>
+<H3>
+Discrete-time <--> continuous-time systems conversion by a bilinear transformation
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To perform a transformation on the parameters (A,B,C,D) of a
+  system, which is equivalent to a bilinear transformation of the
+  corresponding transfer function matrix.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE AB04MD( TYPE, N, M, P, ALPHA, BETA, A, LDA, B, LDB, C,
+     $                   LDC, D, LDD, IWORK, DWORK, LDWORK, INFO )
+C     .. Scalar Arguments ..
+      CHARACTER         TYPE
+      INTEGER           INFO, LDA, LDB, LDC, LDD, LDWORK, M, N, P
+      DOUBLE PRECISION  ALPHA, BETA
+C     .. Array Arguments ..
+      INTEGER           IWORK(*)
+      DOUBLE PRECISION  A(LDA,*), B(LDB,*), C(LDC,*), D(LDD,*), DWORK(*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  TYPE    CHARACTER*1
+          Indicates the type of the original system and the
+          transformation to be performed as follows:
+          = 'D':  discrete-time   -&gt; continuous-time;
+          = 'C':  continuous-time -&gt; discrete-time.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The order of the state matrix A.  N &gt;= 0.
+
+  M       (input) INTEGER
+          The number of system inputs.  M &gt;= 0.
+
+  P       (input) INTEGER
+          The number of system outputs.  P &gt;= 0.
+
+  ALPHA,  (input) DOUBLE PRECISION
+  BETA    Parameters specifying the bilinear transformation.
+          Recommended values for stable systems: ALPHA = 1,
+          BETA = 1.  ALPHA &lt;&gt; 0, BETA &lt;&gt; 0.
+
+  A       (input/output) DOUBLE PRECISION array, dimension (LDA,N)
+          On entry, the leading N-by-N part of this array must
+          contain the state matrix A of the original system.
+          On exit, the leading N-by-N part of this array contains
+                           _
+          the state matrix A of the transformed system.
+
+  LDA     INTEGER
+          The leading dimension of array A.  LDA &gt;= MAX(1,N).
+
+  B       (input/output) DOUBLE PRECISION array, dimension (LDB,M)
+          On entry, the leading N-by-M part of this array must
+          contain the input matrix B of the original system.
+          On exit, the leading N-by-M part of this array contains
+                           _
+          the input matrix B of the transformed system.
+
+  LDB     INTEGER
+          The leading dimension of array B.  LDB &gt;= MAX(1,N).
+
+  C       (input/output) DOUBLE PRECISION array, dimension (LDC,N)
+          On entry, the leading P-by-N part of this array must
+          contain the output matrix C of the original system.
+          On exit, the leading P-by-N part of this array contains
+                            _
+          the output matrix C of the transformed system.
+
+  LDC     INTEGER
+          The leading dimension of array C.  LDC &gt;= MAX(1,P).
+
+  D       (input/output) DOUBLE PRECISION array, dimension (LDD,M)
+          On entry, the leading P-by-M part of this array must
+          contain the input/output matrix D for the original system.
+          On exit, the leading P-by-M part of this array contains
+                                  _
+          the input/output matrix D of the transformed system.
+
+  LDD     INTEGER
+          The leading dimension of array D.  LDD &gt;= MAX(1,P).
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  IWORK   INTEGER array, dimension (N)
+
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+          On exit, if INFO = 0, DWORK(1) returns the optimal value
+          of LDWORK.
+
+  LDWORK  INTEGER
+          The length of the array DWORK.  LDWORK &gt;= MAX(1,N).
+          For optimum performance LDWORK &gt;= MAX(1,N*NB), where NB
+          is the optimal blocksize.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value;
+          = 1:  if the matrix (ALPHA*I + A) is exactly singular;
+          = 2:  if the matrix  (BETA*I - A) is exactly singular.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  The parameters of the discrete-time system are transformed into
+  the parameters of the continuous-time system (TYPE = 'D'), or
+  vice-versa (TYPE = 'C') by the transformation:
+
+  1.  Discrete -&gt; continuous
+      _                     -1
+      A = beta*(alpha*I + A)  * (A - alpha*I)
+      _                                     -1
+      B = sqrt(2*alpha*beta) * (alpha*I + A)  * B
+      _                                         -1
+      C = sqrt(2*alpha*beta) * C * (alpha*I + A)
+      _                        -1
+      D = D - C * (alpha*I + A)  * B
+
+  which is equivalent to the bilinear transformation
+
+                    z - alpha
+      z -&gt; s = beta ---------  .
+                    z + alpha
+
+  of one transfer matrix onto the other.
+
+  2.  Continuous -&gt; discrete
+      _                     -1
+      A = alpha*(beta*I - A)  * (beta*I + A)
+      _                                    -1
+      B = sqrt(2*alpha*beta) * (beta*I - A)  * B
+      _                                        -1
+      C = sqrt(2*alpha*beta) * C * (beta*I - A)
+      _                       -1
+      D = D + C * (beta*I - A)  * B
+
+  which is equivalent to the bilinear transformation
+
+                   beta + s
+    s -&gt; z = alpha -------- .
+                   beta - s
+
+  of one transfer matrix onto the other.
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Al-Saggaf, U.M. and Franklin, G.F.
+      Model reduction via balanced realizations: a extension and
+      frequency weighting techniques.
+      IEEE Trans. Autom. Contr., AC-33, pp. 687-692, 1988.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>                                                   3
+  The time taken is approximately proportional to N .
+  The accuracy depends mainly on the condition number of the matrix
+  to be inverted.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+*     AB04MD EXAMPLE PROGRAM TEXT
+*
+*     .. Parameters ..
+      INTEGER          NIN, NOUT
+      PARAMETER        ( NIN = 5, NOUT = 6 )
+      INTEGER          NMAX, MMAX, PMAX
+      PARAMETER        ( NMAX = 20, MMAX = 20, PMAX = 20 )
+      INTEGER          LDA, LDB, LDC, LDD
+      PARAMETER        ( LDA = NMAX, LDB = NMAX, LDC = PMAX,
+     $                   LDD = PMAX )
+      INTEGER          LDWORK
+      PARAMETER        ( LDWORK = NMAX )
+*     .. Local Scalars ..
+      DOUBLE PRECISION ALPHA, BETA
+      INTEGER          I, INFO, J, M, N, P
+      CHARACTER*1      TYPE
+*     .. Local Arrays ..
+      DOUBLE PRECISION A(LDA,NMAX), B(LDB,MMAX), C(LDC,NMAX),
+     $                 D(LDD,MMAX), DWORK(LDWORK)
+      INTEGER          IWORK(NMAX)
+*     .. External Subroutines ..
+      EXTERNAL         AB04MD
+*     .. Executable Statements ..
+*
+      WRITE ( NOUT, FMT = 99999 )
+*     Skip the heading in the data file and read the data.
+      READ ( NIN, FMT = '()' )
+      READ ( NIN, FMT = * ) N, M, P, TYPE, ALPHA, BETA
+      IF ( N.LE.0 .OR. N.GT.NMAX ) THEN
+         WRITE ( NOUT, FMT = 99993 ) N
+      ELSE
+         READ ( NIN, FMT = * ) ( ( A(I,J), I = 1,N ), J = 1,N )
+         IF ( M.LE.0 .OR. M.GT.MMAX ) THEN
+            WRITE ( NOUT, FMT = 99992 ) M
+         ELSE
+            READ ( NIN, FMT = * ) ( ( B(I,J), I = 1,N ), J = 1,M )
+            IF ( P.LE.0 .OR. P.GT.PMAX ) THEN
+               WRITE ( NOUT, FMT = 99991 ) P
+            ELSE
+               READ ( NIN, FMT = * ) ( ( C(I,J), I = 1,P ), J = 1,N )
+               READ ( NIN, FMT = * ) ( ( D(I,J), I = 1,P ), J = 1,M )
+*              Transform the parameters (A,B,C,D).
+               CALL AB04MD( TYPE, N, M, P, ALPHA, BETA, A, LDA, B, LDB,
+     $                      C, LDC, D, LDD, IWORK, DWORK, LDWORK, INFO )
+*
+               IF ( INFO.NE.0 ) THEN
+                  WRITE ( NOUT, FMT = 99998 ) INFO
+               ELSE
+                  WRITE ( NOUT, FMT = 99997 )
+                  DO 20 I = 1, N
+                     WRITE ( NOUT, FMT = 99996 ) ( A(I,J), J = 1,N )
+   20             CONTINUE
+                  WRITE ( NOUT, FMT = 99995 )
+                  DO 40 I = 1, N
+                     WRITE ( NOUT, FMT = 99996 ) ( B(I,J), J = 1,M )
+   40             CONTINUE
+                  WRITE ( NOUT, FMT = 99994 )
+                  DO 60 I = 1, P
+                     WRITE ( NOUT, FMT = 99996 ) ( C(I,J), J = 1,N )
+   60             CONTINUE
+                  WRITE ( NOUT, FMT = 99990 )
+                  DO 80 I = 1, P
+                     WRITE ( NOUT, FMT = 99996 ) ( D(I,J), J = 1,M )
+   80             CONTINUE
+               END IF
+            END IF
+         END IF
+      END IF
+      STOP
+*
+99999 FORMAT (' AB04MD EXAMPLE PROGRAM RESULTS',/1X)
+99998 FORMAT (' INFO on exit from AB04MD = ',I2)
+99997 FORMAT (' The transformed state matrix is ')
+99996 FORMAT (20(1X,F8.4))
+99995 FORMAT (/' The transformed input matrix is ')
+99994 FORMAT (/' The transformed output matrix is ')
+99993 FORMAT (/' N is out of range.',/' N = ',I5)
+99992 FORMAT (/' M is out of range.',/' M = ',I5)
+99991 FORMAT (/' P is out of range.',/' P = ',I5)
+99990 FORMAT (/' The transformed input/output matrix is ')
+      END
+</PRE>
+<B>Program Data</B>
+<PRE>
+ AB04MD EXAMPLE PROGRAM DATA
+   2     2     2     C     1.0D0     1.0D0
+   1.0  0.5
+   0.5  1.0
+   0.0 -1.0
+   1.0  0.0
+  -1.0  0.0
+   0.0  1.0
+   1.0  0.0
+   0.0 -1.0
+</PRE>
+<B>Program Results</B>
+<PRE>
+ AB04MD EXAMPLE PROGRAM RESULTS
+
+ The transformed state matrix is 
+  -1.0000  -4.0000
+  -4.0000  -1.0000
+
+ The transformed input matrix is 
+   2.8284   0.0000
+   0.0000  -2.8284
+
+ The transformed output matrix is 
+   0.0000   2.8284
+  -2.8284   0.0000
+
+ The transformed input/output matrix is 
+  -1.0000   0.0000
+   0.0000  -3.0000
+</PRE>
+
+<HR>
+<p>
+<A HREF=..\libindex.html><B>Return to index</B></A></BODY>
+</HTML>

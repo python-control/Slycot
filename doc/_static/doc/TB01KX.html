@@ -1,0 +1,169 @@
+<HTML>
+<HEAD><TITLE>TB01KX - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="TB01KX">TB01KX</A></H2>
+<H3>
+Additive spectral decomposition of the transfer-function matrix of a standard system 
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To compute an additive spectral decomposition of the transfer-
+  function matrix of the system (A,B,C) by reducing the system
+  state-matrix A to a block-diagonal form. It is assumed that A is
+  in a real Schur form, and the leading diagonal block of order NDIM
+  has eigenvalues distinct from those of the trailing diagonal
+  block. The system matrices are transformed as
+     A &lt;-- V*A*U, B &lt;--V*B and C &lt;-- C*U, where V = inv(U),
+  preserving the spectra of the two diagonal blocks.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE TB01KX( N, M, P, NDIM, A, LDA, B, LDB, C, LDC, U, LDU,
+     $                   V, LDV, INFO )
+C     .. Scalar Arguments ..
+      INTEGER          INFO, LDA, LDB, LDC, LDU, LDV, M, N, NDIM, P
+C     .. Array Arguments ..
+      DOUBLE PRECISION A(LDA,*), B(LDB,*), C(LDC,*), U(LDU,*), V(LDV,*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The order of the state-space representation, i.e., the
+          order of the matrix A.  N &gt;= 0.
+
+  M       (input) INTEGER
+          The number of system inputs, or of columns of B.  M &gt;= 0.
+
+  P       (input) INTEGER
+          The number of system outputs, or of rows of C.  P &gt;= 0.
+
+  NDIM    (input) INTEGER
+          The dimension of the leading diagonal block of A having
+          eigenvalues distinct from those of the trailing diagonal
+          block.  0 &lt;= NDIM &lt;= N.
+
+  A       (input/output) DOUBLE PRECISION array, dimension (LDA,N)
+          On entry, the leading N-by-N part of this array must
+          contain the state dynamics matrix A in real Schur form.
+          On exit, the leading N-by-N part of this array contains a
+          block diagonal matrix inv(U) * A * U with two diagonal
+          blocks in real Schur form, with the elements below the
+          first subdiagonal set to zero. The leading block has
+          dimension NDIM-by-NDIM.
+
+  LDA     INTEGER
+          The leading dimension of the array A.  LDA &gt;= MAX(1,N).
+
+  B       (input/output) DOUBLE PRECISION array, dimension (LDB,M)
+          On entry, the leading N-by-M part of this array must
+          contain the input matrix B.
+          On exit, the leading N-by-M part of this array contains
+          the transformed input matrix inv(U) * B.
+
+  LDB     INTEGER
+          The leading dimension of the array B.  LDB &gt;= MAX(1,N).
+
+  C       (input/output) DOUBLE PRECISION array, dimension (LDC,N)
+          On entry, the leading P-by-N part of this array must
+          contain the output matrix C.
+          On exit, the leading P-by-N part of this array contains
+          the transformed output matrix C * U.
+
+  LDC     INTEGER
+          The leading dimension of the array C.  LDC &gt;= MAX(1,P).
+
+  U       (input/output) DOUBLE PRECISION array, dimension (LDU,N)
+          On entry, the leading N-by-N part of this array must
+          contain an initial transformation matrix U.
+          On exit, the leading N-by-N part of this array contains
+          the transformation matrix used to reduce A to the block-
+          diagonal form. The first NDIM columns of U span the
+          invariant subspace of A corresponding to the eigenvalues
+          of its leading diagonal block. The last N-NDIM columns of
+          U span the reducing subspace of A corresponding to the
+          eigenvalues of the trailing diagonal block of A.
+
+  LDU     INTEGER
+          The leading dimension of the array U.  LDU &gt;= max(1,N).
+
+  V       (output) DOUBLE PRECISION array, dimension (LDV,N)
+          The leading N-by-N part of this array contains the
+          inverse of the transformation matrix U used to reduce A
+          to the block-diagonal form.
+
+  LDV     INTEGER
+          The leading dimension of the array V.  LDV &gt;= max(1,N).
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0: successful exit;
+          &lt; 0: if INFO = -i, the i-th argument had an illegal value;
+          = 1: the separation of the two diagonal blocks failed
+               because of very close eigenvalues.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  A similarity transformation U is determined that reduces the given
+  system state-matrix A to a block-diagonal form (with two diagonal
+  blocks), so that the eigenvalues of the leading diagonal block of
+  the resulting A are preserved. The determined transformation is
+  applied to the system (A,B,C) as
+     A &lt;-- inv(U)*A*U, B &lt;-- inv(U)*B and C &lt;-- C*U.
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Safonov, M.G., Jonckheere, E.A., Verma, M., Limebeer, D.J.N.
+      Synthesis of positive real multivariable feedback systems.
+      Int. J. Control, pp. 817-842, 1987.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>                                3
+  The algorithm requires about N /2 + NDIM*(N-NDIM)*(2*N+M+P)
+  floating point operations.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

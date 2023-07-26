@@ -1,0 +1,286 @@
+<HTML>
+<HEAD><TITLE>SB03OU - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="SB03OU">SB03OU</A></H2>
+<H3>
+Solving (for Cholesky factor) stable continuous- or discrete-time Lyapunov equations, with matrix A in real Schur form and B rectangular
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To solve for X = op(U)'*op(U) either the stable non-negative
+  definite continuous-time Lyapunov equation
+                                2
+     op(A)'*X + X*op(A) = -scale *op(B)'*op(B)                   (1)
+
+  or the convergent non-negative definite discrete-time Lyapunov
+  equation
+                                2
+     op(A)'*X*op(A) - X = -scale *op(B)'*op(B)                   (2)
+
+  where op(K) = K or K' (i.e., the transpose of the matrix K), A is
+  an N-by-N matrix in real Schur form, op(B) is an M-by-N matrix,
+  U is an upper triangular matrix containing the Cholesky factor of
+  the solution matrix X, X = op(U)'*op(U), and scale is an output
+  scale factor, set less than or equal to 1 to avoid overflow in X.
+  If matrix B has full rank then the solution matrix X will be
+  positive-definite and hence the Cholesky factor U will be
+  nonsingular, but if B is rank deficient then X may only be
+  positive semi-definite and U will be singular.
+
+  In the case of equation (1) the matrix A must be stable (that
+  is, all the eigenvalues of A must have negative real parts),
+  and for equation (2) the matrix A must be convergent (that is,
+  all the eigenvalues of A must lie inside the unit circle).
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE SB03OU( DISCR, LTRANS, N, M, A, LDA, B, LDB, TAU, U,
+     $                   LDU, SCALE, DWORK, LDWORK, INFO )
+C     .. Scalar Arguments ..
+      LOGICAL           DISCR, LTRANS
+      INTEGER           INFO, LDA, LDB, LDU, LDWORK, M, N
+      DOUBLE PRECISION  SCALE
+C     .. Array Arguments ..
+      DOUBLE PRECISION  A(LDA,*), B(LDB,*), DWORK(*), TAU(*), U(LDU,*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  DISCR   LOGICAL
+          Specifies the type of Lyapunov equation to be solved as
+          follows:
+          = .TRUE. :  Equation (2), discrete-time case;
+          = .FALSE.:  Equation (1), continuous-time case.
+
+  LTRANS  LOGICAL
+          Specifies the form of op(K) to be used, as follows:
+          = .FALSE.:  op(K) = K    (No transpose);
+          = .TRUE. :  op(K) = K**T (Transpose).
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The order of the matrix A and the number of columns in
+          matrix op(B).  N &gt;= 0.
+
+  M       (input) INTEGER
+          The number of rows in matrix op(B).  M &gt;= 0.
+
+  A       (input) DOUBLE PRECISION array, dimension (LDA,N)
+          The leading N-by-N upper Hessenberg part of this array
+          must contain a real Schur form matrix S. The elements
+          below the upper Hessenberg part of the array A are not
+          referenced. The 2-by-2 blocks must only correspond to
+          complex conjugate pairs of eigenvalues (not to real
+          eigenvalues).
+
+  LDA     INTEGER
+          The leading dimension of array A.  LDA &gt;= MAX(1,N).
+
+  B       (input/output) DOUBLE PRECISION array, dimension (LDB,N)
+          if LTRANS = .FALSE., and dimension (LDB,M), if
+          LTRANS = .TRUE..
+          On entry, if LTRANS = .FALSE., the leading M-by-N part of
+          this array must contain the coefficient matrix B of the
+          equation.
+          On entry, if LTRANS = .TRUE., the leading N-by-M part of
+          this array must contain the coefficient matrix B of the
+          equation.
+          On exit, if LTRANS = .FALSE., the leading
+          MIN(M,N)-by-MIN(M,N) upper triangular part of this array
+          contains the upper triangular matrix R (as defined in
+          METHOD), and the M-by-MIN(M,N) strictly lower triangular
+          part together with the elements of the array TAU are
+          overwritten by details of the matrix P (also defined in
+          METHOD). When M &lt; N, columns (M+1),...,N of the array B
+          are overwritten by the matrix Z (see METHOD).
+          On exit, if LTRANS = .TRUE., the leading
+          MIN(M,N)-by-MIN(M,N) upper triangular part of
+          B(1:N,M-N+1), if M &gt;= N, or of B(N-M+1:N,1:M), if M &lt; N,
+          contains the upper triangular matrix R (as defined in
+          METHOD), and the remaining elements (below the diagonal
+          of R) together with the elements of the array TAU are
+          overwritten by details of the matrix P (also defined in
+          METHOD). When M &lt; N, rows 1,...,(N-M) of the array B
+          are overwritten by the matrix Z (see METHOD).
+
+  LDB     INTEGER
+          The leading dimension of array B.
+          LDB &gt;= MAX(1,M), if LTRANS = .FALSE.,
+          LDB &gt;= MAX(1,N), if LTRANS = .TRUE..
+
+  TAU     (output) DOUBLE PRECISION array of dimension (MIN(N,M))
+          This array contains the scalar factors of the elementary
+          reflectors defining the matrix P.
+
+  U       (output) DOUBLE PRECISION array of dimension (LDU,N)
+          The leading N-by-N upper triangular part of this array
+          contains the Cholesky factor of the solution matrix X of
+          the problem, X = op(U)'*op(U).
+          The array U may be identified with B in the calling
+          statement, if B is properly dimensioned, and the
+          intermediate results returned in B are not needed.
+
+  LDU     INTEGER
+          The leading dimension of array U.  LDU &gt;= MAX(1,N).
+
+  SCALE   (output) DOUBLE PRECISION
+          The scale factor, scale, set less than or equal to 1 to
+          prevent the solution overflowing.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+          On exit, if INFO = 0, or INFO = 1, DWORK(1) returns the
+          optimal value of LDWORK.
+
+  LDWORK  INTEGER
+          The length of the array DWORK. LDWORK &gt;= MAX(1,4*N).
+          For optimum performance LDWORK should sometimes be larger.
+
+          If LDWORK = -1, then a workspace query is assumed; the
+          routine only calculates the optimal size of the DWORK
+          array, returns this value as the first entry of the DWORK
+          array, and no error message related to LDWORK is issued by
+          XERBLA.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value;
+          = 1:  if the Lyapunov equation is (nearly) singular
+                (warning indicator);
+                if DISCR = .FALSE., this means that while the matrix
+                A has computed eigenvalues with negative real parts,
+                it is only just stable in the sense that small
+                perturbations in A can make one or more of the
+                eigenvalues have a non-negative real part;
+                if DISCR = .TRUE., this means that while the matrix
+                A has computed eigenvalues inside the unit circle,
+                it is nevertheless only just convergent, in the
+                sense that small perturbations in A can make one or
+                more of the eigenvalues lie outside the unit circle;
+                perturbed values were used to solve the equation
+                (but the matrix A is unchanged);
+          = 2:  if matrix A is not stable (that is, one or more of
+                the eigenvalues of A has a non-negative real part),
+                if DISCR = .FALSE., or not convergent (that is, one
+                or more of the eigenvalues of A lies outside the
+                unit circle), if DISCR = .TRUE.;
+          = 3:  if matrix A has two or more consecutive non-zero
+                elements on the first sub-diagonal, so that there is
+                a block larger than 2-by-2 on the diagonal;
+          = 4:  if matrix A has a 2-by-2 diagonal block with real
+                eigenvalues instead of a complex conjugate pair.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  The method used by the routine is based on the Bartels and
+  Stewart method [1], except that it finds the upper triangular
+  matrix U directly without first finding X and without the need
+  to form the normal matrix op(B)'*op(B) [2].
+
+  If LTRANS = .FALSE., the matrix B is factored as
+
+     B = P ( R ),  M &gt;= N,   B = P ( R  Z ),  M &lt; N,
+           ( 0 )
+
+  (QR factorization), where P is an M-by-M orthogonal matrix and
+  R is a square upper triangular matrix.
+
+  If LTRANS = .TRUE., the matrix B is factored as
+
+     B = ( 0  R ) P,  M &gt;= N,  B = ( Z ) P,  M &lt; N,
+                                   ( R )
+
+  (RQ factorization), where P is an M-by-M orthogonal matrix and
+  R is a square upper triangular matrix.
+
+  These factorizations are used to solve the continuous-time
+  Lyapunov equation in the canonical form
+                                                     2
+    op(A)'*op(U)'*op(U) + op(U)'*op(U)*op(A) = -scale *op(F)'*op(F),
+
+  or the discrete-time Lyapunov equation in the canonical form
+                                                     2
+    op(A)'*op(U)'*op(U)*op(A) - op(U)'*op(U) = -scale *op(F)'*op(F),
+
+  where U and F are N-by-N upper triangular matrices, and
+
+     F = R,                                  if M &gt;= N, or
+
+     F = ( R ),    if LTRANS = .FALSE.,  or
+         ( 0 )
+
+     F = ( 0  Z ), if LTRANS = .TRUE.,       if M &lt; N.
+         ( 0  R )
+
+  The canonical equation is solved for U.
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Bartels, R.H. and Stewart, G.W.
+      Solution of the matrix equation  A'X + XB = C.
+      Comm. A.C.M., 15, pp. 820-826, 1972.
+
+  [2] Hammarling, S.J.
+      Numerical solution of the stable, non-negative definite
+      Lyapunov equation.
+      IMA J. Num. Anal., 2, pp. 303-325, 1982.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>                            3
+  The algorithm requires 0(N ) operations and is backward stable.
+
+</PRE>
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  The Lyapunov equation may be very ill-conditioned. In particular,
+  if A is only just stable (or convergent) then the Lyapunov
+  equation will be ill-conditioned. "Large" elements in U relative
+  to those of A and B, or a "small" value for scale, are symptoms
+  of ill-conditioning. A condition estimate can be computed using
+  SLICOT Library routine SB03MD.
+
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

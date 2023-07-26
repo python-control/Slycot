@@ -1,0 +1,176 @@
+<HTML>
+<HEAD><TITLE>MB01TD - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MB01TD">MB01TD</A></H2>
+<H3>
+Computation of A B in B, with A and B upper quasi-triangular matrices with the same structure
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To compute the matrix product A * B, where A and B are upper
+  quasi-triangular matrices (that is, block upper triangular with
+  1-by-1 or 2-by-2 diagonal blocks) with the same structure.
+  The result is returned in the array B.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MB01TD( N, A, LDA, B, LDB, DWORK, INFO )
+C     .. Scalar Arguments ..
+      INTEGER           INFO, LDA, LDB, N
+C     .. Array Arguments ..
+      DOUBLE PRECISION  A(LDA,*), B(LDB,*), DWORK(*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The order of the matrices A and B.  N &gt;= 0.
+
+  A       (input) DOUBLE PRECISION array, dimension (LDA,N)
+          The leading N-by-N part of this array must contain the
+          upper quasi-triangular matrix A. The elements below the
+          subdiagonal are not referenced.
+
+  LDA     INTEGER
+          The leading dimension of the array A.  LDA &gt;= max(1,N).
+
+  B       (input/output) DOUBLE PRECISION array, dimension (LDB,N)
+          On entry, the leading N-by-N part of this array must
+          contain the upper quasi-triangular matrix B, with the same
+          structure as matrix A.
+          On exit, the leading N-by-N part of this array contains
+          the computed product A * B, with the same structure as
+          on entry.
+          The elements below the subdiagonal are not referenced.
+
+  LDB     INTEGER
+          The leading dimension of the array B.  LDB &gt;= max(1,N).
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  DWORK   DOUBLE PRECISION array, dimension (N-1)
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value;
+          = 1:  if the matrices A and B have not the same structure,
+                and/or A and B are not upper quasi-triangular.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  The matrix product A * B is computed column by column, using
+  BLAS 2 and BLAS 1 operations.
+
+</PRE>
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  This routine can be used, for instance, for computing powers of
+  a real Schur form matrix.
+
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+*     MB01TD EXAMPLE PROGRAM TEXT
+*
+*     .. Parameters ..
+      INTEGER          NIN, NOUT
+      PARAMETER        ( NIN = 5, NOUT = 6 )
+      INTEGER          NMAX
+      PARAMETER        ( NMAX = 20 )
+      INTEGER          LDA, LDB
+      PARAMETER        ( LDA = NMAX, LDB = NMAX )
+      INTEGER          LDWORK
+      PARAMETER        ( LDWORK = NMAX-1 )
+*     .. Local Scalars ..
+      INTEGER          I, INFO, J, N
+*     .. Local Arrays ..
+      DOUBLE PRECISION A(LDA,NMAX), B(LDB,NMAX), DWORK(LDWORK)
+*     .. External Subroutines ..
+      EXTERNAL         MB01TD
+*     .. Executable Statements ..
+*
+      WRITE ( NOUT, FMT = 99999 )
+*     Skip the heading in the data file and read in the data.
+      READ ( NIN, FMT = '()' )
+      READ ( NIN, FMT = * ) N
+      IF ( N.LT.0 .OR. N.GT.NMAX ) THEN
+         WRITE ( NOUT, FMT = 99995 ) N
+      ELSE
+         READ ( NIN, FMT = * ) ( ( A(I,J), J = 1,N ), I = 1,N )
+         READ ( NIN, FMT = * ) ( ( B(I,J), J = 1,N ), I = 1,N )
+*        Compute the matrix product A*B.
+         CALL MB01TD( N, A, LDA, B, LDB, DWORK, INFO )
+*
+         IF ( INFO.NE.0 ) THEN
+            WRITE ( NOUT, FMT = 99998 ) INFO
+         ELSE
+            WRITE ( NOUT, FMT = 99997 )
+            DO 20 I = 1, N
+               WRITE ( NOUT, FMT = 99996 ) ( B(I,J), J = 1,N )
+   20       CONTINUE
+         END IF
+      END IF
+      STOP
+*
+99999 FORMAT (' MB01TD EXAMPLE PROGRAM RESULTS',/1X)
+99998 FORMAT (' INFO on exit from MB01TD = ',I2)
+99997 FORMAT (' The matrix product A*B is ')
+99996 FORMAT (20(1X,F8.4))
+99995 FORMAT (/' N is out of range.',/' N = ',I5)
+      END
+</PRE>
+<B>Program Data</B>
+<PRE>
+ MB01TD EXAMPLE PROGRAM DATA
+   5
+   1.    2.    6.    3.    5.
+  -2.   -1.   -1.    0.   -2.
+   0.    0.    1.    5.    1.
+   0.    0.    0.    0.   -4.
+   0.    0.    0.   20.    4.
+   5.    5.    1.    5.    1.
+  -2.    1.    3.    0.   -4.
+   0.    0.    4.   20.    4.
+   0.    0.    0.    3.    5.
+   0.    0.    0.    1.   -2.
+</PRE>
+<B>Program Results</B>
+<PRE>
+ MB01TD EXAMPLE PROGRAM RESULTS
+
+ The matrix product A*B is 
+   1.0000   7.0000  31.0000 139.0000  22.0000
+  -8.0000 -11.0000  -9.0000 -32.0000   2.0000
+   0.0000   0.0000   4.0000  36.0000  27.0000
+   0.0000   0.0000   0.0000  -4.0000   8.0000
+   0.0000   0.0000   0.0000  64.0000  92.0000
+</PRE>
+
+<HR>
+<p>
+<A HREF=..\libindex.html><B>Return to index</B></A></BODY>
+</HTML>

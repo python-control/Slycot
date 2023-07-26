@@ -1,0 +1,206 @@
+<HTML>
+<HEAD><TITLE>AB05SD - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="AB05SD">AB05SD</A></H2>
+<H3>
+Closed-loop system for an output feedback control law
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To construct for a given state space system (A,B,C,D) the closed-
+  loop system (Ac,Bc,Cc,Dc) corresponding to the output feedback
+  control law
+
+       u = alpha*F*y + v.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE AB05SD( FBTYPE, JOBD, N, M, P, ALPHA, A, LDA, B, LDB,
+     $                   C, LDC, D, LDD, F, LDF, RCOND, IWORK, DWORK,
+     $                   LDWORK, INFO)
+C     .. Scalar Arguments ..
+      CHARACTER         FBTYPE, JOBD
+      INTEGER           INFO, LDA, LDB, LDC, LDD, LDF, LDWORK, M, N, P
+      DOUBLE PRECISION  ALPHA, RCOND
+C     .. Array Arguments ..
+      INTEGER           IWORK(*)
+      DOUBLE PRECISION  A(LDA,*), B(LDB,*), C(LDC,*), D(LDD,*),
+     $                  DWORK(*), F(LDF,*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  FBTYPE  CHARACTER*1
+          Specifies the type of the feedback law as follows:
+          = 'I':  Unitary output feedback (F = I);
+          = 'O':  General output feedback.
+
+  JOBD    CHARACTER*1
+          Specifies whether or not a non-zero matrix D appears in
+          the given state space model:
+          = 'D':  D is present;
+          = 'Z':  D is assumed a zero matrix.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The number of state variables, i.e. the order of the
+          matrix A, the number of rows of B and the number of
+          columns of C.  N &gt;= 0.
+
+  M       (input) INTEGER
+          The number of input variables, i.e. the number of columns
+          of matrices B and D, and the number of rows of F.  M &gt;= 0.
+
+  P       (input) INTEGER
+          The number of output variables, i.e. the number of rows of
+          matrices C and D, and the number of columns of F.  P &gt;= 0
+          and P = M if FBTYPE = 'I'.
+
+  ALPHA   (input) DOUBLE PRECISION
+          The coefficient alpha in the output feedback law.
+
+  A       (input/output) DOUBLE PRECISION array, dimension (LDA,N)
+          On entry, the leading N-by-N part of this array must
+          contain the system state transition matrix A.
+          On exit, the leading N-by-N part of this array contains
+          the state matrix Ac of the closed-loop system.
+
+  LDA     INTEGER
+          The leading dimension of array A.  LDA &gt;= MAX(1,N).
+
+  B       (input/output) DOUBLE PRECISION array, dimension (LDB,M)
+          On entry, the leading N-by-M part of this array must
+          contain the system input matrix B.
+          On exit, the leading N-by-M part of this array contains
+          the input matrix Bc of the closed-loop system.
+
+  LDB     INTEGER
+          The leading dimension of array B.  LDB &gt;= MAX(1,N).
+
+  C       (input/output) DOUBLE PRECISION array, dimension (LDC,N)
+          On entry, the leading P-by-N part of this array must
+          contain the system output matrix C.
+          On exit, the leading P-by-N part of this array contains
+          the output matrix Cc of the closed-loop system.
+
+  LDC     INTEGER
+          The leading dimension of array C.
+          LDC &gt;= MAX(1,P) if N &gt; 0.
+          LDC &gt;= 1 if N = 0.
+
+  D       (input/output) DOUBLE PRECISION array, dimension (LDD,M)
+          On entry, the leading P-by-M part of this array must
+          contain the system direct input/output transmission
+          matrix D.
+          On exit, if JOBD = 'D', the leading P-by-M part of this
+          array contains the direct input/output transmission
+          matrix Dc of the closed-loop system.
+          The array D is not referenced if JOBD = 'Z'.
+
+  LDD     INTEGER
+          The leading dimension of array D.
+          LDD &gt;= MAX(1,P) if JOBD = 'D'.
+          LDD &gt;= 1 if JOBD = 'Z'.
+
+  F       (input) DOUBLE PRECISION array, dimension (LDF,P)
+          If FBTYPE = 'O', the leading M-by-P part of this array
+          must contain the output feedback matrix F.
+          If FBTYPE = 'I', then the feedback matrix is assumed to be
+          an M x M order identity matrix.
+          The array F is not referenced if FBTYPE = 'I' or
+          ALPHA = 0.
+
+  LDF     INTEGER
+          The leading dimension of array F.
+          LDF &gt;= MAX(1,M) if FBTYPE = 'O' and ALPHA &lt;&gt; 0.
+          LDF &gt;= 1 if FBTYPE = 'I' or ALPHA = 0.
+
+  RCOND   (output) DOUBLE PRECISION
+          The reciprocal condition number of the matrix
+          I - alpha*D*F.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  IWORK   INTEGER array, dimension (LIWORK)
+          LIWORK &gt;= MAX(1,2*P) if JOBD = 'D'.
+          LIWORK &gt;= 1 if JOBD = 'Z'.
+          IWORK is not referenced if JOBD = 'Z'.
+
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+
+  LDWORK  INTEGER
+          The length of the array DWORK.
+          LDWORK &gt;= wspace, where
+                    wspace = MAX( 1, M, P*P + 4*P ) if JOBD = 'D',
+                    wspace = MAX( 1, M ) if JOBD = 'Z'.
+          For best performance, LDWORK &gt;= MAX( wspace, N*M, N*P ).
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value;
+          = 1:  if the matrix I - alpha*D*F is numerically singular.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  The matrices of the closed-loop system have the expressions:
+
+  Ac = A + alpha*B*F*E*C,  Bc = B + alpha*B*F*E*D,
+  Cc = E*C,                Dc = E*D,
+
+  where E = (I - alpha*D*F)**-1.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  The accuracy of computations basically depends on the conditioning
+  of the matrix I - alpha*D*F.  If RCOND is very small, it is likely
+  that the computed results are inaccurate.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<p>
+<A HREF=..\libindex.html><B>Return to index</B></A></BODY>
+</HTML>

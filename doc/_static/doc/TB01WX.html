@@ -1,0 +1,290 @@
+<HTML>
+<HEAD><TITLE>TB01WX - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="TB01WX">TB01WX</A></H2>
+<H3>
+Orthogonal similarity transformation of a standard system to one with state matrix in a Hessenberg form
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To reduce the system state matrix A to an upper Hessenberg form
+  by using an orthogonal similarity transformation A &lt;-- U'*A*U and
+  to apply the transformation to the matrices B and C: B &lt;-- U'*B
+  and C &lt;-- C*U.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE TB01WX( COMPU, N, M, P, A, LDA, B, LDB, C, LDC, U, LDU,
+     $                   DWORK, LDWORK, INFO )
+C     .. Scalar Arguments ..
+      CHARACTER        COMPU
+      INTEGER          INFO, LDA, LDB, LDC, LDU, LDWORK, M, N, P
+C     .. Array Arguments ..
+      DOUBLE PRECISION A(LDA,*), B(LDB,*), C(LDC,*), DWORK(*), U(LDU,*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  COMPU   CHARACTER*1
+          = 'N':  do not compute U;
+          = 'I':  U is initialized to the unit matrix, and the
+                  orthogonal matrix U is returned;
+          = 'U':  U must contain an orthogonal matrix U1 on entry,
+                  and the product U1*U is returned.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The order of the original state-space representation,
+          i.e., the order of the matrix A.  N &gt;= 0.
+
+  M       (input) INTEGER
+          The number of system inputs, or of columns of B.  M &gt;= 0.
+
+  P       (input) INTEGER
+          The number of system outputs, or of rows of C.  P &gt;= 0.
+
+  A       (input/output) DOUBLE PRECISION array, dimension (LDA,N)
+          On entry, the leading N-by-N part of this array must
+          contain the original state dynamics matrix A.
+          On exit, the leading N-by-N part of this array contains
+          the matrix U' * A * U in Hessenberg form. The elements
+          below the first subdiagonal are set to zero.
+
+  LDA     INTEGER
+          The leading dimension of the array A.  LDA &gt;= MAX(1,N).
+
+  B       (input/output) DOUBLE PRECISION array, dimension (LDB,M)
+          On entry, the leading N-by-M part of this array must
+          contain the input matrix B.
+          On exit, the leading N-by-M part of this array contains
+          the transformed input matrix U' * B.
+
+  LDB     INTEGER
+          The leading dimension of the array B.  LDB &gt;= MAX(1,N).
+
+  C       (input/output) DOUBLE PRECISION array, dimension (LDC,N)
+          On entry, the leading P-by-N part of this array must
+          contain the output matrix C.
+          On exit, the leading P-by-N part of this array contains
+          the transformed output matrix C * U.
+
+  LDC     INTEGER
+          The leading dimension of the array C.  LDC &gt;= MAX(1,P).
+
+  U       (input/output) DOUBLE PRECISION array, dimension (LDU,*)
+          On entry, if COMPU = 'U', the leading N-by-N part of this
+          array must contain the given matrix U1. Otherwise, this
+          array need not be set on input.
+          On exit, if COMPU &lt;&gt; 'N', the leading N-by-N part of this
+          array contains the orthogonal transformation matrix used
+          to reduce A to the Hessenberg form (U1*U if COMPU = 'U').
+          If COMPU = 'N', this array is not referenced.
+
+  LDU     INTEGER
+          The leading dimension of the array U.
+          LDU &gt;= 1,        if COMPU =  'N';
+          LDU &gt;= max(1,N), if COMPU &lt;&gt; 'N'.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+          On exit, if INFO = 0, DWORK(1) returns the optimal value
+          of LDWORK.
+
+  LDWORK  INTEGER
+          The length of the array DWORK.  LDWORK &gt;= 1, and if N &gt; 0,
+          LDWORK &gt;= N - 1 + MAX(N,M,P).
+          For optimum performance LDWORK should be larger.
+
+          If LDWORK = -1, then a workspace query is assumed; the
+          routine only calculates the optimal size of the DWORK
+          array, returns this value as the first entry of the DWORK
+          array, and no error message related to LDWORK is issued by
+          XERBLA.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  Matrix A is reduced to the Hessenberg form using an orthogonal
+  similarity transformation A &lt;- U'*A*U. Then, the transformation
+  is applied to the matrices B and C: B &lt;-- U'*B and C &lt;-- C*U.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>                                 3      2
+  The algorithm requires about 5N /3 + N (M+P) floating point
+                                           3
+  operations, if COMPU = 'N'. Otherwise, 2N /3 additional operations
+  are needed.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+*     TB01WX EXAMPLE PROGRAM TEXT
+*
+*     .. Parameters ..
+      INTEGER          NIN, NOUT
+      PARAMETER        ( NIN = 5, NOUT = 6 )
+      INTEGER          NMAX, MMAX, PMAX
+      PARAMETER        ( NMAX = 20, MMAX = 20, PMAX = 20 )
+      INTEGER          LDA, LDB, LDC, LDU
+      PARAMETER        ( LDA = NMAX, LDB = NMAX, LDC = PMAX,
+     $                   LDU = NMAX )
+      INTEGER          LDWORK
+      PARAMETER        ( LDWORK = NMAX - 1 + MAX( NMAX, MMAX, PMAX ) )
+*     .. Local Scalars ..
+      CHARACTER        COMPU
+      INTEGER          I, INFO, J, M, N, P
+*     .. Local Arrays ..
+      DOUBLE PRECISION A(LDA,NMAX), B(LDB,MMAX), C(LDC,NMAX),
+     $                 DWORK(LDWORK), U(LDU,NMAX)
+*     .. External Subroutines ..
+      EXTERNAL         TB01WX
+*     .. Executable Statements ..
+*
+      WRITE ( NOUT, FMT = 99999 )
+*     Skip the heading in the data file and read the data.
+      READ ( NIN, FMT = '()' )
+      READ ( NIN, FMT = * ) N, M, P, COMPU
+      IF ( N.LT.0 .OR. N.GT.NMAX ) THEN
+         WRITE ( NOUT, FMT = 99990 ) N
+      ELSE
+         READ ( NIN, FMT = * ) ( ( A(I,J), J = 1,N ), I = 1,N )
+         IF ( M.LT.0 .OR. M.GT.MMAX ) THEN
+            WRITE ( NOUT, FMT = 99989 ) M
+         ELSE
+            READ ( NIN, FMT = * ) ( ( B(I,J), J = 1,M ), I = 1, N )
+            IF ( P.LT.0 .OR. P.GT.PMAX ) THEN
+               WRITE ( NOUT, FMT = 99988 ) P
+            ELSE
+               READ ( NIN, FMT = * ) ( ( C(I,J), J = 1,N ), I = 1,P )
+*              Find the transformed ssr for (A,B,C).
+               CALL TB01WX( COMPU, N, M, P, A, LDA, B, LDB, C, LDC, U,
+     $                      LDU, DWORK, LDWORK, INFO )
+*
+               IF ( INFO.NE.0 ) THEN
+                  WRITE ( NOUT, FMT = 99998 ) INFO
+               ELSE
+                  WRITE ( NOUT, FMT = 99996 )
+                  DO 20 I = 1, N
+                     WRITE ( NOUT, FMT = 99995 ) ( A(I,J), J = 1,N )
+   20             CONTINUE
+                  WRITE ( NOUT, FMT = 99993 )
+                  DO 40 I = 1, N
+                     WRITE ( NOUT, FMT = 99995 ) ( B(I,J), J = 1,M )
+   40             CONTINUE
+                  WRITE ( NOUT, FMT = 99992 )
+                  DO 60 I = 1, P
+                     WRITE ( NOUT, FMT = 99995 ) ( C(I,J), J = 1,N )
+   60             CONTINUE
+                  WRITE ( NOUT, FMT = 99991 )
+                  DO 70 I = 1, N
+                     WRITE ( NOUT, FMT = 99995 ) ( U(I,J), J = 1,N )
+   70             CONTINUE
+               END IF
+            END IF
+         END IF
+      END IF
+      STOP
+*
+99999 FORMAT (' TB01WX EXAMPLE PROGRAM RESULTS',/1X)
+99998 FORMAT (' INFO on exit from TB01WX = ',I2)
+99996 FORMAT (/' The transformed state dynamics matrix U''*A*U is ')
+99995 FORMAT (20(1X,F8.4))
+99994 FORMAT ( ' (',F8.4,', ',F8.4,' )')
+99993 FORMAT (/' The transformed input/state matrix U''*B is ')
+99992 FORMAT (/' The transformed state/output matrix C*U is ')
+99991 FORMAT (/' The similarity transformation matrix U is ')
+99990 FORMAT (/' N is out of range.',/' N = ',I5)
+99989 FORMAT (/' M is out of range.',/' M = ',I5)
+99988 FORMAT (/' P is out of range.',/' P = ',I5)
+      END
+</PRE>
+<B>Program Data</B>
+<PRE>
+ TB01WX EXAMPLE PROGRAM DATA (Continuous system)
+  5  2   3     I    
+  -0.04165    4.9200   -4.9200         0         0
+ -1.387944   -3.3300         0         0         0
+    0.5450         0         0   -0.5450         0
+         0         0    4.9200  -0.04165    4.9200
+         0         0         0 -1.387944   -3.3300
+         0         0
+    3.3300         0
+         0         0
+         0         0
+         0    3.3300
+     1     0     0     0     0
+     0     0     1     0     0
+     0     0     0     1     0
+
+</PRE>
+<B>Program Results</B>
+<PRE>
+ TB01WX EXAMPLE PROGRAM RESULTS
+
+
+ The transformed state dynamics matrix U'*A*U is 
+  -0.0416  -6.3778   1.4826  -1.9856   1.2630
+   1.4911  -2.8851  -0.4353   0.8984  -0.5714
+   0.0000  -2.1254   1.6804  -4.9686  -1.7731
+   0.0000   0.0000   2.1880  -3.3545  -2.6069
+   0.0000   0.0000   0.0000   0.7554  -2.1424
+
+ The transformed input/state matrix U'*B is 
+   0.0000   0.0000
+  -3.0996   0.0000
+  -0.6488   0.0000
+   0.8689   1.7872
+  -0.5527   2.8098
+
+ The transformed state/output matrix C*U is 
+   1.0000   0.0000   0.0000   0.0000   0.0000
+   0.0000   0.3655  -0.4962   0.6645  -0.4227
+   0.0000   0.0000  -0.8461  -0.4498   0.2861
+
+ The similarity transformation matrix U is 
+   1.0000   0.0000   0.0000   0.0000   0.0000
+   0.0000  -0.9308  -0.1948   0.2609  -0.1660
+   0.0000   0.3655  -0.4962   0.6645  -0.4227
+   0.0000   0.0000  -0.8461  -0.4498   0.2861
+   0.0000   0.0000   0.0000   0.5367   0.8438
+</PRE>
+
+<HR>
+<p>
+<A HREF=..\libindex.html><B>Return to index</B></A></BODY>
+</HTML>

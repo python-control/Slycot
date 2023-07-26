@@ -1,0 +1,143 @@
+<HTML>
+<HEAD><TITLE>AB09JX - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="AB09JX">AB09JX</A></H2>
+<H3>
+Check stability/antistability of finite eigenvalues
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To check stability/antistability of finite eigenvalues with
+  respect to a given stability domain.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE AB09JX( DICO, STDOM, EVTYPE, N, ALPHA, ER, EI, ED,
+     $                   TOLINF, INFO )
+C     .. Scalar Arguments ..
+      CHARACTER        DICO, EVTYPE, STDOM
+      INTEGER          INFO, N
+      DOUBLE PRECISION ALPHA, TOLINF
+C     .. Array Arguments ..
+      DOUBLE PRECISION ED(*), EI(*), ER(*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  DICO    CHARACTER*1
+          Specifies the type of the stability domain as follows:
+          = 'C':  for a continuous-time system;
+          = 'D':  for a discrete-time system.
+
+  STDOM   CHARACTER*1
+          Specifies whether the domain of interest is of stability
+          type (left part of complex plane or inside of a circle)
+          or of instability type (right part of complex plane or
+          outside of a circle) as follows:
+          = 'S':  stability type domain;
+          = 'U':  instability type domain.
+
+  EVTYPE  CHARACTER*1
+          Specifies whether the eigenvalues arise from a standard
+          or a generalized eigenvalue problem as follows:
+          = 'S':  standard eigenvalue problem;
+          = 'G':  generalized eigenvalue problem;
+          = 'R':  reciprocal generalized eigenvalue problem.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The dimension of vectors ER, EI and ED.  N &gt;= 0.
+
+  ALPHA   (input) DOUBLE PRECISION
+          Specifies the boundary of the domain of interest for the
+          eigenvalues. For a continuous-time system
+          (DICO = 'C'), ALPHA is the boundary value for the real
+          parts of eigenvalues, while for a discrete-time system
+          (DICO = 'D'), ALPHA &gt;= 0 represents the boundary value for
+          the moduli of eigenvalues.
+
+  ER, EI, (input) DOUBLE PRECISION arrays, dimension (N)
+  ED      If EVTYPE = 'S', ER(j) + EI(j)*i, j = 1,...,N, are
+          the eigenvalues of a real matrix.
+          ED is not referenced and is implicitly considered as
+          a vector having all elements equal to one.
+          If EVTYPE = 'G' or EVTYPE = 'R', (ER(j) + EI(j)*i)/ED(j),
+          j = 1,...,N, are the generalized eigenvalues of a pair of
+          real matrices. If ED(j) is zero, then the j-th generalized
+          eigenvalue is infinite.
+          Complex conjugate pairs of eigenvalues must appear
+          consecutively.
+
+</PRE>
+<B>Tolerances</B>
+<PRE>
+  TOLINF  DOUBLE PRECISION
+          If EVTYPE = 'G' or 'R', TOLINF contains the tolerance for
+          detecting infinite generalized eigenvalues.
+          0 &lt;= TOLINF &lt; 1.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          =  0:  successful exit, i.e., all eigenvalues lie within
+                 the domain of interest defined by DICO, STDOM
+                 and ALPHA;
+          &lt;  0:  if INFO = -i, the i-th argument had an illegal
+                 value;
+          =  1:  some eigenvalues lie outside the domain of interest
+                 defined by DICO, STDOM and ALPHA.
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  The domain of interest for an eigenvalue lambda is defined by the
+  parameters ALPHA, DICO and STDOM as follows:
+     - for a continuous-time system (DICO = 'C'):
+            Real(lambda) &lt; ALPHA if STDOM = 'S';
+            Real(lambda) &gt; ALPHA if STDOM = 'U';
+     - for a discrete-time system (DICO = 'D'):
+            Abs(lambda) &lt; ALPHA if STDOM = 'S';
+            Abs(lambda) &gt; ALPHA if STDOM = 'U'.
+  If EVTYPE = 'R', the same conditions apply for 1/lambda.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

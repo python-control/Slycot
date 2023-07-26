@@ -1,0 +1,137 @@
+<HTML>
+<HEAD><TITLE>TG01OB - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="TG01OB">TG01OB</A></H2>
+<H3>
+Unitary equivalence transformation of a complex SISO descriptor system with E upper triangular, so that B becomes parallel to the first unit vector and E keeps its structure
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To compute for a single-input single-output descriptor system,
+  given by the system matrix
+
+     [ D     C    ]
+     [ B  A - s*E ],
+
+  with E upper triangular, a transformed system, (Q'*A*Z, Q'*E*Z,
+  Q'*B, C*Z), via an orthogonal equivalence transformation, so that
+  Q'*B has only the first element nonzero and Q'*E*Z remains upper
+  triangular. The matrices have complex elements.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE TG01OB( JOBE, N, DCBA, LDDCBA, E, LDE, INFO )
+C     .. Scalar Arguments ..
+      CHARACTER         JOBE
+      INTEGER           INFO, LDDCBA, LDE, N
+C     .. Array Arguments ..
+      COMPLEX*16        DCBA(LDDCBA,*), E(LDE,*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  JOBE    CHARACTER*1
+          Specifies whether E is an upper triangular or an identity
+          matrix, as follows:
+          = 'U':  The matrix E is an upper triangular matrix;
+          = 'I':  The matrix E is assumed identity and is not given.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The dimension of the descriptor state vector; also the
+          order of square matrices A and E, the number of rows of
+          matrix B, and the number of columns of matrix C.  N &gt;= 0.
+
+  DCBA    (input/output) COMPLEX*16 array, dimension (LDDCBA,N+1)
+          On entry, the leading (N+1)-by-(N+1) part of this array
+          must contain the original system matrices A, B, C, and D,
+          stored as follows
+
+             [ D  C ]
+             [ B  A ].
+
+          On exit, the leading (N+1)-by-(N+1) part of this array
+          contains the transformed matrices C*Z, Q'*B, and Q'*A*Z,
+          replacing C, B, and A. The scalar D is unchanged.
+
+  LDDCBA  INTEGER
+          The leading dimension of the array DCBA.
+          LDDCBA &gt;= N+1.
+
+  E       (input/output) COMPLEX*16 array, dimension (LDE,*)
+          On entry, if JOBE = 'U', the leading N-by-N upper
+          triangular part of this array must contain the upper
+          triangular part of the descriptor matrix E. The lower
+          triangular part under the first subdiagonal is not
+          referenced.
+          On exit, if JOBE = 'U', the leading N-by-N upper
+          triangular part of this array contains the upper
+          triangular part of the transformed descriptor matrix,
+          Q'*E*Z.
+          If JOBE = 'I', this array is not referenced.
+
+  LDE     INTEGER
+          The leading dimension of the array E.
+          LDE &gt;= MAX(1,N), if JOBE = 'U';
+          LDE &gt;= 1,        if JOBE = 'I'.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  Givens rotations are used to annihilate the last N-1 elements of B
+  in reverse order, but preserve the form of E.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  The algorithm is numerically backward stable.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

@@ -1,0 +1,210 @@
+<HTML>
+<HEAD><TITLE>MB02OD - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MB02OD">MB02OD</A></H2>
+<H3>
+Solution of matrix equations A X = alpha B, or X A = alpha B, A triangular
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To solve (if well-conditioned) one of the matrix equations
+
+     op( A )*X = alpha*B,   or   X*op( A ) = alpha*B,
+
+  where alpha is a scalar, X and B are m-by-n matrices, A is a unit,
+  or non-unit, upper or lower triangular matrix and op( A ) is one
+  of
+
+     op( A ) = A   or   op( A ) = A'.
+
+  An estimate of the reciprocal of the condition number of the
+  triangular matrix A, in either the 1-norm or the infinity-norm, is
+  also computed as
+
+     RCOND = 1 / ( norm(A) * norm(inv(A)) ).
+
+  and the specified matrix equation is solved only if RCOND is
+  larger than a given tolerance TOL.  In that case, the matrix X is
+  overwritten on B.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MB02OD( SIDE, UPLO, TRANS, DIAG, NORM, M, N, ALPHA, A,
+     $                   LDA, B, LDB, RCOND, TOL, IWORK, DWORK, INFO )
+C     .. Scalar Arguments ..
+      CHARACTER          DIAG, NORM, SIDE, TRANS, UPLO
+      INTEGER            INFO, LDA, LDB, M, N
+      DOUBLE PRECISION   ALPHA, RCOND, TOL
+C     .. Array Arguments ..
+      INTEGER            IWORK(*)
+      DOUBLE PRECISION   A(LDA,*), B(LDB,*), DWORK(*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  SIDE    CHARACTER*1
+          Specifies whether op( A ) appears on the left or right
+          of X as follows:
+          = 'L':  op( A )*X = alpha*B;
+          = 'R':  X*op( A ) = alpha*B.
+
+  UPLO    CHARACTER*1
+          Specifies whether the matrix A is an upper or lower
+          triangular matrix as follows:
+          = 'U':  A is an upper triangular matrix;
+          = 'L':  A is a lower triangular matrix.
+
+  TRANS   CHARACTER*1
+          Specifies the form of op( A ) to be used in the matrix
+          multiplication as follows:
+          = 'N':  op( A ) = A;
+          = 'T':  op( A ) = A';
+          = 'C':  op( A ) = A'.
+
+  DIAG    CHARACTER*1
+          Specifies whether or not A is unit triangular as follows:
+          = 'U':  A is assumed to be unit triangular;
+          = 'N':  A is not assumed to be unit triangular.
+
+  NORM    CHARACTER*1
+          Specifies whether the 1-norm condition number or the
+          infinity-norm condition number is required:
+          = '1' or 'O':  1-norm;
+          = 'I':         Infinity-norm.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  M       (input) INTEGER
+          The number of rows of B.  M &gt;= 0.
+
+  N       (input) INTEGER
+          The number of columns of B.  N &gt;= 0.
+
+  ALPHA   (input) DOUBLE PRECISION
+          The scalar  alpha. When alpha is zero then A is not
+          referenced and B need not be set before entry.
+
+  A       (input) DOUBLE PRECISION array, dimension (LDA,k),
+          where k is M when SIDE = 'L' and is N when SIDE = 'R'.
+          On entry with UPLO = 'U', the leading k-by-k upper
+          triangular part of this array must contain the upper
+          triangular matrix and the strictly lower triangular part
+          of A is not referenced.
+          On entry with UPLO = 'L', the leading k-by-k lower
+          triangular part of this array must contain the lower
+          triangular matrix and the strictly upper triangular part
+          of A is not referenced.
+          Note that when DIAG = 'U', the diagonal elements of A are
+          not referenced either, but are assumed to be unity.
+
+  LDA     INTEGER
+          The leading dimension of array A.
+          LDA &gt;= max(1,M) when SIDE = 'L';
+          LDA &gt;= max(1,N) when SIDE = 'R'.
+
+  B       (input/output) DOUBLE PRECISION array, dimension (LDB,N)
+          On entry, the leading M-by-N part of this array must
+          contain the right-hand side matrix B.
+          On exit, if INFO = 0, the leading M-by-N part of this
+          array contains the solution matrix X.
+          Otherwise, this array is not modified by the routine.
+
+  LDB     INTEGER
+          The leading dimension of array B.  LDB &gt;= max(1,M).
+
+  RCOND   (output) DOUBLE PRECISION
+          The reciprocal of the condition number of the matrix A,
+          computed as RCOND = 1/(norm(A) * norm(inv(A))).
+
+</PRE>
+<B>Tolerances</B>
+<PRE>
+  TOL     DOUBLE PRECISION
+          The tolerance to be used to test for near singularity of
+          the matrix A. If the user sets TOL &gt; 0, then the given
+          value of TOL is used as a lower bound for the reciprocal
+          condition number of that matrix; a matrix whose estimated
+          condition number is less than 1/TOL is considered to be
+          nonsingular. If the user sets TOL &lt;= 0, then an implicitly
+          computed, default tolerance, defined by TOLDEF = k*k*EPS,
+          is used instead, where EPS is the machine precision (see
+          LAPACK Library routine DLAMCH).
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  IWORK   INTEGER array, dimension (k)
+
+  DWORK   DOUBLE PRECISION array, dimension (3*k)
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value;
+          = 1:  the matrix A is numerically singular, i.e. the
+                condition number estimate of A (in the specified
+                norm) exceeds 1/TOL.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  An estimate of the reciprocal of the condition number of the
+  triangular matrix A (in the specified norm) is computed, and if
+  this estimate is larger then the given (or default) tolerance,
+  the specified matrix equation is solved using Level 3 BLAS
+  routine DTRSM.
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  None.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>                          2
+  The algorithm requires k N/2 operations.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<p>
+<A HREF=..\libindex.html><B>Return to index</B></A></BODY>
+</HTML>

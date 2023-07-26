@@ -1,0 +1,188 @@
+<HTML>
+<HEAD><TITLE>MB04WD - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MB04WD">MB04WD</A></H2>
+<H3>
+Generating an orthogonal basis spanning an isotropic subspace
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To generate a matrix Q with orthogonal columns (spanning an
+  isotropic subspace), which is defined as the first n columns
+  of a product of symplectic reflectors and Givens rotations,
+
+      Q = diag( H(1),H(1) ) G(1) diag( F(1),F(1) )
+          diag( H(2),H(2) ) G(2) diag( F(2),F(2) )
+                            ....
+          diag( H(k),H(k) ) G(k) diag( F(k),F(k) ).
+
+  The matrix Q is returned in terms of its first 2*M rows
+
+                   [  op( Q1 )   op( Q2 ) ]
+               Q = [                      ].
+                   [ -op( Q2 )   op( Q1 ) ]
+
+  Blocked version of the SLICOT Library routine MB04WU.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MB04WD( TRANQ1, TRANQ2, M, N, K, Q1, LDQ1, Q2, LDQ2,
+     $                   CS, TAU, DWORK, LDWORK, INFO )
+C     .. Scalar Arguments ..
+      CHARACTER         TRANQ1, TRANQ2
+      INTEGER           INFO, K, LDQ1, LDQ2, LDWORK, M, N
+C     .. Array Arguments ..
+      DOUBLE PRECISION  CS(*), DWORK(*), Q1(LDQ1,*), Q2(LDQ2,*), TAU(*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  TRANQ1  CHARACTER*1
+          Specifies the form of op( Q1 ) as follows:
+          = 'N':  op( Q1 ) = Q1;
+          = 'T':  op( Q1 ) = Q1';
+          = 'C':  op( Q1 ) = Q1'.
+
+  TRANQ2  CHARACTER*1
+          Specifies the form of op( Q2 ) as follows:
+          = 'N':  op( Q2 ) = Q2;
+          = 'T':  op( Q2 ) = Q2';
+          = 'C':  op( Q2 ) = Q2'.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  M       (input) INTEGER
+          The number of rows of the matrices Q1 and Q2. M &gt;= 0.
+
+  N       (input) INTEGER
+          The number of columns of the matrices Q1 and Q2.
+          M &gt;= N &gt;= 0.
+
+  K       (input) INTEGER
+          The number of symplectic Givens rotations whose product
+          partly defines the matrix Q. N &gt;= K &gt;= 0.
+
+  Q1      (input/output) DOUBLE PRECISION array, dimension
+                  (LDQ1,N) if TRANQ1 = 'N',
+                  (LDQ1,M) if TRANQ1 = 'T' or TRANQ1 = 'C'
+          On entry with TRANQ1 = 'N', the leading M-by-K part of
+          this array must contain in its i-th column the vector
+          which defines the elementary reflector F(i).
+          On entry with TRANQ1 = 'T' or TRANQ1 = 'C', the leading
+          K-by-M part of this array must contain in its i-th row
+          the vector which defines the elementary reflector F(i).
+          On exit with TRANQ1 = 'N', the leading M-by-N part of this
+          array contains the matrix Q1.
+          On exit with TRANQ1 = 'T' or TRANQ1 = 'C', the leading
+          N-by-M part of this array contains the matrix Q1'.
+
+  LDQ1    INTEGER
+          The leading dimension of the array Q1.
+          LDQ1 &gt;= MAX(1,M),  if TRANQ1 = 'N';
+          LDQ1 &gt;= MAX(1,N),  if TRANQ1 = 'T' or TRANQ1 = 'C'.
+
+  Q2      (input/output) DOUBLE PRECISION array, dimension
+                  (LDQ2,N) if TRANQ2 = 'N',
+                  (LDQ2,M) if TRANQ2 = 'T' or TRANQ2 = 'C'
+          On entry with TRANQ2 = 'N', the leading M-by-K part of
+          this array must contain in its i-th column the vector
+          which defines the elementary reflector H(i) and, on the
+          diagonal, the scalar factor of H(i).
+          On entry with TRANQ2 = 'T' or TRANQ2 = 'C', the leading
+          K-by-M part of this array must contain in its i-th row the
+          vector which defines the elementary reflector H(i) and, on
+          the diagonal, the scalar factor of H(i).
+          On exit with TRANQ2 = 'N', the leading M-by-N part of this
+          array contains the matrix Q2.
+          On exit with TRANQ2 = 'T' or TRANQ2 = 'C', the leading
+          N-by-M part of this array contains the matrix Q2'.
+
+  LDQ2    INTEGER
+          The leading dimension of the array Q2.
+          LDQ2 &gt;= MAX(1,M),  if TRANQ2 = 'N';
+          LDQ2 &gt;= MAX(1,N),  if TRANQ2 = 'T' or TRANQ2 = 'C'.
+
+  CS      (input) DOUBLE PRECISION array, dimension (2*K)
+          On entry, the first 2*K elements of this array must
+          contain the cosines and sines of the symplectic Givens
+          rotations G(i).
+
+  TAU     (input) DOUBLE PRECISION array, dimension (K)
+          On entry, the first K elements of this array must
+          contain the scalar factors of the elementary reflectors
+          F(i).
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+          On exit, if INFO = 0,  DWORK(1)  returns the optimal
+          value of LDWORK, MAX(M+N,8*N*NB + 15*NB*NB), where NB is
+          the optimal block size determined by the function UE01MD.
+          On exit, if  INFO = -13,  DWORK(1)  returns the minimum
+          value of LDWORK.
+
+  LDWORK  INTEGER
+          The length of the array DWORK.  LDWORK &gt;= MAX(1,M+N).
+
+          If LDWORK = -1, then a workspace query is assumed;
+          the routine only calculates the optimal size of the
+          DWORK array, returns this value as the first entry of
+          the DWORK array, and no error message related to LDWORK
+          is issued by XERBLA.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value.
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Kressner, D.
+      Block algorithms for orthogonal symplectic factorizations.
+      BIT, 43 (4), pp. 775-790, 2003.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

@@ -1,0 +1,269 @@
+<HTML>
+<HEAD><TITLE>TC01OD - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="TC01OD">TC01OD</A></H2>
+<H3>
+Dual of a left/right polynomial matrix representation
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To find the dual right (left) polynomial matrix representation of
+  a given left (right) polynomial matrix representation, where the
+  right and left polynomial matrix representations are of the form
+  Q(s)*inv(P(s)) and inv(P(s))*Q(s) respectively.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE TC01OD( LERI, M, P, INDLIM, PCOEFF, LDPCO1, LDPCO2,
+     $                   QCOEFF, LDQCO1, LDQCO2, INFO )
+C     .. Scalar Arguments ..
+      CHARACTER         LERI
+      INTEGER           INFO, INDLIM, LDPCO1, LDPCO2, LDQCO1, LDQCO2, M,
+     $                  P
+C     .. Array Arguments ..
+      DOUBLE PRECISION  PCOEFF(LDPCO1,LDPCO2,*), QCOEFF(LDQCO1,LDQCO2,*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  LERI    CHARACTER*1
+          Indicates whether a left or right matrix fraction is input
+          as follows:
+          = 'L':  A left matrix fraction is input;
+          = 'R':  A right matrix fraction is input.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  M       (input) INTEGER
+          The number of system inputs.  M &gt;= 0.
+
+  P       (input) INTEGER
+          The number of system outputs.  P &gt;= 0.
+
+  INDLIM  (input) INTEGER
+          The highest value of K for which PCOEFF(.,.,K) and
+          QCOEFF(.,.,K) are to be transposed.
+          K = kpcoef + 1, where kpcoef is the maximum degree of the
+          polynomials in P(s).  INDLIM &gt;= 1.
+
+  PCOEFF  (input/output) DOUBLE PRECISION array, dimension
+          (LDPCO1,LDPCO2,INDLIM)
+          If LERI = 'L' then porm = P, otherwise porm = M.
+          On entry, the leading porm-by-porm-by-INDLIM part of this
+          array must contain the coefficients of the denominator
+          matrix P(s).
+          PCOEFF(I,J,K) is the coefficient in s**(INDLIM-K) of
+          polynomial (I,J) of P(s), where K = 1,2,...,INDLIM.
+          On exit, the leading porm-by-porm-by-INDLIM part of this
+          array contains the coefficients of the denominator matrix
+          P'(s) of the dual system.
+
+  LDPCO1  INTEGER
+          The leading dimension of array PCOEFF.
+          LDPCO1 &gt;= MAX(1,P) if LERI = 'L',
+          LDPCO1 &gt;= MAX(1,M) if LERI = 'R'.
+
+  LDPCO2  INTEGER
+          The second dimension of array PCOEFF.
+          LDPCO2 &gt;= MAX(1,P) if LERI = 'L',
+          LDPCO2 &gt;= MAX(1,M) if LERI = 'R'.
+
+  QCOEFF  (input/output) DOUBLE PRECISION array, dimension
+          (LDQCO1,LDQCO2,INDLIM)
+          On entry, the leading P-by-M-by-INDLIM part of this array
+          must contain the coefficients of the numerator matrix
+          Q(s).
+          QCOEFF(I,J,K) is the coefficient in s**(INDLIM-K) of
+          polynomial (I,J) of Q(s), where K = 1,2,...,INDLIM.
+          On exit, the leading M-by-P-by-INDLIM part of the array
+          contains the coefficients of the numerator matrix Q'(s)
+          of the dual system.
+
+  LDQCO1  INTEGER
+          The leading dimension of array QCOEFF.
+          LDQCO1 &gt;= MAX(1,M,P).
+
+  LDQCO2  INTEGER
+          The second dimension of array QCOEFF.
+          LDQCO2 &gt;= MAX(1,M,P).
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  If the given M-input/P-output left (right) polynomial matrix
+  representation has numerator matrix Q(s) and denominator matrix
+  P(s), its dual P-input/M-output right (left) polynomial matrix
+  representation simply has numerator matrix Q'(s) and denominator
+  matrix P'(s).
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  None.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  None.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+*     TC01OD EXAMPLE PROGRAM TEXT
+*
+*     .. Parameters ..
+      INTEGER          NIN, NOUT
+      PARAMETER        ( NIN = 5, NOUT = 6 )
+      INTEGER          MMAX, PMAX, INDMAX
+      PARAMETER        ( MMAX = 20, PMAX = 20, INDMAX = 20 )
+      INTEGER          MAXMP
+      PARAMETER        ( MAXMP = MAX( MMAX, PMAX ) )
+      INTEGER          LDPCO1, LDPCO2, LDQCO1, LDQCO2
+      PARAMETER        ( LDPCO1 = MAXMP, LDPCO2 = MAXMP,
+     $                   LDQCO1 = MAXMP, LDQCO2 = MAXMP )
+*     .. Local Scalars ..
+      INTEGER          I, INDLIM, INFO, J, K, M, P, PORM
+      CHARACTER*1      LERI
+      LOGICAL          LLERI
+*     .. Local Arrays ..
+      DOUBLE PRECISION PCOEFF(LDPCO1,LDPCO2,INDMAX),
+     $                 QCOEFF(LDQCO1,LDQCO2,INDMAX)
+*     .. External Functions ..
+      LOGICAL          LSAME
+      EXTERNAL         LSAME
+*     .. External Subroutines ..
+      EXTERNAL         TC01OD
+*     .. Intrinsic Functions ..
+      INTRINSIC        MAX
+*     .. Executable Statements ..
+*
+      WRITE ( NOUT, FMT = 99999 )
+*     Skip the heading in the data file and read the data.
+      READ ( NIN, FMT = '()' )
+      READ ( NIN, FMT = * ) M, P, INDLIM, LERI
+      LLERI = LSAME( LERI, 'L' )
+      IF ( M.LE.0 .OR. M.GT.MMAX ) THEN
+         WRITE ( NOUT, FMT = 99994 ) M
+      ELSE IF ( P.LE.0 .OR. P.GT.PMAX ) THEN
+         WRITE ( NOUT, FMT = 99993 ) P
+      ELSE IF ( INDLIM.LE.0 .OR. INDLIM.GT.INDMAX ) THEN
+         WRITE ( NOUT, FMT = 99992 ) INDLIM
+      ELSE
+         PORM = P
+         IF ( .NOT.LLERI ) PORM = M
+         READ ( NIN, FMT = * )
+     $      ( ( ( PCOEFF(I,J,K), K = 1,INDLIM ), J = 1,PORM ),
+     $                           I = 1,PORM )
+         READ ( NIN, FMT = * )
+     $      ( ( ( QCOEFF(I,J,K), K = 1,INDLIM ), J = 1,M ), I = 1,P )
+*        Find the dual right pmr of the given left pmr.
+         CALL TC01OD( LERI, M, P, INDLIM, PCOEFF, LDPCO1, LDPCO2,
+     $                QCOEFF, LDQCO1, LDQCO2, INFO )
+*
+         IF ( INFO.NE.0 ) THEN
+            WRITE ( NOUT, FMT = 99998 ) INFO
+         ELSE
+            WRITE ( NOUT, FMT = 99997 )
+            DO 40 I = 1, PORM
+               DO 20 J = 1, PORM
+                  WRITE ( NOUT, FMT = 99996 ) I, J,
+     $              ( PCOEFF(I,J,K), K = 1,INDLIM )
+   20          CONTINUE
+   40       CONTINUE
+            WRITE ( NOUT, FMT = 99995 )
+            DO 80 I = 1, M
+               DO 60 J = 1, P
+                  WRITE ( NOUT, FMT = 99996 ) I, J,
+     $              ( QCOEFF(I,J,K), K = 1,INDLIM )
+   60          CONTINUE
+   80       CONTINUE
+         END IF
+      END IF
+      STOP
+*
+99999 FORMAT (' TC01OD EXAMPLE PROGRAM RESULTS',/1X)
+99998 FORMAT (' INFO on exit from TC01OD = ',I2)
+99997 FORMAT (' The coefficients of the denominator matrix of the dual',
+     $       ' system are ')
+99996 FORMAT (/' element (',I2,',',I2,') is ',20(1X,F6.2))
+99995 FORMAT (//' The coefficients of the numerator matrix of the dual',
+     $       ' system are ')
+99994 FORMAT (/' M is out of range.',/' M = ',I5)
+99993 FORMAT (/' P is out of range.',/' P = ',I5)
+99992 FORMAT (/' INDLIM is out of range.',/' INDLIM = ',I5)
+      END
+</PRE>
+<B>Program Data</B>
+<PRE>
+ TC01OD EXAMPLE PROGRAM DATA
+   2     2     3     L
+   2.0   3.0   1.0
+   4.0  -1.0  -1.0
+   5.0   7.0  -6.0
+   3.0   2.0   2.0
+   6.0  -1.0   5.0
+   1.0   7.0   5.0
+   1.0   1.0   1.0
+   4.0   1.0  -1.0
+</PRE>
+<B>Program Results</B>
+<PRE>
+ TC01OD EXAMPLE PROGRAM RESULTS
+
+ The coefficients of the denominator matrix of the dual system are 
+
+ element ( 1, 1) is    2.00   3.00   1.00
+
+ element ( 1, 2) is    5.00   7.00  -6.00
+
+ element ( 2, 1) is    4.00  -1.00  -1.00
+
+ element ( 2, 2) is    3.00   2.00   2.00
+
+
+ The coefficients of the numerator matrix of the dual system are 
+
+ element ( 1, 1) is    6.00  -1.00   5.00
+
+ element ( 1, 2) is    1.00   1.00   1.00
+
+ element ( 2, 1) is    1.00   7.00   5.00
+
+ element ( 2, 2) is    4.00   1.00  -1.00
+</PRE>
+
+<HR>
+<p>
+<A HREF=..\libindex.html><B>Return to index</B></A></BODY>
+</HTML>

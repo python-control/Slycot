@@ -1,0 +1,204 @@
+<HTML>
+<HEAD><TITLE>SB03OT - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="SB03OT">SB03OT</A></H2>
+<H3>
+Solving (for Cholesky factor) stable continuous- or discrete-time Lyapunov equations, with matrix S quasi-triangular and R triangular
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To solve for X = op(U)'*op(U) either the stable non-negative
+  definite continuous-time Lyapunov equation
+                                2
+     op(S)'*X + X*op(S) = -scale *op(R)'*op(R)                   (1)
+
+  or the convergent non-negative definite discrete-time Lyapunov
+  equation
+                                2
+     op(S)'*X*op(S) - X = -scale *op(R)'*op(R)                   (2)
+
+  where op(K) = K or K' (i.e., the transpose of the matrix K), S is
+  an N-by-N block upper triangular matrix with one-by-one or
+  two-by-two blocks on the diagonal, R is an N-by-N upper triangular
+  matrix, and scale is an output scale factor, set less than or
+  equal to 1 to avoid overflow in X.
+
+  In the case of equation (1) the matrix S must be stable (that
+  is, all the eigenvalues of S must have negative real parts),
+  and for equation (2) the matrix S must be convergent (that is,
+  all the eigenvalues of S must lie inside the unit circle).
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE SB03OT( DISCR, LTRANS, N, S, LDS, R, LDR, SCALE, DWORK,
+     $                   INFO )
+C     .. Scalar Arguments ..
+      LOGICAL           DISCR, LTRANS
+      INTEGER           INFO, LDR, LDS, N
+      DOUBLE PRECISION  SCALE
+C     .. Array Arguments ..
+      DOUBLE PRECISION  DWORK(*), R(LDR,*), S(LDS,*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  DISCR   LOGICAL
+          Specifies the type of Lyapunov equation to be solved as
+          follows:
+          = .TRUE. :  Equation (2), discrete-time case;
+          = .FALSE.:  Equation (1), continuous-time case.
+
+  LTRANS  LOGICAL
+          Specifies the form of op(K) to be used, as follows:
+          = .FALSE.:  op(K) = K    (No transpose);
+          = .TRUE. :  op(K) = K**T (Transpose).
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The order of the matrices S and R.  N &gt;= 0.
+
+  S       (input) DOUBLE PRECISION array of dimension (LDS,N)
+          The leading N-by-N upper Hessenberg part of this array
+          must contain the block upper triangular matrix.
+          The elements below the upper Hessenberg part of the array
+          S are not referenced. The 2-by-2 blocks must only
+          correspond to complex conjugate pairs of eigenvalues (not
+          to real eigenvalues).
+
+  LDS     INTEGER
+          The leading dimension of array S.  LDS &gt;= MAX(1,N).
+
+  R       (input/output) DOUBLE PRECISION array of dimension (LDR,N)
+          On entry, the leading N-by-N upper triangular part of this
+          array must contain the upper triangular matrix R.
+          On exit, the leading N-by-N upper triangular part of this
+          array contains the upper triangular matrix U.
+          The strict lower triangle of R is not referenced.
+
+  LDR     INTEGER
+          The leading dimension of array R.  LDR &gt;= MAX(1,N).
+
+  SCALE   (output) DOUBLE PRECISION
+          The scale factor, scale, set less than or equal to 1 to
+          prevent the solution overflowing.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  DWORK   DOUBLE PRECISION array, dimension (4*N)
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value;
+          = 1:  if the Lyapunov equation is (nearly) singular
+                (warning indicator);
+                if DISCR = .FALSE., this means that while the
+                matrix S has computed eigenvalues with negative real
+                parts, it is only just stable in the sense that
+                small perturbations in S can make one or more of the
+                eigenvalues have a non-negative real part;
+                if DISCR = .TRUE., this means that while the
+                matrix S has computed eigenvalues inside the unit
+                circle, it is nevertheless only just convergent, in
+                the sense that small perturbations in S can make one
+                or more of the eigenvalues lie outside the unit
+                circle;
+                perturbed values were used to solve the equation
+                (but the matrix S is unchanged);
+          = 2:  if the matrix S is not stable (that is, one or more
+                of the eigenvalues of S has a non-negative real
+                part), if DISCR = .FALSE., or not convergent (that
+                is, one or more of the eigenvalues of S lies outside
+                the unit circle), if DISCR = .TRUE.;
+          = 3:  if the matrix S has two or more consecutive non-zero
+                elements on the first sub-diagonal, so that there is
+                a block larger than 2-by-2 on the diagonal;
+          = 4:  if the matrix S has a 2-by-2 diagonal block with
+                real eigenvalues instead of a complex conjugate
+                pair.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  The method used by the routine is based on a variant of the
+  Bartels and Stewart backward substitution method [1], that finds
+  the Cholesky factor op(U) directly without first finding X and
+  without the need to form the normal matrix op(R)'*op(R) [2].
+
+  The continuous-time Lyapunov equation in the canonical form
+                                                     2
+    op(S)'*op(U)'*op(U) + op(U)'*op(U)*op(S) = -scale *op(R)'*op(R),
+
+  or the discrete-time Lyapunov equation in the canonical form
+                                                     2
+    op(S)'*op(U)'*op(U)*op(S) - op(U)'*op(U) = -scale *op(R)'*op(R),
+
+  where U and R are upper triangular, is solved for U.
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Bartels, R.H. and Stewart, G.W.
+      Solution of the matrix equation  A'X + XB = C.
+      Comm. A.C.M., 15, pp. 820-826, 1972.
+
+  [2] Hammarling, S.J.
+      Numerical solution of the stable, non-negative definite
+      Lyapunov equation.
+      IMA J. Num. Anal., 2, pp. 303-325, 1982.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>                            3
+  The algorithm requires 0(N ) operations and is backward stable.
+
+</PRE>
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  The Lyapunov equation may be very ill-conditioned. In particular
+  if S is only just stable (or convergent) then the Lyapunov
+  equation will be ill-conditioned. "Large" elements in U relative
+  to those of S and R, or a "small" value for scale, is a symptom
+  of ill-conditioning. A condition estimate can be computed using
+  SLICOT Library routine SB03MD.
+
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

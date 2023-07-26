@@ -1,0 +1,130 @@
+<HTML>
+<HEAD><TITLE>MB01RW - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MB01RW">MB01RW</A></H2>
+<H3>
+Computation of matrix expression alpha A X trans(A), X symmetric (BLAS 2 version)
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To compute the transformation of the symmetric matrix A by the
+  matrix Z in the form
+
+     A := op(Z)*A*op(Z)',
+
+  where op(Z) is either Z or its transpose, Z'.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MB01RW( UPLO, TRANS, M, N, A, LDA, Z, LDZ, DWORK,
+     $                   INFO )
+C     .. Scalar Arguments ..
+      CHARACTER         TRANS, UPLO
+      INTEGER           INFO, LDA, LDZ, M, N
+C     .. Array Arguments ..
+      DOUBLE PRECISION  A(LDA,*), DWORK(*), Z(LDZ,*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  UPLO    CHARACTER*1
+          Specifies whether the upper or lower triangle of A
+          is stored:
+          = 'U':  Upper triangle of A is stored;
+          = 'L':  Lower triangle of A is stored.
+
+  TRANS   CHARACTER*1
+          Specifies whether op(Z) is Z or its transpose Z':
+          = 'N':  op(Z) = Z;
+          = 'T':  op(Z) = Z'.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  M       (input) INTEGER
+          The order of the resulting symmetric matrix op(Z)*A*op(Z)'
+          and the number of rows of the matrix Z, if TRANS = 'N',
+          or the number of columns of the matrix Z, if TRANS = 'T'.
+          M &gt;= 0.
+
+  N       (input) INTEGER
+          The order of the symmetric matrix A and the number of
+          columns of the matrix Z, if TRANS = 'N', or the number of
+          rows of the matrix Z, if TRANS = 'T'.  N &gt;= 0.
+
+  A       (input/output) DOUBLE PRECISION array, dimension
+          (LDA,MAX(M,N))
+          On entry, the leading N-by-N upper or lower triangular
+          part of this array must contain the upper (UPLO = 'U')
+          or lower (UPLO = 'L') triangular part of the symmetric
+          matrix A.
+          On exit, the leading M-by-M upper or lower triangular
+          part of this array contains the upper (UPLO = 'U') or
+          lower (UPLO = 'L') triangular part of the symmetric
+          matrix op(Z)*A*op(Z)'.
+
+  LDA     INTEGER
+          The leading dimension of the array A.  LDA &gt;= MAX(1,M,N).
+
+  Z       (input) DOUBLE PRECISION array, dimension (LDQ,K)
+          where K = N if TRANS = 'N' and K = M if TRANS = 'T'.
+          The leading M-by-N part, if TRANS = 'N', or N-by-M part,
+          if TRANS = 'T', of this array contains the matrix Z.
+
+  LDZ     INTEGER
+          The leading dimension of the array Z.
+          LDZ &gt;= MAX(1,M) if TRANS = 'N' and
+          LDZ &gt;= MAX(1,N) if TRANS = 'T'.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  DWORK   DOUBLE PRECISION array, dimension (N)
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value.
+
+</PRE>
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  This is a simpler, BLAS 2 version for MB01RD.
+
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

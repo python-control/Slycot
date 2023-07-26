@@ -1,0 +1,295 @@
+<HTML>
+<HEAD><TITLE>SG02CX - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="SG02CX">SG02CX</A></H2>
+<H3>
+Line search parameter minimizing the residual of (generalized) continuous- or discrete-time algebraic Riccati equations
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To find the line search parameter alpha minimizing the Frobenius
+  norm (in a MATLAB-style notation)
+
+     P(alpha) := norm(R(X+alpha*S), 'fro')
+               = norm((1-alpha)*R(X) +/- alpha^2*V, 'fro'),
+
+  where R(X) is the residual of a (generalized) continuous-time
+  algebraic Riccati equation
+
+     0 = op(A)'*X + X*op(A) +/- X*G*X + Q  =:  R(X),
+  or
+     0 = op(A)'*X*op(E) + op(E)'*X*op(A) +/- op(E)'*X*G*X*op(E) + Q
+       =:  R(X),
+
+  V = op(E)'*S*G*S*op(E), and op(W) is either W or W'. The matrix S
+  is the Newton step.
+                                                  _-1
+  Instead of the symmetric N-by-N matrix G, G = B*R  *B', the N-by-M
+                   -1
+  matrix D, D = B*L  , such that G = D*D', may be given on entry.
+             _  _
+  The matrix R, R = L'*L, is a weighting matrix of the optimal
+  problem, and L is its (Cholesky) factor.
+
+  Optionally, V is specified as V = H*K, or V = F*F', but F or H and
+  K must be evaluated in S. See the SLICOT Library routine SG02CW
+  description for more details.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE SG02CX( JOBE, FLAG, JOBG, UPLO, TRANS, N, M, E, LDE, R,
+     $                   LDR, S, LDS, G, LDG, ALPHA, RNORM, DWORK,
+     $                   LDWORK, IWARN, INFO )
+C     .. Scalar Arguments ..
+      CHARACTER         FLAG, JOBE, JOBG, TRANS, UPLO
+      INTEGER           INFO, IWARN, LDE, LDG, LDR, LDS, LDWORK, M, N
+      DOUBLE PRECISION  ALPHA, RNORM
+C     .. Array Arguments ..
+      DOUBLE PRECISION  DWORK(*), E(LDE,*), G(LDG,*), R(LDR,*), S(LDS,*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  JOBE    CHARACTER*1
+          Specifies whether E is a general or an identity matrix,
+          as follows:
+          = 'G':  The matrix E is general and is given;
+          = 'I':  The matrix E is assumed identity and is not given.
+
+  FLAG    CHARACTER*1
+          Specifies which sign is used, as follows:
+          = 'P':  The plus sign is used;
+          = 'M':  The minus sign is used.
+
+  JOBG    CHARACTER*1
+          Specifies how the matrix product V is defined, as follows:
+          = 'G':  The matrix G is given:  V = op(E)'*S*G*S*op(E);
+          = 'D':  The matrix D is given:  V = op(E)'*S*D*D'*S*op(E);
+          = 'F':  The matrix F is given:           V = F*F';
+          = 'H':  The matrices H and K are given:  V = H*K.
+
+  UPLO    CHARACTER*1
+          Specifies which triangles of the symmetric matrices R, G,
+          if JOBG = 'G', and S, if JOBG = 'G' or JOBG = 'D', are
+          given, as follows:
+          = 'U':  The upper triangular part is given;
+          = 'L':  The lower triangular part is given.
+
+  TRANS   CHARACTER*1
+          Specifies the form of op(W) to be used in the matrix
+          multiplication, as follows:
+          = 'N':  op(W) = W;
+          = 'T':  op(W) = W';
+          = 'C':  op(W) = W'.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The order of the matrices E, R, and S.  N &gt;= 0.
+
+  M       (input) INTEGER
+          If JOBG &lt;&gt; 'G', the number of columns of the matrices D,
+          F, or K'.  M &gt;= 0.
+          If JOBG = 'G', the value of M is meaningless.
+
+  E       (input) DOUBLE PRECISION array, dimension (LDE,*)
+          If JOBE = 'G' and (JOBG = 'G' or JOBG = 'D'), the leading
+          N-by-N part of this array must contain the matrix E.
+          If JOBE = 'I' or JOBG = 'F' or JOBG = 'H', this array is
+          not referenced.
+
+  LDE     INTEGER
+          The leading dimension of array E.
+          LDE &gt;= MAX(1,N), if JOBE = 'G' and (JOBG = 'G' or
+                                              JOBG = 'D');
+          LDE &gt;= 1,        if JOBE = 'I'  or  JOBG = 'F' or
+                                              JOBG = 'H'.
+
+  R       (input) DOUBLE PRECISION array, dimension (LDR,N)
+          The leading N-by-N upper or lower triangular part
+          (depending on UPLO) of this array must contain the upper
+          or lower triangular part, respectively, of the matrix
+          R(X), the residual of the algebraic Riccati equation.
+          The other strictly triangular part is not referenced.
+
+  LDR     INTEGER
+          The leading dimension of array R.  LDR &gt;= MAX(1,N).
+
+  S       (input) DOUBLE PRECISION array, dimension (LDS,*)
+          If JOBG = 'G' or JOBG = 'D', the leading N-by-N part of
+          this array must contain the symmetric Newton step
+          matrix S. If JOBE = 'I', the full matrix must be given.
+          Otherwise, it is sufficient to input only the triangular
+          part specified by UPLO, and the remaining strictly
+          triangular part is not referenced.
+          If JOBG = 'F', this array is not referenced.
+          If JOBG = 'H', the leading M-by-N part of this array must
+          contain the matrix K.
+
+  LDS     INTEGER
+          The leading dimension of array S.
+          LDS &gt;= MAX(1,N), if JOBG =  'G' or JOBG =  'D';
+          LDS &gt;= 1,        if JOBG =  'F';
+          LDS &gt;= MAX(1,M), if JOBG =  'H'.
+
+  G       (input/works.) DOUBLE PRECISION array, dimension (LDG,*)
+          If JOBG = 'G', the leading N-by-N upper or lower
+          triangular part (depending on UPLO) of this array must
+          contain the upper or lower triangular part, respectively,
+          of the matrix G. The other strictly triangular part is not
+          referenced. The diagonal elements of this array are
+          modified internally, but are restored on exit.
+          If JOBG = 'D', the leading N-by-M part of this array must
+          contain the matrix D, so that G = D*D'.
+          If JOBG = 'F', the leading N-by-M part of this array must
+          contain the matrix F.
+          If JOBG = 'H', leading N-by-M part of this array must
+          contain the matrix H.
+
+  LDG     INTEGER
+          The leading dimension of array G.  LDG &gt;= MAX(1,N).
+
+  ALPHA   (output) DOUBLE PRECISION
+          If INFO = 0, ALPHA contains the real number alpha which
+          minimizes  P(alpha) = norm(R(X+alpha*S), 'fro') in the
+          interval [0,2].
+          If INFO = 1 or IWARN = 2, ALPHA is set equal to 1.
+
+  RNORM   (output) DOUBLE PRECISION
+          On exit, if INFO &gt;= 0, RNORM contains the Frobenius norm
+          of the residual R(X+alpha*S).
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+          On exit, if LDWORK = -1 on input, then DWORK(1) returns
+          the optimal value of LDWORK.
+          On exit, if LDWORK = -2 on input or INFO = -19, then
+          DWORK(1) returns the minimal value of LDWORK.
+          On exit, if INFO = 0, the leading N-by-N upper or lower
+          triangular part (depending on UPLO) of this array contains
+          the corresponding triangular part of the matrix V.
+
+  LDWORK  The length of the array DWORK.
+          LDWORK &gt;= N*N + MAX( 2*N*N, 51 ),
+                                    if JOBG = 'G' and JOBE = 'G';
+          LDWORK &gt;= N*N + MAX( N*N, 51 ),
+                                    if JOBG = 'G' and JOBE = 'I',
+                                    or JOBG = 'F', or JOBG = 'H';
+          LDWORK &gt;= N*N + MAX( MAX( N*N, 51 ), MIN( 2*N*N, N*M ) ),
+                                    if JOBG = 'D' and JOBE = 'G';
+          LDWORK &gt;= N*N + MAX( N*N, N*M, 51 ),
+                                    if JOBG = 'D' and JOBE = 'I'.
+          For M &lt;= N, the last two formulas simplify to
+          LDWORK &gt;= N*N + MAX( N*N, 51).
+
+          If LDWORK = -1, an optimal workspace query is assumed; the
+          routine only calculates the optimal size of the DWORK
+          array, returns this value as the first entry of the DWORK
+          array, and no error message is issued by XERBLA.
+
+          If LDWORK = -2, a minimal workspace query is assumed; the
+          routine only calculates the minimal size of the DWORK
+          array, returns this value as the first entry of the DWORK
+          array, and no error message is issued by XERBLA.
+
+</PRE>
+<B>Warning Indicator</B>
+<PRE>
+  IWARN   INTEGER
+          = 0:  no warnings;
+          = 2:  no optimal line search parameter t := alpha in [0,2]
+                was found; t = 1 was set.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -k, the k-th argument had an illegal
+                value;
+          = 1:  an error occurred during the call of the SLICOT
+                Library routine MC01XD: the eigenvalues computation
+                for the 3-by-3 (generalized) eigenproblem failed.
+                ALPHA and RNORM are set as specified above.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  The matrix V is computed with the suitable formula, and used to
+  set up a third order polynomial whose roots in [0,2], if any, are
+  candidates for the solution of the minimum residual problem.
+  The roots of the polynomial are computed by solving an equivalent
+  3-by-3 (generalized) eigenproblem.
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Benner, P.
+      Contributions to the Numerical Solution of Algebraic
+      Riccati Equations and Related Eigenvalue Problems.
+      Fakultat fur Mathematik, Technische Universitat Chemnitz-
+      Zwickau, D-09107 Chemnitz, Germany, Feb. 1997.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  The calculations are backward stable. The computational effort is
+  of the order of c*N**2*M operations. Here, M = N, if JOBG = 'G',
+  and the coefficient c varies between 0.5 and 2.5, depending on
+  JOBE and JOBG. (An "operation" includes a multiplication, an
+  addition, and some address calculations.)
+  The computed value of norm(R(X+alpha*S),'fro'), returned in RNORM,
+  could be inaccurate if R(X) is small, since then subtraction
+  cancellation could appear in the updating formula which is used.
+  (This can happen, e.g., when solving a Riccati equation by
+  Newton's method with line search, since then the sequence of R(.)
+  tends to zero.) In such a case, it is better to recompute the
+  residual from the data.
+
+</PRE>
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  The routine does not ckeck if the matrix S is zero, when a quick
+  return with ALPHA = 1 is possible.
+  With suitable input arguments E and G, this routine may also be
+  used for discrete-time algebraic Riccati equations. (Matrix E
+  must be the current closed-loop matrix.)
+
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<p>
+<A HREF=..\libindex.html><B>Return to index</B></A></BODY>
+</HTML>

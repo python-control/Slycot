@@ -1,0 +1,287 @@
+<HTML>
+<HEAD><TITLE>MB02ED - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MB02ED">MB02ED</A></H2>
+<H3>
+Solution of T X = B or X T = B with a positive definite block Toeplitz matrix T
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To solve a system of linear equations  T*X = B  or  X*T = B  with
+  a symmetric positive definite (s.p.d.) block Toeplitz matrix T.
+  T is defined either by its first block row or its first block
+  column, depending on the parameter TYPET.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MB02ED( TYPET, K, N, NRHS, T, LDT, B, LDB, DWORK,
+     $                   LDWORK, INFO )
+C     .. Scalar Arguments ..
+      CHARACTER         TYPET
+      INTEGER           INFO, K, LDB, LDT, LDWORK, N, NRHS
+C     .. Array Arguments ..
+      DOUBLE PRECISION  B(LDB,*), DWORK(*), T(LDT,*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  TYPET   CHARACTER*1
+          Specifies the type of T, as follows:
+          = 'R':  T contains the first block row of an s.p.d. block
+                  Toeplitz matrix, and the system X*T = B is solved;
+          = 'C':  T contains the first block column of an s.p.d.
+                  block Toeplitz matrix, and the system T*X = B is
+                  solved.
+          Note:   in the sequel, the notation x / y means that
+                  x corresponds to TYPET = 'R' and y corresponds to
+                  TYPET = 'C'.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  K       (input)  INTEGER
+          The number of rows / columns in T, which should be equal
+          to the blocksize.  K &gt;= 0.
+
+  N       (input)  INTEGER
+          The number of blocks in T.  N &gt;= 0.
+
+  NRHS    (input)  INTEGER
+          The number of right hand sides.  NRHS &gt;= 0.
+
+  T       (input/output)  DOUBLE PRECISION array, dimension
+          (LDT,N*K) / (LDT,K)
+          On entry, the leading K-by-N*K / N*K-by-K part of this
+          array must contain the first block row / column of an
+          s.p.d. block Toeplitz matrix.
+          On exit, if  INFO = 0  and  NRHS &gt; 0,  then the leading
+          K-by-N*K / N*K-by-K part of this array contains the last
+          row / column of the Cholesky factor of inv(T).
+
+  LDT     INTEGER
+          The leading dimension of the array T.
+          LDT &gt;= MAX(1,K),    if TYPET = 'R';
+          LDT &gt;= MAX(1,N*K),  if TYPET = 'C'.
+
+  B       (input/output) DOUBLE PRECISION array, dimension
+          (LDB,N*K) / (LDB,NRHS)
+          On entry, the leading NRHS-by-N*K / N*K-by-NRHS part of
+          this array must contain the right hand side matrix B.
+          On exit, the leading NRHS-by-N*K / N*K-by-NRHS part of
+          this array contains the solution matrix X.
+
+  LDB     INTEGER
+          The leading dimension of the array B.
+          LDB &gt;= MAX(1,NRHS),  if TYPET = 'R';
+          LDB &gt;= MAX(1,N*K),   if TYPET = 'C'.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+          On exit, if INFO = 0,  DWORK(1)  returns the optimal
+          value of LDWORK.
+          On exit, if  INFO = -10,  DWORK(1)  returns the minimum
+          value of LDWORK.
+
+  LDWORK  INTEGER
+          The length of the array DWORK.
+          LDWORK &gt;= MAX(1,N*K*K+(N+2)*K).
+          For optimum performance LDWORK should be larger.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value;
+          = 1:  the reduction algorithm failed. The Toeplitz matrix
+                associated with T is not (numerically) positive
+                definite.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  Householder transformations, modified hyperbolic rotations and
+  block Gaussian eliminations are used in the Schur algorithm [1],
+  [2].
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Kailath, T. and Sayed, A.
+      Fast Reliable Algorithms for Matrices with Structure.
+      SIAM Publications, Philadelphia, 1999.
+
+  [2] Kressner, D. and Van Dooren, P.
+      Factorizations and linear system solvers for matrices with
+      Toeplitz structure.
+      SLICOT Working Note 2000-2, 2000.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  The implemented method is numerically equivalent with forming
+  the Cholesky factor R and the inverse Cholesky factor of T, using
+  the generalized Schur algorithm, and solving the systems of
+  equations  R*X = L*B  or  X*R = B*L by a blocked backward
+  substitution algorithm.
+                            3 2    2 2
+  The algorithm requires 0(K N  + K N NRHS) floating point
+  operations.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+*     MB02ED EXAMPLE PROGRAM TEXT
+*
+*     .. Parameters ..
+      INTEGER          NIN, NOUT
+      PARAMETER        ( NIN = 5, NOUT = 6 )
+      INTEGER          KMAX, NMAX
+      PARAMETER        ( KMAX = 20, NMAX = 20 )
+      INTEGER          LDB, LDT, LDWORK
+      PARAMETER        ( LDB = KMAX*NMAX, LDT = KMAX*NMAX,
+     $                   LDWORK = NMAX*KMAX*KMAX + ( NMAX+2 )*KMAX )
+*     .. Local Scalars ..
+      INTEGER          I, INFO, J, K, M, N, NRHS
+      CHARACTER        TYPET
+*     .. Local Arrays ..
+*     The arrays B and T are dimensioned for both TYPET = 'R' and
+*     TYPET = 'C'.
+*     NRHS is assumed to be not larger than KMAX*NMAX.
+      DOUBLE PRECISION B(LDB, KMAX*NMAX), DWORK(LDWORK),
+     $                 T(LDT, KMAX*NMAX)
+*     .. External Functions ..
+      LOGICAL          LSAME
+      EXTERNAL         LSAME
+*     .. External Subroutines ..
+      EXTERNAL         MB02ED
+*
+*     .. Executable Statements ..
+      WRITE ( NOUT, FMT = 99999 )
+*     Skip the heading in the data file and read the data.
+      READ ( NIN, FMT = '()' )
+      READ ( NIN, FMT = * ) N, K, NRHS, TYPET
+      M = N*K
+      IF ( N.LE.0 .OR. N.GT.NMAX ) THEN
+         WRITE ( NOUT, FMT = 99994 ) N
+      ELSE
+         IF ( K.LE.0 .OR. K.GT.KMAX ) THEN
+            WRITE ( NOUT, FMT = 99993 ) K
+         ELSE
+            IF ( NRHS.LE.0 .OR. NRHS.GT.KMAX*NMAX ) THEN
+               WRITE ( NOUT, FMT = 99992 ) NRHS
+            ELSE
+               IF ( LSAME( TYPET, 'R' ) ) THEN
+                  READ ( NIN, FMT = * ) ( ( T(I,J), J = 1,M ), I = 1,K )
+               ELSE
+                  READ ( NIN, FMT = * ) ( ( T(I,J), J = 1,K ), I = 1,M )
+               END IF
+               IF ( LSAME( TYPET, 'R' ) ) THEN
+                  READ (NIN, FMT = * ) ( ( B(I,J), J = 1,M ), I = 1,
+     $                                   NRHS )
+               ELSE
+                  READ (NIN, FMT = * ) ( ( B(I,J), J = 1,NRHS ), I = 1,
+     $                                   M )
+               END IF
+*              Compute the solution of X T = B or T X = B.
+               CALL MB02ED( TYPET, K, N, NRHS, T, LDT, B, LDB, DWORK,
+     $                      LDWORK, INFO )
+               IF ( INFO.NE.0 ) THEN
+                  WRITE ( NOUT, FMT = 99998 ) INFO
+               ELSE
+                  IF ( LSAME( TYPET, 'R' ) ) THEN
+                     WRITE ( NOUT, FMT = 99997 )
+                     DO 10  I = 1, NRHS
+                        WRITE ( NOUT, FMT = 99995 ) ( B(I,J), J = 1, M )
+   10                CONTINUE
+                  ELSE
+                     WRITE ( NOUT, FMT = 99996 )
+                     DO 20  I = 1, M
+                        WRITE ( NOUT, FMT = 99995 ) ( B(I,J), J = 1,
+     $                                                NRHS )
+   20                CONTINUE
+                  END IF
+               END IF
+            END IF
+         END IF
+      END IF
+      STOP
+*
+99999 FORMAT (' MB02ED EXAMPLE PROGRAM RESULTS',/1X)
+99998 FORMAT (' INFO on exit from MB02ED = ',I2)
+99997 FORMAT (' The solution of X*T = B is ')
+99996 FORMAT (' The solution of T*X = B is ')
+99995 FORMAT (20(1X,F8.4))
+99994 FORMAT (/' N is out of range.',/' N = ',I5)
+99993 FORMAT (/' K is out of range.',/' K = ',I5)
+99992 FORMAT (/' NRHS is out of range.',/' NRHS = ',I5)
+      END
+</PRE>
+<B>Program Data</B>
+<PRE>
+MB02ED EXAMPLE PROGRAM DATA
+  3    3    2     C
+    3.0000    1.0000    0.2000
+    1.0000    4.0000    0.4000
+    0.2000    0.4000    5.0000
+    0.1000    0.1000    0.2000
+    0.2000    0.0400    0.0300
+    0.0500    0.2000    0.1000
+    0.1000    0.0300    0.1000
+    0.0400    0.0200    0.2000
+    0.0100    0.0300    0.0200
+    1.0000    2.0000
+    1.0000    2.0000
+    1.0000    2.0000
+    1.0000    2.0000
+    1.0000    2.0000
+    1.0000    2.0000
+    1.0000    2.0000
+    1.0000    2.0000
+    1.0000    2.0000
+</PRE>
+<B>Program Results</B>
+<PRE>
+ MB02ED EXAMPLE PROGRAM RESULTS
+
+ The solution of T*X = B is 
+   0.2408   0.4816
+   0.1558   0.3116
+   0.1534   0.3068
+   0.2302   0.4603
+   0.1467   0.2934
+   0.1537   0.3075
+   0.2349   0.4698
+   0.1498   0.2995
+   0.1653   0.3307
+</PRE>
+
+<HR>
+<p>
+<A HREF=..\libindex.html><B>Return to index</B></A></BODY>
+</HTML>

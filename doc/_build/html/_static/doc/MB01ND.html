@@ -1,0 +1,135 @@
+<HTML>
+<HEAD><TITLE>MB01ND - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MB01ND">MB01ND</A></H2>
+<H3>
+Rank 2 operation alpha*x*trans(y) - alpha*y*trans(x) + A, with A a skew-symmetric matrix
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To perform the skew-symmetric rank 2 operation
+
+       A := alpha*x*y' - alpha*y*x' + A,
+
+  where alpha is a scalar, x and y are vectors of length n and A is
+  an n-by-n skew-symmetric matrix.
+
+  This is a modified version of the vanilla implemented BLAS
+  routine DSYR2 written by Jack Dongarra, Jeremy Du Croz,
+  Sven Hammarling, and Richard Hanson.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MB01ND( UPLO, N, ALPHA, X, INCX, Y, INCY, A, LDA )
+C     .. Scalar Arguments ..
+      DOUBLE PRECISION   ALPHA
+      INTEGER            INCX, INCY, LDA, N
+      CHARACTER          UPLO
+C     .. Array Arguments ..
+      DOUBLE PRECISION   A( LDA, * ), X( * ), Y( * )
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  UPLO    CHARACTER*1
+          Specifies whether the upper or lower triangular part of
+          the array A is to be referenced as follows:
+          = 'U':  only the strictly upper triangular part of A is to
+                  be referenced;
+          = 'L':  only the strictly lower triangular part of A is to
+                  be referenced.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The order of the matrix A.  N &gt;= 0.
+
+  ALPHA   (input) DOUBLE PRECISION
+          The scalar alpha. If alpha is zero X and Y are not
+          referenced.
+
+  X       (input) DOUBLE PRECISION array, dimension
+          ( 1 + ( N - 1 )*abs( INCX ) ).
+          On entry, elements 1, INCX+1, .., ( N - 1 )*INCX + 1 of
+          this array must contain the elements of the vector X.
+
+  INCX    (input) INTEGER
+          The increment for the elements of X. IF INCX &lt; 0 then the
+          elements of X are accessed in reversed order.  INCX &lt;&gt; 0.
+
+  Y       (input) DOUBLE PRECISION array, dimension
+          ( 1 + ( N - 1 )*abs( INCY ) ).
+          On entry, elements 1, INCY+1, .., ( N - 1 )*INCY + 1 of
+          this array must contain the elements of the vector Y.
+
+  INCY    (input) INTEGER
+          The increment for the elements of Y. IF INCY &lt; 0 then the
+          elements of Y are accessed in reversed order.  INCY &lt;&gt; 0.
+
+  A       (input/output) DOUBLE PRECISION array, dimension (LDA,N)
+          On entry with UPLO = 'U', the leading N-by-N part of this
+          array must contain the strictly upper triangular part of
+          the matrix A. The lower triangular part of this array is
+          not referenced.
+          On entry with UPLO = 'L', the leading N-by-N part of this
+          array must contain the strictly lower triangular part of
+          the matrix A. The upper triangular part of this array is
+          not referenced.
+          On exit with UPLO = 'U', the leading N-by-N part of this
+          array contains the strictly upper triangular part of the
+          updated matrix A.
+          On exit with UPLO = 'L', the leading N-by-N part of this
+          array contains the strictly lower triangular part of the
+          updated matrix A.
+
+  LDA     INTEGER
+          The leading dimension of the array A.  LDA &gt;= MAX(1,N)
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  Though being almost identical with the vanilla implementation
+  of the BLAS routine DSYR2 the performance of this routine could
+  be significantly lower in the case of vendor supplied, highly
+  optimized BLAS.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

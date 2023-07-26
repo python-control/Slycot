@@ -1,0 +1,279 @@
+<HTML>
+<HEAD><TITLE>MB03RZ - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MB03RZ">MB03RZ</A></H2>
+<H3>
+Reduction of a complex Schur form matrix to a block-diagonal form
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To reduce an upper triangular complex matrix A (Schur form) to a
+  block-diagonal form using well-conditioned non-unitary similarity
+  transformations. The condition numbers of the transformations used
+  for reduction are roughly bounded by PMAX, where PMAX is a given
+  value. The transformations are optionally postmultiplied in a
+  given matrix X. The Schur form is optionally ordered, so that
+  clustered eigenvalues are grouped in the same block.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MB03RZ( JOBX, SORT, N, PMAX, A, LDA, X, LDX, NBLCKS,
+     $                   BLSIZE, W, TOL, INFO )C     .. Scalar Arguments ..
+      CHARACTER         JOBX, SORT
+      INTEGER           INFO, LDA, LDX, N, NBLCKS
+      DOUBLE PRECISION  PMAX, TOL
+C     .. Array Arguments ..
+      INTEGER           BLSIZE(*)
+      COMPLEX*16        A(LDA,*), W(*), X(LDX,*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  JOBX    CHARACTER*1
+          Specifies whether or not the transformations are
+          accumulated, as follows:
+          = 'N':  The transformations are not accumulated;
+          = 'U':  The transformations are accumulated in X (the
+                  given matrix X is updated).
+
+  SORT    CHARACTER*1
+          Specifies whether or not the diagonal elements of the
+          Schur form are reordered, as follows:
+          = 'N':  The diagonal elements are not reordered;
+          = 'S':  The diagonal elements are reordered before each
+                  step of reduction, so that clustered eigenvalues
+                  appear in the same block;
+          = 'C':  The diagonal elements are not reordered, but the
+                  "closest-neighbour" strategy is used instead of
+                  the standard "closest to the mean" strategy (see
+                  METHOD);
+          = 'B':  The diagonal elements are reordered before each
+                  step of reduction, and the "closest-neighbour"
+                  strategy is used (see METHOD).
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The order of the matrices A and X.  N &gt;= 0.
+
+  PMAX    (input) DOUBLE PRECISION
+          An upper bound for the absolute value of the elements of
+          the individual transformations used for reduction
+          (see METHOD). PMAX &gt;= 1.0D0.
+
+  A       (input/output) COMPLEX*16 array, dimension (LDA,N)
+          On entry, the leading N-by-N upper triangular part of this
+          array must contain the upper triangular matrix A to be
+          block-diagonalized.
+          On exit, the leading N-by-N upper triangular part of this
+          array contains the computed block-diagonal matrix, in
+          Schur form.
+          The strictly lower triangular part is used as workspace,
+          but it is set to zero before exit.
+
+  LDA     INTEGER
+          The leading dimension of array A.  LDA &gt;= MAX(1,N).
+
+  X       (input/output) COMPLEX*16 array, dimension (LDX,*)
+          On entry, if JOBX = 'U', the leading N-by-N part of this
+          array must contain a given matrix X.
+          On exit, if JOBX = 'U', the leading N-by-N part of this
+          array contains the product of the given matrix X and the
+          transformation matrix that reduced A to block-diagonal
+          form. The transformation matrix is itself a product of
+          non-unitary similarity transformations having elements
+          with magnitude less than or equal to PMAX.
+          If JOBX = 'N', this array is not referenced.
+
+  LDX     INTEGER
+          The leading dimension of array X.
+          LDX &gt;= 1,        if JOBX = 'N';
+          LDX &gt;= MAX(1,N), if JOBX = 'U'.
+
+  NBLCKS  (output) INTEGER
+          The number of diagonal blocks of the matrix A.
+
+  BLSIZE  (output) INTEGER array, dimension (N)
+          The first NBLCKS elements of this array contain the orders
+          of the resulting diagonal blocks of the matrix A.
+
+  W       (output) COMPLEX*16 array, dimension (N)
+          This array contains the eigenvalues of the matrix A.
+
+</PRE>
+<B>Tolerances</B>
+<PRE>
+  TOL     DOUBLE PRECISION
+          The tolerance to be used in the ordering of the diagonal
+          elements of the upper triangular matrix.
+          If the user sets TOL &gt; 0, then the given value of TOL is
+          used as an absolute tolerance: an eigenvalue i and a
+          temporarily fixed eigenvalue 1 (the first element of the
+          current trailing submatrix to be reduced) are considered
+          to belong to the same cluster if they satisfy
+
+            | lambda_1 - lambda_i | &lt;= TOL.
+
+          If the user sets TOL &lt; 0, then the given value of TOL is
+          used as a relative tolerance: an eigenvalue i and a
+          temporarily fixed eigenvalue 1 are considered to belong to
+          the same cluster if they satisfy, for j = 1, ..., N,
+
+            | lambda_1 - lambda_i | &lt;= | TOL | * max | lambda_j |.
+
+          If the user sets TOL = 0, then an implicitly computed,
+          default tolerance, defined by TOL = SQRT( SQRT( EPS ) )
+          is used instead, as a relative tolerance, where EPS is
+          the machine precision (see LAPACK Library routine DLAMCH).
+          If SORT = 'N' or 'C', this parameter is not referenced.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  Consider first that SORT = 'N'. Let
+
+         ( A    A   )
+         (  11   12 )
+     A = (          ),
+         ( 0    A   )
+         (       22 )
+
+  be the given matrix in Schur form, where initially A   is the
+                                                      11
+  first diagonal element. An attempt is made to compute a
+  transformation matrix X of the form
+
+         ( I   P )
+     X = (       )                                               (1)
+         ( 0   I )
+
+  (partitioned as A), so that
+
+              ( A     0  )
+      -1      (  11      )
+     X  A X = (          ),
+              ( 0    A   )
+              (       22 )
+
+  and the elements of P do not exceed the value PMAX in magnitude.
+  An adaptation of the standard method for solving Sylvester
+  equations [1], which controls the magnitude of the individual
+  elements of the computed solution [2], is used to obtain matrix P.
+  When this attempt failed, a diagonal element of A  , closest to
+                                                   22
+  the mean of those of A   is selected, and moved by unitary
+                        11
+  similarity transformations in the leading position of A  ; the
+                                                         22
+  moved diagonal element is then added to the block A  , increasing
+                                                     11
+  its order by 1. Another attempt is made to compute a suitable
+  transformation matrix X with the new definitions of the blocks A
+                                                                  11
+  and A  . After a successful transformation matrix X has been
+       22
+  obtained, it postmultiplies the current transformation matrix
+  (if JOBX = 'U'), and the whole procedure is repeated for the
+  block A  .
+         22
+
+  When SORT = 'S', the diagonal elements of the Schur form are
+  reordered before each step of the reduction, so that each cluster
+  of eigenvalues, defined as specified in the definition of TOL,
+  appears in adjacent elements. The elements for each cluster are
+  merged together, and the procedure described above is applied to
+  the larger blocks. Using the option SORT = 'S' will usually
+  provide better efficiency than the standard option (SORT = 'N'),
+  proposed in [2], because there could be no or few unsuccessful
+  attempts to compute individual transformation matrices X of the
+  form (1). However, the resulting dimensions of the blocks are
+  usually larger; this could make subsequent calculations less
+  efficient.
+
+  When SORT = 'C' or 'B', the procedure is similar to that for
+  SORT = 'N' or 'S', respectively, but the block of A   whose
+                                                     22
+  eigenvalue(s) is (are) the closest to those of A   (not to their
+                                                  11
+  mean) is selected and moved to the leading position of A  . This
+                                                          22
+  is called the "closest-neighbour" strategy.
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Bartels, R.H. and Stewart, G.W.  T
+      Solution of the matrix equation A X + XB = C.
+      Comm. A.C.M., 15, pp. 820-826, 1972.
+
+  [2] Bavely, C. and Stewart, G.W.
+      An Algorithm for Computing Reducing Subspaces by Block
+      Diagonalization.
+      SIAM J. Numer. Anal., 16, pp. 359-367, 1979.
+
+  [3] Demmel, J.
+      The Condition Number of Equivalence Transformations that
+      Block Diagonalize Matrix Pencils.
+      SIAM J. Numer. Anal., 20, pp. 599-610, 1983.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>                                    3                     4
+  The algorithm usually requires 0(N ) operations, but 0(N ) are
+  possible in the worst case, when the matrix cannot be diagonalized
+  by well-conditioned transformations.
+
+</PRE>
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  The individual non-unitary transformation matrices used in the
+  reduction of A to a block-diagonal form have condition numbers of
+  the order PMAX. This does not guarantee that their product is
+  well-conditioned enough. The routine can be easily modified to
+  provide estimates for the condition numbers of the clusters of
+  eigenvalues.
+
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<p>
+<A HREF=..\libindex.html><B>Return to index</B></A></BODY>
+</HTML>

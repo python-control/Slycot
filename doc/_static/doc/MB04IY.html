@@ -1,0 +1,169 @@
+<HTML>
+<HEAD><TITLE>MB04IY - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MB04IY">MB04IY</A></H2>
+<H3>
+Applying the product of elementary reflectors used for QR factorization of a matrix having a lower left zero triangle
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To overwrite the real n-by-m matrix  C  with  Q' * C,  Q * C,
+  C * Q',  or  C * Q,  according to the following table
+
+                  SIDE = 'L'     SIDE = 'R'
+  TRANS = 'N':      Q * C          C * Q
+  TRANS = 'T':      Q'* C          C * Q'
+
+  where  Q  is a real orthogonal matrix defined as the product of
+  k elementary reflectors
+
+     Q = H(1) H(2) . . . H(k)
+
+  as returned by SLICOT Library routine MB04ID.  Q  is of order n
+  if  SIDE = 'L'  and of order m if  SIDE = 'R'.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MB04IY( SIDE, TRANS, N, M, K, P, A, LDA, TAU, C, LDC,
+     $                   DWORK, LDWORK, INFO )
+C     .. Scalar Arguments ..
+      INTEGER            INFO, K, LDA, LDC, LDWORK, M, N, P
+      CHARACTER          SIDE, TRANS
+C     .. Array Arguments ..
+      DOUBLE PRECISION   A( LDA, * ), C( LDC, * ), DWORK( * ), TAU( * )
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  SIDE    CHARACTER*1
+          Specify if  Q  or  Q'  is applied from the left or right,
+          as follows:
+          = 'L':  apply  Q  or  Q'  from the left;
+          = 'R':  apply  Q  or  Q'  from the right.
+
+  TRANS   CHARACTER*1
+          Specify if  Q  or  Q'  is to be applied, as follows:
+          = 'N':  apply  Q   (No transpose);
+          = 'T':  apply  Q'  (Transpose).
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The number of rows of the matrix C.  N &gt;= 0.
+
+  M       (input) INTEGER
+          The number of columns of the matrix C.  M &gt;= 0.
+
+  K       (input) INTEGER
+          The number of elementary reflectors whose product defines
+          the matrix Q.
+          N &gt;= K &gt;= 0,  if  SIDE = 'L';
+          M &gt;= K &gt;= 0,  if  SIDE = 'R'.
+
+  P       (input) INTEGER
+          The order of the zero triagle (or the number of rows of
+          the zero trapezoid) in the matrix triangularized by SLICOT
+          Library routine MB04ID.  P &gt;= 0.
+
+  A       (input) DOUBLE PRECISION array, dimension (LDA,K)
+          On input, the elements in the rows  i+1:min(n,n-p-1+i)  of
+          the  i-th  column, and  TAU(i),  represent the orthogonal
+          reflector  H(i),  so that matrix  Q  is the product of
+          elementary reflectors:  Q = H(1) H(2) . . . H(k).
+          A is modified by the routine but restored on exit.
+
+  LDA     INTEGER
+          The leading dimension of the array  A.
+          LDA &gt;= max(1,N),  if  SIDE = 'L';
+          LDA &gt;= max(1,M),  if  SIDE = 'R'.
+
+  TAU     (input) DOUBLE PRECISION array, dimension (K)
+          The scalar factors of the elementary reflectors.
+
+  C       (input/output) DOUBLE PRECISION array, dimension (LDC,M)
+          On entry, the leading N-by-M part of this array must
+          contain the matrix  C.
+          On exit, the leading N-by-M part of this array contains
+          the updated matrix C.
+
+  LDC     INTEGER
+          The leading dimension of the array  C.  LDC &gt;= max(1,N).
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+          On exit, if INFO = 0, DWORK(1) returns the optimal value
+          of LDWORK.
+
+  LDWORK  INTEGER
+          The length of the array DWORK.
+          LDWORK &gt;= MAX(1,M),  if  SIDE = 'L';
+          LDWORK &gt;= MAX(1,N),  if  SIDE = 'R'.
+          For optimum performance LDWORK &gt;= M*NB if SIDE = 'L',
+          or LDWORK &gt;= N*NB if SIDE = 'R', where NB is the optimal
+          block size.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  If  SIDE = 'L',  each elementary reflector  H(i)  modifies
+  n-p  elements of each column of  C,  for  i = 1:p+1,  and
+  n-i+1  elements, for  i = p+2:k.
+  If  SIDE = 'R',  each elementary reflector  H(i)  modifies
+  m-p  elements of each row of  C,  for  i = 1:p+1,  and
+  m-i+1  elements, for  i = p+2:k.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  The implemented method is numerically stable.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

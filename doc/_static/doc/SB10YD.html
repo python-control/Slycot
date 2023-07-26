@@ -1,0 +1,231 @@
+<HTML>
+<HEAD><TITLE>SB10YD - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="SB10YD">SB10YD</A></H2>
+<H3>
+Fitting frequency response data with a stable, minimum phase SISO system
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To fit a supplied frequency response data with a stable, minimum
+  phase SISO (single-input single-output) system represented by its
+  matrices A, B, C, D. It handles both discrete- and continuous-time
+  cases.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE SB10YD( DISCFL, FLAG, LENDAT, RFRDAT, IFRDAT, OMEGA, N,
+     $                   A, LDA, B, C, D, TOL, IWORK, DWORK, LDWORK,
+     $                   ZWORK, LZWORK, INFO )
+C     .. Scalar Arguments ..
+      INTEGER            DISCFL, FLAG, INFO, LDA, LDWORK, LENDAT,
+     $                   LZWORK, N
+      DOUBLE PRECISION   TOL
+C     .. Array Arguments ..
+      INTEGER            IWORK(*)
+      DOUBLE PRECISION   A(LDA, *), B(*), C(*), D(*), DWORK(*),
+     $                   IFRDAT(*), OMEGA(*), RFRDAT(*)
+      COMPLEX*16         ZWORK(*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  DISCFL  (input) INTEGER
+          Indicates the type of the system, as follows:
+          = 0: continuous-time system;
+          = 1: discrete-time system.
+
+  FLAG    (input) INTEGER
+          If FLAG = 0, then the system zeros and poles are not
+          constrained.
+          If FLAG = 1, then the system zeros and poles will have
+          negative real parts in the continuous-time case, or moduli
+          less than 1 in the discrete-time case. Consequently, FLAG
+          must be equal to 1 in mu-synthesis routines.
+
+  LENDAT  (input) INTEGER
+          The length of the vectors RFRDAT, IFRDAT and OMEGA.
+          LENDAT &gt;= 2.
+
+  RFRDAT  (input) DOUBLE PRECISION array, dimension (LENDAT)
+          The real part of the frequency data to be fitted.
+
+  IFRDAT  (input) DOUBLE PRECISION array, dimension (LENDAT)
+          The imaginary part of the frequency data to be fitted.
+
+  OMEGA   (input) DOUBLE PRECISION array, dimension (LENDAT)
+          The frequencies corresponding to RFRDAT and IFRDAT.
+          These values must be nonnegative and monotonically
+          increasing. Additionally, for discrete-time systems
+          they must be between 0 and PI.
+
+  N       (input/output) INTEGER
+          On entry, the desired order of the system to be fitted.
+          N &lt;= LENDAT-1.
+          On exit, the order of the obtained system. The value of N
+          could only be modified if N &gt; 0 and FLAG = 1.
+
+  A       (output) DOUBLE PRECISION array, dimension (LDA,N)
+          The leading N-by-N part of this array contains the
+          matrix A. If FLAG = 1, then A is in an upper Hessenberg
+          form, and corresponds to a minimal realization.
+
+  LDA     INTEGER
+          The leading dimension of the array A.  LDA &gt;= MAX(1,N).
+
+  B       (output) DOUBLE PRECISION array, dimension (N)
+          The computed vector B.
+
+  C       (output) DOUBLE PRECISION array, dimension (N)
+          The computed vector C. If FLAG = 1, the first N-1 elements
+          are zero (for the exit value of N).
+
+  D       (output) DOUBLE PRECISION array, dimension (1)
+          The computed scalar D.
+
+</PRE>
+<B>Tolerances</B>
+<PRE>
+  TOL     DOUBLE PRECISION
+          The tolerance to be used for determining the effective
+          rank of matrices. If the user sets TOL &gt; 0, then the given
+          value of TOL is used as a lower bound for the reciprocal
+          condition number;  a (sub)matrix whose estimated condition
+          number is less than 1/TOL is considered to be of full
+          rank.  If the user sets TOL &lt;= 0, then an implicitly
+          computed, default tolerance, defined by TOLDEF = SIZE*EPS,
+          is used instead, where SIZE is the product of the matrix
+          dimensions, and EPS is the machine precision (see LAPACK
+          Library routine DLAMCH).
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  IWORK   INTEGER array, dimension (max(2,2*N+1))
+
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+          On exit, if INFO = 0, DWORK(1) returns the optimal value
+          of LDWORK and DWORK(2) contains the optimal value of
+          LZWORK.
+
+  LDWORK  INTEGER
+          The length of the array DWORK.
+          LDWORK = max( 2, LW1, LW2, LW3, LW4 ), where
+          LW1 = 2*LENDAT + 4*HNPTS;  HNPTS = 2048;
+          LW2 =   LENDAT + 6*HNPTS;
+          MN  = min( 2*LENDAT, 2*N+1 )
+          LW3 = 2*LENDAT*(2*N+1) + max( 2*LENDAT, 2*N+1 ) +
+                max( MN + 6*N + 4, 2*MN + 1 ), if N &gt; 0;
+          LW3 = 4*LENDAT + 5                 , if N = 0;
+          LW4 = max( N*N + 5*N, 6*N + 1 + min( 1,N ) ), if FLAG = 1;
+          LW4 = 0,                                      if FLAG = 0.
+          For optimum performance LDWORK should be larger.
+
+  ZWORK   COMPLEX*16 array, dimension (LZWORK)
+
+  LZWORK  INTEGER
+          The length of the array ZWORK.
+          LZWORK = LENDAT*(2*N+3), if N &gt; 0;
+          LZWORK = LENDAT,         if N = 0.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value;
+          = 1:  if the discrete --&gt; continuous transformation cannot
+                be made;
+          = 2:  if the system poles cannot be found;
+          = 3:  if the inverse system cannot be found, i.e., D is
+                (close to) zero;
+          = 4:  if the system zeros cannot be found;
+          = 5:  if the state-space representation of the new
+                transfer function T(s) cannot be found;
+          = 6:  if the continuous --&gt; discrete transformation cannot
+                be made.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  First, if the given frequency data are corresponding to a
+  continuous-time system, they are changed to a discrete-time
+  system using a bilinear transformation with a scaled alpha.
+  Then, the magnitude is obtained from the supplied data.
+  Then, the frequency data are linearly interpolated around
+  the unit-disc.
+  Then, Oppenheim and Schafer complex cepstrum method is applied
+  to get frequency data corresponding to a stable, minimum-
+  phase system. This is done in the following steps:
+  - Obtain LOG (magnitude)
+  - Obtain IFFT of the result (DG01MD SLICOT subroutine);
+  - halve the data at 0;
+  - Obtain FFT of the halved data (DG01MD SLICOT subroutine);
+  - Obtain EXP of the result.
+  Then, the new frequency data are interpolated back to the
+  original frequency.
+  Then, based on these newly obtained data, the system matrices
+  A, B, C, D are constructed; the very identification is
+  performed by Least Squares Method using DGELSY LAPACK subroutine.
+  If needed, a discrete-to-continuous time transformation is
+  applied on the system matrices by AB04MD SLICOT subroutine.
+  Finally, if requested, the poles and zeros of the system are
+  checked. If some of them have positive real parts in the
+  continuous-time case (or are not inside the unit disk in the
+  complex plane in the discrete-time case), they are exchanged with
+  their negatives (or reciprocals, respectively), to preserve the
+  frequency response, while getting a minimum phase and stable
+  system. This is done by SB10ZP SLICOT subroutine.
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Oppenheim, A.V. and Schafer, R.W.
+      Discrete-Time Signal Processing.
+      Prentice-Hall Signal Processing Series, 1989.
+
+  [2] Balas, G., Doyle, J., Glover, K., Packard, A., and Smith, R.
+      Mu-analysis and Synthesis toolbox - User's Guide,
+      The Mathworks Inc., Natick, MA, USA, 1998.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

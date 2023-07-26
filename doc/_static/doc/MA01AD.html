@@ -1,0 +1,83 @@
+<HTML>
+<HEAD><TITLE>MA01AD - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MA01AD">MA01AD</A></H2>
+<H3>
+Complex square root of a complex number in real arithmetic
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To compute the complex square root YR + i*YI of a complex number
+  XR + i*XI  in real arithmetic.  The returned result is so that
+  YR &gt;= 0.0  and  SIGN(YI) = SIGN(XI).
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MA01AD( XR, XI, YR, YI )
+C     .. Scalar Arguments ..
+      DOUBLE PRECISION  XR, XI, YR, YI
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  XR      (input) DOUBLE PRECISION
+  XI      (input) DOUBLE PRECISION
+          These scalars define the real and imaginary part of the
+          complex number of which the square root is sought.
+
+  YR      (output) DOUBLE PRECISION
+  YI      (output) DOUBLE PRECISION
+          These scalars define the real and imaginary part of the
+          complex square root.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  The complex square root YR + i*YI of the complex number XR + i*XI
+  is computed in real arithmetic, taking care to avoid overflow.
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  Adapted from EISPACK subroutine CSROOT.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

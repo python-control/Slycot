@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>slycot.tb05ad &mdash; Slycot 0.6 documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+        <script src="../../../_static/sphinx_highlight.js"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <link rel="next" title="slycot.tc04ad" href="slycot.tc04ad.html" />
+    <link rel="prev" title="slycot.tb04ad" href="slycot.tb04ad.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            Slycot
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../../intro.html">Introduction</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../index.html">Slycot reference</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="../slycot_outer.html">Outer function reference</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="../slycot_outer.html#analysis">Analysis</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../slycot_outer.html#mathematical-routines">Mathematical routines</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../slycot_outer.html#synthesis">Synthesis</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="../slycot_outer.html#transformation-routines">Transformation Routines</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="slycot.tb01id.html">slycot.tb01id</a></li>
+<li class="toctree-l4"><a class="reference internal" href="slycot.tb03ad.html">slycot.tb03ad</a></li>
+<li class="toctree-l4"><a class="reference internal" href="slycot.tb04ad.html">slycot.tb04ad</a></li>
+<li class="toctree-l4 current"><a class="current reference internal" href="#">slycot.tb05ad</a></li>
+<li class="toctree-l4"><a class="reference internal" href="slycot.tc04ad.html">slycot.tc04ad</a></li>
+<li class="toctree-l4"><a class="reference internal" href="slycot.tc01od.html">slycot.tc01od</a></li>
+<li class="toctree-l4"><a class="reference internal" href="slycot.tf01md.html">slycot.tf01md</a></li>
+<li class="toctree-l4"><a class="reference internal" href="slycot.tf01rd.html">slycot.tf01rd</a></li>
+<li class="toctree-l4"><a class="reference internal" href="slycot.td04ad.html">slycot.td04ad</a></li>
+<li class="toctree-l4"><a class="reference internal" href="slycot.tb01pd.html">slycot.tb01pd</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../slycot_inner.html">Inner function reference</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../dev/index.html">Development</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">Slycot</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Slycot reference</a></li>
+          <li class="breadcrumb-item"><a href="../slycot_outer.html">Outer function reference</a></li>
+      <li class="breadcrumb-item active">slycot.tb05ad</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../../_sources/source/reference/generated/slycot.tb05ad.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <div class="section" id="slycot-tb05ad">
+<h1>slycot.tb05ad<a class="headerlink" href="#slycot-tb05ad" title="Permalink to this heading"></a></h1>
+<dl class="py function">
+<dt class="sig sig-object py" id="slycot.tb05ad">
+<span class="sig-prename descclassname"><span class="pre">slycot.</span></span><span class="sig-name descname"><span class="pre">tb05ad</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">m</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">jomega</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">A</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">B</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">C</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">job</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'NG'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#slycot.tb05ad" title="Permalink to this definition"></a></dt>
+<dd><p>To find the complex frequency response matrix (transfer matrix)
+G(freq) of the state-space representation (A,B,C) given by</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>                           <span class="o">-</span><span class="mi">1</span>
+<span class="n">G</span><span class="p">(</span><span class="n">freq</span><span class="p">)</span> <span class="o">=</span> <span class="n">C</span> <span class="o">*</span> <span class="p">((</span><span class="n">freq</span><span class="o">*</span><span class="n">I</span> <span class="o">-</span> <span class="n">A</span><span class="p">)</span>  <span class="p">)</span> <span class="o">*</span> <span class="n">B</span>
+</pre></div>
+</div>
+<p>where A, B and C are real N-by-N, N-by-M and P-by-N matrices
+respectively and freq is a complex scalar.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>n</strong> (<em>int</em>) – The number of states, i.e. the order of the state
+transition matrix A.</p></li>
+<li><p><strong>m</strong> (<em>int</em>) – The number of inputs, i.e. the number of columns in the
+matrix B.</p></li>
+<li><p><strong>p</strong> (<em>int</em>) – The number of outputs, i.e. the number of rows in the
+matrix C.</p></li>
+<li><p><strong>jomega</strong> (<em>complex float</em>) – The frequency at which the frequency response matrix
+(transfer matrix) is to be evaluated. For continuous time
+systems, this is j*omega, where omega is the frequency to
+be evaluated. For discrete time systems,
+freq = exp(j*omega*Ts)</p></li>
+<li><p><strong>A</strong> (<em>(</em><em>n</em><em>,</em><em>n</em><em>) </em><em>ndarray</em>) – On entry, this array must contain the state transition
+matrix A.</p></li>
+<li><p><strong>B</strong> (<em>(</em><em>n</em><em>,</em><em>m</em><em>) </em><em>ndarray</em>) – On entry, this array must contain the input/state matrix B.</p></li>
+<li><p><strong>C</strong> (<em>(</em><em>p</em><em>,</em><em>n</em><em>) </em><em>ndarray</em>) – On entry, of this array must contain the state/output matrix C.</p></li>
+<li><p><strong>job</strong> (<em>{'AG'</em><em>, </em><em>'NG'</em><em>, </em><em>'NH'}</em>) – <p>If job = ‘AG’ (i.e., ‘all’, ‘general matrix’), the A matrix is
+first balanced. The balancing transformation
+is then appropriately applied to matrices B and C. The A matrix
+is (again) transformed to an upper Hessenberg representation and
+the B and C matrices are also transformed. In addition,
+the condition number of the problem is calculated as well as the
+eigenvalues of A.</p>
+<p>If job=’NG’ (i.e., ‘none’, ‘general matrix’), no balancing is done.
+Neither the condition number nor the eigenvalues are calculated.
+The routine still transforms A into upper Hessenberg form. The
+matrices B and C are also appropriately transformed.</p>
+<p>If job = ‘NH’ (i.e., ‘none’, ‘hessenberg matrix’), the function
+assumes the matrices have already been transformed into Hessenberg
+form, i.e., by a previous function call tb05ad. If this not the
+case, the routine will return a wrong result without warning.</p>
+</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul>
+<li><p><em>if job = ‘AG’</em></p></li>
+<li><p><em>————–</em> –</p>
+<dl>
+<dt>At:  The A matrix which has been both balanced and</dt><dd><p>transformed to upper Hessenberg form. The balancing
+transforms A according to</p>
+<blockquote>
+<div><p>A1 =   P^-1 * A * P.</p>
+</div></blockquote>
+<dl class="simple">
+<dt>The transformation to upper Hessenberg form then yields</dt><dd><p>At = Q^T * (P^-1 * A * P ) * Q.</p>
+</dd>
+</dl>
+<p>Note that the lower triangle of At is in general not zero.
+Rather, it contains information on the orthogonal matrix Q
+used to transform A1 to Hessenberg form. See docs for lappack
+DGEHRD():
+<a class="reference external" href="http://www.netlib.org/lapack/explore-3.1.1-html/dgehrd.f.html">http://www.netlib.org/lapack/explore-3.1.1-html/dgehrd.f.html</a>
+However, it does not apparently contain information on P, the
+matrix used in the balancing procedure.</p>
+</dd>
+<dt>Bt:  The matrix B transformed according to</dt><dd><p>Bt = Q^T * P^-1 * B.</p>
+</dd>
+<dt>Ct:  The matrix C transformed according to</dt><dd><p>Ct = C * P * Q</p>
+</dd>
+<dt>rcond: RCOND contains an estimate of the reciprocal of the</dt><dd><dl class="simple">
+<dt>condition number of matrix H with respect to inversion, where</dt><dd><p>H = (j*freq * I - A)</p>
+</dd>
+</dl>
+</dd>
+<dt>g_jw: complex p-by-m array, which contains the frequency response</dt><dd><p>matrix G(freq).</p>
+</dd>
+</dl>
+<p>ev:   Eigenvalues of the matrix A.</p>
+<dl>
+<dt>hinvb<span class="classifier">complex n-by-m array, which  contains the product</span></dt><dd><blockquote>
+<div><p>-1</p>
+</div></blockquote>
+<p>H  B.</p>
+</dd>
+</dl>
+</li>
+<li><p><em>if job = ‘NG’</em></p></li>
+<li><p><em>————–</em> –</p>
+<dl>
+<dt>At:    The matrix A transformed to upper Hessenberg form according</dt><dd><dl class="simple">
+<dt>to</dt><dd><p>At = Q^T  * A  * Q.</p>
+</dd>
+</dl>
+<p>The lower triangle is not zero. It containts info on the
+orthoganal transformation. See docs for linpack DGEHRD()
+<a class="reference external" href="http://www.netlib.org/lapack/explore-3.1.1-html/dgehrd.f.html">http://www.netlib.org/lapack/explore-3.1.1-html/dgehrd.f.html</a></p>
+</dd>
+<dt>Bt:    The matrix B transformed according to</dt><dd><p>Bt = Q^T * B.</p>
+</dd>
+<dt>Ct:    The matrix C transformed according to</dt><dd><p>Ct = C * Q</p>
+</dd>
+<dt>g_jw:  complex array with dim p-by-m which contains the frequency</dt><dd><p>response matrix G(freq).</p>
+</dd>
+<dt>hinvb<span class="classifier">complex array with dimension p-by-m.</span></dt><dd><blockquote>
+<div><dl class="simple">
+<dt>This array contains the</dt><dd><p>-1</p>
+</dd>
+</dl>
+</div></blockquote>
+<p>product H  B.</p>
+</dd>
+</dl>
+</li>
+<li><p><em>if job = ‘NH’</em></p></li>
+<li><p><em>————–</em> –</p>
+<dl>
+<dt>g_jw:  complex p-by-m array which contains the frequency</dt><dd><p>response matrix G(freq).</p>
+</dd>
+<dt>hinvb<span class="classifier">complex p-by-m array which contains the</span></dt><dd><blockquote>
+<div><p>-1</p>
+</div></blockquote>
+<p>product H  B.</p>
+</dd>
+</dl>
+</li>
+</ul>
+</p>
+</dd>
+<dt class="field-odd">Raises</dt>
+<dd class="field-odd"><p><strong>SlycotArithmeticError</strong> – <dl class="field-list simple">
+<dt class="field-odd">info = 1</dt>
+<dd class="field-odd"><p>More than {n30} (30*`n`) iterations were required to isolate the
+eigenvalues of A. The computations are continued.</p>
+</dd>
+<dt class="field-even">info = 2</dt>
+<dd class="field-even"><p>Either <cite>freq`={jomega} is too near to an eigenvalue of A,
+or `rcond</cite> is less than the machine precision EPS.</p>
+</dd>
+</dl>
+</p>
+</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">A</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">],</span>
+<span class="go">            [-100.0,   -20.1]])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">B</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mf">0.</span><span class="p">],[</span><span class="mi">100</span><span class="p">]])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">C</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mf">1.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">]])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">n</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">A</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">m</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">B</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">p</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">C</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">jw_s</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="n">j</span><span class="o">*</span><span class="mi">10</span><span class="p">,</span> <span class="mi">1</span><span class="n">j</span><span class="o">*</span><span class="mi">15</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">at</span><span class="p">,</span> <span class="n">bt</span><span class="p">,</span> <span class="n">ct</span><span class="p">,</span> <span class="n">g_1</span><span class="p">,</span> <span class="n">hinvb</span><span class="p">,</span> <span class="n">info</span> <span class="o">=</span> <span class="n">slycot</span><span class="o">.</span><span class="n">tb05ad</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">m</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="n">jw_s</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+<span class="go">                                                A, B, C, job=&#39;NG&#39;)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">g_2</span><span class="p">,</span> <span class="n">hinv2</span><span class="p">,</span><span class="n">info</span> <span class="o">=</span> <span class="n">slycot</span><span class="o">.</span><span class="n">tb05ad</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">m</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="n">jw_s</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">at</span><span class="p">,</span> <span class="n">bt</span><span class="p">,</span> <span class="n">ct</span><span class="p">,</span> <span class="n">job</span><span class="o">=</span><span class="s1">&#39;NH&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</div>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="slycot.tb04ad.html" class="btn btn-neutral float-left" title="slycot.tb04ad" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="slycot.tc04ad.html" class="btn btn-neutral float-right" title="slycot.tc04ad" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Slycot Developers.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,165 @@
+<HTML>
+<HEAD><TITLE>TF01MX - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="TF01MX">TF01MX</A></H2>
+<H3>
+Output sequence of a linear time-invariant open-loop system given its system matrix
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To compute the output sequence of a linear time-invariant
+  open-loop system given by its discrete-time state-space model
+  with an (N+P)-by-(N+M) general system matrix S,
+
+         ( A  B )
+     S = (      ) .
+         ( C  D )
+
+  The initial state vector x(1) must be supplied by the user.
+
+  The input and output trajectories are stored as in the SLICOT
+  Library routine TF01MY.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE TF01MX( N, M, P, NY, S, LDS, U, LDU, X, Y, LDY,
+     $                   DWORK, LDWORK, INFO )
+C     .. Scalar Arguments ..
+      INTEGER           INFO, LDS, LDU, LDWORK, LDY, M, N, NY, P
+C     .. Array Arguments ..
+      DOUBLE PRECISION  DWORK(*), S(LDS,*), U(LDU,*), X(*), Y(LDY,*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The order of the matrix A.  N &gt;= 0.
+
+  M       (input) INTEGER
+          The number of system inputs.  M &gt;= 0.
+
+  P       (input) INTEGER
+          The number of system outputs.  P &gt;= 0.
+
+  NY      (input) INTEGER
+          The number of output vectors y(k) to be computed.
+          NY &gt;= 0.
+
+  S       (input) DOUBLE PRECISION array, dimension (LDS,N+M)
+          The leading (N+P)-by-(N+M) part of this array must contain
+          the system matrix S.
+
+  LDS     INTEGER
+          The leading dimension of array S.  LDS &gt;= MAX(1,N+P).
+
+  U       (input) DOUBLE PRECISION array, dimension (LDU,M)
+          The leading NY-by-M part of this array must contain the
+          input vector sequence u(k), for k = 1,2,...,NY.
+          Specifically, the k-th row of U must contain u(k)'.
+
+  LDU     INTEGER
+          The leading dimension of array U.  LDU &gt;= MAX(1,NY).
+
+  X       (input/output) DOUBLE PRECISION array, dimension (N)
+          On entry, this array must contain the initial state vector
+          x(1) which consists of the N initial states of the system.
+          On exit, this array contains the final state vector
+          x(NY+1) of the N states of the system at instant NY+1.
+
+  Y       (output) DOUBLE PRECISION array, dimension (LDY,P)
+          The leading NY-by-P part of this array contains the output
+          vector sequence y(1),y(2),...,y(NY) such that the k-th
+          row of Y contains y(k)' (the outputs at instant k),
+          for k = 1,2,...,NY.
+
+  LDY     INTEGER
+          The leading dimension of array Y.  LDY &gt;= MAX(1,NY).
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+
+  LDWORK  INTEGER
+          The length of the array DWORK.
+          LDWORK &gt;= 0,        if MIN(N,P,NY) = 0;  otherwise,
+          LDWORK &gt;= N+P,      if M = 0;
+          LDWORK &gt;= 2*N+M+P,  if M &gt; 0.
+          For better performance, LDWORK should be larger.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  Given an initial state vector x(1), the output vector sequence
+  y(1), y(2),..., y(NY) is obtained via the formulae
+
+     ( x(k+1) )     ( x(k) )
+     (        ) = S (      ) ,
+     (  y(k)  )     ( u(k) )
+
+  where each element y(k) is a vector of length P containing the
+  outputs at instant k, and k = 1,2,...,NY.
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Luenberger, D.G.
+      Introduction to Dynamic Systems: Theory, Models and
+      Applications.
+      John Wiley & Sons, New York, 1979.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  The algorithm requires approximately (N + M) x (N + P) x NY
+  multiplications and additions.
+
+</PRE>
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  The implementation exploits data locality as much as possible,
+  given the workspace length.
+
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

@@ -1,0 +1,253 @@
+<HTML>
+<HEAD><TITLE>MC01TD - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MC01TD">MC01TD</A></H2>
+<H3>
+Checking stability of a given real polynomial
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To determine whether or not a given polynomial P(x) with real
+  coefficients is stable, either in the continuous-time or discrete-
+  time case.
+
+  A polynomial is said to be stable in the continuous-time case
+  if all its zeros lie in the left half-plane, and stable in the
+  discrete-time case if all its zeros lie inside the unit circle.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MC01TD( DICO, DP, P, STABLE, NZ, DWORK, IWARN, INFO )
+C     .. Scalar Arguments ..
+      CHARACTER         DICO
+      LOGICAL           STABLE
+      INTEGER           DP, INFO, IWARN, NZ
+C     .. Array Arguments ..
+      DOUBLE PRECISION  DWORK(*), P(*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  DICO    CHARACTER*1
+          Indicates whether the stability test to be applied to
+          P(x) is in the continuous-time or discrete-time case as
+          follows:
+          = 'C':  Continuous-time case;
+          = 'D':  Discrete-time case.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  DP      (input/output) INTEGER
+          On entry, the degree of the polynomial P(x).  DP &gt;= 0.
+          On exit, if P(DP+1) = 0.0 on entry, then DP contains the
+          index of the highest power of x for which P(DP+1) &lt;&gt; 0.0.
+
+  P       (input) DOUBLE PRECISION array, dimension (DP+1)
+          This array must contain the coefficients of P(x) in
+          increasing powers of x.
+
+  STABLE  (output) LOGICAL
+          Contains the value .TRUE. if P(x) is stable and the value
+          .FALSE. otherwise (see also NUMERICAL ASPECTS).
+
+  NZ      (output) INTEGER
+          If INFO = 0, contains the number of unstable zeros - that
+          is, the number of zeros of P(x) in the right half-plane if
+          DICO = 'C' or the number of zeros of P(x) outside the unit
+          circle if DICO = 'D' (see also NUMERICAL ASPECTS).
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  DWORK   DOUBLE PRECISION array, dimension (2*DP+2)
+          The leading (DP+1) elements of DWORK contain the Routh
+          coefficients, if DICO = 'C', or the constant terms of
+          the Schur-Cohn transforms, if DICO = 'D'.
+
+</PRE>
+<B>Warning Indicator</B>
+<PRE>
+  IWARN   INTEGER
+          = 0:  no warning;
+          = k:  if the degree of the polynomial P(x) has been
+                reduced to (DB - k) because P(DB+1-j) = 0.0 on entry
+                for j = 0, 1,..., k-1 and P(DB+1-k) &lt;&gt; 0.0.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value;
+          = 1:  if on entry, P(x) is the zero polynomial;
+          = 2:  if the polynomial P(x) is most probably unstable,
+                although it may be stable with one or more zeros
+                very close to either the imaginary axis if
+                DICO = 'C' or the unit circle if DICO = 'D'.
+                The number of unstable zeros (NZ) is not determined.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  The stability of the real polynomial
+                                      2                DP
+     P(x) = p(0) + p(1) * x + p(2) * x  + ... + p(DP) x
+
+  is determined as follows.
+
+  In the continuous-time case (DICO = 'C') the Routh algorithm
+  (see [1]) is used. The routine computes the Routh coefficients and
+  if they are non-zero then the number of sign changes in the
+  sequence of the coefficients is equal to the number of zeros with
+  positive imaginary part.
+
+  In the discrete-time case (DICO = 'D') the Schur-Cohn
+  algorithm (see [2] and [3]) is applied to the reciprocal
+  polynomial
+                                             2               DP
+     Q(x) = p(DP) + p(DP-1) * x + p(DP-2) * x  + ... + p(0) x  .
+
+  The routine computes the constant terms of the Schur transforms
+  and if all of them are non-zero then the number of zeros of P(x)
+  with modulus greater than unity is obtained from the sequence of
+  constant terms.
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Gantmacher, F.R.
+      Applications of the Theory of Matrices.
+      Interscience Publishers, New York, 1959.
+
+  [2] Kucera, V.
+      Discrete Linear Control. The Algorithmic Approach.
+      John Wiley & Sons, Chichester, 1979.
+
+  [3] Henrici, P.
+      Applied and Computational Complex Analysis (Vol. 1).
+      John Wiley & Sons, New York, 1974.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  The algorithm used by the routine is numerically stable.
+
+  Note that if some of the Routh coefficients (DICO = 'C') or
+  some of the constant terms of the Schur-Cohn transforms (DICO =
+  'D') are small relative to EPS (the machine precision), then
+  the number of unstable zeros (and hence the value of STABLE) may
+  be incorrect.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+*     MC01TD EXAMPLE PROGRAM TEXT
+*
+*     .. Parameters ..
+      INTEGER          NIN, NOUT
+      PARAMETER        ( NIN = 5, NOUT = 6 )
+      INTEGER          DPMAX
+      PARAMETER        ( DPMAX = 10 )
+*     .. Local Scalars ..
+      INTEGER          DP, DPP, I, INFO, IWARN, NZ
+      LOGICAL          STABLE
+      CHARACTER*1      DICO
+*     .. Local Arrays ..
+      DOUBLE PRECISION DWORK(2*DPMAX+2), P(DPMAX+1)
+*     .. External Functions ..
+      LOGICAL          LSAME
+      EXTERNAL         LSAME
+*     .. External Subroutines ..
+      EXTERNAL         MC01TD
+*     .. Executable Statements ..
+*
+      WRITE ( NOUT, FMT = 99999 )
+*     Skip the heading in the data file and read the data.
+      READ ( NIN, FMT = * )
+      READ ( NIN, FMT = * ) DP, DICO
+      IF ( DP.LE.-1 .OR. DP.GT.DPMAX ) THEN
+         WRITE ( NOUT, FMT = 99993 ) DP
+      ELSE
+         DPP = DP
+         READ ( NIN, FMT = * ) ( P(I), I = 1,DP+1 )
+*        Determine whether or not the given polynomial P(x) is stable.
+         CALL MC01TD( DICO, DP, P, STABLE, NZ, DWORK, IWARN, INFO )
+*
+         IF ( INFO.NE.0 ) THEN
+            WRITE ( NOUT, FMT = 99998 ) INFO
+         ELSE
+            IF ( IWARN.NE.0 ) THEN
+               WRITE ( NOUT, FMT = 99997 ) IWARN
+               WRITE ( NOUT, FMT = 99996 ) DPP, DP
+            END IF
+            IF ( STABLE ) THEN
+               WRITE ( NOUT, FMT = 99995 )
+            ELSE
+               WRITE ( NOUT, FMT = 99994 )
+               IF ( LSAME( DICO, 'D' ) ) THEN
+                  WRITE ( NOUT, FMT = 99992 ) NZ
+               ELSE
+                  WRITE ( NOUT, FMT = 99991 ) NZ
+               END IF
+            END IF
+         END IF
+      END IF
+      STOP
+*
+99999 FORMAT (' MC01TD EXAMPLE PROGRAM RESULTS',/1X)
+99998 FORMAT (' INFO on exit from MC01TD = ',I2)
+99997 FORMAT (' IWARN on exit from MC01TD = ',I2,/)
+99996 FORMAT (' The degree of the polynomial P(x) has been reduced fro',
+     $       'm ',I2,' to ',I2,/)
+99995 FORMAT (' The polynomial P(x) is stable ')
+99994 FORMAT (' The polynomial P(x) is unstable ')
+99993 FORMAT (/' DP is out of range. ',/' DP = ',I5)
+99992 FORMAT (/' The number of zeros of P(x) outside the unit ',
+     $       'circle = ',I2)
+99991 FORMAT (/' The number of zeros of P(x) in the right ',
+     $       'half-plane = ',I2)
+      END
+</PRE>
+<B>Program Data</B>
+<PRE>
+ MC01TD EXAMPLE PROGRAM DATA
+   4     C
+   2.0  0.0  1.0  -1.0  1.0
+</PRE>
+<B>Program Results</B>
+<PRE>
+ MC01TD EXAMPLE PROGRAM RESULTS
+
+ The polynomial P(x) is unstable 
+
+ The number of zeros of P(x) in the right half-plane =  2
+</PRE>
+
+<HR>
+<p>
+<A HREF=..\libindex.html><B>Return to index</B></A></BODY>
+</HTML>

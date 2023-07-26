@@ -1,0 +1,167 @@
+<HTML>
+<HEAD><TITLE>MB03RX - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MB03RX">MB03RX</A></H2>
+<H3>
+Reordering the diagonal blocks of a principal submatrix of a real Schur form matrix (the last block is moved in the leading position)
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To reorder the diagonal blocks of the principal submatrix between
+  the indices KL and KU (KU &gt;= KL) of a real Schur form matrix A
+  together with their eigenvalues, using orthogonal similarity
+  transformations, such that the block specified by KU is moved in
+  the position KL. The transformations are optionally postmultiplied
+  in a given matrix X.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MB03RX( JOBV, N, KL, KU, A, LDA, X, LDX, WR, WI,
+     $                   DWORK )
+C     .. Scalar Arguments ..
+      CHARACTER         JOBV
+      INTEGER           KL, KU, LDA, LDX, N
+C     .. Array Arguments ..
+      DOUBLE PRECISION  A(LDA,*), DWORK(*), WI(*), WR(*), X(LDX,*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  JOBV    CHARACTER*1
+          Specifies whether or not the transformations are
+          accumulated, as follows:
+          = 'N':  The transformations are not accumulated;
+          = 'V':  The transformations are accumulated in X (the
+                  given matrix X is updated).
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The order of the matrices A and X.  N &gt;= 0.
+
+  KL      (input) INTEGER
+          The lower boundary index for the rows and columns of the
+          principal submatrix of A whose diagonal blocks are to be
+          reordered, and also the target position for the block to
+          be moved.  1 &lt;= KL &lt;= KU &lt;= N.
+
+  KU      (input/output) INTEGER
+          On entry, KU specifies the upper boundary index for the
+          rows and columns of the principal submatrix of A whose
+          diagonal blocks are to be reordered, and also the original
+          position for the block to be moved.  1 &lt;= KL &lt;= KU &lt;= N.
+          On exit, KU specifies the upper boundary index for the
+          rows and columns of the principal submatrix of A whose
+          diagonal blocks have been reordered. The given value will
+          be increased by 1 if the moved block was 2-by-2 and it has
+          been replaced by two 1-by-1 blocks. Otherwise, its input
+          value is preserved.
+
+  A       (input/output) DOUBLE PRECISION array, dimension (LDA,N)
+          On entry, the leading N-by-N part of this array must
+          contain the matrix A in real Schur canonical form.
+          On exit, the leading N-by-N part of this array contains
+          the ordered real Schur canonical form.
+
+  LDA     INTEGER
+          The leading dimension of array A.  LDA &gt;= MAX(1,N).
+
+  X       (input/output) DOUBLE PRECISION array, dimension (LDX,N)
+          On entry, if JOBV = 'V', the leading N-by-N part of this
+          array must contain a given matrix X.
+          On exit, if JOBV = 'V', the leading N-by-N part of this
+          array contains the product of the given matrix X and the
+          transformation matrix that performed the reordering of A.
+          If JOBV = 'N', this array is not referenced.
+
+  LDX     INTEGER
+          The leading dimension of array X.
+          LDX &gt;= 1,        if JOBV = 'N';
+          LDX &gt;= MAX(1,N), if JOBV = 'V'.
+
+  WR,     (input/output) DOUBLE PRECISION arrays, dimension (N)
+  WI      On entry, these arrays must contain the real and imaginary
+          parts, respectively, of the eigenvalues of the matrix A.
+          On exit, these arrays contain the real and imaginary
+          parts, respectively, of the eigenvalues of the matrix A,
+          possibly reordered.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  DWORK   DOUBLE PRECISION array, dimension (N)
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  An attempt is made to move the block in the position (KU,KU) to
+  the position (KL,KL) by a sequence of orthogonal similarity
+  transformations, each swapping two consecutive blocks. The
+  standard algorithm [1], [2] usually succeeds to perform this
+  reordering. A failure of this algorithm means that two consecutive
+  blocks (one of them being the desired block possibly moved) are
+  too close to swap. In such a case, the leading block of the two
+  is tried to be moved in the position (KL,KL) and the procedure is
+  repeated.
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Stewart, G.W.
+      HQR3 and EXCHQZ: FORTRAN subroutines for calculating and
+      ordering the eigenvalues of a real upper Hessenberg matrix.
+      ACM TOMS, 2, pp. 275-280, 1976.
+
+  [2] Anderson, E., Bai, Z., Bischof, C., Demmel, J., Dongarra, J.,
+      Du Croz, J., Greenbaum, A., Hammarling, S., McKenney, A.,
+      Ostrouchov, S., and Sorensen, D.
+      LAPACK Users' Guide: Second Edition.
+      SIAM, Philadelphia, 1995.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  The algorithm is numerically stable. If some eigenvalues are
+  ill-conditioned, their returned values could differ much from
+  their input values.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

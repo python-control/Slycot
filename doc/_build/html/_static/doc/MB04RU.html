@@ -1,0 +1,189 @@
+<HTML>
+<HEAD><TITLE>MB04RU - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MB04RU">MB04RU</A></H2>
+<H3>
+Reduction of a skew-Hamiltonian matrix to Paige/Van Loan (PVL) form (unblocked version)
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To reduce a skew-Hamiltonian matrix,
+
+                [  A   G  ]
+          W  =  [       T ] ,
+                [  Q   A  ]
+
+  where A is an N-by-N matrix and G, Q are N-by-N skew-symmetric
+  matrices, to Paige/Van Loan (PVL) form. That is, an orthogonal
+  symplectic matrix U is computed so that
+
+            T       [  Aout  Gout  ]
+           U W U =  [            T ] ,
+                    [    0   Aout  ]
+
+  where Aout is in upper Hessenberg form.
+  Unblocked version.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MB04RU( N, ILO, A, LDA, QG, LDQG, CS, TAU, DWORK,
+     $                   LDWORK, INFO )
+C     .. Scalar Arguments ..
+      INTEGER           ILO, INFO, LDA, LDQG, LDWORK, N
+C     .. Array Arguments ..
+      DOUBLE PRECISION  A(LDA,*), CS(*), DWORK(*), QG(LDQG,*), TAU(*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The order of the matrix A.  N &gt;= 0.
+
+  ILO     (input) INTEGER
+          It is assumed that A is already upper triangular and Q is
+          zero in rows and columns 1:ILO-1. ILO is normally set by a
+          previous call to the SLICOT Library routine MB04DS;
+          otherwise it should be set to 1.
+          1 &lt;= ILO &lt;= N+1, if N &gt; 0; ILO = 1, if N = 0.
+
+  A       (input/output) DOUBLE PRECISION array, dimension (LDA,N)
+          On entry, the leading N-by-N part of this array must
+          contain the matrix A.
+          On exit, the leading N-by-N part of this array contains
+          the matrix Aout and, in the zero part of Aout, information
+          about the elementary reflectors used to compute the
+          PVL factorization.
+
+  LDA     INTEGER
+          The leading dimension of the array A.  LDA &gt;= MAX(1,N).
+
+  QG      (input/output) DOUBLE PRECISION array, dimension
+                         (LDQG,N+1)
+          On entry, the leading N-by-N+1 part of this array must
+          contain in columns 1:N the strictly lower triangular part
+          of the matrix Q and in columns 2:N+1 the strictly upper
+          triangular part of the matrix G. The parts containing the
+          diagonal and the first superdiagonal of this array are not
+          referenced.
+          On exit, the leading N-by-N+1 part of this array contains
+          in its first N-1 columns information about the elementary
+          reflectors used to compute the PVL factorization and in
+          its last N columns the strictly upper triangular part of
+          the matrix Gout.
+
+  LDQG    INTEGER
+          The leading dimension of the array QG.  LDQG &gt;= MAX(1,N).
+
+  CS      (output) DOUBLE PRECISION array, dimension (2N-2)
+          On exit, the first 2N-2 elements of this array contain the
+          cosines and sines of the symplectic Givens rotations used
+          to compute the PVL factorization.
+
+  TAU     (output) DOUBLE PRECISION array, dimension (N-1)
+          On exit, the first N-1 elements of this array contain the
+          scalar factors of some of the elementary reflectors.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+          On exit, if INFO = 0,  DWORK(1)  returns the optimal value
+          of LDWORK.
+          On exit, if INFO = -10,  DWORK(1)  returns the minimum
+          value of LDWORK.
+
+  LDWORK  INTEGER
+          The length of the array DWORK.  LDWORK &gt;= MAX(1,N-1).
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  The matrix U is represented as a product of symplectic reflectors
+  and Givens rotations
+
+  U = diag( H(1),H(1) )     G(1)   diag( F(1),F(1) )
+      diag( H(2),H(2) )     G(2)   diag( F(2),F(2) )
+                             ....
+      diag( H(n-1),H(n-1) ) G(n-1) diag( F(n-1),F(n-1) ).
+
+  Each H(i) has the form
+
+        H(i) = I - tau * v * v'
+
+  where tau is a real scalar, and v is a real vector with v(1:i) = 0
+  and v(i+1) = 1; v(i+2:n) is stored on exit in QG(i+2:n,i), and
+  tau in QG(i+1,i).
+
+  Each F(i) has the form
+
+        F(i) = I - nu * w * w'
+
+  where nu is a real scalar, and w is a real vector with w(1:i) = 0
+  and w(i+1) = 1; w(i+2:n) is stored on exit in A(i+2:n,i), and
+  nu in TAU(i).
+
+  Each G(i) is a Givens rotation acting on rows i+1 and n+i+1, where
+  the cosine is stored in CS(2*i-1) and the sine in CS(2*i).
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  The algorithm requires 40/3 N**3 + O(N) floating point operations
+  and is strongly backward stable.
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Van Loan, C.F.
+      A symplectic method for approximating all the eigenvalues of
+      a Hamiltonian matrix.
+      Linear Algebra and its Applications, 61, pp. 233-251, 1984.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

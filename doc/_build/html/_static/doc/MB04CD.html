@@ -1,0 +1,362 @@
+<HTML>
+<HEAD><TITLE>MB04CD - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MB04CD">MB04CD</A></H2>
+<H3>
+Reducing a special real block (anti-)diagonal skew-Hamiltonian/Hamiltonian pencil in factored form to generalized Schur form
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To compute the transformed matrices A, B and D, using orthogonal
+  matrices Q1, Q2 and Q3 for a real N-by-N regular pencil
+
+                  ( A11   0  ) ( B11   0  )     (  0   D12 )
+    aA*B - bD = a (          ) (          ) - b (          ),    (1)
+                  (  0   A22 ) (  0   B22 )     ( D21   0  )
+
+  where A11, A22, B11, B22 and D12 are upper triangular, D21 is
+  upper quasi-triangular and the generalized matrix product 
+     -1        -1    -1        -1
+  A11   D12 B22   A22   D21 B11   is upper quasi-triangular, such
+  that Q3' A Q2, Q2' B Q1 are upper triangular, Q3' D Q1 is upper
+  quasi-triangular and the transformed pencil
+  a(Q3' A B Q1) - b(Q3' D Q1) is in generalized Schur form. The
+  notation M' denotes the transpose of the matrix M.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MB04CD( COMPQ1, COMPQ2, COMPQ3, N, A, LDA, B, LDB, D,
+     $                   LDD, Q1, LDQ1, Q2, LDQ2, Q3, LDQ3, IWORK,
+     $                   LIWORK, DWORK, LDWORK, BWORK, INFO )
+C     .. Scalar Arguments ..
+      CHARACTER          COMPQ1, COMPQ2, COMPQ3
+      INTEGER            INFO, LDA, LDB, LDD, LDQ1, LDQ2, LDQ3, LDWORK,
+     $                   LIWORK, N
+C     .. Array Arguments ..
+      LOGICAL            BWORK( * )
+      INTEGER            IWORK( * )
+      DOUBLE PRECISION   A( LDA, * ), B( LDB, * ), D( LDD, * ),
+     $                   DWORK( * ), Q1( LDQ1, * ), Q2( LDQ2, * ),
+     $                   Q3( LDQ3, * )
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  COMPQ1  CHARACTER*1
+          Specifies whether to compute the orthogonal transformation
+          matrix Q1, as follows:
+          = 'N':  Q1 is not computed;
+          = 'I':  the array Q1 is initialized internally to the unit
+                  matrix, and the orthogonal matrix Q1 is returned;
+          = 'U':  the array Q1 contains an orthogonal matrix Q01 on
+                  entry, and the matrix Q01*Q1 is returned, where Q1
+                  is the product of the orthogonal transformations
+                  that are applied on the right to the pencil
+                  aA*B - bD in (1).
+
+  COMPQ2  CHARACTER*1
+          Specifies whether to compute the orthogonal transformation
+          matrix Q2, as follows:
+          = 'N':  Q2 is not computed;
+          = 'I':  the array Q2 is initialized internally to the unit
+                  matrix, and the orthogonal matrix Q2 is returned;
+          = 'U':  the array Q2 contains an orthogonal matrix Q02 on
+                  entry, and the matrix Q02*Q2 is returned, where Q2
+                  is the product of the orthogonal transformations
+                  that are applied on the left to the pencil
+                  aA*B - bD in (1).
+
+  COMPQ3  CHARACTER*1
+          Specifies whether to compute the orthogonal transformation
+          matrix Q3, as follows:
+          = 'N':  Q3 is not computed;
+          = 'I':  the array Q3 is initialized internally to the unit
+                  matrix, and the orthogonal matrix Q3 is returned;
+          = 'U':  the array Q3 contains an orthogonal matrix Q01 on
+                  entry, and the matrix Q03*Q3 is returned, where Q3
+                  is the product of the orthogonal transformations
+                  that are applied on the right to the pencil
+                  aA*B - bD in (1).
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          Order of the pencil aA*B - bD.  N &gt;= 0, even.
+
+  A       (input/output) DOUBLE PRECISION array, dimension (LDA, N)
+          On entry, the leading N-by-N block diagonal part of this
+          array must contain the matrix A in (1). The off-diagonal
+          blocks need not be set to zero.
+          On exit, the leading N-by-N part of this array contains
+          the transformed upper triangular matrix.
+
+  LDA     INTEGER
+          The leading dimension of the array A.  LDA &gt;= MAX(1, N).
+
+  B       (input/output) DOUBLE PRECISION array, dimension (LDB, N)
+          On entry, the leading N-by-N block diagonal part of this
+          array must contain the matrix B in (1). The off-diagonal
+          blocks need not be set to zero.
+          On exit, the leading N-by-N part of this array contains
+          the transformed upper triangular matrix.
+
+  LDB     INTEGER
+          The leading dimension of the array B.  LDB &gt;= MAX(1, N).
+
+  D       (input/output) DOUBLE PRECISION array, dimension (LDD, N)
+          On entry, the leading N-by-N block anti-diagonal part of
+          this array must contain the matrix D in (1). The diagonal
+          blocks need not be set to zero.
+          On exit, the leading N-by-N part of this array contains
+          the transformed upper quasi-triangular matrix.
+
+  LDD     INTEGER
+          The leading dimension of the array D.  LDD &gt;= MAX(1, N).
+
+  Q1      (input/output) DOUBLE PRECISION array, dimension (LDQ1, N)
+          On entry, if COMPQ1 = 'U', then the leading N-by-N part of
+          this array must contain a given matrix Q01, and on exit,
+          the leading N-by-N part of this array contains the product
+          of the input matrix Q01 and the transformation matrix Q1
+          used to transform the matrices A, B, and D.
+          On exit, if COMPQ1 = 'I', then the leading N-by-N part of
+          this array contains the orthogonal transformation matrix
+          Q1.
+          If COMPQ1 = 'N' this array is not referenced.
+
+  LDQ1    INTEGER
+          LDQ1 &gt;= 1,         if COMPQ1 = 'N';
+          LDQ1 &gt;= MAX(1, N), if COMPQ1 = 'I' or COMPQ1 = 'U'.
+
+  Q2      (input/output) DOUBLE PRECISION array, dimension (LDQ2, N)
+          On entry, if COMPQ2 = 'U', then the leading N-by-N part of
+          this array must contain a given matrix Q02, and on exit,
+          the leading N-by-N part of this array contains the product
+          of the input matrix Q02 and the transformation matrix Q2
+          used to transform the matrices A, B, and D.
+          On exit, if COMPQ2 = 'I', then the leading N-by-N part of
+          this array contains the orthogonal transformation matrix
+          Q2.
+          If COMPQ2 = 'N' this array is not referenced.
+
+  LDQ2    INTEGER
+          The leading dimension of the array Q2.
+          LDQ2 &gt;= 1,         if COMPQ2 = 'N';
+          LDQ2 &gt;= MAX(1, N), if COMPQ2 = 'I' or COMPQ2 = 'U'.
+
+  Q3      (input/output) DOUBLE PRECISION array, dimension (LDQ3, N)
+          On entry, if COMPQ3 = 'U', then the leading N-by-N part of
+          this array must contain a given matrix Q03, and on exit,
+          the leading N-by-N part of this array contains the product
+          of the input matrix Q03 and the transformation matrix Q3
+          used to transform the matrices A, B and D.
+          On exit, if COMPQ3 = 'I', then the leading N-by-N part of
+          this array contains the orthogonal transformation matrix
+          Q3.
+          If COMPQ3 = 'N' this array is not referenced.
+
+  LDQ3    INTEGER
+          The leading dimension of the array Q3.
+          LDQ3 &gt;= 1,         if COMPQ3 = 'N';
+          LDQ3 &gt;= MAX(1, N), if COMPQ3 = 'I' or COMPQ3 = 'U'.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  IWORK   INTEGER array, dimension (LIWORK)
+
+  LIWORK  INTEGER
+          The dimension of the array IWORK.
+          LIWORK &gt;= MAX( N/2+1, 48 ).
+
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+          On exit, if INFO = 0, DWORK(1) returns the optimal LDWORK.
+          On exit, if INFO = -20, DWORK(1) returns the minimum value
+          of LDWORK.
+
+  LDWORK  INTEGER
+          The dimension of the array DWORK.
+          LDWORK &gt;= 3*N*N + MAX( N/2 + 252, 432 ).
+          For good performance LDWORK should be generally larger.
+
+          If LDWORK = -1  a workspace query is assumed; the 
+          routine only calculates the optimal size of the DWORK
+          array, returns this value as the first entry of the DWORK
+          array, and no error message is issued by XERBLA. 
+
+  BWORK   LOGICAL array, dimension (N/2)
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0: succesful exit;
+          &lt; 0: if INFO = -i, the i-th argument had an illegal value;
+          = 1: the periodic QZ algorithm failed to reorder the
+               eigenvalues (the problem is very ill-conditioned) in
+               the SLICOT Library routine MB03KD;
+          = 2: the standard QZ algorithm failed in the LAPACK
+               routine DGGEV, called by the SLICOT routine MB03CD;
+          = 3: the standard QZ algorithm failed in the LAPACK
+               routines DGGES, called by the SLICOT routines MB03CD
+               or MB03ED;
+          = 4: the standard QZ algorithm failed to reorder the
+               eigenvalues in the LAPACK routine DTGSEN, called by
+               the SLICOT routine MB03CD.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  First, the periodic QZ algorithm (see also [2] and [3]) is applied
+                                  -1        -1    -1        -1
+  to the formal matrix product A11   D12 B22   A22   D21 B11   to
+  reorder the eigenvalues, i.e., orthogonal matrices V1, V2, V3, V4,
+  V5 and V6 are computed such that V2' A11 V1, V2' D12 V3,
+  V4' B22 V3, V5' A22 V4, V5' D21 V6 and V1' B11 V6 keep the
+  triangular form, but they can be partitioned into 2-by-2 block
+  forms and the last diagonal blocks correspond to all nonpositive
+  real eigenvalues of the formal product, and the first diagonal
+  blocks correspond to the remaining eigenvalues.
+
+  Second, Q1 = diag(V6, V3), Q2 = diag(V1, V4), Q3 = diag(V2, V5)
+  and
+
+                   ( AA11 AA12   0    0  )
+                   (                     )
+                   (   0  AA22   0    0  )
+  A := Q3' A Q2 =: (                     ),
+                   (   0    0  AA33 AA34 )
+                   (                     )
+                   (   0    0    0  AA44 )
+
+                   ( BB11 BB12   0    0  )
+                   (                     )
+                   (   0  BB22   0    0  )
+  B := Q2' B Q1 =: (                     ),
+                   (   0    0  BB33 BB34 )
+                   (                     )
+                   (   0    0    0  BB44 )
+
+                   (   0    0  DD13 DD14 )
+                   (                     )
+                   (   0    0    0  DD24 )
+  D := Q3' D Q1 =: (                     ),
+                   ( DD31 DD32   0    0  )
+                   (                     )
+                   (   0  DD42   0    0  )
+
+                         -1          -1     -1          -1
+  are set, such that AA22   DD24 BB44   AA44   DD42 BB22   has only
+  nonpositive real eigenvalues.
+
+  Third, the permutation matrix
+
+      (  I  0  0  0  )
+      (              )
+      (  0  0  I  0  )
+  P = (              ),
+      (  0  I  0  0  )
+      (              )
+      (  0  0  0  I  )
+
+  where I denotes the identity matrix of appropriate size is used to
+  transform aA*B - bD to block upper triangular form
+
+                ( AA11   0  | AA12   0  )
+                (           |           )
+                (   0  AA33 |   0  AA34 )   ( AA1  *  )
+  A := P' A P = (-----------+-----------) = (         ),
+                (   0    0  | AA22   0  )   (  0  AA2 )
+                (           |           )
+                (   0    0  |   0  AA44 )
+
+                ( BB11   0  | BB12   0  )
+                (           |           )
+                (   0  BB33 |   0  BB34 )   ( BB1  *  )
+  B := P' B P = (-----------+-----------) = (         ),
+                (   0    0  | BB22   0  )   (  0  BB2 )
+                (           |           )
+                (   0    0  |   0  BB44 )
+
+                (   0  DD13 |   0  DD14 )
+                (           |           )
+                ( DD31   0  | DD32   0  )   ( DD1  *  )
+  D := P' D P = (-----------+-----------) = (         ).
+                (   0    0  |   0  DD24 )   (  0  DD2 )
+                (           |           )
+                (   0    0  | DD42   0  )
+
+  Then, further orthogonal transformations that are provided by the
+  SLICOT Library routines MB03ED and MB03CD are used to
+  triangularize the subpencil aAA1 BB1 - bDD1.
+
+  Finally, the subpencil aAA2 BB2 - bDD2 is triangularized by
+  applying a special permutation matrix.
+
+  See also page 22 in [1] for more details.
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Benner, P., Byers, R., Losse, P., Mehrmann, V. and Xu, H.
+      Numerical Solution of Real Skew-Hamiltonian/Hamiltonian
+      Eigenproblems.
+      Tech. Rep., Technical University Chemnitz, Germany,
+      Nov. 2007.
+
+  [2] Bojanczyk, A., Golub, G. H. and Van Dooren, P.
+      The periodic Schur decomposition: algorithms and applications.
+      In F.T. Luk (editor), Advanced Signal Processing Algorithms,
+      Architectures, and Implementations III, Proc. SPIE Conference,
+      vol. 1770, pp. 31-42, 1992.
+
+  [3] Hench, J. J. and Laub, A. J.
+      Numerical Solution of the discrete-time periodic Riccati
+      equation. IEEE Trans. Automat. Control, 39, 1197-1210, 1994.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>                                                            3
+  The algorithm is numerically backward stable and needs O(N ) real
+  floating point operations.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

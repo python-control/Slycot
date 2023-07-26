@@ -1,0 +1,304 @@
+<HTML>
+<HEAD><TITLE>MB02XD - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MB02XD">MB02XD</A></H2>
+<H3>
+Solution of A' A X = B, or f(A) X = B, using symmetric Gaussian elimination
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To solve a set of systems of linear equations, A'*A*X = B, or,
+  in the implicit form, f(A)*X = B, with A'*A or f(A) positive
+  definite, using symmetric Gaussian elimination.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MB02XD( FORM, STOR, UPLO, F, M, N, NRHS, IPAR, LIPAR,
+     $                   DPAR, LDPAR, A, LDA, B, LDB, ATA, LDATA, DWORK,
+     $                   LDWORK, INFO )
+C     .. Scalar Arguments ..
+      CHARACTER         FORM, STOR, UPLO
+      INTEGER           INFO, LDA, LDATA, LDB, LDPAR, LDWORK, LIPAR, M,
+     $                  N, NRHS
+C     .. Array Arguments ..
+      DOUBLE PRECISION  A(LDA,*), ATA(*), B(LDB,*), DPAR(*), DWORK(*)
+      INTEGER           IPAR(*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  FORM    CHARACTER*1
+          Specifies the form in which the matrix A is provided, as
+          follows:
+          = 'S' :  standard form, the matrix A is given;
+          = 'F' :  the implicit, function form f(A) is provided.
+          If FORM = 'F', then the routine F is called to compute the
+          matrix A'*A.
+
+  STOR    CHARACTER*1
+          Specifies the storage scheme for the symmetric
+          matrix A'*A, as follows:
+          = 'F' :  full storage is used;
+          = 'P' :  packed storage is used.
+
+  UPLO    CHARACTER*1
+          Specifies which part of the matrix A'*A is stored, as
+          follows:
+          = 'U' :  the upper triagular part is stored;
+          = 'L' :  the lower triagular part is stored.
+
+</PRE>
+<B>Function Parameters</B>
+<PRE>
+  F       EXTERNAL
+          If FORM = 'F', then F is a subroutine which calculates the
+          value of f(A) = A'*A, for given A.
+          If FORM = 'S', then F is not called.
+
+          F must have the following interface:
+
+          SUBROUTINE F( STOR, UPLO, N, IPAR, LIPAR, DPAR, LDPAR, A,
+         $              LDA, ATA, LDATA, DWORK, LDWORK, INFO )
+
+          where
+
+          STOR    (input) CHARACTER*1
+                  Specifies the storage scheme for the symmetric
+                  matrix A'*A, as follows:
+                  = 'F' :  full storage is used;
+                  = 'P' :  packed storage is used.
+
+          UPLO    (input) CHARACTER*1
+                  Specifies which part of the matrix A'*A is stored,
+                  as follows:
+                  = 'U' :  the upper triagular part is stored;
+                  = 'L' :  the lower triagular part is stored.
+
+          N       (input) INTEGER
+                  The order of the matrix A'*A.  N &gt;= 0.
+
+          IPAR    (input) INTEGER array, dimension (LIPAR)
+                  The integer parameters describing the structure of
+                  the matrix A.
+
+          LIPAR   (input) INTEGER
+                  The length of the array IPAR.  LIPAR &gt;= 0.
+
+          DPAR    (input) DOUBLE PRECISION array, dimension (LDPAR)
+                  The real parameters needed for solving the
+                  problem.
+
+          LDPAR   (input) INTEGER
+                  The length of the array DPAR.  LDPAR &gt;= 0.
+
+          A       (input) DOUBLE PRECISION array, dimension
+                  (LDA, NC), where NC is the number of columns.
+                  The leading NR-by-NC part of this array must
+                  contain the (compressed) representation of the
+                  matrix A, where NR is the number of rows of A
+                  (function of IPAR entries).
+
+          LDA     (input) INTEGER
+                  The leading dimension of the array A.
+                  LDA &gt;= MAX(1,NR).
+
+          ATA     (output) DOUBLE PRECISION array,
+                           dimension (LDATA,N),    if STOR = 'F',
+                           dimension (N*(N+1)/2),  if STOR = 'P'.
+                  The leading N-by-N (if STOR = 'F'), or N*(N+1)/2
+                  (if STOR = 'P') part of this array contains the
+                  upper or lower triangle of the matrix A'*A,
+                  depending on UPLO = 'U', or UPLO = 'L',
+                  respectively, stored either as a two-dimensional,
+                  or one-dimensional array, depending on STOR.
+
+          LDATA   (input) INTEGER
+                  The leading dimension of the array ATA.
+                  LDATA &gt;= MAX(1,N), if STOR = 'F'.
+                  LDATA &gt;= 1,        if STOR = 'P'.
+
+          DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+                  The workspace array for subroutine F.
+
+          LDWORK  (input) INTEGER
+                  The size of the array DWORK (as large as needed
+                  in the subroutine F).
+
+          INFO    INTEGER
+                  Error indicator, set to a negative value if an
+                  input scalar argument is erroneous, and to
+                  positive values for other possible errors in the
+                  subroutine F. The LAPACK Library routine XERBLA
+                  should be used in conjunction with negative INFO.
+                  INFO must be zero if the subroutine finished
+                  successfully.
+
+          Parameters marked with "(input)" must not be changed.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  M       (input) INTEGER
+          The number of rows of the matrix A.  M &gt;= 0.
+
+  N       (input) INTEGER
+          The order of the matrix A'*A, the number of columns of the
+          matrix A, and the number of rows of the matrix X.  N &gt;= 0.
+
+  NRHS    (input) INTEGER
+          The number of columns of the matrices B and X.  NRHS &gt;= 0.
+
+  IPAR    (input) INTEGER array, dimension (LIPAR)
+          If FORM = 'F', the integer parameters describing the
+          structure of the matrix A.
+          This parameter is ignored if FORM = 'S'.
+
+  LIPAR   (input) INTEGER
+          The length of the array IPAR.  LIPAR &gt;= 0.
+
+  DPAR    (input) DOUBLE PRECISION array, dimension (LDPAR)
+          If FORM = 'F', the real parameters needed for solving
+          the problem.
+          This parameter is ignored if FORM = 'S'.
+
+  LDPAR   (input) INTEGER
+          The length of the array DPAR.  LDPAR &gt;= 0.
+
+  A       (input) DOUBLE PRECISION array,
+                  dimension (LDA, N),  if FORM = 'S',
+                  dimension (LDA, NC), if FORM = 'F', where NC is
+                  the number of columns.
+          If FORM = 'S', the leading M-by-N part of this array
+          must contain the matrix A.
+          If FORM = 'F', the leading NR-by-NC part of this array
+          must contain an appropriate representation of matrix A,
+          where NR is the number of rows.
+          If FORM = 'F', this array is not referenced by this
+          routine itself, except in the call to the routine F.
+
+  LDA     INTEGER
+          The leading dimension of array A.
+          LDA &gt;= MAX(1,M),  if FORM = 'S';
+          LDA &gt;= MAX(1,NR), if FORM = 'F'.
+
+  B       (input/output) DOUBLE PRECISION array, dimension
+          (LDB, NRHS)
+          On entry, the leading N-by-NRHS part of this array must
+          contain the right hand side matrix B.
+          On exit, if INFO = 0 and M (or NR) is nonzero, the leading
+          N-by-NRHS part of this array contains the solution X of
+          the set of systems of linear equations A'*A*X = B or
+          f(A)*X = B. If M (or NR) is zero, then B is unchanged.
+
+  LDB     INTEGER
+          The leading dimension of array B.  LDB &gt;= MAX(1,N).
+
+  ATA     (output) DOUBLE PRECISION array,
+                   dimension (LDATA,N),    if STOR = 'F',
+                   dimension (N*(N+1)/2),  if STOR = 'P'.
+          The leading N-by-N (if STOR = 'F'), or N*(N+1)/2 (if
+          STOR = 'P') part of this array contains the upper or lower
+          triangular Cholesky factor of the matrix A'*A, depending
+          on UPLO = 'U', or UPLO = 'L', respectively, stored either
+          as a two-dimensional, or one-dimensional array, depending
+          on STOR.
+
+  LDATA   INTEGER
+          The leading dimension of the array ATA.
+          LDATA &gt;= MAX(1,N), if STOR = 'F'.
+          LDATA &gt;= 1,        if STOR = 'P'.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+
+  LDWORK  INTEGER
+          The length of the array DWORK.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value;
+          &gt; 0:  if INFO = i, then the (i,i) element of the
+                triangular factor of the matrix A'*A is exactly
+                zero (the matrix A'*A is exactly singular);
+                if INFO = j &gt; n, then F returned with INFO = j-n.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  The matrix A'*A is built either directly (if FORM = 'S'), or
+  implicitly, by calling the routine F. Then, A'*A is Cholesky
+  factored and its factor is used to solve the set of systems of
+  linear equations, A'*A*X = B.
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Golub, G.H. and van Loan, C.F.
+      Matrix Computations. Third Edition.
+      M. D. Johns Hopkins University Press, Baltimore, 1996.
+
+  [2] Anderson, E., Bai, Z., Bischof, C., Blackford, Demmel, J.,
+      Dongarra, J., Du Croz, J., Greenbaum, A., Hammarling, S.,
+      McKenney, A., Sorensen, D.
+      LAPACK Users' Guide: Third Edition, SIAM, Philadelphia, 1999.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  For speed, this routine does not check for near singularity of the
+  matrix A'*A. If the matrix A is nearly rank deficient, then the
+  computed X could be inaccurate. Estimates of the reciprocal
+  condition numbers of the matrices A and A'*A can be obtained
+  using LAPACK routines DGECON and DPOCON (DPPCON), respectively.
+
+  The approximate number of floating point operations is
+     (M+3)*N**2/2 + N**3/6 + NRHS*N**2, if FORM = 'S',
+     f + N**3/6 + NRHS*N**2,            if FORM = 'F',
+  where M is the number of rows of A, and f is the number of
+  floating point operations required by the subroutine F.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

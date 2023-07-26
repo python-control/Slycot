@@ -1,0 +1,574 @@
+<HTML>
+<HEAD><TITLE>SB02OD - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="SB02OD">SB02OD</A></H2>
+<H3>
+Solution of continuous- or discrete-time algebraic Riccati equations (generalized Schur vectors method)
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To solve for X either the continuous-time algebraic Riccati
+  equation
+                           -1
+     Q + A'X + XA - (L+XB)R  (L+XB)' = 0                       (1)
+
+  or the discrete-time algebraic Riccati equation
+                                  -1
+     X = A'XA - (L+A'XB)(R + B'XB)  (L+A'XB)' + Q              (2)
+
+  where A, B, Q, R, and L are N-by-N, N-by-M, N-by-N, M-by-M and
+  N-by-M matrices, respectively, such that Q = C'C, R = D'D and
+  L = C'D; X is an N-by-N symmetric matrix.
+  The routine also returns the computed values of the closed-loop
+  spectrum of the system, i.e., the stable eigenvalues lambda(1),
+  ..., lambda(N) of the corresponding Hamiltonian or symplectic
+  pencil, in the continuous-time case or discrete-time case,
+  respectively.
+                           -1
+  Optionally, matrix G = BR  B' may be given instead of B and R.
+  Other options include the case with Q and/or R given in a
+  factored form, Q = C'C, R = D'D, and with L a zero matrix.
+
+  The routine uses the method of deflating subspaces, based on
+  reordering the eigenvalues in a generalized Schur matrix pair.
+  A standard eigenproblem is solved in the continuous-time case
+  if G is given.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE SB02OD( DICO, JOBB, FACT, UPLO, JOBL, SORT, N, M, P, A,
+     $                   LDA, B, LDB, Q, LDQ, R, LDR, L, LDL, RCOND, X,
+     $                   LDX, ALFAR, ALFAI, BETA, S, LDS, T, LDT, U,
+     $                   LDU, TOL, IWORK, DWORK, LDWORK, BWORK, INFO )
+C     .. Scalar Arguments ..
+      CHARACTER         DICO, FACT, JOBB, JOBL, SORT, UPLO
+      INTEGER           INFO, LDA, LDB, LDL, LDQ, LDR, LDS, LDT, LDU,
+     $                  LDWORK, LDX, M, N, P
+      DOUBLE PRECISION  RCOND, TOL
+C     .. Array Arguments ..
+      LOGICAL           BWORK(*)
+      INTEGER           IWORK(*)
+      DOUBLE PRECISION  A(LDA,*), ALFAI(*), ALFAR(*), B(LDB,*), BETA(*),
+     $                  DWORK(*), L(LDL,*), Q(LDQ,*), R(LDR,*),
+     $                  S(LDS,*), T(LDT,*), U(LDU,*), X(LDX,*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  DICO    CHARACTER*1
+          Specifies the type of Riccati equation to be solved as
+          follows:
+          = 'C':  Equation (1), continuous-time case;
+          = 'D':  Equation (2), discrete-time case.
+
+  JOBB    CHARACTER*1
+          Specifies whether or not the matrix G is given, instead
+          of the matrices B and R, as follows:
+          = 'B':  B and R are given;
+          = 'G':  G is given.
+
+  FACT    CHARACTER*1
+          Specifies whether or not the matrices Q and/or R (if
+          JOBB = 'B') are factored, as follows:
+          = 'N':  Not factored, Q and R are given;
+          = 'C':  C is given, and Q = C'C;
+          = 'D':  D is given, and R = D'D;
+          = 'B':  Both factors C and D are given, Q = C'C, R = D'D.
+
+  UPLO    CHARACTER*1
+          If JOBB = 'G', or FACT = 'N', specifies which triangle of
+          the matrices G and Q (if FACT = 'N'), or Q and R (if
+          JOBB = 'B'), is stored, as follows:
+          = 'U':  Upper triangle is stored;
+          = 'L':  Lower triangle is stored.
+
+  JOBL    CHARACTER*1
+          Specifies whether or not the matrix L is zero, as follows:
+          = 'Z':  L is zero;
+          = 'N':  L is nonzero.
+          JOBL is not used if JOBB = 'G' and JOBL = 'Z' is assumed.
+          SLICOT Library routine SB02MT should be called just before
+          SB02OD, for obtaining the results when JOBB = 'G' and
+          JOBL = 'N'.
+
+  SORT    CHARACTER*1
+          Specifies which eigenvalues should be obtained in the top
+          of the generalized Schur form, as follows:
+          = 'S':  Stable   eigenvalues come first;
+          = 'U':  Unstable eigenvalues come first.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The actual state dimension, i.e. the order of the matrices
+          A, Q, and X, and the number of rows of the matrices B
+          and L.  N &gt;= 0.
+
+  M       (input) INTEGER
+          The number of system inputs. If JOBB = 'B', M is the
+          order of the matrix R, and the number of columns of the
+          matrix B.  M &gt;= 0.
+          M is not used if JOBB = 'G'.
+
+  P       (input) INTEGER
+          The number of system outputs. If FACT = 'C' or 'D' or 'B',
+          P is the number of rows of the matrices C and/or D.
+          P &gt;= 0.
+          Otherwise, P is not used.
+
+  A       (input) DOUBLE PRECISION array, dimension (LDA,N)
+          The leading N-by-N part of this array must contain the
+          state matrix A of the system.
+
+  LDA     INTEGER
+          The leading dimension of array A.  LDA &gt;= MAX(1,N).
+
+  B       (input) DOUBLE PRECISION array, dimension (LDB,*)
+          If JOBB = 'B', the leading N-by-M part of this array must
+          contain the input matrix B of the system.
+          If JOBB = 'G', the leading N-by-N upper triangular part
+          (if UPLO = 'U') or lower triangular part (if UPLO = 'L')
+          of this array must contain the upper triangular part or
+          lower triangular part, respectively, of the matrix
+                -1
+          G = BR  B'. The strictly lower triangular part (if
+          UPLO = 'U') or strictly upper triangular part (if
+          UPLO = 'L') is not referenced.
+
+  LDB     INTEGER
+          The leading dimension of array B.  LDB &gt;= MAX(1,N).
+
+  Q       (input) DOUBLE PRECISION array, dimension (LDQ,N)
+          If FACT = 'N' or 'D', the leading N-by-N upper triangular
+          part (if UPLO = 'U') or lower triangular part (if UPLO =
+          'L') of this array must contain the upper triangular part
+          or lower triangular part, respectively, of the symmetric
+          state weighting matrix Q. The strictly lower triangular
+          part (if UPLO = 'U') or strictly upper triangular part (if
+          UPLO = 'L') is not referenced.
+          If JOBB = 'B', the triangular part of this array defined
+          by UPLO is modified internally, but is restored on exit.
+          If FACT = 'C' or 'B', the leading P-by-N part of this
+          array must contain the output matrix C of the system.
+          If JOBB = 'B', this part is modified internally, but is
+          restored on exit.
+
+  LDQ     INTEGER
+          The leading dimension of array Q.
+          LDQ &gt;= MAX(1,N) if FACT = 'N' or 'D',
+          LDQ &gt;= MAX(1,P) if FACT = 'C' or 'B'.
+
+  R       (input) DOUBLE PRECISION array, dimension (LDR,M)
+          If FACT = 'N' or 'C', the leading M-by-M upper triangular
+          part (if UPLO = 'U') or lower triangular part (if UPLO =
+          'L') of this array must contain the upper triangular part
+          or lower triangular part, respectively, of the symmetric
+          input weighting matrix R. The strictly lower triangular
+          part (if UPLO = 'U') or strictly upper triangular part (if
+          UPLO = 'L') is not referenced.
+          The triangular part of this array defined by UPLO is
+          modified internally, but is restored on exit.
+          If FACT = 'D' or 'B', the leading P-by-M part of this
+          array must contain the direct transmission matrix D of the
+          system. This part is modified internally, but is restored
+          on exit.
+          If JOBB = 'G', this array is not referenced.
+
+  LDR     INTEGER
+          The leading dimension of array R.
+          LDR &gt;= MAX(1,M) if JOBB = 'B' and FACT = 'N' or 'C';
+          LDR &gt;= MAX(1,P) if JOBB = 'B' and FACT = 'D' or 'B';
+          LDR &gt;= 1        if JOBB = 'G'.
+
+  L       (input) DOUBLE PRECISION array, dimension (LDL,M)
+          If JOBL = 'N' (and JOBB = 'B'), the leading N-by-M part of
+          this array must contain the cross weighting matrix L.
+          This part is modified internally, but is restored on exit.
+          If JOBL = 'Z' or JOBB = 'G', this array is not referenced.
+
+  LDL     INTEGER
+          The leading dimension of array L.
+          LDL &gt;= MAX(1,N) if JOBL = 'N' and JOBB = 'B';
+          LDL &gt;= 1        if JOBL = 'Z' or  JOBB = 'G'.
+
+  RCOND   (output) DOUBLE PRECISION
+          An estimate of the reciprocal of the condition number (in
+          the 1-norm) of the N-th order system of algebraic
+          equations from which the solution matrix X is obtained.
+
+  X       (output) DOUBLE PRECISION array, dimension (LDX,N)
+          The leading N-by-N part of this array contains the
+          solution matrix X of the problem.
+
+  LDX     INTEGER
+          The leading dimension of array X.  LDX &gt;= MAX(1,N).
+
+  ALFAR   (output) DOUBLE PRECISION array, dimension (2*N)
+  ALFAI   (output) DOUBLE PRECISION array, dimension (2*N)
+  BETA    (output) DOUBLE PRECISION array, dimension (2*N)
+          The generalized eigenvalues of the 2N-by-2N matrix pair,
+          ordered as specified by SORT (if INFO = 0). For instance,
+          if SORT = 'S', the leading N elements of these arrays
+          contain the closed-loop spectrum of the system matrix
+          A - BF, where F is the optimal feedback matrix computed
+          based on the solution matrix X. Specifically,
+             lambda(k) = [ALFAR(k)+j*ALFAI(k)]/BETA(k) for
+          k = 1,2,...,N.
+          If DICO = 'C' and JOBB = 'G', the elements of BETA are
+          set to 1.
+
+  S       (output) DOUBLE PRECISION array, dimension (LDS,*)
+          The leading 2N-by-2N part of this array contains the
+          ordered real Schur form S of the first matrix in the
+          reduced matrix pencil associated to the optimal problem,
+          or of the corresponding Hamiltonian matrix, if DICO = 'C'
+          and JOBB = 'G'. That is,
+
+                 (S   S  )
+                 ( 11  12)
+             S = (       ),
+                 (0   S  )
+                 (     22)
+
+          where S  , S   and S   are N-by-N matrices.
+                 11   12      22
+          Array S must have 2*N+M columns if JOBB = 'B', and 2*N
+          columns, otherwise.
+
+  LDS     INTEGER
+          The leading dimension of array S.
+          LDS &gt;= MAX(1,2*N+M) if JOBB = 'B',
+          LDS &gt;= MAX(1,2*N)   if JOBB = 'G'.
+
+  T       (output) DOUBLE PRECISION array, dimension (LDT,2*N)
+          If DICO = 'D' or JOBB = 'B', the leading 2N-by-2N part of
+          this array contains the ordered upper triangular form T of
+          the second matrix in the reduced matrix pencil associated
+          to the optimal problem. That is,
+
+                 (T   T  )
+                 ( 11  12)
+             T = (       ),
+                 (0   T  )
+                 (     22)
+
+          where T  , T   and T   are N-by-N matrices.
+                 11   12      22
+          If DICO = 'C' and JOBB = 'G' this array is not referenced.
+
+  LDT     INTEGER
+          The leading dimension of array T.
+          LDT &gt;= MAX(1,2*N+M) if JOBB = 'B',
+          LDT &gt;= MAX(1,2*N)   if JOBB = 'G' and DICO = 'D',
+          LDT &gt;= 1            if JOBB = 'G' and DICO = 'C'.
+
+  U       (output) DOUBLE PRECISION array, dimension (LDU,2*N)
+          The leading 2N-by-2N part of this array contains the right
+          transformation matrix U which reduces the 2N-by-2N matrix
+          pencil to the ordered generalized real Schur form (S,T),
+          or the Hamiltonian matrix to the ordered real Schur
+          form S, if DICO = 'C' and JOBB = 'G'. That is,
+
+                 (U   U  )
+                 ( 11  12)
+             U = (       ),
+                 (U   U  )
+                 ( 21  22)
+
+          where U  , U  , U   and U   are N-by-N matrices.
+                 11   12   21      22
+
+  LDU     INTEGER
+          The leading dimension of array U.  LDU &gt;= MAX(1,2*N).
+
+</PRE>
+<B>Tolerances</B>
+<PRE>
+  TOL     DOUBLE PRECISION
+          The tolerance to be used to test for near singularity of
+          the original matrix pencil, specifically of the triangular
+          factor obtained during the reduction process. If the user
+          sets TOL &gt; 0, then the given value of TOL is used as a
+          lower bound for the reciprocal condition number of that
+          matrix; a matrix whose estimated condition number is less
+          than 1/TOL is considered to be nonsingular. If the user
+          sets TOL &lt;= 0, then a default tolerance, defined by
+          TOLDEF = EPS, is used instead, where EPS is the machine
+          precision (see LAPACK Library routine DLAMCH).
+          This parameter is not referenced if JOBB = 'G'.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  IWORK   INTEGER array, dimension (LIWORK)
+          LIWORK &gt;= MAX(1,M,2*N) if JOBB = 'B',
+          LIWORK &gt;= MAX(1,2*N)   if JOBB = 'G'.
+
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+          On exit, if INFO = 0, DWORK(1) returns the optimal value
+          of LDWORK. If JOBB = 'B' and N &gt; 0, DWORK(2) returns the
+          reciprocal of the condition number of the M-by-M lower
+          triangular matrix obtained after compressing the matrix
+          pencil of order 2N+M to obtain a pencil of order 2N.
+          If INFO = 0 or INFO = 6, DWORK(3) returns the scaling
+          factor used internally, which should multiply the
+          submatrix Y2 to recover X from the first N columns of U
+          (see METHOD).
+
+  LDWORK  INTEGER
+          The length of the array DWORK.
+          LDWORK &gt;= MAX(3,6*N),                       if JOBB = 'G',
+                                                         DICO = 'C';
+          LDWORK &gt;= MAX(7*(2*N+1)+16,16*N),           if JOBB = 'G',
+                                                         DICO = 'D';
+          LDWORK &gt;= MAX(7*(2*N+1)+16,16*N,2*N+M,3*M), if JOBB = 'B'.
+          For optimum performance LDWORK should be larger.
+
+  BWORK   LOGICAL array, dimension (2*N)
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value;
+          = 1:  if the computed extended matrix pencil is singular,
+                possibly due to rounding errors;
+          = 2:  if the QZ (or QR) algorithm failed;
+          = 3:  if reordering of the (generalized) eigenvalues
+                failed;
+          = 4:  if after reordering, roundoff changed values of
+                some complex eigenvalues so that leading eigenvalues
+                in the (generalized) Schur form no longer satisfy
+                the stability condition; this could also be caused
+                due to scaling;
+          = 5:  if the computed dimension of the solution does not
+                equal N;
+          = 6:  if a singular matrix was encountered during the
+                computation of the solution matrix X.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  The routine uses a variant of the method of deflating subspaces
+  proposed by van Dooren [1]. See also [2], [3].
+  It is assumed that (A,B) is stabilizable and (C,A) is detectable.
+  Under these assumptions the algebraic Riccati equation is known to
+  have a unique non-negative definite solution.
+  The first step in the method of deflating subspaces is to form the
+  extended Hamiltonian matrices, dimension 2N + M given by
+
+        discrete-time                   continuous-time
+
+  |A   0   B|     |I   0   0|    |A   0   B|     |I   0   0|
+  |Q  -I   L| - z |0  -A'  0|,   |Q   A'  L| - s |0  -I   0|.
+  |L'  0   R|     |0  -B'  0|    |L'  B'  R|     |0   0   0|
+
+  Next, these pencils are compressed to a form (see [1])
+
+     lambda x A  - B .
+               f    f
+
+  This generalized eigenvalue problem is then solved using the QZ
+  algorithm and the stable deflating subspace Ys is determined.
+  If [Y1'|Y2']' is a basis for Ys, then the required solution is
+                    -1
+         X = Y2 x Y1  .
+  A standard eigenvalue problem is solved using the QR algorithm in
+  the continuous-time case when G is given (DICO = 'C', JOBB = 'G').
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Van Dooren, P.
+      A Generalized Eigenvalue Approach for Solving Riccati
+      Equations.
+      SIAM J. Sci. Stat. Comp., 2, pp. 121-135, 1981.
+
+  [2] Mehrmann, V.
+      The Autonomous Linear Quadratic Control Problem. Theory and
+      Numerical Solution.
+      Lect. Notes in Control and Information Sciences, vol. 163,
+      Springer-Verlag, Berlin, 1991.
+
+  [3] Sima, V.
+      Algorithms for Linear-Quadratic Optimization.
+      Pure and Applied Mathematics: A Series of Monographs and
+      Textbooks, vol. 200, Marcel Dekker, Inc., New York, 1996.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  This routine is particularly suited for systems where the matrix R
+  is ill-conditioned. Internal scaling is used.
+
+</PRE>
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  To obtain a stabilizing solution of the algebraic Riccati
+  equations set SORT = 'S'.
+
+  The routine can also compute the anti-stabilizing solutions of
+  the algebraic Riccati equations, by specifying SORT = 'U'.
+
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+*     SB02OD EXAMPLE PROGRAM TEXT
+*
+*     .. Parameters ..
+      INTEGER          NIN, NOUT
+      PARAMETER        ( NIN = 5, NOUT = 6 )
+      INTEGER          NMAX, MMAX, PMAX
+      PARAMETER        ( NMAX = 20, MMAX = 20, PMAX = 20 )
+      INTEGER          NMAX2M, NMAX2
+      PARAMETER        ( NMAX2M = 2*NMAX+MMAX, NMAX2 = 2*NMAX )
+      INTEGER          LDA, LDB, LDL, LDQ, LDR, LDS, LDT, LDU, LDX
+      PARAMETER        ( LDA = NMAX, LDB = NMAX, LDL = NMAX,
+     $                   LDQ = MAX(NMAX,PMAX), LDR = MAX(MMAX,PMAX),
+     $                   LDS = NMAX2M, LDT = NMAX2M, LDU = NMAX2,
+     $                   LDX = NMAX )
+      INTEGER          LIWORK
+      PARAMETER        ( LIWORK = MAX(MMAX,NMAX2) )
+      INTEGER          LDWORK
+      PARAMETER        ( LDWORK = MAX(14*NMAX+23,16*NMAX) )
+      INTEGER          LBWORK
+      PARAMETER        ( LBWORK = NMAX2 )
+*     .. Local Scalars ..
+      DOUBLE PRECISION RCOND, TOL
+      INTEGER          I, INFO, J, M, N, P
+      CHARACTER*1      DICO, FACT, JOBB, JOBL, SORT, UPLO
+      LOGICAL          LJOBB
+*     .. Local Arrays ..
+      DOUBLE PRECISION A(LDA,NMAX), ALFAI(NMAX2), ALFAR(NMAX2),
+     $                 B(LDB,MMAX), BETA(NMAX2), DWORK(LDWORK),
+     $                 L(LDL,MMAX), Q(LDQ,NMAX), R(LDR,MMAX),
+     $                 S(LDS,NMAX2M), T(LDT,NMAX2), U(LDU,NMAX2),
+     $                 X(LDX,NMAX)
+      INTEGER          IWORK(LIWORK)
+      LOGICAL          BWORK(LBWORK)
+C     .. External Functions ..
+      LOGICAL           LSAME
+      EXTERNAL          LSAME
+*     .. External Subroutines ..
+      EXTERNAL         SB02OD
+*     .. Intrinsic Functions ..
+      INTRINSIC        MAX
+*     .. Executable Statements ..
+*
+      WRITE ( NOUT, FMT = 99999 )
+*     Skip the heading in the data file and read the data.
+      READ ( NIN, FMT = '()' )
+      READ ( NIN, FMT = * ) N, M, P, TOL, DICO, JOBB, FACT, UPLO, JOBL,
+     $                      SORT
+      IF ( N.LT.0 .OR. N.GT.NMAX ) THEN
+         WRITE ( NOUT, FMT = 99995 ) N
+      ELSE
+         READ ( NIN, FMT = * ) ( ( A(I,J), J = 1,N ), I = 1,N )
+         IF ( M.LT.0 .OR. M.GT.MMAX ) THEN
+            WRITE ( NOUT, FMT = 99994 ) M
+         ELSE
+            LJOBB = LSAME( JOBB, 'B' )
+            IF ( LJOBB ) THEN
+               READ ( NIN, FMT = * ) ( ( B(I,J), J = 1,M ), I = 1,N )
+            ELSE
+               READ ( NIN, FMT = * ) ( ( B(I,J), J = 1,N ), I = 1,N )
+            END IF
+            IF ( P.LT.0 .OR. P.GT.PMAX ) THEN
+               WRITE ( NOUT, FMT = 99993 ) P
+            ELSE
+               IF ( LSAME( FACT, 'N' ) .OR. LSAME( FACT, 'D' ) ) THEN
+                  READ ( NIN, FMT = * )
+     $                                 ( ( Q(I,J), J = 1,N ), I = 1,N )
+               ELSE
+                  READ ( NIN, FMT = * )
+     $                                 ( ( Q(I,J), J = 1,N ), I = 1,P )
+               END IF
+               IF ( LJOBB ) THEN
+                  IF ( LSAME( FACT, 'N' ) .OR. LSAME( FACT, 'C' ) ) THEN
+                      READ ( NIN, FMT = * )
+     $                                  ( ( R(I,J), J = 1,M ), I = 1,M )
+                  ELSE
+                      READ ( NIN, FMT = * )
+     $                                  ( ( R(I,J), J = 1,M ), I = 1,P )
+                  END IF
+                  IF ( LSAME( JOBL, 'N' ) )
+     $                READ ( NIN, FMT = * )
+     $                                  ( ( L(I,J), J = 1,M ), I = 1,N )
+               END IF
+*              Find the solution matrix X.
+               CALL SB02OD( DICO, JOBB, FACT, UPLO, JOBL, SORT, N, M, P,
+     $                      A, LDA, B, LDB, Q, LDQ, R, LDR, L, LDL,
+     $                      RCOND, X, LDX, ALFAR, ALFAI, BETA, S, LDS,
+     $                      T, LDT, U, LDU, TOL, IWORK, DWORK, LDWORK,
+     $                      BWORK, INFO )
+*
+               IF ( INFO.NE.0 ) THEN
+                  WRITE ( NOUT, FMT = 99998 ) INFO
+               ELSE
+                  WRITE ( NOUT, FMT = 99997 )
+                  DO 20 I = 1, N
+                     WRITE ( NOUT, FMT = 99996 ) ( X(I,J), J = 1,N )
+   20             CONTINUE
+               END IF
+            END IF
+         END IF
+      END IF
+      STOP
+*
+99999 FORMAT (' SB02OD EXAMPLE PROGRAM RESULTS',/1X)
+99998 FORMAT (' INFO on exit from SB02OD = ',I2)
+99997 FORMAT (' The solution matrix X is ')
+99996 FORMAT (20(1X,F8.4))
+99995 FORMAT (/' N is out of range.',/' N = ',I5)
+99994 FORMAT (/' M is out of range.',/' M = ',I5)
+99993 FORMAT (/' P is out of range.',/' P = ',I5)
+      END
+</PRE>
+<B>Program Data</B>
+<PRE>
+ SB02OD EXAMPLE PROGRAM DATA
+   2     1     3     0.0     C     B     B     U     Z     S
+   0.0  1.0
+   0.0  0.0
+   0.0
+   1.0
+   1.0  0.0
+   0.0  1.0
+   0.0  0.0
+   0.0
+   0.0
+   1.0
+</PRE>
+<B>Program Results</B>
+<PRE>
+ SB02OD EXAMPLE PROGRAM RESULTS
+
+ The solution matrix X is 
+   1.7321   1.0000
+   1.0000   1.7321
+</PRE>
+
+<HR>
+<p>
+<A HREF=..\libindex.html><B>Return to index</B></A></BODY>
+</HTML>

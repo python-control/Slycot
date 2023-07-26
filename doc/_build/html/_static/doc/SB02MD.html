@@ -1,0 +1,420 @@
+<HTML>
+<HEAD><TITLE>SB02MD - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="SB02MD">SB02MD</A></H2>
+<H3>
+Solution of continuous- or discrete-time algebraic Riccati equations (Schur vectors method)
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To solve for X either the continuous-time algebraic Riccati
+  equation
+                           -1
+     Q + A'*X + X*A - X*B*R  B'*X = 0                            (1)
+
+  or the discrete-time algebraic Riccati equation
+                                     -1
+     X = A'*X*A - A'*X*B*(R + B'*X*B)  B'*X*A + Q                (2)
+
+  where A, B, Q and R are N-by-N, N-by-M, N-by-N and M-by-M matrices
+  respectively, with Q symmetric and R symmetric nonsingular; X is
+  an N-by-N symmetric matrix.
+                    -1
+  The matrix G = B*R  B' must be provided on input, instead of B and
+  R, that is, for instance, the continuous-time equation
+
+     Q + A'*X + X*A - X*G*X = 0                                  (3)
+
+  is solved, where G is an N-by-N symmetric matrix. SLICOT Library
+  routine SB02MT should be used to compute G, given B and R. SB02MT
+  also enables to solve Riccati equations corresponding to optimal
+  problems with coupling terms.
+
+  The routine also returns the computed values of the closed-loop
+  spectrum of the optimal system, i.e., the stable eigenvalues
+  lambda(1),...,lambda(N) of the corresponding Hamiltonian or
+  symplectic matrix associated to the optimal problem.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE SB02MD( DICO, HINV, UPLO, SCAL, SORT, N, A, LDA, G,
+     $                   LDG, Q, LDQ, RCOND, WR, WI, S, LDS, U, LDU,
+     $                   IWORK, DWORK, LDWORK, BWORK, INFO )
+C     .. Scalar Arguments ..
+      CHARACTER         DICO, HINV, SCAL, SORT, UPLO
+      INTEGER           INFO, LDA, LDG, LDQ, LDS, LDU, LDWORK, N
+      DOUBLE PRECISION  RCOND
+C     .. Array Arguments ..
+      LOGICAL           BWORK(*)
+      INTEGER           IWORK(*)
+      DOUBLE PRECISION  A(LDA,*), DWORK(*), G(LDG,*), Q(LDQ,*),
+     $                  S(LDS,*), U(LDU,*), WR(*), WI(*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  DICO    CHARACTER*1
+          Specifies the type of Riccati equation to be solved as
+          follows:
+          = 'C':  Equation (3), continuous-time case;
+          = 'D':  Equation (2), discrete-time case.
+
+  HINV    CHARACTER*1
+          If DICO = 'D', specifies which symplectic matrix is to be
+          constructed, as follows:
+          = 'D':  The matrix H in (5) (see METHOD) is constructed;
+          = 'I':  The inverse of the matrix H in (5) is constructed.
+          HINV is not used if DICO = 'C'.
+
+  UPLO    CHARACTER*1
+          Specifies which triangle of the matrices G and Q is
+          stored, as follows:
+          = 'U':  Upper triangle is stored;
+          = 'L':  Lower triangle is stored.
+
+  SCAL    CHARACTER*1
+          Specifies whether or not a scaling strategy should be
+          used, as follows:
+          = 'G':  General scaling should be used;
+          = 'N':  No scaling should be used.
+
+  SORT    CHARACTER*1
+          Specifies which eigenvalues should be obtained in the top
+          of the Schur form, as follows:
+          = 'S':  Stable   eigenvalues come first;
+          = 'U':  Unstable eigenvalues come first.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The order of the matrices A, Q, G and X.  N &gt;= 0.
+
+  A       (input/output) DOUBLE PRECISION array, dimension (LDA,N)
+          On entry, the leading N-by-N part of this array must
+          contain the coefficient matrix A of the equation.
+          On exit, if DICO = 'D', and INFO = 0 or INFO &gt; 1, the
+                                                                 -1
+          leading N-by-N part of this array contains the matrix A  .
+          Otherwise, the array A is unchanged on exit.
+
+  LDA     INTEGER
+          The leading dimension of array A.  LDA &gt;= MAX(1,N).
+
+  G       (input) DOUBLE PRECISION array, dimension (LDG,N)
+          The leading N-by-N upper triangular part (if UPLO = 'U')
+          or lower triangular part (if UPLO = 'L') of this array
+          must contain the upper triangular part or lower triangular
+          part, respectively, of the symmetric matrix G.
+          The strictly lower triangular part (if UPLO = 'U') or
+          strictly upper triangular part (if UPLO = 'L') is not
+          referenced.
+
+  LDG     INTEGER
+          The leading dimension of array G.  LDG &gt;= MAX(1,N).
+
+  Q       (input/output) DOUBLE PRECISION array, dimension (LDQ,N)
+          On entry, the leading N-by-N upper triangular part (if
+          UPLO = 'U') or lower triangular part (if UPLO = 'L') of
+          this array must contain the upper triangular part or lower
+          triangular part, respectively, of the symmetric matrix Q.
+          The strictly lower triangular part (if UPLO = 'U') or
+          strictly upper triangular part (if UPLO = 'L') is not
+          used.
+          On exit, if INFO = 0, the leading N-by-N part of this
+          array contains the solution matrix X of the problem.
+
+  LDQ     INTEGER
+          The leading dimension of array N.  LDQ &gt;= MAX(1,N).
+
+  RCOND   (output) DOUBLE PRECISION
+          An estimate of the reciprocal of the condition number (in
+          the 1-norm) of the N-th order system of algebraic
+          equations from which the solution matrix X is obtained.
+
+  WR      (output) DOUBLE PRECISION array, dimension (2*N)
+  WI      (output) DOUBLE PRECISION array, dimension (2*N)
+          If INFO = 0 or INFO = 5, these arrays contain the real and
+          imaginary parts, respectively, of the eigenvalues of the
+          2N-by-2N matrix S, ordered as specified by SORT (except
+          for the case HINV = 'D', when the order is opposite to
+          that specified by SORT). The leading N elements of these
+          arrays contain the closed-loop spectrum of the system
+                        -1
+          matrix A - B*R  *B'*X, if DICO = 'C', or of the matrix
+                            -1
+          A - B*(R + B'*X*B)  B'*X*A, if DICO = 'D'. Specifically,
+             lambda(k) = WR(k) + j*WI(k), for k = 1,2,...,N.
+
+  S       (output) DOUBLE PRECISION array, dimension (LDS,2*N)
+          If INFO = 0 or INFO = 5, the leading 2N-by-2N part of this
+          array contains the ordered real Schur form S of the
+          Hamiltonian or symplectic matrix H. That is,
+
+                 (S   S  )
+                 ( 11  12)
+             S = (       ),
+                 (0   S  )
+                 (     22)
+
+          where S  , S   and S   are N-by-N matrices.
+                 11   12      22
+
+  LDS     INTEGER
+          The leading dimension of array S.  LDS &gt;= MAX(1,2*N).
+
+  U       (output) DOUBLE PRECISION array, dimension (LDU,2*N)
+          If INFO = 0 or INFO = 5, the leading 2N-by-2N part of this
+          array contains the transformation matrix U which reduces
+          the Hamiltonian or symplectic matrix H to the ordered real
+          Schur form S. That is,
+
+                 (U   U  )
+                 ( 11  12)
+             U = (       ),
+                 (U   U  )
+                 ( 21  22)
+
+          where U  , U  , U   and U   are N-by-N matrices.
+                 11   12   21      22
+
+  LDU     INTEGER
+          The leading dimension of array U.  LDU &gt;= MAX(1,2*N).
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  IWORK   INTEGER array, dimension (2*N)
+
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+          On exit, if INFO = 0, DWORK(1) returns the optimal value
+          of LDWORK and DWORK(2) returns the scaling factor used
+          (set to 1 if SCAL = 'N'), also set if INFO = 5;
+          if DICO = 'D', DWORK(3) returns the reciprocal condition
+          number of the given matrix  A.
+
+  LDWORK  INTEGER
+          The length of the array DWORK.
+          LDWORK &gt;= MAX(2,6*N) if DICO = 'C';
+          LDWORK &gt;= MAX(3,6*N) if DICO = 'D'.
+          For optimum performance LDWORK should be larger.
+
+  BWORK   LOGICAL array, dimension (2*N)
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value;
+          = 1:  if matrix A is (numerically) singular in discrete-
+                time case;
+          = 2:  if the Hamiltonian or symplectic matrix H cannot be
+                reduced to real Schur form;
+          = 3:  if the real Schur form of the Hamiltonian or
+                symplectic matrix H cannot be appropriately ordered;
+          = 4:  if the Hamiltonian or symplectic matrix H has less
+                than N stable eigenvalues;
+          = 5:  if the N-th order system of linear algebraic
+                equations, from which the solution matrix X would
+                be obtained, is singular to working precision.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  The method used is the Schur vector approach proposed by Laub.
+  It is assumed that [A,B] is a stabilizable pair (where for (3) B
+  is any matrix such that B*B' = G with rank(B) = rank(G)), and
+  [E,A] is a detectable pair, where E is any matrix such that
+  E*E' = Q with rank(E) = rank(Q). Under these assumptions, any of
+  the algebraic Riccati equations (1)-(3) is known to have a unique
+  non-negative definite solution. See [2].
+  Now consider the 2N-by-2N Hamiltonian or symplectic matrix
+
+              ( A   -G )
+         H =  (        ),                                    (4)
+              (-Q   -A'),
+
+  for continuous-time equation, and
+                 -1        -1
+              ( A         A  *G   )
+         H =  (   -1          -1  ),                         (5)
+              (Q*A    A' + Q*A  *G)
+                                                         -1
+  for discrete-time equation, respectively, where G = B*R  *B'.
+  The assumptions guarantee that H in (4) has no pure imaginary
+  eigenvalues, and H in (5) has no eigenvalues on the unit circle.
+  If Y is an N-by-N matrix then there exists an orthogonal matrix U
+  such that U'*Y*U is an upper quasi-triangular matrix. Moreover, U
+  can be chosen so that the 2-by-2 and 1-by-1 diagonal blocks
+  (corresponding to the complex conjugate eigenvalues and real
+  eigenvalues respectively) appear in any desired order. This is the
+  ordered real Schur form. Thus, we can find an orthogonal
+  similarity transformation U which puts (4) or (5) in ordered real
+  Schur form
+
+         U'*H*U = S = (S(1,1)  S(1,2))
+                      (  0     S(2,2))
+
+  where S(i,j) is an N-by-N matrix and the eigenvalues of S(1,1)
+  have negative real parts in case of (4), or moduli greater than
+  one in case of (5). If U is conformably partitioned into four
+  N-by-N blocks
+
+            U = (U(1,1)  U(1,2))
+                (U(2,1)  U(2,2))
+
+  with respect to the assumptions we then have
+  (a) U(1,1) is invertible and X = U(2,1)*inv(U(1,1)) solves (1),
+      (2), or (3) with X = X' and non-negative definite;
+  (b) the eigenvalues of S(1,1) (if DICO = 'C') or S(2,2) (if
+      DICO = 'D') are equal to the eigenvalues of optimal system
+      (the 'closed-loop' spectrum).
+
+  [A,B] is stabilizable if there exists a matrix F such that (A-BF)
+  is stable. [E,A] is detectable if [A',E'] is stabilizable.
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Laub, A.J.
+      A Schur Method for Solving Algebraic Riccati equations.
+      IEEE Trans. Auto. Contr., AC-24, pp. 913-921, 1979.
+
+  [2] Wonham, W.M.
+      On a matrix Riccati equation of stochastic control.
+      SIAM J. Contr., 6, pp. 681-697, 1968.
+
+  [3] Sima, V.
+      Algorithms for Linear-Quadratic Optimization.
+      Pure and Applied Mathematics: A Series of Monographs and
+      Textbooks, vol. 200, Marcel Dekker, Inc., New York, 1996.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>                            3
+  The algorithm requires 0(N ) operations.
+
+</PRE>
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  To obtain a stabilizing solution of the algebraic Riccati
+  equation for DICO = 'D', set SORT = 'U', if HINV = 'D', or set
+  SORT = 'S', if HINV = 'I'.
+
+  The routine can also compute the anti-stabilizing solutions of
+  the algebraic Riccati equations, by specifying
+      SORT = 'U' if DICO = 'D' and HINV = 'I', or DICO = 'C', or
+      SORT = 'S' if DICO = 'D' and HINV = 'D'.
+
+  Usually, the combinations HINV = 'D' and SORT = 'U', or HINV = 'I'
+  and SORT = 'U', will be faster then the other combinations [3].
+
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+*     SB02MD EXAMPLE PROGRAM TEXT.
+*
+*     .. Parameters ..
+      INTEGER          NIN, NOUT
+      PARAMETER        ( NIN = 5, NOUT = 6 )
+      INTEGER          NMAX
+      PARAMETER        ( NMAX = 20 )
+      INTEGER          LDA, LDG, LDQ, LDS, LDU
+      PARAMETER        ( LDA = NMAX, LDG = NMAX, LDQ = NMAX,
+     $                   LDS = 2*NMAX, LDU = 2*NMAX )
+      INTEGER          LIWORK
+      PARAMETER        ( LIWORK = 2*NMAX )
+      INTEGER          LDWORK
+      PARAMETER        ( LDWORK = 6*NMAX )
+*     .. Local Scalars ..
+      DOUBLE PRECISION RCOND
+      INTEGER          I, INFO, J, N
+      CHARACTER        DICO, HINV, SCAL, SORT, UPLO
+*     .. Local Arrays ..
+      DOUBLE PRECISION A(LDA,NMAX), DWORK(LDWORK), G(LDG,NMAX),
+     $                 Q(LDQ,NMAX), S(LDS,2*NMAX), U(LDU,2*NMAX),
+     $                 WI(2*NMAX), WR(2*NMAX)
+      INTEGER          IWORK(LIWORK)
+      LOGICAL          BWORK(LIWORK)
+*     .. External Subroutines ..
+      EXTERNAL         SB02MD
+*     .. Executable Statements ..
+*
+      WRITE ( NOUT, FMT = 99999 )
+*     Skip the heading in the data file and read the data.
+      READ ( NIN, FMT = '()' )
+      READ ( NIN, FMT = * ) N, DICO, HINV, UPLO, SCAL, SORT
+      IF ( N.LT.0 .OR. N.GT.NMAX ) THEN
+         WRITE ( NOUT, FMT = 99995 ) N
+      ELSE
+         READ ( NIN, FMT = * ) ( ( A(I,J), J = 1,N ), I = 1,N )
+         READ ( NIN, FMT = * ) ( ( Q(I,J), J = 1,N ), I = 1,N )
+         READ ( NIN, FMT = * ) ( ( G(I,J), J = 1,N ), I = 1,N )
+*        Find the solution matrix X.
+         CALL SB02MD( DICO, HINV, UPLO, SCAL, SORT, N, A, LDA, G, LDG,
+     $                Q, LDQ, RCOND, WR, WI, S, LDS, U, LDU, IWORK,
+     $                DWORK, LDWORK, BWORK, INFO )
+*
+         IF ( INFO.NE.0 ) THEN
+            WRITE ( NOUT, FMT = 99998 ) INFO
+         ELSE
+            WRITE ( NOUT, FMT = 99997 ) RCOND
+            DO 20 I = 1, N
+               WRITE ( NOUT, FMT = 99996 ) ( Q(I,J), J = 1,N )
+   20       CONTINUE
+         END IF
+      END IF
+      STOP
+*
+99999 FORMAT (' SB02MD EXAMPLE PROGRAM RESULTS',/1X)
+99998 FORMAT (' INFO on exit from SB02MD = ',I2)
+99997 FORMAT (' RCOND = ',F4.2,//' The solution matrix X is ')
+99996 FORMAT (20(1X,F8.4))
+99995 FORMAT (/' N is out of range.',/' N = ',I5)
+      END
+</PRE>
+<B>Program Data</B>
+<PRE>
+ SB02MD EXAMPLE PROGRAM DATA
+   2     C     D     U     N     S
+   0.0   1.0
+   0.0   0.0
+   1.0   0.0
+   0.0   2.0
+   0.0   0.0
+   0.0   1.0
+</PRE>
+<B>Program Results</B>
+<PRE>
+ SB02MD EXAMPLE PROGRAM RESULTS
+
+ RCOND = 0.31
+
+ The solution matrix X is 
+   2.0000   1.0000
+   1.0000   2.0000
+</PRE>
+
+<HR>
+<p>
+<A HREF=..\libindex.html><B>Return to index</B></A></BODY>
+</HTML>

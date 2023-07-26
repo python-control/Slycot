@@ -1,0 +1,86 @@
+<HTML>
+<HEAD><TITLE>MA02ED - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MA02ED">MA02ED</A></H2>
+<H3>
+Store by symmetry the upper or lower triangle of a symmetric matrix, given the other triangle
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To store by symmetry the upper or lower triangle of a symmetric
+  matrix, given the other triangle.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MA02ED( UPLO, N, A, LDA )
+C     .. Scalar Arguments ..
+      CHARACTER          UPLO
+      INTEGER            LDA, N
+C     .. Array Arguments ..
+      DOUBLE PRECISION   A(LDA,*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  UPLO    CHARACTER*1
+          Specifies which part of the matrix is given as follows:
+          = 'U':  Upper triangular part;
+          = 'L':  Lower triangular part.
+          For all other values, the array A is not referenced.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The order of the matrix A.  N &gt;= 0.
+
+  A       (input/output) DOUBLE PRECISION array, dimension (LDA,N)
+          On entry, the leading N-by-N upper triangular part
+          (if UPLO = 'U'), or lower triangular part (if UPLO = 'L'),
+          of this array must contain the corresponding upper or
+          lower triangle of the symmetric matrix A.
+          On exit, the leading N-by-N part of this array contains
+          the symmetric matrix A with all elements stored.
+
+  LDA     INTEGER
+          The leading dimension of the array A.  LDA &gt;= max(1,N).
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

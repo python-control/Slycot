@@ -1,0 +1,294 @@
+<HTML>
+<HEAD><TITLE>AB13CD - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="AB13CD">AB13CD</A></H2>
+<H3>
+H-infinity norm of a continuous-time stable system
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To compute the H-infinity norm of the continuous-time stable
+  system
+
+                       | A | B |
+                G(s) = |---|---| .
+                       | C | D |
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      DOUBLE PRECISION FUNCTION AB13CD( N, M, NP, A, LDA, B, LDB, C,
+     $                                  LDC, D, LDD, TOL, IWORK, DWORK,
+     $                                  LDWORK, CWORK, LCWORK, BWORK,
+     $                                  INFO )
+C     .. Scalar Arguments ..
+      INTEGER            INFO, LDA, LDB, LDC, LCWORK, LDD, LDWORK, M, N,
+     $                   NP
+      DOUBLE PRECISION   TOL
+C     .. Array Arguments ..
+      INTEGER            IWORK( * )
+      COMPLEX*16         CWORK( * )
+      DOUBLE PRECISION   A( LDA, * ), B( LDB, * ), C( LDC, * ),
+     $                   D( LDD, * ), DWORK( * )
+      LOGICAL            BWORK( * )
+
+</PRE>
+<B><FONT SIZE="+1">Function Value</FONT></B>
+<PRE>
+  AB13CD  DOUBLE PRECISION
+          If INFO = 0, the H-infinity norm of the system, HNORM,
+          i.e., the peak gain of the frequency response (as measured
+          by the largest singular value in the MIMO case).
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The order of the system.  N &gt;= 0.
+
+  M       (input) INTEGER
+          The column size of the matrix B.  M &gt;= 0.
+
+  NP      (input) INTEGER
+          The row size of the matrix C.  NP &gt;= 0.
+
+  A       (input) DOUBLE PRECISION array, dimension (LDA,N)
+          The leading N-by-N part of this array must contain the
+          system state matrix A.
+
+  LDA     INTEGER
+          The leading dimension of the array A.  LDA &gt;= max(1,N).
+
+  B       (input) DOUBLE PRECISION array, dimension (LDB,M)
+          The leading N-by-M part of this array must contain the
+          system input matrix B.
+
+  LDB     INTEGER
+          The leading dimension of the array B.  LDB &gt;= max(1,N).
+
+  C       (input) DOUBLE PRECISION array, dimension (LDC,N)
+          The leading NP-by-N part of this array must contain the
+          system output matrix C.
+
+  LDC     INTEGER
+          The leading dimension of the array C.  LDC &gt;= max(1,NP).
+
+  D       (input) DOUBLE PRECISION array, dimension (LDD,M)
+          The leading NP-by-M part of this array must contain the
+          system input/output matrix D.
+
+  LDD     INTEGER
+          The leading dimension of the array D.  LDD &gt;= max(1,NP).
+
+</PRE>
+<B>Tolerances</B>
+<PRE>
+  TOL     DOUBLE PRECISION
+          Tolerance used to set the accuracy in determining the
+          norm.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  IWORK   INTEGER array, dimension (N)
+
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+          On exit, if INFO = 0, DWORK(1) contains the optimal value
+          of LDWORK, and DWORK(2) contains the frequency where the
+          gain of the frequency response achieves its peak value
+          HNORM.
+
+  LDWORK  INTEGER
+          The dimension of the array DWORK.
+          LDWORK &gt;= max(2,4*N*N+2*M*M+3*M*N+M*NP+2*(N+NP)*NP+10*N+
+                          6*max(M,NP)).
+          For good performance, LDWORK must generally be larger.
+
+  CWORK   COMPLEX*16 array, dimension (LCWORK)
+          On exit, if INFO = 0, CWORK(1) contains the optimal value
+          of LCWORK.
+
+  LCWORK  INTEGER
+          The dimension of the array CWORK.
+          LCWORK &gt;= max(1,(N+M)*(N+NP)+3*max(M,NP)).
+          For good performance, LCWORK must generally be larger.
+
+  BWORK   LOGICAL array, dimension (2*N)
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value;
+          = 1:  the system is unstable;
+          = 2:  the tolerance is too small (the algorithm for
+                computing the H-infinity norm did not converge);
+          = 3:  errors in computing the eigenvalues of A or of the
+                Hamiltonian matrix (the QR algorithm did not
+                converge);
+          = 4:  errors in computing singular values.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  The routine implements the method presented in [1].
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Bruinsma, N.A. and Steinbuch, M.
+      A fast algorithm to compute the Hinfinity-norm of a transfer
+      function matrix.
+      Systems & Control Letters, vol. 14, pp. 287-293, 1990.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  If the algorithm does not converge (INFO = 2), the tolerance must
+  be increased.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+*     AB13CD EXAMPLE PROGRAM TEXT
+*
+*     .. Parameters ..
+      INTEGER          NIN, NOUT
+      PARAMETER        ( NIN = 5, NOUT = 6 )
+      INTEGER          NMAX, MMAX, PMAX
+      PARAMETER        ( NMAX = 10, MMAX = 10, PMAX = 10 )
+      INTEGER          LDA, LDB, LDC, LDD
+      PARAMETER        ( LDA = NMAX, LDB = NMAX, LDC = PMAX,
+     $                   LDD = PMAX )
+      INTEGER          LIWORK
+      PARAMETER        ( LIWORK = NMAX )
+      INTEGER          LCWORK
+      PARAMETER        ( LCWORK = ( NMAX + MMAX )*( NMAX + PMAX ) +
+     $                              3*MAX( MMAX, PMAX ) )
+      INTEGER          LDWORK
+      PARAMETER        ( LDWORK = 4*NMAX*NMAX + 2*MMAX*MMAX +
+     $                            2*PMAX*PMAX + 3*NMAX*MMAX +
+     $                            2*NMAX*PMAX + MMAX*PMAX + 10*NMAX +
+     $                            6*MAX( MMAX, PMAX ) )
+*     .. Local Scalars ..
+      DOUBLE PRECISION FPEAK, HNORM, TOL
+      INTEGER          I, INFO, J, M, N, NP
+*     .. Local Arrays ..
+      LOGICAL          BWORK(2*NMAX)
+      INTEGER          IWORK(LIWORK)
+      DOUBLE PRECISION A(LDA,NMAX), B(LDB,MMAX), C(LDC,NMAX),
+     $                 D(LDD,MMAX), DWORK(LDWORK)
+      COMPLEX*16       CWORK( LCWORK )
+*     .. External Functions ..
+      DOUBLE PRECISION AB13CD
+      EXTERNAL         AB13CD
+*     .. Intrinsic Functions ..
+      INTRINSIC        MAX
+*     .. Executable Statements ..
+*
+      WRITE ( NOUT, FMT = 99999 )
+*     Skip the heading in the data file and read the data.
+      READ ( NIN, FMT = '()' )
+      READ ( NIN, FMT = * ) N, M, NP
+      IF ( N.LT.0 .OR. N.GT.NMAX ) THEN
+         WRITE ( NOUT, FMT = 99990 ) N
+      ELSE IF ( M.LT.0 .OR. M.GT.MMAX ) THEN
+         WRITE ( NOUT, FMT = 99989 ) M
+      ELSE IF ( NP.LT.0 .OR. NP.GT.PMAX ) THEN
+         WRITE ( NOUT, FMT = 99988 ) NP
+      ELSE
+         READ ( NIN, FMT = * ) ( ( A(I,J), J = 1,N ), I = 1,N )
+         READ ( NIN, FMT = * ) ( ( B(I,J), J = 1,M ), I = 1,N )
+         READ ( NIN, FMT = * ) ( ( C(I,J), J = 1,N ), I = 1,NP )
+         READ ( NIN, FMT = * ) ( ( D(I,J), J = 1,M ), I = 1,NP )
+         READ ( NIN, FMT = * ) TOL
+*        Computing the Hinf norm
+         HNORM = AB13CD( N, M, NP, A, LDA, B, LDB, C, LDC, D, LDD, TOL,
+     $                   IWORK, DWORK, LDWORK, CWORK, LCWORK, BWORK,
+     $                   INFO )
+*
+         IF ( INFO.EQ.0 ) THEN
+            WRITE ( NOUT, FMT = 99997 )
+            WRITE ( NOUT, FMT = 99991 ) HNORM
+            FPEAK = DWORK(2)
+            WRITE ( NOUT, FMT = 99996 )
+            WRITE ( NOUT, FMT = 99991 ) FPEAK
+         ELSE
+            WRITE( NOUT, FMT = 99998 ) INFO
+         END IF
+      END IF
+      STOP
+*
+99999 FORMAT (' AB13CD EXAMPLE PROGRAM RESULTS',/1X)
+99998 FORMAT (/' INFO on exit from AB13CD =',I2)
+99997 FORMAT (/' The H_infty norm of the system is'/)
+99996 FORMAT (/' The peak frequency is'/)
+99992 FORMAT (10(1X,F8.4))
+99991 FORMAT (D17.10)
+99990 FORMAT (/' N is out of range.',/' N = ',I5)
+99989 FORMAT (/' M is out of range.',/' M = ',I5)
+99988 FORMAT (/' NP is out of range.',/' NP = ',I5)
+      END
+</PRE>
+<B>Program Data</B>
+<PRE>
+ AB13CD EXAMPLE PROGRAM DATA
+   6     1     1   
+   0.0  1.0     0.0   0.0      0.0  0.0
+  -0.5 -0.0002  0.0   0.0      0.0  0.0
+   0.0  0.0     0.0   1.0      0.0  0.0
+   0.0  0.0    -1.0  -0.00002  0.0  0.0
+   0.0  0.0     0.0   0.0      0.0  1.0
+   0.0  0.0     0.0   0.0     -2.0 -0.000002
+   1.0 
+   0.0  
+   1.0 
+   0.0 
+   1.0 
+   0.0
+   1.0  0.0  1.0  0.0  1.0  0.0
+   0.0
+ 0.000000001
+</PRE>
+<B>Program Results</B>
+<PRE>
+ AB13CD EXAMPLE PROGRAM RESULTS
+
+
+ The H_infty norm of the system is
+
+ 0.5000000006D+06
+
+ The peak frequency is
+
+ 0.1414213562D+01
+</PRE>
+
+<HR>
+<p>
+<A HREF=..\libindex.html><B>Return to index</B></A></BODY>
+</HTML>

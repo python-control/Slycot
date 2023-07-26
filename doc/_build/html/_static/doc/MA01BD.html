@@ -1,0 +1,97 @@
+<HTML>
+<HEAD><TITLE>MA01BD - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MA01BD">MA01BD</A></H2>
+<H3>
+Safely computing the general product of K real scalars
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To compute the general product of K real scalars without over-
+  or underflow.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MA01BD( BASE, LGBAS, K, S, A, INCA, ALPHA, BETA, SCAL )
+C     .. Scalar Arguments ..
+      INTEGER           INCA, K, SCAL
+      DOUBLE PRECISION  ALPHA, BASE, BETA, LGBAS
+C     .. Array Arguments ..
+      INTEGER           S(*)
+      DOUBLE PRECISION  A(*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  BASE    (input)  DOUBLE PRECISION
+          Machine base.
+
+  LGBAS   (input)  DOUBLE PRECISION
+          Logarithm of BASE.
+
+  K       (input)  INTEGER
+          The number of scalars.  K &gt;= 1.
+
+  S       (input)  INTEGER array, dimension (K)
+          The signature array. Each entry of S must be 1 or -1.
+
+  A       (input)  DOUBLE PRECISION array, dimension (K)
+          Vector of real scalars.
+
+  INCA    (input)  INTEGER
+          Increment for the array A. INCA &lt;&gt; 0.
+
+  ALPHA   (output)  DOUBLE PRECISION
+          ALPHA is a real scalar such that
+
+             ALPHA / BETA * BASE**(SCAL)
+
+          is the general product of the scalars in the array A.
+
+  BETA    (output)  DOUBLE PRECISION
+          BETA is either 0.0 or 1.0.
+          See also the description of ALPHA.
+
+  SCAL    (output)  INTEGER
+          Scaling factor exponent, see ALPHA.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

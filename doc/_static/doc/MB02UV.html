@@ -1,0 +1,100 @@
+<HTML>
+<HEAD><TITLE>MB02UV - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MB02UV">MB02UV</A></H2>
+<H3>
+LU factorization with complete pivoting of a general matrix
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To compute an LU factorization, using complete pivoting, of the
+  N-by-N matrix A. The factorization has the form A = P * L * U * Q,
+  where P and Q are permutation matrices, L is lower triangular with
+  unit diagonal elements and U is upper triangular.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MB02UV( N, A, LDA, IPIV, JPIV, INFO )
+C     .. Scalar Arguments ..
+      INTEGER            INFO, LDA, N
+C     .. Array Arguments ..
+      INTEGER            IPIV( * ), JPIV( * )
+      DOUBLE PRECISION   A( LDA, * )
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The order of the matrix A.
+
+  A       (input/output) DOUBLE PRECISION array, dimension (LDA, N)
+          On entry, the leading N-by-N part of this array must
+          contain the matrix A to be factored.
+          On exit, the leading N-by-N part of this array contains
+          the factors L and U from the factorization A = P*L*U*Q;
+          the unit diagonal elements of L are not stored. If U(k, k)
+          appears to be less than SMIN, U(k, k) is given the value
+          of SMIN, giving a nonsingular perturbed system.
+
+  LDA     INTEGER
+          The leading dimension of the array A.  LDA &gt;= max(1, N).
+
+  IPIV    (output) INTEGER array, dimension (N)
+          The pivot indices; for 1 &lt;= i &lt;= N, row i of the
+          matrix has been interchanged with row IPIV(i).
+
+  JPIV    (output) INTEGER array, dimension (N)
+          The pivot indices; for 1 &lt;= j &lt;= N, column j of the
+          matrix has been interchanged with column JPIV(j).
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          = k:  U(k, k) is likely to produce owerflow if one tries
+                to solve for x in Ax = b. So U is perturbed to get
+                a nonsingular system. This is a warning.
+
+</PRE>
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  In the interests of speed, this routine does not check the input
+  for errors. It should only be used to factorize matrices A of
+  very small order.
+
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

@@ -1,0 +1,185 @@
+<HTML>
+<HEAD><TITLE>MB01YD - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MB01YD">MB01YD</A></H2>
+<H3>
+Symmetric rank k operation C := alpha op( A ) op( A )' + beta C, C symmetric
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To perform the symmetric rank k operations
+
+     C := alpha*op( A )*op( A )' + beta*C,
+
+  where alpha and beta are scalars, C is an n-by-n symmetric matrix,
+  op( A ) is an n-by-k matrix, and op( A ) is one of
+
+     op( A ) = A   or   op( A ) = A'.
+
+  The matrix A has l nonzero codiagonals, either upper or lower.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MB01YD( UPLO, TRANS, N, K, L, ALPHA, BETA, A, LDA, C,
+     $                   LDC, INFO )
+C     .. Scalar Arguments ..
+      CHARACTER          TRANS, UPLO
+      INTEGER            INFO, LDA, LDC, K, L, N
+      DOUBLE PRECISION   ALPHA, BETA
+C     .. Array Arguments ..
+      DOUBLE PRECISION   A( LDA, * ), C( LDC, * )
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  UPLO    CHARACTER*1
+          Specifies which triangle of the symmetric matrix C
+          is given and computed, as follows:
+          = 'U':  the upper triangular part is given/computed;
+          = 'L':  the lower triangular part is given/computed.
+          UPLO also defines the pattern of the matrix A (see below).
+
+  TRANS   CHARACTER*1
+          Specifies the form of op( A ) to be used, as follows:
+          = 'N':  op( A ) = A;
+          = 'T':  op( A ) = A';
+          = 'C':  op( A ) = A'.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The order of the matrix C.  N &gt;= 0.
+
+  K       (input) INTEGER
+          The number of columns of the matrix op( A ).  K &gt;= 0.
+
+  L       (input) INTEGER
+          If UPLO = 'U', matrix A has L nonzero subdiagonals.
+          If UPLO = 'L', matrix A has L nonzero superdiagonals.
+          MAX(0,NR-1) &gt;= L &gt;= 0, if UPLO = 'U',
+          MAX(0,NC-1) &gt;= L &gt;= 0, if UPLO = 'L',
+          where NR and NC are the numbers of rows and columns of the
+          matrix A, respectively.
+
+  ALPHA   (input) DOUBLE PRECISION
+          The scalar alpha. When alpha is zero then the array A is
+          not referenced.
+
+  BETA    (input) DOUBLE PRECISION
+          The scalar beta. When beta is zero then the array C need
+          not be set before entry.
+
+  A       (input) DOUBLE PRECISION array, dimension (LDA,NC), where
+          NC is K when TRANS = 'N', and is N otherwise.
+          If TRANS = 'N', the leading N-by-K part of this array must
+          contain the matrix A, otherwise the leading K-by-N part of
+          this array must contain the matrix A.
+          If UPLO = 'U', only the upper triangular part and the
+          first L subdiagonals are referenced, and the remaining
+          subdiagonals are assumed to be zero.
+          If UPLO = 'L', only the lower triangular part and the
+          first L superdiagonals are referenced, and the remaining
+          superdiagonals are assumed to be zero.
+
+  LDA     INTEGER
+          The leading dimension of array A.  LDA &gt;= max(1,NR),
+          where NR = N, if TRANS = 'N', and NR = K, otherwise.
+
+  C       (input/output) DOUBLE PRECISION array, dimension (LDC,N)
+          On entry with UPLO = 'U', the leading N-by-N upper
+          triangular part of this array must contain the upper
+          triangular part of the symmetric matrix C.
+          On entry with UPLO = 'L', the leading N-by-N lower
+          triangular part of this array must contain the lower
+          triangular part of the symmetric matrix C.
+          On exit, the leading N-by-N upper triangular part (if
+          UPLO = 'U'), or lower triangular part (if UPLO = 'L'), of
+          this array contains the corresponding triangular part of
+          the updated matrix C.
+
+  LDC     INTEGER
+          The leading dimension of array C.  LDC &gt;= MAX(1,N).
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  The calculations are efficiently performed taking the symmetry
+  and structure into account.
+
+</PRE>
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  The matrix A may have the following patterns, when n = 7, k = 5,
+  and l = 2 are used for illustration:
+
+  UPLO = 'U', TRANS = 'N'         UPLO = 'L', TRANS = 'N'
+
+         [ x x x x x ]                   [ x x x 0 0 ]
+         [ x x x x x ]                   [ x x x x 0 ]
+         [ x x x x x ]                   [ x x x x x ]
+     A = [ 0 x x x x ],              A = [ x x x x x ],
+         [ 0 0 x x x ]                   [ x x x x x ]
+         [ 0 0 0 x x ]                   [ x x x x x ]
+         [ 0 0 0 0 x ]                   [ x x x x x ]
+
+  UPLO = 'U', TRANS = 'T'         UPLO = 'L', TRANS = 'T'
+
+         [ x x x x x x x ]               [ x x x 0 0 0 0 ]
+         [ x x x x x x x ]               [ x x x x 0 0 0 ]
+     A = [ x x x x x x x ],          A = [ x x x x x 0 0 ].
+         [ 0 x x x x x x ]               [ x x x x x x 0 ]
+         [ 0 0 x x x x x ]               [ x x x x x x x ]
+
+  If N = K, the matrix A is upper or lower triangular, for L = 0,
+  and upper or lower Hessenberg, for L = 1.
+
+  This routine is a specialization of the BLAS 3 routine DSYRK.
+  BLAS 1 calls are used when appropriate, instead of in-line code,
+  in order to increase the efficiency. If the matrix A is full, or
+  its zero triangle has small order, an optimized DSYRK code could
+  be faster than MB01YD.
+
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<p>
+<A HREF=..\libindex.html><B>Return to index</B></A></BODY>
+</HTML>

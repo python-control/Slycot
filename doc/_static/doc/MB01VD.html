@@ -1,0 +1,166 @@
+<HTML>
+<HEAD><TITLE>MB01VD - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MB01VD">MB01VD</A></H2>
+<H3>
+Kronecker product of two matrices
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To perform the following matrix operation
+
+     C = alpha*kron( op(A), op(B) ) + beta*C,
+
+  where alpha and beta are real scalars, op(M) is either matrix M or
+  its transpose, M', and kron( X, Y ) denotes the Kronecker product
+  of the matrices X and Y.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MB01VD( TRANA, TRANB, MA, NA, MB, NB, ALPHA, BETA,
+     $                   A, LDA, B, LDB, C, LDC, MC, NC, INFO )
+C     .. Scalar Arguments ..
+      CHARACTER         TRANA, TRANB
+      INTEGER           INFO, LDA, LDB, LDC, MA, MB, MC, NA, NB, NC
+      DOUBLE PRECISION  ALPHA, BETA
+C     .. Array Arguments ..
+      DOUBLE PRECISION  A(LDA,*), B(LDB,*), C(LDC,*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  TRANA   CHARACTER*1
+          Specifies the form of op(A) to be used as follows:
+          = 'N':  op(A) = A;
+          = 'T':  op(A) = A';
+          = 'C':  op(A) = A'.
+
+  TRANB   CHARACTER*1
+          Specifies the form of op(B) to be used as follows:
+          = 'N':  op(B) = B;
+          = 'T':  op(B) = B';
+          = 'C':  op(B) = B'.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  MA      (input) INTEGER
+          The number of rows of the matrix op(A).  MA &gt;= 0.
+
+  NA      (input) INTEGER
+          The number of columns of the matrix op(A).  NA &gt;= 0.
+
+  MB      (input) INTEGER
+          The number of rows of the matrix op(B).  MB &gt;= 0.
+
+  NB      (input) INTEGER
+          The number of columns of the matrix op(B).  NB &gt;= 0.
+
+  ALPHA   (input) DOUBLE PRECISION
+          The scalar alpha. When alpha is zero then A and B need not
+          be set before entry.
+
+  BETA    (input) DOUBLE PRECISION
+          The scalar beta. When beta is zero then C need not be
+          set before entry.
+
+  A       (input) DOUBLE PRECISION array, dimension (LDA,ka),
+          where ka is NA when TRANA = 'N', and is MA otherwise.
+          If TRANA = 'N', the leading MA-by-NA part of this array
+          must contain the matrix A; otherwise, the leading NA-by-MA
+          part of this array must contain the matrix A.
+
+  LDA     INTEGER
+          The leading dimension of the array A.
+          LDA &gt;= max(1,MA), if TRANA = 'N';
+          LDA &gt;= max(1,NA), if TRANA = 'T' or 'C'.
+
+  B       (input) DOUBLE PRECISION array, dimension (LDB,kb)
+          where kb is NB when TRANB = 'N', and is MB otherwise.
+          If TRANB = 'N', the leading MB-by-NB part of this array
+          must contain the matrix B; otherwise, the leading NB-by-MB
+          part of this array must contain the matrix B.
+
+  LDB     INTEGER
+          The leading dimension of the array B.
+          LDB &gt;= max(1,MB), if TRANB = 'N';
+          LDB &gt;= max(1,NB), if TRANB = 'T' or 'C'.
+
+  C       (input/output) DOUBLE PRECISION array, dimension (LDC,NC)
+          On entry, if beta is nonzero, the leading MC-by-NC part of
+          this array must contain the given matric C, where
+          MC = MA*MB and NC = NA*NB.
+          On exit, the leading MC-by-NC part of this array contains
+          the computed matrix expression
+          C = alpha*kron( op(A), op(B) ) + beta*C.
+
+  LDC     INTEGER
+          The leading dimension of the array C.
+          LDC &gt;= max(1,MC).
+
+  MC      (output) INTEGER
+          The number of rows of the matrix C.  MC = MA*MB.
+
+  NC      (output) INTEGER
+          The number of columns of the matrix C.  NC = NA*NB.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  The Kronecker product of the matrices op(A) and op(B) is computed
+  column by column.
+
+</PRE>
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  The multiplications by zero elements in A are avoided, if the
+  matrix A is considered to be sparse, i.e., if
+  (number of zeros in A)/(MA*NA) &gt;= SPARST = 0.8. The code makes
+  NB+1 passes through the matrix A, and MA*NA passes through the
+  matrix B. If LDA and/or LDB are very large, and op(A) = A' and/or
+  op(B) = B', it could be more efficient to transpose A and/or B
+  before calling this routine, and use the 'N' values for TRANA
+  and/or TRANB.
+
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

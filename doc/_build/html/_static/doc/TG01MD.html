@@ -1,0 +1,494 @@
+<HTML>
+<HEAD><TITLE>TG01MD - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="TG01MD">TG01MD</A></H2>
+<H3>
+Finite-infinite generalized real Schur form decomposition of a descriptor system
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To compute orthogonal transformation matrices Q and Z which
+  reduce the regular pole pencil A-lambda*E of the descriptor system
+  (A-lambda*E,B,C) to the form (if JOB = 'F')
+
+             ( Af  *  )             ( Ef  *  )
+    Q'*A*Z = (        ) ,  Q'*E*Z = (        ) ,                 (1)
+             ( 0   Ai )             ( 0   Ei )
+
+  or to the form (if JOB = 'I')
+
+             ( Ai  *  )             ( Ei  *  )
+    Q'*A*Z = (        ) ,  Q'*E*Z = (        ) ,                 (2)
+             ( 0   Af )             ( 0   Ef )
+
+  where the pair (Af,Ef) is in a generalized real Schur form, with
+  Ef nonsingular and upper triangular and Af in real Schur form.
+  The subpencil Af-lambda*Ef contains the finite eigenvalues.
+  The pair (Ai,Ei) is in a generalized real Schur form with
+  both Ai and Ei upper triangular. The subpencil Ai-lambda*Ei,
+  with Ai nonsingular and Ei nilpotent contains the infinite
+  eigenvalues and is in a block staircase form (see METHOD).
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE TG01MD( JOB, N, M, P, A, LDA, E, LDE, B, LDB, C, LDC,
+     $                   ALPHAR, ALPHAI, BETA, Q, LDQ, Z, LDZ, NF, ND,
+     $                   NIBLCK, IBLCK, TOL, IWORK, DWORK, LDWORK,
+     $                   INFO )
+C     .. Scalar Arguments ..
+      CHARACTER          JOB
+      INTEGER            INFO, LDA, LDB, LDC, LDE, LDQ, LDWORK, LDZ, M,
+     $                   N, ND, NF, NIBLCK, P
+      DOUBLE PRECISION   TOL
+C     .. Array Arguments ..
+      INTEGER            IBLCK( * ), IWORK(*)
+      DOUBLE PRECISION   A(LDA,*), ALPHAI(*), ALPHAR(*), B(LDB,*),
+     $                   BETA(*),  C(LDC,*),  DWORK(*),  E(LDE,*),
+     $                   Q(LDQ,*), Z(LDZ,*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  JOB     CHARACTER*1
+          = 'F':  perform the finite-infinite separation;
+          = 'I':  perform the infinite-finite separation.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The number of rows of the matrix B, the number of columns
+          of the matrix C and the order of the square matrices A
+          and E.  N &gt;= 0.
+
+  M       (input) INTEGER
+          The number of columns of the matrix B.  M &gt;= 0.
+
+  P       (input) INTEGER
+          The number of rows of the matrix C.  P &gt;= 0.
+
+  A       (input/output) DOUBLE PRECISION array, dimension (LDA,N)
+          On entry, the leading N-by-N part of this array must
+          contain the N-by-N state matrix A.
+          On exit, the leading N-by-N part of this array contains
+          the transformed state matrix Q'*A*Z in the form
+
+          ( Af  *  )                    ( Ai  *  )
+          (        ) for JOB = 'F', or  (        )  for JOB = 'I',
+          ( 0   Ai )                    ( 0   Af )
+
+          where Af is an NF-by-NF matrix in real Schur form, and Ai
+          is an (N-NF)-by-(N-NF) nonsingular and upper triangular
+          matrix. Ai has a block structure as in (3) or (4), where
+          A0,0 is ND-by-ND and Ai,i , for i = 1, ..., NIBLCK, is
+          IBLCK(i)-by-IBLCK(i). (See METHOD.)
+
+  LDA     INTEGER
+          The leading dimension of the array A.  LDA &gt;= MAX(1,N).
+
+  E       (input/output) DOUBLE PRECISION array, dimension (LDE,N)
+          On entry, the leading N-by-N part of this array must
+          contain the N-by-N descriptor matrix E.
+          On exit, the leading N-by-N part of this array contains
+          the transformed descriptor matrix Q'*E*Z in the form
+
+          ( Ef  *  )                    ( Ei  *  )
+          (        ) for JOB = 'F', or  (        )  for JOB = 'I',
+          ( 0   Ei )                    ( 0   Ef )
+
+          where Ef is an NF-by-NF nonsingular and upper triangular
+          matrix, and Ei is an (N-NF)-by-(N-NF) nilpotent matrix in
+          an upper triangular block form as in (3) or (4).
+
+  LDE     INTEGER
+          The leading dimension of the array E.  LDE &gt;= MAX(1,N).
+
+  B       (input/output) DOUBLE PRECISION array, dimension (LDB,M)
+          On entry, the leading N-by-M part of this array must
+          contain the N-by-M input matrix B.
+          On exit, the leading N-by-M part of this array contains
+          the transformed input matrix Q'*B.
+
+  LDB     INTEGER
+          The leading dimension of the array B.  LDB &gt;= MAX(1,N).
+
+  C       (input/output) DOUBLE PRECISION array, dimension (LDC,N)
+          On entry, the leading P-by-N part of this array must
+          contain the state/output matrix C.
+          On exit, the leading P-by-N part of this array contains
+          the transformed matrix C*Z.
+
+  LDC     INTEGER
+          The leading dimension of the array C.  LDC &gt;= MAX(1,P).
+
+  ALPHAR  (output) DOUBLE PRECISION array, dimension (N)
+          ALPHAR(1:NF) will be set to the real parts of the diagonal
+          elements of Af that would result from reducing A and E to
+          the Schur form, and then further reducing both of them to
+          triangular form using unitary transformations, subject to
+          having the diagonal of E positive real.  Thus, if Af(j,j)
+          is in a 1-by-1 block (i.e., Af(j+1,j) = Af(j,j+1) = 0),
+          then ALPHAR(j) = Af(j,j). Note that the (real or complex)
+          values (ALPHAR(j) + i*ALPHAI(j))/BETA(j), j=1,...,NF, are
+          the finite generalized eigenvalues of the matrix pencil
+          A - lambda*E.
+
+  ALPHAI  (output) DOUBLE PRECISION array, dimension (N)
+          ALPHAI(1:NF) will be set to the imaginary parts of the
+          diagonal elements of Af that would result from reducing A
+          and E to Schur form, and then further reducing both of
+          them to triangular form using unitary transformations,
+          subject to having the diagonal of E positive real. Thus,
+          if Af(j,j) is in a 1-by-1 block (see above), then
+          ALPHAI(j) = 0. Note that the (real or complex) values
+          (ALPHAR(j) + i*ALPHAI(j))/BETA(j), j=1,...,NF, are the
+          finite generalized eigenvalues of the matrix pencil
+          A - lambda*E.
+
+  BETA    (output) DOUBLE PRECISION array, dimension (N)
+          BETA(1:NF) will be set to the (real) diagonal elements of
+          Ef that would result from reducing A and E to Schur form,
+          and then further reducing both of them to triangular form
+          using unitary transformations, subject to having the
+          diagonal of E positive real. Thus, if Af(j,j) is in a
+          1-by-1 block (see above), then BETA(j) = Ef(j,j).
+          Note that the (real or complex) values
+          (ALPHAR(j) + i*ALPHAI(j))/BETA(j), j=1,...,NF, are the
+          finite generalized eigenvalues of the matrix pencil
+          A - lambda*E.
+
+  Q       (output) DOUBLE PRECISION array, dimension (LDQ,N)
+          The leading N-by-N part of this array contains the
+          orthogonal matrix Q, which is the accumulated product of
+          the transformations applied to A, E, and B on the left.
+
+  LDQ     INTEGER
+          The leading dimension of the array Q.  LDQ &gt;= MAX(1,N).
+
+  Z       (output) DOUBLE PRECISION array, dimension (LDZ,N)
+          The leading N-by-N part of this array contains the
+          orthogonal matrix Z, which is the accumulated product of
+          the transformations applied to A, E, and C on the right.
+
+  LDZ     INTEGER
+          The leading dimension of the array Z.  LDZ &gt;= MAX(1,N).
+
+  NF      (output) INTEGER
+          The order of the reduced matrices Af and Ef; also, the
+          number of finite generalized eigenvalues of the pencil
+          A-lambda*E.
+
+  ND      (output) INTEGER
+          The number of non-dynamic infinite eigenvalues of the
+          matrix pair (A,E). Note: N-ND is the rank of the matrix E.
+
+  NIBLCK  (output) INTEGER
+          If ND &gt; 0, the number of infinite blocks minus one.
+          If ND = 0, then NIBLCK = 0.
+
+  IBLCK   (output) INTEGER array, dimension (N)
+          IBLCK(i) contains the dimension of the i-th block in the
+          staircase form (3), where i = 1,2,...,NIBLCK.
+
+</PRE>
+<B>Tolerances</B>
+<PRE>
+  TOL     DOUBLE PRECISION
+          A tolerance used in rank decisions to determine the
+          effective rank, which is defined as the order of the
+          largest leading (or trailing) triangular submatrix in the
+          QR factorization with column pivoting whose estimated
+          condition number is less than 1/TOL. If the user sets
+          TOL &lt;= 0, then an implicitly computed, default tolerance
+          TOLDEF = N**2*EPS,  is used instead, where EPS is the
+          machine precision (see LAPACK Library routine DLAMCH).
+          TOL &lt; 1.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  IWORK   INTEGER array, dimension (N)
+
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+          On exit, if INFO = 0, DWORK(1) returns the optimal value
+          of LDWORK.
+
+  LDWORK  INTEGER
+          The length of the array DWORK.  LDWORK &gt;= 1, and if N &gt; 0,
+          LDWORK &gt;= 4*N.
+
+          If LDWORK = -1, then a workspace query is assumed; the
+          routine only calculates the optimal size of the DWORK
+          array, returns this value as the first entry of the DWORK
+          array, and no error message related to LDWORK is issued by
+          XERBLA.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value;
+          = 1:  the pencil A-lambda*E is not regular;
+          = 2:  the QZ iteration did not converge.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  For the separation of infinite structure, the reduction algorithm
+  of [1] is employed.
+  If JOB = 'F', the matrices Ai and Ei have the form
+
+        ( A0,0  A0,k ... A0,1 )         ( 0  E0,k ... E0,1 )
+   Ai = (  0    Ak,k ... Ak,1 ) ,  Ei = ( 0   0   ... Ek,1 ) ;   (3)
+        (  :     :    .    :  )         ( :   :    .    :  )
+        (  0     0   ... A1,1 )         ( 0   0   ...   0  )
+
+  if JOB = 'I' the matrices Ai and Ei have the form
+
+        ( A1,1 ... A1,k  A1,0 )         ( 0 ... E1,k  E1,0 )
+   Ai = (  :    .    :    :   ) ,  Ei = ( :  .    :    :   ) ,   (4)
+        (  :   ... Ak,k  Ak,0 )         ( : ...   0   Ek,0 )
+        (  0   ...   0   A0,0 )         ( 0 ...   0     0  )
+
+  where Ai,i, for i = 0, 1, ..., k, are nonsingular upper triangular
+  matrices. A0,0 corresponds to the non-dynamic infinite modes of
+  the system.
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Misra, P., Van Dooren, P., and Varga, A.
+      Computation of structural invariants of generalized
+      state-space systems.
+      Automatica, 30, pp. 1921-1936, 1994.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  The algorithm is numerically backward stable and requires
+  0( N**3 )  floating point operations.
+
+</PRE>
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  The number of infinite poles is computed as
+
+                NIBLCK
+     NINFP =     Sum  IBLCK(i) = N - ND - NF.
+                 i=1
+  The multiplicities of infinite poles can be computed as follows:
+  there are IBLCK(k)-IBLCK(k+1) infinite poles of multiplicity
+  k, for k = 1, ..., NIBLCK, where IBLCK(NIBLCK+1) = 0.
+  Note that each infinite pole of multiplicity k corresponds to
+  an infinite eigenvalue of multiplicity k+1.
+
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+*     TG01MD EXAMPLE PROGRAM TEXT
+*
+*     .. Parameters ..
+      INTEGER          NIN, NOUT
+      PARAMETER        ( NIN = 5, NOUT = 6 )
+      INTEGER          NMAX, MMAX, PMAX
+      PARAMETER        ( NMAX = 20, MMAX = 20, PMAX = 20 )
+      INTEGER          LDA, LDB, LDC, LDE, LDQ, LDZ
+      PARAMETER        ( LDA = NMAX, LDB = NMAX, LDC = PMAX,
+     $                   LDE = NMAX, LDQ = NMAX, LDZ = NMAX )
+      INTEGER          LDWORK
+      PARAMETER        ( LDWORK = 4*NMAX )
+*     .. Local Scalars ..
+      CHARACTER*1      JOB
+      INTEGER          I, INFO, J, M, N, ND, NF, NIBLCK, P
+      DOUBLE PRECISION TOL
+*     .. Local Arrays ..
+      INTEGER          IBLCK(NMAX),  IWORK(NMAX)
+      DOUBLE PRECISION A(LDA,NMAX),  ALPHAI(NMAX), ALPHAR(NMAX),
+     $                 B(LDB,MMAX),    BETA(NMAX), C(LDC,NMAX),
+     $                 DWORK(LDWORK), E(LDE,NMAX), Q(LDQ,NMAX),
+     $                 Z(LDZ,NMAX)
+*     .. External Subroutines ..
+      EXTERNAL         TG01MD
+*     .. Intrinsic Functions ..
+      INTRINSIC        DCMPLX
+*     .. Executable Statements ..
+*
+      WRITE ( NOUT, FMT = 99999 )
+*     Skip the heading in the data file and read the data.
+      READ ( NIN, FMT = '()' )
+      READ ( NIN, FMT = * ) N, M, P, JOB, TOL
+      IF ( N.LT.0 .OR. N.GT.NMAX ) THEN
+         WRITE ( NOUT, FMT = 99988 ) N
+      ELSE
+         READ ( NIN, FMT = * ) ( ( A(I,J), J = 1,N ), I = 1,N )
+         READ ( NIN, FMT = * ) ( ( E(I,J), J = 1,N ), I = 1,N )
+         IF ( M.LT.0 .OR. M.GT.MMAX ) THEN
+            WRITE ( NOUT, FMT = 99987 ) M
+         ELSE
+            READ ( NIN, FMT = * ) ( ( B(I,J), J = 1,M ), I = 1,N )
+            IF ( P.LT.0 .OR. P.GT.PMAX ) THEN
+               WRITE ( NOUT, FMT = 99986 ) P
+            ELSE
+               READ ( NIN, FMT = * ) ( ( C(I,J), J = 1,N ), I = 1,P )
+*              Find the reduced descriptor system
+*              (A-lambda E,B,C).
+               CALL TG01MD( JOB, N, M, P, A, LDA, E, LDE, B, LDB, C,
+     $                      LDC, ALPHAR, ALPHAI, BETA, Q, LDQ, Z, LDZ,
+     $                      NF, ND, NIBLCK, IBLCK, TOL, IWORK, DWORK,
+     $                      LDWORK, INFO )
+*
+               IF ( INFO.NE.0 ) THEN
+                  WRITE ( NOUT, FMT = 99998 ) INFO
+               ELSE
+                  WRITE ( NOUT, FMT = 99994 ) NF, ND
+                  WRITE ( NOUT, FMT = 99989 ) NIBLCK + 1
+                  IF ( NIBLCK.GT.0 ) THEN
+                     WRITE ( NOUT, FMT = 99985 )
+     $                     ( IBLCK(I), I = 1, NIBLCK ) 
+                  END IF
+                  WRITE ( NOUT, FMT = 99997 )
+                  DO 10 I = 1, N
+                     WRITE ( NOUT, FMT = 99995 ) ( A(I,J), J = 1,N )
+   10             CONTINUE
+                  WRITE ( NOUT, FMT = 99996 )
+                  DO 20 I = 1, N
+                     WRITE ( NOUT, FMT = 99995 ) ( E(I,J), J = 1,N )
+   20             CONTINUE
+                  WRITE ( NOUT, FMT = 99993 )
+                  DO 30 I = 1, N
+                     WRITE ( NOUT, FMT = 99995 ) ( B(I,J), J = 1,M )
+   30             CONTINUE
+                  WRITE ( NOUT, FMT = 99992 )
+                  DO 40 I = 1, P
+                     WRITE ( NOUT, FMT = 99995 ) ( C(I,J), J = 1,N )
+   40             CONTINUE
+                  WRITE ( NOUT, FMT = 99991 )
+                  DO 50 I = 1, N
+                     WRITE ( NOUT, FMT = 99995 ) ( Q(I,J), J = 1,N )
+   50             CONTINUE
+                  WRITE ( NOUT, FMT = 99990 )
+                  DO 60 I = 1, N
+                     WRITE ( NOUT, FMT = 99995 ) ( Z(I,J), J = 1,N )
+   60             CONTINUE
+                  WRITE ( NOUT, FMT = 99985 )
+                  DO 70 I = 1, NF
+                     WRITE ( NOUT, FMT = 99984 )
+     $                  DCMPLX( ALPHAR(I), ALPHAI(I) )/BETA(I)
+   70             CONTINUE
+               END IF
+            END IF
+         END IF
+      END IF
+      STOP
+*
+99999 FORMAT (' TG01MD EXAMPLE PROGRAM RESULTS',/1X)
+99998 FORMAT (' INFO on exit from TG01MD = ',I2)
+99997 FORMAT (/' The transformed state dynamics matrix Q''*A*Z is ')
+99996 FORMAT (/' The transformed descriptor matrix Q''*E*Z is ')
+99995 FORMAT (20(1X,F8.4))
+99994 FORMAT (' Order of reduced system =', I5/
+     $        ' Number of non-dynamic infinite eigenvalues =', I5)
+99993 FORMAT (/' The transformed input/state matrix Q''*B is ')
+99992 FORMAT (/' The transformed state/output matrix C*Z is ')
+99991 FORMAT (/' The left transformation matrix Q is ')
+99990 FORMAT (/' The right transformation matrix Z is ')
+99989 FORMAT ( ' Number of infinite blocks = ',I5)
+99988 FORMAT (/' N is out of range.',/' N = ',I5)
+99987 FORMAT (/' M is out of range.',/' M = ',I5)
+99986 FORMAT (/' P is out of range.',/' P = ',I5)
+99985 FORMAT (/' The finite generalized eigenvalues are '/
+     $         ' real  part     imag  part ')
+99984 FORMAT (1X,F9.4,SP,F9.4,S,'i ')
+      END
+</PRE>
+<B>Program Data</B>
+<PRE>
+TG01MD EXAMPLE PROGRAM DATA
+  4     2     2     F     0.0    
+    -1     0     0     3
+     0     0     1     2
+     1     1     0     4
+     0     0     0     0
+     1     2     0     0
+     0     1     0     1
+     3     9     6     3
+     0     0     2     0
+     1     0
+     0     0
+     0     1
+     1     1
+    -1     0     1     0
+     0     1    -1     1
+</PRE>
+<B>Program Results</B>
+<PRE>
+ TG01MD EXAMPLE PROGRAM RESULTS
+
+ Order of reduced system =    3
+ Number of non-dynamic infinite eigenvalues =    1
+ Number of infinite blocks =     1
+
+ The transformed state dynamics matrix Q'*A*Z is 
+   1.2803  -2.3613  -0.9025  -3.9982
+   0.0000  -0.5796   0.8504   0.4350
+   0.0000   0.0000   0.0000   1.5770
+   0.0000   0.0000   0.0000   2.2913
+
+ The transformed descriptor matrix Q'*E*Z is 
+   9.3142  -4.1463   5.4026  -2.3944
+   0.0000   0.1594   0.1212  -1.0948
+   0.0000   0.0000   2.3524  -0.6008
+   0.0000   0.0000   0.0000   0.0000
+
+ The transformed input/state matrix Q'*B is 
+  -0.2089  -0.9712
+   0.6948  -0.0647
+  -0.4336  -0.9538
+   1.1339   0.3780
+
+ The transformed state/output matrix C*Z is 
+  -0.0469  -0.9391  -0.8847   0.5774
+  -1.0697   0.3620   1.1795   0.5774
+
+ The left transformation matrix Q is 
+  -0.2089   0.6948   0.3902   0.5669
+  -0.1148  -0.7163   0.3902   0.5669
+  -0.9712  -0.0647  -0.1301  -0.1890
+   0.0000   0.0000  -0.8238   0.5669
+
+ The right transformation matrix Z is 
+   0.0469   0.9391  -0.0843  -0.3299
+  -0.9962   0.0189  -0.0211  -0.0825
+   0.0000  -0.0000  -0.9689   0.2474
+  -0.0735   0.3432   0.2317   0.9073
+
+ The finite generalized eigenvalues are 
+ real  part     imag  part 
+    0.1375  +0.0000i 
+   -3.6375  +0.0000i 
+    0.0000  +0.0000i 
+</PRE>
+
+<HR>
+<p>
+<A HREF=..\libindex.html><B>Return to index</B></A></BODY>
+</HTML>

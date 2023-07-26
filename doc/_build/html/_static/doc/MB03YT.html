@@ -1,0 +1,132 @@
+<HTML>
+<HEAD><TITLE>MB03YT - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MB03YT">MB03YT</A></H2>
+<H3>
+Periodic Schur factorization of a real 2-by-2 matrix pair (A,B) with B upper triangular
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To compute the periodic Schur factorization of a real 2-by-2
+  matrix pair (A,B) where B is upper triangular. This routine
+  computes orthogonal (rotation) matrices given by CSL, SNL and CSR,
+  SNR such that
+
+  1) if the pair (A,B) has two real eigenvalues, then
+
+     [ a11 a12 ] := [  CSL  SNL ] [ a11 a12 ] [  CSR -SNR ]
+     [  0  a22 ]    [ -SNL  CSL ] [ a21 a22 ] [  SNR  CSR ]
+
+     [ b11 b12 ] := [  CSR  SNR ] [ b11 b12 ] [  CSL -SNL ]
+     [  0  b22 ]    [ -SNR  CSR ] [  0  b22 ] [  SNL  CSL ],
+
+  2) if the pair (A,B) has a pair of complex conjugate eigenvalues,
+     then
+
+     [ a11 a12 ] := [  CSL  SNL ] [ a11 a12 ] [  CSR -SNR ]
+     [ a21 a22 ]    [ -SNL  CSL ] [ a21 a22 ] [  SNR  CSR ]
+
+     [ b11  0  ] := [  CSR  SNR ] [ b11 b12 ] [  CSL -SNL ]
+     [  0  b22 ]    [ -SNR  CSR ] [  0  b22 ] [  SNL  CSL ].
+
+  This is a modified version of the LAPACK routine DLAGV2 for
+  computing the real, generalized Schur decomposition of a
+  two-by-two matrix pencil.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MB03YT( A, LDA, B, LDB, ALPHAR, ALPHAI, BETA, CSL, SNL,
+     $                   CSR, SNR )
+C     .. Scalar Arguments ..
+      INTEGER           LDA, LDB
+      DOUBLE PRECISION  CSL, CSR, SNL, SNR
+C     .. Array Arguments ..
+      DOUBLE PRECISION  A(LDA,*), ALPHAI(2), ALPHAR(2), B(LDB,*),
+     $                  BETA(2)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  A       (input/output) DOUBLE PRECISION array, dimension (LDA,2)
+          On entry, the leading 2-by-2 part of this array must
+          contain the matrix A.
+          On exit, the leading 2-by-2 part of this array contains
+          the matrix A of the pair in periodic Schur form.
+
+  LDA     INTEGER
+          The leading dimension of the array A.  LDA &gt;= 2.
+
+  B       (input/output) DOUBLE PRECISION array, dimension (LDB,2)
+          On entry, the leading 2-by-2 part of this array must
+          contain the upper triangular matrix B.
+          On exit, the leading 2-by-2 part of this array contains
+          the matrix B of the pair in periodic Schur form.
+
+  LDB     INTEGER
+          The leading dimension of the array B.  LDB &gt;= 2.
+
+  ALPHAR  (output) DOUBLE PRECISION array, dimension (2)
+  ALPHAI  (output) DOUBLE PRECISION array, dimension (2)
+  BETA    (output) DOUBLE PRECISION array, dimension (2)
+          (ALPHAR(k)+i*ALPHAI(k))*BETA(k) are the eigenvalues of the
+          pair (A,B), k=1,2, i = sqrt(-1). ALPHAI(1) &gt;= 0.
+
+  CSL     (output) DOUBLE PRECISION
+          The cosine of the first rotation matrix.
+
+  SNL     (output) DOUBLE PRECISION
+          The sine of the first rotation matrix.
+
+  CSR     (output) DOUBLE PRECISION
+          The cosine of the second rotation matrix.
+
+  SNR     (output) DOUBLE PRECISION
+          The sine of the second rotation matrix.
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Van Loan, C.
+      Generalized Singular Values with Algorithms and Applications.
+      Ph. D. Thesis, University of Michigan, 1973.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

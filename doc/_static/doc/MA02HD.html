@@ -1,0 +1,106 @@
+<HTML>
+<HEAD><TITLE>MA02HD - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MA02HD">MA02HD</A></H2>
+<H3>
+Check if a matrix is a scalar multiple of an identity-like matrix
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To check if A = DIAG*I, where I is an M-by-N matrix with ones on
+  the diagonal and zeros elsewhere.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      LOGICAL FUNCTION MA02HD( JOB, M, N, DIAG, A, LDA )
+C     .. Scalar Arguments ..
+      CHARACTER          JOB
+      INTEGER            LDA, M, N
+      DOUBLE PRECISION   DIAG
+C     .. Array Arguments ..
+      DOUBLE PRECISION   A(LDA,*)
+
+</PRE>
+<B><FONT SIZE="+1">Function Value</FONT></B>
+<PRE>
+  MA02HD  LOGICAL
+          The function value is set to .TRUE. if A = DIAG*I, and to
+          .FALSE., otherwise. If min(M,N) = 0, the value is .FALSE.
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  JOB     CHARACTER*1
+          Specifies the part of the matrix A to be checked out,
+          as follows:
+          = 'U': Upper triangular/trapezoidal part;
+          = 'L': Lower triangular/trapezoidal part.
+          Otherwise:  All of the matrix A.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  M      (input) INTEGER
+         The number of rows of the matrix A.  M &gt;= 0.
+
+  N      (input) INTEGER
+         The number of columns of the matrix A.  N &gt;= 0.
+
+  DIAG   (input) DOUBLE PRECISION
+         The scalar DIAG.
+
+  A      (input) DOUBLE PRECISION array, dimension (LDA,N)
+         The leading M-by-N part of this array must contain the
+         matrix A.  If JOB = 'U', only the upper triangle or
+         trapezoid is accessed; if JOB = 'L', only the lower
+         triangle or trapezoid is accessed.
+
+  LDA    INTEGER
+         The leading dimension of the array A.  LDA &gt;= max(1,M).
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  The routine returns immediately after detecting a diagonal element
+  which differs from DIAG, or a nonzero off-diagonal element in the
+  searched part of A.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

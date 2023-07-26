@@ -1,0 +1,362 @@
+<HTML>
+<HEAD><TITLE>MB02FD - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MB02FD">MB02FD</A></H2>
+<H3>
+Incomplete Cholesky factor of a positive definite block Toeplitz matrix
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To compute the incomplete Cholesky (ICC) factor of a symmetric
+  positive definite (s.p.d.) block Toeplitz matrix T, defined by
+  either its first block row, or its first block column, depending
+  on the routine parameter TYPET.
+
+  By subsequent calls of this routine, further rows / columns of
+  the Cholesky factor can be added.
+  Furthermore, the generator of the Schur complement of the leading
+  (P+S)*K-by-(P+S)*K block in T is available, which can be used,
+  e.g., for measuring the quality of the ICC factorization.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MB02FD( TYPET, K, N, P, S, T, LDT, R, LDR, DWORK,
+     $                   LDWORK, INFO )
+C     .. Scalar Arguments ..
+      CHARACTER         TYPET
+      INTEGER           INFO, K, LDR, LDT, LDWORK, N, P, S
+C     .. Array Arguments ..
+      DOUBLE PRECISION  DWORK(*), R(LDR,*), T(LDT,*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  TYPET   CHARACTER*1
+          Specifies the type of T, as follows:
+          = 'R':  T contains the first block row of an s.p.d. block
+                  Toeplitz matrix; the ICC factor R is upper
+                  trapezoidal;
+          = 'C':  T contains the first block column of an s.p.d.
+                  block Toeplitz matrix; the ICC factor R is lower
+                  trapezoidal; this choice leads to better
+                  localized memory references and hence a faster
+                  algorithm.
+          Note:   in the sequel, the notation x / y means that
+                  x corresponds to TYPET = 'R' and y corresponds to
+                  TYPET = 'C'.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  K       (input)  INTEGER
+          The number of rows / columns in T, which should be equal
+          to the blocksize.  K &gt;= 0.
+
+  N       (input)  INTEGER
+          The number of blocks in T.  N &gt;= 0.
+
+  P       (input)  INTEGER
+          The number of previously computed block rows / columns
+          of R.  0 &lt;= P &lt;= N.
+
+  S       (input)  INTEGER
+          The number of block rows / columns of R to compute.
+          0 &lt;= S &lt;= N-P.
+
+  T       (input/output)  DOUBLE PRECISION array, dimension
+          (LDT,(N-P)*K) / (LDT,K)
+          On entry, if P = 0, then the leading K-by-N*K / N*K-by-K
+          part of this array must contain the first block row /
+          column of an s.p.d. block Toeplitz matrix.
+          If P &gt; 0, the leading K-by-(N-P)*K / (N-P)*K-by-K must
+          contain the negative generator of the Schur complement of
+          the leading P*K-by-P*K part in T, computed from previous
+          calls of this routine.
+          On exit, if INFO = 0, then the leading K-by-(N-P)*K /
+          (N-P)*K-by-K part of this array contains, in the first
+          K-by-K block, the upper / lower Cholesky factor of
+          T(1:K,1:K), in the following S-1 K-by-K blocks, the
+          Householder transformations applied during the process,
+          and in the remaining part, the negative generator of the
+          Schur complement of the leading (P+S)*K-by(P+S)*K part
+          in T.
+
+  LDT     INTEGER
+          The leading dimension of the array T.
+          LDT &gt;= MAX(1,K),        if TYPET = 'R';
+          LDT &gt;= MAX(1,(N-P)*K),  if TYPET = 'C'.
+
+  R       (input/output)  DOUBLE PRECISION array, dimension
+          (LDR, N*K)       / (LDR, S*K )     if P = 0;
+          (LDR, (N-P+1)*K) / (LDR, (S+1)*K ) if P &gt; 0.
+          On entry, if P &gt; 0, then the leading K-by-(N-P+1)*K /
+          (N-P+1)*K-by-K part of this array must contain the
+          nonzero blocks of the last block row / column in the
+          ICC factor from a previous call of this routine. Note that
+          this part is identical with the positive generator of
+          the Schur complement of the leading P*K-by-P*K part in T.
+          If P = 0, then R is only an output parameter.
+          On exit, if INFO = 0 and P = 0, then the leading
+          S*K-by-N*K / N*K-by-S*K part of this array contains the
+          upper / lower trapezoidal ICC factor.
+          On exit, if INFO = 0 and P &gt; 0, then the leading
+          (S+1)*K-by-(N-P+1)*K / (N-P+1)*K-by-(S+1)*K part of this
+          array contains the upper / lower trapezoidal part of the
+          P-th to (P+S)-th block rows / columns of the ICC factor.
+          The elements in the strictly lower / upper trapezoidal
+          part are not referenced.
+
+  LDR     INTEGER
+          The leading dimension of the array R.
+          LDR &gt;= MAX(1, S*K ),        if TYPET = 'R' and P = 0;
+          LDR &gt;= MAX(1, (S+1)*K ),    if TYPET = 'R' and P &gt; 0;
+          LDR &gt;= MAX(1, N*K ),        if TYPET = 'C' and P = 0;
+          LDR &gt;= MAX(1, (N-P+1)*K ),  if TYPET = 'C' and P &gt; 0.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+          On exit, if INFO = 0,  DWORK(1)  returns the optimal
+          value of LDWORK.
+          On exit, if  INFO = -11,  DWORK(1)  returns the minimum
+          value of LDWORK.
+
+  LDWORK  INTEGER
+          The length of the array DWORK.
+          LDWORK &gt;= MAX(1,(N+1)*K,4*K),   if P = 0;
+          LDWORK &gt;= MAX(1,(N-P+2)*K,4*K), if P &gt; 0.
+          For optimum performance LDWORK should be larger.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value;
+          = 1:  the reduction algorithm failed; the Toeplitz matrix
+                associated with T is not (numerically) positive
+                definite in its leading (P+S)*K-by-(P+S)*K part.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  Householder transformations and modified hyperbolic rotations
+  are used in the Schur algorithm [1], [2].
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Kailath, T. and Sayed, A.
+      Fast Reliable Algorithms for Matrices with Structure.
+      SIAM Publications, Philadelphia, 1999.
+
+  [2] Kressner, D. and Van Dooren, P.
+      Factorizations and linear system solvers for matrices with
+      Toeplitz structure.
+      SLICOT Working Note 2000-2, 2000.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  The implemented method is numerically stable.
+                            3
+  The algorithm requires 0(K S (N-P)) floating point operations.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+*     MB02FD EXAMPLE PROGRAM TEXT
+*
+*     .. Parameters ..
+      DOUBLE PRECISION ZERO, ONE
+      PARAMETER        ( ZERO = 0.0D0, ONE = 1.0D0 )
+      INTEGER          NIN, NOUT
+      PARAMETER        ( NIN = 5, NOUT = 6 )
+      INTEGER          ITMAX, KMAX, NMAX
+      PARAMETER        ( ITMAX = 10, KMAX = 20, NMAX = 20 )
+      INTEGER          LDR, LDT, LDWORK
+      PARAMETER        ( LDR = NMAX*KMAX, LDT = KMAX,
+     $                   LDWORK = ( NMAX + 1 )*KMAX )
+*     .. Local Scalars ..
+      INTEGER          I, INFO, IT, J, K, LEN, M, N, P, PIT, POS, POSR,
+     $                 S1, SCIT
+      CHARACTER        TYPET
+      DOUBLE PRECISION NNRM
+*     .. Local Arrays .. (Dimensioned for TYPET = 'R'.)
+      INTEGER          S(ITMAX)
+      DOUBLE PRECISION DWORK(LDWORK), R(LDR, NMAX*KMAX),
+     $                 T(LDT, NMAX*KMAX), V(NMAX*KMAX), W(NMAX*KMAX),
+     $                 Z(NMAX*KMAX)
+*     .. External Functions ..
+      LOGICAL          LSAME
+      DOUBLE PRECISION DNRM2
+      EXTERNAL         DNRM2, LSAME
+*     .. External Subroutines ..
+      EXTERNAL         DAXPY, DCOPY, DGEMV, DLASET, DSCAL, DTRMV, MB02FD
+*
+*     .. Executable Statements ..
+      WRITE ( NOUT, FMT = 99999 )
+*     Skip the heading in the data file and read the data.
+      READ ( NIN, FMT = '()' )
+      READ ( NIN, FMT = * ) N, K, IT
+      TYPET = 'R'
+      M = N*K
+      IF( N.LE.0 .OR. N.GT.NMAX ) THEN
+         WRITE ( NOUT, FMT = 99993 ) N
+      ELSE IF( K.LE.0 .OR. K.GT.KMAX ) THEN
+         WRITE ( NOUT, FMT = 99992 ) K
+      ELSE IF( IT.LE.0 .OR. IT.GT.ITMAX ) THEN
+         WRITE ( NOUT, FMT = 99991 ) IT
+      ELSE
+         READ ( NIN, FMT = * ) ( S(I), I = 1, IT )
+         READ ( NIN, FMT = * ) ( ( T(I,J), J = 1,M ), I = 1,K )
+         P   = 0
+         POS = 1
+         WRITE ( NOUT, FMT = 99997 )
+         DO 90  SCIT = 1, IT
+            CALL MB02FD( TYPET, K, N, P, S(SCIT), T(1,POS), LDT,
+     $                   R(POS,POS), LDR, DWORK, LDWORK, INFO )
+            IF ( INFO.NE.0 ) THEN
+               WRITE ( NOUT, FMT = 99998 ) INFO
+               STOP
+            END IF
+            S1 = S(SCIT) + P
+            IF ( S1.EQ.0 ) THEN
+*              Estimate the 2-norm of the Toeplitz matrix with 5 power
+*              iterations.
+               LEN = N*K
+               CALL DLASET( 'All', LEN, 1, ONE, ONE, V, 1 )
+               DO 30  PIT = 1, 5
+                  DO 10  I = 1, N
+                     CALL DGEMV( 'NoTranspose', K, LEN-(I-1)*K, ONE, T,
+     $                           LDT, V((I-1)*K+1), 1, ZERO,
+     $                           W((I-1)*K+1), 1 )
+   10             CONTINUE
+                  DO 20 I = 1, N-1
+                     CALL DGEMV( 'Transpose', K, (N-I)*K, ONE,
+     $                           T(1,K+1), LDT, V((I-1)*K+1), 1,
+     $                           ONE, W(I*K+1), 1 )
+   20             CONTINUE
+                  CALL DCOPY( LEN, W, 1, V, 1 )
+                  NNRM = DNRM2( LEN, V, 1 )
+                  CALL DSCAL( LEN, ONE/NNRM, V, 1 )
+   30          CONTINUE
+            ELSE
+*              Estimate the 2-norm of the Schur complement with 5 power
+*              iterations.
+               LEN = ( N - S1 )*K
+               CALL DLASET( 'All', LEN, 1, ONE, ONE, V, 1 )
+               DO 80  PIT = 1, 5
+                  POSR = ( S1 - 1 )*K + 1
+                  DO 40  I = 1, N - S1
+                     CALL DGEMV( 'NoTranspose', K, LEN-(I-1)*K, ONE,
+     $                           T(1,POSR+K), LDT, V((I-1)*K+1), 1,
+     $                           ZERO, W((I-1)*K+1), 1 )
+   40             CONTINUE
+                  DO 50  I = 1, N - S1
+                     CALL DTRMV( 'Upper', 'NoTranspose', 'NonUnit', K,
+     $                           R(POSR,POSR), LDR, V((I-1)*K+1), 1 )
+                     CALL DGEMV( 'NoTranspose', K, LEN-I*K, ONE,
+     $                           R(POSR,POSR+K), LDR, V(I*K+1), 1, ONE,
+     $                           V((I-1)*K+1), 1 )
+   50             CONTINUE
+                  CALL DLASET( 'All', LEN, 1, ZERO, ZERO, Z, 1 )
+                  DO 60  I = 1, N - S1
+                     CALL DGEMV( 'Transpose', K, LEN-I*K, ONE,
+     $                           R(POSR,POSR+K), LDR, V((I-1)*K+1), 1,
+     $                           ONE, Z(I*K+1), 1 )
+                     CALL DTRMV( 'Upper', 'Transpose', 'NonUnit', K,
+     $                           R(POSR,POSR), LDR, V((I-1)*K+1), 1 )
+                     CALL DAXPY( K, ONE, V((I-1)*K+1), 1, Z((I-1)*K+1),
+     $                           1 )
+   60             CONTINUE
+                  CALL DLASET( 'All', LEN, 1, ZERO, ZERO, V, 1 )
+                  DO 70  I = 1, N - S1
+                     CALL DGEMV( 'Transpose', K, LEN-(I-1)*K, ONE,
+     $                           T(1,POSR+K), LDT, W((I-1)*K+1), 1,
+     $                           ONE, V((I-1)*K+1), 1 )
+   70             CONTINUE
+                  CALL DAXPY( LEN, -ONE, Z, 1, V, 1 )
+                  NNRM = DNRM2( LEN, V, 1 )
+                  CALL DSCAL( LEN, -ONE/NNRM, V, 1 )
+   80          CONTINUE
+               POS = ( S1 - 1 )*K + 1
+               P   = S1
+            END IF
+            WRITE ( NOUT, FMT = 99995 ) P*K, NNRM
+   90    CONTINUE
+         WRITE ( NOUT, FMT = 99996 )
+         DO 100  I = 1, P*K
+            WRITE ( NOUT, FMT = 99994 ) ( R(I,J), J = 1, M )
+  100    CONTINUE
+      END IF
+      STOP
+*
+99999 FORMAT (' MB02FD EXAMPLE PROGRAM RESULTS',/1X)
+99998 FORMAT (' INFO on exit from MB02FD = ',I2)
+99997 FORMAT ('   Incomplete Cholesky factorization ',
+     $         //'   rows    norm(Schur complement)',/)
+99996 FORMAT (/' The upper ICC factor of the block Toeplitz matrix is '
+     $       )
+99995 FORMAT (I4,5X,F8.4)
+99994 FORMAT (20(1X,F8.4))
+99993 FORMAT (/' N is out of range.',/' N = ',I5)
+99992 FORMAT (/' K is out of range.',/' K = ',I5)
+99991 FORMAT (/' IT is out of range.',/' IT = ',I5)
+      END
+</PRE>
+<B>Program Data</B>
+<PRE>
+MB02FD EXAMPLE
+4 2 3
+0 1 1
+    3.0000    1.0000    0.1000    0.1000    0.2000    0.0500   0.2000   0.3000
+    1.0000    4.0000    0.4000    0.1000    0.0400    0.2000   0.1000   0.2000
+</PRE>
+<B>Program Results</B>
+<PRE>
+ MB02FD EXAMPLE PROGRAM RESULTS
+
+   Incomplete Cholesky factorization 
+
+   rows    norm(Schur complement)
+
+   0       5.5509
+   2       5.1590
+   4       4.8766
+
+ The upper ICC factor of the block Toeplitz matrix is 
+   1.7321   0.5774   0.0577   0.0577   0.1155   0.0289   0.1155   0.1732
+   0.0000   1.9149   0.1915   0.0348  -0.0139   0.0957   0.0174   0.0522
+   0.0000   0.0000   1.7205   0.5754   0.0558   0.0465   0.1104   0.0174
+   0.0000   0.0000   0.0000   1.9142   0.1890   0.0357  -0.0161   0.0931
+</PRE>
+
+<HR>
+<p>
+<A HREF=..\libindex.html><B>Return to index</B></A></BODY>
+</HTML>

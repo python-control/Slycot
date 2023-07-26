@@ -1,0 +1,507 @@
+<HTML>
+<HEAD><TITLE>MB03BD - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MB03BD">MB03BD</A></H2>
+<H3>
+Finding eigenvalues of a generalized matrix product in Hessenberg-triangular form
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To find the eigenvalues of the generalized matrix product
+
+               S(1)           S(2)                 S(K)
+       A(:,:,1)     * A(:,:,2)     * ... * A(:,:,K)
+
+  where A(:,:,H) is upper Hessenberg and A(:,:,i), i &lt;&gt; H, is upper
+  triangular, using a double-shift version of the periodic
+  QZ method. In addition, A may be reduced to periodic Schur form:
+  A(:,:,H) is upper quasi-triangular and all the other factors
+  A(:,:,I) are upper triangular. Optionally, the 2-by-2 triangular
+  matrices corresponding to 2-by-2 diagonal blocks in A(:,:,H)
+  are so reduced that their product is a 2-by-2 diagonal matrix.
+
+  If COMPQ = 'U' or COMPQ = 'I', then the orthogonal factors are
+  computed and stored in the array Q so that for S(I) = 1,
+
+                      T
+          Q(:,:,I)(in)   A(:,:,I)(in)   Q(:,:,MOD(I,K)+1)(in)
+                                                              T  (1)
+      =   Q(:,:,I)(out)  A(:,:,I)(out)  Q(:,:,MOD(I,K)+1)(out),
+
+  and for S(I) = -1,
+
+                               T
+          Q(:,:,MOD(I,K)+1)(in)   A(:,:,I)(in)   Q(:,:,I)(in)
+                                                              T  (2)
+      =   Q(:,:,MOD(I,K)+1)(out)  A(:,:,I)(out)  Q(:,:,I)(out).
+
+  A partial generation of the orthogonal factors can be realized
+  via the array QIND.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MB03BD( JOB, DEFL, COMPQ, QIND, K, N, H, ILO, IHI, S,
+     $                   A, LDA1, LDA2, Q, LDQ1, LDQ2, ALPHAR, ALPHAI,
+     $                   BETA, SCAL, IWORK, LIWORK, DWORK, LDWORK,
+     $                   IWARN, INFO )
+C     .. Scalar Arguments ..
+      CHARACTER         COMPQ, DEFL, JOB
+      INTEGER           H, IHI, ILO, INFO, IWARN, K, LDA1, LDA2, LDQ1,
+     $                  LDQ2, LDWORK, LIWORK, N
+C     .. Array Arguments ..
+      INTEGER           IWORK(*), QIND(*), S(*), SCAL(*)
+      DOUBLE PRECISION  A(LDA1,LDA2,*), ALPHAI(*), ALPHAR(*), BETA(*),
+     $                  DWORK(*), Q(LDQ1,LDQ2,*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  JOB     CHARACTER*1
+          Specifies the computation to be performed, as follows:
+          = 'E': compute the eigenvalues only; A will not
+                 necessarily be put into periodic Schur form;
+          = 'S': put A into periodic Schur form, and return the
+                 eigenvalues in ALPHAR, ALPHAI, BETA, and SCAL;
+          = 'T': as JOB = 'S', but A is put into standardized
+                 periodic Schur form, that is, the general product
+                 of the 2-by-2 triangular matrices corresponding to
+                 a complex eigenvalue is diagonal.
+
+  DEFL    CHARACTER*1
+          Specifies the deflation strategy to be used, as follows:
+          = 'C': apply a careful deflation strategy, that is,
+                 the criteria are based on the magnitudes of
+                 neighboring elements and infinite eigenvalues are
+                 only deflated at the top; this is the recommended
+                 option;
+          = 'A': apply a more aggressive strategy, that is,
+                 elements on the subdiagonal or diagonal are set
+                 to zero as soon as they become smaller in magnitude
+                 than eps times the norm of the corresponding
+                 factor; this option is only recommended if
+                 balancing is applied beforehand and convergence
+                 problems are observed.
+
+  COMPQ   CHARACTER*1
+          Specifies whether or not the orthogonal transformations
+          should be accumulated in the array Q, as follows:
+          = 'N': do not modify Q;
+          = 'U': modify (update) the array Q by the orthogonal
+                 transformations that are applied to the matrices in
+                 the array A to reduce them to periodic Schur form;
+          = 'I': like COMPQ = 'U', except that each matrix in the
+                 array Q will be first initialized to the identity
+                 matrix;
+          = 'P': use the parameters as encoded in QIND.
+
+  QIND    INTEGER array, dimension (K)
+          If COMPQ = 'P', then this array describes the generation
+          of the orthogonal factors as follows:
+             If QIND(I) &gt; 0, then the array Q(:,:,QIND(I)) is
+          modified by the transformations corresponding to the
+          i-th orthogonal factor in (1) and (2).
+             If QIND(I) &lt; 0, then the array Q(:,:,-QIND(I)) is
+          initialized to the identity and modified by the
+          transformations corresponding to the i-th orthogonal
+          factor in (1) and (2).
+             If QIND(I) = 0, then the transformations corresponding
+          to the i-th orthogonal factor in (1), (2) are not applied.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  K       (input)  INTEGER
+          The number of factors.  K &gt;= 1.
+
+  N       (input)  INTEGER
+          The order of each factor in the array A.  N &gt;= 0.
+
+  H       (input)  INTEGER
+          Hessenberg index. The factor A(:,:,H) is on entry in upper
+          Hessenberg form.  1 &lt;= H &lt;= K.
+
+  ILO     (input)  INTEGER
+  IHI     (input)  INTEGER
+          It is assumed that each factor in A is already upper
+          triangular in rows and columns 1:ILO-1 and IHI+1:N.
+          1 &lt;= ILO &lt;= IHI &lt;= N, if N &gt; 0;
+          ILO = 1 and IHI  = 0, if N = 0.
+
+  S       (input)  INTEGER array, dimension (K)
+          The leading K elements of this array must contain the
+          signatures of the factors. Each entry in S must be either
+          1 or -1.
+
+  A       (input/output)  DOUBLE PRECISION array, dimension
+                          (LDA1,LDA2,K)
+          On entry, the leading N-by-N-by-K part of this array
+          must contain the factors in upper Hessenberg-triangular
+          form, that is, A(:,:,H) is upper Hessenberg and the other
+          factors are upper triangular.
+          On exit, if JOB = 'S' and INFO = 0, the leading
+          N-by-N-by-K part of this array contains the factors of
+          A in periodic Schur form, that is, A(:,:,H) is upper quasi
+          triangular and the other factors are upper triangular.
+          On exit, if JOB = 'T' and INFO = 0, the leading
+          N-by-N-by-K part of this array contains the factors of
+          A as for the option JOB = 'S', but the product of the
+          triangular factors corresponding to a 2-by-2 block in
+          A(:,:,H) is diagonal.
+          On exit, if JOB = 'E', then the leading N-by-N-by-K part
+          of this array contains meaningless elements in the off-
+          diagonal blocks. Consequently, the formulas (1) and (2)
+          do not hold for the returned A and Q (if COMPQ &lt;&gt; 'N')
+          in this case.
+
+  LDA1    INTEGER
+          The first leading dimension of the array A.
+          LDA1 &gt;= MAX(1,N).
+
+  LDA2    INTEGER
+          The second leading dimension of the array A.
+          LDA2 &gt;= MAX(1,N).
+
+  Q       (input/output)  DOUBLE PRECISION array, dimension
+                          (LDQ1,LDQ2,K)
+          On entry, if COMPQ = 'U', the leading N-by-N-by-K part
+          of this array must contain the initial orthogonal factors
+          as described in (1) and (2).
+          On entry, if COMPQ = 'P', only parts of the leading
+          N-by-N-by-K part of this array must contain some
+          orthogonal factors as described by the parameters QIND.
+          If COMPQ = 'I', this array should not be set on entry.
+          On exit, if COMPQ = 'U' or COMPQ = 'I', the leading
+          N-by-N-by-K part of this array contains the modified
+          orthogonal factors as described in (1) and (2).
+          On exit, if COMPQ = 'P', only parts of the leading
+          N-by-N-by-K part contain some modified orthogonal factors
+          as described by the parameters QIND.
+          This array is not referenced if COMPQ = 'N'.
+
+  LDQ1    INTEGER
+          The first leading dimension of the array Q.  LDQ1 &gt;= 1,
+          and, if COMPQ &lt;&gt; 'N', LDQ1 &gt;= MAX(1,N).
+
+  LDQ2    INTEGER
+          The second leading dimension of the array Q.  LDQ2 &gt;= 1,
+          and, if COMPQ &lt;&gt; 'N', LDQ2 &gt;= MAX(1,N).
+
+  ALPHAR  (output) DOUBLE PRECISION array, dimension (N)
+          On exit, if INFO = 0, the leading N elements of this array
+          contain the scaled real parts of the eigenvalues of the
+          matrix product A. The i-th eigenvalue of A is given by
+
+          (ALPHAR(I) + ALPHAI(I)*SQRT(-1))/BETA(I) * BASE**SCAL(I),
+
+          where BASE is the machine base (often 2.0). Complex
+          conjugate eigenvalues appear in consecutive locations.
+
+  ALPHAI  (output) DOUBLE PRECISION array, dimension (N)
+          On exit, if INFO = 0, the leading N elements of this array
+          contain the scaled imaginary parts of the eigenvalues
+          of A.
+
+  BETA    (output) DOUBLE PRECISION array, dimension (N)
+          On exit, if INFO = 0, the leading N elements of this array
+          contain indicators for infinite eigenvalues. That is, if
+          BETA(I) = 0.0, then the i-th eigenvalue is infinite.
+          Otherwise BETA(I) is set to 1.0.
+
+  SCAL    (output) INTEGER array, dimension (N)
+          On exit, if INFO = 0, the leading N elements of this array
+          contain the scaling parameters for the eigenvalues of A.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  IWORK   INTEGER array, dimension (LIWORK)
+          On exit, if INFO = 0, IWORK(1) returns the optimal LIWORK,
+          and if IWARN &gt; N, the nonzero absolute values in IWORK(2),
+          ..., IWORK(N+1) are indices of the possibly inaccurate
+          eigenvalues, as well as of the corresponding 1-by-1 or
+          2-by-2 diagonal blocks of the factors in the array A.
+          The 2-by-2 blocks correspond to negative values in IWORK.
+          One negative value is stored for each such eigenvalue
+          pair. Its modulus indicates the starting index of a
+          2-by-2 block. This is also done for any value of IWARN,
+          if a 2-by-2 block is found to have two real eigenvalues.
+          On exit, if INFO = -22, IWORK(1) returns the minimum value
+          of LIWORK.
+
+  LIWORK  INTEGER
+          The length of the array IWORK.  LIWORK  &gt;= 2*K+N.
+
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+          On exit, if INFO = 0, DWORK(1) returns the optimal LDWORK,
+          and DWORK(2), ..., DWORK(1+K) contain the Frobenius norms
+          of the factors of the formal matrix product used by the
+          algorithm.
+          On exit, if INFO = -24, DWORK(1) returns the minimum value
+          of LDWORK.
+
+  LDWORK  INTEGER
+          The length of the array DWORK.
+          LDWORK &gt;= K + MAX( 2*N, 8*K ).
+
+</PRE>
+<B>Warning Indicator</B>
+<PRE>
+  IWARN   INTEGER
+          = 0        :  no warnings;
+          = 1,..,N-1 :  A is in periodic Schur form, but the
+                        algorithm was not able to reveal information
+                        about the eigenvalues from the 2-by-2
+                        blocks.
+                        ALPHAR(i), ALPHAI(i), BETA(i) and SCAL(i),
+                        can be incorrect for i = 1, ..., IWARN+1;
+          = N        :  some eigenvalues might be inaccurate;
+          = N+1      :  some eigenvalues might be inaccurate, and
+                        details can be found in IWORK.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0      :  succesful exit;
+          &lt; 0      :  if INFO = -i, the i-th argument had an illegal
+                      value;
+          = 1,..,N :  the periodic QZ iteration did not converge.
+                      A is not in periodic Schur form, but
+                      ALPHAR(i), ALPHAI(i), BETA(i) and SCAL(i), for
+                      i = INFO+1,...,N should be correct.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  A modified version of the periodic QZ algorithm is used [1], [2].
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Bojanczyk, A., Golub, G. H. and Van Dooren, P.
+      The periodic Schur decomposition: algorithms and applications.
+      In F.T. Luk (editor), Advanced Signal Processing Algorithms,
+      Architectures, and Implementations III, Proc. SPIE Conference,
+      vol. 1770, pp. 31-42, 1992.
+
+  [2] Kressner, D.
+      An efficient and reliable implementation of the periodic QZ
+      algorithm. IFAC Workshop on Periodic Control Systems (PSYCO
+      2001), Como (Italy), August 27-28 2001. Periodic Control
+      Systems 2001 (IFAC Proceedings Volumes), Pergamon.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  The implemented method is numerically backward stable.
+                              3
+  The algorithm requires 0(K N ) floating point operations.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+*     MB03BD EXAMPLE PROGRAM TEXT
+*
+*     .. Parameters ..
+      INTEGER            NIN, NOUT
+      PARAMETER          ( NIN = 5, NOUT = 6 )
+      INTEGER            KMAX, NMAX
+      PARAMETER          ( KMAX = 6, NMAX = 50 )
+      INTEGER            LDA1, LDA2, LDQ1, LDQ2, LDWORK, LIWORK
+      PARAMETER          ( LDA1 = NMAX, LDA2 = NMAX, LDQ1 = NMAX,
+     $                     LDQ2 = NMAX,
+     $                     LDWORK = KMAX + MAX( 2*NMAX, 8*KMAX ),
+     $                     LIWORK = 2*KMAX + NMAX )
+*
+*     .. Local Scalars ..
+      CHARACTER          COMPQ, DEFL, JOB
+      INTEGER            H, I, IHI, ILO, INFO, IWARN, J, K, L, N
+*
+*     .. Local Arrays ..
+      INTEGER            IWORK( LIWORK ), QIND( KMAX ), S( KMAX ),
+     $                   SCAL( NMAX )
+      DOUBLE PRECISION   A( LDA1, LDA2, KMAX ), ALPHAI( NMAX ),
+     $                   ALPHAR( NMAX ), BETA( NMAX ), DWORK( LDWORK),
+     $                   Q( LDQ1, LDQ2, KMAX )
+*     .. External Functions ..
+      LOGICAL            LSAME
+      EXTERNAL           LSAME
+*
+*     .. External Subroutines ..
+      EXTERNAL           MB03BD
+*
+*     .. Intrinsic Functions ..
+      INTRINSIC          MAX
+*
+*     .. Executable Statements ..
+*
+      WRITE( NOUT, FMT = 99999 )
+*     Skip the heading in the data file and read in the data.
+      READ( NIN, FMT = * )
+      READ( NIN, FMT = * ) JOB, DEFL, COMPQ, K, N, H, ILO, IHI
+      IF( N.LT.0 .OR. N.GT.NMAX ) THEN
+         WRITE( NOUT, FMT = 99998 ) N
+      ELSE
+         READ( NIN, FMT = * ) ( S( I ), I = 1, K )
+         READ( NIN, FMT = * ) ( ( ( A( I, J, L ), J = 1, N ),
+     $                                I = 1, N ), L = 1, K )
+         IF( LSAME( COMPQ, 'U' ) )
+     $      READ( NIN, FMT = * ) ( ( ( Q( I, J, L ), J = 1, N ),
+     $                                   I = 1, N ), L = 1, K )
+         IF( LSAME( COMPQ, 'P' ) ) THEN
+            READ( NIN, FMT = * ) ( QIND( I ), I = 1, K )
+            DO 10 L = 1, K
+               IF( QIND( L ).GT.0 )
+     $            READ( NIN, FMT = * ) ( ( Q( I, J, QIND( L ) ),
+     $                                    J = 1, N ), I = 1, N )
+   10       CONTINUE
+         END IF
+*        Compute the eigenvalues and the transformed matrices, if
+*        required.
+         CALL MB03BD( JOB, DEFL, COMPQ, QIND, K, N, H, ILO, IHI, S, A,
+     $                LDA1, LDA2, Q, LDQ1, LDQ2, ALPHAR, ALPHAI, BETA,
+     $                SCAL, IWORK, LIWORK, DWORK, LDWORK, IWARN, INFO )
+*
+         IF( INFO.NE.0 ) THEN
+            WRITE( NOUT, FMT = 99997 ) INFO
+         ELSE IF( IWARN.EQ.0 ) THEN
+            IF( LSAME( JOB, 'S' ) .OR. LSAME( JOB, 'T' ) ) THEN
+               WRITE( NOUT, FMT = 99996 )
+               DO 30 L = 1, K
+                  WRITE( NOUT, FMT = 99988 ) L
+                  DO 20 I = 1, N
+                     WRITE( NOUT, FMT = 99995 ) ( A( I, J, L ), J = 1, N
+     $                                          )
+   20             CONTINUE
+   30          CONTINUE
+            END IF
+            IF( LSAME( COMPQ, 'U' ) .OR. LSAME( COMPQ, 'I' ) ) THEN
+               WRITE( NOUT, FMT = 99994 )
+               DO 50 L = 1, K
+                  WRITE( NOUT, FMT = 99988 ) L
+                  DO 40 I = 1, N
+                     WRITE( NOUT, FMT = 99995 ) ( Q( I, J, L ), J = 1, N
+     $                                          )
+   40             CONTINUE
+   50          CONTINUE
+            ELSE IF( LSAME( COMPQ, 'P' ) ) THEN
+               WRITE( NOUT, FMT = 99994 )
+               DO 70 L = 1, K
+                  IF( QIND( L ).GT.0 ) THEN
+                     WRITE( NOUT, FMT = 99988 ) QIND( L )
+                     DO 60 I = 1, N
+                        WRITE( NOUT, FMT = 99995 )
+     $                       ( Q( I, J, QIND( L ) ), J = 1, N )
+   60                CONTINUE
+                  END IF
+   70          CONTINUE
+            END IF
+            WRITE( NOUT, FMT = 99993 )
+            WRITE( NOUT, FMT = 99995 ) ( ALPHAR( I ), I = 1, N )
+            WRITE( NOUT, FMT = 99992 )
+            WRITE( NOUT, FMT = 99995 ) ( ALPHAI( I ), I = 1, N )
+            WRITE( NOUT, FMT = 99991 )
+            WRITE( NOUT, FMT = 99995 ) (   BETA( I ), I = 1, N )
+            WRITE( NOUT, FMT = 99990 )
+            WRITE( NOUT, FMT = 99989 ) (   SCAL( I ), I = 1, N )
+         ELSE
+            WRITE( NOUT, FMT = 99987 ) IWARN
+         END IF
+      END IF
+      STOP
+*
+99999 FORMAT( 'MB03BD EXAMPLE PROGRAM RESULTS', 1X )
+99998 FORMAT( 'N is out of range.', /, 'N = ', I5 )
+99997 FORMAT( 'INFO on exit from MB03BD = ', I2 )
+99996 FORMAT( 'The matrix A on exit is ' )
+99995 FORMAT( 50( 1X, F8.4 ) )
+99994 FORMAT( 'The matrix Q on exit is ' )
+99993 FORMAT( 'The vector ALPHAR is ' )
+99992 FORMAT( 'The vector ALPHAI is ' )
+99991 FORMAT( 'The vector BETA is ' )
+99990 FORMAT( 'The vector SCAL is ' )
+99989 FORMAT( 50( 1X, I8 ) )
+99988 FORMAT( 'The factor ', I2, ' is ' )
+99987 FORMAT( 'IWARN on exit from MB03BD = ', I2 )
+      END
+</PRE>
+<B>Program Data</B>
+<PRE>
+MB03BD EXAMPLE PROGRAM DATA
+   S   C   I   3   3   2   1   3
+  -1     1    -1
+   2.0   0.0   1.0
+   0.0  -2.0  -1.0
+   0.0   0.0   3.0
+   1.0   2.0   0.0
+   4.0  -1.0   3.0
+   0.0   3.0   1.0
+   1.0   0.0   1.0
+   0.0   4.0  -1.0
+   0.0   0.0  -2.0
+
+</PRE>
+<B>Program Results</B>
+<PRE>
+MB03BD EXAMPLE PROGRAM RESULTS
+The matrix A on exit is 
+The factor  1 is 
+  -2.1306   0.8205   0.7462
+   0.0000   2.8786   1.0564
+   0.0000   0.0000   1.9566
+The factor  2 is 
+  -4.0763  -1.0376  -2.6948
+  -1.9525   1.8283   2.2987
+   0.0000   0.0000   1.8990
+The factor  3 is 
+   3.3463  -2.3239  -0.5623
+   0.0000   1.0778  -0.0646
+   0.0000   0.0000  -2.2180
+The matrix Q on exit is 
+The factor  1 is 
+   0.2594   0.7715  -0.5809
+  -0.9552   0.1162  -0.2723
+  -0.1426   0.6255   0.7671
+The factor  2 is 
+  -0.1766   0.8037  -0.5683
+  -0.9636  -0.0234   0.2664
+   0.2008   0.5946   0.7785
+The factor  3 is 
+   0.6295   0.7315   0.2619
+  -0.7394   0.4605   0.4911
+   0.2386  -0.5028   0.8308
+The vector ALPHAR is 
+   0.3230   0.3230  -0.8752
+The vector ALPHAI is 
+   0.5694  -0.5694   0.0000
+The vector BETA is 
+   1.0000   1.0000   1.0000
+The vector SCAL is 
+        0        0       -1
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

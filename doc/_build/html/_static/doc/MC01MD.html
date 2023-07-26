@@ -1,0 +1,199 @@
+<HTML>
+<HEAD><TITLE>MC01MD - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MC01MD">MC01MD</A></H2>
+<H3>
+The leading coefficients of the shifted polynomial for a given real polynomial
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To calculate, for a given real polynomial P(x) and a real scalar
+  alpha, the leading K coefficients of the shifted polynomial
+                                                            K-1
+     P(x) = q(1) + q(2) * (x-alpha) + ... + q(K) * (x-alpha)   + ...
+
+  using Horner's algorithm.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MC01MD( DP, ALPHA, K, P, Q, INFO )
+C     .. Scalar Arguments ..
+      INTEGER           DP, INFO, K
+      DOUBLE PRECISION  ALPHA
+C     .. Array Arguments ..
+      DOUBLE PRECISION  P(*), Q(*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  DP      (input) INTEGER
+          The degree of the polynomial P(x).  DP &gt;= 0.
+
+  ALPHA   (input) DOUBLE PRECISION
+          The scalar value alpha of the problem.
+
+  K       (input) INTEGER
+          The number of coefficients of the shifted polynomial to be
+          computed.  1 &lt;= K &lt;= DP+1.
+
+  P       (input) DOUBLE PRECISION array, dimension (DP+1)
+          This array must contain the coefficients of P(x) in
+          increasing powers of x.
+
+  Q       (output) DOUBLE PRECISION array, dimension (DP+1)
+          The leading K elements of this array contain the first
+          K coefficients of the shifted polynomial in increasing
+          powers of (x - alpha), and the next (DP-K+1) elements
+          are used as internal workspace.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  Given the real polynomial
+                                      2                    DP
+     P(x) = p(1) + p(2) * x + p(3) * x  + ... + p(DP+1) * x  ,
+
+  the routine computes the leading K coefficients of the shifted
+  polynomial
+                                                                K-1
+     P(x) = q(1) + q(2) * (x - alpha) + ... + q(K) * (x - alpha)
+
+  as follows.
+
+  Applying Horner's algorithm (see [1]) to P(x), i.e. dividing P(x)
+  by (x-alpha), yields
+
+     P(x) = q(1) + (x-alpha) * D(x),
+
+  where q(1) is the value of the constant term of the shifted
+  polynomial and D(x) is the quotient polynomial of degree (DP-1)
+  given by
+                                      2                     DP-1
+     D(x) = d(2) + d(3) * x + d(4) * x  + ... +  d(DP+1) * x    .
+
+  Applying Horner's algorithm to D(x) and subsequent quotient
+  polynomials yields q(2) and q(3), q(4), ..., q(K) respectively.
+
+  It follows immediately that q(1) = P(alpha), and in general
+             (i-1)
+     q(i) = P     (alpha) / (i - 1)! for i = 1, 2, ..., K.
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] STOER, J. and BULIRSCH, R.
+      Introduction to Numerical Analysis.
+      Springer-Verlag. 1980.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  None.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+*     MC01MD EXAMPLE PROGRAM TEXT
+*
+*     .. Parameters ..
+      INTEGER          NIN, NOUT
+      PARAMETER        ( NIN = 5, NOUT = 6 )
+      INTEGER          DPMAX
+      PARAMETER        ( DPMAX = 20 )
+*     .. Local Scalars ..
+      DOUBLE PRECISION ALPHA
+      INTEGER          DP, I, INFO, K
+*     .. Local Arrays ..
+      DOUBLE PRECISION P(DPMAX+1), Q(DPMAX+1)
+*     .. External Subroutines ..
+      EXTERNAL         MC01MD
+*     .. Executable Statements ..
+      WRITE ( NOUT, FMT = 99999 )
+*     Skip the heading in the data file and read the data.
+      READ ( NIN, FMT = '()' )
+      READ ( NIN, FMT = * ) DP, ALPHA, K
+      IF ( DP.LE.-1 .OR. DP.GT.DPMAX ) THEN
+         WRITE ( NOUT, FMT = 99995 ) DP
+      ELSE
+         READ ( NIN, FMT = * ) ( P(I), I = 1,DP+1 )
+*        Compute the leading K coefficients of the shifted polynomial.
+         CALL MC01MD( DP, ALPHA, K, P, Q, INFO )
+*
+         IF ( INFO.NE.0 ) THEN
+            WRITE ( NOUT, FMT = 99998 ) INFO
+         ELSE
+            WRITE ( NOUT, FMT = 99997 ) ALPHA
+            DO 20 I = 1, K
+               WRITE ( NOUT, FMT = 99996 ) I - 1, Q(I)
+   20       CONTINUE
+         END IF
+      END IF
+*
+      STOP
+*
+99999 FORMAT (' MC01MD EXAMPLE PROGRAM RESULTS',/1X)
+99998 FORMAT (' INFO on exit from MC01MD = ',I2)
+99997 FORMAT (' ALPHA = ',F8.4,//' The coefficients of the shifted pol',
+     $       'ynomial are ',//' power of (x-ALPHA)     coefficient ')
+99996 FORMAT (5X,I5,15X,F9.4)
+99995 FORMAT (/' DP is out of range.',/' DP = ',I5)
+      END
+</PRE>
+<B>Program Data</B>
+<PRE>
+ MC01MD EXAMPLE PROGRAM DATA
+   5     2.0     6
+   6.0  5.0  4.0  3.0  2.0  1.0
+</PRE>
+<B>Program Results</B>
+<PRE>
+ MC01MD EXAMPLE PROGRAM RESULTS
+
+ ALPHA =   2.0000
+
+ The coefficients of the shifted polynomial are 
+
+ power of (x-ALPHA)     coefficient 
+         0                120.0000
+         1                201.0000
+         2                150.0000
+         3                 59.0000
+         4                 12.0000
+         5                  1.0000
+</PRE>
+
+<HR>
+<p>
+<A HREF=..\libindex.html><B>Return to index</B></A></BODY>
+</HTML>

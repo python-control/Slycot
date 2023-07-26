@@ -1,0 +1,302 @@
+<HTML>
+<HEAD><TITLE>TG01DD - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="TG01DD">TG01DD</A></H2>
+<H3>
+Orthogonal reduction of a descriptor system pair (C,A-lambda E) to the RQ-coordinate form
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To reduce the descriptor system pair (C,A-lambda E) to the
+  RQ-coordinate form by computing an orthogonal transformation
+  matrix Z such that the transformed descriptor system pair
+  (C*Z,A*Z-lambda E*Z) has the descriptor matrix E*Z in an upper
+  trapezoidal form.
+  The right orthogonal transformations performed to reduce E can
+  be optionally accumulated.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE TG01DD( COMPZ, L, N, P, A, LDA, E, LDE, C, LDC, Z, LDZ,
+     $                   DWORK, LDWORK, INFO )
+C     .. Scalar Arguments ..
+      CHARACTER          COMPZ
+      INTEGER            INFO, L, LDA, LDC, LDE, LDWORK, LDZ, N, P
+C     .. Array Arguments ..
+      DOUBLE PRECISION   A( LDA, * ), C( LDC, * ), DWORK( * ),
+     $                   E( LDE, * ), Z( LDZ, * )
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  COMPZ   CHARACTER*1
+          = 'N':  do not compute Z;
+          = 'I':  Z is initialized to the unit matrix, and the
+                  orthogonal matrix Z is returned;
+          = 'U':  Z must contain an orthogonal matrix Z1 on entry,
+                  and the product Z1*Z is returned.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  L       (input) INTEGER
+          The number of rows of matrices A and E.  L &gt;= 0.
+
+  N       (input) INTEGER
+          The number of columns of matrices A, E, and C.  N &gt;= 0.
+
+  P       (input) INTEGER
+          The number of rows of matrix C.  P &gt;= 0.
+
+  A       (input/output) DOUBLE PRECISION array, dimension (LDA,N)
+          On entry, the leading L-by-N part of this array must
+          contain the state dynamics matrix A.
+          On exit, the leading L-by-N part of this array contains
+          the transformed matrix A*Z.
+
+  LDA     INTEGER
+          The leading dimension of array A.  LDA &gt;= MAX(1,L).
+
+  E       (input/output) DOUBLE PRECISION array, dimension (LDE,N)
+          On entry, the leading L-by-N part of this array must
+          contain the descriptor matrix E.
+          On exit, the leading L-by-N part of this array contains
+          the transformed matrix E*Z in upper trapezoidal form,
+          i.e.
+
+                   ( E11 )
+             E*Z = (     ) ,  if L &gt;= N ,
+                   (  R  )
+          or
+
+             E*Z = ( 0  R ),  if L &lt; N ,
+
+          where R is an MIN(L,N)-by-MIN(L,N) upper triangular
+          matrix.
+
+  LDE     INTEGER
+          The leading dimension of array E.  LDE &gt;= MAX(1,L).
+
+  C       (input/output) DOUBLE PRECISION array, dimension (LDC,N)
+          On entry, the leading P-by-N part of this array must
+          contain the state/output matrix C.
+          On exit, the leading P-by-N part of this array contains
+          the transformed matrix C*Z.
+
+  LDC     INTEGER
+          The leading dimension of array C.  LDC &gt;= MAX(1,P).
+
+  Z       (input/output) DOUBLE PRECISION array, dimension (LDZ,N)
+          If COMPZ = 'N':  Z is not referenced.
+          If COMPZ = 'I':  on entry, Z need not be set;
+                           on exit, the leading N-by-N part of this
+                           array contains the orthogonal matrix Z,
+                           which is the product of Householder
+                           transformations applied to A, E, and C
+                           on the right.
+          If COMPZ = 'U':  on entry, the leading N-by-N part of this
+                           array must contain an orthogonal matrix
+                           Z1;
+                           on exit, the leading N-by-N part of this
+                           array contains the orthogonal matrix
+                           Z1*Z.
+
+  LDZ     INTEGER
+          The leading dimension of array Z.
+          LDZ &gt;= 1,        if COMPZ = 'N';
+          LDZ &gt;= MAX(1,N), if COMPZ = 'U' or 'I'.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+          On exit, if INFO = 0, DWORK(1) returns the optimal value
+          of LDWORK.
+
+  LDWORK  INTEGER
+          The length of the array DWORK.
+          LDWORK &gt;= MAX(1, MIN(L,N) + MAX(L,N,P)).
+          For optimum performance
+          LWORK &gt;= MAX(1, MIN(L,N) + MAX(L,N,P)*NB),
+          where NB is the optimal blocksize.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  The routine computes the RQ factorization of E to reduce it
+  the upper trapezoidal form.
+
+  The transformations are also applied to the rest of system
+  matrices
+
+      A &lt;- A * Z,  C &lt;- C * Z.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  The algorithm is numerically backward stable and requires
+  0( L*N*N )  floating point operations.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+*     TG01DD EXAMPLE PROGRAM TEXT
+*
+*     .. Parameters ..
+      INTEGER          NIN, NOUT
+      PARAMETER        ( NIN = 5, NOUT = 6 )
+      INTEGER          LMAX, NMAX, PMAX
+      PARAMETER        ( LMAX = 20, NMAX = 20, PMAX = 20)
+      INTEGER          LDA, LDC, LDE, LDZ
+      PARAMETER        ( LDA = LMAX, LDC = PMAX,
+     $                   LDE = LMAX, LDZ = NMAX )
+      INTEGER          LDWORK
+      PARAMETER        ( LDWORK = MIN(LMAX,NMAX)+MAX(LMAX,NMAX,PMAX) )
+*     .. Local Scalars ..
+      CHARACTER*1      COMPZ
+      INTEGER          I, INFO, J, L, N, P
+*     .. Local Arrays ..
+      DOUBLE PRECISION A(LDA,NMAX), C(LDC,NMAX),
+     $                 DWORK(LDWORK), E(LDE,NMAX), Z(LDZ,NMAX)
+*     .. External Subroutines ..
+      EXTERNAL         TG01DD
+*     .. Intrinsic Functions ..
+      INTRINSIC        MAX, MIN
+*     .. Executable Statements ..
+*
+      WRITE ( NOUT, FMT = 99999 )
+*     Skip the heading in the data file and read the data.
+      READ ( NIN, FMT = '()' )
+      READ ( NIN, FMT = * ) L, N, P
+      COMPZ = 'I'
+      IF ( L.LT.0 .OR. L.GT.LMAX ) THEN
+         WRITE ( NOUT, FMT = 99992 ) L
+      ELSE
+         IF( N.LT.0 .OR. N.GT.NMAX ) THEN
+            WRITE ( NOUT, FMT = 99991 ) N
+         ELSE
+            READ ( NIN, FMT = * ) ( ( A(I,J), J = 1,N ), I = 1,L )
+            READ ( NIN, FMT = * ) ( ( E(I,J), J = 1,N ), I = 1,L )
+            IF ( P.LT.0 .OR. P.GT.PMAX ) THEN
+               WRITE ( NOUT, FMT = 99990 ) P
+            ELSE
+               READ ( NIN, FMT = * ) ( ( C(I,J), J = 1,N ), I = 1,P )
+*              Find the transformed descriptor system pair
+*              (A-lambda E,B).
+               CALL TG01DD( COMPZ, L, N, P, A, LDA, E, LDE, C, LDC,
+     $                      Z, LDZ, DWORK, LDWORK, INFO )
+*
+               IF( INFO.NE.0 ) THEN
+                  WRITE ( NOUT, FMT = 99998 ) INFO
+               ELSE
+                  WRITE ( NOUT, FMT = 99997 )
+                  DO 10 I = 1, L
+                     WRITE ( NOUT, FMT = 99995 ) ( A(I,J), J = 1,N )
+   10             CONTINUE
+                  WRITE ( NOUT, FMT = 99996 )
+                  DO 20 I = 1, L
+                     WRITE ( NOUT, FMT = 99995 ) ( E(I,J), J = 1,N )
+   20             CONTINUE
+                  WRITE ( NOUT, FMT = 99994 )
+                  DO 30 I = 1, P
+                     WRITE ( NOUT, FMT = 99995 ) ( C(I,J), J = 1,N )
+   30             CONTINUE
+                  WRITE ( NOUT, FMT = 99993 )
+                  DO 40 I = 1, N
+                     WRITE ( NOUT, FMT = 99995 ) ( Z(I,J), J = 1,N )
+   40             CONTINUE
+               END IF
+            END IF
+         END IF
+      END IF
+      STOP
+*
+99999 FORMAT (' TG01DD EXAMPLE PROGRAM RESULTS',/1X)
+99998 FORMAT (' INFO on exit from TG01DD = ',I2)
+99997 FORMAT (/' The transformed state dynamics matrix A*Z is ')
+99996 FORMAT (/' The transformed descriptor matrix E*Z is ')
+99995 FORMAT (20(1X,F8.4))
+99994 FORMAT (/' The transformed input/state matrix C*Z is ')
+99993 FORMAT (/' The right transformation matrix Z is ')
+99992 FORMAT (/' L is out of range.',/' L = ',I5)
+99991 FORMAT (/' N is out of range.',/' N = ',I5)
+99990 FORMAT (/' P is out of range.',/' P = ',I5)
+      END
+</PRE>
+<B>Program Data</B>
+<PRE>
+TG01DD EXAMPLE PROGRAM DATA
+  4    4     2    0.0    
+    -1     0     0     3
+     0     0     1     2
+     1     1     0     4
+     0     0     0     0
+     1     2     0     0
+     0     1     0     1
+     3     9     6     3
+     0     0     2     0
+    -1     0     1     0
+     0     1    -1     1
+</PRE>
+<B>Program Results</B>
+<PRE>
+ TG01DD EXAMPLE PROGRAM RESULTS
+
+
+ The transformed state dynamics matrix A*Z is 
+   0.4082   3.0773   0.6030   0.0000
+   0.8165   1.7233   0.6030  -1.0000
+   2.0412   2.8311   2.4121   0.0000
+   0.0000   0.0000   0.0000   0.0000
+
+ The transformed descriptor matrix E*Z is 
+   0.0000  -0.7385   2.1106   0.0000
+   0.0000   0.7385   1.2060   0.0000
+   0.0000   0.0000   9.9499  -6.0000
+   0.0000   0.0000   0.0000  -2.0000
+
+ The transformed input/state matrix C*Z is 
+  -0.8165   0.4924  -0.3015  -1.0000
+   0.0000   0.7385   1.2060   1.0000
+
+ The right transformation matrix Z is 
+   0.8165  -0.4924   0.3015   0.0000
+  -0.4082  -0.1231   0.9045   0.0000
+   0.0000   0.0000   0.0000  -1.0000
+   0.4082   0.8616   0.3015   0.0000
+</PRE>
+
+<HR>
+<p>
+<A HREF=..\libindex.html><B>Return to index</B></A></BODY>
+</HTML>

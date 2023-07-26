@@ -1,0 +1,395 @@
+<HTML>
+<HEAD><TITLE>AB09KX - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="AB09KX">AB09KX</A></H2>
+<H3>
+Stable projection of V G W or conj(V) G conj(W)
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To construct a state-space representation (A,BS,CS,DS) of the
+  stable projection of V*G*W or conj(V)*G*conj(W) from the
+  state-space representations (A,B,C,D), (AV,BV,CV,DV), and
+  (AW,BW,CW,DW) of the transfer-function matrices G, V and W,
+  respectively. G is assumed to be a stable transfer-function
+  matrix and the state matrix A must be in a real Schur form.
+  When computing the stable projection of V*G*W, V and W are assumed
+  to be completely unstable transfer-function matrices.
+  When computing the stable projection of conj(V)*G*conj(W),
+  V and W are assumed to be stable transfer-function matrices.
+
+  For a transfer-function matrix G, conj(G) denotes the conjugate
+  of G given by G'(-s) for a continuous-time system or G'(1/z)
+  for a discrete-time system.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE AB09KX( JOB, DICO, WEIGHT, N, NV, NW, M, P,
+     $                   A,  LDA,  B,  LDB,  C,  LDC,  D,  LDD,
+     $                   AV, LDAV, BV, LDBV, CV, LDCV, DV, LDDV,
+     $                   AW, LDAW, BW, LDBW, CW, LDCW, DW, LDDW,
+     $                   DWORK, LDWORK, IWARN, INFO )
+C     .. Scalar Arguments ..
+      CHARACTER        DICO, JOB, WEIGHT
+      INTEGER          INFO, IWARN, LDA, LDAV, LDAW, LDB, LDBV, LDBW,
+     $                 LDC, LDCV, LDCW, LDD, LDDV, LDDW, LDWORK, M, N,
+     $                 NV, NW, P
+C     .. Array Arguments ..
+      DOUBLE PRECISION A(LDA,*),   B(LDB,*),   C(LDC,*),   D(LDD,*),
+     $                 AV(LDAV,*), BV(LDBV,*), CV(LDCV,*), DV(LDDV,*),
+     $                 AW(LDAW,*), BW(LDBW,*), CW(LDCW,*), DW(LDDW,*),
+     $                 DWORK(*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  JOB     CHARACTER*1
+          Specifies which projection to be computed as follows:
+          = 'N':  compute the stable projection of V*G*W;
+          = 'C':  compute the stable projection of
+                  conj(V)*G*conj(W).
+
+  DICO    CHARACTER*1
+          Specifies the type of the systems as follows:
+          = 'C':  G, V and W are continuous-time systems;
+          = 'D':  G, V and W are discrete-time systems.
+
+  WEIGHT  CHARACTER*1
+          Specifies the type of frequency weighting, as follows:
+          = 'N':  no weightings are used (V = I, W = I);
+          = 'L':  only left weighting V is used (W = I);
+          = 'R':  only right weighting W is used (V = I);
+          = 'B':  both left and right weightings V and W are used.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The order of the matrix A. Also the number of rows of
+          the matrix B and the number of columns of the matrix C.
+          N represents the dimension of the state vector of the
+          system with the transfer-function matrix G.  N &gt;= 0.
+
+  NV      (input) INTEGER
+          The order of the matrix AV. Also the number of rows of
+          the matrix BV and the number of columns of the matrix CV.
+          NV represents the dimension of the state vector of the
+          system with the transfer-function matrix V.  NV &gt;= 0.
+
+  NW      (input) INTEGER
+          The order of the matrix AW. Also the number of rows of
+          the matrix BW and the number of columns of the matrix CW.
+          NW represents the dimension of the state vector of the
+          system with the transfer-function matrix W.  NW &gt;= 0.
+
+  M       (input) INTEGER
+          The number of columns of the matrices B, D, BW and DW
+          and number of rows of the matrices CW and DW.  M &gt;= 0.
+          M represents the dimension of input vectors of the
+          systems with the transfer-function matrices G and W and
+          also the dimension of the output vector of the system
+          with the transfer-function matrix W.
+
+  P       (input) INTEGER
+          The number of rows of the matrices C, D, CV and DV and the
+          number of columns of the matrices BV and DV.  P &gt;= 0.
+          P represents the dimension of output vectors of the
+          systems with the transfer-function matrices G and V and
+          also the dimension of the input vector of the system
+          with the transfer-function matrix V.
+
+  A       (input) DOUBLE PRECISION array, dimension (LDA,N)
+          The leading N-by-N part of this array must
+          contain the state matrix A of the system with the
+          transfer-function matrix G in a real Schur form.
+
+  LDA     INTEGER
+          The leading dimension of the array A.  LDA &gt;= MAX(1,N).
+
+  B       (input/output) DOUBLE PRECISION array, dimension (LDB,M)
+          On entry, the leading N-by-M part of this array must
+          contain the input matrix B of the system with the
+          transfer-function matrix G.
+          On exit, if INFO = 0, the leading N-by-M part of this
+          array contains the input matrix BS of the stable
+          projection of V*G*W if JOB = 'N', and of conj(V)*G*conj(W)
+          if JOB = 'C'.
+
+  LDB     INTEGER
+          The leading dimension of the array B.  LDB &gt;= MAX(1,N).
+
+  C       (input/output) DOUBLE PRECISION array, dimension (LDC,N)
+          On entry, the leading P-by-N part of this array must
+          contain the output matrix C of the system with the
+          transfer-function matrix G.
+          On exit, if INFO = 0, the leading P-by-N part of this
+          array contains the output matrix CS of the stable
+          projection of V*G*W if JOB = 'N', and of conj(V)*G*conj(W)
+          if JOB = 'C'.
+
+  LDC     INTEGER
+          The leading dimension of the array C.  LDC &gt;= MAX(1,P).
+
+  D       (input/output) DOUBLE PRECISION array, dimension (LDD,M)
+          On entry, the leading P-by-M part of this array must
+          contain the feedthrough matrix D of the system with the
+          transfer-function matrix G.
+          On exit, if INFO = 0, the leading P-by-M part of this
+          array contains the feedthrough matrix DS of the stable
+          projection of V*G*W if JOB = 'N', and of conj(V)*G*conj(W)
+          if JOB = 'C'.
+
+  LDD     INTEGER
+          The leading dimension of the array D.  LDD &gt;= MAX(1,P).
+
+  AV      (input/output) DOUBLE PRECISION array, dimension (LDAV,NV)
+          On entry, if WEIGHT = 'L' or 'B', the leading NV-by-NV
+          part of this array must contain the state matrix AV of
+          the system with the transfer-function matrix V.
+          On exit, if WEIGHT = 'L' or 'B', and INFO = 0, the leading
+          NV-by-NV part of this array contains a real Schur form
+          of AV.
+          AV is not referenced if WEIGHT = 'R' or 'N'.
+
+  LDAV    INTEGER
+          The leading dimension of the array AV.
+          LDAV &gt;= MAX(1,NV), if WEIGHT = 'L' or 'B';
+          LDAV &gt;= 1,         if WEIGHT = 'R' or 'N'.
+
+  BV      (input/output) DOUBLE PRECISION array, dimension (LDBV,P)
+          On entry, if WEIGHT = 'L' or 'B', the leading NV-by-P part
+          of this array must contain the input matrix BV of the
+          system with the transfer-function matrix V.
+          On exit, if WEIGHT = 'L' or 'B', and INFO = 0, the leading
+          NV-by-P part of this array contains the transformed input
+          matrix BV.
+          BV is not referenced if WEIGHT = 'R' or 'N'.
+
+  LDBV    INTEGER
+          The leading dimension of the array BV.
+          LDBV &gt;= MAX(1,NV), if WEIGHT = 'L' or 'B';
+          LDBV &gt;= 1,         if WEIGHT = 'R' or 'N'.
+
+  CV      (input/output) DOUBLE PRECISION array, dimension (LDCV,NV)
+          On entry, if WEIGHT = 'L' or 'B', the leading P-by-NV part
+          of this array must contain the output matrix CV of the
+          system with the transfer-function matrix V.
+          On exit, if WEIGHT = 'L' or 'B', and INFO = 0, the leading
+          P-by-NV part of this array contains the transformed output
+          matrix CV.
+          CV is not referenced if WEIGHT = 'R' or 'N'.
+
+  LDCV    INTEGER
+          The leading dimension of the array CV.
+          LDCV &gt;= MAX(1,P), if WEIGHT = 'L' or 'B';
+          LDCV &gt;= 1,        if WEIGHT = 'R' or 'N'.
+
+  DV      (input) DOUBLE PRECISION array, dimension (LDDV,P)
+          If WEIGHT = 'L' or 'B', the leading P-by-P part of this
+          array must contain the feedthrough matrix DV of the system
+          with the transfer-function matrix V.
+          DV is not referenced if WEIGHT = 'R' or 'N'.
+
+  LDDV    INTEGER
+          The leading dimension of the array DV.
+          LDDV &gt;= MAX(1,P), if WEIGHT = 'L' or 'B';
+          LDDV &gt;= 1,        if WEIGHT = 'R' or 'N'.
+
+  AW      (input/output) DOUBLE PRECISION array, dimension (LDAW,NW)
+          On entry, if WEIGHT = 'R' or 'B', the leading NW-by-NW
+          part of this array must contain the state matrix AW of
+          the system with the transfer-function matrix W.
+          On exit, if WEIGHT = 'R' or 'B', and INFO = 0, the leading
+          NW-by-NW part of this array contains a real Schur form
+          of AW.
+          AW is not referenced if WEIGHT = 'L' or 'N'.
+
+  LDAW    INTEGER
+          The leading dimension of the array AW.
+          LDAW &gt;= MAX(1,NW), if WEIGHT = 'R' or 'B';
+          LDAW &gt;= 1,         if WEIGHT = 'L' or 'N'.
+
+  BW      (input/output) DOUBLE PRECISION array, dimension (LDBW,M)
+          On entry, if WEIGHT = 'R' or 'B', the leading NW-by-M part
+          of this array must contain the input matrix BW of the
+          system with the transfer-function matrix W.
+          On exit, if WEIGHT = 'R' or 'B', and INFO = 0, the leading
+          NW-by-M part of this array contains the transformed input
+          matrix BW.
+          BW is not referenced if WEIGHT = 'L' or 'N'.
+
+  LDBW    INTEGER
+          The leading dimension of the array BW.
+          LDBW &gt;= MAX(1,NW), if WEIGHT = 'R' or 'B';
+          LDBW &gt;= 1,         if WEIGHT = 'L' or 'N'.
+
+  CW      (input/output) DOUBLE PRECISION array, dimension (LDCW,NW)
+          On entry, if WEIGHT = 'R' or 'B', the leading M-by-NW part
+          of this array must contain the output matrix CW of the
+          system with the transfer-function matrix W.
+          On exit, if WEIGHT = 'R' or 'B', and INFO = 0, the leading
+          M-by-NW part of this array contains the transformed output
+          matrix CW.
+          CW is not referenced if WEIGHT = 'L' or 'N'.
+
+  LDCW    INTEGER
+          The leading dimension of the array CW.
+          LDCW &gt;= MAX(1,M), if WEIGHT = 'R' or 'B';
+          LDCW &gt;= 1,        if WEIGHT = 'L' or 'N'.
+
+  DW      (input) DOUBLE PRECISION array, dimension (LDDW,M)
+          If WEIGHT = 'R' or 'B', the leading M-by-M part of this
+          array must contain the feedthrough matrix DW of the system
+          with the transfer-function matrix W.
+          DW is not referenced if WEIGHT = 'L' or 'N'.
+
+  LDDW    INTEGER
+          The leading dimension of the array DW.
+          LDDW &gt;= MAX(1,M), if WEIGHT = 'R' or 'B';
+          LDDW &gt;= 1,        if WEIGHT = 'L' or 'N'.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+          On exit, if INFO = 0, DWORK(1) returns the optimal value
+          of LDWORK.
+
+  LDWORK  INTEGER
+          The length of the array DWORK.
+          LDWORK &gt;= MAX( 1, LDW1, LDW2 ), where
+            LDW1 = 0 if WEIGHT = 'R' or 'N' and
+            LDW1 = MAX( NV*(NV+5), NV*N + MAX( a, P*N, P*M ) )
+                   if WEIGHT = 'L' or WEIGHT = 'B',
+            LDW2 = 0 if WEIGHT = 'L' or 'N' and
+            LDW2 = MAX( NW*(NW+5), NW*N + MAX( b, M*N, P*M ) )
+                   if WEIGHT = 'R' or WEIGHT = 'B',
+            a = 0,    b = 0,     if DICO = 'C' or  JOB = 'N',
+            a = 2*NV, b = 2*NW,  if DICO = 'D' and JOB = 'C'.
+          For good performance, LDWORK should be larger.
+
+</PRE>
+<B>Warning Indicator</B>
+<PRE>
+  IWARN   INTEGER
+          =  0:  no warning;
+          =  1:  JOB = 'N' and AV is not completely unstable, or
+                 JOB = 'C' and AV is not stable;
+          =  2:  JOB = 'N' and AW is not completely unstable, or
+                 JOB = 'C' and AW is not stable;
+          =  3:  both above conditions appear.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          =  0:  successful exit;
+          &lt;  0:  if INFO = -i, the i-th argument had an illegal
+                 value;
+          =  1:  the reduction of AV to a real Schur form failed;
+          =  2:  the reduction of AW to a real Schur form failed;
+          =  3:  the solution of the Sylvester equation failed
+                 because the matrices A and AV have common
+                 eigenvalues (if JOB = 'N'), or -AV and A have
+                 common eigenvalues (if JOB = 'C' and DICO = 'C'),
+                 or AV has an eigenvalue which is the reciprocal of
+                 one of the eigenvalues of A (if JOB = 'C' and
+                 DICO = 'D');
+          =  4:  the solution of the Sylvester equation failed
+                 because the matrices A and AW have common
+                 eigenvalues (if JOB = 'N'), or -AW and A have
+                 common eigenvalues (if JOB = 'C' and DICO = 'C'),
+                 or AW has an eigenvalue which is the reciprocal of
+                 one of the eigenvalues of A (if JOB = 'C' and
+                 DICO = 'D').
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  The matrices of the stable projection of V*G*W are computed as
+
+    BS = B*DW + Y*BW,  CS = CV*X + DV*C,  DS = DV*D*DW,
+
+  where X and Y satisfy the continuous-time Sylvester equations
+
+    AV*X - X*A  + BV*C = 0,
+    -A*Y + Y*AW + B*CW = 0.
+
+  The matrices of the stable projection of conj(V)*G*conj(W) are
+  computed using the explicit formulas established in [1].
+
+  For a continuous-time system, the matrices BS, CS and DS of
+  the stable projection are computed as
+
+    BS = B*DW' + Y*CW',  CS = BV'*X + DV'*C,  DS = DV'*D*DW',
+
+  where X and Y satisfy the continuous-time Sylvester equations
+
+    AV'*X + X*A   + CV'*C = 0,
+      A*Y + Y*AW' + B*BW' = 0.
+
+  For a discrete-time system, the matrices BS, CS and DS of
+  the stable projection are computed as
+
+    BS = B*DW' + A*Y*CW',  CS = BV'*X*A + DV'*C,
+    DS = DV'*D*DW' + BV'*X*B*DW' + DV'*C*Y*CW' + BV'*X*A*Y*CW',
+
+  where X and Y satisfy the discrete-time Sylvester equations
+
+    AV'*X*A + CV'*C = X,
+    A*Y*AW' + B*BW' = Y.
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Varga A.
+      Explicit formulas for an efficient implementation
+      of the frequency-weighting model reduction approach.
+      Proc. 1993 European Control Conference, Groningen, NL,
+      pp. 693-696, 1993.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  The implemented methods rely on numerically stable algorithms.
+
+</PRE>
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  The matrix A must be stable, but its stability is not checked by
+  this routine.
+
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

@@ -1,0 +1,168 @@
+<HTML>
+<HEAD><TITLE>MB04OW - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MB04OW">MB04OW</A></H2>
+<H3>
+Rank-one update of a Cholesky factorization (variant)
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To perform the QR factorization
+
+     ( U  ) = Q*( R ),  where  U = ( U1  U2 ),  R = ( R1  R2 ),
+     ( x' )     ( 0 )              ( 0   T  )       ( 0   R3 )
+
+  where U and R are (m+n)-by-(m+n) upper triangular matrices, x is
+  an m+n element vector, U1 is m-by-m, T is n-by-n, stored
+  separately, and Q is an (m+n+1)-by-(m+n+1) orthogonal matrix.
+
+  The matrix ( U1 U2 ) must be supplied in the m-by-(m+n) upper
+  trapezoidal part of the array A and this is overwritten by the
+  corresponding part ( R1 R2 ) of R. The remaining upper triangular
+  part of R, R3, is overwritten on the array T.
+
+  The transformations performed are also applied to the (m+n+1)-by-p
+  matrix ( B' C' d )' (' denotes transposition), where B, C, and d'
+  are m-by-p, n-by-p, and 1-by-p matrices, respectively.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MB04OW( M, N, P, A, LDA, T, LDT, X, INCX, B, LDB,
+     $                   C, LDC, D, INCD )
+C     .. Scalar Arguments ..
+      INTEGER            INCD, INCX, LDA, LDB, LDC, LDT, M, N, P
+C     .. Array Arguments ..
+      DOUBLE PRECISION   A(LDA,*), B(LDB,*), C(LDC,*), D(*), T(LDT,*),
+     $                   X(*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  M      (input) INTEGER
+         The number of rows of the matrix ( U1  U2 ).  M &gt;= 0.
+
+  N      (input) INTEGER
+         The order of the matrix T.  N &gt;= 0.
+
+  P      (input) INTEGER
+         The number of columns of the matrices B and C.  P &gt;= 0.
+
+  A      (input/output) DOUBLE PRECISION array, dimension (LDA,N)
+         On entry, the leading M-by-(M+N) upper trapezoidal part of
+         this array must contain the upper trapezoidal matrix
+         ( U1 U2 ).
+         On exit, the leading M-by-(M+N) upper trapezoidal part of
+         this array contains the upper trapezoidal matrix ( R1 R2 ).
+         The strict lower triangle of A is not referenced.
+
+  LDA    INTEGER
+         The leading dimension of the array A.  LDA &gt;= max(1,M).
+
+  T      (input/output) DOUBLE PRECISION array, dimension (LDT,N)
+         On entry, the leading N-by-N upper triangular part of this
+         array must contain the upper triangular matrix T.
+         On exit, the leading N-by-N upper triangular part of this
+         array contains the upper triangular matrix R3.
+         The strict lower triangle of T is not referenced.
+
+  LDT    INTEGER
+         The leading dimension of the array T.  LDT &gt;= max(1,N).
+
+  X      (input/output) DOUBLE PRECISION array, dimension
+         (1+(M+N-1)*INCX), if M+N &gt; 0, or dimension (0), if M+N = 0.
+         On entry, the incremented array X must contain the
+         vector x. On exit, the content of X is changed.
+
+  INCX   (input) INTEGER
+         Specifies the increment for the elements of X.  INCX &gt; 0.
+
+  B      (input/output) DOUBLE PRECISION array, dimension (LDB,P)
+         On entry, the leading M-by-P part of this array must
+         contain the matrix B.
+         On exit, the leading M-by-P part of this array contains
+         the transformed matrix B.
+         If M = 0 or P = 0, this array is not referenced.
+
+  LDB    INTEGER
+         The leading dimension of the array B.
+         LDB &gt;= max(1,M), if P &gt; 0;
+         LDB &gt;= 1,        if P = 0.
+
+  C      (input/output) DOUBLE PRECISION array, dimension (LDC,P)
+         On entry, the leading N-by-P part of this array must
+         contain the matrix C.
+         On exit, the leading N-by-P part of this array contains
+         the transformed matrix C.
+         If N = 0 or P = 0, this array is not referenced.
+
+  LDC    INTEGER
+         The leading dimension of the array C.
+         LDC &gt;= max(1,N), if P &gt; 0;
+         LDC &gt;= 1,        if P = 0.
+
+  D      (input/output) DOUBLE PRECISION array, dimension
+         (1+(P-1)*INCD), if P &gt; 0, or dimension (0), if P = 0.
+         On entry, the incremented array D must contain the
+         vector d.
+         On exit, this incremented array contains the transformed
+         vector d.
+         If P = 0, this array is not referenced.
+
+  INCD   (input) INTEGER
+         Specifies the increment for the elements of D.  INCD &gt; 0.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  Let q = m+n. The matrix Q is formed as a sequence of plane
+  rotations in planes (1, q+1), (2, q+1), ..., (q, q+1), the
+  rotation in the (j, q+1)th plane, Q(j), being chosen to
+  annihilate the jth element of x.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  The algorithm requires 0((M+N)*(M+N+P)) operations and is backward
+  stable.
+
+</PRE>
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  For P = 0, this routine produces the same result as SLICOT Library
+  routine MB04OX, but matrix T may not be stored in the array A.
+
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

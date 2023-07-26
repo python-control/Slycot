@@ -1,0 +1,400 @@
+<HTML>
+<HEAD><TITLE>MB04BP - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MB04BP">MB04BP</A></H2>
+<H3>
+Eigenvalues of a real skew-Hamiltonian/Hamiltonian pencil (applying transformations on panels of columns)
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To compute the eigenvalues of a real N-by-N skew-Hamiltonian/
+  Hamiltonian pencil aS - bH with
+
+        (  A  D  )         (  C  V  )
+    S = (        ) and H = (        ).                           (1)
+        (  E  A' )         (  W -C' )
+
+  Optionally, if JOB = 'T', decompositions of S and H will be
+  computed via orthogonal transformations Q1 and Q2 as follows:
+
+                    (  Aout  Dout  )
+    Q1' S J Q1 J' = (              ),
+                    (   0    Aout' )
+
+                    (  Bout  Fout  )
+    J' Q2' J S Q2 = (              ) =: T,                       (2)
+                    (   0    Bout' )
+
+               (  C1out  Vout  )            (  0  I  )
+    Q1' H Q2 = (               ), where J = (        )
+               (  0     C2out' )            ( -I  0  )
+
+  and Aout, Bout, C1out are upper triangular, C2out is upper quasi-
+  triangular and Dout and Fout are skew-symmetric. The notation M'
+  denotes the transpose of the matrix M.
+  Optionally, if COMPQ1 = 'I' or COMPQ1 = 'U', then the orthogonal
+  transformation matrix Q1 will be computed.
+  Optionally, if COMPQ2 = 'I' or COMPQ2 = 'U', then the orthogonal
+  transformation matrix Q2 will be computed.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MB04BP( JOB, COMPQ1, COMPQ2, N, A, LDA, DE, LDDE, C1,
+     $                   LDC1, VW, LDVW, Q1, LDQ1, Q2, LDQ2, B, LDB, F,
+     $                   LDF, C2, LDC2, ALPHAR, ALPHAI, BETA, IWORK,
+     $                   LIWORK, DWORK, LDWORK, INFO )
+C     .. Scalar Arguments ..
+      CHARACTER          COMPQ1, COMPQ2, JOB
+      INTEGER            INFO, LDA, LDB, LDC1, LDC2, LDDE, LDF, LDQ1,
+     $                   LDQ2, LDVW, LDWORK, LIWORK, N
+C     .. Array Arguments ..
+      INTEGER            IWORK( * )
+      DOUBLE PRECISION   A( LDA, * ), ALPHAI( * ), ALPHAR( * ),
+     $                   B( LDB, * ), BETA( * ), C1( LDC1, * ),
+     $                   C2( LDC2, * ), DE( LDDE, * ), DWORK( * ),
+     $                   F( LDF, * ), Q1( LDQ1, * ), Q2( LDQ2, * ),
+     $                   VW( LDVW, * )
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  JOB     CHARACTER*1
+          Specifies the computation to be performed, as follows:
+          = 'E': compute the eigenvalues only; S and H will not
+                 necessarily be transformed as in (2).
+          = 'T': put S and H into the forms in (2) and return the
+                 eigenvalues in ALPHAR, ALPHAI and BETA.
+
+  COMPQ1  CHARACTER*1
+          Specifies whether to compute the orthogonal transformation
+          matrix Q1, as follows:
+          = 'N':  Q1 is not computed;
+          = 'I':  the array Q1 is initialized internally to the unit
+                  matrix, and the orthogonal matrix Q1 is returned;
+          = 'U':  the array Q1 contains an orthogonal matrix Q on
+                  entry, and the product Q*Q1 is returned, where Q1
+                  is the product of the orthogonal transformations
+                  that are applied to the pencil aS - bH to reduce
+                  S and H to the forms in (2), for COMPQ1 = 'I'.
+
+  COMPQ2  CHARACTER*1
+          Specifies whether to compute the orthogonal transformation
+          matrix Q2, as follows:
+          = 'N':  Q2 is not computed;
+          = 'I':  on exit, the array Q2 contains the orthogonal
+                  matrix Q2;
+          = 'U':  on exit, the array Q2 contains the matrix product
+                  J*Q*J'*Q2, where Q2 is the product of the
+                  orthogonal transformations that are applied to
+                  the pencil aS - bH to reduce S and H to the forms
+                  in (2), for COMPQ2 = 'I'.
+                  Setting COMPQ2 &lt;&gt; 'N' assumes COMPQ2 = COMPQ1.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The order of the pencil aS - bH.  N &gt;= 0, even.
+
+  A       (input/output) DOUBLE PRECISION array, dimension
+                         (LDA, N/2)
+          On entry, the leading N/2-by-N/2 part of this array must
+          contain the matrix A.
+          On exit, if JOB = 'T', the leading N/2-by-N/2 part of this
+          array contains the matrix Aout; otherwise, it contains the
+          upper triangular matrix A obtained just before the
+          application of the periodic QZ algorithm.
+
+  LDA     INTEGER
+          The leading dimension of the array A.  LDA &gt;= MAX(1, N/2).
+
+  DE      (input/output) DOUBLE PRECISION array, dimension
+                         (LDDE, N/2+1)
+          On entry, the leading N/2-by-N/2 strictly lower triangular
+          part of this array must contain the strictly lower
+          triangular part of the skew-symmetric matrix E, and the
+          N/2-by-N/2 strictly upper triangular part of the submatrix
+          in the columns 2 to N/2+1 of this array must contain the
+          strictly upper triangular part of the skew-symmetric
+          matrix D.
+          The entries on the diagonal and the first superdiagonal of
+          this array need not be set, but are assumed to be zero.
+          On exit, if JOB = 'T', the leading N/2-by-N/2 strictly
+          upper triangular part of the submatrix in the columns 2 to
+          N/2+1 of this array contains the strictly upper triangular
+          part of the skew-symmetric matrix Dout.
+          If JOB = 'E', the leading N/2-by-N/2 strictly upper
+          triangular part of the submatrix in the columns 2 to N/2+1
+          of this array contains the strictly upper triangular part
+          of the skew-symmetric matrix D just before the application
+          of the periodic QZ algorithm. The remaining entries are
+          meaningless.
+
+  LDDE    INTEGER
+          The leading dimension of the array DE.
+          LDDE &gt;= MAX(1, N/2).
+
+  C1      (input/output) DOUBLE PRECISION array, dimension
+                         (LDC1, N/2)
+          On entry, the leading N/2-by-N/2 part of this array must
+          contain the matrix C1 = C.
+          On exit, if JOB = 'T', the leading N/2-by-N/2 part of this
+          array contains the matrix C1out; otherwise, it contains
+          the upper triangular matrix C1 obtained just before the
+          application of the periodic QZ algorithm.
+
+  LDC1    INTEGER
+          The leading dimension of the array C1.
+          LDC1 &gt;= MAX(1, N/2).
+
+  VW      (input/output) DOUBLE PRECISION array, dimension
+                         (LDVW, N/2+1)
+          On entry, the leading N/2-by-N/2 lower triangular part of
+          this array must contain the lower triangular part of the
+          symmetric matrix W, and the N/2-by-N/2 upper triangular
+          part of the submatrix in the columns 2 to N/2+1 of this
+          array must contain the upper triangular part of the
+          symmetric matrix V.
+          On exit, if JOB = 'T', the N/2-by-N/2 part in the columns
+          2 to N/2+1 of this array contains the matrix Vout.
+          If JOB = 'E', the N/2-by-N/2 part in the columns 2 to
+          N/2+1 of this array contains the matrix V just before the
+          application of the periodic QZ algorithm.
+
+  LDVW    INTEGER
+          The leading dimension of the array VW.
+          LDVW &gt;= MAX(1, N/2).
+
+  Q1      (input/output) DOUBLE PRECISION array, dimension (LDQ1, N)
+          On entry, if COMPQ1 = 'U', then the leading N-by-N part of
+          this array must contain a given matrix Q, and on exit,
+          the leading N-by-N part of this array contains the product
+          of the input matrix Q and the transformation matrix Q1
+          used to transform the matrices S and H.
+          On exit, if COMPQ1 = 'I', then the leading N-by-N part of
+          this array contains the orthogonal transformation matrix
+          Q1.
+          If COMPQ1 = 'N', this array is not referenced.
+
+  LDQ1    INTEGER
+          The leading dimension of the array Q1.
+          LDQ1 &gt;= 1,         if COMPQ1 = 'N';
+          LDQ1 &gt;= MAX(1, N), if COMPQ1 = 'I' or COMPQ1 = 'U'.
+
+  Q2      (output) DOUBLE PRECISION array, dimension (LDQ2, N)
+          On exit, if COMPQ2 = 'U', then the leading N-by-N part of
+          this array contains the product of the matrix J*Q*J' and
+          the transformation matrix Q2 used to transform the
+          matrices S and H.
+          On exit, if COMPQ2 = 'I', then the leading N-by-N part of
+          this array contains the orthogonal transformation matrix
+          Q2.
+          If COMPQ2 = 'N', this array is not referenced.
+
+  LDQ2    INTEGER
+          The leading dimension of the array Q2.
+          LDQ2 &gt;= 1,         if COMPQ2 = 'N';
+          LDQ2 &gt;= MAX(1, N), if COMPQ2 = 'I' or COMPQ2 = 'U'.
+
+  B       (output) DOUBLE PRECISION array, dimension (LDB, N/2)
+          On exit, if JOB = 'T', the leading N/2-by-N/2 part of this
+          array contains the matrix Bout; otherwise, it contains the
+          upper triangular matrix B obtained just before the
+          application of the periodic QZ algorithm.
+
+  LDB     INTEGER
+          The leading dimension of the array B.  LDB &gt;= MAX(1, N/2).
+
+  F       (output) DOUBLE PRECISION array, dimension (LDF, N/2)
+          On exit, if JOB = 'T', the leading N/2-by-N/2 strictly
+          upper triangular part of this array contains the strictly
+          upper triangular part of the skew-symmetric matrix Fout.
+          If JOB = 'E', the leading N/2-by-N/2 strictly upper
+          triangular part of this array contains the strictly upper
+          triangular part of the skew-symmetric matrix F just before
+          the application of the periodic QZ algorithm.
+          The entries on the leading N/2-by-N/2 lower triangular
+          part of this array are not referenced.
+
+  LDF     INTEGER
+          The leading dimension of the array F.  LDF &gt;= MAX(1, N/2).
+
+  C2      (output) DOUBLE PRECISION array, dimension (LDC2, N/2)
+          On exit, if JOB = 'T', the leading N/2-by-N/2 part of this
+          array contains the matrix C2out; otherwise, it contains
+          the upper Hessenberg matrix C2 obtained just before the
+          application of the periodic QZ algorithm.
+
+  LDC2    INTEGER
+          The leading dimension of the array C2.
+          LDC2 &gt;= MAX(1, N/2).
+
+  ALPHAR  (output) DOUBLE PRECISION array, dimension (N/2)
+          The real parts of each scalar alpha defining an eigenvalue
+          of the pencil aS - bH.
+
+  ALPHAI  (output) DOUBLE PRECISION array, dimension (N/2)
+          The imaginary parts of each scalar alpha defining an
+          eigenvalue of the pencil aS - bH.
+          If ALPHAI(j) is zero, then the j-th eigenvalue is real.
+
+  BETA    (output) DOUBLE PRECISION array, dimension (N/2)
+          The scalars beta that define the eigenvalues of the pencil
+          aS - bH.
+          Together, the quantities alpha = (ALPHAR(j),ALPHAI(j)) and
+          beta = BETA(j) represent the j-th eigenvalue of the pencil
+          aS - bH, in the form lambda = alpha/beta. Since lambda may
+          overflow, the ratios should not, in general, be computed.
+          Due to the skew-Hamiltonian/Hamiltonian structure of the
+          pencil, for every eigenvalue lambda, -lambda is also an
+          eigenvalue, and thus it has only to be saved once in
+          ALPHAR, ALPHAI and BETA.
+          Specifically, only eigenvalues with imaginary parts
+          greater than or equal to zero are stored; their conjugate
+          eigenvalues are not stored. If imaginary parts are zero
+          (i.e., for real eigenvalues), only positive eigenvalues
+          are stored. The remaining eigenvalues have opposite signs.
+          As a consequence, pairs of complex eigenvalues, stored in
+          consecutive locations, are not complex conjugate.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  IWORK   INTEGER array, dimension (LIWORK)
+          On exit, if INFO = 3, IWORK(1) contains the number of
+          (pairs of) possibly inaccurate eigenvalues, q &lt;= N/2, and
+          IWORK(2), ..., IWORK(q+1) indicate their indices.
+          Specifically, a positive value is an index of a real or
+          purely imaginary eigenvalue, corresponding to a 1-by-1
+          block, while the absolute value of a negative entry in
+          IWORK is an index to the first eigenvalue in a pair of
+          consecutively stored eigenvalues, corresponding to a
+          2-by-2 block. A 2-by-2 block may have two complex, two
+          real, two purely imaginary, or one real and one purely
+          imaginary eigenvalue.
+          For i = q+2, ..., 2*q+1, IWORK(i) contains a pointer to
+          the starting location in DWORK of the i-th quadruple of
+          1-by-1 blocks, if IWORK(i-q) &gt; 0, or 2-by-2 blocks,
+          if IWORK(i-q) &lt; 0, defining unreliable eigenvalues.
+          IWORK(2*q+2) contains the number of the 1-by-1 blocks, and
+          IWORK(2*q+3) contains the number of the 2-by-2 blocks,
+          corresponding to unreliable eigenvalues. IWORK(2*q+4)
+          contains the total number t of the 2-by-2 blocks.
+          If INFO = 0, then q = 0, therefore IWORK(1) = 0.
+
+  LIWORK  INTEGER
+          The dimension of the array IWORK.  LIWORK &gt;= N+12.
+
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+          On exit, if INFO = 0 or INFO = 3, DWORK(1) returns the
+          optimal LDWORK, and DWORK(2), ..., DWORK(5) contain the
+          Frobenius norms of the factors of the formal matrix
+          product used by the algorithm. In addition, DWORK(6), ...,
+          DWORK(5+4*s) contain the s quadruple values corresponding
+          to the 1-by-1 blocks. Their eigenvalues are real or purely
+          imaginary. Such an eigenvalue is obtained from
+          -i*sqrt(a1*a3/a2/a4), but always taking a positive sign,
+          where a1, ..., a4 are the corresponding quadruple values.
+          Moreover, DWORK(6+4*s), ..., DWORK(5+4*s+16*t) contain the
+          t groups of quadruple 2-by-2 matrices corresponding to the
+          2-by-2 blocks. Their eigenvalue pairs are either complex,
+          or placed on the real and imaginary axes. Such an
+          eigenvalue pair is obtained as -1i*sqrt(ev), but taking
+          positive imaginary parts, where ev are the eigenvalues of
+          the product A1*inv(A2)*A3*inv(A4), where A1, ..., A4
+          define the corresponding 2-by-2 matrix quadruple.
+          On exit, if INFO = -27, DWORK(1) returns the minimum value
+          of LDWORK.
+
+  LDWORK  INTEGER
+          The dimension of the array DWORK.
+          If JOB = 'E' and COMPQ1 = 'N' and COMPQ2 = 'N',
+             LDWORK &gt;= N**2 + MAX(L,36);
+          if JOB = 'T' or COMPQ1 &lt;&gt; 'N' or COMPQ2 &lt;&gt; 'N',
+             LDWORK &gt;= 2*N**2 + MAX(L,36);
+          where
+             L = 4*N + 4, if N/2 is even, and
+             L = 4*N,     if N/2 is odd.
+          For good performance LDWORK should generally be larger.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0: succesful exit;
+          &lt; 0: if INFO = -i, the i-th argument had an illegal value;
+          = 1: problem during computation of the eigenvalues;
+          = 2: periodic QZ algorithm did not converge in the SLICOT
+               Library subroutine MB03BD;
+          = 3: some eigenvalues might be inaccurate, and details can
+               be found in IWORK and DWORK. This is a warning.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  The algorithm uses Givens rotations and Householder reflections to
+  annihilate elements in S, T, and H such that A, B, and C1 are
+  upper triangular and C2 is upper Hessenberg. Finally, the periodic
+  QZ algorithm is applied to transform C2 to upper quasi-triangular
+  form while A, B, and C1 stay in upper triangular form.
+  See also page 27 in [1] for more details.
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Benner, P., Byers, R., Losse, P., Mehrmann, V. and Xu, H.
+      Numerical Solution of Real Skew-Hamiltonian/Hamiltonian
+      Eigenproblems.
+      Tech. Rep., Technical University Chemnitz, Germany,
+      Nov. 2007.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>                                                            3
+  The algorithm is numerically backward stable and needs O(N ) real
+  floating point operations.
+
+</PRE>
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  For large values of N, the routine applies the transformations
+  for reducing T on panels of columns. The user may specify in INFO
+  the desired number of columns. If on entry INFO &lt; 0, then the
+  routine estimates a suitable value of this number. If INFO = 0,
+  the routine MB04BD is directly called.
+
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<p>
+<A HREF=..\libindex.html><B>Return to index</B></A></BODY>
+</HTML>

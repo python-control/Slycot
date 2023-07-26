@@ -1,0 +1,89 @@
+<HTML>
+<HEAD><TITLE>MA01CD - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MA01CD">MA01CD</A></H2>
+<H3>
+Safely computing the sign of a sum of two real numbers represented using integer powers of a base
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To compute, without over- or underflow, the sign of the sum of two
+  real numbers represented using integer powers of a base (usually,
+  the machine base). Any base can be used, but it should the same
+  for both numbers. The result is an integer with value 1, 0, or -1,
+  depending on the sum being found as positive, zero, or negative,
+  respectively.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      INTEGER FUNCTION MA01CD( A, IA, B, IB )
+C     .. Scalar Arguments ..
+      INTEGER           IA, IB
+      DOUBLE PRECISION  A, B
+
+</PRE>
+<B><FONT SIZE="+1">Function Value</FONT></B>
+<PRE>
+  MA01CD  INTEGER
+          The sign of the sum of the two numbers, which is usually
+          either 1, or -1. If both numbers are 0, or if they have
+          the same exponent and their sum is 0, the returned value
+          is 0.
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  A       (input)  DOUBLE PRECISION
+          The first real scalar.
+
+  IA      (input)  INTEGER
+          Exponent of the base for the first real scalar. The scalar
+          is represented as A * BASE**(IA).
+
+  B       (input)  DOUBLE PRECISION
+          The first real scalar.
+
+  IB      (input)  INTEGER
+          Exponent of the base for the first real scalar. The scalar
+          is represented as B * BASE**(IB).
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

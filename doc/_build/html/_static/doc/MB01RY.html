@@ -1,0 +1,174 @@
+<HTML>
+<HEAD><TITLE>MB01RY - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MB01RY">MB01RY</A></H2>
+<H3>
+Computation of a triangle of matrix expression alpha R + beta H B or alpha R + beta B H, H upper Hessenberg matrix
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To compute either the upper or lower triangular part of one of the
+  matrix formulas
+     _
+     R = alpha*R + beta*op( H )*B,                               (1)
+     _
+     R = alpha*R + beta*B*op( H ),                               (2)
+                                                 _
+  where alpha and beta are scalars, H, B, R, and R are m-by-m
+  matrices, H is an upper Hessenberg matrix, and op( H ) is one of
+
+     op( H ) = H   or   op( H ) = H',  the transpose of H.
+
+  The result is overwritten on R.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MB01RY( SIDE, UPLO, TRANS, M, ALPHA, BETA, R, LDR, H,
+     $                   LDH, B, LDB, DWORK, INFO )
+C     .. Scalar Arguments ..
+      CHARACTER         SIDE, TRANS, UPLO
+      INTEGER           INFO, LDB, LDH, LDR, M
+      DOUBLE PRECISION  ALPHA, BETA
+C     .. Array Arguments ..
+      DOUBLE PRECISION  B(LDB,*), DWORK(*), H(LDH,*), R(LDR,*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  SIDE    CHARACTER*1
+          Specifies whether the Hessenberg matrix H appears on the
+          left or right in the matrix product as follows:
+                  _
+          = 'L':  R = alpha*R + beta*op( H )*B;
+                  _
+          = 'R':  R = alpha*R + beta*B*op( H ).
+
+  UPLO    CHARACTER*1                               _
+          Specifies which triangles of the matrices R and R are
+          computed and given, respectively, as follows:
+          = 'U':  the upper triangular part;
+          = 'L':  the lower triangular part.
+
+  TRANS   CHARACTER*1
+          Specifies the form of op( H ) to be used in the matrix
+          multiplication as follows:
+          = 'N':  op( H ) = H;
+          = 'T':  op( H ) = H';
+          = 'C':  op( H ) = H'.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  M       (input) INTEGER           _
+          The order of the matrices R, R, H and B.  M &gt;= 0.
+
+  ALPHA   (input) DOUBLE PRECISION
+          The scalar alpha. When alpha is zero then R need not be
+          set before entry.
+
+  BETA    (input) DOUBLE PRECISION
+          The scalar beta. When beta is zero then H and B are not
+          referenced.
+
+  R       (input/output) DOUBLE PRECISION array, dimension (LDR,M)
+          On entry with UPLO = 'U', the leading M-by-M upper
+          triangular part of this array must contain the upper
+          triangular part of the matrix R; the strictly lower
+          triangular part of the array is not referenced.
+          On entry with UPLO = 'L', the leading M-by-M lower
+          triangular part of this array must contain the lower
+          triangular part of the matrix R; the strictly upper
+          triangular part of the array is not referenced.
+          On exit, the leading M-by-M upper triangular part (if
+          UPLO = 'U'), or lower triangular part (if UPLO = 'L') of
+          this array contains the corresponding triangular part of
+                              _
+          the computed matrix R.
+
+  LDR     INTEGER
+          The leading dimension of array R.  LDR &gt;= MAX(1,M).
+
+  H       (input) DOUBLE PRECISION array, dimension (LDH,M)
+          On entry, the leading M-by-M upper Hessenberg part of
+          this array must contain the upper Hessenberg part of the
+          matrix H.
+          The elements below the subdiagonal are not referenced,
+          except possibly for those in the first column, which
+          could be overwritten, but are restored on exit.
+
+  LDH     INTEGER
+          The leading dimension of array H.  LDH &gt;= MAX(1,M).
+
+  B       (input) DOUBLE PRECISION array, dimension (LDB,M)
+          On entry, the leading M-by-M part of this array must
+          contain the matrix B.
+
+  LDB     INTEGER
+          The leading dimension of array B.  LDB &gt;= MAX(1,M).
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+          LDWORK &gt;= M, if  beta &lt;&gt; 0 and SIDE = 'L';
+          LDWORK &gt;= 0, if  beta =  0 or  SIDE = 'R'.
+          This array is not referenced when beta = 0 or SIDE = 'R'.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  The matrix expression is efficiently evaluated taking the
+  Hessenberg/triangular structure into account. BLAS 2 operations
+  are used. A block algorithm can be constructed; it can use BLAS 3
+  GEMM operations for most computations, and calls of this BLAS 2
+  algorithm for computing the triangles.
+
+</PRE>
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  The main application of this routine is when the result should
+  be a symmetric matrix, e.g., when B = X*op( H )', for (1), or
+  B = op( H )'*X, for (2), where B is already available and X = X'.
+
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

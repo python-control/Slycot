@@ -1,0 +1,169 @@
+<HTML>
+<HEAD><TITLE>MC01OD - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MC01OD">MC01OD</A></H2>
+<H3>
+Coefficients of a complex polynomial, given its zeros
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To compute the coefficients of a complex polynomial P(x) from its
+  zeros.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MC01OD( K, REZ, IMZ, REP, IMP, DWORK, INFO )
+C     .. Scalar Arguments ..
+      INTEGER           INFO, K
+C     .. Array Arguments ..
+      DOUBLE PRECISION  DWORK(*), IMP(*), IMZ(*), REP(*), REZ(*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  K       (input) INTEGER
+          The number of zeros (and hence the degree) of P(x).
+          K &gt;= 0.
+
+  REZ     (input) DOUBLE PRECISION array, dimension (K)
+  IMZ     (input) DOUBLE PRECISION array, dimension (K)
+          The real and imaginary parts of the i-th zero of P(x)
+          must be stored in REZ(i) and IMZ(i), respectively, where
+          i = 1, 2, ..., K. The zeros may be supplied in any order.
+
+  REP     (output) DOUBLE PRECISION array, dimension (K+1)
+  IMP     (output) DOUBLE PRECISION array, dimension (K+1)
+          These arrays contain the real and imaginary parts,
+          respectively, of the coefficients of P(x) in increasing
+          powers of x. If K = 0, then REP(1) is set to one and
+          IMP(1) is set to zero.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  DWORK   DOUBLE PRECISION array, dimension (2*K+2)
+          If K = 0, this array is not referenced.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  The routine computes the coefficients of the complex K-th degree
+  polynomial P(x) as
+
+     P(x) = (x - r(1)) * (x - r(2)) * ... * (x - r(K))
+
+  where r(i) = (REZ(i),IMZ(i)), using real arithmetic.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  None.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+*     MC01OD EXAMPLE PROGRAM TEXT
+*
+*     .. Parameters ..
+      INTEGER          NIN, NOUT
+      PARAMETER        ( NIN = 5, NOUT = 6 )
+      INTEGER          KMAX
+      PARAMETER        ( KMAX = 10 )
+*     .. Local Scalars ..
+      INTEGER          I, INFO, K
+*     .. Local Arrays ..
+      DOUBLE PRECISION DWORK(2*KMAX+2), IMP(KMAX+1), IMZ(KMAX),
+     $                 REP(KMAX+1), REZ(KMAX)
+*     .. External Subroutines ..
+      EXTERNAL         MC01OD
+*     .. Executable Statements ..
+*
+      WRITE ( NOUT, FMT = 99999 )
+*     Skip the heading in the data file and read the data.
+      READ ( NIN, FMT = '()' )
+      READ ( NIN, FMT = * ) K
+      IF ( K.LT.0 .OR. K.GT.KMAX ) THEN
+         WRITE ( NOUT, FMT = 99995 ) K
+      ELSE
+         READ ( NIN, FMT = * ) ( REZ(I), IMZ(I), I = 1,K )
+*        Compute the coefficients of P(x) from the given zeros.
+         CALL MC01OD( K, REZ, IMZ, REP, IMP, DWORK, INFO )
+*
+         IF ( INFO.NE.0 ) THEN
+            WRITE ( NOUT, FMT = 99998 ) INFO
+         ELSE
+            WRITE ( NOUT, FMT = 99997 )
+            WRITE ( NOUT, FMT = 99996 )
+     $            ( I, REP(I+1), IMP(I+1), I = 0,K )
+         END IF
+      END IF
+      STOP
+*
+99999 FORMAT (' MC01OD EXAMPLE PROGRAM RESULTS',/1X)
+99998 FORMAT (' INFO on exit from MC01OD = ',I2)
+99997 FORMAT (' The coefficients of the polynomial P(x) are ',//' powe',
+     $       'r of x     real part     imag part ')
+99996 FORMAT (2X,I5,8X,F9.4,5X,F9.4)
+99995 FORMAT (/' K is out of range.',/' K = ',I5)
+      END
+</PRE>
+<B>Program Data</B>
+<PRE>
+ MC01OD EXAMPLE PROGRAM DATA
+   5
+   1.1   0.9
+   0.6  -0.7
+  -2.0   0.3
+  -0.8   2.5
+  -0.3  -0.4
+</PRE>
+<B>Program Results</B>
+<PRE>
+ MC01OD EXAMPLE PROGRAM RESULTS
+
+ The coefficients of the polynomial P(x) are 
+
+ power of x     real part     imag part 
+      0           2.7494       -2.1300
+      1          -1.7590       -5.4205
+      2           0.0290        2.8290
+      3          -1.6500       -1.7300
+      4           1.4000       -2.6000
+      5           1.0000        0.0000
+</PRE>
+
+<HR>
+<p>
+<A HREF=..\libindex.html><B>Return to index</B></A></BODY>
+</HTML>

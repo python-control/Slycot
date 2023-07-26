@@ -1,0 +1,308 @@
+<HTML>
+<HEAD><TITLE>TB01ID - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="TB01ID">TB01ID</A></H2>
+<H3>
+Balancing a system matrix corresponding to a triplet (A,B,C)
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To reduce the 1-norm of a system matrix
+
+          S =  ( A  B )
+               ( C  0 )
+
+  corresponding to the triple (A,B,C), by balancing. This involves
+  a diagonal similarity transformation inv(D)*A*D applied
+  iteratively to A to make the rows and columns of
+                        -1
+               diag(D,I)  * S * diag(D,I)
+
+  as close in norm as possible.
+
+  The balancing can be performed optionally on the following
+  particular system matrices
+
+           S = A,    S = ( A  B )    or    S = ( A )
+                                               ( C )
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE TB01ID( JOB, N, M, P, MAXRED, A, LDA, B, LDB, C, LDC,
+     $                   SCALE, INFO )
+C     .. Scalar Arguments ..
+      CHARACTER          JOB
+      INTEGER            INFO, LDA, LDB, LDC, M, N, P
+      DOUBLE PRECISION   MAXRED
+C     .. Array Arguments ..
+      DOUBLE PRECISION   A( LDA, * ), B( LDB, * ), C( LDC, * ),
+     $                   SCALE( * )
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  JOB     CHARACTER*1
+          Indicates which matrices are involved in balancing, as
+          follows:
+          = 'A':  All matrices are involved in balancing;
+          = 'B':  B and A matrices are involved in balancing;
+          = 'C':  C and A matrices are involved in balancing;
+          = 'N':  B and C matrices are not involved in balancing.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The order of the matrix A, the number of rows of matrix B
+          and the number of columns of matrix C.
+          N represents the dimension of the state vector.  N &gt;= 0.
+
+  M       (input) INTEGER.
+          The number of columns of matrix B.
+          M represents the dimension of input vector.  M &gt;= 0.
+
+  P       (input) INTEGER.
+          The number of rows of matrix C.
+          P represents the dimension of output vector.  P &gt;= 0.
+
+  MAXRED  (input/output) DOUBLE PRECISION
+          On entry, the maximum allowed reduction in the 1-norm of
+          S (in an iteration) if zero rows or columns are
+          encountered.
+          If MAXRED &gt; 0.0, MAXRED must be larger than one (to enable
+          the norm reduction).
+          If MAXRED &lt;= 0.0, then the value 10.0 for MAXRED is
+          used.
+          On exit, if the 1-norm of the given matrix S is non-zero,
+          the ratio between the 1-norm of the given matrix and the
+          1-norm of the balanced matrix.
+
+  A       (input/output) DOUBLE PRECISION array, dimension (LDA,N)
+          On entry, the leading N-by-N part of this array must
+          contain the system state matrix A.
+          On exit, the leading N-by-N part of this array contains
+          the balanced matrix inv(D)*A*D.
+
+  LDA     INTEGER
+          The leading dimension of the array A.  LDA &gt;= max(1,N).
+
+  B       (input/output) DOUBLE PRECISION array, dimension (LDB,M)
+          On entry, if M &gt; 0, the leading N-by-M part of this array
+          must contain the system input matrix B.
+          On exit, if M &gt; 0, the leading N-by-M part of this array
+          contains the balanced matrix inv(D)*B.
+          The array B is not referenced if M = 0.
+
+  LDB     INTEGER
+          The leading dimension of the array B.
+          LDB &gt;= MAX(1,N) if M &gt; 0.
+          LDB &gt;= 1        if M = 0.
+
+  C       (input/output) DOUBLE PRECISION array, dimension (LDC,N)
+          On entry, if P &gt; 0, the leading P-by-N part of this array
+          must contain the system output matrix C.
+          On exit, if P &gt; 0, the leading P-by-N part of this array
+          contains the balanced matrix C*D.
+          The array C is not referenced if P = 0.
+
+  LDC     INTEGER
+          The leading dimension of the array C.  LDC &gt;= MAX(1,P).
+
+  SCALE   (output) DOUBLE PRECISION array, dimension (N)
+          The scaling factors applied to S.  If D(j) is the scaling
+          factor applied to row and column j, then SCALE(j) = D(j),
+          for j = 1,...,N.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit.
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  Balancing consists of applying a diagonal similarity
+  transformation
+                        -1
+               diag(D,I)  * S * diag(D,I)
+
+  to make the 1-norms of each row of the first N rows of S and its
+  corresponding column nearly equal.
+
+  Information about the diagonal matrix D is returned in the vector
+  SCALE.
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Anderson, E., Bai, Z., Bischof, C., Demmel, J., Dongarra, J.,
+      Du Croz, J., Greenbaum, A., Hammarling, S., McKenney, A.,
+      Ostrouchov, S., and Sorensen, D.
+      LAPACK Users' Guide: Second Edition.
+      SIAM, Philadelphia, 1995.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  None.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+*     TB01ID EXAMPLE PROGRAM TEXT.
+*
+*     .. Parameters ..
+      INTEGER          NIN, NOUT
+      PARAMETER        ( NIN = 5, NOUT = 6 )
+      INTEGER          NMAX, MMAX, PMAX
+      PARAMETER        ( NMAX = 20, MMAX = 20, PMAX = 20 )
+      INTEGER          LDA, LDB, LDC
+      PARAMETER        ( LDA = NMAX, LDB = NMAX, LDC = PMAX )
+*     .. Local Scalars ..
+      CHARACTER*1      JOB
+      INTEGER          I, INFO, J, M, N, P
+      DOUBLE PRECISION MAXRED
+*     .. Local Arrays ..
+      DOUBLE PRECISION A(LDA,NMAX), B(LDB,MMAX), C(LDC,NMAX),
+     $                 SCALE(NMAX)
+*     .. External Subroutines ..
+      EXTERNAL         TB01ID, UD01MD
+*     .. Executable Statements ..
+*
+      WRITE ( NOUT, FMT = 99999 )
+*     Skip the heading in the data file and read the data.
+      READ ( NIN, FMT = '()' )
+      READ ( NIN, FMT = * ) N, M, P, JOB, MAXRED
+      IF ( N.LT.0 .OR. N.GT.NMAX ) THEN
+         WRITE ( NOUT, FMT = 99993 ) N
+      ELSE
+         READ ( NIN, FMT = * ) ( ( A(I,J), J = 1,N ), I = 1,N )
+         IF ( M.LT.0 .OR. M.GT.MMAX ) THEN
+            WRITE ( NOUT, FMT = 99992 ) M
+         ELSE
+            READ ( NIN, FMT = * ) ( ( B(I,J), J = 1,M ), I = 1,N )
+            IF ( P.LT.0 .OR. P.GT.MMAX ) THEN
+               WRITE ( NOUT, FMT = 99991 ) P
+            ELSE
+               READ ( NIN, FMT = * ) ( ( C(I,J), J = 1,N ), I = 1,P )
+*              Balance system matrix S.
+               CALL TB01ID( JOB, N, M, P, MAXRED, A, LDA, B, LDB, C,
+     $                      LDC, SCALE, INFO )
+*
+               IF ( INFO.NE.0 ) THEN
+                  WRITE ( NOUT, FMT = 99998 ) INFO
+               ELSE
+                  CALL UD01MD( N, N, 5, NOUT, A, LDA,
+     $                        'The balanced matrix A', INFO )
+                  IF ( M.GT.0 )
+     $               CALL UD01MD( N, M, 5, NOUT, B, LDB,
+     $                            'The balanced matrix B', INFO )
+                  IF ( P.GT.0 )
+     $               CALL UD01MD( P, N, 5, NOUT, C, LDC,
+     $                            'The balanced matrix C', INFO )
+                  CALL UD01MD( 1, N, 5, NOUT, SCALE, 1,
+     $                        'The scaling vector SCALE', INFO )
+                  WRITE ( NOUT, FMT = 99994 ) MAXRED
+               END IF
+            END IF
+         END IF
+      END IF
+      STOP
+*
+99999 FORMAT (' TB01ID EXAMPLE PROGRAM RESULTS',/1X)
+99998 FORMAT (' INFO on exit from TB01ID = ',I2)
+99994 FORMAT (/' MAXRED is ',E13.4)
+99993 FORMAT (/' N is out of range.',/' N = ',I5)
+99992 FORMAT (/' M is out of range.',/' M = ',I5)
+99991 FORMAT (/' P is out of range.',/' P = ',I5)
+      END
+</PRE>
+<B>Program Data</B>
+<PRE>
+ TB01ID EXAMPLE PROGRAM DATA
+   5     2     5       A    0.0
+          0.0  1.0000e+000          0.0          0.0          0.0
+ -1.5800e+006 -1.2570e+003          0.0          0.0          0.0
+  3.5410e+014          0.0 -1.4340e+003          0.0 -5.3300e+011
+          0.0          0.0          0.0          0.0  1.0000e+000
+          0.0          0.0          0.0 -1.8630e+004 -1.4820e+000
+          0.0          0.0
+  1.1030e+002          0.0
+          0.0          0.0
+          0.0          0.0
+          0.0  8.3330e-003
+  1.0000e+000          0.0          0.0          0.0          0.0
+          0.0          0.0  1.0000e+000          0.0          0.0
+          0.0          0.0          0.0  1.0000e+000          0.0
+  6.6640e-001          0.0 -6.2000e-013          0.0          0.0
+          0.0          0.0 -1.0000e-003  1.8960e+006  1.5080e+002
+</PRE>
+<B>Program Results</B>
+<PRE>
+ TB01ID EXAMPLE PROGRAM RESULTS
+
+ The balanced matrix A ( 5X 5)
+
+            1              2              3              4              5
+  1    0.0000000D+00  0.1000000D+05  0.0000000D+00  0.0000000D+00  0.0000000D+00
+  2   -0.1580000D+03 -0.1257000D+04  0.0000000D+00  0.0000000D+00  0.0000000D+00
+  3    0.3541000D+05  0.0000000D+00 -0.1434000D+04  0.0000000D+00 -0.5330000D+03
+  4    0.0000000D+00  0.0000000D+00  0.0000000D+00  0.0000000D+00  0.1000000D+03
+  5    0.0000000D+00  0.0000000D+00  0.0000000D+00 -0.1863000D+03 -0.1482000D+01
+ 
+ The balanced matrix B ( 5X 2)
+
+            1              2
+  1    0.0000000D+00  0.0000000D+00
+  2    0.1103000D+04  0.0000000D+00
+  3    0.0000000D+00  0.0000000D+00
+  4    0.0000000D+00  0.0000000D+00
+  5    0.0000000D+00  0.8333000D+02
+ 
+ The balanced matrix C ( 5X 5)
+
+            1              2              3              4              5
+  1    0.1000000D-04  0.0000000D+00  0.0000000D+00  0.0000000D+00  0.0000000D+00
+  2    0.0000000D+00  0.0000000D+00  0.1000000D+06  0.0000000D+00  0.0000000D+00
+  3    0.0000000D+00  0.0000000D+00  0.0000000D+00  0.1000000D-05  0.0000000D+00
+  4    0.6664000D-05  0.0000000D+00 -0.6200000D-07  0.0000000D+00  0.0000000D+00
+  5    0.0000000D+00  0.0000000D+00 -0.1000000D+03  0.1896000D+01  0.1508000D-01
+ 
+ The scaling vector SCALE ( 1X 5)
+
+            1              2              3              4              5
+  1    0.1000000D-04  0.1000000D+00  0.1000000D+06  0.1000000D-05  0.1000000D-03
+ 
+
+ MAXRED is    0.3488E+10
+</PRE>
+
+<HR>
+<p>
+<A HREF=..\libindex.html><B>Return to index</B></A></BODY>
+</HTML>

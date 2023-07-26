@@ -1,0 +1,238 @@
+<HTML>
+<HEAD><TITLE>MB04QB - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MB04QB">MB04QB</A></H2>
+<H3>
+Applying a product of symplectic reflectors and Givens rotations to two general real matrices
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To overwrite general real m-by-n matrices C and D, or their
+  transposes, with
+
+            [ op(C) ]
+      Q  *  [       ]   if TRANQ = 'N', or
+            [ op(D) ]
+
+       T    [ op(C) ]
+      Q  *  [       ]   if TRANQ = 'T',
+            [ op(D) ]
+
+  where Q is defined as the product of symplectic reflectors and
+  Givens rotations,
+
+      Q = diag( H(1),H(1) ) G(1) diag( F(1),F(1) )
+          diag( H(2),H(2) ) G(2) diag( F(2),F(2) )
+                            ....
+          diag( H(k),H(k) ) G(k) diag( F(k),F(k) ).
+
+  Blocked version.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MB04QB( TRANC, TRAND, TRANQ, STOREV, STOREW, M, N, K,
+     $                   V, LDV, W, LDW, C, LDC, D, LDD, CS, TAU, DWORK,
+     $                   LDWORK, INFO )
+C     .. Scalar Arguments ..
+      CHARACTER         STOREV, STOREW, TRANC, TRAND, TRANQ
+      INTEGER           INFO, K, LDC, LDD, LDV, LDW, LDWORK, M, N
+C     .. Array Arguments ..
+      DOUBLE PRECISION  C(LDC,*), CS(*), D(LDD,*), DWORK(*), TAU(*),
+     $                  V(LDV,*), W(LDW,*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  TRANC   CHARACTER*1
+          Specifies the form of op( C ) as follows:
+          = 'N':  op( C ) = C;
+          = 'T':  op( C ) = C';
+          = 'C':  op( C ) = C'.
+
+  TRAND   CHARACTER*1
+          Specifies the form of op( D ) as follows:
+          = 'N':  op( D ) = D;
+          = 'T':  op( D ) = D';
+          = 'C':  op( D ) = D'.
+
+  TRANQ   CHARACTER*1
+          = 'N':  apply Q;
+          = 'T':  apply Q'.
+
+  STOREV  CHARACTER*1
+          Specifies how the vectors which define the concatenated
+          Householder reflectors contained in V are stored:
+          = 'C':  columnwise;
+          = 'R':  rowwise.
+
+  STOREW  CHARACTER*1
+          Specifies how the vectors which define the concatenated
+          Householder reflectors contained in W are stored:
+          = 'C':  columnwise;
+          = 'R':  rowwise.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  M       (input) INTEGER
+          The number of rows of the matrices op(C) and op(D).
+          M &gt;= 0.
+
+  N       (input) INTEGER
+          The number of columns of the matrices op(C) and op(D).
+          N &gt;= 0.
+
+  K       (input) INTEGER
+          The number of elementary reflectors whose product defines
+          the matrix Q.  M &gt;= K &gt;= 0.
+
+  V       (input) DOUBLE PRECISION array, dimension
+                  (LDV,K) if STOREV = 'C',
+                  (LDV,M) if STOREV = 'R'
+          On entry with STOREV = 'C', the leading M-by-K part of
+          this array must contain in its columns the vectors which
+          define the elementary reflectors F(i).
+          On entry with STOREV = 'R', the leading K-by-M part of
+          this array must contain in its rows the vectors which
+          define the elementary reflectors F(i).
+
+  LDV     INTEGER
+          The leading dimension of the array V.
+          LDV &gt;= MAX(1,M),  if STOREV = 'C';
+          LDV &gt;= MAX(1,K),  if STOREV = 'R'.
+
+  W       (input) DOUBLE PRECISION array, dimension
+                  (LDW,K) if STOREW = 'C',
+                  (LDW,M) if STOREW = 'R'
+          On entry with STOREW = 'C', the leading M-by-K part of
+          this array must contain in its columns the vectors which
+          define the elementary reflectors H(i).
+          On entry with STOREW = 'R', the leading K-by-M part of
+          this array must contain in its rows the vectors which
+          define the elementary reflectors H(i).
+
+  LDW     INTEGER
+          The leading dimension of the array W.
+          LDW &gt;= MAX(1,M),  if STOREW = 'C';
+          LDW &gt;= MAX(1,K),  if STOREW = 'R'.
+
+  C       (input/output) DOUBLE PRECISION array, dimension
+                  (LDC,N) if TRANC = 'N',
+                  (LDC,M) if TRANC = 'T' or TRANC = 'C'
+          On entry with TRANC = 'N', the leading M-by-N part of
+          this array must contain the matrix C.
+          On entry with TRANC = 'C' or TRANC = 'T', the leading
+          N-by-M part of this array must contain the transpose of
+          the matrix C.
+          On exit with TRANC = 'N', the leading M-by-N part of
+          this array contains the updated matrix C.
+          On exit with TRANC = 'C' or TRANC = 'T', the leading
+          N-by-M part of this array contains the transpose of the
+          updated matrix C.
+
+  LDC     INTEGER
+          The leading dimension of the array C.
+          LDC &gt;= MAX(1,M),  if TRANC = 'N';
+          LDC &gt;= MAX(1,N),  if TRANC = 'T' or TRANC = 'C'.
+
+  D       (input/output) DOUBLE PRECISION array, dimension
+                  (LDD,N) if TRAND = 'N',
+                  (LDD,M) if TRAND = 'T' or TRAND = 'C'
+          On entry with TRAND = 'N', the leading M-by-N part of
+          this array must contain the matrix D.
+          On entry with TRAND = 'C' or TRAND = 'T', the leading
+          N-by-M part of this array must contain the transpose of
+          the matrix D.
+          On exit with TRAND = 'N', the leading M-by-N part of
+          this array contains the updated matrix D.
+          On exit with TRAND = 'C' or TRAND = 'T', the leading
+          N-by-M part of this array contains the transpose of the
+          updated matrix D.
+
+  LDD     INTEGER
+          The leading dimension of the array D.
+          LDD &gt;= MAX(1,M),  if TRAND = 'N';
+          LDD &gt;= MAX(1,N),  if TRAND = 'T' or TRAND = 'C'.
+
+  CS      (input) DOUBLE PRECISION array, dimension (2*K)
+          On entry, the first 2*K elements of this array must
+          contain the cosines and sines of the symplectic Givens
+          rotations G(i).
+
+  TAU     (input) DOUBLE PRECISION array, dimension (K)
+          On entry, the first K elements of this array must
+          contain the scalar factors of the elementary reflectors
+          F(i).
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+          On exit, if INFO = 0,  DWORK(1)  returns the optimal
+          value of LDWORK.
+          On exit, if  INFO = -20,  DWORK(1)  returns the minimum
+          value of LDWORK.
+
+  LDWORK  INTEGER
+          The length of the array DWORK.  LDWORK &gt;= MAX(1,N).
+
+          If LDWORK = -1, then a workspace query is assumed;
+          the routine only calculates the optimal size of the
+          DWORK array, returns this value as the first entry of
+          the DWORK array, and no error message related to LDWORK
+          is issued by XERBLA.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value.
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Kressner, D.
+      Block algorithms for orthogonal symplectic factorizations.
+      BIT, 43 (4), pp. 775-790, 2003.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

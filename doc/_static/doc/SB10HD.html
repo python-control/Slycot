@@ -1,0 +1,417 @@
+<HTML>
+<HEAD><TITLE>SB10HD - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="SB10HD">SB10HD</A></H2>
+<H3>
+H2 optimal state controller for a continuous-time system
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To compute the matrices of the H2 optimal n-state controller
+
+           | AK | BK |
+       K = |----|----|
+           | CK | DK |
+
+  for the system
+
+                | A  | B1  B2  |   | A | B |
+            P = |----|---------| = |---|---| ,
+                | C1 |  0  D12 |   | C | D |
+                | C2 | D21 D22 |
+
+  where B2 has as column size the number of control inputs (NCON)
+  and C2 has as row size the number of measurements (NMEAS) being
+  provided to the controller.
+
+  It is assumed that
+
+  (A1) (A,B2) is stabilizable and (C2,A) is detectable,
+
+  (A2) The block D11 of D is zero,
+
+  (A3) D12 is full column rank and D21 is full row rank.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE SB10HD( N, M, NP, NCON, NMEAS, A, LDA, B, LDB, C, LDC,
+     $                   D, LDD, AK, LDAK, BK, LDBK, CK, LDCK, DK, LDDK,
+     $                   RCOND, TOL, IWORK, DWORK, LDWORK, BWORK, INFO )
+C     .. Scalar Arguments ..
+      INTEGER            INFO, LDA, LDAK, LDB, LDBK, LDC, LDCK, LDD,
+     $                   LDDK, LDWORK, M, N, NCON, NMEAS, NP
+      DOUBLE PRECISION   TOL
+C     .. Array Arguments ..
+      LOGICAL            BWORK( * )
+      INTEGER            IWORK( * )
+      DOUBLE PRECISION   A( LDA, * ), AK( LDAK, * ), B( LDB, * ),
+     $                   BK( LDBK, * ), C( LDC, * ), CK( LDCK, * ),
+     $                   D( LDD, * ), DK( LDDK, * ), DWORK( * ),
+     $                   RCOND( 4 )
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The order of the system.  N &gt;= 0.
+
+  M       (input) INTEGER
+          The column size of the matrix B.  M &gt;= 0.
+
+  NP      (input) INTEGER
+          The row size of the matrix C.  NP &gt;= 0.
+
+  NCON    (input) INTEGER
+          The number of control inputs (M2).  M &gt;= NCON &gt;= 0,
+          NP-NMEAS &gt;= NCON.
+
+  NMEAS   (input) INTEGER
+          The number of measurements (NP2).  NP &gt;= NMEAS &gt;= 0,
+          M-NCON &gt;= NMEAS.
+
+  A       (input) DOUBLE PRECISION array, dimension (LDA,N)
+          The leading N-by-N part of this array must contain the
+          system state matrix A.
+
+  LDA     INTEGER
+          The leading dimension of the array A.  LDA &gt;= max(1,N).
+
+  B       (input) DOUBLE PRECISION array, dimension (LDB,M)
+          The leading N-by-M part of this array must contain the
+          system input matrix B.
+
+  LDB     INTEGER
+          The leading dimension of the array B.  LDB &gt;= max(1,N).
+
+  C       (input) DOUBLE PRECISION array, dimension (LDC,N)
+          The leading NP-by-N part of this array must contain the
+          system output matrix C.
+
+  LDC     INTEGER
+          The leading dimension of the array C.  LDC &gt;= max(1,NP).
+
+  D       (input) DOUBLE PRECISION array, dimension (LDD,M)
+          The leading NP-by-M part of this array must contain the
+          system input/output matrix D.
+
+  LDD     INTEGER
+          The leading dimension of the array D.  LDD &gt;= max(1,NP).
+
+  AK      (output) DOUBLE PRECISION array, dimension (LDAK,N)
+          The leading N-by-N part of this array contains the
+          controller state matrix AK.
+
+  LDAK    INTEGER
+          The leading dimension of the array AK.  LDAK &gt;= max(1,N).
+
+  BK      (output) DOUBLE PRECISION array, dimension (LDBK,NMEAS)
+          The leading N-by-NMEAS part of this array contains the
+          controller input matrix BK.
+
+  LDBK    INTEGER
+          The leading dimension of the array BK.  LDBK &gt;= max(1,N).
+
+  CK      (output) DOUBLE PRECISION array, dimension (LDCK,N)
+          The leading NCON-by-N part of this array contains the
+          controller output matrix CK.
+
+  LDCK    INTEGER
+          The leading dimension of the array CK.
+          LDCK &gt;= max(1,NCON).
+
+  DK      (output) DOUBLE PRECISION array, dimension (LDDK,NMEAS)
+          The leading NCON-by-NMEAS part of this array contains the
+          controller input/output matrix DK.
+
+  LDDK    INTEGER
+          The leading dimension of the array DK.
+          LDDK &gt;= max(1,NCON).
+
+  RCOND   (output) DOUBLE PRECISION array, dimension (4)
+          RCOND(1) contains the reciprocal condition number of the
+                   control transformation matrix;
+          RCOND(2) contains the reciprocal condition number of the
+                   measurement transformation matrix;
+          RCOND(3) contains an estimate of the reciprocal condition
+                   number of the X-Riccati equation;
+          RCOND(4) contains an estimate of the reciprocal condition
+                   number of the Y-Riccati equation.
+
+</PRE>
+<B>Tolerances</B>
+<PRE>
+  TOL     DOUBLE PRECISION
+          Tolerance used for controlling the accuracy of the applied
+          transformations for computing the normalized form in
+          SLICOT Library routine SB10UD. Transformation matrices
+          whose reciprocal condition numbers are less than TOL are
+          not allowed. If TOL &lt;= 0, then a default value equal to
+          sqrt(EPS) is used, where EPS is the relative machine
+          precision.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  IWORK   INTEGER array, dimension (max(2*N,N*N))
+
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+          On exit, if INFO = 0, DWORK(1) contains the optimal
+          LDWORK.
+
+  LDWORK  INTEGER
+          The dimension of the array DWORK.
+          LDWORK &gt;= N*M + NP*(N+M) + M2*M2 + NP2*NP2 +
+                    max(max(M2 + NP1*NP1 +
+                            max(NP1*N,3*M2+NP1,5*M2),
+                            NP2 + M1*M1 +
+                            max(M1*N,3*NP2+M1,5*NP2),
+                            N*M2,NP2*N,NP2*M2,1),
+                            N*(14*N+12+M2+NP2)+5),
+          where M1 = M - M2 and NP1 = NP - NP2.
+          For good performance, LDWORK must generally be larger.
+          Denoting Q = max(M1,M2,NP1,NP2), an upper bound is
+          2*Q*(3*Q+2*N)+max(1,Q*(Q+max(N,5)+1),N*(14*N+12+2*Q)+5).
+
+  BWORK   LOGICAL array, dimension (2*N)
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value;
+          = 1:  if the matrix D12 had not full column rank in
+                respect to the tolerance TOL;
+          = 2:  if the matrix D21 had not full row rank in respect
+                to the tolerance TOL;
+          = 3:  if the singular value decomposition (SVD) algorithm
+                did not converge (when computing the SVD of one of
+                the matrices D12 or D21).
+          = 4:  if the X-Riccati equation was not solved
+                successfully;
+          = 5:  if the Y-Riccati equation was not solved
+                successfully.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  The routine implements the formulas given in [1], [2].
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Zhou, K., Doyle, J.C., and Glover, K.
+      Robust and Optimal Control.
+      Prentice-Hall, Upper Saddle River, NJ, 1996.
+
+  [2] Balas, G.J., Doyle, J.C., Glover, K., Packard, A., and
+      Smith, R.
+      mu-Analysis and Synthesis Toolbox.
+      The MathWorks Inc., Natick, Mass., 1995.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  The accuracy of the result depends on the condition numbers of the
+  input and output transformations and on the condition numbers of
+  the two Riccati equations, as given by the values of RCOND(1),
+  RCOND(2), RCOND(3) and RCOND(4), respectively.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+*     SB10HD EXAMPLE PROGRAM TEXT
+*
+*     .. Parameters ..
+      INTEGER          NIN, NOUT
+      PARAMETER        ( NIN = 5, NOUT = 6 )
+      INTEGER          NMAX, MMAX, PMAX
+      PARAMETER        ( NMAX = 10, MMAX = 10, PMAX = 10 )
+      INTEGER          LDA, LDB, LDC, LDD, LDAK, LDBK, LDCK, LDDK
+      PARAMETER        ( LDA = NMAX, LDB = NMAX, LDC = PMAX, LDD = PMAX,
+     $                   LDAK = NMAX, LDBK = NMAX, LDCK = PMAX,
+     $                   LDDK = PMAX )
+      INTEGER          LIWORK
+      PARAMETER        ( LIWORK = MAX( 2*NMAX, NMAX*NMAX ) )
+      INTEGER          MPMX
+      PARAMETER        ( MPMX = MAX( MMAX, PMAX ) )
+      INTEGER          LDWORK
+      PARAMETER        ( LDWORK = 2*MPMX*( 2*NMAX + 3*MPMX ) +
+     $                   MAX( MPMX*( MPMX + MAX( NMAX, 5 ) + 1 ),
+     $                   NMAX*( 14*NMAX + 12 + 2*MPMX ) + 5 ) )
+*     .. Local Scalars ..
+      DOUBLE PRECISION TOL
+      INTEGER          I, INFO, J, M, N, NCON, NMEAS, NP
+*     .. Local Arrays ..
+      LOGICAL          BWORK(2*NMAX)
+      INTEGER          IWORK(LIWORK)
+      DOUBLE PRECISION A(LDA,NMAX), AK(LDA,NMAX), B(LDB,MMAX),
+     $                 BK(LDBK,MMAX), C(LDC,NMAX), CK(LDCK,NMAX),
+     $                 D(LDD,MMAX), DK(LDDK,MMAX), DWORK(LDWORK),
+     $                 RCOND( 4 )
+*     .. External Subroutines ..
+      EXTERNAL         SB10HD
+*     .. Intrinsic Functions ..
+      INTRINSIC        MAX
+*     .. Executable Statements ..
+*
+      WRITE ( NOUT, FMT = 99999 )
+*     Skip the heading in the data file and read the data.
+      READ ( NIN, FMT = '()' )
+      READ ( NIN, FMT = * ) N, M, NP, NCON, NMEAS
+      IF ( N.LT.0 .OR. N.GT.NMAX ) THEN
+         WRITE ( NOUT, FMT = 99990 ) N
+      ELSE IF ( M.LT.0 .OR. M.GT.MMAX ) THEN
+         WRITE ( NOUT, FMT = 99989 ) M
+      ELSE IF ( NP.LT.0 .OR. NP.GT.PMAX ) THEN
+         WRITE ( NOUT, FMT = 99988 ) NP
+      ELSE IF ( NCON.LT.0 .OR. NCON.GT.MMAX ) THEN
+         WRITE ( NOUT, FMT = 99987 ) NCON
+      ELSE IF ( NMEAS.LT.0 .OR. NMEAS.GT.PMAX ) THEN
+         WRITE ( NOUT, FMT = 99986 ) NMEAS
+      ELSE
+         READ ( NIN, FMT = * ) ( ( A(I,J), J = 1,N ), I = 1,N )
+         READ ( NIN, FMT = * ) ( ( B(I,J), J = 1,M ), I = 1,N )
+         READ ( NIN, FMT = * ) ( ( C(I,J), J = 1,N ), I = 1,NP )
+         READ ( NIN, FMT = * ) ( ( D(I,J), J = 1,M ), I = 1,NP )
+         READ ( NIN, FMT = * ) TOL
+*        Compute the optimal H2 controller
+         CALL SB10HD( N, M, NP, NCON, NMEAS, A, LDA, B, LDB,
+     $                C, LDC, D, LDD, AK, LDAK, BK, LDBK, CK, LDCK,
+     $                DK, LDDK, RCOND, TOL, IWORK, DWORK, LDWORK,
+     $                BWORK, INFO )
+*
+         IF ( INFO.EQ.0 ) THEN
+            WRITE ( NOUT, FMT = 99997 )
+            DO 10 I = 1, N
+               WRITE ( NOUT, FMT = 99992 ) ( AK(I,J), J = 1,N )
+   10       CONTINUE
+            WRITE ( NOUT, FMT = 99996 )
+            DO 20 I = 1, N
+               WRITE ( NOUT, FMT = 99992 ) ( BK(I,J), J = 1,NMEAS )
+   20       CONTINUE
+            WRITE ( NOUT, FMT = 99995 )
+            DO 30 I = 1, NCON
+               WRITE ( NOUT, FMT = 99992 ) ( CK(I,J), J = 1,N )
+   30       CONTINUE
+            WRITE ( NOUT, FMT = 99994 )
+            DO 40 I = 1, NCON
+               WRITE ( NOUT, FMT = 99992 ) ( DK(I,J), J = 1,NMEAS )
+   40       CONTINUE
+            WRITE( NOUT, FMT = 99993 )
+            WRITE( NOUT, FMT = 99991 ) ( RCOND(I), I = 1, 4 )
+         ELSE
+            WRITE( NOUT, FMT = 99998 ) INFO
+         END IF
+      END IF
+      STOP
+*
+99999 FORMAT (' SB10HD EXAMPLE PROGRAM RESULTS',/1X)
+99998 FORMAT (/' INFO on exit from SB10HD =',I2)
+99997 FORMAT (' The controller state matrix AK is'/)
+99996 FORMAT (/' The controller input matrix BK is'/)
+99995 FORMAT (/' The controller output matrix CK is'/)
+99994 FORMAT (/' The controller matrix DK is'/)
+99993 FORMAT (/' The estimated condition numbers are'/)
+99992 FORMAT (6(1X,F10.4))
+99991 FORMAT (5(1X,D12.5))
+99990 FORMAT (/' N is out of range.',/' N = ',I5)
+99989 FORMAT (/' M is out of range.',/' M = ',I5)
+99988 FORMAT (/' N is out of range.',/' N = ',I5)
+99987 FORMAT (/' NCON is out of range.',/' NCON = ',I5)
+99986 FORMAT (/' NMEAS is out of range.',/' NMEAS = ',I5)
+      END
+</PRE>
+<B>Program Data</B>
+<PRE>
+ SB10HD EXAMPLE PROGRAM DATA
+   6     5     5     2     2
+  -1.0  0.0  4.0  5.0 -3.0 -2.0
+  -2.0  4.0 -7.0 -2.0  0.0  3.0
+  -6.0  9.0 -5.0  0.0  2.0 -1.0
+  -8.0  4.0  7.0 -1.0 -3.0  0.0
+   2.0  5.0  8.0 -9.0  1.0 -4.0
+   3.0 -5.0  8.0  0.0  2.0 -6.0
+  -3.0 -4.0 -2.0  1.0  0.0
+   2.0  0.0  1.0 -5.0  2.0
+  -5.0 -7.0  0.0  7.0 -2.0
+   4.0 -6.0  1.0  1.0 -2.0
+  -3.0  9.0 -8.0  0.0  5.0
+   1.0 -2.0  3.0 -6.0 -2.0
+   1.0 -1.0  2.0 -4.0  0.0 -3.0
+  -3.0  0.0  5.0 -1.0  1.0  1.0
+  -7.0  5.0  0.0 -8.0  2.0 -2.0
+   9.0 -3.0  4.0  0.0  3.0  7.0
+   0.0  1.0 -2.0  1.0 -6.0 -2.0
+   0.0  0.0  0.0 -4.0 -1.0
+   0.0  0.0  0.0  1.0  0.0
+   0.0  0.0  0.0  0.0  1.0
+   3.0  1.0  0.0  1.0 -3.0
+  -2.0  0.0  1.0  7.0  1.0
+   0.00000001
+</PRE>
+<B>Program Results</B>
+<PRE>
+ SB10HD EXAMPLE PROGRAM RESULTS
+
+ The controller state matrix AK is
+
+    88.0015  -145.7298   -46.2424    82.2168   -45.2996   -31.1407
+    25.7489   -31.4642   -12.4198     9.4625    -3.5182     2.7056
+    54.3008  -102.4013   -41.4968    50.8412   -20.1286   -26.7191
+   108.1006  -198.0785   -45.4333    70.3962   -25.8591   -37.2741
+  -115.8900   226.1843    47.2549   -47.8435   -12.5004    34.7474
+    59.0362  -101.8471   -20.1052    36.7834   -16.1063   -26.4309
+
+ The controller input matrix BK is
+
+     3.7345     3.4758
+    -0.3020     0.6530
+     3.4735     4.0499
+     4.3198     7.2755
+    -3.9424   -10.5942
+     2.1784     2.5048
+
+ The controller output matrix CK is
+
+    -2.3346     3.2556     0.7150    -0.9724     0.6962     0.4074
+     7.6899    -8.4558    -2.9642     7.0365    -4.2844     0.1390
+
+ The controller matrix DK is
+
+     0.0000     0.0000
+     0.0000     0.0000
+
+ The estimated condition numbers are
+
+  0.23570D+00  0.26726D+00  0.22747D-01  0.21130D-02
+</PRE>
+
+<HR>
+<p>
+<A HREF=..\libindex.html><B>Return to index</B></A></BODY>
+</HTML>

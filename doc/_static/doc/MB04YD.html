@@ -1,0 +1,444 @@
+<HTML>
+<HEAD><TITLE>MB04YD - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MB04YD">MB04YD</A></H2>
+<H3>
+Partial diagonalization of a bidiagonal matrix
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To partially diagonalize the bidiagonal matrix
+
+            |q(1) e(1)  0    ...       0      |
+            | 0   q(2) e(2)            .      |
+        J = | .                        .      |                  (1)
+            | .                  e(MIN(M,N)-1)|
+            | 0   ...        ...  q(MIN(M,N)) |
+
+  using QR or QL iterations in such a way that J is split into
+  unreduced bidiagonal submatrices whose singular values are either
+  all larger than a given bound or are all smaller than (or equal
+  to) this bound. The left- and right-hand Givens rotations
+  performed on J (corresponding to each QR or QL iteration step) may
+  be optionally accumulated in the arrays U and V.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MB04YD( JOBU, JOBV, M, N, RANK, THETA, Q, E, U, LDU, V,
+     $                   LDV, INUL, TOL, RELTOL, DWORK, LDWORK, IWARN,
+     $                   INFO )
+C     .. Scalar Arguments ..
+      CHARACTER         JOBU, JOBV
+      INTEGER           INFO, IWARN, LDU, LDV, LDWORK, M, N, RANK
+      DOUBLE PRECISION  RELTOL, THETA, TOL
+C     .. Array Arguments ..
+      LOGICAL           INUL(*)
+      DOUBLE PRECISION  DWORK(*), E(*), Q(*), U(LDU,*), V(LDV,*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  JOBU    CHARACTER*1
+          Indicates whether the user wishes to accumulate in a
+          matrix U the left-hand Givens rotations, as follows:
+          = 'N':  Do not form U;
+          = 'I':  U is initialized to the M-by-MIN(M,N) submatrix of
+                  the unit matrix and the left-hand Givens rotations
+                  are accumulated in U;
+          = 'U':  The given matrix U is updated by the left-hand
+                  Givens rotations used in the calculation.
+
+  JOBV    CHARACTER*1
+          Indicates whether the user wishes to accumulate in a
+          matrix V the right-hand Givens rotations, as follows:
+          = 'N':  Do not form V;
+          = 'I':  V is initialized to the N-by-MIN(M,N) submatrix of
+                  the unit matrix and the right-hand Givens
+                  rotations are accumulated in V;
+          = 'U':  The given matrix V is updated by the right-hand
+                  Givens rotations used in the calculation.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  M       (input) INTEGER
+          The number of rows in matrix U.  M &gt;= 0.
+
+  N       (input) INTEGER
+          The number of rows in matrix V.  N &gt;= 0.
+
+  RANK    (input/output) INTEGER
+          On entry, if RANK &lt; 0, then the rank of matrix J is
+          computed by the routine as the number of singular values
+          larger than THETA.
+          Otherwise, RANK must specify the rank of matrix J.
+          RANK &lt;= MIN(M,N).
+          On exit, if RANK &lt; 0 on entry, then RANK contains the
+          computed rank of J. That is, the number of singular
+          values of J larger than THETA.
+          Otherwise, the user-supplied value of RANK may be
+          changed by the routine on exit if the RANK-th and the
+          (RANK+1)-th singular values of J are considered to be
+          equal. See also the parameter TOL.
+
+  THETA   (input/output) DOUBLE PRECISION
+          On entry, if RANK &lt; 0, then THETA must specify an upper
+          bound on the smallest singular values of J. THETA &gt;= 0.0.
+          Otherwise, THETA must specify an initial estimate (t say)
+          for computing an upper bound such that precisely RANK
+          singular values are greater than this bound.
+          If THETA &lt; 0.0, then t is computed by the routine.
+          On exit, if RANK &gt;= 0 on entry, then THETA contains the
+          computed upper bound such that precisely RANK singular
+          values of J are greater than THETA + TOL.
+          Otherwise, THETA is unchanged.
+
+  Q       (input/output) DOUBLE PRECISION array, dimension
+          (MIN(M,N))
+          On entry, this array must contain the diagonal elements
+          q(1),q(2),...,q(MIN(M,N)) of the bidiagonal matrix J. That
+          is, Q(i) = J(i,i) for i = 1,2,...,MIN(M,N).
+          On exit, this array contains the leading diagonal of the
+          transformed bidiagonal matrix J.
+
+  E       (input/output) DOUBLE PRECISION array, dimension
+          (MIN(M,N)-1)
+          On entry, this array must contain the superdiagonal
+          elements e(1),e(2),...,e(MIN(M,N)-1) of the bidiagonal
+          matrix J. That is, E(k) = J(k,k+1) for k = 1,2,...,
+          MIN(M,N)-1.
+          On exit, this array contains the superdiagonal of the
+          transformed bidiagonal matrix J.
+
+  U       (input/output) DOUBLE PRECISION array, dimension (LDU,*)
+          On entry, if JOBU = 'U', the leading M-by-MIN(M,N) part
+          of this array must contain a left transformation matrix
+          applied to the original matrix of the problem, and
+          on exit, the leading M-by-MIN(M,N) part of this array
+          contains the product of the input matrix U and the
+          left-hand Givens rotations.
+          On exit, if JOBU = 'I', then the leading M-by-MIN(M,N)
+          part of this array contains the matrix of accumulated
+          left-hand Givens rotations used.
+          If JOBU = 'N', the array U is not referenced and can be
+          supplied as a dummy array (i.e. set parameter LDU = 1 and
+          declare this array to be U(1,1) in the calling program).
+
+  LDU     INTEGER
+          The leading dimension of array U. If JOBU = 'U' or
+          JOBU = 'I', LDU &gt;= MAX(1,M); if JOBU = 'N', LDU &gt;= 1.
+
+  V       (input/output) DOUBLE PRECISION array, dimension (LDV,*)
+          On entry, if JOBV = 'U', the leading N-by-MIN(M,N) part
+          of this array must contain a right transformation matrix
+          applied to the original matrix of the problem, and
+          on exit, the leading N-by-MIN(M,N) part of this array
+          contains the product of the input matrix V and the
+          right-hand Givens rotations.
+          On exit, if JOBV = 'I', then the leading N-by-MIN(M,N)
+          part of this array contains the matrix of accumulated
+          right-hand Givens rotations used.
+          If JOBV = 'N', the array V is not referenced and can be
+          supplied as a dummy array (i.e. set parameter LDV = 1 and
+          declare this array to be V(1,1) in the calling program).
+
+  LDV     INTEGER
+          The leading dimension of array V. If JOBV = 'U' or
+          JOBV = 'I', LDV &gt;= MAX(1,N); if JOBV = 'N', LDV &gt;= 1.
+
+  INUL    (input/output) LOGICAL array, dimension (MIN(M,N))
+          On entry, the leading MIN(M,N) elements of this array must
+          be set to .FALSE. unless the i-th columns of U (if JOBU =
+          'U') and V (if JOBV = 'U') already contain a computed base
+          vector of the desired singular subspace of the original
+          matrix, in which case INUL(i) must be set to .TRUE.
+          for 1 &lt;= i &lt;= MIN(M,N).
+          On exit, the indices of the elements of this array with
+          value .TRUE. indicate the indices of the diagonal entries
+          of J which belong to those bidiagonal submatrices whose
+          singular values are all less than or equal to THETA.
+
+</PRE>
+<B>Tolerances</B>
+<PRE>
+  TOL     DOUBLE PRECISION
+          This parameter defines the multiplicity of singular values
+          by considering all singular values within an interval of
+          length TOL as coinciding. TOL is used in checking how many
+          singular values are less than or equal to THETA. Also in
+          computing an appropriate upper bound THETA by a bisection
+          method, TOL is used as a stopping criterion defining the
+          minimum (absolute) subinterval width. TOL is also taken
+          as an absolute tolerance for negligible elements in the
+          QR/QL iterations. If the user sets TOL to be less than or
+          equal to 0, then the tolerance is taken as
+          EPS * MAX(ABS(Q(i)), ABS(E(k))), where EPS is the
+          machine precision (see LAPACK Library routine DLAMCH),
+          i = 1,2,...,MIN(M,N) and k = 1,2,...,MIN(M,N)-1.
+
+  RELTOL  DOUBLE PRECISION
+          This parameter specifies the minimum relative width of an
+          interval. When an interval is narrower than TOL, or than
+          RELTOL times the larger (in magnitude) endpoint, then it
+          is considered to be sufficiently small and bisection has
+          converged. If the user sets RELTOL to be less than
+          BASE * EPS, where BASE is machine radix and EPS is machine
+          precision (see LAPACK Library routine DLAMCH), then the
+          tolerance is taken as BASE * EPS.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+
+  LDWORK  INTEGER
+          The length of the array DWORK.
+          LDWORK &gt;= MAX(1,6*MIN(M,N)-5), if JOBU = 'I' or 'U', or
+                                            JOBV = 'I' or 'U';
+          LDWORK &gt;= MAX(1,4*MIN(M,N)-3), if JOBU = 'N' and
+                                            JOBV = 'N'.
+
+</PRE>
+<B>Warning Indicator</B>
+<PRE>
+  IWARN   INTEGER
+          = 0:  no warning;
+          = 1:  if the rank of the bidiagonal matrix J (as specified
+                by the user) has been lowered because a singular
+                value of multiplicity larger than 1 was found.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value; this includes values like RANK &gt; MIN(M,N), or
+                THETA &lt; 0.0 and RANK &lt; 0;
+          = 1:  if the maximum number of QR/QL iteration steps
+                (30*MIN(M,N)) has been exceeded.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  If the upper bound THETA is not specified by the user, then it is
+  computed by the routine (using a bisection method) such that
+  precisely (MIN(M,N) - RANK) singular values of J are less than or
+  equal to THETA + TOL.
+
+  The method used by the routine (see [1]) then proceeds as follows.
+
+  The unreduced bidiagonal submatrices of J(j), where J(j) is the
+  transformed bidiagonal matrix after the j-th iteration step, are
+  classified into the following three classes:
+
+  - C1 contains the bidiagonal submatrices with all singular values
+    &gt; THETA,
+  - C2 contains the bidiagonal submatrices with all singular values
+    &lt;= THETA and
+  - C3 contains the bidiagonal submatrices with singular values
+    &gt; THETA and also singular values &lt;= THETA.
+
+  If C3 is empty, then the partial diagonalization is complete, and
+  RANK is the sum of the dimensions of the bidiagonal submatrices of
+  C1.
+  Otherwise, QR or QL iterations are performed on each bidiagonal
+  submatrix of C3, until this bidiagonal submatrix has been split
+  into two bidiagonal submatrices. These two submatrices are then
+  classified and the iterations are restarted.
+  If the upper left diagonal element of the bidiagonal submatrix is
+  larger than its lower right diagonal element, then QR iterations
+  are performed, else QL iterations are used. The shift is taken as
+  the smallest diagonal element of the bidiagonal submatrix (in
+  magnitude) unless its value exceeds THETA, in which case it is
+  taken as zero.
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Van Huffel, S., Vandewalle, J. and Haegemans, A.
+      An efficient and reliable algorithm for computing the
+      singular subspace of a matrix associated with its smallest
+      singular values.
+      J. Comput. and Appl. Math., 19, pp. 313-330, 1987.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  The algorithm is backward stable.
+
+  To avoid overflow, matrix J is scaled so that its largest element
+  is no greater than  overflow**(1/2) * underflow**(1/4) in absolute
+  value (and not much smaller than that, for maximal accuracy).
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+*     MB04YD EXAMPLE PROGRAM TEXT
+*
+*     .. Parameters ..
+      DOUBLE PRECISION ZERO
+      PARAMETER        ( ZERO = 0.0D0 )
+      INTEGER          NIN, NOUT
+      PARAMETER        ( NIN = 5, NOUT = 6 )
+      INTEGER          MMAX, NMAX
+      PARAMETER        ( MMAX = 20, NMAX = 20 )
+      INTEGER          MNMIN
+      PARAMETER        ( MNMIN = MIN( MMAX, NMAX ) )
+      INTEGER          LDU, LDV
+      PARAMETER        ( LDU = MMAX, LDV = NMAX )
+      INTEGER          LDWORK
+      PARAMETER        ( LDWORK = 6*MNMIN - 5 )
+*     .. Local Scalars ..
+      DOUBLE PRECISION RELTOL, THETA, TOL
+      INTEGER          I, INFO, IWARN, J, M, MINMN, N, RANK, RANK1
+      CHARACTER*1      JOBU, JOBV
+      LOGICAL          LJOBUU, LJOBVU
+*     .. Local Arrays ..
+      DOUBLE PRECISION DWORK(LDWORK), E(MNMIN-1), Q(MNMIN),
+     $                 U(LDU,MNMIN), V(LDV,MNMIN)
+      LOGICAL          INUL(MNMIN)
+*     .. External Functions ..
+      LOGICAL          LSAME
+      EXTERNAL         LSAME
+*     .. External Subroutines ..
+      EXTERNAL         MB04YD
+*     .. Intrinsic Functions ..
+      INTRINSIC        MIN
+*     .. Executable Statements ..
+*
+      WRITE ( NOUT, FMT = 99999 )
+*     Skip the heading in the data file and read the data.
+      READ ( NIN, FMT = '()' )
+      READ ( NIN, FMT = * ) M, N, THETA, RANK, TOL, RELTOL, JOBU, JOBV
+      MINMN = MIN( M, N )
+      IF ( M.LT.0 .OR. M.GT.MMAX ) THEN
+         WRITE ( NOUT, FMT = 99988 ) M
+      ELSE IF ( N.LT.0 .OR. N.GT.NMAX ) THEN
+         WRITE ( NOUT, FMT = 99987 ) N
+      ELSE IF ( RANK.GT.MINMN ) THEN
+         WRITE ( NOUT, FMT = 99986 ) RANK
+      ELSE IF ( RANK.LT.0 .AND. THETA.LT.ZERO ) THEN
+         WRITE ( NOUT, FMT = 99985 ) THETA
+      ELSE
+         READ ( NIN, FMT = * ) ( Q(I), I = 1,MINMN )
+         READ ( NIN, FMT = * ) ( E(I), I = 1,MINMN-1 )
+         RANK1 = RANK
+         LJOBUU = LSAME( JOBU, 'U' )
+         LJOBVU = LSAME( JOBV, 'U' )
+         IF ( LJOBUU ) READ ( NIN, FMT = * )
+     $                      ( ( U(I,J), J = 1,MINMN ), I = 1,M )
+         IF ( LJOBVU ) READ ( NIN, FMT = * )
+     $                      ( ( V(I,J), J = 1,MINMN ), I = 1,N )
+*        Initialise the array INUL.
+         DO 20 I = 1, MINMN
+            INUL(I) = .FALSE.
+   20    CONTINUE
+         IF ( LJOBUU.OR.LJOBVU ) READ ( NIN, FMT = * )
+     $                                ( INUL(I), I = 1,MINMN )
+*        Compute the number of singular values of J > THETA.
+         CALL MB04YD( JOBU, JOBV, M, N, RANK, THETA, Q, E, U, LDU, V,
+     $                LDV, INUL, TOL, RELTOL, DWORK, LDWORK, IWARN,
+     $                INFO )
+*
+         IF ( INFO.NE.0 ) THEN
+            WRITE ( NOUT, FMT = 99998 ) INFO
+         ELSE
+            IF ( IWARN.NE.0 ) THEN
+               WRITE ( NOUT, FMT = 99993 ) IWARN
+               WRITE ( NOUT, FMT = 99984 ) RANK
+            END IF
+            WRITE ( NOUT, FMT = 99997 )
+            DO 160 I = 1, MINMN - 1
+               WRITE ( NOUT, FMT = 99996 ) I, I, Q(I), I, (I+1), E(I)
+  160       CONTINUE
+            WRITE ( NOUT, FMT = 99995 ) MINMN, MINMN, Q(MINMN)
+            IF ( RANK1.LT.0 ) WRITE ( NOUT, FMT = 99994 ) RANK, THETA
+            IF ( .NOT.LSAME( JOBV, 'N' ) ) THEN
+               WRITE ( NOUT, FMT = 99992 )
+               DO 180 I = 1, N
+                  WRITE ( NOUT, FMT = 99991 ) ( V(I,J), J = 1,MINMN )
+  180          CONTINUE
+            END IF
+            IF ( ( .NOT.LSAME( JOBU, 'N' ) ) .AND.
+     $           ( .NOT.LSAME( JOBV, 'N' ) ) )
+     $           WRITE ( NOUT, FMT = 99990 )
+            IF ( .NOT.LSAME( JOBU, 'N' ) ) THEN
+               WRITE ( NOUT, FMT = 99989 )
+               DO 200 I = 1, M
+                  WRITE ( NOUT, FMT = 99991 ) ( U(I,J), J = 1,MINMN )
+  200          CONTINUE
+            END IF
+         END IF
+      END IF
+      STOP
+*
+99999 FORMAT (' MB04YD EXAMPLE PROGRAM RESULTS',/1X)
+99998 FORMAT (' INFO on exit from MB04YD = ',I2)
+99997 FORMAT (' The transformed bidiagonal matrix J is',/)
+99996 FORMAT (2(' (',I1,',',I1,') = ',F7.4,2X))
+99995 FORMAT (' (',I1,',',I1,') = ',F7.4)
+99994 FORMAT (/' J has ',I2,' singular values >',F7.4,/)
+99993 FORMAT (' IWARN on exit from MB04YD = ',I2,/)
+99992 FORMAT (' The product of the right-hand Givens rotation matrices',
+     $       ' equals ')
+99991 FORMAT (20(1X,F8.4))
+99990 FORMAT (' ')
+99989 FORMAT (' The product of the left-hand Givens rotation matrices ',
+     $       'equals ')
+99988 FORMAT (/' M is out of range.',/' M = ',I5)
+99987 FORMAT (/' N is out of range.',/' N = ',I5)
+99986 FORMAT (/' RANK is out of range.',/' RANK = ',I5)
+99985 FORMAT (/' THETA must be at least zero.',/' THETA = ',F8.4)
+99984 FORMAT (/' The computed rank of matrix J = ',I3,/)
+      END
+</PRE>
+<B>Program Data</B>
+<PRE>
+ MB04YD EXAMPLE PROGRAM DATA
+   5     5     2.0     -1     0.0     0.0     N     N
+   1.0  2.0  3.0  4.0  5.0
+   2.0  3.0  4.0  5.0
+</PRE>
+<B>Program Results</B>
+<PRE>
+ MB04YD EXAMPLE PROGRAM RESULTS
+
+ The transformed bidiagonal matrix J is
+
+ (1,1) =  0.4045   (1,2) =  0.0000
+ (2,2) =  1.9839   (2,3) =  0.0000
+ (3,3) =  3.4815   (3,4) =  0.0128
+ (4,4) =  5.3723   (4,5) =  0.0273
+ (5,5) =  7.9948
+
+ J has  3 singular values > 2.0000
+
+</PRE>
+
+<HR>
+<p>
+<A HREF=..\libindex.html><B>Return to index</B></A></BODY>
+</HTML>

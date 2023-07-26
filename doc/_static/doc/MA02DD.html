@@ -1,0 +1,116 @@
+<HTML>
+<HEAD><TITLE>MA02DD - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MA02DD">MA02DD</A></H2>
+<H3>
+Pack/unpack the upper or lower triangle of a symmetric matrix
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To pack/unpack the upper or lower triangle of a symmetric matrix.
+  The packed matrix is stored column-wise in the one-dimensional
+  array AP.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MA02DD( JOB, UPLO, N, A, LDA, AP )
+C     .. Scalar Arguments ..
+      CHARACTER          JOB, UPLO
+      INTEGER            LDA, N
+C     .. Array Arguments ..
+      DOUBLE PRECISION   A(LDA,*), AP(*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  JOB     CHARACTER*1
+          Specifies whether the matrix should be packed or unpacked,
+          as follows:
+          = 'P':  The matrix should be packed;
+          = 'U':  The matrix should be unpacked.
+
+  UPLO    CHARACTER*1
+          Specifies the part of the matrix to be packed/unpacked,
+          as follows:
+          = 'U':  Upper triangular part;
+          = 'L':  Lower triangular part.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The order of the matrix A.  N &gt;= 0.
+
+  A       (input or output) DOUBLE PRECISION array, dimension
+          (LDA,N)
+          This array is an input parameter if JOB = 'P', and an
+          output parameter if JOB = 'U'.
+          On entry, if JOB = 'P', the leading N-by-N upper
+          triangular part (if UPLO = 'U'), or lower triangular part
+          (if UPLO = 'L'), of this array must contain the
+          corresponding upper or lower triangle of the symmetric
+          matrix A, and the other strictly triangular part is not
+          referenced.
+          On exit, if JOB = 'U', the leading N-by-N upper triangular
+          part (if UPLO = 'U'), or lower triangular part (if
+          UPLO = 'L'), of this array contains the corresponding
+          upper or lower triangle of the symmetric matrix A; the
+          other strictly triangular part is not referenced.
+
+  LDA     INTEGER
+          The leading dimension of the array A.  LDA &gt;= max(1,N).
+
+  AP      (output or input) DOUBLE PRECISION array, dimension
+          (N*(N+1)/2)
+          This array is an output parameter if JOB = 'P', and an
+          input parameter if JOB = 'U'.
+          On entry, if JOB = 'U', the leading N*(N+1)/2 elements of
+          this array must contain the upper (if UPLO = 'U') or lower
+          (if UPLO = 'L') triangle of the symmetric matrix A, packed
+          column-wise. That is, the elements are stored in the order
+          11, 12, 22, ..., 1n, 2n, 3n, ..., nn,      if UPLO = 'U';
+          11, 21, 31, ..., n1, 22, 32, ..., n2, ..., if UPLO = 'L'.
+          On exit, if JOB = 'P', the leading N*(N+1)/2 elements of
+          this array contain the upper (if UPLO = 'U') or lower
+          (if UPLO = 'L') triangle of the symmetric matrix A, packed
+          column-wise, as described above.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

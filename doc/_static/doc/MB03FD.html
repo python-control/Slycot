@@ -1,0 +1,169 @@
+<HTML>
+<HEAD><TITLE>MB03FD - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MB03FD">MB03FD</A></H2>
+<H3>
+Reducing a real 2-by-2 or 4-by-4 block (anti-)diagonal skew-Hamiltonian/Hamiltonian pencil to generalized Schur form and moving eigenvalues with negative real parts to the top
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To compute orthogonal matrices Q1 and Q2 for a real 2-by-2 or
+  4-by-4 regular pencil
+
+                ( A11  0  )     (  0  B12 )
+    aA - bB = a (         ) - b (         ),                     (1)
+                (  0  A22 )     ( B21  0  )
+
+  such that Q2' A Q1 is upper triangular, Q2' B Q1 is upper quasi-
+  triangular, and the eigenvalues with negative real parts (if there
+  are any) are allocated on the top. The notation M' denotes the
+  transpose of the matrix M. The submatrices A11, A22, and B12 are
+  upper triangular. If B21 is 2-by-2, then all the other blocks are
+                                 -1        -1
+  nonsingular and the product A11   B12 A22   B21 has a pair of
+  complex conjugate eigenvalues.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MB03FD( N, PREC, A, LDA, B, LDB, Q1, LDQ1, Q2, LDQ2,
+     $                   DWORK, LDWORK, INFO )
+C     .. Scalar Arguments ..
+      INTEGER            INFO, LDA, LDB, LDQ1, LDQ2, LDWORK, N
+      DOUBLE PRECISION   PREC
+C     .. Array Arguments ..
+      DOUBLE PRECISION   A( LDA, * ), B( LDB, * ), DWORK( * ),
+     $                   Q1( LDQ1, * ), Q2( LDQ2, * )
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The order of the input pencil, N = 2 or N = 4.
+
+  PREC    (input) DOUBLE PRECISION
+          The machine precision, (relative machine precision)*base.
+          See the LAPACK Library routine DLAMCH.
+
+  A       (input/output) DOUBLE PRECISION array, dimension (LDA, N)
+          On entry, the leading N-by-N part of this array must
+          contain the matrix A of the pencil aA - bB.
+          If N = 2, the diagonal elements only are referenced.
+          On exit, if N = 4, the leading N-by-N part of this array
+          contains the transformed upper triangular matrix of the
+          generalized real Schur form of the pencil aA - bB.
+          If N = 2, this array is unchanged on exit.
+
+  LDA     INTEGER
+          The leading dimension of the array A.  LDA &gt;= N.
+
+  B       (input/output) DOUBLE PRECISION array, dimension (LDB, N)
+          On entry, the leading N-by-N part of this array must
+          contain the matrix B of the pencil aA - bB.
+          If N = 2, the anti-diagonal elements only are referenced.
+          On exit, if N = 4, the leading N-by-N part of this array
+          contains the transformed real Schur matrix of the
+          generalized real Schur form of the pencil aA - bB.
+          If N = 2, this array is unchanged on exit.
+
+  LDB     INTEGER
+          The leading dimension of the array B.  LDB &gt;= N.
+
+  Q1      (output) DOUBLE PRECISION array, dimension (LDQ1, N)
+          The leading N-by-N part of this array contains the first
+          orthogonal transformation matrix.
+
+  LDQ1    INTEGER
+          The leading dimension of the array Q1.  LDQ1 &gt;= N.
+
+  Q2      (output) DOUBLE PRECISION array, dimension (LDQ2, N)
+          The leading N-by-N part of this array contains the second
+          orthogonal transformation matrix.
+
+  LDQ2    INTEGER
+          The leading dimension of the array Q2.  LDQ2 &gt;= N.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+          If N = 2, then DWORK is not referenced.
+
+  LDWORK  INTEGER
+          The dimension of the array DWORK.
+          If N = 4, then LDWORK &gt;= 63. For good performance LDWORK
+          should be generally larger.
+          If N = 2, then LDWORK &gt;= 0.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0: succesful exit;
+          = 1: the QZ iteration failed in the LAPACK routine DGGES;
+          = 2: another error occured during execution of DGGES.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  The algorithm uses orthogonal transformations as described on page
+  29 in [2].
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Benner, P., Byers, R., Mehrmann, V. and Xu, H.
+      Numerical computation of deflating subspaces of skew-
+      Hamiltonian/Hamiltonian pencils.
+      SIAM J. Matrix Anal. Appl., 24 (1), pp. 165-190, 2002.
+
+  [2] Benner, P., Byers, R., Losse, P., Mehrmann, V. and Xu, H.
+      Numerical Solution of Real Skew-Hamiltonian/Hamiltonian
+      Eigenproblems.
+      Tech. Rep., Technical University Chemnitz, Germany,
+      Nov. 2007.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  The algorithm is numerically backward stable.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

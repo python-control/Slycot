@@ -1,0 +1,251 @@
+<HTML>
+<HEAD><TITLE>MB02UD - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MB02UD">MB02UD</A></H2>
+<H3>
+Minimum norm least squares solution of op(R) X = alpha B, or X op(R) = alpha B, with R upper triangular, using singular value decomposition
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To compute the minimum norm least squares solution of one of the
+  following linear systems
+
+     op(R)*X = alpha*B,                                          (1)
+     X*op(R) = alpha*B,                                          (2)
+
+  where alpha is a real scalar, op(R) is either R or its transpose,
+  R', R is an L-by-L real upper triangular matrix, B is an M-by-N
+  real matrix, and L = M for (1), or L = N for (2). Singular value
+  decomposition, R = Q*S*P', is used, assuming that R is rank
+  deficient.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MB02UD( FACT, SIDE, TRANS, JOBP, M, N, ALPHA, RCOND,
+     $                   RANK, R, LDR, Q, LDQ, SV, B, LDB, RP, LDRP,
+     $                   DWORK, LDWORK, INFO )
+C     .. Scalar Arguments ..
+      CHARACTER         FACT, JOBP, SIDE, TRANS
+      INTEGER           INFO, LDB, LDQ, LDR, LDRP, LDWORK, M, N, RANK
+      DOUBLE PRECISION  ALPHA, RCOND
+C     .. Array Arguments ..
+      DOUBLE PRECISION  B(LDB,*), DWORK(*), Q(LDQ,*), R(LDR,*),
+     $                  RP(LDRP,*), SV(*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  FACT    CHARACTER*1
+          Specifies whether R has been previously factored or not,
+          as follows:
+          = 'F':  R has been factored and its rank and singular
+                  value decomposition, R = Q*S*P', are available;
+          = 'N':  R has not been factored and its singular value
+                  decomposition, R = Q*S*P', should be computed.
+
+  SIDE    CHARACTER*1
+          Specifies whether op(R) appears on the left or right
+          of X as follows:
+          = 'L':  Solve op(R)*X = alpha*B  (op(R) is on the left);
+          = 'R':  Solve X*op(R) = alpha*B  (op(R) is on the right).
+
+  TRANS   CHARACTER*1
+          Specifies the form of op(R) to be used as follows:
+          = 'N':  op(R) = R;
+          = 'T':  op(R) = R';
+          = 'C':  op(R) = R'.
+
+  JOBP    CHARACTER*1
+          Specifies whether or not the pseudoinverse of R is to be
+          computed or it is available as follows:
+          = 'P':  Compute pinv(R), if FACT = 'N', or
+                  use pinv(R),     if FACT = 'F';
+          = 'N':  Do not compute or use pinv(R).
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  M       (input) INTEGER
+          The number of rows of the matrix B.  M &gt;= 0.
+
+  N       (input) INTEGER
+          The number of columns of the matrix B.  N &gt;= 0.
+
+  ALPHA   (input) DOUBLE PRECISION
+          The scalar alpha. When alpha is zero then B need not be
+          set before entry.
+
+  RCOND   (input) DOUBLE PRECISION
+          RCOND is used to determine the effective rank of R.
+          Singular values of R satisfying Sv(i) &lt;= RCOND*Sv(1) are
+          treated as zero. If RCOND &lt;= 0, then EPS is used instead,
+          where EPS is the relative machine precision (see LAPACK
+          Library routine DLAMCH).  RCOND &lt;= 1.
+          RCOND is not used if FACT = 'F'.
+
+  RANK    (input or output) INTEGER
+          The rank of matrix R.
+          RANK is an input parameter when FACT = 'F', and an output
+          parameter when FACT = 'N'.  L &gt;= RANK &gt;= 0.
+
+  R       (input/output) DOUBLE PRECISION array, dimension (LDR,L)
+          On entry, if FACT = 'F', the leading L-by-L part of this
+          array must contain the L-by-L orthogonal matrix P' from
+          singular value decomposition, R = Q*S*P', of the matrix R;
+          if JOBP = 'P', the first RANK rows of P' are assumed to be
+          scaled by inv(S(1:RANK,1:RANK)).
+          On entry, if FACT = 'N', the leading L-by-L upper
+          triangular part of this array must contain the upper
+          triangular matrix R.
+          On exit, if INFO = 0, the leading L-by-L part of this
+          array contains the L-by-L orthogonal matrix P', with its
+          first RANK rows scaled by inv(S(1:RANK,1:RANK)), when
+          JOBP = 'P'.
+
+  LDR     INTEGER
+          The leading dimension of array R.  LDR &gt;= MAX(1,L).
+
+  Q       (input or output) DOUBLE PRECISION array, dimension
+          (LDQ,L)
+          On entry, if FACT = 'F', the leading L-by-L part of this
+          array must contain the L-by-L orthogonal matrix Q from
+          singular value decomposition, R = Q*S*P', of the matrix R.
+          If FACT = 'N', this array need not be set on entry, and
+          on exit, if INFO = 0, the leading L-by-L part of this
+          array contains the orthogonal matrix Q.
+
+  LDQ     INTEGER
+          The leading dimension of array Q.  LDQ &gt;= MAX(1,L).
+
+  SV      (input or output) DOUBLE PRECISION array, dimension (L)
+          On entry, if FACT = 'F', the first RANK entries of this
+          array must contain the reciprocal of the largest RANK
+          singular values of the matrix R, and the last L-RANK
+          entries of this array must contain the remaining singular
+          values of R sorted in descending order.
+          If FACT = 'N', this array need not be set on input, and
+          on exit, if INFO = 0, the first RANK entries of this array
+          contain the reciprocal of the largest RANK singular values
+          of the matrix R, and the last L-RANK entries of this array
+          contain the remaining singular values of R sorted in
+          descending order.
+
+  B       (input/output) DOUBLE PRECISION array, dimension (LDB,N)
+          On entry, if ALPHA &lt;&gt; 0, the leading M-by-N part of this
+          array must contain the matrix B.
+          On exit, if INFO = 0 and RANK &gt; 0, the leading M-by-N part
+          of this array contains the M-by-N solution matrix X.
+
+  LDB     INTEGER
+          The leading dimension of array B.  LDB &gt;= MAX(1,M).
+
+  RP      (input or output) DOUBLE PRECISION array, dimension
+          (LDRP,L)
+          On entry, if FACT = 'F', JOBP = 'P', and RANK &gt; 0, the
+          leading L-by-L part of this array must contain the L-by-L
+          matrix pinv(R), the Moore-Penrose pseudoinverse of R.
+          On exit, if FACT = 'N', JOBP = 'P', and RANK &gt; 0, the
+          leading L-by-L part of this array contains the L-by-L
+          matrix pinv(R), the Moore-Penrose pseudoinverse of R.
+          If JOBP = 'N', this array is not referenced.
+
+  LDRP    INTEGER
+          The leading dimension of array RP.
+          LDRP &gt;= MAX(1,L), if JOBP = 'P'.
+          LDRP &gt;= 1,        if JOBP = 'N'.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+          On exit, if INFO = 0, DWORK(1) returns the optimal LDWORK;
+          if INFO = i, 1 &lt;= i &lt;= L, then DWORK(2:L) contain the
+          unconverged superdiagonal elements of an upper bidiagonal
+          matrix D whose diagonal is in SV (not necessarily sorted).
+          D satisfies R = Q*D*P', so it has the same singular
+          values as R, and singular vectors related by Q and P'.
+
+  LDWORK  INTEGER
+          The length of the array DWORK.
+          LDWORK &gt;= MAX(1,L),   if FACT = 'F';
+          LDWORK &gt;= MAX(1,5*L), if FACT = 'N'.
+          For optimum performance LDWORK should be larger than
+          MAX(1,L,M*N),   if FACT = 'F';
+          MAX(1,5*L,M*N), if FACT = 'N'.
+
+          If LDWORK = -1, then a workspace query is assumed;
+          the routine only calculates the optimal size of the
+          DWORK array, returns this value as the first entry of
+          the DWORK array, and no error message related to LDWORK
+          is issued by XERBLA.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value;
+          &gt; 0:  if INFO = i, i = 1:L, the SVD algorithm has failed
+                to converge. In this case INFO specifies how many
+                superdiagonals did not converge (see the description
+                of DWORK); this failure is not likely to occur.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  The L-by-L upper triangular matrix R is factored as  R = Q*S*P',
+  if FACT = 'N', using SLICOT Library routine MB03UD, where Q and P
+  are L-by-L orthogonal matrices and S is an L-by-L diagonal matrix
+  with non-negative diagonal elements, SV(1), SV(2), ..., SV(L),
+  ordered decreasingly. Then, the effective rank of R is estimated,
+  and matrix (or matrix-vector) products and scalings are used to
+  compute X. If FACT = 'F', only matrix (or matrix-vector) products
+  and scalings are performed.
+
+</PRE>
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  Option JOBP = 'P' should be used only if the pseudoinverse is
+  really needed. Usually, it is possible to avoid the use of
+  pseudoinverse, by computing least squares solutions.
+  The routine uses BLAS 3 calculations if LDWORK &gt;= M*N, and BLAS 2
+  calculations, otherwise. No advantage of any additional workspace
+  larger than L is taken for matrix products, but the routine can
+  be called repeatedly for chunks of columns of B, if LDWORK &lt; M*N.
+
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<p>
+<A HREF=..\libindex.html><B>Return to index</B></A></BODY>
+</HTML>

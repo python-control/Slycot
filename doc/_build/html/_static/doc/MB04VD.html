@@ -1,0 +1,504 @@
+<HTML>
+<HEAD><TITLE>MB04VD - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MB04VD">MB04VD</A></H2>
+<H3>
+Upper block triangular form for a rectangular pencil sE-A, with E in column echelon form (added functionality)
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To compute orthogonal transformations Q and Z such that the
+  transformed pencil Q'(sE-A)Z is in upper block triangular form,
+  where E is an M-by-N matrix in column echelon form (see SLICOT
+  Library routine MB04UD) and A is an M-by-N matrix.
+
+  If MODE = 'B', then the matrices A and E are transformed into the
+  following generalized Schur form by unitary transformations Q1
+  and Z1 :
+
+                   | sE(eps,inf)-A(eps,inf) |      X     |
+     Q1'(sE-A)Z1 = |------------------------|------------|.   (1)
+                   |            O           | sE(r)-A(r) |
+
+  The pencil sE(eps,inf)-A(eps,inf) is in staircase form, and it
+  contains all Kronecker column indices and infinite elementary
+  divisors of the pencil sE-A. The pencil sE(r)-A(r) contains all
+  Kronecker row indices and elementary divisors of sE-A.
+  Note: X is a pencil.
+
+  If MODE = 'T', then the submatrices having full row and column
+  rank in the pencil sE(eps,inf)-A(eps,inf) in (1) are
+  triangularized by applying unitary transformations Q2 and Z2 to
+  Q1'*(sE-A)*Z1.
+
+  If MODE = 'S', then the pencil sE(eps,inf)-A(eps,inf) in (1) is
+  separated into sE(eps)-A(eps) and sE(inf)-A(inf) by applying
+  unitary transformations Q3 and Z3 to Q2'*Q1'*(sE-A)*Z1*Z2.
+
+  This gives
+
+             | sE(eps)-A(eps) |        X       |      X     |
+             |----------------|----------------|------------|
+             |        O       | sE(inf)-A(inf) |      X     |
+  Q'(sE-A)Z =|=================================|============| (2)
+             |                                 |            |
+             |                O                | sE(r)-A(r) |
+
+  where Q = Q1*Q2*Q3 and Z = Z1*Z2*Z3.
+  Note: the pencil sE(r)-A(r) is not reduced further.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MB04VD( MODE, JOBQ, JOBZ, M, N, RANKE, A, LDA, E, LDE,
+     $                   Q, LDQ, Z, LDZ, ISTAIR, NBLCKS, NBLCKI, IMUK,
+     $                   INUK, IMUK0, MNEI, TOL, IWORK, INFO )
+C     .. Scalar Arguments ..
+      CHARACTER         JOBQ, JOBZ, MODE
+      INTEGER           INFO, LDA, LDE, LDQ, LDZ, M, N, NBLCKI, NBLCKS,
+     $                  RANKE
+      DOUBLE PRECISION  TOL
+C     .. Array Arguments ..
+      INTEGER           IMUK(*), IMUK0(*), INUK(*), ISTAIR(*), IWORK(*),
+     $                  MNEI(*)
+      DOUBLE PRECISION  A(LDA,*), E(LDE,*), Q(LDQ,*), Z(LDZ,*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  MODE    CHARACTER*1
+          Specifies the desired structure of the transformed
+          pencil Q'(sE-A)Z to be computed as follows:
+          = 'B':  Basic reduction given by (1);
+          = 'T':  Further reduction of (1) to triangular form;
+          = 'S':  Further separation of sE(eps,inf)-A(eps,inf)
+                  in (1) into the two pencils in (2).
+
+  JOBQ    CHARACTER*1
+          Indicates whether the user wishes to accumulate in a
+          matrix Q the orthogonal row transformations, as follows:
+          = 'N':  Do not form Q;
+          = 'I':  Q is initialized to the unit matrix and the
+                  orthogonal transformation matrix Q is returned;
+          = 'U':  The given matrix Q is updated by the orthogonal
+                  row transformations used in the reduction.
+
+  JOBZ    CHARACTER*1
+          Indicates whether the user wishes to accumulate in a
+          matrix Z the orthogonal column transformations, as
+          follows:
+          = 'N':  Do not form Z;
+          = 'I':  Z is initialized to the unit matrix and the
+                  orthogonal transformation matrix Z is returned;
+          = 'U':  The given matrix Z is updated by the orthogonal
+                  transformations used in the reduction.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  M       (input) INTEGER
+          The number of rows in the matrices A, E and the order of
+          the matrix Q.  M &gt;= 0.
+
+  N       (input) INTEGER
+          The number of columns in the matrices A, E and the order
+          of the matrix Z.  N &gt;= 0.
+
+  RANKE   (input) INTEGER
+          The rank of the matrix E in column echelon form.
+          RANKE &gt;= 0.
+
+  A       (input/output) DOUBLE PRECISION array, dimension (LDA,N)
+          On entry, the leading M-by-N part of this array must
+          contain the matrix to be row compressed.
+          On exit, the leading M-by-N part of this array contains
+          the matrix that has been row compressed while keeping
+          matrix E in column echelon form.
+
+  LDA     INTEGER
+          The leading dimension of array A.  LDA &gt;= MAX(1,M).
+
+  E       (input/output) DOUBLE PRECISION array, dimension (LDE,N)
+          On entry, the leading M-by-N part of this array must
+          contain the matrix in column echelon form to be
+          transformed equivalent to matrix A.
+          On exit, the leading M-by-N part of this array contains
+          the matrix that has been transformed equivalent to matrix
+          A.
+
+  LDE     INTEGER
+          The leading dimension of array E.  LDE &gt;= MAX(1,M).
+
+  Q       (input/output) DOUBLE PRECISION array, dimension (LDQ,*)
+          On entry, if JOBQ = 'U', then the leading M-by-M part of
+          this array must contain a given matrix Q (e.g. from a
+          previous call to another SLICOT routine), and on exit, the
+          leading M-by-M part of this array contains the product of
+          the input matrix Q and the row transformation matrix used
+          to transform the rows of matrices A and E.
+          On exit, if JOBQ = 'I', then the leading M-by-M part of
+          this array contains the matrix of accumulated orthogonal
+          row transformations performed.
+          If JOBQ = 'N', the array Q is not referenced and can be
+          supplied as a dummy array (i.e. set parameter LDQ = 1 and
+          declare this array to be Q(1,1) in the calling program).
+
+  LDQ     INTEGER
+          The leading dimension of array Q. If JOBQ = 'U' or
+          JOBQ = 'I', LDQ &gt;= MAX(1,M); if JOBQ = 'N', LDQ &gt;= 1.
+
+  Z       (input/output) DOUBLE PRECISION array, dimension (LDZ,*)
+          On entry, if JOBZ = 'U', then the leading N-by-N part of
+          this array must contain a given matrix Z (e.g. from a
+          previous call to another SLICOT routine), and on exit, the
+          leading N-by-N part of this array contains the product of
+          the input matrix Z and the column transformation matrix
+          used to transform the columns of matrices A and E.
+          On exit, if JOBZ = 'I', then the leading N-by-N part of
+          this array contains the matrix of accumulated orthogonal
+          column transformations performed.
+          If JOBZ = 'N', the array Z is not referenced and can be
+          supplied as a dummy array (i.e. set parameter LDZ = 1 and
+          declare this array to be Z(1,1) in the calling program).
+
+  LDZ     INTEGER
+          The leading dimension of array Z. If JOBZ = 'U' or
+          JOBZ = 'I', LDZ &gt;= MAX(1,N); if JOBZ = 'N', LDZ &gt;= 1.
+
+  ISTAIR  (input/output) INTEGER array, dimension (M)
+          On entry, this array must contain information on the
+          column echelon form of the unitary transformed matrix E.
+          Specifically, ISTAIR(i) must be set to +j if the first
+          non-zero element E(i,j) is a corner point and -j
+          otherwise, for i = 1,2,...,M.
+          On exit, this array contains no useful information.
+
+  NBLCKS  (output) INTEGER
+          The number of submatrices having full row rank greater
+          than or equal to 0 detected in matrix A in the pencil
+          sE(x)-A(x),
+             where  x = eps,inf  if MODE = 'B' or 'T',
+             or     x = eps      if MODE = 'S'.
+
+  NBLCKI  (output) INTEGER
+          If MODE = 'S', the number of diagonal submatrices in the
+          pencil sE(inf)-A(inf). If MODE = 'B' or 'T' then
+          NBLCKI = 0.
+
+  IMUK    (output) INTEGER array, dimension (MAX(N,M+1))
+          The leading NBLCKS elements of this array contain the
+          column dimensions mu(1),...,mu(NBLCKS) of the submatrices
+          having full column rank in the pencil sE(x)-A(x),
+             where  x = eps,inf  if MODE = 'B' or 'T',
+             or     x = eps      if MODE = 'S'.
+
+  INUK    (output) INTEGER array, dimension (MAX(N,M+1))
+          The leading NBLCKS elements of this array contain the
+          row dimensions nu(1),...,nu(NBLCKS) of the submatrices
+          having full row rank in the pencil sE(x)-A(x),
+             where  x = eps,inf  if MODE = 'B' or 'T',
+             or     x = eps      if MODE = 'S'.
+
+  IMUK0   (output) INTEGER array, dimension (limuk0),
+          where limuk0 = N if MODE = 'S' and 1, otherwise.
+          If MODE = 'S', then the leading NBLCKI elements of this
+          array contain the dimensions mu0(1),...,mu0(NBLCKI)
+          of the square diagonal submatrices in the pencil
+          sE(inf)-A(inf).
+          Otherwise, IMUK0 is not referenced and can be supplied
+          as a dummy array.
+
+  MNEI    (output) INTEGER array, dimension (3)
+          If MODE = 'B' or 'T' then
+          MNEI(1) contains the row dimension of
+                  sE(eps,inf)-A(eps,inf);
+          MNEI(2) contains the column dimension of
+                  sE(eps,inf)-A(eps,inf);
+          MNEI(3) = 0.
+          If MODE = 'S', then
+          MNEI(1) contains the row    dimension of sE(eps)-A(eps);
+          MNEI(2) contains the column dimension of sE(eps)-A(eps);
+          MNEI(3) contains the order of the regular pencil
+                  sE(inf)-A(inf).
+
+</PRE>
+<B>Tolerances</B>
+<PRE>
+  TOL     DOUBLE PRECISION
+          A tolerance below which matrix elements are considered
+          to be zero. If the user sets TOL to be less than (or
+          equal to) zero then the tolerance is taken as
+          EPS * MAX( ABS(A(I,J)), ABS(E(I,J)) ), where EPS is the
+          machine precision (see LAPACK Library routine DLAMCH),
+          I = 1,2,...,M and J = 1,2,...,N.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  IWORK   INTEGER array, dimension (N)
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value.
+          &gt; 0:  if incorrect rank decisions were revealed during the
+                triangularization phase. This failure is not likely
+                to occur. The possible values are:
+          = 1:  if incorrect dimensions of a full column rank
+                submatrix;
+          = 2:  if incorrect dimensions of a full row rank
+                submatrix.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  Let sE - A be an arbitrary pencil. Prior to calling the routine,
+  this pencil must be transformed into a pencil with E in column
+  echelon form. This may be accomplished by calling the SLICOT
+  Library routine MB04UD. Depending on the value of MODE,
+  submatrices of A and E are then reduced to one of the forms
+  described above. Further details can be found in [1].
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Beelen, Th. and Van Dooren, P.
+      An improved algorithm for the computation of Kronecker's
+      canonical form of a singular pencil.
+      Linear Algebra and Applications, 105, pp. 9-65, 1988.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  It is shown in [1] that the algorithm is numerically backward
+  stable. The operations count is proportional to (MAX(M,N))**3.
+
+</PRE>
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  The difference mu(k)-nu(k), for k = 1,2,...,NBLCKS, is the number
+  of elementary Kronecker blocks of size k x (k+1).
+
+  If MODE = 'B' or 'T' on entry, then the difference nu(k)-mu(k+1),
+  for k = 1,2,...,NBLCKS, is the number of infinite elementary
+  divisors of degree k (with mu(NBLCKS+1) = 0).
+
+  If MODE = 'S' on entry, then the difference mu0(k)-mu0(k+1),
+  for k = 1,2,...,NBLCKI, is the number of infinite elementary
+  divisors of degree k (with mu0(NBLCKI+1) = 0).
+  In the pencil sE(r)-A(r), the pencils sE(f)-A(f) and
+  sE(eta)-A(eta) can be separated by pertransposing the pencil
+  sE(r)-A(r) and calling the routine with MODE set to 'B'. The
+  result has got to be pertransposed again. (For more details see
+  [1]).
+
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+*     MB04VD EXAMPLE PROGRAM TEXT
+*
+*     .. Parameters ..
+      INTEGER          NIN, NOUT
+      PARAMETER        ( NIN = 5, NOUT = 6 )
+      INTEGER          MMAX, NMAX
+      PARAMETER        ( MMAX = 20, NMAX = 20 )
+      INTEGER          LDA, LDE, LDQ, LDZ
+      PARAMETER        ( LDA  = MMAX, LDE = MMAX, LDQ = MMAX,
+     $                   LDZ = NMAX )
+      INTEGER          LINUK
+      PARAMETER        ( LINUK = MAX( NMAX,MMAX+1 ) )
+*     PARAMETER        ( LINUK = NMAX+MMAX+1 )
+      INTEGER          LIWORK
+      PARAMETER        ( LIWORK = NMAX )
+      INTEGER          LDWORK
+      PARAMETER        ( LDWORK = MAX( NMAX,MMAX ) )
+*     PARAMETER        ( LDWORK = NMAX+MMAX )
+      DOUBLE PRECISION ZERO, ONE
+      PARAMETER        ( ZERO = 0.0D0, ONE = 1.0D0 )
+*     .. Local Scalars ..
+      DOUBLE PRECISION TOL
+      INTEGER          I, INFO, J, M, N, NBLCKI, NBLCKS, RANKE
+      CHARACTER*1      JOBQ, JOBZ, MODE
+*     .. Local Arrays ..
+      DOUBLE PRECISION A(LDA,NMAX), DWORK(LDWORK), E(LDE,NMAX),
+     $                 Q(LDQ,MMAX), Z(LDZ,NMAX)
+      INTEGER          IMUK(LINUK), IMUK0(NMAX), INUK(LINUK),
+     $                 ISTAIR(MMAX), IWORK(LIWORK), MNEI(3)
+C     .. External Functions ..
+      LOGICAL          LSAME
+      EXTERNAL         LSAME
+*     .. External Subroutines ..
+      EXTERNAL         MB04UD, MB04VD
+*     .. Intrinsic Functions ..
+      INTRINSIC        MAX
+*     .. Executable Statements ..
+*
+      WRITE ( NOUT, FMT = 99999 )
+*     Skip the heading in the data file and read the data.
+      READ ( NIN, FMT = '()' )
+      READ ( NIN, FMT = * ) M, N, TOL, MODE
+      IF ( M.LT.0 .OR. M.GT.MMAX ) THEN
+         WRITE ( NOUT, FMT = 99984 ) M
+      ELSE IF ( N.LT.0 .OR. N.GT.NMAX ) THEN
+         WRITE ( NOUT, FMT = 99983 ) N
+      ELSE
+         READ ( NIN, FMT = * ) ( ( A(I,J), J = 1,N ), I = 1,M )
+         READ ( NIN, FMT = * ) ( ( E(I,J), J = 1,N ), I = 1,M )
+         JOBQ = 'I'
+         JOBZ = 'I'
+*        Reduce E to column echelon form and compute Q'*A*Z.
+         CALL MB04UD( JOBQ, JOBZ, M, N, A, LDA, E, LDE, Q, LDQ, Z, LDZ,
+     $                RANKE, ISTAIR, TOL, DWORK, INFO )
+         JOBQ = 'U'
+         JOBZ = 'U'
+*
+         IF ( INFO.EQ.0 ) THEN
+*           Compute a unitary transformed pencil Q'*(s*E-A)*Z.
+            CALL MB04VD( MODE, JOBQ, JOBZ, M, N, RANKE, A, LDA, E, LDE,
+     $                   Q, LDQ, Z, LDZ, ISTAIR, NBLCKS, NBLCKI, IMUK,
+     $                   INUK, IMUK0, MNEI, TOL, IWORK, INFO )
+*
+            IF ( INFO.EQ.0 ) THEN
+               WRITE ( NOUT, FMT = 99996 )
+               WRITE ( NOUT, FMT = 99995 )
+               DO 140 I = 1, M
+                  WRITE ( NOUT, FMT = 99994 ) ( Q(I,J), J = 1,M )
+  140          CONTINUE
+               WRITE ( NOUT, FMT = 99993 )
+               DO 160 I = 1, M
+                  WRITE ( NOUT, FMT = 99994 ) ( E(I,J), J = 1,N )
+  160          CONTINUE
+               WRITE ( NOUT, FMT = 99992 )
+               DO 180 I = 1, M
+                  WRITE ( NOUT, FMT = 99994 ) ( A(I,J), J = 1,N )
+  180          CONTINUE
+               WRITE ( NOUT, FMT = 99991 )
+               DO 200 I = 1, N
+                  WRITE ( NOUT, FMT = 99994 ) ( Z(I,J), J = 1,N )
+  200          CONTINUE
+               WRITE ( NOUT, FMT = 99990 ) NBLCKS
+               IF ( .NOT. LSAME( MODE, 'S' ) ) THEN
+                  WRITE ( NOUT, FMT = 99989 ) ( IMUK(I),  I = 1,NBLCKS )
+                  WRITE ( NOUT, FMT = 99988 ) ( INUK(I),  I = 1,NBLCKS )
+               ELSE
+                  WRITE ( NOUT, FMT = 99987 ) ( IMUK(I),  I = 1,NBLCKS )
+                  WRITE ( NOUT, FMT = 99986 ) ( INUK(I),  I = 1,NBLCKS )
+                  WRITE ( NOUT, FMT = 99982 ) ( IMUK0(I), I = 1,NBLCKI )
+                  WRITE ( NOUT, FMT = 99985 ) ( MNEI(I),  I = 1,3 )
+               END IF
+            ELSE
+               WRITE ( NOUT, FMT = 99998 ) INFO
+            END IF
+         ELSE
+            WRITE ( NOUT, FMT = 99997 ) INFO
+         END IF
+      END IF
+      STOP
+*
+99999 FORMAT (' MB04VD EXAMPLE PROGRAM RESULTS',/1X)
+99998 FORMAT (' INFO on exit from MB04VD = ',I2)
+99997 FORMAT (' INFO on exit from MB04UD = ',I2)
+99996 FORMAT (' The unitary transformed pencil is Q''*(s*E-A)*Z, where',
+     $          /)
+99995 FORMAT (' Matrix Q',/)
+99994 FORMAT (20(1X,F8.4))
+99993 FORMAT (/' Matrix E',/)
+99992 FORMAT (/' Matrix A',/)
+99991 FORMAT (/' Matrix Z',/)
+99990 FORMAT (/' The number of submatrices having full row rank detect',
+     $       'ed in matrix A = ',I3)
+99989 FORMAT (/' The column dimensions of the submatrices having full ',
+     $       'column rank in the pencil',/' sE(eps,inf) - A(eps,inf) a',
+     $       're',/20(1X,I5))
+99988 FORMAT (/' The row dimensions of the submatrices having full row',
+     $       ' rank in the pencil',/' sE(eps,inf) - A(eps,inf) are',
+     $       /20(1X,I5))
+99987 FORMAT (/' The column dimensions of the submatrices having full ',
+     $       'column rank in the pencil',/' sE(eps) - A(eps) are',
+     $       /20(1X,I5))
+99986 FORMAT (/' The row dimensions of the submatrices having full row',
+     $       ' rank in the pencil',/' sE(eps) - A(eps) are',/20(1X,I5))
+99985 FORMAT (/' MNEI is ',/20(1X,I5))
+99984 FORMAT (/' M is out of range.',/' M = ',I5)
+99983 FORMAT (/' N is out of range.',/' N = ',I5)
+99982 FORMAT (/' The orders of the diagonal submatrices in the pencil ',
+     $       'sE(inf) - A(inf) are',/20(1X,I5))
+      END
+</PRE>
+<B>Program Data</B>
+<PRE>
+ MB04VD EXAMPLE PROGRAM DATA
+   2     4     0.0     S
+   1.0  0.0 -1.0  0.0
+   1.0  1.0  0.0 -1.0
+   0.0 -1.0  0.0  0.0
+   0.0 -1.0  0.0  0.0
+</PRE>
+<B>Program Results</B>
+<PRE>
+ MB04VD EXAMPLE PROGRAM RESULTS
+
+ The unitary transformed pencil is Q'*(s*E-A)*Z, where
+
+ Matrix Q
+
+   0.7071  -0.7071
+   0.7071   0.7071
+
+ Matrix E
+
+   0.0000   0.0000  -1.1547   0.8165
+   0.0000   0.0000   0.0000   0.0000
+
+ Matrix A
+
+   0.0000   1.7321   0.5774  -0.4082
+   0.0000   0.0000   0.0000  -1.2247
+
+ Matrix Z
+
+   0.5774   0.8165   0.0000   0.0000
+   0.0000   0.0000   0.8165  -0.5774
+   0.5774  -0.4082  -0.4082  -0.5774
+   0.5774  -0.4082   0.4082   0.5774
+
+ The number of submatrices having full row rank detected in matrix A =   2
+
+ The column dimensions of the submatrices having full column rank in the pencil
+ sE(eps) - A(eps) are
+     2     1
+
+ The row dimensions of the submatrices having full row rank in the pencil
+ sE(eps) - A(eps) are
+     1     0
+
+ The orders of the diagonal submatrices in the pencil sE(inf) - A(inf) are
+     1
+
+ MNEI is 
+     1     3     1
+</PRE>
+
+<HR>
+<p>
+<A HREF=..\libindex.html><B>Return to index</B></A></BODY>
+</HTML>

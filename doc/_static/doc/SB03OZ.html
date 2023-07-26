@@ -1,0 +1,348 @@
+<HTML>
+<HEAD><TITLE>SB03OZ - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="SB03OZ">SB03OZ</A></H2>
+<H3>
+Solution of stable continuous- or discrete-time complex Lyapunov equations (Cholesky factor)
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>                        H
+  To solve for X = op(U) *op(U) either the stable non-negative
+  definite continuous-time Lyapunov equation
+          H                     2      H
+     op(A) *X + X*op(A) = -scale *op(B) *op(B),                  (1)
+
+  or the convergent non-negative definite discrete-time Lyapunov
+  equation
+          H                     2      H
+     op(A) *X*op(A) - X = -scale *op(B) *op(B),                  (2)
+
+  where op(K) = K or K**H  (i.e., the conjugate transpose of the
+  matrix K), A is an N-by-N matrix, op(B) is an M-by-N matrix, U is
+  an upper triangular matrix containing the Cholesky factor of the
+  solution matrix X, and scale is an output scale factor, set less
+  than or equal to 1 to avoid overflow in X. If matrix B has full
+  rank, then the solution matrix X will be positive definite and
+  hence the Cholesky factor U will be nonsingular, but if B is rank
+  deficient, then X may be only positive semi-definite and U will be
+  singular.
+
+  In the case of equation (1) the matrix A must be stable (that is,
+  all the eigenvalues of A must have negative real parts), and for
+  equation (2) the matrix A must be convergent (that is, all the
+  eigenvalues of A must lie inside the unit circle).
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE SB03OZ( DICO, FACT, TRANS, N, M, A, LDA, Q, LDQ, B,
+     $                   LDB, SCALE, W, DWORK, ZWORK, LZWORK, INFO )
+C     .. Scalar Arguments ..
+      CHARACTER         DICO, FACT, TRANS
+      INTEGER           INFO, LDA, LDB, LDQ, LZWORK, M, N
+      DOUBLE PRECISION  SCALE
+C     .. Array Arguments ..
+      COMPLEX*16        A(LDA,*), B(LDB,*), Q(LDQ,*), W(*), ZWORK(*)
+      DOUBLE PRECISION  DWORK(*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  DICO    CHARACTER*1
+          Specifies the type of Lyapunov equation to be solved, as
+          follows:
+          = 'C':  Equation (1), continuous-time case;
+          = 'D':  Equation (2), discrete-time case.
+
+  FACT    CHARACTER*1
+          Specifies whether or not the Schur factorization of the
+          matrix A is supplied on entry, as follows:
+          = 'F':  On entry, A and Q contain the factors from the
+                  Schur factorization of the matrix A;
+          = 'N':  The Schur factorization of A will be computed
+                  and the factors will be stored in A and Q.
+
+  TRANS   CHARACTER*1
+          Specifies the form of op(K) to be used, as follows:
+          = 'N':  op(K) = K    (No transpose);
+          = 'C':  op(K) = K**H (Conjugate transpose).
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The order of the matrix A and the number of columns of
+          the matrix op(B).  N &gt;= 0.
+
+  M       (input) INTEGER
+          The number of rows of the matrix op(B).  M &gt;= 0.
+          If M = 0, A is unchanged on exit, and Q and W are not set.
+
+  A       (input/output) COMPLEX*16 array, dimension (LDA,N)
+          On entry, the leading N-by-N part of this array must
+          contain the matrix A. If FACT = 'F', then A contains
+          an upper triangular matrix S in Schur form; the elements
+          below the diagonal of the array A are then not referenced.
+          On exit, the leading N-by-N upper triangular part of this
+          array contains the upper triangle of the matrix S.
+          The contents of the array A is not modified if FACT = 'F'.
+
+  LDA     INTEGER
+          The leading dimension of the array A.  LDA &gt;= MAX(1,N).
+
+  Q       (input or output) COMPLEX*16 array, dimension (LDQ,N)
+          On entry, if FACT = 'F', then the leading N-by-N part of
+          this array must contain the unitary matrix Q of the Schur
+          factorization of A.
+          Otherwise, Q need not be set on entry.
+          On exit, the leading N-by-N part of this array contains
+          the unitary matrix Q of the Schur factorization of A.
+          The contents of the array Q is not modified if FACT = 'F'.
+
+  LDQ     INTEGER
+          The leading dimension of the array Q.  LDQ &gt;= MAX(1,N).
+
+  B       (input/output) COMPLEX*16 array, dimension (LDB,N)
+          if TRANS = 'N', and dimension (LDB,max(M,N)), if
+          TRANS = 'C'.
+          On entry, if TRANS = 'N', the leading M-by-N part of this
+          array must contain the coefficient matrix B of the
+          equation.
+          On entry, if TRANS = 'C', the leading N-by-M part of this
+          array must contain the coefficient matrix B of the
+          equation.
+          On exit, the leading N-by-N part of this array contains
+          the upper triangular Cholesky factor U of the solution
+          matrix X of the problem, X = op(U)**H * op(U).
+          If M = 0 and N &gt; 0, then U is set to zero.
+
+  LDB     INTEGER
+          The leading dimension of the array B.
+          LDB &gt;= MAX(1,N,M), if TRANS = 'N';
+          LDB &gt;= MAX(1,N),   if TRANS = 'C'.
+
+  SCALE   (output) DOUBLE PRECISION
+          The scale factor, scale, set less than or equal to 1 to
+          prevent the solution overflowing.
+
+  W       (output) COMPLEX*16 array, dimension (N)
+          If INFO &gt;= 0 and INFO &lt;= 3, W contains the eigenvalues of
+          the matrix A.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  DWORK   DOUBLE PRECISION array, dimension (N)
+
+  ZWORK   COMPLEX*16 array, dimension (LZWORK)
+          On exit, if INFO = 0 or INFO = 1, ZWORK(1) returns the
+          optimal value of LZWORK.
+          On exit, if INFO = -16, ZWORK(1) returns the minimum value
+          of LZWORK.
+
+  LZWORK  INTEGER
+          The length of the array ZWORK.
+          If M &gt; 0, LZWORK &gt;= MAX(1,2*N+MAX(MIN(N,M)-2,0));
+          If M = 0, LZWORK &gt;= 1.
+          For optimum performance LZWORK should sometimes be larger.
+
+          If LZWORK = -1, then a workspace query is assumed; the
+          routine only calculates the optimal size of the ZWORK
+          array, returns this value as the first entry of the ZWORK
+          array, and no error message related to LZWORK is issued by
+          XERBLA.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value;
+          = 1:  if the Lyapunov equation is (nearly) singular
+                (warning indicator);
+                if DICO = 'C' this means that while the matrix A
+                (or the factor S) has computed eigenvalues with
+                negative real parts, it is only just stable in the
+                sense that small perturbations in A can make one or
+                more of the eigenvalues have a non-negative real
+                part;
+                if DICO = 'D' this means that while the matrix A
+                (or the factor S) has computed eigenvalues inside
+                the unit circle, it is nevertheless only just
+                convergent, in the sense that small perturbations
+                in A can make one or more of the eigenvalues lie
+                outside the unit circle;
+                perturbed values were used to solve the equation;
+          = 2:  if FACT = 'N' and DICO = 'C', but the matrix A is
+                not stable (that is, one or more of the eigenvalues
+                of A has a non-negative real part), or DICO = 'D',
+                but the matrix A is not convergent (that is, one or
+                more of the eigenvalues of A lies outside the unit
+                circle); however, A will still have been factored
+                and the eigenvalues of A returned in W;
+          = 3:  if FACT = 'F' and DICO = 'C', but the Schur factor S
+                supplied in the array A is not stable (that is, one
+                or more of the eigenvalues of S has a non-negative
+                real part), or DICO = 'D', but the Schur factor S
+                supplied in the array A is not convergent (that is,
+                one or more of the eigenvalues of S lies outside the
+                unit circle); the eigenvalues of A are still
+                returned in W;
+          = 6:  if FACT = 'N' and the LAPACK Library routine ZGEES
+                has failed to converge. This failure is not likely
+                to occur. The matrix B will be unaltered but A will
+                be destroyed.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  The method used by the routine is based on the Bartels and Stewart
+  method [1], except that it finds the upper triangular matrix U
+  directly without first finding X and without the need to form the
+  normal matrix op(B)**H * op(B).
+
+  The Schur factorization of a square matrix A is given by
+            H
+     A = QSQ ,
+
+  where Q is unitary and S is an N-by-N upper triangular matrix.
+  If A has already been factored prior to calling the routine, then
+  the factors Q and S may be supplied and the initial factorization
+  omitted.
+
+  If TRANS = 'N' and 6*M &gt; 7*N, the matrix B is factored as
+  (QR factorization)
+         _   _
+     B = P ( R ), 
+           ( 0 )
+        _                                 _
+  where P is an M-by-M unitary matrix and R is a square upper
+                                      _   _
+  triangular matrix. Then, the matrix B = RQ is factored as
+     _
+     B = PR.
+
+  If TRANS = 'N' and 6*M &lt;= 7*N, the matrix BQ is factored as
+
+     BQ = P ( R ),   M &gt;= N,   BQ = P ( R  Z ),   M &lt; N.
+            ( 0 ) 
+
+  If TRANS = 'C' and 6*M &gt; 7*N, the matrix B is factored as
+  (RQ factorization)
+              _   _
+     B = ( 0  R ) P,
+        _                                 _
+  where P is an M-by-M unitary matrix and R is a square upper
+                                      _    H _
+  triangular matrix. Then, the matrix B = Q  R is factored as
+     _
+     B = RP.
+                                             H
+  If TRANS = 'C' and 6*M &lt;= 7*N, the matrix Q  B is factored as
+
+      H                              H     ( Z )
+     Q  B = ( 0  R ) P,   M &gt;= N,   Q  B = (   ) P,   M &lt; N.
+                                           ( R )
+
+  These factorizations are utilised to either transform the
+  continuous-time Lyapunov equation to the canonical form
+         H      H              H                     2      H
+    op(S) *op(V) *op(V) + op(V) *op(V)*op(S) = -scale *op(F) *op(F),
+
+  or the discrete-time Lyapunov equation to the canonical form
+         H      H                    H               2      H
+    op(S) *op(V) *op(V)*op(S) - op(V) *op(V) = -scale *op(F) *op(F),
+
+  where V and F are upper triangular, and
+
+     F = R,  M &gt;= N,   F = ( R  Z ),  M &lt; N,  if TRANS = 'N';
+                           ( 0  0 )
+
+     F = R,  M &gt;= N,   F = ( 0  Z ),  M &lt; N,  if TRANS = 'C'.
+                           ( 0  R )
+
+  The transformed equation is then solved for V, from which U is
+  obtained via the QR factorization of V*Q**H, if TRANS = 'N', or
+  via the RQ factorization of Q*V, if TRANS = 'C'.
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Bartels, R.H. and Stewart, G.W.
+      Solution of the matrix equation  A'X + XB = C.
+      Comm. A.C.M., 15, pp. 820-826, 1972.
+
+  [2] Hammarling, S.J.
+      Numerical solution of the stable, non-negative definite
+      Lyapunov equation.
+      IMA J. Num. Anal., 2, pp. 303-325, 1982.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>                            3
+  The algorithm requires 0(N ) operations and is backward stable.
+
+</PRE>
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  The Lyapunov equation may be very ill-conditioned. In particular,
+  if A is only just stable (or convergent) then the Lyapunov
+  equation will be ill-conditioned.  A symptom of ill-conditioning
+  is "large" elements in U relative to those of A and B, or a
+  "small" value for scale.
+
+  SB03OZ routine can be also used for solving "unstable" Lyapunov
+  equations, i.e., when matrix A has all eigenvalues with positive
+  real parts, if DICO = 'C', or with moduli greater than one,
+  if DICO = 'D'. Specifically, one may solve for X = op(U)**H*op(U)
+  either the continuous-time Lyapunov equation
+          H                    2      H
+     op(A) *X + X*op(A) = scale *op(B) *op(B),                   (3)
+
+  or the discrete-time Lyapunov equation
+          H                    2      H
+     op(A) *X*op(A) - X = scale *op(B) *op(B),                   (4)
+
+  provided, for equation (3), the given matrix A is replaced by -A,
+  or, for equation (4), the given matrices A and B are replaced by
+  inv(A) and B*inv(A), if TRANS = 'N' (or inv(A)*B, if TRANS = 'C'),
+  respectively. Although the inversion generally can rise numerical
+  problems, in case of equation (4) it is expected that the matrix A
+  is enough well-conditioned, having only eigenvalues with moduli
+  greater than 1.
+
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<p>
+<A HREF=..\libindex.html><B>Return to index</B></A></BODY>
+</HTML>

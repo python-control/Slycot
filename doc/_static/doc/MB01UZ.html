@@ -1,0 +1,171 @@
+<HTML>
+<HEAD><TITLE>MB01UZ - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MB01UZ">MB01UZ</A></H2>
+<H3>
+Computation of matrix expressions alpha T A or alpha A T, over T, T upper triangular (complex version)
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To compute one of the matrix products
+
+    T : = alpha*op( T ) * A, or T : = alpha*A * op( T ),
+
+  where alpha is a scalar, A is an M-by-N matrix, T is a triangular
+  matrix, and op( T ) is one of
+
+     op( T ) = T,  or  op( T ) = T',  the transpose of T, or
+     op( T ) = conj(T'),              the conjugate transpose of T.
+
+  A block-row/column algorithm is used, if possible. The result
+  overwrites the array T.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MB01UZ( SIDE, UPLO, TRANS, M, N, ALPHA, T, LDT, A, LDA,
+     $                   ZWORK, LZWORK, INFO )
+C     .. Scalar Arguments ..
+      CHARACTER         SIDE, TRANS, UPLO
+      INTEGER           INFO, LDA, LDT, LZWORK, M, N
+      COMPLEX*16        ALPHA
+C     .. Array Arguments ..
+      COMPLEX*16        A(LDA,*), T(LDT,*), ZWORK(*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  SIDE    CHARACTER*1
+          Specifies whether the triangular matrix T appears on the
+          left or right in the matrix product, as follows:
+          = 'L':  T := alpha * op( T ) * A;
+          = 'R':  T := alpha * A * op( T ).
+
+  UPLO    CHARACTER*1.
+          Specifies whether the matrix T is an upper or lower
+          triangular matrix, as follows:
+          = 'U':  T is an upper triangular matrix;
+          = 'L':  T is a lower triangular matrix.
+
+  TRANS   CHARACTER*1
+          Specifies the form of op( T ) to be used in the matrix
+          multiplication as follows:
+          = 'N':  op( T ) = T;
+          = 'T':  op( T ) = T';
+          = 'C':  op( T ) = conj(T').
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  M       (input) INTEGER
+          The number of rows of the matrix A.  M &gt;= 0.
+
+  N       (input) INTEGER
+          The number of columns of the matrix A.  N &gt;= 0.
+
+  ALPHA   (input) COMPLEX*16
+          The scalar alpha. When alpha is zero then T and A need not
+          be set before entry.
+
+  T       (input/output) COMPLEX*16 array, dimension
+          (LDT,max(K,N)), when SIDE = 'L', and
+          (LDT,K),        when SIDE = 'R',
+          where K is M if SIDE = 'L' and is N if SIDE = 'R'.
+          On entry with UPLO = 'U', the leading K-by-K upper
+          triangular part of this array must contain the upper
+          triangular matrix T. The elements below the diagonal
+          do not need to be zero.
+          On entry with UPLO = 'L', the leading K-by-K lower
+          triangular part of this array must contain the lower
+          triangular matrix T. The elements above the diagonal
+          do not need to be zero.
+          On exit, the leading M-by-N part of this array contains
+          the corresponding product defined by SIDE, UPLO, and
+          TRANS.
+
+  LDT     INTEGER
+          The leading dimension of the array T.
+          LDT &gt;= max(1,M),    if SIDE = 'L';
+          LDT &gt;= max(1,M,N),  if SIDE = 'R'.
+
+  A       (input) COMPLEX*16 array, dimension (LDA,N)
+          The leading M-by-N part of this array must contain the
+          matrix A.
+
+  LDA     INTEGER
+          The leading dimension of the array A.  LDA &gt;= max(1,M).
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  ZWORK   COMPLEX*16 array, dimension (LZWORK)
+          On exit, if INFO = 0,  ZWORK(1)  returns the optimal value
+          of LZWORK.
+          On exit, if  INFO = -12,  ZWORK(1)  returns the minimum
+          value of LZWORK.
+
+  LZWORK  The length of the array ZWORK.
+          LZWORK &gt;= 1, if alpha =  0 or MIN(M,N) = 0;
+          LZWORK &gt;= M, if SIDE  = 'L';
+          LZWORK &gt;= N, if SIDE  = 'R'.
+          For good performance, LZWORK should be larger.
+
+          If LZWORK = -1, then a workspace query is assumed;
+          the routine only calculates the optimal size of the
+          ZWORK array, returns this value as the first entry of
+          the ZWORK array, and no error message related to LZWORK
+          is issued by XERBLA.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  A block-row/column size is found based on the available workspace.
+  BLAS 3 gemm and trmm are used if possible.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<p>
+<A HREF=..\libindex.html><B>Return to index</B></A></BODY>
+</HTML>

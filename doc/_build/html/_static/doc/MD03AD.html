@@ -1,0 +1,788 @@
+<HTML>
+<HEAD><TITLE>MD03AD - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MD03AD">MD03AD</A></H2>
+<H3>
+Solution of a standard nonlinear least squares problem (Cholesky-based or conjugate gradients solver)
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To minimize the sum of the squares of m nonlinear functions, e, in
+  n variables, x, by a modification of the Levenberg-Marquardt
+  algorithm, using either a Cholesky-based or a conjugate gradients
+  solver. The user must provide a subroutine FCN which calculates
+  the functions and the Jacobian J (possibly by finite differences),
+  and another subroutine JPJ, which computes either J'*J + par*I
+  (if ALG = 'D'), or (J'*J + par*I)*x (if ALG = 'I'), where par is
+  the Levenberg factor, exploiting the possible structure of the
+  Jacobian matrix. Template implementations of these routines are
+  included in the SLICOT Library.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MD03AD( XINIT, ALG, STOR, UPLO, FCN, JPJ, M, N, ITMAX,
+     $                   NPRINT, IPAR, LIPAR, DPAR1, LDPAR1, DPAR2,
+     $                   LDPAR2, X, NFEV, NJEV, TOL, CGTOL, DWORK,
+     $                   LDWORK, IWARN, INFO )
+C     .. Scalar Arguments ..
+      CHARACTER         ALG, STOR, UPLO, XINIT
+      INTEGER           INFO, ITMAX, IWARN, LDPAR1, LDPAR2, LDWORK,
+     $                  LIPAR, M, N, NFEV, NJEV, NPRINT
+      DOUBLE PRECISION  CGTOL, TOL
+C     .. Array Arguments ..
+      DOUBLE PRECISION  DPAR1(LDPAR1,*), DPAR2(LDPAR2,*), DWORK(*), X(*)
+      INTEGER           IPAR(*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  XINIT   CHARACTER*1
+          Specifies how the variables x are initialized, as follows:
+          = 'R' :  the array X is initialized to random values; the
+                   entries DWORK(1:4) are used to initialize the
+                   random number generator: the first three values
+                   are converted to integers between 0 and 4095, and
+                   the last one is converted to an odd integer
+                   between 1 and 4095;
+          = 'G' :  the given entries of X are used as initial values
+                   of variables.
+
+  ALG     CHARACTER*1
+          Specifies the algorithm used for solving the linear
+          systems involving a Jacobian matrix J, as follows:
+          = 'D' :  a direct algorithm, which computes the Cholesky
+                   factor of the matrix J'*J + par*I is used;
+          = 'I' :  an iterative Conjugate Gradients algorithm, which
+                   only needs the matrix J, is used.
+          In both cases, matrix J is stored in a compressed form.
+
+  STOR    CHARACTER*1
+          If ALG = 'D', specifies the storage scheme for the
+          symmetric matrix J'*J, as follows:
+          = 'F' :  full storage is used;
+          = 'P' :  packed storage is used.
+          The option STOR = 'F' usually ensures a faster execution.
+          This parameter is not relevant if ALG = 'I'.
+
+  UPLO    CHARACTER*1
+          If ALG = 'D', specifies which part of the matrix J'*J
+          is stored, as follows:
+          = 'U' :  the upper triagular part is stored;
+          = 'L' :  the lower triagular part is stored.
+          The option UPLO = 'U' usually ensures a faster execution.
+          This parameter is not relevant if ALG = 'I'.
+
+</PRE>
+<B>Function Parameters</B>
+<PRE>
+  FCN     EXTERNAL
+          Subroutine which evaluates the functions and the Jacobian.
+          FCN must be declared in an external statement in the user
+          calling program, and must have the following interface:
+
+          SUBROUTINE FCN( IFLAG, M, N, IPAR, LIPAR, DPAR1, LDPAR1,
+         $                DPAR2, LDPAR2, X, NFEVL, E, J, LDJ, JTE,
+         $                DWORK, LDWORK, INFO )
+
+          where
+
+          IFLAG   (input/output) INTEGER
+                  On entry, this parameter must contain a value
+                  defining the computations to be performed:
+                  = 0 :  Optionally, print the current iterate X,
+                         function values E, and Jacobian matrix J,
+                         or other results defined in terms of these
+                         values. See the argument NPRINT of MD03AD.
+                         Do not alter E and J.
+                  = 1 :  Calculate the functions at X and return
+                         this vector in E. Do not alter J.
+                  = 2 :  Calculate the Jacobian at X and return
+                         this matrix in J. Also return J'*e in JTE
+                         and NFEVL (see below). Do not alter E.
+                  = 3 :  Do not compute neither the functions nor
+                         the Jacobian, but return in LDJ and
+                         IPAR/DPAR1,DPAR2 (some of) the integer/real
+                         parameters needed.
+                  On exit, the value of this parameter should not be
+                  changed by FCN unless the user wants to terminate
+                  execution of MD03AD, in which case IFLAG must be
+                  set to a negative integer.
+
+          M       (input) INTEGER
+                  The number of functions.  M &gt;= 0.
+
+          N       (input) INTEGER
+                  The number of variables.  M &gt;= N &gt;= 0.
+
+          IPAR    (input/output) INTEGER array, dimension (LIPAR)
+                  The integer parameters describing the structure of
+                  the Jacobian matrix or needed for problem solving.
+                  IPAR is an input parameter, except for IFLAG = 3
+                  on entry, when it is also an output parameter.
+                  On exit, if IFLAG = 3, IPAR(1) contains the length
+                  of the array J, for storing the Jacobian matrix,
+                  and the entries IPAR(2:5) contain the workspace
+                  required by FCN for IFLAG = 1, FCN for IFLAG = 2,
+                  JPJ for ALG = 'D', and JPJ for ALG = 'I',
+                  respectively.
+
+          LIPAR   (input) INTEGER
+                  The length of the array IPAR.  LIPAR &gt;= 5.
+
+          DPAR1   (input/output) DOUBLE PRECISION array, dimension
+                  (LDPAR1,*) or (LDPAR1)
+                  A first set of real parameters needed for
+                  describing or solving the problem.
+                  DPAR1 can also be used as an additional array for
+                  intermediate results when computing the functions
+                  or the Jacobian. For control problems, DPAR1 could
+                  store the input trajectory of a system.
+
+          LDPAR1  (input) INTEGER
+                  The leading dimension or the length of the array
+                  DPAR1, as convenient.  LDPAR1 &gt;= 0.  (LDPAR1 &gt;= 1,
+                  if leading dimension.)
+
+          DPAR2   (input/output) DOUBLE PRECISION array, dimension
+                  (LDPAR2,*) or (LDPAR2)
+                  A second set of real parameters needed for
+                  describing or solving the problem.
+                  DPAR2 can also be used as an additional array for
+                  intermediate results when computing the functions
+                  or the Jacobian. For control problems, DPAR2 could
+                  store the output trajectory of a system.
+
+          LDPAR2  (input) INTEGER
+                  The leading dimension or the length of the array
+                  DPAR2, as convenient.  LDPAR2 &gt;= 0.  (LDPAR2 &gt;= 1,
+                  if leading dimension.)
+
+          X       (input) DOUBLE PRECISION array, dimension (N)
+                  This array must contain the value of the
+                  variables x where the functions or the Jacobian
+                  must be evaluated.
+
+          NFEVL   (input/output) INTEGER
+                  The number of function evaluations needed to
+                  compute the Jacobian by a finite difference
+                  approximation.
+                  NFEVL is an input parameter if IFLAG = 0, or an
+                  output parameter if IFLAG = 2. If the Jacobian is
+                  computed analytically, NFEVL should be set to a
+                  non-positive value.
+
+          E       (input/output) DOUBLE PRECISION array,
+                  dimension (M)
+                  This array contains the value of the (error)
+                  functions e evaluated at X.
+                  E is an input parameter if IFLAG = 0 or 2, or an
+                  output parameter if IFLAG = 1.
+
+          J       (input/output) DOUBLE PRECISION array, dimension
+                  (LDJ,NC), where NC is the number of columns
+                  needed.
+                  This array contains a possibly compressed
+                  representation of the Jacobian matrix evaluated
+                  at X. If full Jacobian is stored, then NC = N.
+                  J is an input parameter if IFLAG = 0, or an output
+                  parameter if IFLAG = 2.
+
+          LDJ     (input/output) INTEGER
+                  The leading dimension of array J.  LDJ &gt;= 1.
+                  LDJ is essentially used inside the routines FCN
+                  and JPJ.
+                  LDJ is an input parameter, except for IFLAG = 3
+                  on entry, when it is an output parameter.
+                  It is assumed in MD03AD that LDJ is not larger
+                  than needed.
+
+          JTE     (output) DOUBLE PRECISION array, dimension (N)
+                  If IFLAG = 2, the matrix-vector product J'*e.
+
+          DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+                  The workspace array for subroutine FCN.
+                  On exit, if INFO = 0, DWORK(1) returns the optimal
+                  value of LDWORK.
+
+          LDWORK  (input) INTEGER
+                  The size of the array DWORK (as large as needed
+                  in the subroutine FCN).  LDWORK &gt;= 1.
+
+          INFO    INTEGER
+                  Error indicator, set to a negative value if an
+                  input (scalar) argument is erroneous, and to
+                  positive values for other possible errors in the
+                  subroutine FCN. The LAPACK Library routine XERBLA
+                  should be used in conjunction with negative INFO.
+                  INFO must be zero if the subroutine finished
+                  successfully.
+
+          Parameters marked with "(input)" must not be changed.
+
+  JPJ     EXTERNAL
+          Subroutine which computes J'*J + par*I, if ALG = 'D', and
+          J'*J*x + par*x, if ALG = 'I', where J is the Jacobian as
+          described above.
+
+          JPJ must have the following interface:
+
+          SUBROUTINE JPJ( STOR, UPLO, N, IPAR, LIPAR, DPAR, LDPAR,
+         $                J, LDJ, JTJ, LDJTJ, DWORK, LDWORK, INFO )
+
+          if ALG = 'D', and
+
+          SUBROUTINE JPJ( N, IPAR, LIPAR, DPAR, LDPAR, J, LDJ, X,
+         $                INCX, DWORK, LDWORK, INFO )
+
+          if ALG = 'I', where
+
+          STOR    (input) CHARACTER*1
+                  Specifies the storage scheme for the symmetric
+                  matrix J'*J, as follows:
+                  = 'F' :  full storage is used;
+                  = 'P' :  packed storage is used.
+
+          UPLO    (input) CHARACTER*1
+                  Specifies which part of the matrix J'*J is stored,
+                  as follows:
+                  = 'U' :  the upper triagular part is stored;
+                  = 'L' :  the lower triagular part is stored.
+
+          N       (input) INTEGER
+                  The number of columns of the matrix J.  N &gt;= 0.
+
+          IPAR    (input) INTEGER array, dimension (LIPAR)
+                  The integer parameters describing the structure of
+                  the Jacobian matrix.
+
+          LIPAR   (input) INTEGER
+                  The length of the array IPAR.  LIPAR &gt;= 0.
+
+          DPAR    (input) DOUBLE PRECISION array, dimension (LDPAR)
+                  DPAR(1) must contain an initial estimate of the
+                  Levenberg-Marquardt parameter, par.  DPAR(1) &gt;= 0.
+
+          LDPAR   (input) INTEGER
+                  The length of the array DPAR.  LDPAR &gt;= 1.
+
+          J       (input) DOUBLE PRECISION array, dimension
+                  (LDJ, NC), where NC is the number of columns.
+                  The leading NR-by-NC part of this array must
+                  contain the (compressed) representation of the
+                  Jacobian matrix J, where NR is the number of rows
+                  of J (function of IPAR entries).
+
+          LDJ     (input) INTEGER
+                  The leading dimension of array J.
+                  LDJ &gt;= MAX(1,NR).
+
+          JTJ     (output) DOUBLE PRECISION array,
+                           dimension (LDJTJ,N),    if STOR = 'F',
+                           dimension (N*(N+1)/2),  if STOR = 'P'.
+                  The leading N-by-N (if STOR = 'F'), or N*(N+1)/2
+                  (if STOR = 'P') part of this array contains the
+                  upper or lower triangle of the matrix J'*J+par*I,
+                  depending on UPLO = 'U', or UPLO = 'L',
+                  respectively, stored either as a two-dimensional,
+                  or one-dimensional array, depending on STOR.
+
+          LDJTJ   (input) INTEGER
+                  The leading dimension of the array JTJ.
+                  LDJTJ &gt;= MAX(1,N), if STOR = 'F'.
+                  LDJTJ &gt;= 1,        if STOR = 'P'.
+
+          DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+                  The workspace array for subroutine JPJ.
+
+          LDWORK  (input) INTEGER
+                  The size of the array DWORK (as large as needed
+                  in the subroutine JPJ).
+
+          INFO    INTEGER
+                  Error indicator, set to a negative value if an
+                  input (scalar) argument is erroneous, and to
+                  positive values for other possible errors in the
+                  subroutine JPJ. The LAPACK Library routine XERBLA
+                  should be used in conjunction with negative INFO
+                  values. INFO must be zero if the subroutine
+                  finished successfully.
+
+          If ALG = 'I', the parameters in common with those for
+          ALG = 'D', have the same meaning, and the additional
+          parameters are:
+
+          X       (input/output) DOUBLE PRECISION array, dimension
+                  (1+(N-1)*INCX)
+                  On entry, this incremented array must contain the
+                  vector x.
+                  On exit, this incremented array contains the value
+                  of the matrix-vector product (J'*J + par)*x.
+
+          INCX    (input) INTEGER
+                  The increment for the elements of X.  INCX &gt; 0.
+
+          Parameters marked with "(input)" must not be changed.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  M       (input) INTEGER
+          The number of functions.  M &gt;= 0.
+
+  N       (input) INTEGER
+          The number of variables.  M &gt;= N &gt;= 0.
+
+  ITMAX   (input) INTEGER
+          The maximum number of iterations.  ITMAX &gt;= 0.
+
+  NPRINT  (input) INTEGER
+          This parameter enables controlled printing of iterates if
+          it is positive. In this case, FCN is called with IFLAG = 0
+          at the beginning of the first iteration and every NPRINT
+          iterations thereafter and immediately prior to return,
+          with X, E, and J available for printing. If NPRINT is not
+          positive, no special calls of FCN with IFLAG = 0 are made.
+
+  IPAR    (input) INTEGER array, dimension (LIPAR)
+          The integer parameters needed, for instance, for
+          describing the structure of the Jacobian matrix, which
+          are handed over to the routines FCN and JPJ.
+          The first five entries of this array are modified
+          internally by a call to FCN (with IFLAG = 3), but are
+          restored on exit.
+
+  LIPAR   (input) INTEGER
+          The length of the array IPAR.  LIPAR &gt;= 5.
+
+  DPAR1   (input/output) DOUBLE PRECISION array, dimension
+          (LDPAR1,*) or (LDPAR1)
+          A first set of real parameters needed for describing or
+          solving the problem. This argument is not used by MD03AD
+          routine, but it is passed to the routine FCN.
+
+  LDPAR1  (input) INTEGER
+          The leading dimension or the length of the array DPAR1, as
+          convenient.  LDPAR1 &gt;= 0.  (LDPAR1 &gt;= 1, if leading
+          dimension.)
+
+  DPAR2   (input/output) DOUBLE PRECISION array, dimension
+          (LDPAR2,*) or (LDPAR2)
+          A second set of real parameters needed for describing or
+          solving the problem. This argument is not used by MD03AD
+          routine, but it is passed to the routine FCN.
+
+  LDPAR2  (input) INTEGER
+          The leading dimension or the length of the array DPAR2, as
+          convenient.  LDPAR2 &gt;= 0.  (LDPAR2 &gt;= 1, if leading
+          dimension.)
+
+  X       (input/output) DOUBLE PRECISION array, dimension (N)
+          On entry, if XINIT = 'G', this array must contain the
+          vector of initial variables x to be optimized.
+          If XINIT = 'R', this array need not be set before entry,
+          and random values will be used to initialize x.
+          On exit, if INFO = 0, this array contains the vector of
+          values that (approximately) minimize the sum of squares of
+          error functions. The values returned in IWARN and
+          DWORK(1:5) give details on the iterative process.
+
+  NFEV    (output) INTEGER
+          The number of calls to FCN with IFLAG = 1. If FCN is
+          properly implemented, this includes the function
+          evaluations needed for finite difference approximation
+          of the Jacobian.
+
+  NJEV    (output) INTEGER
+          The number of calls to FCN with IFLAG = 2.
+
+</PRE>
+<B>Tolerances</B>
+<PRE>
+  TOL     DOUBLE PRECISION
+          If TOL &gt;= 0, the tolerance which measures the relative
+          error desired in the sum of squares. Termination occurs
+          when the actual relative reduction in the sum of squares
+          is at most TOL. If the user sets  TOL &lt; 0, then  SQRT(EPS)
+          is used instead TOL, where EPS is the machine precision
+          (see LAPACK Library routine DLAMCH).
+
+  CGTOL   DOUBLE PRECISION
+          If ALG = 'I' and CGTOL &gt; 0, the tolerance which measures
+          the relative residual of the solutions computed by the
+          conjugate gradients (CG) algorithm. Termination of a
+          CG process occurs when the relative residual is at
+          most CGTOL. If the user sets  CGTOL &lt;= 0, then  SQRT(EPS)
+          is used instead CGTOL.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+          On exit, if INFO = 0, DWORK(1) returns the optimal value
+          of LDWORK, DWORK(2) returns the residual error norm (the
+          sum of squares), DWORK(3) returns the number of iterations
+          performed, DWORK(4) returns the total number of conjugate
+          gradients iterations performed (zero, if ALG = 'D'), and
+          DWORK(5) returns the final Levenberg factor.
+
+  LDWORK  INTEGER
+          The length of the array DWORK.
+          LDWORK &gt;= max( 5, M + 2*N + size(J) +
+                         max( DW( FCN|IFLAG = 1 ) + N,
+                              DW( FCN|IFLAG = 2 ),
+                              DW( sol ) ) ),
+          where size(J) is the size of the Jacobian (provided by FCN
+          in IPAR(1), for IFLAG = 3), DW( f ) is the workspace
+          needed by the routine f, where f is FCN or JPJ (provided
+          by FCN in IPAR(2:5), for IFLAG = 3), and DW( sol ) is the
+          workspace needed for solving linear systems,
+          DW( sol ) = N*N + DW( JPJ ),  if ALG = 'D', STOR = 'F';
+          DW( sol ) = N*(N+1)/2 + DW( JPJ ),
+                                        if ALG = 'D', STOR = 'P';
+          DW( sol ) = 3*N + DW( JPJ ),  if ALG = 'I'.
+
+</PRE>
+<B>Warning Indicator</B>
+<PRE>
+  IWARN   INTEGER
+          &lt; 0:  the user set IFLAG = IWARN in the subroutine FCN;
+          = 0:  no warning;
+          = 1:  if the iterative process did not converge in ITMAX
+                iterations with tolerance TOL;
+          = 2:  if ALG = 'I', and in one or more iterations of the
+                Levenberg-Marquardt algorithm, the conjugate
+                gradient algorithm did not finish after 3*N
+                iterations, with the accuracy required in the
+                call;
+          = 3:  the cosine of the angle between e and any column of
+                the Jacobian is at most FACTOR*EPS in absolute
+                value, where FACTOR = 100 is defined in a PARAMETER
+                statement;
+          = 4:  TOL is too small: no further reduction in the sum
+                of squares is possible.
+                In all these cases, DWORK(1:5) are set as described
+                above.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value;
+          = 1:  user-defined routine FCN returned with INFO &lt;&gt; 0
+                for IFLAG = 1;
+          = 2:  user-defined routine FCN returned with INFO &lt;&gt; 0
+                for IFLAG = 2;
+          = 3:  SLICOT Library routine MB02XD, if ALG = 'D', or
+                SLICOT Library routine MB02WD, if ALG = 'I' (or
+                user-defined routine JPJ), returned with INFO &lt;&gt; 0.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  If XINIT = 'R', the initial value for X is set to a vector of
+  pseudo-random values uniformly distributed in [-1,1].
+
+  The Levenberg-Marquardt algorithm (described in [1]) is used for
+  optimizing the parameters. This algorithm needs the Jacobian
+  matrix J, which is provided by the subroutine FCN. The algorithm
+  tries to update x by the formula
+
+      x = x - p,
+
+  using the solution of the system of linear equations
+
+      (J'*J + PAR*I)*p = J'*e,
+
+  where I is the identity matrix, and e the error function vector.
+  The Levenberg factor PAR is decreased after each successfull step
+  and increased in the other case.
+
+  If ALG = 'D', a direct method, which evaluates the matrix product
+  J'*J + par*I and then factors it using Cholesky algorithm,
+  implemented in the SLICOT Libray routine MB02XD, is used for
+  solving the linear system above.
+
+  If ALG = 'I', the Conjugate Gradients method, described in [2],
+  and implemented in the SLICOT Libray routine MB02WD, is used for
+  solving the linear system above. The main advantage of this method
+  is that in most cases the solution of the system can be computed
+  in less time than the time needed to compute the matrix J'*J
+  This is, however, problem dependent.
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Kelley, C.T.
+      Iterative Methods for Optimization.
+      Society for Industrial and Applied Mathematics (SIAM),
+      Philadelphia (Pa.), 1999.
+
+  [2] Golub, G.H. and van Loan, C.F.
+      Matrix Computations. Third Edition.
+      M. D. Johns Hopkins University Press, Baltimore, pp. 520-528,
+      1996.
+
+  [3] More, J.J.
+      The Levenberg-Marquardt algorithm: implementation and theory.
+      In Watson, G.A. (Ed.), Numerical Analysis, Lecture Notes in
+      Mathematics, vol. 630, Springer-Verlag, Berlin, Heidelberg
+      and New York, pp. 105-116, 1978.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  The Levenberg-Marquardt algorithm described in [3] is scaling
+  invariant and globally convergent to (maybe local) minima.
+  According to [1], the convergence rate near a local minimum is
+  quadratic, if the Jacobian is computed analytically, and linear,
+  if the Jacobian is computed numerically.
+
+  Whether or not the direct algorithm is faster than the iterative
+  Conjugate Gradients algorithm for solving the linear systems
+  involved depends on several factors, including the conditioning
+  of the Jacobian matrix, and the ratio between its dimensions.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+*     MD03AD EXAMPLE PROGRAM TEXT
+*
+*     .. Parameters ..
+      INTEGER           NIN, NOUT
+      PARAMETER         ( NIN = 5, NOUT = 6 )
+      INTEGER           MMAX, NMAX
+      PARAMETER         ( MMAX = 20, NMAX = 20 )
+      INTEGER           LDWORK
+      PARAMETER         ( LDWORK = MMAX + 2*NMAX + MMAX*NMAX +
+     $                             MAX( NMAX*NMAX, 3*NMAX + MMAX ) )
+*     .. The lengths of DPAR1, DPAR2, IPAR are set to 1, 1, and 5 ..
+      INTEGER           LDPAR1, LDPAR2, LIPAR
+      PARAMETER         ( LDPAR1 = 1, LDPAR2 = 1, LIPAR = 5 )
+*     .. Local Scalars ..
+      CHARACTER*1       ALG, STOR, UPLO, XINIT
+      INTEGER           I, INFO, ITMAX, IWARN, M, N, NFEV, NJEV, NPRINT
+      DOUBLE PRECISION  CGTOL, TOL
+*     .. Array Arguments ..
+      INTEGER           IPAR(LIPAR)
+      DOUBLE PRECISION  DPAR1(LDPAR1), DPAR2(LDPAR2), DWORK(LDWORK),
+     $                  X(NMAX)
+*     .. External Functions ..
+      LOGICAL           LSAME
+      EXTERNAL          LSAME
+*     .. External Subroutines ..
+      EXTERNAL          MD03AD, MD03AF, NF01BV, NF01BX
+*     .. Intrinsic Functions ..
+      INTRINSIC         MAX
+*     .. Executable Statements ..
+*
+      WRITE ( NOUT, FMT = 99999 )
+*     Skip the heading in the data file and read the data.
+      READ ( NIN, FMT = '()' )
+      READ ( NIN, FMT = * ) M, N, ITMAX, NPRINT, TOL, CGTOL, XINIT,
+     $                      ALG, STOR, UPLO
+      IF( M.LE.0 .OR. M.GT.MMAX ) THEN
+         WRITE ( NOUT, FMT = 99993 ) M
+      ELSE
+         IF( N.LE.0 .OR. N.GT.NMAX ) THEN
+            WRITE ( NOUT, FMT = 99992 ) N
+         ELSE
+            IF ( LSAME( XINIT, 'G' ) )
+     $         READ ( NIN, FMT = * ) ( X(I), I = 1,N )
+*           Solve a standard nonlinear least squares problem.
+            IPAR(1) = M
+            IF ( LSAME( ALG, 'D' ) ) THEN
+               CALL MD03AD( XINIT, ALG, STOR, UPLO, MD03AF, NF01BV, M,
+     $                      N, ITMAX, NPRINT, IPAR, LIPAR, DPAR1,
+     $                      LDPAR1, DPAR2, LDPAR2, X, NFEV, NJEV, TOL,
+     $                      CGTOL, DWORK, LDWORK, IWARN, INFO )
+            ELSE
+               CALL MD03AD( XINIT, ALG, STOR, UPLO, MD03AF, NF01BX, M,
+     $                      N, ITMAX, NPRINT, IPAR, LIPAR, DPAR1,
+     $                      LDPAR1, DPAR2, LDPAR2, X, NFEV, NJEV, TOL,
+     $                      CGTOL, DWORK, LDWORK, IWARN, INFO )
+            END IF
+*
+            IF ( INFO.NE.0 ) THEN
+               WRITE ( NOUT, FMT = 99998 ) INFO
+            ELSE
+               IF( IWARN.NE.0 ) WRITE ( NOUT, FMT = 99991 ) IWARN
+               WRITE ( NOUT, FMT = 99997 ) DWORK(2)
+               WRITE ( NOUT, FMT = 99996 ) NFEV, NJEV
+               WRITE ( NOUT, FMT = 99994 )
+               WRITE ( NOUT, FMT = 99995 ) ( X(I), I = 1, N )
+            END IF
+         END IF
+      END IF
+      STOP
+*
+99999 FORMAT (' MD03AD EXAMPLE PROGRAM RESULTS',/1X)
+99998 FORMAT (' INFO on exit from MD03AD = ',I2)
+99997 FORMAT (/' Final 2-norm of the residuals = ',D15.7)
+99996 FORMAT (/' The number of function and Jacobian evaluations = ',
+     $           2I7)
+99995 FORMAT (20(1X,F8.4))
+99994 FORMAT (/' Final approximate solution is ' )
+99993 FORMAT (/' M is out of range.',/' M = ',I5)
+99992 FORMAT (/' N is out of range.',/' N = ',I5)
+99991 FORMAT (' IWARN on exit from MD03AD = ',I2)
+      END
+C
+      SUBROUTINE MD03AF( IFLAG, M, N, IPAR, LIPAR, DPAR1, LDPAR1, DPAR2,
+     $                   LDPAR2, X, NFEVL, E, J, LDJ, JTE, DWORK,
+     $                   LDWORK, INFO )
+C
+C     This is the FCN routine for solving a standard nonlinear least
+C     squares problem using SLICOT Library routine MD03AD. See the
+C     argument FCN in the routine MD03AD for the description of
+C     parameters.
+C
+C     The example programmed in this routine is adapted from that
+C     accompanying the MINPACK routine LMDER.
+C
+C     ******************************************************************
+C
+C     .. Parameters ..
+C     .. NOUT is the unit number for printing intermediate results ..
+      INTEGER           NOUT
+      PARAMETER         ( NOUT = 6 )
+      DOUBLE PRECISION  ZERO, ONE
+      PARAMETER         ( ZERO = 0.0D0, ONE = 1.0D0 )
+C     .. Scalar Arguments ..
+      INTEGER           IFLAG, INFO, LDJ, LDPAR1, LDPAR2, LDWORK, LIPAR,
+     $                  M, N, NFEVL
+C     .. Array Arguments ..
+      INTEGER           IPAR(*)
+      DOUBLE PRECISION  DPAR1(*), DPAR2(*), DWORK(*), E(*), J(LDJ,*),
+     $                  JTE(*), X(*)
+C     .. Local Scalars ..
+      INTEGER           I
+      DOUBLE PRECISION  ERR, TMP1, TMP2, TMP3, TMP4
+C     .. External Functions ..
+      DOUBLE PRECISION  DNRM2
+      EXTERNAL          DNRM2
+C     .. External Subroutines ..
+      EXTERNAL          DGEMV
+C     .. DATA Statements ..
+      DOUBLE PRECISION  Y(15)
+      DATA              Y(1), Y(2), Y(3), Y(4), Y(5), Y(6), Y(7), Y(8),
+     $                  Y(9), Y(10), Y(11), Y(12), Y(13), Y(14), Y(15)
+     $                  / 1.4D-1, 1.8D-1, 2.2D-1, 2.5D-1, 2.9D-1,
+     $                    3.2D-1, 3.5D-1, 3.9D-1, 3.7D-1, 5.8D-1,
+     $                    7.3D-1, 9.6D-1, 1.34D0, 2.1D0,  4.39D0 /
+C
+C     .. Executable Statements ..
+C
+      INFO = 0
+      IF ( IFLAG.EQ.1 ) THEN
+C
+C        Compute the error function values, e.
+C
+         DO 10 I = 1, 15
+            TMP1 = I
+            TMP2 = 16 - I
+            IF ( I.GT.8 ) THEN
+               TMP3 = TMP2
+            ELSE
+               TMP3 = TMP1
+            END IF
+            E(I) = Y(I) - ( X(1) + TMP1/( X(2)*TMP2 + X(3)*TMP3 ) )
+   10    CONTINUE
+C
+      ELSE IF ( IFLAG.EQ.2 ) THEN
+C
+C        Compute the Jacobian.
+C
+         DO 30 I = 1, 15
+            TMP1 = I
+            TMP2 = 16 - I
+            IF ( I.GT.8 ) THEN
+               TMP3 = TMP2
+            ELSE
+               TMP3 = TMP1
+            END IF
+            TMP4 = ( X(2)*TMP2 + X(3)*TMP3 )**2
+            J(I,1) = -ONE
+            J(I,2) = TMP1*TMP2/TMP4
+            J(I,3) = TMP1*TMP3/TMP4
+   30    CONTINUE
+C
+C        Compute the product J'*e (the error e was computed in array E).
+C
+         CALL DGEMV( 'Transpose', M, N, ONE, J, LDJ, E, 1, ZERO, JTE,
+     $               1 )
+C
+         NFEVL = 0
+C
+      ELSE IF ( IFLAG.EQ.3 ) THEN
+C
+C        Set the parameter LDJ, the length of the array J, and the sizes
+C        of the workspace for MD03AF (IFLAG = 1 or 2), NF01BV and
+C        NF01BX.
+C
+         LDJ = M
+         IPAR(1) = M*N
+         IPAR(2) = 0
+         IPAR(3) = 0
+         IPAR(4) = M
+      ELSE IF ( IFLAG.EQ.0 ) THEN
+C
+C        Special call for printing intermediate results.
+C
+         ERR = DNRM2( M, E, 1 )
+         WRITE( NOUT, '('' Norm of current error = '', D15.6)') ERR
+C
+      END IF
+C
+      DWORK(1) = ZERO
+      RETURN
+C
+C *** Last line of MD03AF ***
+      END
+</PRE>
+<B>Program Data</B>
+<PRE>
+ MD03AD EXAMPLE PROGRAM DATA
+ 15     3   100     0   -1.   -1.    G     D     F    U
+   1.0   1.0   1.0
+</PRE>
+<B>Program Results</B>
+<PRE>
+ MD03AD EXAMPLE PROGRAM RESULTS
+
+
+ Final 2-norm of the residuals =   0.9063596D-01
+
+ The number of function and Jacobian evaluations =      13     12
+
+ Final approximate solution is 
+   0.0824   1.1330   2.3437
+</PRE>
+
+<HR>
+<p>
+<A HREF=..\libindex.html><B>Return to index</B></A></BODY>
+</HTML>

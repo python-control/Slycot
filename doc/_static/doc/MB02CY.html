@@ -1,0 +1,173 @@
+<HTML>
+<HEAD><TITLE>MB02CY - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MB02CY">MB02CY</A></H2>
+<H3>
+Applying the MB02CX transformations on other columns / rows of the generator
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To apply the transformations created by the SLICOT Library
+  routine MB02CX on other columns / rows of the generator,
+  contained in the arrays A and B of positive and negative
+  generators, respectively.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MB02CY( TYPET, STRUCG, P, Q, N, K, A, LDA, B, LDB, H,
+     $                   LDH, CS, LCS, DWORK, LDWORK, INFO )
+C     .. Scalar Arguments ..
+      INTEGER           INFO, K, LDA, LDB, LCS, LDH, LDWORK, N, P, Q
+      CHARACTER         STRUCG, TYPET
+C     .. Array Arguments ..
+      DOUBLE PRECISION  A(LDA, *), B(LDB, *), CS(*), DWORK(*), H(LDH,*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  TYPET   CHARACTER*1
+          Specifies the type of the generator, as follows:
+          = 'R':  A and B are additional columns of the generator;
+          = 'C':  A and B are additional rows of the generator.
+          Note:   in the sequel, the notation x / y means that
+                  x corresponds to TYPET = 'R' and y corresponds to
+                  TYPET = 'C'.
+
+  STRUCG  CHARACTER*1
+          Information about the structure of the two generators,
+          as follows:
+          = 'T':  the trailing block of the positive generator
+                  is lower / upper triangular, and the trailing
+                  block of the negative generator is zero;
+          = 'N':  no special structure to mention.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  P       (input)  INTEGER
+          The number of rows / columns in A containing the positive
+          generators.  P &gt;= 0.
+
+  Q       (input)  INTEGER
+          The number of rows / columns in B containing the negative
+          generators.  Q &gt;= 0.
+
+  N       (input)  INTEGER
+          The number of columns / rows in A and B to be processed.
+          N &gt;= 0.
+
+  K       (input)  INTEGER
+          The number of columns / rows in H.  P &gt;= K &gt;= 0.
+
+  A       (input/output)  DOUBLE PRECISION array, dimension
+          (LDA, N) / (LDA, P)
+          On entry, the leading P-by-N / N-by-P part of this array
+          must contain the positive part of the generator.
+          On exit, the leading P-by-N / N-by-P part of this array
+          contains the transformed positive part of the generator.
+
+  LDA     INTEGER
+          The leading dimension of the array A.
+          LDA &gt;= MAX(1,P),    if TYPET = 'R';
+          LDA &gt;= MAX(1,N),    if TYPET = 'C'.
+
+  B       (input/output)  DOUBLE PRECISION array, dimension
+          (LDB, N) / (LDB, Q)
+          On entry, the leading Q-by-N / N-by-Q part of this array
+          must contain the negative part of the generator.
+          On exit, the leading Q-by-N / N-by-Q part of this array
+          contains the transformed negative part of the generator.
+
+  LDB     INTEGER
+          The leading dimension of the array B.
+          LDB &gt;= MAX(1,Q),    if TYPET = 'R';
+          LDB &gt;= MAX(1,N),    if TYPET = 'C'.
+
+  H       (input)  DOUBLE PRECISION array, dimension
+          (LDH, K) / (LDH, Q)
+          The leading Q-by-K / K-by-Q part of this array must
+          contain part of the necessary information for the
+          Householder transformations computed by SLICOT Library
+          routine MB02CX.
+
+  LDH     INTEGER
+          The leading dimension of the array H.
+          LDH &gt;= MAX(1,Q),    if TYPET = 'R';
+          LDH &gt;= MAX(1,K),    if TYPET = 'C'.
+
+  CS      (input)  DOUBLE PRECISION array, dimension (LCS)
+          The leading 2*K + MIN(K,Q) part of this array must
+          contain the necessary information for modified hyperbolic
+          rotations and the scalar factors of the Householder
+          transformations computed by SLICOT Library routine MB02CX.
+
+  LCS     INTEGER
+          The length of the array CS.  LCS &gt;= 2*K + MIN(K,Q).
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+          On exit, if  INFO = 0,  DWORK(1)  returns the optimal
+          value of LDWORK.
+          On exit, if  INFO = -16,  DWORK(1)  returns the minimum
+          value of LDWORK.
+
+  LDWORK  INTEGER
+          The length of the array DWORK.  LDWORK &gt;= MAX(1,N).
+          For optimum performance LDWORK should be larger.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  succesful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  The Householder transformations and modified hyperbolic rotations
+  computed by SLICOT Library routine MB02CX are applied to the
+  corresponding parts of the matrices A and B.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

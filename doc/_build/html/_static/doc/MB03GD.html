@@ -1,0 +1,152 @@
+<HTML>
+<HEAD><TITLE>MB03GD - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MB03GD">MB03GD</A></H2>
+<H3>
+Exchanging eigenvalues of a real 2-by-2 or 4-by-4 block upper triangular skew-Hamiltonian/Hamiltonian pencil (factored version)
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To compute an orthogonal matrix Q and an orthogonal symplectic
+  matrix U for a real regular 2-by-2 or 4-by-4 skew-Hamiltonian/
+  Hamiltonian pencil a J B' J' B - b D with
+
+        ( B11  B12 )      (  D11  D12  )      (  0  I  )
+    B = (          ), D = (            ), J = (        ),
+        (  0   B22 )      (   0  -D11' )      ( -I  0  )
+
+  such that J Q' J' D Q and U' B Q keep block triangular form, but
+  the eigenvalues are reordered. The notation M' denotes the
+  transpose of the matrix M.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MB03GD( N, B, LDB, D, LDD, MACPAR, Q, LDQ, U, LDU,
+     $                   DWORK, LDWORK, INFO )
+C     .. Scalar Arguments ..
+      INTEGER            INFO, LDB, LDD, LDQ, LDU, LDWORK, N
+C     .. Array Arguments ..
+      DOUBLE PRECISION   B( LDB, * ), D( LDD, * ), DWORK( * ),
+     $                   MACPAR( * ), Q( LDQ, * ), U( LDU, * )
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The order of the pencil a J B' J' B - b D. N = 2 or N = 4.
+
+  B       (input) DOUBLE PRECISION array, dimension (LDB, N)
+          The leading N-by-N part of this array must contain the
+          non-trivial factor of the decomposition of the
+          skew-Hamiltonian input matrix J B' J' B. The (2,1) block
+          is not referenced.
+
+  LDB     INTEGER
+          The leading dimension of the array B.  LDB &gt;= N.
+
+  D       (input) DOUBLE PRECISION array, dimension (LDD, N)
+          The leading N/2-by-N part of this array must contain the
+          first block row of the second matrix of a J B' J' B - b D.
+          The matrix D has to be Hamiltonian. The strict lower
+          triangle of the (1,2) block is not referenced.
+
+  LDD     INTEGER
+          The leading dimension of the array D.  LDD &gt;= N/2.
+
+  MACPAR  (input)  DOUBLE PRECISION array, dimension (2)
+          Machine parameters:
+          MACPAR(1)  (machine precision)*base, DLAMCH( 'P' );
+          MACPAR(2)  safe minimum,             DLAMCH( 'S' ).
+          This argument is not used for N = 2.
+
+  Q       (output) DOUBLE PRECISION array, dimension (LDQ, N)
+          The leading N-by-N part of this array contains the
+          orthogonal transformation matrix Q.
+
+  LDQ     INTEGER
+          The leading dimension of the array Q.  LDQ &gt;= N.
+
+  U       (output) DOUBLE PRECISION array, dimension (LDU, N)
+          The leading N-by-N part of this array contains the
+          orthogonal symplectic transformation matrix U.
+
+  LDU     INTEGER
+          The leading dimension of the array U.  LDU &gt;= N.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+          If N = 2 then DWORK is not referenced.
+
+  LDWORK  INTEGER
+          The length of the array DWORK.
+          If N = 2 then LDWORK &gt;= 0; if N = 4 then LDWORK &gt;= 12.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0: succesful exit;
+          = 1: B11 or B22 is a (numerically) singular matrix.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  The algorithm uses orthogonal transformations as described on page
+  22 in [1], but with an improved implementation.
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Benner, P., Byers, R., Losse, P., Mehrmann, V. and Xu, H.
+      Numerical Solution of Real Skew-Hamiltonian/Hamiltonian
+      Eigenproblems.
+      Tech. Rep., Technical University Chemnitz, Germany,
+      Nov. 2007.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  The algorithm is numerically backward stable.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

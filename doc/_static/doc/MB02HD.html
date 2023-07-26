@@ -1,0 +1,332 @@
+<HTML>
+<HEAD><TITLE>MB02HD - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MB02HD">MB02HD</A></H2>
+<H3>
+Cholesky factorization of the matrix T' T, with T a banded block Toeplitz matrix of full rank
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To compute, for a banded K*M-by-L*N block Toeplitz matrix T with
+  block size (K,L), specified by the nonzero blocks of its first
+  block column TC and row TR, a LOWER triangular matrix R (in band
+  storage scheme) such that
+                       T          T
+                      T  T  =  R R .                             (1)
+
+  It is assumed that the first MIN(M*K, N*L) columns of T are
+  linearly independent.
+
+  By subsequent calls of this routine, the matrix R can be computed
+  block column by block column.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MB02HD( TRIU, K, L, M, ML, N, NU, P, S, TC, LDTC, TR,
+     $                   LDTR, RB, LDRB, DWORK, LDWORK, INFO )
+C     .. Scalar Arguments ..
+      CHARACTER         TRIU
+      INTEGER           INFO, K, L, LDRB, LDTC, LDTR, LDWORK, M, ML, N,
+     $                  NU, P, S
+C     .. Array Arguments ..
+      DOUBLE PRECISION  DWORK(LDWORK), RB(LDRB,*), TC(LDTC,*),
+     $                  TR(LDTR,*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  TRIU    CHARACTER*1
+          Specifies the structure, if any, of the last blocks in TC
+          and TR, as follows:
+          = 'N':  TC and TR have no special structure;
+          = 'T':  TC and TR are upper and lower triangular,
+                  respectively. Depending on the block sizes, two
+                  different shapes of the last blocks in TC and TR
+                  are possible, as illustrated below:
+
+                  1)    TC       TR     2)   TC         TR
+
+                       x x x    x 0 0      x x x x    x 0 0 0
+                       0 x x    x x 0      0 x x x    x x 0 0
+                       0 0 x    x x x      0 0 x x    x x x 0
+                       0 0 0    x x x
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  K       (input) INTEGER
+          The number of rows in the blocks of T.  K &gt;= 0.
+
+  L       (input) INTEGER
+          The number of columns in the blocks of T.  L &gt;= 0.
+
+  M       (input) INTEGER
+          The number of blocks in the first block column of T.
+          M &gt;= 1.
+
+  ML      (input) INTEGER
+          The lower block bandwidth, i.e., ML + 1 is the number of
+          nonzero blocks in the first block column of T.
+          0 &lt;= ML &lt; M and (ML + 1)*K &gt;= L and
+          if ( M*K &lt;= N*L ),  ML &gt;= M - INT( ( M*K - 1 )/L ) - 1;
+                              ML &gt;= M - INT( M*K/L ) or
+                              MOD( M*K, L ) &gt;= K;
+          if ( M*K &gt;= N*L ),  ML*K &gt;= N*( L - K ).
+
+  N       (input) INTEGER
+          The number of blocks in the first block row of T.
+          N &gt;= 1.
+
+  NU      (input) INTEGER
+          The upper block bandwidth, i.e., NU + 1 is the number of
+          nonzero blocks in the first block row of T.
+          If TRIU = 'N',   0 &lt;= NU &lt; N and
+                           (M + NU)*L &gt;= MIN( M*K, N*L );
+          if TRIU = 'T',   MAX(1-ML,0) &lt;= NU &lt; N and
+                           (M + NU)*L &gt;= MIN( M*K, N*L ).
+
+  P       (input)  INTEGER
+          The number of previously computed block columns of R.
+          P*L &lt; MIN( M*K,N*L ) + L and P &gt;= 0.
+
+  S       (input)  INTEGER
+          The number of block columns of R to compute.
+          (P+S)*L &lt; MIN( M*K,N*L ) + L and S &gt;= 0.
+
+  TC      (input)  DOUBLE PRECISION array, dimension (LDTC,L)
+          On entry, if P = 0, the leading (ML+1)*K-by-L part of this
+          array must contain the nonzero blocks in the first block
+          column of T.
+
+  LDTC    INTEGER
+          The leading dimension of the array TC.
+          LDTC &gt;= MAX(1,(ML+1)*K),  if P = 0.
+
+  TR      (input)  DOUBLE PRECISION array, dimension (LDTR,NU*L)
+          On entry, if P = 0, the leading K-by-NU*L part of this
+          array must contain the 2nd to the (NU+1)-st blocks of
+          the first block row of T.
+
+  LDTR    INTEGER
+          The leading dimension of the array TR.
+          LDTR &gt;= MAX(1,K),  if P = 0.
+
+  RB      (output)  DOUBLE PRECISION array, dimension
+          (LDRB,MIN( S*L,MIN( M*K,N*L )-P*L ))
+          On exit, if INFO = 0 and TRIU = 'N', the leading
+          MIN( ML+NU+1,N )*L-by-MIN( S*L,MIN( M*K,N*L )-P*L ) part
+          of this array contains the (P+1)-th to (P+S)-th block
+          column of the lower R factor (1) in band storage format.
+          On exit, if INFO = 0 and TRIU = 'T', the leading
+          MIN( (ML+NU)*L+1,N*L )-by-MIN( S*L,MIN( M*K,N*L )-P*L )
+          part of this array contains the (P+1)-th to (P+S)-th block
+          column of the lower R factor (1) in band storage format.
+          For further details regarding the band storage scheme see
+          the documentation of the LAPACK routine DPBTF2.
+
+  LDRB    INTEGER
+          The leading dimension of the array RB.
+          LDRB &gt;= MAX( MIN( ML+NU+1,N )*L,1 ),      if TRIU = 'N';
+          LDRB &gt;= MAX( MIN( (ML+NU)*L+1,N*L ),1 ),  if TRIU = 'T'.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+          On exit, if INFO = 0,  DWORK(1)  returns the optimal
+          value of LDWORK.
+          On exit, if  INFO = -17,  DWORK(1)  returns the minimum
+          value of LDWORK.
+          The first 1 + 2*MIN( ML+NU+1,N )*L*(K+L) elements of DWORK
+          should be preserved during successive calls of the routine.
+
+  LDWORK  INTEGER
+          The length of the array DWORK.
+          Let x = MIN( ML+NU+1,N ), then
+          LDWORK &gt;= 1 + MAX( x*L*L + (2*NU+1)*L*K,
+                             2*x*L*(K+L) + (6+x)*L ),  if P = 0;
+          LDWORK &gt;= 1 + 2*x*L*(K+L) + (6+x)*L,         if P &gt; 0.
+          For optimum performance LDWORK should be larger.
+
+          If LDWORK = -1, then a workspace query is assumed;
+          the routine only calculates the optimal size of the
+          DWORK array, returns this value as the first entry of
+          the DWORK array, and no error message related to LDWORK
+          is issued by XERBLA.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value;
+          = 1:  the full rank condition for the first MIN(M*K, N*L)
+                columns of T is (numerically) violated.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  Householder transformations and modified hyperbolic rotations
+  are used in the Schur algorithm [1], [2].
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Kailath, T. and Sayed, A.
+      Fast Reliable Algorithms for Matrices with Structure.
+      SIAM Publications, Philadelphia, 1999.
+
+  [2] Kressner, D. and Van Dooren, P.
+      Factorizations and linear system solvers for matrices with
+      Toeplitz structure.
+      SLICOT Working Note 2000-2, 2000.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  The implemented method yields a factor R which has comparable
+  accuracy with the Cholesky factor of T^T * T.
+  The algorithm requires
+            2                                  2
+        O( L *K*N*( ML + NU ) + N*( ML + NU )*L *( L + K ) )
+
+  floating point operations.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+*     MB02HD EXAMPLE PROGRAM TEXT
+*
+*     .. Parameters ..
+      INTEGER          NIN, NOUT
+      PARAMETER        ( NIN = 5, NOUT = 6 )
+      INTEGER          KMAX, LMAX, MMAX, MLMAX, NMAX, NUMAX
+      PARAMETER        ( KMAX = 20, LMAX  = 20, MMAX = 20, MLMAX = 10,
+     $                   NMAX = 20, NUMAX = 10 )
+      INTEGER          LDRB, LDTC, LDTR, LDWORK
+      PARAMETER        ( LDRB = ( MLMAX + NUMAX + 1 )*LMAX,
+     $                   LDTC = ( MLMAX + 1 )*KMAX, LDTR = KMAX )
+      PARAMETER        ( LDWORK = LDRB*LMAX + ( 2*NUMAX + 1 )*LMAX*KMAX
+     $                            + 2*LDRB*( KMAX + LMAX ) + LDRB
+     $                            + 6*LMAX )
+*     .. Local Scalars ..
+      INTEGER          I, INFO, J, K, L, LENR, M, ML, N, NU, S
+      CHARACTER        TRIU
+*     .. Local Arrays ..
+      DOUBLE PRECISION DWORK(LDWORK), RB(LDRB,NMAX*LMAX),
+     $                 TC(LDTC,LMAX), TR(LDTR,NMAX*LMAX)
+*     .. External Functions ..
+      LOGICAL          LSAME
+      EXTERNAL         LSAME
+*     .. External Subroutines ..
+      EXTERNAL         MB02HD
+*     .. Intrinsic Functions ..
+      INTRINSIC        MIN
+*
+*     .. Executable Statements ..
+      WRITE ( NOUT, FMT = 99999 )
+*     Skip the heading in the data file and read the data.
+      READ ( NIN, FMT = '()' )
+      READ ( NIN, FMT = * ) K, L, M, ML, N, NU, TRIU
+      IF( K.LT.0 .OR. K.GT.KMAX ) THEN
+         WRITE ( NOUT, FMT = 99990 ) K
+      ELSE IF( L.LT.0 .OR. L.GT.LMAX ) THEN
+         WRITE ( NOUT, FMT = 99991 ) L
+      ELSE IF( M.LE.0 .OR. M.GT.MMAX ) THEN
+         WRITE ( NOUT, FMT = 99992 ) M
+      ELSE IF( ML.LT.0 .OR. ML.GT.MLMAX ) THEN
+         WRITE ( NOUT, FMT = 99993 ) ML
+      ELSE IF( N.LE.0 .OR. N.GT.NMAX ) THEN
+         WRITE ( NOUT, FMT = 99994 ) N
+      ELSE IF( NU.LT.0 .OR. NU.GT.NUMAX ) THEN
+         WRITE ( NOUT, FMT = 99995 ) NU
+      ELSE
+         READ ( NIN, FMT = * ) ( ( TC(I,J), J = 1,L ), I = 1,(ML+1)*K )
+         READ ( NIN, FMT = * ) ( ( TR(I,J), J = 1,NU*L ), I = 1,K )
+         S = ( MIN( M*K, N*L ) + L - 1 ) / L
+*        Compute the banded R factor.
+         CALL MB02HD( TRIU, K, L, M, ML, N, NU, 0, S, TC, LDTC, TR,
+     $                LDTR, RB, LDRB, DWORK, LDWORK, INFO )
+         IF ( INFO.NE.0 ) THEN
+            WRITE ( NOUT, FMT = 99998 ) INFO
+         ELSE
+            WRITE ( NOUT, FMT = 99997 )
+            LENR = ( ML + NU + 1 )*L
+            IF ( LSAME( TRIU, 'T' ) )  LENR = ( ML + NU )*L + 1
+            LENR = MIN( LENR, N*L )
+            DO 10  I = 1, LENR
+               WRITE ( NOUT, FMT = 99996 ) ( RB(I,J), J = 1,
+     $                                       MIN( N*L, M*K ) )
+   10       CONTINUE
+         END IF
+      END IF
+      STOP
+*
+99999 FORMAT (' MB02HD EXAMPLE PROGRAM RESULTS',/1X)
+99998 FORMAT (' INFO on exit from MB02HD = ',I2)
+99997 FORMAT (/' The lower triangular factor R in banded storage ')
+99996 FORMAT (20(1X,F8.4))
+99995 FORMAT (/' NU is out of range.',/' NU = ',I5)
+99994 FORMAT (/' N is out of range.',/' N = ',I5)
+99993 FORMAT (/' ML is out of range.',/' ML = ',I5)
+99992 FORMAT (/' M is out of range.',/' M = ',I5)
+99991 FORMAT (/' L is out of range.',/' L = ',I5)
+99990 FORMAT (/' K is out of range.',/' K = ',I5)
+      END
+</PRE>
+<B>Program Data</B>
+<PRE>
+MB02HD EXAMPLE PROGRAM DATA
+   2  2  6  2  5   1  N
+     4.0     4.0
+     1.0     3.0
+     2.0     1.0
+     2.0     2.0
+     4.0     4.0
+     3.0     4.0
+     1.0     3.0   
+     2.0     1.0     
+</PRE>
+<B>Program Results</B>
+<PRE>
+ MB02HD EXAMPLE PROGRAM RESULTS
+
+
+ The lower triangular factor R in banded storage 
+  -7.0711  -2.4125   6.0822   2.9967   5.9732   2.8593   5.8497   2.7914   2.7298   1.9557
+  -7.4953  -0.0829   5.8986  -0.5571   5.5329   0.2059   5.6797   0.3414   0.9565   0.0000
+  -4.2426   0.9202   2.4747  -1.6425   2.9472  -1.0052   2.4396  -0.7785   0.0000   0.0000
+  -5.2326   0.6218   2.8391  -0.0820   3.2670   0.6327   2.7067   0.0000   0.0000   0.0000
+  -3.5355   0.8207   3.1160  -0.4451   3.5758   0.5701   0.0000   0.0000   0.0000   0.0000
+  -4.6669  -0.5803   3.9454   0.7682   4.5481   0.0000   0.0000   0.0000   0.0000   0.0000
+  -1.4142  -0.0415   1.6441   0.4848   0.0000   0.0000   0.0000   0.0000   0.0000   0.0000
+  -2.1213   0.0000   2.4662   0.0000   0.0000   0.0000   0.0000   0.0000   0.0000   0.0000
+</PRE>
+
+<HR>
+<p>
+<A HREF=..\libindex.html><B>Return to index</B></A></BODY>
+</HTML>

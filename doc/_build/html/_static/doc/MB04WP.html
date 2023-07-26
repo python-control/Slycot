@@ -1,0 +1,163 @@
+<HTML>
+<HEAD><TITLE>MB04WP - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MB04WP">MB04WP</A></H2>
+<H3>
+Generating an orthogonal symplectic matrix which performed the reduction in MB04PU
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To generate an orthogonal symplectic matrix U, which is defined as
+  a product of symplectic reflectors and Givens rotations
+
+  U = diag( H(1),H(1) )      G(1)  diag( F(1),F(1) )
+      diag( H(2),H(2) )      G(2)  diag( F(2),F(2) )
+                             ....
+      diag( H(n-1),H(n-1) ) G(n-1) diag( F(n-1),F(n-1) ).
+
+  as returned by MB04PU. The matrix U is returned in terms of its
+  first N rows
+
+                   [  U1   U2 ]
+               U = [          ].
+                   [ -U2   U1 ]
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MB04WP( N, ILO, U1, LDU1, U2, LDU2, CS, TAU, DWORK,
+     $                   LDWORK, INFO )
+C     .. Scalar Arguments ..
+      INTEGER           ILO, INFO, LDU1, LDU2, LDWORK, N
+C     .. Array Arguments ..
+      DOUBLE PRECISION  CS(*), DWORK(*), U1(LDU1,*), U2(LDU2,*), TAU(*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The order of the matrices U1 and U2.  N &gt;= 0.
+
+  ILO     (input) INTEGER
+          ILO must have the same value as in the previous call of
+          MB04PU. U is equal to the unit matrix except in the
+          submatrix
+          U([ilo+1:n n+ilo+1:2*n], [ilo+1:n n+ilo+1:2*n]).
+          1 &lt;= ILO &lt;= N, if N &gt; 0; ILO = 1, if N = 0.
+
+  U1      (input/output) DOUBLE PRECISION array, dimension (LDU1,N)
+          On entry, the leading N-by-N part of this array must
+          contain in its i-th column the vector which defines the
+          elementary reflector F(i).
+          On exit, the leading N-by-N part of this array contains
+          the matrix U1.
+
+  LDU1    INTEGER
+          The leading dimension of the array U1.  LDU1 &gt;= MAX(1,N).
+
+  U2      (input/output) DOUBLE PRECISION array, dimension (LDU2,N)
+          On entry, the leading N-by-N part of this array must
+          contain in its i-th column the vector which defines the
+          elementary reflector H(i) and, on the subdiagonal, the
+          scalar factor of H(i).
+          On exit, the leading N-by-N part of this array contains
+          the matrix U2.
+
+  LDU2    INTEGER
+          The leading dimension of the array U2.  LDU2 &gt;= MAX(1,N).
+
+  CS      (input) DOUBLE PRECISION array, dimension (2N-2)
+          On entry, the first 2N-2 elements of this array must
+          contain the cosines and sines of the symplectic Givens
+          rotations G(i).
+
+  TAU     (input) DOUBLE PRECISION array, dimension (N-1)
+          On entry, the first N-1 elements of this array must
+          contain the scalar factors of the elementary reflectors
+          F(i).
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+          On exit, if INFO = 0,  DWORK(1)  returns the optimal
+          value of LDWORK.
+          On exit, if  INFO = -10,  DWORK(1)  returns the minimum
+          value of LDWORK.
+
+  LDWORK  INTEGER
+          The length of the array DWORK. LDWORK &gt;= MAX(1,2*(N-ILO)).
+          For optimum performance LDWORK should be larger. (See
+          SLICOT Library routine MB04WD).
+
+          If LDWORK = -1, then a workspace query is assumed;
+          the routine only calculates the optimal size of the
+          DWORK array, returns this value as the first entry of
+          the DWORK array, and no error message related to LDWORK
+          is issued by XERBLA.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  The algorithm requires O(N**3) floating point operations and is
+  strongly backward stable.
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] C. F. VAN LOAN:
+      A symplectic method for approximating all the eigenvalues of
+      a Hamiltonian matrix.
+      Linear Algebra and its Applications, 61, pp. 233-251, 1984.
+
+  [2] D. KRESSNER:
+      Block algorithms for orthogonal symplectic factorizations.
+      BIT, 43 (4), pp. 775-790, 2003.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

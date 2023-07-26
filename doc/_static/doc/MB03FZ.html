@@ -1,0 +1,584 @@
+<HTML>
+<HEAD><TITLE>MB03FZ - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MB03FZ">MB03FZ</A></H2>
+<H3>
+Eigenvalues and right deflating subspace of a complex skew-Hamiltonian/Hamiltonian pencil in factored form
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To compute the eigenvalues of a complex N-by-N skew-Hamiltonian/
+  Hamiltonian pencil aS - bH, with
+
+                          (  B  F  )      (  Z11  Z12  )
+    S = J Z' J' Z and H = (        ), Z = (            ),
+                          (  G -B' )      (  Z21  Z22  )
+                                                                (1)
+        (  0  I  )
+    J = (        ).
+        ( -I  0  )
+
+  The structured Schur form of the embedded real skew-Hamiltonian/
+                                                         
+  skew-Hamiltonian pencil, aB_S - bB_T, with B_S = J B_Z' J' B_Z,
+
+          (  Re(Z11)  -Im(Z11)  |  Re(Z12)  -Im(Z12)  )
+          (                     |                     )
+          (  Im(Z11)   Re(Z11)  |  Im(Z12)   Re(Z12)  )
+          (                     |                     )
+    B_Z = (---------------------+---------------------) ,
+          (                     |                     )
+          (  Re(Z21)  -Im(Z21)  |  Re(Z22)  -Im(Z22)  )
+          (                     |                     )
+          (  Im(Z21)   Re(Z21)  |  Im(Z22)   Re(Z22)  )
+                                                                 (2)
+          ( -Im(B)  -Re(B)  | -Im(F)  -Re(F)  )
+          (                 |                 )
+          (  Re(B)  -Im(B)  |  Re(F)  -Im(F)  )
+          (                 |                 )
+    B_T = (-----------------+-----------------) ,  T = i*H,
+          (                 |                 )
+          ( -Im(G)  -Re(G)  | -Im(B')  Re(B') )
+          (                 |                 )
+          (  Re(G)  -Im(G)  | -Re(B') -Im(B') )
+
+  is determined and used to compute the eigenvalues. Optionally, if
+  COMPQ = 'C', an orthonormal basis of the right deflating subspace,
+  Def_-(S, H), of the pencil aS - bH in (1), corresponding to the
+  eigenvalues with strictly negative real part, is computed. Namely,
+  after transforming aB_S - bB_H, in the factored form, by unitary
+  matrices, we have B_Sout = J B_Zout' J' B_Zout,
+
+             ( BA  BD  )              ( BB  BF  )
+    B_Zout = (         ) and B_Hout = (         ),               (3)
+             (  0  BC  )              (  0 -BB' )
+
+  and the eigenvalues with strictly negative real part of the
+  complex pencil aB_Sout - bB_Hout are moved to the top. The 
+  notation M' denotes the conjugate transpose of the matrix M.
+  Optionally, if COMPU = 'C', an orthonormal basis of the companion
+  subspace, range(P_U) [1], which corresponds to the eigenvalues
+  with negative real part, is computed. The embedding doubles the
+  multiplicities of the eigenvalues of the pencil aS - bH.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MB03FZ( COMPQ, COMPU, ORTH, N, Z, LDZ, B, LDB, FG,
+     $                   LDFG, NEIG, D, LDD, C, LDC, Q, LDQ, U, LDU,
+     $                   ALPHAR, ALPHAI, BETA, IWORK, LIWORK, DWORK,
+     $                   LDWORK, ZWORK, LZWORK, BWORK, INFO )
+C     .. Scalar Arguments ..
+      CHARACTER          COMPQ, COMPU, ORTH
+      INTEGER            INFO, LDB, LDC, LDD, LDFG, LDQ, LDU, LDWORK,
+     $                   LDZ, LIWORK, LZWORK, N, NEIG
+C     .. Array Arguments ..
+      LOGICAL            BWORK( * )
+      INTEGER            IWORK( * )
+      DOUBLE PRECISION   ALPHAI( * ), ALPHAR( * ), BETA( * ), DWORK( * )
+      COMPLEX*16         B( LDB, * ), C( LDC, * ), D( LDD, * ),
+     $                   FG( LDFG, * ), Q( LDQ, * ), U( LDU, * ),
+     $                   Z( LDZ, * ), ZWORK( * )
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  COMPQ   CHARACTER*1
+          Specifies whether to compute the right deflating subspace
+          corresponding to the eigenvalues of aS - bH with strictly
+          negative real part.
+          = 'N': do not compute the deflating subspace;
+          = 'C': compute the deflating subspace and store it in the
+                 leading subarray of Q.
+
+  COMPU   CHARACTER*1
+          Specifies whether to compute the companion subspace
+          corresponding to the eigenvalues of aS - bH with strictly
+          negative real part.
+          = 'N': do not compute the companion subspace;
+          = 'C': compute the companion subspace and store it in the
+                 leading subarray of U.
+
+  ORTH    CHARACTER*1
+          If COMPQ = 'C' or COMPU = 'C', specifies the technique for
+          computing the orthonormal bases of the deflating subspace
+          and companion subspace, as follows:
+          = 'P':  QR factorization with column pivoting;
+          = 'S':  singular value decomposition.
+          If COMPQ = 'N' and COMPU = 'N', the ORTH value is not
+          used.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          Order of the pencil aS - bH.  N &gt;= 0, even.
+
+  Z       (input/output) COMPLEX*16 array, dimension (LDZ, N)
+          On entry, the leading N-by-N part of this array must
+          contain the non-trivial factor Z in the factorization
+          S = J Z' J' Z of the skew-Hamiltonian matrix S.
+          On exit, if COMPQ = 'C' or COMPU = 'C', the leading
+          N-by-N part of this array contains the upper triangular
+          matrix BA in (3) (see also METHOD). The strictly lower
+          triangular part is not zeroed.
+          If COMPQ = 'N' and COMPU = 'N', this array is unchanged
+          on exit.
+
+  LDZ     INTEGER
+          The leading dimension of the array Z.  LDZ &gt;= MAX(1, N).
+
+  B       (input/output) COMPLEX*16 array, dimension (LDB, N)
+          On entry, the leading N/2-by-N/2 part of this array must
+          contain the matrix B.
+          On exit, if COMPQ = 'C' or COMPU = 'C', the leading
+          N-by-N part of this array contains the upper triangular
+          matrix BB in (3) (see also METHOD). The strictly lower
+          triangular part is not zeroed. 
+          If COMPQ = 'N' and COMPU = 'N', this array is unchanged
+          on exit.
+
+  LDB     INTEGER
+          The leading dimension of the array B.  LDB &gt;= MAX(1, N).
+
+  FG      (input/output) COMPLEX*16 array, dimension (LDFG, N)
+          On entry, the leading N/2-by-N/2 lower triangular part of
+          this array must contain the lower triangular part of the
+          Hermitian matrix G, and the N/2-by-N/2 upper triangular
+          part of the submatrix in the columns 2 to N/2+1 of this
+          array must contain the upper triangular part of the
+          Hermitian matrix F.
+          On exit, if COMPQ = 'C' or COMPU = 'C', the leading
+          N-by-N part of this array contains the Hermitian matrix
+          BF in (3) (see also METHOD). The strictly lower triangular
+          part of the input matrix is preserved. The diagonal
+          elements might have tiny imaginary parts.
+          If COMPQ = 'N' and COMPU = 'N', this array is unchanged
+          on exit.
+
+  LDFG    INTEGER
+          The leading dimension of the array FG.  LDFG &gt;= MAX(1, N).
+
+  NEIG    (output) INTEGER
+          If COMPQ = 'C' or COMPU = 'C', the number of eigenvalues
+          in aS - bH with strictly negative real part.
+
+  D       (output) COMPLEX*16 array, dimension (LDD, N)
+          If COMPQ = 'C' or COMPU = 'C', the leading N-by-N part of
+          this array contains the matrix BD in (3) (see METHOD).
+          If COMPQ = 'N' and COMPU = 'N', this array is not
+          referenced.
+
+  LDD     INTEGER
+          The leading dimension of the array D.
+          LDD &gt;= 1,         if COMPQ = 'N' and COMPU = 'N';
+          LDD &gt;= MAX(1, N), if COMPQ = 'C' or  COMPU = 'C'.
+
+  C       (output) COMPLEX*16 array, dimension (LDC, N)
+          If COMPQ = 'C' or COMPU = 'C', the leading N-by-N part of
+          this array contains the lower triangular matrix BC in (3)
+          (see also METHOD). The strictly upper triangular part is
+          not zeroed. 
+          If COMPQ = 'N' and COMPU = 'N', this array is not
+          referenced.
+
+  LDC     INTEGER
+          The leading dimension of the array C.
+          LDC &gt;= 1,         if COMPQ = 'N' and COMPU = 'N';
+          LDC &gt;= MAX(1, N), if COMPQ = 'C' or  COMPU = 'C'.
+
+  Q       (output) COMPLEX*16 array, dimension (LDQ, 2*N)
+          On exit, if COMPQ = 'C', the leading N-by-NEIG part of
+          this array contains an orthonormal basis of the right
+          deflating subspace corresponding to the eigenvalues of the
+          pencil aS - bH with strictly negative real part.
+          The remaining entries are meaningless.
+          If COMPQ = 'N', this array is not referenced.
+
+  LDQ     INTEGER
+          The leading dimension of the array Q.
+          LDQ &gt;= 1,           if COMPQ = 'N';
+          LDQ &gt;= MAX(1, 2*N), if COMPQ = 'C'.
+
+  U       (output) COMPLEX*16 array, dimension (LDU, 2*N)
+          On exit, if COMPU = 'C', the leading N-by-NEIG part of
+          this array contains an orthonormal basis of the companion
+          subspace corresponding to the eigenvalues of the
+          pencil aS - bH with strictly negative real part. The
+          remaining entries are meaningless.
+          If COMPU = 'N', this array is not referenced.
+
+  LDU     INTEGER
+          The leading dimension of the array U.
+          LDU &gt;= 1,         if COMPU = 'N';
+          LDU &gt;= MAX(1, N), if COMPU = 'C'.
+
+  ALPHAR  (output) DOUBLE PRECISION array, dimension (N)
+          The real parts of each scalar alpha defining an eigenvalue
+          of the pencil aS - bH.
+
+  ALPHAI  (output) DOUBLE PRECISION array, dimension (N)
+          The imaginary parts of each scalar alpha defining an
+          eigenvalue of the pencil aS - bH.
+          If ALPHAI(j) is zero, then the j-th eigenvalue is real.
+
+  BETA    (output) DOUBLE PRECISION array, dimension (N)
+          The scalars beta that define the eigenvalues of the pencil
+          aS - bH.
+          Together, the quantities alpha = (ALPHAR(j),ALPHAI(j)) and
+          beta = BETA(j) represent the j-th eigenvalue of the pencil
+          aS - bH, in the form lambda = alpha/beta. Since lambda may
+          overflow, the ratios should not, in general, be computed.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  IWORK   INTEGER array, dimension (LIWORK)
+
+  LIWORK  INTEGER
+          The dimension of the array IWORK.  LIWORK &gt;= 2*N+9.
+
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+          On exit, if INFO = 0, DWORK(1) returns the optimal LDWORK.
+          On exit, if INFO = -26, DWORK(1) returns the minimum
+          value of LDWORK.
+
+  LDWORK  INTEGER
+          The dimension of the array DWORK.
+          LDWORK &gt;= c*N**2 + N + MAX(6*N, 27), where
+                    c = 18, if                 COMPU = 'C';
+                    c = 16, if COMPQ = 'C' and COMPU = 'N';
+                    c = 13, if COMPQ = 'N' and COMPU = 'N'.
+          For good performance LDWORK should be generally larger.
+
+          If LDWORK = -1, then a workspace query is assumed;
+          the routine only calculates the optimal size of the
+          DWORK array, returns this value as the first entry of
+          the DWORK array, and no error message related to LDWORK
+          is issued by XERBLA.
+
+  ZWORK   COMPLEX*16 array, dimension (LZWORK)
+          On exit, if INFO = 0, ZWORK(1) returns the optimal LZWORK.
+          On exit, if INFO = -28, ZWORK(1) returns the minimum
+          value of LZWORK.
+
+  LZWORK  INTEGER
+          The dimension of the array ZWORK.
+          LZWORK &gt;= 8*N + 28, if COMPQ = 'C';
+          LZWORK &gt;= 6*N + 28, if COMPQ = 'N' and COMPU = 'C';
+          LZWORK &gt;= 1,        if COMPQ = 'N' and COMPU = 'N'.
+          For good performance LZWORK should be generally larger.
+
+          If LZWORK = -1, then a workspace query is assumed;
+          the routine only calculates the optimal size of the
+          ZWORK array, returns this value as the first entry of
+          the ZWORK array, and no error message related to LZWORK
+          is issued by XERBLA.
+
+  BWORK   LOGICAL array, dimension (LBWORK)
+          LBWORK &gt;= 0, if COMPQ = 'N' and COMPU = 'N';
+          LBWORK &gt;= N, if COMPQ = 'C' or  COMPU = 'C'.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0: succesful exit;
+          &lt; 0: if INFO = -i, the i-th argument had an illegal value;
+          = 1: the algorithm was not able to reveal information
+               about the eigenvalues from the 2-by-2 blocks in the
+               SLICOT Library routine MB03BD (called by MB04ED);
+          = 2: periodic QZ iteration failed in the SLICOT Library
+               routines MB03BD or MB03BZ when trying to
+               triangularize the 2-by-2 blocks;
+          = 3: the singular value decomposition failed in the LAPACK
+               routine ZGESVD (for ORTH = 'S').
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  First T = i*H is set. Then, the embeddings, B_Z and B_T, of the
+  matrices S and T, are determined and, subsequently, the SLICOT 
+  Library routine MB04ED is applied to compute the structured Schur
+  form, i.e., the factorizations
+
+  ~                (  BZ11  BZ12  )
+  B_Z = U' B_Z Q = (              ) and
+                   (    0   BZ22  )
+
+  ~                     (  T11  T12  )
+  B_T = J Q' J' B_T Q = (            ),
+                        (   0   T11' )
+
+  where Q is real orthogonal, U is real orthogonal symplectic, BZ11,
+  BZ22' are upper triangular and T11 is upper quasi-triangular.
+
+  Second, the SLICOT Library routine MB03IZ is applied, to compute a
+                 ~                                 ~
+  unitary matrix Q and a unitary symplectic matrix U, such that
+
+                ~    ~
+  ~  ~   ~   (  Z11  Z12  )
+  U' B_Z Q = (       ~    ) =: B_Zout,
+             (   0   Z22  )
+
+    ~        ~    ~   (  H11  H12  )
+  J Q' J'(-i*B_T) Q = (            ) =: B_Hout,
+                      (   0  -H11' )
+       ~    ~   
+  with Z11, Z22', H11 upper triangular, and such that the spectrum
+
+           ~       ~       ~
+  Spec_-(J B_Z' J' B_Z, -i*B_T) is contained in the spectrum of the
+                                                ~    ~
+  2*NEIG-by-2*NEIG leading principal subpencil aZ22'*Z11 - bH11.
+
+  Finally, the right deflating subspace and the companion subspace
+  are computed. See also page 21 in [1] for more details.
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Benner, P., Byers, R., Mehrmann, V. and Xu, H.
+      Numerical Computation of Deflating Subspaces of Embedded
+      Hamiltonian Pencils.
+      Tech. Rep. SFB393/99-15, Technical University Chemnitz,
+      Germany, June 1999.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>                                                            3
+  The algorithm is numerically backward stable and needs O(N )
+  complex floating point operations.
+
+</PRE>
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  This routine does not perform any scaling of the matrices. Scaling
+  might sometimes be useful, and it should be done externally.
+
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+*     MB03FZ EXAMPLE PROGRAM TEXT
+*
+*     .. Parameters ..
+      INTEGER            NIN, NOUT
+      PARAMETER          ( NIN = 5, NOUT = 6 )
+      INTEGER            NMAX
+      PARAMETER          ( NMAX = 50 )
+      INTEGER            LDB, LDC, LDD, LDFG, LDQ, LDU, LDWORK, LDZ,
+     $                   LIWORK, LZWORK
+      PARAMETER          ( LDB  = NMAX, LDC =   NMAX, LDD = NMAX,
+     $                     LDFG = NMAX, LDQ = 2*NMAX, LDU = NMAX,
+     $                     LDWORK = 18*NMAX*NMAX + NMAX + 3 +
+     $                              MAX( 2*NMAX, 24 ), LDZ  = NMAX,
+     $                     LIWORK = 2*NMAX + 9, LZWORK = 8*NMAX + 28 )
+*
+*     .. Local Scalars ..
+      CHARACTER          COMPQ, COMPU, ORTH
+      INTEGER            I, INFO, J, M, N, NEIG
+*
+*     .. Local Arrays ..
+      COMPLEX*16         B( LDB, NMAX ), C( LDC, NMAX ), D( LDD, NMAX ),
+     $                   FG( LDFG, NMAX ), Q( LDQ, 2*NMAX ),
+     $                   U( LDU, 2*NMAX ), Z( LDZ, NMAX ),
+     $                   ZWORK( LZWORK )
+      DOUBLE PRECISION   ALPHAI( NMAX ),  ALPHAR( NMAX ), BETA( NMAX ),
+     $                   DWORK( LDWORK )
+      INTEGER            IWORK( LIWORK )
+      LOGICAL            BWORK( NMAX )
+*
+*     .. External Functions ..
+      LOGICAL            LSAME
+      EXTERNAL           LSAME
+*
+*     .. External Subroutines ..
+      EXTERNAL           MB03FZ
+*
+*     .. Intrinsic Functions ..
+      INTRINSIC          MAX, MOD
+*
+*     .. Executable Statements ..
+*
+      WRITE( NOUT, FMT = 99999 )
+*     Skip the heading in the data file and read in the data.
+      READ( NIN, FMT = * )
+      READ( NIN, FMT = * ) COMPQ, COMPU, ORTH, N
+      IF( N.LT.0 .OR. N.GT.NMAX .OR. MOD( N, 2 ).NE.0 ) THEN
+         WRITE( NOUT, FMT = 99998 ) N
+      ELSE
+         M = N/2
+         READ( NIN, FMT = * ) ( (  Z( I, J ), J = 1, N   ), I = 1, N )
+         READ( NIN, FMT = * ) ( (  B( I, J ), J = 1, M   ), I = 1, M )
+         READ( NIN, FMT = * ) ( ( FG( I, J ), J = 1, M+1 ), I = 1, M )
+*        Compute the eigenvalues and orthogonal bases of the right
+*        deflating subspace and companion subspace of a complex
+*        skew-Hamiltonian/Hamiltonian pencil, corresponding to the
+*        eigenvalues with strictly negative real part.
+         CALL MB03FZ( COMPQ, COMPU, ORTH, N, Z, LDZ, B, LDB, FG, LDFG,
+     $                NEIG, D, LDD, C, LDC, Q, LDQ, U, LDU, ALPHAR,
+     $                ALPHAI, BETA, IWORK, LIWORK, DWORK, LDWORK, ZWORK,
+     $                LZWORK, BWORK, INFO )
+*
+         IF( INFO.NE.0 ) THEN
+            WRITE( NOUT, FMT = 99997 ) INFO
+         ELSE
+            WRITE( NOUT, FMT = 99996 )
+            DO 10 I = 1, N
+               WRITE( NOUT, FMT = 99995 ) ( Z( I, J ), J = 1, N )
+   10       CONTINUE
+            IF( LSAME( COMPQ, 'C' ) .OR. LSAME( COMPU, 'C' ) ) THEN
+               WRITE( NOUT, FMT = 99994 )
+               DO 20 I = 1, N
+                  WRITE( NOUT, FMT = 99995 ) ( D( I, J ), J = 1, N )
+   20          CONTINUE
+               WRITE( NOUT, FMT = 99993 )
+               DO 30 I = 1, N
+                  WRITE( NOUT, FMT = 99995 ) ( C( I, J ), J = 1, N )
+   30          CONTINUE
+               WRITE( NOUT, FMT = 99992 )
+               DO 40 I = 1, N
+                  WRITE( NOUT, FMT = 99995 ) ( B( I, J ), J = 1, N )
+   40          CONTINUE
+               WRITE( NOUT, FMT = 99991 )
+               DO 50 I = 1, N
+                  WRITE( NOUT, FMT = 99995 ) ( FG( I, J ), J = 1, N )
+   50          CONTINUE
+            END IF
+            WRITE( NOUT, FMT = 99990 )
+            WRITE( NOUT, FMT = 99989 ) ( ALPHAR( I ), I = 1, N )
+            WRITE( NOUT, FMT = 99988 )
+            WRITE( NOUT, FMT = 99989 ) ( ALPHAI( I ), I = 1, N )
+            WRITE( NOUT, FMT = 99987 )
+            WRITE( NOUT, FMT = 99989 ) (   BETA( I ), I = 1, N )
+            IF( LSAME( COMPQ, 'C' ) .AND. NEIG.GT.0 ) THEN
+               WRITE( NOUT, FMT = 99986 )
+               DO 60 I = 1, N
+                  WRITE( NOUT, FMT = 99995 ) ( Q( I, J ), J = 1, NEIG )
+   60          CONTINUE
+            END IF
+            IF( LSAME( COMPU, 'C' ) .AND. NEIG.GT.0 ) THEN
+               WRITE( NOUT, FMT = 99985 )
+               DO 70 I = 1, N
+                  WRITE( NOUT, FMT = 99995 ) ( U( I, J ), J = 1, NEIG )
+   70          CONTINUE
+            END IF
+            IF( LSAME( COMPQ, 'C' ) .OR. LSAME( COMPU, 'C' ) )
+     $         WRITE( NOUT, FMT = 99984 ) NEIG
+         END IF
+      END IF
+      STOP
+*
+99999 FORMAT ( 'MB03FZ EXAMPLE PROGRAM RESULTS', 1X )
+99998 FORMAT ( 'N is out of range.', /, 'N = ', I5 )
+99997 FORMAT ( 'INFO on exit from MB03FZ = ', I2 )
+99996 FORMAT (/'The matrix Z on exit is ' )
+99995 FORMAT ( 20( 1X, F9.4, SP, F9.4, S, 'i ') )
+99994 FORMAT (/'The matrix D is ' )
+99993 FORMAT (/'The matrix C is ' )
+99992 FORMAT (/'The matrix B on exit is ' )
+99991 FORMAT (/'The matrix F on exit is ' )
+99990 FORMAT (/'The vector ALPHAR is ' )
+99989 FORMAT ( 50( 1X, F8.4 ) )
+99988 FORMAT (/'The vector ALPHAI is ' )
+99987 FORMAT (/'The vector BETA is ' )
+99986 FORMAT (/'The deflating subspace corresponding to the ',
+     $         'eigenvalues with negative real part is ' )
+99985 FORMAT (/'The companion subspace corresponding to the ',
+     $         'eigenvalues with negative real part is ' )
+99984 FORMAT (/'The number of eigenvalues in the initial pencil with ',
+     $         'negative real part is ', I2 )
+      END
+</PRE>
+<B>Program Data</B>
+<PRE>
+MB03FZ EXAMPLE PROGRAM DATA
+	C	C	P	4
+   (0.0328,0.9611)   (0.6428,0.2585)   (0.7033,0.4254)   (0.2552,0.7053)
+   (0.0501,0.2510)   (0.2827,0.8865)   (0.4719,0.5387)   (0.0389,0.5676)
+   (0.5551,0.4242)   (0.0643,0.2716)   (0.1165,0.7875)   (0.9144,0.3891)
+   (0.0539,0.7931)   (0.0408,0.2654)   (0.9912,0.0989)   (0.0991,0.6585)
+   (0.0547,0.8726)   (0.4008,0.8722)
+   (0.7423,0.6166)   (0.2631,0.5872)
+    0.8740            0.3697           (0.9178,0.6418)
+   (0.7748,0.5358)    0.1652            0.2441          
+</PRE>
+<B>Program Results</B>
+<PRE>
+MB03FZ EXAMPLE PROGRAM RESULTS
+
+The matrix Z on exit is 
+    1.1347  -0.1694i     0.0920  -0.0894i     0.5253  +0.0280i    -0.0597  +0.1098i 
+    0.0000  +0.0000i    -0.9874  -0.6015i     0.2523  -0.0600i     0.3178  -0.0902i 
+    0.5551  +0.4242i     0.0643  +0.2716i     0.7553  -0.3356i     0.4772  -0.3177i 
+    0.0539  +0.7931i     0.0408  +0.2654i     0.9912  +0.0989i     0.9064  -0.1055i 
+
+The matrix D is 
+   -0.7634  -0.2773i    -0.8466  -0.9586i    -0.0308  -0.0175i    -0.2754  -0.0715i 
+    1.2612  -0.2643i    -0.7291  -0.3165i     0.0282  -0.1748i     0.4091  +0.0233i 
+    0.3773  -0.1536i    -0.3937  -0.0480i    -0.1635  +0.1617i    -0.1775  +0.1277i 
+    0.7540  -0.0280i    -0.6860  -0.8306i    -0.2446  +0.0943i    -0.0722  +0.0517i 
+
+The matrix C is 
+    0.5063  +0.1548i     0.0000  +0.0000i     0.0000  +0.0000i     0.0000  +0.0000i 
+   -0.0046  +0.1049i     0.3884  +0.3420i     0.0000  +0.0000i     0.0000  +0.0000i 
+   -1.1206  +0.1313i    -0.2270  -0.1753i     0.4300  -0.6107i     0.0000  +0.0000i 
+   -0.6127  -0.1939i    -0.5713  -0.7913i     0.3739  -0.2943i    -1.1501  -0.0850i 
+
+The matrix B on exit is 
+    0.3322  +1.9093i    -0.1216  -0.1193i    -0.0030  +0.0330i     0.0405  +0.0592i 
+    0.0000  +0.0000i     0.1863  -1.8998i     0.2983  +0.2974i     0.6636  +0.5916i 
+    0.0000  +0.0000i     0.0000  +0.0000i     0.4459  -0.7452i    -0.0625  +0.2197i 
+    0.0000  +0.0000i     0.0000  +0.0000i     0.0000  +0.0000i     0.1418  +0.7392i 
+
+The matrix F on exit is 
+    0.0258  +0.0000i    -0.0878  +0.1090i     0.3547  +0.5306i    -0.0138  -0.8770i 
+    0.7748  +0.5358i     0.0864  +0.0000i    -0.3788  -0.2829i    -0.3303  -0.0415i 
+    0.0000  +0.0000i     0.0000  +0.0000i    -0.0184  +0.0000i     0.1077  -0.0795i 
+    0.0000  +0.0000i     0.0000  +0.0000i     0.0000  +0.0000i    -0.0938  +0.0000i 
+
+The vector ALPHAR is 
+   0.4295  -0.4295   0.0000   0.0000
+
+The vector ALPHAI is 
+   1.5363   1.5363  -1.4069  -0.7153
+
+The vector BETA is 
+   0.5000   0.5000   1.0000   1.0000
+
+The deflating subspace corresponding to the eigenvalues with negative real part is 
+   -0.2249  +0.4158i 
+   -0.1984  -0.3100i 
+    0.7286  -0.0427i 
+    0.3282  -0.0251i 
+
+The companion subspace corresponding to the eigenvalues with negative real part is 
+   -0.1542  -0.0712i 
+   -0.4162  -0.3021i 
+   -0.0806  -0.6946i 
+   -0.4580  -0.0889i 
+
+The number of eigenvalues in the initial pencil with negative real part is  1
+</PRE>
+
+<HR>
+<p>
+<A HREF=..\libindex.html><B>Return to index</B></A></BODY>
+</HTML>

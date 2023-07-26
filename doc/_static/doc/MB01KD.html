@@ -1,0 +1,169 @@
+<HTML>
+<HEAD><TITLE>MB01KD - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MB01KD">MB01KD</A></H2>
+<H3>
+Rank 2k operation alpha*A*trans(B) - alpha*B*trans(A) + beta*C, with A and C skew-symmetric matrices
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To perform one of the skew-symmetric rank 2k operations
+
+      C := alpha*A*B' - alpha*B*A' + beta*C,
+
+  or
+
+      C := alpha*A'*B - alpha*B'*A + beta*C,
+
+  where alpha and beta are scalars, C is a real N-by-N skew-
+  symmetric matrix and A, B are N-by-K matrices in the first case
+  and K-by-N matrices in the second case.
+
+  This is a modified version of the vanilla implemented BLAS
+  routine DSYR2K written by Jack Dongarra, Iain Duff,
+  Jeremy Du Croz and Sven Hammarling.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MB01KD( UPLO, TRANS, N, K, ALPHA, A, LDA, B, LDB, BETA,
+     $                   C, LDC, INFO )
+C     .. Scalar Arguments ..
+      CHARACTER         UPLO, TRANS
+      INTEGER           INFO, K, LDA, LDB, LDC, N
+      DOUBLE PRECISION  ALPHA, BETA
+C     .. Array Arguments ..
+      DOUBLE PRECISION  A(LDA,*), B(LDB,*), C(LDC,*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  UPLO    CHARACTER*1
+          Specifies whether the upper or lower triangular part of
+          the array C is to be referenced, as follows:
+          = 'U':  only the strictly upper triangular part of C is to
+                  be referenced;
+          = 'L':  only the striclty lower triangular part of C is to
+                  be referenced.
+
+  TRANS   CHARACTER*1
+          Specifies the operation to be performed, as follows:
+          = 'N':         C := alpha*A*B' - alpha*B*A' + beta*C;
+          = 'T' or 'C':  C := alpha*A'*B - alpha*B'*A + beta*C.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The order of the matrix C.  N &gt;= 0.
+
+  K       (input) INTEGER
+          If TRANS = 'N' the number of columns of A and B; and if
+          TRANS = 'T' or TRANS = 'C' the number of rows of A and B.
+          K &gt;= 0.
+
+  ALPHA   (input) DOUBLE PRECISION
+          The scalar alpha. If alpha is zero, or N &lt;= 1, or K = 0,
+          A and B are not referenced.
+
+  A       (input)  DOUBLE PRECISION array, dimension (LDA,KA),
+          where KA is K when TRANS = 'N', and is N otherwise.
+          On entry with TRANS = 'N', the leading N-by-K part of
+          of this array must contain the matrix A.
+          On entry with TRANS = 'T' or TRANS = 'C', the leading
+          K-by-N part of this array must contain the matrix A.
+
+  LDA     INTEGER
+          The leading dimension of the array A.
+          LDA &gt;= MAX(1,N),  if TRANS = 'N';
+          LDA &gt;= MAX(1,K),  if TRANS = 'T' or TRANS = 'C'.
+
+  B       (input)  DOUBLE PRECISION array, dimension (LDB,KB),
+          where KB is K when TRANS = 'N', and is N otherwise.
+          On entry with TRANS = 'N', the leading N-by-K part of
+          of this array must contain the matrix B.
+          On entry with TRANS = 'T' or TRANS = 'C', the leading
+          K-by-N part of this array must contain the matrix B.
+
+  LDB     INTEGER
+          The leading dimension of the array B.
+          LDB &gt;= MAX(1,N),  if TRANS = 'N';
+          LDB &gt;= MAX(1,K),  if TRANS = 'T' or TRANS = 'C'.
+
+  BETA    (input) DOUBLE PRECISION
+          The scalar beta. If beta is zero C need not be set before
+          entry.
+
+  C       (input/output)  DOUBLE PRECISION array, dimension (LDC,N)
+          On entry with UPLO = 'U', the leading N-by-N part of this
+          array must contain the strictly upper triangular part of
+          the matrix C. The lower triangular part of this array is
+          not referenced.
+          On entry with UPLO = 'L', the leading N-by-N part of this
+          array must contain the strictly lower triangular part of
+          the matrix C. The upper triangular part of this array is
+          not referenced.
+          On exit with UPLO = 'U', the leading N-by-N part of this
+          array contains the strictly upper triangular part of the
+          updated matrix C.
+          On exit with UPLO = 'L', the leading N-by-N part of this
+          array contains the strictly lower triangular part of the
+          updated matrix C.
+
+  LDC     INTEGER
+          The leading dimension of the array C.  LDC &gt;= MAX(1,N)
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  Though being almost identical with the vanilla implementation
+  of the BLAS routine DSYR2K the performance of this routine could
+  be significantly lower in the case of vendor supplied, highly
+  optimized BLAS.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

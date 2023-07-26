@@ -1,0 +1,233 @@
+<HTML>
+<HEAD><TITLE>SB16CY - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="SB16CY">SB16CY</A></H2>
+<H3>
+Cholesky factors of controllability and observability Grammians of coprime factors of a state-feedback controller
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To compute, for a given open-loop model (A,B,C,0), and for
+  given state feedback gain F and full observer gain G,
+  such that A+B*F and A+G*C are stable, the Cholesky factors
+  Su and Ru of a controllability Grammian P = Su*Su' and of
+  an observability Grammian Q = Ru'*Ru corresponding to a
+  frequency-weighted model reduction of the left or right coprime
+  factors of the state-feedback controller.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE SB16CY( DICO, JOBCF, N, M, P, A, LDA, B, LDB, C, LDC,
+     $                   F, LDF, G, LDG, SCALEC, SCALEO, S, LDS, R, LDR,
+     $                   DWORK, LDWORK, INFO )
+C     .. Scalar Arguments ..
+      CHARACTER        DICO, JOBCF
+      INTEGER          INFO, LDA, LDB, LDC, LDF, LDG, LDR, LDS, LDWORK,
+     $                 M, N, P
+      DOUBLE PRECISION SCALEC, SCALEO
+C     .. Array Arguments ..
+      DOUBLE PRECISION A(LDA,*), B(LDB,*), C(LDC,*), DWORK(*),
+     $                 F(LDF,*), G(LDG,*), R(LDR,*), S(LDS,*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  DICO    CHARACTER*1
+          Specifies the type of the open-loop system as follows:
+          = 'C':  continuous-time system;
+          = 'D':  discrete-time system.
+
+  JOBCF   CHARACTER*1
+          Specifies whether a left or right coprime factorization
+          of the state-feedback controller is to be used as follows:
+          = 'L':  use a left coprime factorization;
+          = 'R':  use a right coprime factorization.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The order of the open-loop state-space representation,
+          i.e., the order of the matrix A.  N &gt;= 0.
+
+  M       (input) INTEGER
+          The number of system inputs.  M &gt;= 0.
+
+  P       (input) INTEGER
+          The number of system outputs.  P &gt;= 0.
+
+  A       (input) DOUBLE PRECISION array, dimension (LDA,N)
+          The leading N-by-N part of this array must contain the
+          state matrix A of the open-loop system.
+
+  LDA     INTEGER
+          The leading dimension of array A.  LDA &gt;= MAX(1,N).
+
+  B       (input) DOUBLE PRECISION array, dimension (LDB,M)
+          The leading N-by-M part of this array must contain the
+          input/state matrix B of the open-loop system.
+
+  LDB     INTEGER
+          The leading dimension of array B.  LDB &gt;= MAX(1,N).
+
+  C       (input) DOUBLE PRECISION array, dimension (LDC,N)
+          The leading P-by-N part of this array must contain the
+          state/output matrix C of the open-loop system.
+
+  LDC     INTEGER
+          The leading dimension of array C.  LDC &gt;= MAX(1,P).
+
+  F       (input) DOUBLE PRECISION array, dimension (LDF,N)
+          The leading M-by-N part of this array must contain a
+          stabilizing state feedback matrix.
+
+  LDF     INTEGER
+          The leading dimension of array F.  LDF &gt;= MAX(1,M).
+
+  G       (input) DOUBLE PRECISION array, dimension (LDG,P)
+          The leading N-by-P part of this array must contain a
+          stabilizing observer gain matrix.
+
+  LDG     INTEGER
+          The leading dimension of array G.  LDG &gt;= MAX(1,N).
+
+  SCALEC  (output) DOUBLE PRECISION
+          Scaling factor for the controllability Grammian.
+          See METHOD.
+
+  SCALEO  (output) DOUBLE PRECISION
+          Scaling factor for the observability Grammian.
+          See METHOD.
+
+  S       (output) DOUBLE PRECISION array, dimension (LDS,N)
+          The leading N-by-N upper triangular part of this array
+          contains the Cholesky factor Su of frequency-weighted
+          cotrollability Grammian P = Su*Su'. See METHOD.
+
+  LDS     INTEGER
+          The leading dimension of the array S.  LDS &gt;= MAX(1,N).
+
+  R       (output) DOUBLE PRECISION array, dimension (LDR,N)
+          The leading N-by-N upper triangular part of this array
+          contains the Cholesky factor Ru of the frequency-weighted
+          observability Grammian Q = Ru'*Ru. See METHOD.
+
+  LDR     INTEGER
+          The leading dimension of the array R.  LDR &gt;= MAX(1,N).
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+          On exit, if INFO = 0, DWORK(1) returns the optimal value
+          of LDWORK.
+
+  LDWORK  INTEGER
+          The length of the array DWORK.
+          LDWORK &gt;= MAX(1, N*(N + MAX(N,M) + MIN(N,M) + 6)),
+                                                    if JOBCF = 'L';
+          LDWORK &gt;= MAX(1, N*(N + MAX(N,P) + MIN(N,P) + 6)),
+                                                    if JOBCF = 'R'.
+          For optimum performance LDWORK should be larger.
+          An upper bound for both cases is
+          LDWORK &gt;= MAX(1, N*(N + MAX(N,M,P) + 7)).
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value;
+          = 1:  eigenvalue computation failure;
+          = 2:  the matrix A+G*C is not stable;
+          = 3:  the matrix A+B*F is not stable;
+          = 4:  the Lyapunov equation for computing the
+                observability Grammian is (nearly) singular;
+          = 5:  the Lyapunov equation for computing the
+                controllability Grammian is (nearly) singular.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  In accordance with the type of the coprime factorization
+  of the controller (left or right), the Cholesky factors Su and Ru
+  of the frequency-weighted controllability Grammian P = Su*Su' and
+  of the frequency-weighted observability Grammian Q = Ru'*Ru are
+  computed by solving appropriate Lyapunov or Stein equations [1].
+
+  If JOBCF = 'L' and DICO = 'C', P and Q are computed as the
+  solutions of the following Lyapunov equations:
+
+         (A+B*F)*P + P*(A+B*F)' +  scalec^2*B*B' = 0,  (1)
+
+         (A+G*C)'*Q + Q*(A+G*C) +  scaleo^2*F'*F = 0.  (2)
+
+  If JOBCF = 'L' and DICO = 'D', P and Q are computed as the
+  solutions of the following Stein equations:
+
+         (A+B*F)*P*(A+B*F)' - P +  scalec^2*B*B' = 0,  (3)
+
+         (A+G*C)'*Q*(A+G*C) - Q +  scaleo^2*F'*F = 0.  (4)
+
+  If JOBCF = 'R' and DICO = 'C', P and Q are computed as the
+  solutions of the following Lyapunov equations:
+
+         (A+B*F)*P + P*(A+B*F)' +  scalec^2*G*G' = 0,  (5)
+
+         (A+G*C)'*Q + Q*(A+G*C) +  scaleo^2*C'*C = 0.  (6)
+
+  If JOBCF = 'R' and DICO = 'D', P and Q are computed as the
+  solutions of the following Stein equations:
+
+         (A+B*F)*P*(A+B*F)' - P +  scalec^2*G*G' = 0,  (7)
+
+         (A+G*C)'*Q*(A+G*C) - Q +  scaleo^2*C'*C = 0.  (8)
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Liu, Y., Anderson, B.D.O. and Ly, O.L.
+      Coprime factorization controller reduction with Bezout
+      identity induced frequency weighting.
+      Automatica, vol. 26, pp. 233-249, 1990.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

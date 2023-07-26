@@ -1,0 +1,130 @@
+<HTML>
+<HEAD><TITLE>SB01FY - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="SB01FY">SB01FY</A></H2>
+<H3>
+Inner denominator of a right-coprime factorization of an unstable system of order 1 or 2
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To compute the inner denominator of a right-coprime factorization
+  of a system of order N, where N is either 1 or 2. Specifically,
+  given the N-by-N unstable system state matrix A and the N-by-M
+  system input matrix B, an M-by-N state-feedback matrix F and
+  an M-by-M matrix V are constructed, such that the system
+  (A + B*F, B*V, F, V) is inner.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE SB01FY( DISCR, N, M, A, LDA, B, LDB, F, LDF, V, LDV,
+     $                   INFO )
+C     .. Scalar Arguments ..
+      LOGICAL           DISCR
+      INTEGER           INFO, LDA, LDB, LDF, LDV, M, N
+C     .. Array Arguments ..
+      DOUBLE PRECISION  A(LDA,*), B(LDB,*), F(LDF,*), V(LDV,*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  DISCR   LOGICAL
+          Specifies the type of system as follows:
+          = .FALSE.:  continuous-time system;
+          = .TRUE. :  discrete-time system.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The order of the matrix A and also the number of rows of
+          the matrix B and the number of columns of the matrix F.
+          N is either 1 or 2.
+
+  M       (input) INTEGER
+          The number of columns of the matrices B and V, and also
+          the number of rows of the matrix F.  M &gt;= 0.
+
+  A       (input) DOUBLE PRECISION array, dimension (LDA,N)
+          The leading N-by-N part of this array must contain the
+          system state matrix A whose eigenvalues must have positive
+          real parts if DISCR = .FALSE. or moduli greater than unity
+          if DISCR = .TRUE..
+
+  LDA     INTEGER
+          The leading dimension of array A.  LDA &gt;= N.
+
+  B       (input) DOUBLE PRECISION array, dimension (LDB,M)
+          The leading N-by-M part of this array must contain the
+          system input matrix B.
+
+  LDB     INTEGER
+          The leading dimension of array B.  LDB &gt;= N.
+
+  F       (output) DOUBLE PRECISION array, dimension (LDF,N)
+          The leading M-by-N part of this array contains the state-
+          feedback matrix F which assigns one eigenvalue (if N = 1)
+          or two eigenvalues (if N = 2) of the matrix A + B*F in
+          symmetric positions with respect to the imaginary axis
+          (if DISCR = .FALSE.) or the unit circle (if
+          DISCR = .TRUE.).
+
+  LDF     INTEGER
+          The leading dimension of array F.  LDF &gt;= MAX(1,M).
+
+  V       (output) DOUBLE PRECISION array, dimension (LDV,M)
+          The leading M-by-M upper triangular part of this array
+          contains the input/output matrix V of the resulting inner
+          system in upper triangular form.
+          If DISCR = .FALSE., the resulting V is an identity matrix.
+
+  LDV     INTEGER
+          The leading dimension of array V.  LDF &gt;= MAX(1,M).
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          = 1:  if uncontrollability of the pair (A,B) is detected;
+          = 2:  if A is stable or at the stability limit;
+          = 3:  if N = 2 and A has a pair of real eigenvalues.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

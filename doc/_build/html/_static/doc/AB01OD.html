@@ -1,0 +1,404 @@
+<HTML>
+<HEAD><TITLE>AB01OD - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="AB01OD">AB01OD</A></H2>
+<H3>
+Staircase form for multi-input systems using orthogonal state and input transformations
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To reduce the matrices A and B using (and optionally accumulating)
+  state-space and input-space transformations U and V respectively,
+  such that the pair of matrices
+
+     Ac = U' * A * U,    Bc = U' * B * V
+
+  are in upper "staircase" form. Specifically,
+
+          [ Acont     *    ]         [ Bcont ]
+     Ac = [                ],   Bc = [       ],
+          [   0    Auncont ]         [   0   ]
+
+     and
+
+             [ A11 A12  . . .  A1,p-1 A1p ]         [ B1 ]
+             [ A21 A22  . . .  A2,p-1 A2p ]         [ 0  ]
+             [  0  A32  . . .  A3,p-1 A3p ]         [ 0  ]
+     Acont = [  .   .   . . .    .     .  ],   Bc = [ .  ],
+             [  .   .     . .    .     .  ]         [ .  ]
+             [  .   .       .    .     .  ]         [ .  ]
+             [  0   0   . . .  Ap,p-1 App ]         [ 0  ]
+
+  where the blocks  B1, A21, ..., Ap,p-1  have full row ranks and
+  p is the controllability index of the pair.  The size of the
+  block Auncont is equal to the dimension of the uncontrollable
+  subspace of the pair (A, B).  The first stage of the reduction,
+  the "forward" stage, accomplishes the reduction to the orthogonal
+  canonical form (see SLICOT library routine AB01ND). The blocks
+  B1, A21, ..., Ap,p-1 are further reduced in a second, "backward"
+  stage to upper triangular form using RQ factorization. Each of
+  these stages is optional.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE AB01OD( STAGES, JOBU, JOBV, N, M, A, LDA, B, LDB, U,
+     $                   LDU, V, LDV, NCONT, INDCON, KSTAIR, TOL, IWORK,
+     $                   DWORK, LDWORK, INFO )
+C     .. Scalar Arguments ..
+      CHARACTER         JOBU, JOBV, STAGES
+      INTEGER           INDCON, INFO, LDA, LDB, LDU, LDV, LDWORK, M, N,
+     $                  NCONT
+      DOUBLE PRECISION  TOL
+C     .. Array Arguments ..
+      INTEGER           IWORK(*), KSTAIR(*)
+      DOUBLE PRECISION  A(LDA,*), B(LDB,*), DWORK(*), U(LDU,*), V(LDV,*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  STAGES  CHARACTER*1
+          Specifies the reduction stages to be performed as follows:
+          = 'F':  Perform the forward stage only;
+          = 'B':  Perform the backward stage only;
+          = 'A':  Perform both (all) stages.
+
+  JOBU    CHARACTER*1
+          Indicates whether the user wishes to accumulate in a
+          matrix U the state-space transformations as follows:
+          = 'N':  Do not form U;
+          = 'I':  U is internally initialized to the unit matrix (if
+                  STAGES &lt;&gt; 'B'), or updated (if STAGES = 'B'), and
+                  the orthogonal transformation matrix U is
+                  returned.
+
+  JOBV    CHARACTER*1
+          Indicates whether the user wishes to accumulate in a
+          matrix V the input-space transformations as follows:
+          = 'N':  Do not form V;
+          = 'I':  V is initialized to the unit matrix and the
+                  orthogonal transformation matrix V is returned.
+          JOBV is not referenced if STAGES = 'F'.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The actual state dimension, i.e. the order of the
+          matrix A.  N &gt;= 0.
+
+  M       (input) INTEGER
+          The actual input dimension.  M &gt;= 0.
+
+  A       (input/output) DOUBLE PRECISION array, dimension (LDA,N)
+          On entry, the leading N-by-N part of this array must
+          contain the state transition matrix A to be transformed.
+          If STAGES = 'B', A should be in the orthogonal canonical
+          form, as returned by SLICOT library routine AB01ND.
+          On exit, the leading N-by-N part of this array contains
+          the transformed state transition matrix U' * A * U.
+          The leading NCONT-by-NCONT part contains the upper block
+          Hessenberg state matrix Acont in Ac, given by U' * A * U,
+          of a controllable realization for the original system.
+          The elements below the first block-subdiagonal are set to
+          zero.  If STAGES &lt;&gt; 'F', the subdiagonal blocks of A are
+          triangularized by RQ factorization, and the annihilated
+          elements are explicitly zeroed.
+
+  LDA     INTEGER
+          The leading dimension of array A.  LDA &gt;= MAX(1,N).
+
+  B       (input/output) DOUBLE PRECISION array, dimension (LDB,M)
+          On entry, the leading N-by-M part of this array must
+          contain the input matrix B to be transformed.
+          If STAGES = 'B', B should be in the orthogonal canonical
+          form, as returned by SLICOT library routine AB01ND.
+          On exit with STAGES = 'F', the leading N-by-M part of
+          this array contains the transformed input matrix U' * B,
+          with all elements but the first block set to zero.
+          On exit with STAGES &lt;&gt; 'F', the leading N-by-M part of
+          this array contains the transformed input matrix
+          U' * B * V, with all elements but the first block set to
+          zero and the first block in upper triangular form.
+
+  LDB     INTEGER
+          The leading dimension of array B.  LDB &gt;= MAX(1,N).
+
+  U       (input/output) DOUBLE PRECISION array, dimension (LDU,N)
+          If STAGES &lt;&gt; 'B' or JOBU = 'N', then U need not be set
+          on entry.
+          If STAGES = 'B' and JOBU = 'I', then, on entry, the
+          leading N-by-N part of this array must contain the
+          transformation matrix U that reduced the pair to the
+          orthogonal canonical form.
+          On exit, if JOBU = 'I', the leading N-by-N part of this
+          array contains the transformation matrix U that performed
+          the specified reduction.
+          If JOBU = 'N', the array U is not referenced and can be
+          supplied as a dummy array (i.e. set parameter LDU = 1 and
+          declare this array to be U(1,1) in the calling program).
+
+  LDU     INTEGER
+          The leading dimension of array U.
+          If JOBU = 'I', LDU &gt;= MAX(1,N);  if JOBU = 'N', LDU &gt;= 1.
+
+  V       (output) DOUBLE PRECISION array, dimension (LDV,M)
+          If JOBV = 'I', then the leading M-by-M part of this array
+          contains the transformation matrix V.
+          If STAGES = 'F', or JOBV = 'N', the array V is not
+          referenced and can be supplied as a dummy array (i.e. set
+          parameter  LDV = 1 and declare this array to be V(1,1) in
+          the calling program).
+
+  LDV     INTEGER
+          The leading dimension of array V.
+          If STAGES &lt;&gt; 'F' and JOBV = 'I', LDV &gt;= MAX(1,M);
+          if STAGES = 'F' or JOBV = 'N', LDV &gt;= 1.
+
+  NCONT   (input/output) INTEGER
+          The order of the controllable state-space representation.
+          NCONT is input only if STAGES = 'B'.
+
+  INDCON  (input/output) INTEGER
+          The number of stairs in the staircase form (also, the
+          controllability index of the controllable part of the
+          system representation).
+          INDCON is input only if STAGES = 'B'.
+
+  KSTAIR  (input/output) INTEGER array, dimension (N)
+          The leading INDCON elements of this array contain the
+          dimensions of the stairs, or, also, the orders of the
+          diagonal blocks of Acont.
+          KSTAIR is input if STAGES = 'B', and output otherwise.
+
+</PRE>
+<B>Tolerances</B>
+<PRE>
+  TOL     DOUBLE PRECISION
+          The tolerance to be used in rank determination when
+          transforming (A, B). If the user sets TOL &gt; 0, then
+          the given value of TOL is used as a lower bound for the
+          reciprocal condition number (see the description of the
+          argument RCOND in the SLICOT routine MB03OD);  a
+          (sub)matrix whose estimated condition number is less than
+          1/TOL is considered to be of full rank.  If the user sets
+          TOL &lt;= 0, then an implicitly computed, default tolerance,
+          defined by  TOLDEF = N*N*EPS,  is used instead, where EPS
+          is the machine precision (see LAPACK Library routine
+          DLAMCH).
+          TOL is not referenced if STAGES = 'B'.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  IWORK   INTEGER array, dimension (M)
+          IWORK is not referenced if STAGES = 'B'.
+
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+          On exit, if INFO = 0, DWORK(1) returns the optimal value
+          of LDWORK.
+
+  LDWORK  INTEGER
+          The length of the array DWORK.
+          If STAGES &lt;&gt; 'B', LDWORK &gt;= MAX(1, N + MAX(N,3*M));
+          If STAGES =  'B', LDWORK &gt;= MAX(1, M + MAX(N,M)).
+          For optimum performance LDWORK should be larger.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  Staircase reduction of the pencil [B|sI - A] is used. Orthogonal
+  transformations U and V are constructed such that
+
+                     |B |sI-A      *  . . .  *      *       |
+                     | 1|    11       .      .      .       |
+                     |  |  A    sI-A    .    .      .       |
+                     |  |   21      22    .  .      .       |
+                     |  |        .     .     *      *       |
+  [U'BV|sI - U'AU] = |0 |     0    .     .                  |
+                     |  |            A     sI-A     *       |
+                     |  |             p,p-1    pp           |
+                     |  |                                   |
+                     |0 |         0          0   sI-A       |
+                     |  |                            p+1,p+1|
+
+  where the i-th diagonal block of U'AU has dimension KSTAIR(i),
+  for i = 1,...,p. The value of p is returned in INDCON. The last
+  block contains the uncontrollable modes of the (A,B)-pair which
+  are also the generalized eigenvalues of the above pencil.
+
+  The complete reduction is performed in two stages. The first,
+  forward stage accomplishes the reduction to the orthogonal
+  canonical form. The second, backward stage consists in further
+  reduction to triangular form by applying left and right orthogonal
+  transformations.
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Van Dooren, P.
+      The generalized eigenvalue problem in linear system theory.
+      IEEE Trans. Auto. Contr., AC-26, pp. 111-129, 1981.
+
+  [2] Miminis, G. and Paige, C.
+      An algorithm for pole assignment of time-invariant multi-input
+      linear systems.
+      Proc. 21st IEEE CDC, Orlando, Florida, 1, pp. 62-67, 1982.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  The algorithm requires O((N + M) x N**2) operations and is
+  backward stable (see [1]).
+
+</PRE>
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  If the system matrices A and B are badly scaled, it would be
+  useful to scale them with SLICOT routine TB01ID, before calling
+  the routine.
+
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+*     AB01OD EXAMPLE PROGRAM TEXT
+*
+*     .. Parameters ..
+      INTEGER          NIN, NOUT
+      PARAMETER        ( NIN = 5, NOUT = 6 )
+      INTEGER          NMAX, MMAX
+      PARAMETER        ( NMAX = 20, MMAX = 20 )
+      INTEGER          LDA, LDB, LDU, LDV
+      PARAMETER        ( LDA = NMAX, LDB = NMAX, LDU = NMAX,
+     $                   LDV = MMAX )
+      INTEGER          LIWORK
+      PARAMETER        ( LIWORK = MMAX )
+      INTEGER          LDWORK
+      PARAMETER        ( LDWORK = NMAX + MAX( NMAX, 3*MMAX ) )
+*     .. Local Scalars ..
+      DOUBLE PRECISION TOL
+      INTEGER          I, INDCON, INFO, J, M, N, NCONT
+      CHARACTER*1      JOBU, JOBV, STAGES
+*     .. Local Arrays ..
+      DOUBLE PRECISION A(LDA,NMAX), B(LDB,MMAX), DWORK(LDWORK),
+     $                 U(LDU,NMAX), V(LDV,MMAX)
+      INTEGER          IWORK(LIWORK), KSTAIR(NMAX)
+*     .. External Subroutines ..
+      EXTERNAL         AB01OD
+*     .. Intrinsic Functions ..
+      INTRINSIC        MAX
+*     .. Executable Statements ..
+*
+      WRITE ( NOUT, FMT = 99999 )
+*     Skip the heading in the data file and read the data.
+      READ ( NIN, FMT = '()' )
+      READ ( NIN, FMT = * ) N, M, TOL, STAGES, JOBU, JOBV
+      IF ( N.LE.0 .OR. N.GT.NMAX ) THEN
+         WRITE ( NOUT, FMT = 99992 ) N
+      ELSE
+         READ ( NIN, FMT = * ) ( ( A(I,J), I = 1,N ), J = 1,N )
+         IF ( M.LE.0 .OR. M.GT.MMAX ) THEN
+            WRITE ( NOUT, FMT = 99991 ) M
+         ELSE
+            READ ( NIN, FMT = * ) ( ( B(I,J), J = 1,M ), I = 1,N )
+*           Reduce the matrices A and B to upper "staircase" form.
+            CALL AB01OD( STAGES, JOBU, JOBV, N, M, A, LDA, B, LDB, U,
+     $                   LDU, V, LDV, NCONT, INDCON, KSTAIR, TOL, IWORK,
+     $                   DWORK, LDWORK, INFO )
+*
+            IF ( INFO.NE.0 ) THEN
+               WRITE ( NOUT, FMT = 99998 ) INFO
+            ELSE
+               WRITE ( NOUT, FMT = 99997 )
+               DO 20 I = 1, N
+                  WRITE ( NOUT, FMT = 99995 ) ( A(I,J), J = 1,N )
+   20          CONTINUE
+               WRITE ( NOUT, FMT = 99996 )
+               DO 40 I = 1, N
+                  WRITE ( NOUT, FMT = 99995 ) ( B(I,J), J = 1,M )
+   40          CONTINUE
+               WRITE ( NOUT, FMT = 99994 ) INDCON
+               WRITE ( NOUT, FMT = 99993 ) ( KSTAIR(I), I = 1,INDCON )
+            END IF
+         END IF
+      END IF
+      STOP
+*
+99999 FORMAT (' AB01OD EXAMPLE PROGRAM RESULTS',/1X)
+99998 FORMAT (' INFO on exit from AB01OD = ',I2)
+99997 FORMAT (' The transformed state transition matrix is ')
+99996 FORMAT (/' The transformed input matrix is ')
+99995 FORMAT (20(1X,F8.4))
+99994 FORMAT (/' The number of stairs in the staircase form = ',I3,/)
+99993 FORMAT (' The dimensions of the stairs are ',/(20(I3,2X)))
+99992 FORMAT (/' N is out of range.',/' N = ',I5)
+99991 FORMAT (/' M is out of range.',/' M = ',I5)
+      END
+</PRE>
+<B>Program Data</B>
+<PRE>
+ AB01OD EXAMPLE PROGRAM DATA
+   5     2     0.0     F     N     N
+   17.0   24.0    1.0    8.0   15.0
+   23.0    5.0    7.0   14.0   16.0
+    4.0    6.0   13.0   20.0   22.0
+   10.0   12.0   19.0   21.0    3.0
+   11.0   18.0   25.0    2.0    9.0
+   -1.0   -4.0
+    4.0    9.0
+   -9.0  -16.0
+   16.0   25.0
+  -25.0  -36.0
+</PRE>
+<B>Program Results</B>
+<PRE>
+ AB01OD EXAMPLE PROGRAM RESULTS
+
+ The transformed state transition matrix is 
+  12.8848   3.2345  11.8211   3.3758  -0.8982
+   4.4741 -12.5544   5.3509   5.9403   1.4360
+  14.4576   7.6855  23.1452  26.3872 -29.9557
+   0.0000   1.4805  27.4668  22.6564  -0.0072
+   0.0000   0.0000 -30.4822   0.6745  18.8680
+
+ The transformed input matrix is 
+  31.1199  47.6865
+   3.2480   0.0000
+   0.0000   0.0000
+   0.0000   0.0000
+   0.0000   0.0000
+
+ The number of stairs in the staircase form =   3
+
+ The dimensions of the stairs are 
+  2    2    1
+</PRE>
+
+<HR>
+<p>
+<A HREF=..\libindex.html><B>Return to index</B></A></BODY>
+</HTML>

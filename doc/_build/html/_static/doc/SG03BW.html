@@ -1,0 +1,185 @@
+<HTML>
+<HEAD><TITLE>SG03BW - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="SG03BW">SG03BW</A></H2>
+<H3>
+Solving a generalized Sylvester equation, with A quasi-triangular, and E upper triangular, for an m-by-n matrix X, 1 <= n <= 2
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To solve for X the generalized Sylvester equation
+
+      T            T
+     A  * X * C + E  * X * D  =  SCALE * Y,                      (1)
+
+  or the transposed equation
+
+              T            T
+     A * X * C  + E * X * D   =  SCALE * Y,                      (2)
+
+  where A and E are real M-by-M matrices, C and D are real N-by-N
+  matrices, X and Y are real M-by-N matrices. N is either 1 or 2.
+  The pencil A - lambda * E must be in generalized real Schur form
+  (A upper quasitriangular, E upper triangular). SCALE is an output
+  scale factor, set to avoid overflow in X.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE SG03BW( TRANS, M, N, A, LDA, C, LDC, E, LDE, D, LDD, X,
+     $                   LDX, SCALE, INFO )
+C     .. Scalar Arguments ..
+      CHARACTER         TRANS
+      DOUBLE PRECISION  SCALE
+      INTEGER           INFO, LDA, LDC, LDD, LDE, LDX, M, N
+C     .. Array Arguments ..
+      DOUBLE PRECISION  A(LDA,*), C(LDC,*), D(LDD,*), E(LDE,*), X(LDX,*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  TRANS   CHARACTER*1
+          Specifies whether the transposed equation is to be solved
+          or not:
+          = 'N':  Solve equation (1);
+          = 'T':  Solve equation (2).
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  M       (input) INTEGER
+          The order of the matrices A and E.  M &gt;= 0.
+
+  N       (input) INTEGER
+          The order of the matrices C and D.  N = 1 or N = 2.
+
+  A       (input) DOUBLE PRECISION array, dimension (LDA,M)
+          The leading M-by-M part of this array must contain the
+          upper quasitriangular matrix A. The elements below the
+          upper Hessenberg part are not referenced.
+
+  LDA     INTEGER
+          The leading dimension of the array A.  LDA &gt;= MAX(1,M).
+
+  C       (input) DOUBLE PRECISION array, dimension (LDC,N)
+          The leading N-by-N part of this array must contain the
+          matrix C.
+
+  LDC     INTEGER
+          The leading dimension of the array C.  LDC &gt;= MAX(1,N).
+
+  E       (input) DOUBLE PRECISION array, dimension (LDE,M)
+          The leading M-by-M part of this array must contain the
+          upper triangular matrix E. The elements below the main
+          diagonal are not referenced.
+
+  LDE     INTEGER
+          The leading dimension of the array E.  LDE &gt;= MAX(1,M).
+
+  D       (input) DOUBLE PRECISION array, dimension (LDD,N)
+          The leading N-by-N part of this array must contain the
+          matrix D.
+
+  LDD     INTEGER
+          The leading dimension of the array D.  LDD &gt;= MAX(1,N).
+
+  X       (input/output) DOUBLE PRECISION array, dimension (LDX,N)
+          On entry, the leading M-by-N part of this array must
+          contain the right hand side matrix Y.
+          On exit, the leading M-by-N part of this array contains
+          the solution matrix X.
+
+  LDX     INTEGER
+          The leading dimension of the array X.  LDX &gt;= MAX(1,M).
+
+  SCALE   (output) DOUBLE PRECISION
+          The scale factor set to avoid overflow in X.
+          0 &lt; SCALE &lt;= 1.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value;
+          = 1:  the generalized Sylvester equation is (nearly)
+                singular to working precision;  perturbed values
+                were used to solve the equation (but the matrices
+                A, C, D, and E are unchanged).
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  The method used by the routine is based on a generalization of the
+  algorithm due to Bartels and Stewart [1]. See also [2] and [3] for
+  details.
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Bartels, R.H., Stewart, G.W.
+      Solution of the equation A X + X B = C.
+      Comm. A.C.M., 15, pp. 820-826, 1972.
+
+  [2] Gardiner, J.D., Laub, A.J., Amato, J.J., Moler, C.B.
+      Solution of the Sylvester Matrix Equation
+      A X B**T + C X D**T = E.
+      A.C.M. Trans. Math. Soft., vol. 18, no. 2, pp. 223-231, 1992.
+
+  [3] Penzl, T.
+      Numerical solution of generalized Lyapunov equations.
+      Advances in Comp. Math., vol. 8, pp. 33-48, 1998.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  The routine requires about 2 * N * M**2 flops. Note that we count
+  a single floating point arithmetic operation as one flop.
+
+  The algorithm is backward stable if the eigenvalues of the pencil
+  A - lambda * E are real. Otherwise, linear systems of order at
+  most 4 are involved into the computation. These systems are solved
+  by Gauss elimination with complete pivoting. The loss of stability
+  of the Gauss elimination with complete pivoting is rarely
+  encountered in practice.
+
+</PRE>
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  When near singularity is detected, perturbed values are used
+  to solve the equation (but the given matrices are unchanged).
+
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

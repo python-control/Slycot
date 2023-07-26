@@ -1,0 +1,132 @@
+<HTML>
+<HEAD><TITLE>MB03NY - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MB03NY">MB03NY</A></H2>
+<H3>
+Computing the smallest singular value of A - jwI
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To compute the smallest singular value of A - jwI.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      DOUBLE PRECISION FUNCTION MB03NY( N, OMEGA, A, LDA, S, DWORK,
+     $                                  LDWORK, CWORK, LCWORK, INFO )
+C     .. Scalar Arguments ..
+      INTEGER                INFO, LCWORK, LDA, LDWORK, N
+      DOUBLE PRECISION       OMEGA
+C     .. Array Arguments ..
+      DOUBLE PRECISION       A(LDA,*), DWORK(*), S(*)
+      COMPLEX*16             CWORK(*)
+
+</PRE>
+<B><FONT SIZE="+1">Function Value</FONT></B>
+<PRE>
+  MB03NY  DOUBLE PRECISION
+          The smallest singular value of A - jwI (if INFO = 0).
+          If N = 0, the function value is set to zero.
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The order of the the matrix A.  N &gt;= 0.
+
+  OMEGA   (input) DOUBLE PRECISION
+          The constant factor of A - jwI.
+
+  A       (input/workspace) DOUBLE PRECISION array, dimension
+          (LDA,N)
+          On entry, the leading N-by-N part of this array must
+          contain the matrix A.
+          On exit, if OMEGA = 0, the contents of this array are
+          destroyed. Otherwise, this array is unchanged.
+
+  LDA     INTEGER
+          The leading dimension of array A.  LDA &gt;= MAX(1,N).
+
+  S       (output) DOUBLE PRECISION array, dimension (N)
+          The singular values of A - jwI in decreasing order.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+          On exit, if INFO = 0, DWORK(1) returns the optimal value
+          of LDWORK.
+
+  LDWORK  INTEGER
+          The length of the array DWORK.  LDWORK &gt;= MAX( 1, 5*N ).
+          For optimum performance LDWORK should be larger.
+
+  CWORK   COMPLEX*16 array, dimension (LCWORK)
+          On exit, if INFO = 0 and OMEGA &lt;&gt; 0, CWORK(1) returns the
+          optimal value of LCWORK.
+          If OMEGA is zero, this array is not referenced.
+
+  LCWORK  INTEGER
+          The length of the array CWORK.
+          LCWORK &gt;= 1,                 if OMEGA =  0;
+          LCWORK &gt;= MAX( 1, N*N+3*N ), if OMEGA &lt;&gt; 0.
+          For optimum performance LCWORK should be larger.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value;
+          = 2:  The SVD algorithm (in either LAPACK Library routine
+                DGESVD or ZGESVD) fails to converge; this error is
+                very rare.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  This procedure simply constructs the matrix A - jwI, and calls
+  ZGESVD if w is not zero, or DGESVD if w = 0.
+
+</PRE>
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  This routine is not very efficient because it computes all
+  singular values, but it is very accurate. The routine is intended
+  to be called only from the SLICOT Library routine AB13FD.
+
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

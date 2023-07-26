@@ -1,0 +1,106 @@
+<HTML>
+<HEAD><TITLE>MB03BF - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MB03BF">MB03BF</A></H2>
+<H3>
+Applying iterations of a real single shifted periodic QZ algorithm to a 2-by-2 matrix product, with Hessenberg factor the last one
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To apply at most 20 iterations of a real single shifted
+  periodic QZ algorithm to the 2-by-2 product of matrices stored
+  in the array A. The Hessenberg matrix is the last one of the
+  formal matrix product.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MB03BF( K, AMAP, S, SINV, A, LDA1, LDA2, ULP )
+C     .. Scalar Arguments ..
+      INTEGER           K, LDA1, LDA2, SINV
+      DOUBLE PRECISION  ULP
+C     .. Array Arguments ..
+      INTEGER           AMAP(*), S(*)
+      DOUBLE PRECISION  A(LDA1,LDA2,*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  K       (input)  INTEGER
+          The number of factors.  K &gt;= 1.
+
+  AMAP    (input)  INTEGER array, dimension (K)
+          The map for accessing the factors, i.e., if AMAP(I) = J,
+          then the factor A_I is stored at the J-th position in A.
+
+  S       (input)  INTEGER array, dimension (K)
+          The signature array. Each entry of S must be 1 or -1.
+
+  SINV    (input)  INTEGER
+          Signature multiplier. Entries of S are virtually
+          multiplied by SINV.
+
+  A       (input/output)  DOUBLE PRECISION array, dimension
+                          (LDA1,LDA2,K)
+          On entry, the leading 2-by-2-by-K part of this array must
+          contain a 2-by-2 product (implicitly represented by its K
+          factors) in upper Hessenberg form. The Hessenberg matrix
+          is the last one of the formal matrix product.
+          On exit, the leading 2-by-2-by-K part of this array
+          contains the product after at most 20 iterations of a real
+          shifted periodic QZ algorithm.
+
+  LDA1    INTEGER
+          The first leading dimension of the array A.  LDA1 &gt;= 2.
+
+  LDA2    INTEGER
+          The second leading dimension of the array A.  LDA2 &gt;= 2.
+
+  ULP     INTEGER
+          The machine relation precision.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  Twenty iterations of a real single shifted periodic QZ algorithm
+  are applied to the 2-by-2 matrix product A.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

@@ -1,0 +1,103 @@
+<HTML>
+<HEAD><TITLE>MB03WX - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MB03WX">MB03WX</A></H2>
+<H3>
+Eigenvalues of a product of matrices in periodic Schur form
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To compute the eigenvalues of a product of matrices,
+  T = T_1*T_2*...*T_p, where T_1 is an upper quasi-triangular
+  matrix and T_2, ..., T_p are upper triangular matrices.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MB03WX( N, P, T, LDT1, LDT2, WR, WI, INFO )
+C     .. Scalar Arguments ..
+      INTEGER          INFO, LDT1, LDT2, N, P
+C     .. Array Arguments ..
+      DOUBLE PRECISION T( LDT1, LDT2, * ), WI( * ), WR( * )
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The order of the matrix T.  N &gt;= 0.
+
+  P       (input) INTEGER
+          The number of matrices in the product T_1*T_2*...*T_p.
+          P &gt;= 1.
+
+  T       (input) DOUBLE PRECISION array, dimension (LDT1,LDT2,P)
+          The leading N-by-N part of T(*,*,1) must contain the upper
+          quasi-triangular matrix T_1 and the leading N-by-N part of
+          T(*,*,j) for j &gt; 1 must contain the upper-triangular
+          matrix T_j, j = 2, ..., p.
+          The elements below the subdiagonal of T(*,*,1) and below
+          the diagonal of T(*,*,j), j = 2, ..., p, are not
+          referenced.
+
+  LDT1    INTEGER
+          The first leading dimension of the array T.
+          LDT1 &gt;= max(1,N).
+
+  LDT2    INTEGER
+          The second leading dimension of the array T.
+          LDT2 &gt;= max(1,N).
+
+  WR, WI  (output) DOUBLE PRECISION arrays, dimension (N)
+          The real and imaginary parts, respectively, of the
+          eigenvalues of T. The eigenvalues are stored in the same
+          order as on the diagonal of T_1. If T(i:i+1,i:i+1,1) is a
+          2-by-2 diagonal block with complex conjugated eigenvalues
+          then WI(i) &gt; 0 and WI(i+1) = -WI(i).
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

@@ -1,0 +1,272 @@
+<HTML>
+<HEAD><TITLE>MB03KB - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MB03KB">MB03KB</A></H2>
+<H3>
+Swapping pairs of adjacent diagonal blocks of sizes 1 and/or 2 in a formal matrix product
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To reorder the diagonal blocks of the formal matrix product
+
+     T22_K^S(K) * T22_K-1^S(K-1) * ... * T22_1^S(1)              (1)
+
+  of length K in the generalized periodic Schur form
+
+           [  T11_k  T12_k  T13_k  ]
+     T_k = [    0    T22_k  T23_k  ],    k = 1, ..., K,          (2)
+           [    0      0    T33_k  ]
+
+  where
+
+  - the submatrices T11_k are NI(k+1)-by-NI(k), if S(k) = 1, or
+    NI(k)-by-NI(k+1), if S(k) = -1, and contain dimension-induced
+    infinite eigenvalues,
+  - the submatrices T22_k are NC-by-NC and contain core eigenvalues,
+    which are generically neither zero nor infinite,
+  - the submatrices T33_k contain dimension-induced zero
+    eigenvalues,
+
+  such that pairs of adjacent diagonal blocks of sizes 1 and/or 2 in
+  the product (1) are swapped.
+
+  Optionally, the transformation matrices Q_1,...,Q_K from the
+  reduction into generalized periodic Schur form are updated with
+  respect to the performed reordering.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MB03KB( COMPQ, WHICHQ, WS, K, NC, KSCHUR, J1, N1, N2,
+     $                   N, NI, S, T, LDT, IXT, Q, LDQ, IXQ, TOL, IWORK,
+     $                   DWORK, LDWORK, INFO )
+C     .. Scalar Arguments ..
+      CHARACTER          COMPQ
+      LOGICAL            WS
+      INTEGER            INFO, J1, K, KSCHUR, LDWORK, N1, N2, NC
+C     .. Array Arguments ..
+      INTEGER            IWORK( * ), IXQ( * ), IXT( * ), LDQ( * ),
+     $                   LDT( * ), N( * ), NI( * ), S( * ), WHICHQ( * )
+      DOUBLE PRECISION   DWORK( * ), Q( * ), T( * ), TOL( * )
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  COMPQ   CHARACTER*1
+          = 'N': do not compute any of the matrices Q_k;
+          = 'U': each coefficient of Q must contain an orthogonal
+                 matrix Q1_k on entry, and the products Q1_k*Q_k are
+                 returned, where Q_k, k = 1, ..., K, performed the
+                 reordering;
+          = 'W': the computation of each Q_k is specified
+                 individually in the array WHICHQ.
+
+  WHICHQ  INTEGER array, dimension (K)
+          If COMPQ = 'W', WHICHQ(k) specifies the computation of Q_k
+          as follows:
+          = 0:   do not compute Q_k;
+          &gt; 0:   the kth coefficient of Q must contain an orthogonal
+                 matrix Q1_k on entry, and the product Q1_k*Q_k is
+                 returned.
+          This array is not referenced if COMPQ &lt;&gt; 'W'.
+
+  WS      LOGICAL
+          = .FALSE. : do not perform the strong stability tests;
+          = .TRUE.  : perform the strong stability tests; often,
+                      this is not needed, and omitting them can save
+                      some computations.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  K       (input) INTEGER
+          The period of the periodic matrix sequences T and Q (the
+          number of factors in the matrix product).  K &gt;= 2.
+          (For K = 1, a standard eigenvalue reordering problem is
+          obtained.)
+
+  NC      (input) INTEGER
+          The number of core eigenvalues.  0 &lt;= NC &lt;= min(N).
+
+  KSCHUR  (input) INTEGER
+          The index for which the matrix T22_kschur is upper quasi-
+          triangular.
+
+  J1      (input) INTEGER
+          The index of the first row and column of the first block
+          to swap in T22_k.
+          1 &lt;= J1 &lt;= NC-N1-N2+1.
+
+  N1      (input) INTEGER
+          The order of the first block to swap.   N1 = 0, 1 or 2.
+
+  N2      (input) INTEGER
+          The order of the second block to swap.  N2 = 0, 1 or 2.
+
+  N       (input) INTEGER array, dimension (K)
+          The leading K elements of this array must contain the
+          dimensions of the factors of the formal matrix product T,
+          such that the k-th coefficient T_k is an N(k+1)-by-N(k)
+          matrix, if S(k) = 1, or an N(k)-by-N(k+1) matrix,
+          if S(k) = -1, k = 1, ..., K, where N(K+1) = N(1).
+
+  NI      (input) INTEGER array, dimension (K)
+          The leading K elements of this array must contain the
+          dimensions of the factors of the matrix sequence T11_k.
+          N(k) &gt;= NI(k) + NC &gt;= 0.
+
+  S       (input) INTEGER array, dimension (K)
+          The leading K elements of this array must contain the
+          signatures (exponents) of the factors in the K-periodic
+          matrix sequence. Each entry in S must be either 1 or -1;
+          the value S(k) = -1 corresponds to using the inverse of
+          the factor T_k.
+
+  T       (input/output) DOUBLE PRECISION array, dimension (*)
+          On entry, this array must contain at position IXT(k) the
+          matrix T_k, which is at least N(k+1)-by-N(k), if S(k) = 1,
+          or at least N(k)-by-N(k+1), if S(k) = -1, in periodic
+          Schur form.
+          On exit, the matrices T_k are overwritten by the reordered
+          periodic Schur form.
+
+  LDT     INTEGER array, dimension (K)
+          The leading dimensions of the matrices T_k in the one-
+          dimensional array T.
+          LDT(k) &gt;= max(1,N(k+1)),  if S(k) =  1,
+          LDT(k) &gt;= max(1,N(k)),    if S(k) = -1.
+
+  IXT     INTEGER array, dimension (K)
+          Start indices of the matrices T_k in the one-dimensional
+          array T.
+
+  Q       (input/output) DOUBLE PRECISION array, dimension (*)
+          On entry, this array must contain at position IXQ(k) a
+          matrix Q_k of size at least N(k)-by-N(k), provided that
+          COMPQ = 'U', or COMPQ = 'W' and WHICHQ(k) &gt; 0.
+          On exit, if COMPQ = 'U', or COMPQ = 'W' and WHICHQ(k) &gt; 0,
+          Q_k is post-multiplied with the orthogonal matrix that
+          performed the reordering.
+          This array is not referenced if COMPQ = 'N'.
+
+  LDQ     INTEGER array, dimension (K)
+          The leading dimensions of the matrices Q_k in the one-
+          dimensional array Q.  LDQ(k) &gt;= 1, and
+          LDQ(k) &gt;= max(1,N(k)), if COMPQ = 'U', or COMPQ = 'W' and
+                                                    WHICHQ(k) &gt; 0;
+          This array is not referenced if COMPQ = 'N'.
+
+  IXQ     INTEGER array, dimension (K)
+          Start indices of the matrices Q_k in the one-dimensional
+          array Q.
+          This array is not referenced if COMPQ = 'N'.
+
+</PRE>
+<B>Tolerances</B>
+<PRE>
+  TOL     DOUBLE PRECISION array, dimension (3)
+          This array contains tolerance parameters. The weak and
+          strong stability tests use a threshold computed by the
+          formula  MAX( c*EPS*NRM, SMLNUM ),  where c is a constant,
+          NRM is the Frobenius norm of the matrix formed by
+          concatenating K pairs of adjacent diagonal blocks of sizes
+          1 and/or 2 in the T22_k submatrices from (2), which are
+          swapped, and EPS and SMLNUM are the machine precision and
+          safe minimum divided by EPS, respectively (see LAPACK
+          Library routine DLAMCH). The norm NRM is computed by this
+          routine; the other values are stored in the array TOL.
+          TOL(1), TOL(2), and TOL(3) contain c, EPS, and SMLNUM,
+          respectively. TOL(1) should normally be at least 10.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  IWORK   INTEGER array, dimension (4*K)
+
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+          On exit, if INFO = 0, DWORK(1) returns the optimal LDWORK.
+
+  LDWORK  INTEGER
+          The dimension of the array DWORK.
+          LDWORK &gt;= 10*K + MN,                 if N1 = 1, N2 = 1;
+          LDWORK &gt;= 25*K + MN,                 if N1 = 1, N2 = 2;
+          LDWORK &gt;= MAX(23*K + MN, 25*K - 12), if N1 = 2, N2 = 1;
+          LDWORK &gt;= MAX(42*K + MN, 80*K - 48), if N1 = 2, N2 = 2;
+          where MN = MXN, if MXN &gt; 10, and MN = 0, otherwise, with
+          MXN = MAX(N(k),k=1,...,K).
+
+          If LDWORK = -1  a workspace query is assumed; the
+          routine only calculates the optimal size of the DWORK
+          array, returns this value as the first entry of the DWORK
+          array, and no error message is issued by XERBLA.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -22, then LDWORK is too small; appropriate
+                value for LDWORK is returned in DWORK(1); the other
+                arguments are not tested, for efficiency;
+          = 1:  the swap was rejected from stability reasons; the
+                blocks are not swapped and T and Q are unchanged.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  The algorithm described in [1] is used. Both weak and strong
+  stability tests are performed.
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Granat, R., Kagstrom, B. and Kressner, D.
+      Computing periodic deflating subspaces associated with a
+      specified set of eigenvalues.
+      BIT Numerical Mathematics, vol. 47, 763-791, 2007.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  The implemented method is numerically backward stable.
+                               3
+  The algorithm requires 0(K NC ) floating point operations.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

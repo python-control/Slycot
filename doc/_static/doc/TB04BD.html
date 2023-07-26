@@ -1,0 +1,414 @@
+<HTML>
+<HEAD><TITLE>TB04BD - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="TB04BD">TB04BD</A></H2>
+<H3>
+Transfer matrix of a given state-space representation (A,B,C,D), using the pole-zeros method
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To compute the transfer function matrix G of a state-space
+  representation (A,B,C,D) of a linear time-invariant multivariable
+  system, using the pole-zeros method. Each element of the transfer
+  function matrix is returned in a cancelled, minimal form, with
+  numerator and denominator polynomials stored either in increasing
+  or decreasing order of the powers of the indeterminate.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE TB04BD( JOBD, ORDER, EQUIL, N, M, P, MD, A, LDA, B,
+     $                   LDB, C, LDC, D, LDD, IGN, LDIGN, IGD, LDIGD,
+     $                   GN, GD, TOL, IWORK, DWORK, LDWORK, INFO )
+C     .. Scalar Arguments ..
+      CHARACTER          EQUIL, JOBD, ORDER
+      DOUBLE PRECISION   TOL
+      INTEGER            INFO, LDA, LDB, LDC, LDD, LDIGD, LDIGN, LDWORK,
+     $                   M, MD, N, P
+C     .. Array Arguments ..
+      DOUBLE PRECISION   A(LDA,*), B(LDB,*), C(LDC,*), D(LDD,*),
+     $                   DWORK(*), GD(*), GN(*)
+      INTEGER            IGD(LDIGD,*), IGN(LDIGN,*), IWORK(*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  JOBD    CHARACTER*1
+          Specifies whether or not a non-zero matrix D appears in
+          the given state-space model:
+          = 'D':  D is present;
+          = 'Z':  D is assumed to be a zero matrix.
+
+  ORDER   CHARACTER*1
+          Specifies the order in which the polynomial coefficients
+          are stored, as follows:
+          = 'I':  Increasing order of powers of the indeterminate;
+          = 'D':  Decreasing order of powers of the indeterminate.
+
+  EQUIL   CHARACTER*1
+          Specifies whether the user wishes to preliminarily
+          equilibrate the triplet (A,B,C) as follows:
+          = 'S':  perform equilibration (scaling);
+          = 'N':  do not perform equilibration.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The order of the system (A,B,C,D).  N &gt;= 0.
+
+  M       (input) INTEGER
+          The number of the system inputs.  M &gt;= 0.
+
+  P       (input) INTEGER
+          The number of the system outputs.  P &gt;= 0.
+
+  MD      (input) INTEGER
+          The maximum degree of the polynomials in G, plus 1. An
+          upper bound for MD is N+1.  MD &gt;= 1.
+
+  A       (input/output) DOUBLE PRECISION array, dimension (LDA,N)
+          On entry, the leading N-by-N part of this array must
+          contain the original state dynamics matrix A.
+          On exit, if EQUIL = 'S', the leading N-by-N part of this
+          array contains the balanced matrix inv(S)*A*S, as returned
+          by SLICOT Library routine TB01ID.
+          If EQUIL = 'N', this array is unchanged on exit.
+
+  LDA     INTEGER
+          The leading dimension of array A.  LDA &gt;= MAX(1,N).
+
+  B       (input/output) DOUBLE PRECISION array, dimension (LDB,M)
+          On entry, the leading N-by-M part of this array must
+          contain the input matrix B.
+          On exit, the contents of B are destroyed: all elements but
+          those in the first row are set to zero.
+
+  LDB     INTEGER
+          The leading dimension of array B.  LDB &gt;= MAX(1,N).
+
+  C       (input/output) DOUBLE PRECISION array, dimension (LDC,N)
+          On entry, the leading P-by-N part of this array must
+          contain the output matrix C.
+          On exit, if EQUIL = 'S', the leading P-by-N part of this
+          array contains the balanced matrix C*S, as returned by
+          SLICOT Library routine TB01ID.
+          If EQUIL = 'N', this array is unchanged on exit.
+
+  LDC     INTEGER
+          The leading dimension of array C.  LDC &gt;= MAX(1,P).
+
+  D       (input) DOUBLE PRECISION array, dimension (LDD,M)
+          If JOBD = 'D', the leading P-by-M part of this array must
+          contain the matrix D.
+          If JOBD = 'Z', the array D is not referenced.
+
+  LDD     INTEGER
+          The leading dimension of array D.
+          LDD &gt;= MAX(1,P), if JOBD = 'D';
+          LDD &gt;= 1,        if JOBD = 'Z'.
+
+  IGN     (output) INTEGER array, dimension (LDIGN,M)
+          The leading P-by-M part of this array contains the degrees
+          of the numerator polynomials in the transfer function
+          matrix G. Specifically, the (i,j) element of IGN contains
+          the degree of the numerator polynomial of the transfer
+          function G(i,j) from the j-th input to the i-th output.
+
+  LDIGN   INTEGER
+          The leading dimension of array IGN.  LDIGN &gt;= max(1,P).
+
+  IGD     (output) INTEGER array, dimension (LDIGD,M)
+          The leading P-by-M part of this array contains the degrees
+          of the denominator polynomials in the transfer function
+          matrix G. Specifically, the (i,j) element of IGD contains
+          the degree of the denominator polynomial of the transfer
+          function G(i,j).
+
+  LDIGD   INTEGER
+          The leading dimension of array IGD.  LDIGD &gt;= max(1,P).
+
+  GN      (output) DOUBLE PRECISION array, dimension (P*M*MD)
+          This array contains the coefficients of the numerator
+          polynomials, Num(i,j), of the transfer function matrix G.
+          The polynomials are stored in a column-wise order, i.e.,
+          Num(1,1), Num(2,1), ..., Num(P,1), Num(1,2), Num(2,2),
+          ..., Num(P,2), ..., Num(1,M), Num(2,M), ..., Num(P,M);
+          MD memory locations are reserved for each polynomial,
+          hence, the (i,j) polynomial is stored starting from the
+          location ((j-1)*P+i-1)*MD+1. The coefficients appear in
+          increasing or decreasing order of the powers of the
+          indeterminate, according to ORDER.
+
+  GD      (output) DOUBLE PRECISION array, dimension (P*M*MD)
+          This array contains the coefficients of the denominator
+          polynomials, Den(i,j), of the transfer function matrix G.
+          The polynomials are stored in the same way as the
+          numerator polynomials.
+
+</PRE>
+<B>Tolerances</B>
+<PRE>
+  TOL     DOUBLE PRECISION
+          The tolerance to be used in determining the
+          controllability of a single-input system (A,b) or (A',c'),
+          where b and c' are columns in B and C' (C transposed). If
+          the user sets TOL &gt; 0, then the given value of TOL is used
+          as an absolute tolerance; elements with absolute value
+          less than TOL are considered neglijible. If the user sets
+          TOL &lt;= 0, then an implicitly computed, default tolerance,
+          defined by TOLDEF = N*EPS*MAX( NORM(A), NORM(bc) ) is used
+          instead, where EPS is the machine precision (see LAPACK
+          Library routine DLAMCH), and bc denotes the currently used
+          column in B or C' (see METHOD).
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  IWORK   INTEGER array, dimension (N)
+
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+          On exit, if INFO = 0, DWORK(1) returns the optimal value
+          of LDWORK.
+
+  LDWORK  INTEGER
+          The length of the array DWORK.
+          LDWORK &gt;= MAX(1, N*(N+P) +
+                           MAX( N + MAX( N,P ), N*(2*N+5)))
+          If N &gt;= P, N &gt;= 1, the formula above can be written as
+          LDWORK &gt;= N*(3*N + P + 5).
+          For optimum performance LDWORK should be larger.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value;
+          = 1:  the QR algorithm failed to converge when trying to
+                compute the zeros of a transfer function;
+          = 2:  the QR algorithm failed to converge when trying to
+                compute the poles of a transfer function.
+                The errors INFO = 1 or 2 are unlikely to appear.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  The routine implements the pole-zero method proposed in [1].
+  This method is based on an algorithm for computing the transfer
+  function of a single-input single-output (SISO) system.
+  Let (A,b,c,d) be a SISO system. Its transfer function is computed
+  as follows:
+
+  1) Find a controllable realization (Ac,bc,cc) of (A,b,c).
+  2) Find an observable realization (Ao,bo,co) of (Ac,bc,cc).
+  3) Compute the r eigenvalues of Ao (the poles of (Ao,bo,co)).
+  4) Compute the zeros of (Ao,bo,co,d).
+  5) Compute the gain of (Ao,bo,co,d).
+
+  This algorithm can be implemented using only orthogonal
+  transformations [1]. However, for better efficiency, the
+  implementation in TB04BD uses one elementary transformation
+  in Step 4 and r elementary transformations in Step 5 (to reduce
+  an upper Hessenberg matrix to upper triangular form). These
+  special elementary transformations are numerically stable
+  in practice.
+
+  In the multi-input multi-output (MIMO) case, the algorithm
+  computes each element (i,j) of the transfer function matrix G,
+  for i = 1 : P, and for j = 1 : M. For efficiency reasons, Step 1
+  is performed once for each value of j (each column of B). The
+  matrices Ac and Ao result in Hessenberg form.
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Varga, A. and Sima, V.
+      Numerically Stable Algorithm for Transfer Function Matrix
+      Evaluation.
+      Int. J. Control, vol. 33, nr. 6, pp. 1123-1133, 1981.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  The algorithm is numerically stable in practice and requires about
+  20*N**3 floating point operations at most, but usually much less.
+
+</PRE>
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  For maximum efficiency of index calculations, GN and GD are
+  implemented as one-dimensional arrays.
+
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+*     TB04BD EXAMPLE PROGRAM TEXT
+*
+*     .. Parameters ..
+      INTEGER          NIN, NOUT
+      PARAMETER        ( NIN = 5, NOUT = 6 )
+      INTEGER          NMAX, MMAX, PMAX, MDMAX
+      PARAMETER        ( NMAX = 20, MMAX = 20, PMAX = 20,
+     $                   MDMAX = NMAX + 1 )
+      INTEGER          PMNMAX
+      PARAMETER        ( PMNMAX = PMAX*MMAX*MDMAX )
+      INTEGER          LDA, LDB, LDC, LDD, LDIGD, LDIGN
+      PARAMETER        ( LDA = NMAX, LDB = NMAX, LDC = PMAX,
+     $                   LDD = PMAX, LDIGD = PMAX, LDIGN = PMAX )
+      INTEGER          LIWORK
+      PARAMETER        ( LIWORK = NMAX )
+      INTEGER          LDWORK
+      PARAMETER        ( LDWORK = NMAX*( NMAX + PMAX ) +
+     $                            MAX( NMAX + MAX( NMAX, PMAX ),
+     $                                 NMAX*( 2*NMAX + 5 ) ) )
+*     .. Local Scalars ..
+      DOUBLE PRECISION TOL
+      INTEGER          I, IJ, INFO, J, K, M, MD, N, P
+      CHARACTER*1      JOBD, ORDER, EQUIL
+      CHARACTER*132    ULINE
+*     .. Local Arrays ..
+      DOUBLE PRECISION A(LDA,NMAX), B(LDB,MMAX), C(LDC,NMAX),
+     $                 D(LDD,MMAX), DWORK(LDWORK), GD(PMNMAX),
+     $                 GN(PMNMAX)
+      INTEGER          IGD(LDIGD,MMAX), IGN(LDIGN,MMAX), IWORK(LIWORK)
+*     .. External Functions ..
+      LOGICAL          LSAME
+      EXTERNAL         LSAME
+*     .. External Subroutines ..
+      EXTERNAL         TB04BD
+*     .. Intrinsic Functions ..
+      INTRINSIC        MAX
+*     .. Executable Statements ..
+*
+      WRITE ( NOUT, FMT = 99999 )
+*     Skip the heading in the data file and read the data.
+      READ ( NIN, FMT = '()' )
+      READ ( NIN, FMT = * ) N, M, P, TOL, JOBD, ORDER, EQUIL
+      MD = N + 1
+      ULINE(1:20) = ' '
+      DO 20 I = 21, 132
+         ULINE(I:I) = '-'
+   20 CONTINUE
+      IF ( N.LT.0 .OR. N.GT.NMAX ) THEN
+         WRITE ( NOUT, FMT = 99991 ) N
+      ELSE
+         READ ( NIN, FMT = * ) ( ( A(I,J), J = 1,N ), I = 1,N )
+         IF ( M.LT.0 .OR. M.GT.MMAX ) THEN
+            WRITE ( NOUT, FMT = 99990 ) M
+         ELSE
+            READ ( NIN, FMT = * ) ( ( B(I,J), I = 1,N ), J = 1,M )
+            IF ( P.LT.0 .OR. P.GT.PMAX ) THEN
+               WRITE ( NOUT, FMT = 99989 ) P
+            ELSE
+               READ ( NIN, FMT = * ) ( ( C(I,J), J = 1,N ), I = 1,P )
+               READ ( NIN, FMT = * ) ( ( D(I,J), J = 1,M ), I = 1,P )
+*              Find the transfer matrix T(s) of (A,B,C,D).
+               CALL TB04BD( JOBD, ORDER, EQUIL, N, M, P, MD, A, LDA, B,
+     $                      LDB, C, LDC, D, LDD, IGN, LDIGN, IGD, LDIGD,
+     $                      GN, GD, TOL, IWORK, DWORK, LDWORK, INFO )
+*
+               IF ( INFO.NE.0 ) THEN
+                  WRITE ( NOUT, FMT = 99998 ) INFO
+               ELSE
+                  IF ( LSAME( ORDER, 'I' ) ) THEN
+                     WRITE ( NOUT, FMT = 99997 )
+                  ELSE
+                     WRITE ( NOUT, FMT = 99996 )
+                  END IF
+                  WRITE ( NOUT, FMT = 99995 )
+                  DO 60 J = 1, M
+                     DO 40 I = 1, P
+                        IJ = ( (J-1)*P + I-1 )*MD + 1
+                        WRITE ( NOUT, FMT = 99994 ) I, J,
+     $                    ( GN(K), K = IJ,IJ+IGN(I,J) )
+                        WRITE ( NOUT, FMT = 99993 )
+     $                          ULINE(1:7*(IGD(I,J)+1)+21)
+                        WRITE ( NOUT, FMT = 99992 )
+     $                        ( GD(K), K = IJ,IJ+IGD(I,J) )
+   40                CONTINUE
+   60             CONTINUE
+               END IF
+            END IF
+         END IF
+      END IF
+      STOP
+*
+99999 FORMAT (' TB04BD EXAMPLE PROGRAM RESULTS',/1X)
+99998 FORMAT (' INFO on exit from TB04BD = ',I2)
+99997 FORMAT (/' The polynomial coefficients appear in increasing',
+     $         ' order'/' of the powers of the indeterminate')
+99996 FORMAT (/' The polynomial coefficients appear in decreasing',
+     $         ' order'/' of the powers of the indeterminate')
+99995 FORMAT (/' The coefficients of polynomials in the transfer matri',
+     $       'x T(s) are ')
+99994 FORMAT (/' element (',I2,',',I2,') is ',20(1X,F6.2))
+99993 FORMAT (1X,A)
+99992 FORMAT (20X,20(1X,F6.2))
+99991 FORMAT (/' N is out of range.',/' N = ',I5)
+99990 FORMAT (/' M is out of range.',/' M = ',I5)
+99989 FORMAT (/' P is out of range.',/' P = ',I5)
+      END
+</PRE>
+<B>Program Data</B>
+<PRE>
+ TB04BD EXAMPLE PROGRAM DATA
+   3     2     2  0.0         D     I     N
+  -1.0   0.0   0.0
+   0.0  -2.0   0.0
+   0.0   0.0  -3.0
+   0.0   1.0  -1.0
+   1.0   1.0   0.0
+   0.0   1.0   1.0
+   1.0   1.0   1.0
+   1.0   0.0
+   0.0   1.0
+</PRE>
+<B>Program Results</B>
+<PRE>
+ TB04BD EXAMPLE PROGRAM RESULTS
+
+
+ The polynomial coefficients appear in increasing order
+ of the powers of the indeterminate
+
+ The coefficients of polynomials in the transfer matrix T(s) are 
+
+ element ( 1, 1) is    7.00   5.00   1.00
+                     ----------------------
+                       6.00   5.00   1.00
+
+ element ( 2, 1) is    1.00
+                     ----------------------
+                       6.00   5.00   1.00
+
+ element ( 1, 2) is    1.00
+                     ---------------
+                       2.00   1.00
+
+ element ( 2, 2) is    5.00   5.00   1.00
+                     ----------------------
+                       2.00   3.00   1.00
+</PRE>
+
+<HR>
+<p>
+<A HREF=..\libindex.html><B>Return to index</B></A></BODY>
+</HTML>

@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>slycot.sb03od &mdash; Slycot 0.6 documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+        <script src="../../../_static/sphinx_highlight.js"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <link rel="next" title="slycot.sb04md" href="slycot.sb04md.html" />
+    <link rel="prev" title="slycot.sb03md57" href="slycot.sb03md57.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            Slycot
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../../intro.html">Introduction</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../index.html">Slycot reference</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="../slycot_outer.html">Outer function reference</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="../slycot_outer.html#analysis">Analysis</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../slycot_outer.html#mathematical-routines">Mathematical routines</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="../slycot_outer.html#synthesis">Synthesis</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="slycot.sb01bd.html">slycot.sb01bd</a></li>
+<li class="toctree-l4"><a class="reference internal" href="slycot.sb02md.html">slycot.sb02md</a></li>
+<li class="toctree-l4"><a class="reference internal" href="slycot.sb02mt.html">slycot.sb02mt</a></li>
+<li class="toctree-l4"><a class="reference internal" href="slycot.sb02od.html">slycot.sb02od</a></li>
+<li class="toctree-l4"><a class="reference internal" href="slycot.sb03md.html">slycot.sb03md</a></li>
+<li class="toctree-l4"><a class="reference internal" href="slycot.sb03md57.html">slycot.sb03md57</a></li>
+<li class="toctree-l4 current"><a class="current reference internal" href="#">slycot.sb03od</a></li>
+<li class="toctree-l4"><a class="reference internal" href="slycot.sb04md.html">slycot.sb04md</a></li>
+<li class="toctree-l4"><a class="reference internal" href="slycot.sb04qd.html">slycot.sb04qd</a></li>
+<li class="toctree-l4"><a class="reference internal" href="slycot.sb10ad.html">slycot.sb10ad</a></li>
+<li class="toctree-l4"><a class="reference internal" href="slycot.sb10dd.html">slycot.sb10dd</a></li>
+<li class="toctree-l4"><a class="reference internal" href="slycot.sb10fd.html">slycot.sb10fd</a></li>
+<li class="toctree-l4"><a class="reference internal" href="slycot.sb10hd.html">slycot.sb10hd</a></li>
+<li class="toctree-l4"><a class="reference internal" href="slycot.sg02ad.html">slycot.sg02ad</a></li>
+<li class="toctree-l4"><a class="reference internal" href="slycot.sg03ad.html">slycot.sg03ad</a></li>
+<li class="toctree-l4"><a class="reference internal" href="slycot.sg03bd.html">slycot.sg03bd</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../slycot_outer.html#transformation-routines">Transformation Routines</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../slycot_inner.html">Inner function reference</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../dev/index.html">Development</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">Slycot</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Slycot reference</a></li>
+          <li class="breadcrumb-item"><a href="../slycot_outer.html">Outer function reference</a></li>
+      <li class="breadcrumb-item active">slycot.sb03od</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../../_sources/source/reference/generated/slycot.sb03od.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <div class="section" id="slycot-sb03od">
+<h1>slycot.sb03od<a class="headerlink" href="#slycot-sb03od" title="Permalink to this heading"></a></h1>
+<dl class="py function">
+<dt class="sig sig-object py" id="slycot.sb03od">
+<span class="sig-prename descclassname"><span class="pre">slycot.</span></span><span class="sig-name descname"><span class="pre">sb03od</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dico</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">m</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">A</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Q</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">B</span></span></em><span class="optional">[</span>, <em class="sig-param"><span class="n"><span class="pre">fact</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trans</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ldwork</span></span></em><span class="optional">]</span><span class="sig-paren">)</span><a class="headerlink" href="#slycot.sb03od" title="Permalink to this definition"></a></dt>
+<dd><p>To solve for X = op(U)’<a href="#id1"><span class="problematic" id="id2">*</span></a>op(U) either the stable non-negative
+definite continuous-time Lyapunov equation</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>                           <span class="mi">2</span>
+<span class="n">op</span><span class="p">(</span><span class="n">A</span><span class="p">)</span><span class="s1">&#39;*X + X*op(A) = -scale *op(B)&#39;</span><span class="o">*</span><span class="n">op</span><span class="p">(</span><span class="n">B</span><span class="p">)</span>                   <span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>or the convergent non-negative definite discrete-time Lyapunov
+equation</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>                           <span class="mi">2</span>
+<span class="n">op</span><span class="p">(</span><span class="n">A</span><span class="p">)</span><span class="s1">&#39;*X*op(A) - X = -scale *op(B)&#39;</span><span class="o">*</span><span class="n">op</span><span class="p">(</span><span class="n">B</span><span class="p">)</span>                   <span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>where op(K) = K or K’ (i.e., the transpose of the matrix K), A is
+an N-by-N matrix, op(B) is an M-by-N matrix, U is an upper
+triangular matrix containing the Cholesky factor of the solution
+matrix X, X = op(U)’<a href="#id3"><span class="problematic" id="id4">*</span></a>op(U), and scale is an output scale factor,
+set less than or equal to 1 to avoid overflow in X. If matrix B
+has full rank then the solution matrix X will be positive-definite
+and hence the Cholesky factor U will be nonsingular, but if B is
+rank deficient, then X may be only positive semi-definite and U
+will be singular.</p>
+<p>In the case of equation (1) the matrix A must be stable (that
+is, all the eigenvalues of A must have negative real parts),
+and for equation (2) the matrix A must be convergent (that is,
+all the eigenvalues of A must lie inside the unit circle).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>n</strong> (<em>int</em>) – The order of the matrix A and the number of columns of
+the matrix op(B).  n &gt;= 0.</p></li>
+<li><p><strong>m</strong> (<em>int</em>) – The number of rows in matrix op(B).  m &gt;= 0.</p></li>
+<li><p><strong>A</strong> (<em>(</em><em>n</em><em>, </em><em>n</em><em>) </em><em>array_like</em>) – On entry, the leading n-by-n part of this array must
+contain the matrix A. If fact = ‘F’, then A contains
+an upper quasi-triangular matrix S in Schur canonical
+form; the elements below the upper Hessenberg part of the
+array A are then not referenced.
+On exit, the leading n-by-n upper Hessenberg part of this
+array contains the upper quasi-triangular matrix S in
+Schur canonical form from the Shur factorization of A.
+The contents of the array A is not modified if fact = ‘F’.</p></li>
+<li><p><strong>Q</strong> (<em>(</em><em>n</em><em>, </em><em>n</em><em>) </em><em>array_like</em>) – On entry, if fact = ‘F’, then the leading n-by-n part of
+this array must contain the orthogonal matrix Q of the
+Schur factorization of A.
+Otherwise, Q need not be set on entry.
+On exit, the leading n-by-n part of this array contains
+the orthogonal matrix Q of the Schur factorization of A.
+The contents of the array Q is not modified if fact = ‘F’.</p></li>
+<li><p><strong>B</strong> (<em>(</em><em>m</em><em>, </em><em>n</em><em>) </em><em>array_like</em>) – On entry, if trans = ‘N’, the leading m-by-n part of this
+array must contain the coefficient matrix B of the
+equation.
+On entry, if trans = ‘T’, the leading N-by-m part of this
+array must contain the coefficient matrix B of the
+equation.
+On exit, the leading n-by-n part of this array contains
+the upper triangular Cholesky factor U of the solution
+matrix X of the problem, X = op(U)’<a href="#id5"><span class="problematic" id="id6">*</span></a>op(U).
+If m = 0 and n &gt; 0, then U is set to zero.</p></li>
+<li><p><strong>dico</strong> (<em>{'C'</em><em>, </em><em>'D'}</em>) – <p>Specifies the type of Lyapunov equation to be solved as
+follows:</p>
+<blockquote>
+<div><dl class="field-list simple">
+<dt class="field-odd">= ‘C’</dt>
+<dd class="field-odd"><p>Equation (1), continuous-time case;</p>
+</dd>
+<dt class="field-even">= ‘D’</dt>
+<dd class="field-even"><p>Equation (2), discrete-time case.</p>
+</dd>
+</dl>
+</div></blockquote>
+</p></li>
+<li><p><strong>fact</strong> (<em>{'N'</em><em>, </em><em>'F'}</em><em>, </em><em>optional</em>) – <p>Specifies whether or not the real Schur factorization
+of the matrix A is supplied on entry, as follows:</p>
+<blockquote>
+<div><dl class="field-list simple">
+<dt class="field-odd">= ‘F’</dt>
+<dd class="field-odd"><p>On entry, A and Q contain the factors from the</p>
+</dd>
+</dl>
+</div></blockquote>
+<dl class="simple">
+<dt>real Schur factorization of the matrix A;</dt><dd><dl class="field-list simple">
+<dt class="field-odd">= ‘N’</dt>
+<dd class="field-odd"><p>The Schur factorization of A will be computed</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p>and the factors will be stored in A and Q.</p>
+</p></li>
+<li><p><strong>trans</strong> (<em>{'N'</em><em>, </em><em>'T'}</em><em>, </em><em>optional</em>) – <dl class="simple">
+<dt>Specifies the form of op(K) to be used, as follows:</dt><dd><dl class="field-list simple">
+<dt class="field-odd">= ‘N’</dt>
+<dd class="field-odd"><p>op(K) = K    (No transpose, default);</p>
+</dd>
+<dt class="field-even">= ‘T’</dt>
+<dd class="field-even"><p>op(K) = K**T (Transpose).</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</p></li>
+<li><p><strong>ldwork</strong> (<em>int</em><em>, </em><em>optional</em>) – The length of the array DWORK.
+If m &gt; 0, ldwork &gt;= max(1, 4*n);
+If m = 0, ldwork &gt;= 1.
+For optimum performance ldwork should sometimes be larger.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>U</strong> (<em>(n, n) ndarray</em>) – The leading n-by-n part of this array contains
+the upper triangular Cholesky factor U of the solution
+matrix X of the problem, X = op(U)’<a href="#id7"><span class="problematic" id="id8">*</span></a>op(U).</p></li>
+<li><p><strong>scale</strong> (<em>float</em>) – The scale factor, scale, set less than or equal to 1 to
+prevent the solution overflowing.</p></li>
+<li><p><strong>w</strong> (<em>(n, ) complex ndarray</em>) – The eigenvalues of A.</p></li>
+</ul>
+</p>
+</dd>
+<dt class="field-odd">Raises</dt>
+<dd class="field-odd"><p><strong>SlycotArithmeticError</strong> – <dl class="field-list simple">
+<dt class="field-odd">info = 4</dt>
+<dd class="field-odd"><p>FACT = ‘F’ and the Schur factor S supplied in
+the array A has two or more consecutive non-zero
+elements on the first subdiagonal, so that there is
+a block larger than 2-by-2 on the diagonal</p>
+</dd>
+<dt class="field-even">info = 5</dt>
+<dd class="field-even"><p>FACT = ‘F’ and the Schur factor S supplied in
+the array A has a 2-by-2 diagonal block with real
+eigenvalues instead of a complex conjugate pair;</p>
+</dd>
+<dt class="field-odd">info = 6</dt>
+<dd class="field-odd"><p>FACT = ‘N’ and the LAPACK Library routine DGEES
+has failed to converge. This failure is not likely
+to occur.</p>
+</dd>
+</dl>
+</p>
+</dd>
+<dt class="field-even">Warns</dt>
+<dd class="field-even"><p><strong>SlycotResultWarning</strong> –</p>
+<dl class="field-list simple">
+<dt class="field-odd">info = 1 and dico == ‘C’</dt>
+<dd class="field-odd"><p>The Lyapunov equation is (nearly) singular.
+This means that while the matrix A
+(or the factor S) has computed eigenvalues with
+negative real parts, it is only just stable in the
+sense that small perturbations in A can make one or
+more of the eigenvalues have a non-negative real
+part;
+perturbed values were used to solve the equation;</p>
+</dd>
+<dt class="field-even">info = 1 and dico == ‘D’</dt>
+<dd class="field-even"><p>The Lyapunov equation is (nearly) singular.
+This means that while the matrix A
+(or the factor S) has computed eigenvalues inside
+the unit circle, it is nevertheless only just
+convergent, in the sense that small perturbations
+in A can make one or more of the eigenvalues lie
+outside the unit circle;
+perturbed values were used to solve the equation;</p>
+</dd>
+<dt class="field-odd">info = 2 and fact == ‘N’ and dico == ‘C’</dt>
+<dd class="field-odd"><p>The matrix A is
+not stable (that is, one or more of the eigenvalues
+of A has a non-negative real part), or DICO = ‘D’,
+but the matrix A is not convergent (that is, one or
+more of the eigenvalues of A lies outside the unit
+circle); however, A still has been factored
+and the eigenvalues of A are returned in WR and WI.</p>
+</dd>
+<dt class="field-even">info = 2 and dico == ‘D’</dt>
+<dd class="field-even"><p>The matrix A is not convergent (that is, one or
+more of the eigenvalues of A lies outside the unit
+circle); however, A still has been factored
+and the eigenvalues of A are returned in WR and WI.</p>
+</dd>
+<dt class="field-odd">info = 3 and fact == ‘F’ and dico == ‘C’</dt>
+<dd class="field-odd"><p>The Schur factor S supplied in the array A is not
+stable (that is, one or more of the eigenvalues of
+S has a non-negative real part);
+the eigenvalues of A are still returned in w.</p>
+</dd>
+<dt class="field-even">info = 3 and dico == ‘D’</dt>
+<dd class="field-even"><p>The Schur factor S supplied in the array A is not
+convergent (that is, one or more of the eigenvalues
+of S lies outside the unit circle);
+the eigenvalues of A are still returned in w.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="slycot.sb03md57.html" class="btn btn-neutral float-left" title="slycot.sb03md57" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="slycot.sb04md.html" class="btn btn-neutral float-right" title="slycot.sb04md" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Slycot Developers.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

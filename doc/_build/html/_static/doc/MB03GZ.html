@@ -1,0 +1,127 @@
+<HTML>
+<HEAD><TITLE>MB03GZ - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MB03GZ">MB03GZ</A></H2>
+<H3>
+Exchanging eigenvalues of a complex 2-by-2 skew-Hamiltonian/Hamiltonian pencil in structured Schur form (factored version)
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To compute a unitary matrix Q and a unitary symplectic matrix U
+  for a complex regular 2-by-2 skew-Hamiltonian/Hamiltonian pencil
+  aS - bH with S = J Z' J' Z, where
+
+         (  Z11  Z12  )         (  H11  H12  )
+     Z = (            ) and H = (            ),
+         (   0   Z22  )         (   0  -H11' )
+
+  such that U' Z Q, (J Q J' )' H Q are both upper triangular, but the  
+  eigenvalues of (J Q J')' ( aS - bH ) Q are in reversed order.
+  The matrices Q and U are represented by
+
+         (  CO1  SI1  )         (  CO2  SI2  )
+     Q = (            ) and U = (            ), respectively.
+         ( -SI1' CO1  )         ( -SI2' CO2  )
+
+  The notation M' denotes the conjugate transpose of the matrix M.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MB03GZ( Z11, Z12, Z22, H11, H12, CO1, SI1, CO2, SI2 )
+C     .. Scalar Arguments ..
+      DOUBLE PRECISION   CO1, CO2
+      COMPLEX*16         H11, H12, SI1, SI2, Z11, Z12, Z22
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  Z11     (input) COMPLEX*16
+          Upper left element of the non-trivial factor Z in the
+          factorization of S.
+
+  Z12     (input) COMPLEX*16
+          Upper right element of the non-trivial factor Z in the
+          factorization of S.
+
+  Z22     (input) COMPLEX*16
+          Lower right element of the non-trivial factor Z in the
+          factorization of S.
+
+  H11     (input) COMPLEX*16
+          Upper left element of the Hamiltonian matrix H.
+
+  H12     (input) COMPLEX*16
+          Upper right element of the Hamiltonian matrix H.
+
+  CO1     (output) DOUBLE PRECISION
+          Upper left element of Q.
+
+  SI1     (output) COMPLEX*16
+          Upper right element of Q.
+
+  CO2     (output) DOUBLE PRECISION
+          Upper left element of U.
+
+  SI2     (output) COMPLEX*16
+          Upper right element of U.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  The algorithm uses unitary and unitary symplectic transformations
+  as described on page 37 in [1].
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Benner, P., Byers, R., Mehrmann, V. and Xu, H.
+      Numerical Computation of Deflating Subspaces of Embedded
+      Hamiltonian Pencils.
+      Tech. Rep. SFB393/99-15, Technical University Chemnitz,
+      Germany, June 1999.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  The algorithm is numerically backward stable.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

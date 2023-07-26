@@ -1,0 +1,297 @@
+<HTML>
+<HEAD><TITLE>TB01WD - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="TB01WD">TB01WD</A></H2>
+<H3>
+Orthogonal similarity transformation of system state-matrix to real Schur form
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To reduce the system state matrix A to an upper real Schur form
+  by using an orthogonal similarity transformation A &lt;-- U'*A*U and
+  to apply the transformation to the matrices B and C: B &lt;-- U'*B
+  and C &lt;-- C*U.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE TB01WD( N, M, P, A, LDA, B, LDB, C, LDC, U, LDU,
+     $                   WR, WI, DWORK, LDWORK, INFO )
+C     .. Scalar Arguments ..
+      INTEGER          INFO, LDA, LDB, LDC, LDU, LDWORK, M, N, P
+C     .. Array Arguments ..
+      DOUBLE PRECISION A(LDA,*), B(LDB,*), C(LDC,*), DWORK(*), U(LDU,*),
+     $                 WI(*), WR(*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The order of the original state-space representation,
+          i.e. the order of the matrix A.  N &gt;= 0.
+
+  M       (input) INTEGER
+          The number of system inputs, or of columns of B.  M &gt;= 0.
+
+  P       (input) INTEGER
+          The number of system outputs, or of rows of C.  P &gt;= 0.
+
+  A       (input/output) DOUBLE PRECISION array, dimension (LDA,N)
+          On entry, the leading N-by-N part of this array must
+          contain the original state dynamics matrix A.
+          On exit, the leading N-by-N part of this array contains
+          the matrix U' * A * U in real Schur form. The elements
+          below the first subdiagonal are set to zero.
+          Note:  A matrix is in real Schur form if it is upper
+                 quasi-triangular with 1-by-1 and 2-by-2 blocks.
+                 2-by-2 blocks are standardized in the form
+                          [  a  b  ]
+                          [  c  a  ]
+                 where b*c &lt; 0. The eigenvalues of such a block
+                 are a +- sqrt(bc).
+
+  LDA     INTEGER
+          The leading dimension of array A.  LDA &gt;= MAX(1,N).
+
+  B       (input/output) DOUBLE PRECISION array, dimension (LDB,M)
+          On entry, the leading N-by-M part of this array must
+          contain the input matrix B.
+          On exit, the leading N-by-M part of this array contains
+          the transformed input matrix U' * B.
+
+  LDB     INTEGER
+          The leading dimension of array B.  LDB &gt;= MAX(1,N).
+
+  C       (input/output) DOUBLE PRECISION array, dimension (LDC,N)
+          On entry, the leading P-by-N part of this array must
+          contain the output matrix C.
+          On exit, the leading P-by-N part of this array contains
+          the transformed output matrix C * U.
+
+  LDC     INTEGER
+          The leading dimension of array C.  LDC &gt;= MAX(1,P).
+
+  U       (output) DOUBLE PRECISION array, dimension (LDU,N)
+          The leading N-by-N part of this array contains the
+          orthogonal transformation matrix used to reduce A to the
+          real Schur form. The columns of U are the Schur vectors of
+          matrix A.
+
+  LDU     INTEGER
+          The leading dimension of array U.  LDU &gt;= max(1,N).
+
+  WR, WI  (output) DOUBLE PRECISION arrays, dimension (N)
+          WR and WI contain the real and imaginary parts,
+          respectively, of the computed eigenvalues of A. The
+          eigenvalues will be in the same order that they appear on
+          the diagonal of the output real Schur form of A. Complex
+          conjugate pairs of eigenvalues will appear consecutively
+          with the eigenvalue having the positive imaginary part
+          first.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+          On exit, if INFO = 0, DWORK(1) returns the optimal value
+          of LDWORK.
+
+  LDWORK  INTEGER
+          The dimension of working array DWORK.  LWORK &gt;= 3*N.
+          For optimum performance LDWORK should be larger.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value;
+          &gt; 0:  if INFO = i, the QR algorithm failed to compute
+                all the eigenvalues; elements i+1:N of WR and WI
+                contain those eigenvalues which have converged;
+                U contains the matrix which reduces A to its
+                partially converged Schur form.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  Matrix A is reduced to a real Schur form using an orthogonal
+  similarity transformation A &lt;- U'*A*U. Then, the transformation
+  is applied to the matrices B and C: B &lt;-- U'*B and C &lt;-- C*U.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>                                  3
+  The algorithm requires about 10N  floating point operations.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+*     TB01WD EXAMPLE PROGRAM TEXT
+*
+*     .. Parameters ..
+      INTEGER          NIN, NOUT
+      PARAMETER        ( NIN = 5, NOUT = 6 )
+      INTEGER          NMAX, MMAX, PMAX
+      PARAMETER        ( NMAX = 20, MMAX = 20, PMAX = 20 )
+      INTEGER          LDA, LDB, LDC, LDU
+      PARAMETER        ( LDA = NMAX, LDB = NMAX, LDC = PMAX,
+     $                   LDU = NMAX )
+      INTEGER          LDWORK
+      PARAMETER        ( LDWORK = 3*NMAX )
+*     .. Local Scalars ..
+      INTEGER          I, INFO, J, M, N, P
+*     .. Local Arrays ..
+      DOUBLE PRECISION A(LDA,NMAX), B(LDB,MMAX), C(LDC,NMAX),
+     $                 DWORK(LDWORK), U(LDU,NMAX), WI(NMAX), WR(NMAX)
+*     .. External Subroutines ..
+      EXTERNAL         TB01WD
+*     .. Executable Statements ..
+*
+      WRITE ( NOUT, FMT = 99999 )
+*     Skip the heading in the data file and read the data.
+      READ ( NIN, FMT = '()' )
+      READ ( NIN, FMT = * ) N, M, P
+      IF ( N.LT.0 .OR. N.GT.NMAX ) THEN
+         WRITE ( NOUT, FMT = 99990 ) N
+      ELSE
+         READ ( NIN, FMT = * ) ( ( A(I,J), J = 1,N ), I = 1,N )
+         IF ( M.LT.0 .OR. M.GT.MMAX ) THEN
+            WRITE ( NOUT, FMT = 99989 ) M
+         ELSE
+            READ ( NIN, FMT = * ) ( ( B(I,J), J = 1,M ), I = 1, N )
+            IF ( P.LT.0 .OR. P.GT.PMAX ) THEN
+               WRITE ( NOUT, FMT = 99988 ) P
+            ELSE
+               READ ( NIN, FMT = * ) ( ( C(I,J), J = 1,N ), I = 1,P )
+*              Find the transformed ssr for (A,B,C).
+               CALL TB01WD( N, M, P, A, LDA, B, LDB, C, LDC, U, LDU,
+     $                      WR, WI, DWORK, LDWORK, INFO )
+*
+               IF ( INFO.NE.0 ) THEN
+                  WRITE ( NOUT, FMT = 99998 ) INFO
+               ELSE
+                  WRITE ( NOUT, FMT = 99997 )
+                  DO 10 I = 1, N
+                     WRITE ( NOUT, FMT = 99994 ) WR(I), WI(I)
+   10             CONTINUE
+                  WRITE ( NOUT, FMT = 99996 )
+                  DO 20 I = 1, N
+                     WRITE ( NOUT, FMT = 99995 ) ( A(I,J), J = 1,N )
+   20             CONTINUE
+                  WRITE ( NOUT, FMT = 99993 )
+                  DO 40 I = 1, N
+                     WRITE ( NOUT, FMT = 99995 ) ( B(I,J), J = 1,M )
+   40             CONTINUE
+                  WRITE ( NOUT, FMT = 99992 )
+                  DO 60 I = 1, P
+                     WRITE ( NOUT, FMT = 99995 ) ( C(I,J), J = 1,N )
+   60             CONTINUE
+                  WRITE ( NOUT, FMT = 99991 )
+                  DO 70 I = 1, N
+                     WRITE ( NOUT, FMT = 99995 ) ( U(I,J), J = 1,N )
+   70             CONTINUE
+               END IF
+            END IF
+         END IF
+      END IF
+      STOP
+*
+99999 FORMAT (' TB01WD EXAMPLE PROGRAM RESULTS',/1X)
+99998 FORMAT (' INFO on exit from TB01WD = ',I2)
+99997 FORMAT (' The eigenvalues of state dynamics matrix A are ')
+99996 FORMAT (/' The transformed state dynamics matrix U''*A*U is ')
+99995 FORMAT (20(1X,F8.4))
+99994 FORMAT ( ' (',F8.4,', ',F8.4,' )')
+99993 FORMAT (/' The transformed input/state matrix U''*B is ')
+99992 FORMAT (/' The transformed state/output matrix C*U is ')
+99991 FORMAT (/' The similarity transformation matrix U is ')
+99990 FORMAT (/' N is out of range.',/' N = ',I5)
+99989 FORMAT (/' M is out of range.',/' M = ',I5)
+99988 FORMAT (/' P is out of range.',/' P = ',I5)
+      END
+</PRE>
+<B>Program Data</B>
+<PRE>
+ TB01WD EXAMPLE PROGRAM DATA (Continuous system)
+  5  2   3    
+  -0.04165    4.9200   -4.9200         0         0
+ -1.387944   -3.3300         0         0         0
+    0.5450         0         0   -0.5450         0
+         0         0    4.9200  -0.04165    4.9200
+         0         0         0 -1.387944   -3.3300
+         0         0
+    3.3300         0
+         0         0
+         0         0
+         0    3.3300
+     1     0     0     0     0
+     0     0     1     0     0
+     0     0     0     1     0
+
+</PRE>
+<B>Program Results</B>
+<PRE>
+ TB01WD EXAMPLE PROGRAM RESULTS
+
+ The eigenvalues of state dynamics matrix A are 
+ ( -0.7483,   2.9940 )
+ ( -0.7483,  -2.9940 )
+ ( -1.6858,   2.0311 )
+ ( -1.6858,  -2.0311 )
+ ( -1.8751,   0.0000 )
+
+ The transformed state dynamics matrix U'*A*U is 
+  -0.7483  -8.6406   0.0000   0.0000   1.1745
+   1.0374  -0.7483   0.0000   0.0000  -2.1164
+   0.0000   0.0000  -1.6858   5.5669   0.0000
+   0.0000   0.0000  -0.7411  -1.6858   0.0000
+   0.0000   0.0000   0.0000   0.0000  -1.8751
+
+ The transformed input/state matrix U'*B is 
+  -0.5543   0.5543
+  -1.6786   1.6786
+  -0.8621  -0.8621
+   2.1912   2.1912
+  -1.5555   1.5555
+
+ The transformed state/output matrix C*U is 
+   0.6864  -0.0987   0.6580   0.2589  -0.1381
+  -0.0471   0.6873   0.0000   0.0000  -0.7249
+  -0.6864   0.0987   0.6580   0.2589   0.1381
+
+ The similarity transformation matrix U is 
+   0.6864  -0.0987   0.6580   0.2589  -0.1381
+  -0.1665  -0.5041  -0.2589   0.6580  -0.4671
+  -0.0471   0.6873   0.0000   0.0000  -0.7249
+  -0.6864   0.0987   0.6580   0.2589   0.1381
+   0.1665   0.5041  -0.2589   0.6580   0.4671
+</PRE>
+
+<HR>
+<p>
+<A HREF=..\libindex.html><B>Return to index</B></A></BODY>
+</HTML>

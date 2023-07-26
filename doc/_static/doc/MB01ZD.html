@@ -1,0 +1,192 @@
+<HTML>
+<HEAD><TITLE>MB01ZD - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MB01ZD">MB01ZD</A></H2>
+<H3>
+Computing H := alpha op( T ) H, or H := alpha H op( T ), with H Hessenberg-like, T triangular
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To compute the matrix product
+
+     H := alpha*op( T )*H,   or   H := alpha*H*op( T ),
+
+  where alpha is a scalar, H is an m-by-n upper or lower
+  Hessenberg-like matrix (with l nonzero subdiagonals or
+  superdiagonals, respectively), T is a unit, or non-unit,
+  upper or lower triangular matrix, and op( T ) is one of
+
+     op( T ) = T   or   op( T ) = T'.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MB01ZD( SIDE, UPLO, TRANST, DIAG, M, N, L, ALPHA, T,
+     $                   LDT, H, LDH, INFO )
+C     .. Scalar Arguments ..
+      CHARACTER          DIAG, SIDE, TRANST, UPLO
+      INTEGER            INFO, L, LDH, LDT, M, N
+      DOUBLE PRECISION   ALPHA
+C     .. Array Arguments ..
+      DOUBLE PRECISION   H( LDH, * ), T( LDT, * )
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  SIDE    CHARACTER*1
+          Specifies whether the triangular matrix T appears on the
+          left or right in the matrix product, as follows:
+          = 'L':  the product alpha*op( T )*H is computed;
+          = 'R':  the product alpha*H*op( T ) is computed.
+
+  UPLO    CHARACTER*1
+          Specifies the form of the matrices T and H, as follows:
+          = 'U':  the matrix T is upper triangular and the matrix H
+                  is upper Hessenberg-like;
+          = 'L':  the matrix T is lower triangular and the matrix H
+                  is lower Hessenberg-like.
+
+  TRANST  CHARACTER*1
+          Specifies the form of op( T ) to be used, as follows:
+          = 'N':  op( T ) = T;
+          = 'T':  op( T ) = T';
+          = 'C':  op( T ) = T'.
+
+  DIAG    CHARACTER*1.
+          Specifies whether or not T is unit triangular, as follows:
+          = 'U':  the matrix T is assumed to be unit triangular;
+          = 'N':  the matrix T is not assumed to be unit triangular.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  M       (input) INTEGER
+          The number of rows of H.  M &gt;= 0.
+
+  N       (input) INTEGER
+          The number of columns of H.  N &gt;= 0.
+
+  L       (input) INTEGER
+          If UPLO = 'U', matrix H has L nonzero subdiagonals.
+          If UPLO = 'L', matrix H has L nonzero superdiagonals.
+          MAX(0,M-1) &gt;= L &gt;= 0, if UPLO = 'U';
+          MAX(0,N-1) &gt;= L &gt;= 0, if UPLO = 'L'.
+
+  ALPHA   (input) DOUBLE PRECISION
+          The scalar alpha. When alpha is zero then T is not
+          referenced and H need not be set before entry.
+
+  T       (input) DOUBLE PRECISION array, dimension (LDT,k), where
+          k is m when SIDE = 'L' and is n when SIDE = 'R'.
+          If UPLO = 'U', the leading k-by-k upper triangular part
+          of this array must contain the upper triangular matrix T
+          and the strictly lower triangular part is not referenced.
+          If UPLO = 'L', the leading k-by-k lower triangular part
+          of this array must contain the lower triangular matrix T
+          and the strictly upper triangular part is not referenced.
+          Note that when DIAG = 'U', the diagonal elements of T are
+          not referenced either, but are assumed to be unity.
+
+  LDT     INTEGER
+          The leading dimension of array T.
+          LDT &gt;= MAX(1,M), if SIDE = 'L';
+          LDT &gt;= MAX(1,N), if SIDE = 'R'.
+
+  H       (input/output) DOUBLE PRECISION array, dimension (LDH,N)
+          On entry, if UPLO = 'U', the leading M-by-N upper
+          Hessenberg part of this array must contain the upper
+          Hessenberg-like matrix H.
+          On entry, if UPLO = 'L', the leading M-by-N lower
+          Hessenberg part of this array must contain the lower
+          Hessenberg-like matrix H.
+          On exit, the leading M-by-N part of this array contains
+          the matrix product alpha*op( T )*H, if SIDE = 'L',
+          or alpha*H*op( T ), if SIDE = 'R'. If TRANST = 'N', this
+          product has the same pattern as the given matrix H;
+          the elements below the L-th subdiagonal (if UPLO = 'U'),
+          or above the L-th superdiagonal (if UPLO = 'L'), are not
+          referenced in this case. If TRANST = 'T', the elements
+          below the (N+L)-th row (if UPLO = 'U', SIDE = 'R', and
+          M &gt; N+L), or at the right of the (M+L)-th column
+          (if UPLO = 'L', SIDE = 'L', and N &gt; M+L), are not set to
+          zero nor referenced.
+
+  LDH     INTEGER
+          The leading dimension of array H.  LDH &gt;= max(1,M).
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  The calculations are efficiently performed taking the problem
+  structure into account.
+
+</PRE>
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  The matrix H may have the following patterns, when m = 7, n = 6,
+  and l = 2 are used for illustration:
+
+            UPLO = 'U'                    UPLO = 'L'
+
+         [ x x x x x x ]               [ x x x 0 0 0 ]
+         [ x x x x x x ]               [ x x x x 0 0 ]
+         [ x x x x x x ]               [ x x x x x 0 ]
+     H = [ 0 x x x x x ],          H = [ x x x x x x ].
+         [ 0 0 x x x x ]               [ x x x x x x ]
+         [ 0 0 0 x x x ]               [ x x x x x x ]
+         [ 0 0 0 0 x x ]               [ x x x x x x ]
+
+  The products T*H or H*T have the same pattern as H, but the
+  products T'*H or H*T' may be full matrices.
+
+  If m = n, the matrix H is upper or lower triangular, for l = 0,
+  and upper or lower Hessenberg, for l = 1.
+
+  This routine is a specialization of the BLAS 3 routine DTRMM.
+  BLAS 1 calls are used when appropriate, instead of in-line code,
+  in order to increase the efficiency. If the matrix H is full, or
+  its zero triangle has small order, an optimized DTRMM code could
+  be faster than MB01ZD.
+
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<p>
+<A HREF=..\libindex.html><B>Return to index</B></A></BODY>
+</HTML>

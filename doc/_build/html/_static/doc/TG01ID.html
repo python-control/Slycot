@@ -1,0 +1,618 @@
+<HTML>
+<HEAD><TITLE>TG01ID - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="TG01ID">TG01ID</A></H2>
+<H3>
+Orthogonal reduction of a descriptor system to the observability staircase form
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To compute orthogonal transformation matrices Q and Z which
+  reduce the N-th order descriptor system (A-lambda*E,B,C)
+  to the form
+
+             ( Ano  * )             ( Eno  * )           ( Bno )
+    Q'*A*Z = (        ) ,  Q'*E*Z = (        ) ,  Q'*B = (     ) ,
+             ( 0   Ao )             ( 0   Eo )           ( Bo  )
+
+       C*Z = ( 0   Co ) ,
+
+  where the NOBSV-th order descriptor system (Ao-lambda*Eo,Bo,Co)
+  is a finite and/or infinite observable. The pencil
+  Ano - lambda*Eno is regular of order N-NOBSV and contains the
+  unobservable finite and/or infinite eigenvalues of the pencil
+  A-lambda*E.
+
+  For JOBOBS = 'O' or 'I', the pencil ( Eo-lambda*Ao ) has full
+                                      (      Co      )
+  column rank NOBSV for all finite lambda and is in a staircase form
+  with
+                  _      _            _      _
+                ( Ek,k   Ek,k-1   ... Ek,2   Ek,1   )
+                ( _      _            _      _      )
+    ( Eo ) =    ( Ek-1,k Ek-1,k-1 ... Ek-1,2 Ek-1,1 ) ,  (1)
+    ( Co )      (     ...         ... _      _      )
+                (  0       0      ... E1,2   E1,1   )
+                (                            _      )
+                (  0       0      ... 0      E0,1   )
+                  _          _      _
+                ( Ak,k  ...  Ak,2   Ak,1 )
+                (       ...  _      _    )
+      Ao      = (   0   ...  A2,2   A2,1 ) ,             (2)
+                (                   _    )
+                (   0   ...    0    A1,1 )
+        _
+  where Ei-1,i is a CTAU(i-1)-by-CTAU(i) full column rank matrix
+                         _
+  (with CTAU(0) = P) and Ai,i is a CTAU(i)-by-CTAU(i)
+  upper triangular matrix.
+
+  For JOBOBS = 'F', the pencil ( Ao-lambda*Eo ) has full
+                               (      Co      )
+  column rank NOBSV for all finite lambda and is in a staircase form
+  with
+                  _      _            _      _
+                ( Ak,k   Ak,k-1   ... Ak,2   Ak,1   )
+                ( _      _            _      _      )
+    ( Ao ) =    ( Ak-1,k Ak-1,k-1 ... Ak-1,2 Ak-1,1 ) ,  (3)
+    ( Co )      (     ...         ... _      _      )
+                (  0       0      ... A1,2   A1,1   )
+                (                            _      )
+                (  0       0      ... 0      A0,1   )
+                  _          _      _
+                ( Ek,k  ...  Ek,2   Ek,1 )
+                (       ...  _      _    )
+      Eo      = (   0   ...  E2,2   E2,1 ) ,             (4)
+                (                   _    )
+                (   0   ...    0    E1,1 )
+        _
+  where Ai-1,i is a CTAU(i-1)-by-CTAU(i) full column rank matrix
+                         _
+  (with CTAU(0) = P) and Ei,i is a CTAU(i)-by-CTAU(i)
+  upper triangular matrix.
+
+  For JOBOBS = 'O', the (N-NOBSV)-by-(N-NOBSV) regular pencil
+  Ano - lambda*Eno has the form
+
+                      ( Afno - lambda*Efno         *          )
+   Ano - lambda*Eno = (                                       ) ,
+                      (        0           Aino - lambda*Eino )
+
+  where:
+    1) the NIUOBS-by-NIUOBS regular pencil Aino - lambda*Eino,
+       with Aino upper triangular and nonsingular, contains the
+       unobservable infinite eigenvalues of A - lambda*E;
+    2) the (N-NOBSV-NIUOBS)-by-(N-NOBSV-NIUOBS) regular pencil
+       Afno - lambda*Efno, with Efno upper triangular and
+       nonsingular, contains the unobservable finite
+       eigenvalues of A - lambda*E.
+
+  Note: The significance of the two diagonal blocks can be
+        interchanged by calling the routine with the
+        arguments A and E interchanged. In this case,
+        Aino - lambda*Eino contains the unobservable zero
+        eigenvalues of A - lambda*E, while Afno - lambda*Efno
+        contains the unobservable nonzero finite and infinite
+        eigenvalues of A - lambda*E.
+
+  For JOBOBS = 'F', the pencil Ano - lambda*Eno has the form
+
+     Ano - lambda*Eno = Afno - lambda*Efno ,
+
+  where the regular pencil Afno - lambda*Efno, with Efno
+  upper triangular and nonsingular, contains the unobservable
+  finite eigenvalues of A - lambda*E.
+
+  For JOBOBS = 'I', the pencil Ano - lambda*Eno has the form
+
+     Ano - lambda*Eno = Aino - lambda*Eino ,
+
+  where the regular pencil Aino - lambda*Eino, with Aino
+  upper triangular and nonsingular, contains the unobservable
+  nonzero finite and infinite eigenvalues of A - lambda*E.
+
+  The left and/or right orthogonal transformations Q and Z
+  performed to reduce the system matrices can be optionally
+  accumulated.
+
+  The reduced order descriptor system (Ao-lambda*Eo,Bo,Co) has
+  the same transfer-function matrix as the original system
+  (A-lambda*E,B,C).
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE TG01ID( JOBOBS, COMPQ, COMPZ, N, M, P, A, LDA, E, LDE,
+     $                   B, LDB, C, LDC, Q, LDQ, Z, LDZ, NOBSV, NIUOBS,
+     $                   NLBLCK, CTAU, TOL, IWORK, DWORK, INFO )
+C     .. Scalar Arguments ..
+      CHARACTER          COMPQ, COMPZ, JOBOBS
+      INTEGER            INFO, LDA, LDB, LDC, LDE, LDQ, LDZ,
+     $                   M, N, NIUOBS, NLBLCK, NOBSV, P
+      DOUBLE PRECISION   TOL
+C     .. Array Arguments ..
+      INTEGER            CTAU( * ), IWORK( * )
+      DOUBLE PRECISION   A( LDA, * ), B( LDB, * ), C( LDC, *  ),
+     $                   DWORK( * ), E( LDE, * ), Q( LDQ, * ),
+     $                   Z( LDZ, * )
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  JOBOBS   CHARACTER*1
+          = 'O':  separate both finite and infinite unobservable
+                  eigenvalues;
+          = 'F':  separate only finite unobservable eigenvalues;
+          = 'I':  separate only nonzero finite and infinite
+                  unobservable eigenvalues.
+
+  COMPQ   CHARACTER*1
+          = 'N':  do not compute Q;
+          = 'I':  Q is initialized to the unit matrix, and the
+                  orthogonal matrix Q is returned;
+          = 'U':  Q must contain an orthogonal matrix Q1 on entry,
+                  and the product Q1*Q is returned.
+
+  COMPZ   CHARACTER*1
+          = 'N':  do not compute Z;
+          = 'I':  Z is initialized to the unit matrix, and the
+                  orthogonal matrix Z is returned;
+          = 'U':  Z must contain an orthogonal matrix Z1 on entry,
+                  and the product Z1*Z is returned.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The dimension of the descriptor state vector; also the
+          order of square matrices A and E, the number of rows of
+          matrix B, and the number of columns of matrix C.  N &gt;= 0.
+
+  M       (input) INTEGER
+          The dimension of descriptor system input vector; also the
+          number of columns of matrix B.  M &gt;= 0.
+
+  P       (input) INTEGER
+          The dimension of descriptor system output vector; also the
+          number of rows of matrix C.  P &gt;= 0.
+
+  A       (input/output) DOUBLE PRECISION array, dimension (LDA,N)
+          On entry, the leading N-by-N part of this array must
+          contain the N-by-N state matrix A.
+          On exit, the leading N-by-N part of this array contains
+          the transformed state matrix Q'*A*Z,
+
+                             ( Ano  *  )
+                    Q'*A*Z = (         ) ,
+                             ( 0    Ao )
+
+          where Ao is NOBSV-by-NOBSV and Ano is
+          (N-NOBSV)-by-(N-NOBSV).
+          If JOBOBS = 'F', the matrix ( Ao ) is in the observability
+                                      ( Co )
+          staircase form (3).
+          If JOBOBS = 'O' or 'I', the submatrix Ao is upper
+          triangular.
+          If JOBOBS = 'O', the submatrix Ano has the form
+
+                          ( Afno   *  )
+                    Ano = (           ) ,
+                          (  0   Aino )
+
+          where the NIUOBS-by-NIUOBS matrix Aino is nonsingular and
+          upper triangular.
+          If JOBOBS = 'I', Ano is nonsingular and upper triangular.
+
+  LDA     INTEGER
+          The leading dimension of array A.  LDA &gt;= MAX(1,N).
+
+  E       (input/output) DOUBLE PRECISION array, dimension (LDE,N)
+          On entry, the leading N-by-N part of this array must
+          contain the N-by-N descriptor matrix E.
+          On exit, the leading N-by-N part of this array contains
+          the transformed state matrix Q'*E*Z,
+
+                             ( Eno  *  )
+                    Q'*E*Z = (         ) ,
+                             ( 0    Eo )
+
+          where Eo is NOBSV-by-NOBSV and Eno is
+          (N-NOBSV)-by-(N-NOBSV).
+          If JOBOBS = 'O' or 'I', the matrix ( Eo ) is in the
+                                             ( Co )
+          observability staircase form (1).
+          If JOBOBS = 'F', the submatrix Eo is upper triangular.
+          If JOBOBS = 'O', the Eno matrix has the form
+
+                          ( Efno   *  )
+                    Eno = (           ) ,
+                          (  0   Eino )
+
+          where the NIUOBS-by-NIUOBS matrix Eino is nilpotent
+          and the (N-NOBSV-NIUOBS)-by-(N-NOBSV-NIUOBS) matrix Efno
+          is nonsingular and upper triangular.
+          If JOBOBS = 'F', Eno is nonsingular and upper triangular.
+
+  LDE     INTEGER
+          The leading dimension of array E.  LDE &gt;= MAX(1,N).
+
+  B       (input/output) DOUBLE PRECISION array, dimension
+          (LDB,MAX(M,P))
+          On entry, the leading N-by-M part of this array must
+          contain the N-by-M input matrix B.
+          On exit, the leading N-by-M part of this array contains
+          the transformed input matrix Q'*B.
+
+  LDB     INTEGER
+          The leading dimension of array B.
+          LDB &gt;= MAX(1,N) if M &gt; 0 or LDB &gt;= 1 if M = 0.
+
+  C       (input/output) DOUBLE PRECISION array, dimension (LDC,N)
+          On entry, the leading P-by-N part of this array must
+          contain the state/output matrix C.
+          On exit, the leading P-by-N part of this array contains
+          the transformed matrix
+
+                  C*Z = (  0   Co ) ,
+
+          where Co is P-by-NOBSV.
+          If JOBOBS = 'O' or 'I', the matrix ( Eo ) is in the
+                                             ( Co )
+          observability staircase form (1).
+          If JOBOBS = 'F', the matrix ( Ao ) is in the observability
+                                      ( Co )
+          staircase form (3).
+
+  LDC     INTEGER
+          The leading dimension of array C.  LDC &gt;= MAX(1,M,P).
+
+  Q       (input/output) DOUBLE PRECISION array, dimension (LDQ,N)
+          If COMPQ = 'N': Q is not referenced.
+          If COMPQ = 'I': on entry, Q need not be set;
+                          on exit, the leading N-by-N part of this
+                          array contains the orthogonal matrix Q,
+                          where Q' is the product of transformations
+                          which are applied to A, E, and B on
+                          the left.
+          If COMPQ = 'U': on entry, the leading N-by-N part of this
+                          array must contain an orthogonal matrix
+                          Qc;
+                          on exit, the leading N-by-N part of this
+                          array contains the orthogonal matrix
+                          Qc*Q.
+
+  LDQ     INTEGER
+          The leading dimension of array Q.
+          LDQ &gt;= 1,        if COMPQ = 'N';
+          LDQ &gt;= MAX(1,N), if COMPQ = 'U' or 'I'.
+
+  Z       (input/output) DOUBLE PRECISION array, dimension (LDZ,N)
+          If COMPZ = 'N': Z is not referenced.
+          If COMPZ = 'I': on entry, Z need not be set;
+                          on exit, the leading N-by-N part of this
+                          array contains the orthogonal matrix Z,
+                          which is the product of transformations
+                          applied to A, E, and C on the right.
+          If COMPZ = 'U': on entry, the leading N-by-N part of this
+                          array must contain an orthogonal matrix
+                          Zc;
+                          on exit, the leading N-by-N part of this
+                          array contains the orthogonal matrix
+                          Zc*Z.
+
+  LDZ     INTEGER
+          The leading dimension of array Z.
+          LDZ &gt;= 1,        if COMPZ = 'N';
+          LDZ &gt;= MAX(1,N), if COMPZ = 'U' or 'I'.
+
+  NOBSV   (output) INTEGER
+          The order of the reduced matrices Ao and Eo, and the
+          number of columns of reduced matrix Co; also the order of
+          observable part of the pair (C, A-lambda*E).
+
+  NIUOBS  (output) INTEGER
+          For JOBOBS = 'O', the order of the reduced matrices
+          Aino and Eino; also the number of unobservable
+          infinite eigenvalues of the pencil A - lambda*E.
+          For JOBOBS = 'F' or 'I', NIUOBS has no significance
+          and is set to zero.
+
+  NLBLCK  (output) INTEGER
+          For JOBOBS = 'O' or 'I', the number k, of full column rank
+                 _
+          blocks Ei-1,i in the staircase form of the pencil
+          (Eo-lambda*Ao) (see (1) and (2)).
+          (    Co      )
+          For JOBOBS = 'F', the number k, of full column rank blocks
+          _
+          Ai-1,i in the staircase form of the pencil (Ao-lambda*Eo)
+                                                     (     Co     )
+          (see (3) and (4)).
+
+  CTAU    (output) INTEGER array, dimension (N)
+          CTAU(i), for i = 1, ..., NLBLCK, is the column dimension
+                                        _         _
+          of the full column rank block Ei-1,i or Ai-1,i in the
+          staircase form (1) or (3) for JOBOBS = 'O' or 'I', or
+          for JOBOBS = 'F', respectively.
+
+</PRE>
+<B>Tolerances</B>
+<PRE>
+  TOL     DOUBLE PRECISION
+          The tolerance to be used in rank determinations when
+          transforming (A'-lambda*E',C')'. If the user sets TOL &gt; 0,
+          then the given value of TOL is used as a lower bound for
+          reciprocal condition numbers in rank determinations; a
+          (sub)matrix whose estimated condition number is less than
+          1/TOL is considered to be of full rank.  If the user sets
+          TOL &lt;= 0, then an implicitly computed, default tolerance,
+          defined by  TOLDEF = N*N*EPS,  is used instead, where EPS
+          is the machine precision (see LAPACK Library routine
+          DLAMCH).  TOL &lt; 1.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  IWORK   INTEGER array, dimension (P)
+
+  DWORK   DOUBLE PRECISION array, dimension (MAX(N,2*P))
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  The subroutine is based on the dual of the reduction
+  algorithms of [1].
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] A. Varga
+      Computation of Irreducible Generalized State-Space
+      Realizations.
+      Kybernetika, vol. 26, pp. 89-106, 1990.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  The algorithm is numerically backward stable and requires
+  0( N**3 )  floating point operations.
+
+</PRE>
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  If the system matrices A, E and C are badly scaled, it is
+  generally recommendable to scale them with the SLICOT routine
+  TG01AD, before calling TG01ID.
+
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+*     TG01ID EXAMPLE PROGRAM TEXT
+*
+*     .. Parameters ..
+      INTEGER          NIN, NOUT
+      PARAMETER        ( NIN = 5, NOUT = 6 )
+      INTEGER          LMAX, NMAX, MMAX, PMAX
+      PARAMETER        ( LMAX = 20, NMAX = 20, MMAX = 20, PMAX = 20 )
+      INTEGER          MPMX
+      PARAMETER        ( MPMX = MAX( MMAX, PMAX ) )
+      INTEGER          LDA, LDB, LDC, LDE, LDQ, LDZ
+      PARAMETER        ( LDA = LMAX, LDB = LMAX, LDC = MAX(MMAX,PMAX),
+     $                   LDE = LMAX, LDQ = LMAX, LDZ = NMAX )
+      INTEGER          LDWORK
+      PARAMETER        ( LDWORK = MAX( 1, NMAX, 2*PMAX ) )
+*     .. Local Scalars ..
+      CHARACTER*1      COMPQ, COMPZ, JOBOBS
+      INTEGER          I, INFO, J, M, N, NOBSV, NIUOBS, NLBLCK, P
+      DOUBLE PRECISION TOL
+*     .. Local Arrays ..
+      INTEGER          IWORK(MMAX), CTAU(NMAX)
+      DOUBLE PRECISION A(LDA,NMAX), B(LDB,MPMX), C(LDC,NMAX),
+     $                 DWORK(LDWORK), E(LDE,NMAX), Q(LDQ,LMAX),
+     $                 Z(LDZ,NMAX)
+*     .. External Subroutines ..
+      EXTERNAL         TG01ID
+*     .. Intrinsic Functions ..
+      INTRINSIC        MAX
+*     .. Executable Statements ..
+*
+      WRITE ( NOUT, FMT = 99999 )
+*     Skip the heading in the data file and read the data.
+      READ ( NIN, FMT = '()' )
+      READ ( NIN, FMT = * ) N, M, P, TOL, JOBOBS
+      COMPQ = 'I'
+      COMPZ = 'I'
+      IF ( N.LT.0 .OR. N.GT.NMAX ) THEN
+         WRITE ( NOUT, FMT = 99988 ) N
+      ELSE
+         READ ( NIN, FMT = * ) ( ( A(I,J), J = 1,N ), I = 1,N )
+         READ ( NIN, FMT = * ) ( ( E(I,J), J = 1,N ), I = 1,N )
+         IF ( M.LT.0 .OR. M.GT.MMAX ) THEN
+            WRITE ( NOUT, FMT = 99987 ) M
+         ELSE
+            READ ( NIN, FMT = * ) ( ( B(I,J), J = 1,M ), I = 1,N )
+            IF ( P.LT.0 .OR. P.GT.PMAX ) THEN
+               WRITE ( NOUT, FMT = 99986 ) P
+            ELSE
+               READ ( NIN, FMT = * ) ( ( C(I,J), J = 1,N ), I = 1,P )
+*              Find the transformed descriptor system (A-lambda E,B,C).
+               CALL TG01ID( JOBOBS, COMPQ, COMPZ, N, M, P, A, LDA,
+     $                      E, LDE, B, LDB, C, LDC, Q, LDQ, Z, LDZ,
+     $                      NOBSV, NIUOBS, NLBLCK, CTAU, TOL, IWORK,
+     $                      DWORK, INFO )
+*
+               IF ( INFO.NE.0 ) THEN
+                  WRITE ( NOUT, FMT = 99998 ) INFO
+               ELSE
+                  WRITE ( NOUT, FMT = 99994 ) NOBSV, NIUOBS
+                  WRITE ( NOUT, FMT = 99985 )
+                  WRITE ( NOUT, FMT = 99984 ) ( CTAU(I), I = 1,NLBLCK )
+                  WRITE ( NOUT, FMT = 99997 )
+                  DO 10 I = 1, N
+                     WRITE ( NOUT, FMT = 99995 ) ( A(I,J), J = 1,N )
+   10             CONTINUE
+                  WRITE ( NOUT, FMT = 99996 )
+                  DO 20 I = 1, N
+                     WRITE ( NOUT, FMT = 99995 ) ( E(I,J), J = 1,N )
+   20             CONTINUE
+                  WRITE ( NOUT, FMT = 99993 )
+                  DO 30 I = 1, N
+                     WRITE ( NOUT, FMT = 99995 ) ( B(I,J), J = 1,M )
+   30             CONTINUE
+                  WRITE ( NOUT, FMT = 99992 )
+                  DO 40 I = 1, P
+                     WRITE ( NOUT, FMT = 99995 ) ( C(I,J), J = 1,N )
+   40             CONTINUE
+                  WRITE ( NOUT, FMT = 99991 )
+                  DO 50 I = 1, N
+                     WRITE ( NOUT, FMT = 99995 ) ( Q(I,J), J = 1,N )
+   50             CONTINUE
+                  WRITE ( NOUT, FMT = 99990 )
+                  DO 60 I = 1, N
+                     WRITE ( NOUT, FMT = 99995 ) ( Z(I,J), J = 1,N )
+   60             CONTINUE
+               END IF
+            END IF
+         END IF
+      END IF
+      STOP
+*
+99999 FORMAT (' TG01ID EXAMPLE PROGRAM RESULTS',/1X)
+99998 FORMAT (' INFO on exit from TG01ID = ',I2)
+99997 FORMAT (/' The transformed state dynamics matrix Q''*A*Z is ')
+99996 FORMAT (/' The transformed descriptor matrix Q''*E*Z is ')
+99995 FORMAT (20(1X,F8.4))
+99994 FORMAT (' Dimension of observable part   =', I5/
+     $        ' Number of unobservable infinite eigenvalues =', I5)
+99993 FORMAT (/' The transformed input/state matrix Q''*B is ')
+99992 FORMAT (/' The transformed state/output matrix C*Z is ')
+99991 FORMAT (/' The left transformation matrix Q is ')
+99990 FORMAT (/' The right transformation matrix Z is ')
+99989 FORMAT (/' L is out of range.',/' L = ',I5)
+99988 FORMAT (/' N is out of range.',/' N = ',I5)
+99987 FORMAT (/' M is out of range.',/' M = ',I5)
+99986 FORMAT (/' P is out of range.',/' P = ',I5)
+99985 FORMAT (/' The staircase form column dimensions are ' )
+99984 FORMAT (10I5)
+      END
+</PRE>
+<B>Program Data</B>
+<PRE>
+TG01ID EXAMPLE PROGRAM DATA
+  7    2     3     0.0    O
+     2     0     0     0     0     0     0
+     0     1     0     0     0     1     0
+     2     0     0     2     0     0     0
+     0     0     1     0     1     0     1
+    -1     1     0    -1     0     1     0
+     3     0     0     3     0     0     0
+     1     0     1     1     1     0     1
+     0     0     0     0     0     0     1
+     0     0     0     0     0     0     3
+     1     0     0     0     0     1     0
+     0     0     0     0     1     0     2
+     0     0     0     0     0    -1     0
+     0     1     0     0     0     0     0
+     0     0     1     1     0     0     0
+     1     0
+     0    -1
+     0     1
+     1     0
+     0    -1
+     0     1
+     1     0
+     2     0     0     0     0     0     1
+     1     0     0     0     0     0     2
+     0     0     0     0     0     0     3
+
+</PRE>
+<B>Program Results</B>
+<PRE>
+ TG01ID EXAMPLE PROGRAM RESULTS
+
+ Dimension of observable part   =    3
+ Number of unobservable infinite eigenvalues =    1
+
+ The staircase form column dimensions are 
+    2    1
+
+ The transformed state dynamics matrix Q'*A*Z is 
+   0.2177   0.2414   0.5742   0.4342   0.0000  -0.4342   0.4666
+   0.2022   0.2242   0.5334  -0.2924  -0.7723   0.2924   0.4334
+  -0.5892  -0.6533  -1.5540   0.8520  -0.2651  -0.8520  -1.2627
+   0.0000   0.0000   0.0000   3.7417   0.3780  -3.7417   0.0000
+   0.0000   0.0000   0.0000   0.0000   1.7862   0.0000   0.0000
+   0.0000   0.0000   0.0000   0.0000   0.0000   2.0000   0.0000
+   0.0000   0.0000   0.0000   0.0000   0.0000   0.0000   0.0000
+
+ The transformed descriptor matrix Q'*E*Z is 
+   1.0000   0.0000   0.0000   0.4342   0.0000   0.0000   1.8016
+   0.0000   1.1937  -0.1496  -0.2924   0.3861   0.5461   0.2819
+   0.0000   0.0000  -1.0260   0.8520   0.1325   0.1874  -0.8214
+   0.0000   0.0000   0.0000   0.0000  -1.1339  -0.5345   0.0000
+   0.0000   0.0000   0.0000   0.0000  -0.1333   0.3770   2.3752
+   0.0000   0.0000   0.0000   0.0000   0.0000   0.0000   1.0000
+   0.0000   0.0000   0.0000   0.0000  -0.1728   0.4887  -1.8325
+
+ The transformed input/state matrix Q'*B is 
+   0.4666   0.0000
+   0.4334   0.5461
+  -1.2627   0.1874
+   0.0000  -1.6036
+   0.0000  -0.9803
+   1.0000   0.0000
+   0.0000   0.3665
+
+ The transformed state/output matrix C*Z is 
+   0.0000   0.0000   0.0000   0.0000   0.0000   2.0000   1.0000
+   0.0000   0.0000   0.0000   0.0000   0.0000   1.0000   2.0000
+   0.0000   0.0000   0.0000   0.0000   0.0000   0.0000   3.0000
+
+ The left transformation matrix Q is 
+   0.0000   0.0000   0.0000   0.0000   0.0000   1.0000   0.0000
+   0.0000   0.0000   0.0000   0.0000   0.7917   0.0000  -0.6108
+   0.0000   0.5461   0.1874  -0.5345   0.3770   0.0000   0.4887
+   0.9008   0.1410  -0.4107   0.0000   0.0000   0.0000   0.0000
+   0.0000  -0.5461  -0.1874   0.2673   0.4713   0.0000   0.6108
+   0.0000  -0.5461  -0.1874  -0.8018  -0.0943   0.0000  -0.1222
+  -0.4342   0.2924  -0.8520   0.0000   0.0000   0.0000   0.0000
+
+ The right transformation matrix Z is 
+   0.0000   0.0000   0.0000   0.0000   0.0000   1.0000   0.0000
+   0.0000  -0.6519   0.2740   0.0000   0.7071   0.0000   0.0000
+  -0.4342   0.3491   0.8304   0.0000   0.0000   0.0000   0.0000
+   0.0000   0.0000   0.0000  -1.0000   0.0000   0.0000   0.0000
+   0.9008   0.1683   0.4003   0.0000   0.0000   0.0000   0.0000
+   0.0000   0.6519  -0.2740   0.0000   0.7071   0.0000   0.0000
+   0.0000   0.0000   0.0000   0.0000   0.0000   0.0000   1.0000
+</PRE>
+
+<HR>
+<p>
+<A HREF=..\libindex.html><B>Return to index</B></A></BODY>
+</HTML>

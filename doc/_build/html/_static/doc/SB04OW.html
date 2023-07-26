@@ -1,0 +1,188 @@
+<HTML>
+<HEAD><TITLE>SB04OW - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="SB04OW">SB04OW</A></H2>
+<H3>
+Solving a periodic Sylvester equation with matrices in periodic Schur form
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To solve a periodic Sylvester equation
+
+           A * R - L * B = scale * C                           (1)
+           D * L - R * E = scale * F,
+
+  using Level 1 and 2 BLAS, where R and L are unknown M-by-N
+  matrices, (A, D), (B, E) and (C, F) are given matrix pairs of
+  size M-by-M, N-by-N and M-by-N, respectively, with real entries.
+  (A, D) and (B, E) must be in periodic Schur form, i.e. A, B are
+  upper quasi triangular and D, E are upper triangular. The solution
+  (R, L) overwrites (C, F). 0 &lt;= SCALE &lt;= 1 is an output scaling
+  factor chosen to avoid overflow.
+
+  This routine is largely based on the LAPACK routine DTGSY2
+  developed by Bo Kagstrom and Peter Poromaa.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE SB04OW( M, N, A, LDA, B, LDB, C, LDC, D, LDD, E, LDE,
+     $                   F, LDF, SCALE, IWORK, INFO )
+C     .. Scalar Arguments ..
+      INTEGER           INFO, LDA, LDB, LDC, LDD, LDE, LDF, M, N
+      DOUBLE PRECISION  SCALE
+C     .. Array Arguments ..
+      INTEGER           IWORK(*)
+      DOUBLE PRECISION  A(LDA,*), B(LDB,*), C(LDC,*), D(LDD,*),
+     $                  E(LDE,*), F(LDF,*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  M       (input) INTEGER
+          The order of A and D, and the row dimension of C, F, R
+          and L.  M &gt;= 0.
+
+  N       (input) INTEGER
+          The order of B and E, and the column dimension of C, F, R
+          and L.  N &gt;= 0.
+
+  A       (input) DOUBLE PRECISION array, dimension (LDA,M)
+          On entry, the leading M-by-M part of this array must
+          contain the upper quasi triangular matrix A.
+
+  LDA     INTEGER
+          The leading dimension of the array A.  LDA &gt;= MAX(1,M).
+
+  B       (input) DOUBLE PRECISION array, dimension (LDB,N)
+          On entry, the leading N-by-N part of this array must
+          contain the upper quasi triangular matrix B.
+
+  LDB     INTEGER
+          The leading dimension of the array B.  LDB &gt;= MAX(1,N).
+
+  C       (input/output) DOUBLE PRECISION array, dimension (LDC,N)
+          On entry, the leading M-by-N part of this array must
+          contain the right-hand-side of the first matrix equation
+          in (1).
+          On exit, the leading M-by-N part of this array contains
+          the solution R.
+
+  LDC     INTEGER
+          The leading dimension of the array C.  LDC &gt;= MAX(1,M).
+
+  D       (input) DOUBLE PRECISION array, dimension (LDD,M)
+          On entry, the leading M-by-M part of this array must
+          contain the upper triangular matrix D.
+
+  LDD     INTEGER
+          The leading dimension of the array D.  LDD &gt;= MAX(1,M).
+
+  E       (input) DOUBLE PRECISION array, dimension (LDE,N)
+          On entry, the leading N-by-N part of this array must
+          contain the upper triangular matrix E.
+
+  LDE     INTEGER
+          The leading dimension of the array E.  LDE &gt;= MAX(1,N).
+
+  F       (input/output) DOUBLE PRECISION array, dimension (LDF,N)
+          On entry, the leading M-by-N part of this array must
+          contain the right-hand-side of the second matrix equation
+          in (1).
+          On exit, the leading M-by-N part of this array contains
+          the solution L.
+
+  LDF     INTEGER
+          The leading dimension of the array F.  LDF &gt;= MAX(1,M).
+
+  SCALE   (output) DOUBLE PRECISION
+          On exit, 0 &lt;= SCALE &lt;= 1. If 0 &lt; SCALE &lt; 1, the arrays
+          C and F will hold the solutions R and L, respectively, to
+          a slightly perturbed system but the input matrices A, B, D
+          and E have not been changed. If SCALE = 0, C and F will
+          hold solutions to the homogeneous system with C = F = 0.
+          Normally, SCALE = 1.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  IWORK   INTEGER array, dimension (M+N+2)
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value;
+          &gt; 0:  the matrix products A*D and B*E have common or very
+                close eigenvalues.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  In matrix notation solving equation (1) corresponds to solving
+  Z*x = scale*b, where Z is defined as
+
+      Z = [  kron(In, A)  -kron(B', Im) ]            (2)
+          [ -kron(E', Im)  kron(In, D)  ],
+
+  Ik is the identity matrix of size k and X' is the transpose of X.
+  kron(X, Y) is the Kronecker product between the matrices X and Y.
+  In the process of solving (1), we solve a number of such systems
+  where Dim(Im), Dim(In) = 1 or 2.
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Kagstrom, B.
+      A Direct Method for Reordering Eigenvalues in the Generalized
+      Real Schur Form of a Regular Matrix Pair (A,B). M.S. Moonen
+      et al (eds.), Linear Algebra for Large Scale and Real-Time
+      Applications, Kluwer Academic Publ., pp. 195-218, 1993.
+
+  [2] Sreedhar, J. and Van Dooren, P.
+      A Schur approach for solving some periodic matrix equations.
+      U. Helmke et al (eds.), Systems and Networks: Mathematical
+      Theory and Applications, Akademie Verlag, Berlin, vol. 77,
+      pp. 339-362, 1994.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

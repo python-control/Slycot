@@ -1,0 +1,888 @@
+<HTML>
+<HEAD><TITLE>AB09ID - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="AB09ID">AB09ID</A></H2>
+<H3>
+Frequency-weighted model reduction based on balancing techniques
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To compute a reduced order model (Ar,Br,Cr,Dr) for an original
+  state-space representation (A,B,C,D) by using the frequency
+  weighted square-root or balancing-free square-root
+  Balance & Truncate (B&T) or Singular Perturbation Approximation
+  (SPA) model reduction methods. The algorithm tries to minimize
+  the norm of the frequency-weighted error
+
+        ||V*(G-Gr)*W||
+
+  where G and Gr are the transfer-function matrices of the original
+  and reduced order models, respectively, and V and W are
+  frequency-weighting transfer-function matrices. V and W must not
+  have poles on the imaginary axis for a continuous-time
+  system or on the unit circle for a discrete-time system.
+  If G is unstable, only the ALPHA-stable part of G is reduced.
+  In case of possible pole-zero cancellations in V*G and/or G*W,
+  the absolute values of parameters ALPHAO and/or ALPHAC must be
+  different from 1.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE AB09ID( DICO, JOBC, JOBO, JOB, WEIGHT, EQUIL, ORDSEL,
+     $                   N, M, P, NV, PV, NW, MW, NR, ALPHA, ALPHAC,
+     $                   ALPHAO, A, LDA, B, LDB, C, LDC, D, LDD,
+     $                   AV, LDAV, BV, LDBV, CV, LDCV, DV, LDDV,
+     $                   AW, LDAW, BW, LDBW, CW, LDCW, DW, LDDW,
+     $                   NS, HSV, TOL1, TOL2, IWORK, DWORK, LDWORK,
+     $                   IWARN, INFO )
+C     .. Scalar Arguments ..
+      CHARACTER         DICO, EQUIL, JOB, JOBC, JOBO, ORDSEL, WEIGHT
+      INTEGER           INFO, IWARN, LDA, LDAV, LDAW, LDB, LDBV, LDBW,
+     $                  LDC, LDCV, LDCW, LDD, LDDV, LDDW, LDWORK, M, MW,
+     $                  N, NR, NS, NV, NW, P, PV
+      DOUBLE PRECISION  ALPHA, ALPHAC, ALPHAO, TOL1, TOL2
+C     .. Array Arguments ..
+      INTEGER           IWORK(*)
+      DOUBLE PRECISION  A(LDA,*), AV(LDAV,*), AW(LDAW,*),
+     $                  B(LDB,*), BV(LDBV,*), BW(LDBW,*),
+     $                  C(LDC,*), CV(LDCV,*), CW(LDCW,*),
+     $                  D(LDD,*), DV(LDDV,*), DW(LDDW,*), DWORK(*),
+     $                  HSV(*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  DICO    CHARACTER*1
+          Specifies the type of the original system as follows:
+          = 'C':  continuous-time system;
+          = 'D':  discrete-time system.
+
+  JOBC    CHARACTER*1
+          Specifies the choice of frequency-weighted controllability
+          Grammian as follows:
+          = 'S': choice corresponding to a combination method [4]
+                 of the approaches of Enns [1] and Lin-Chiu [2,3];
+          = 'E': choice corresponding to the stability enhanced
+                 modified combination method of [4].
+
+  JOBO    CHARACTER*1
+          Specifies the choice of frequency-weighted observability
+          Grammian as follows:
+          = 'S': choice corresponding to a combination method [4]
+                 of the approaches of Enns [1] and Lin-Chiu [2,3];
+          = 'E': choice corresponding to the stability enhanced
+                 modified combination method of [4].
+
+  JOB     CHARACTER*1
+          Specifies the model reduction approach to be used
+          as follows:
+          = 'B':  use the square-root Balance & Truncate method;
+          = 'F':  use the balancing-free square-root
+                  Balance & Truncate method;
+          = 'S':  use the square-root Singular Perturbation
+                  Approximation method;
+          = 'P':  use the balancing-free square-root
+                  Singular Perturbation Approximation method.
+
+  WEIGHT  CHARACTER*1
+          Specifies the type of frequency weighting, as follows:
+          = 'N':  no weightings are used (V = I, W = I);
+          = 'L':  only left weighting V is used (W = I);
+          = 'R':  only right weighting W is used (V = I);
+          = 'B':  both left and right weightings V and W are used.
+
+  EQUIL   CHARACTER*1
+          Specifies whether the user wishes to preliminarily
+          equilibrate the triplet (A,B,C) as follows:
+          = 'S':  perform equilibration (scaling);
+          = 'N':  do not perform equilibration.
+
+  ORDSEL  CHARACTER*1
+          Specifies the order selection method as follows:
+          = 'F':  the resulting order NR is fixed;
+          = 'A':  the resulting order NR is automatically determined
+                  on basis of the given tolerance TOL1.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The order of the original state-space representation,
+          i.e., the order of the matrix A.  N &gt;= 0.
+
+  M       (input) INTEGER
+          The number of system inputs.  M &gt;= 0.
+
+  P       (input) INTEGER
+          The number of system outputs.  P &gt;= 0.
+
+  NV      (input) INTEGER
+          The order of the matrix AV. Also the number of rows of
+          the matrix BV and the number of columns of the matrix CV.
+          NV represents the dimension of the state vector of the
+          system with the transfer-function matrix V.  NV &gt;= 0.
+
+  PV      (input) INTEGER
+          The number of rows of the matrices CV and DV.  PV &gt;= 0.
+          PV represents the dimension of the output vector of the
+          system with the transfer-function matrix V.
+
+  NW      (input) INTEGER
+          The order of the matrix AW. Also the number of rows of
+          the matrix BW and the number of columns of the matrix CW.
+          NW represents the dimension of the state vector of the
+          system with the transfer-function matrix W.  NW &gt;= 0.
+
+  MW      (input) INTEGER
+          The number of columns of the matrices BW and DW.  MW &gt;= 0.
+          MW represents the dimension of the input vector of the
+          system with the transfer-function matrix W.
+
+  NR      (input/output) INTEGER
+          On entry with ORDSEL = 'F', NR is the desired order of the
+          resulting reduced order system.  0 &lt;= NR &lt;= N.
+          On exit, if INFO = 0, NR is the order of the resulting
+          reduced order model. For a system with NU ALPHA-unstable
+          eigenvalues and NS ALPHA-stable eigenvalues (NU+NS = N),
+          NR is set as follows: if ORDSEL = 'F', NR is equal to
+          NU+MIN(MAX(0,NR-NU),NMIN), where NR is the desired order
+          on entry, NMIN is the number of frequency-weighted Hankel
+          singular values greater than NS*EPS*S1, EPS is the
+          machine precision (see LAPACK Library Routine DLAMCH)
+          and S1 is the largest Hankel singular value (computed
+          in HSV(1)); NR can be further reduced to ensure
+          HSV(NR-NU) &gt; HSV(NR+1-NU);
+          if ORDSEL = 'A', NR is the sum of NU and the number of
+          Hankel singular values greater than MAX(TOL1,NS*EPS*S1).
+
+  ALPHA   (input) DOUBLE PRECISION
+          Specifies the ALPHA-stability boundary for the eigenvalues
+          of the state dynamics matrix A. For a continuous-time
+          system (DICO = 'C'), ALPHA &lt;= 0 is the boundary value for
+          the real parts of eigenvalues, while for a discrete-time
+          system (DICO = 'D'), 0 &lt;= ALPHA &lt;= 1 represents the
+          boundary value for the moduli of eigenvalues.
+          The ALPHA-stability domain does not include the boundary.
+
+  ALPHAC  (input) DOUBLE PRECISION
+          Combination method parameter for defining the
+          frequency-weighted controllability Grammian (see METHOD);
+          ABS(ALPHAC) &lt;= 1.
+
+  ALPHAO  (input) DOUBLE PRECISION
+          Combination method parameter for defining the
+          frequency-weighted observability Grammian (see METHOD);
+          ABS(ALPHAO) &lt;= 1.
+
+  A       (input/output) DOUBLE PRECISION array, dimension (LDA,N)
+          On entry, the leading N-by-N part of this array must
+          contain the state dynamics matrix A.
+          On exit, if INFO = 0, the leading NR-by-NR part of this
+          array contains the state dynamics matrix Ar of the
+          reduced order system.
+          The resulting A has a block-diagonal form with two blocks.
+          For a system with NU ALPHA-unstable eigenvalues and
+          NS ALPHA-stable eigenvalues (NU+NS = N), the leading
+          NU-by-NU block contains the unreduced part of A
+          corresponding to ALPHA-unstable eigenvalues.
+          The trailing (NR+NS-N)-by-(NR+NS-N) block contains
+          the reduced part of A corresponding to ALPHA-stable
+          eigenvalues.
+
+  LDA     INTEGER
+          The leading dimension of array A.  LDA &gt;= MAX(1,N).
+
+  B       (input/output) DOUBLE PRECISION array, dimension (LDB,M)
+          On entry, the leading N-by-M part of this array must
+          contain the original input/state matrix B.
+          On exit, if INFO = 0, the leading NR-by-M part of this
+          array contains the input/state matrix Br of the reduced
+          order system.
+
+  LDB     INTEGER
+          The leading dimension of array B.  LDB &gt;= MAX(1,N).
+
+  C       (input/output) DOUBLE PRECISION array, dimension (LDC,N)
+          On entry, the leading P-by-N part of this array must
+          contain the original state/output matrix C.
+          On exit, if INFO = 0, the leading P-by-NR part of this
+          array contains the state/output matrix Cr of the reduced
+          order system.
+
+  LDC     INTEGER
+          The leading dimension of array C.  LDC &gt;= MAX(1,P).
+
+  D       (input/output) DOUBLE PRECISION array, dimension (LDD,M)
+          On entry, the leading P-by-M part of this array must
+          contain the original input/output matrix D.
+          On exit, if INFO = 0, the leading P-by-M part of this
+          array contains the input/output matrix Dr of the reduced
+          order system.
+
+  LDD     INTEGER
+          The leading dimension of array D.  LDD &gt;= MAX(1,P).
+
+  AV      (input/output) DOUBLE PRECISION array, dimension (LDAV,NV)
+          On entry, if WEIGHT = 'L' or 'B', the leading NV-by-NV
+          part of this array must contain the state matrix AV of
+          the system with the transfer-function matrix V.
+          On exit, if WEIGHT = 'L' or 'B', MIN(N,M,P) &gt; 0 and
+          INFO = 0, the leading NVR-by-NVR part of this array
+          contains the state matrix of a minimal realization of V
+          in a real Schur form. NVR is returned in IWORK(2).
+          AV is not referenced if WEIGHT = 'R' or 'N',
+          or MIN(N,M,P) = 0.
+
+  LDAV    INTEGER
+          The leading dimension of array AV.
+          LDAV &gt;= MAX(1,NV), if WEIGHT = 'L' or 'B';
+          LDAV &gt;= 1,         if WEIGHT = 'R' or 'N'.
+
+  BV      (input/output) DOUBLE PRECISION array, dimension (LDBV,P)
+          On entry, if WEIGHT = 'L' or 'B', the leading NV-by-P part
+          of this array must contain the input matrix BV of the
+          system with the transfer-function matrix V.
+          On exit, if WEIGHT = 'L' or 'B', MIN(N,M,P) &gt; 0 and
+          INFO = 0, the leading NVR-by-P part of this array contains
+          the input matrix of a minimal realization of V.
+          BV is not referenced if WEIGHT = 'R' or 'N',
+          or MIN(N,M,P) = 0.
+
+  LDBV    INTEGER
+          The leading dimension of array BV.
+          LDBV &gt;= MAX(1,NV), if WEIGHT = 'L' or 'B';
+          LDBV &gt;= 1,         if WEIGHT = 'R' or 'N'.
+
+  CV      (input/output) DOUBLE PRECISION array, dimension (LDCV,NV)
+          On entry, if WEIGHT = 'L' or 'B', the leading PV-by-NV
+          part of this array must contain the output matrix CV of
+          the system with the transfer-function matrix V.
+          On exit, if WEIGHT = 'L' or 'B', MIN(N,M,P) &gt; 0 and
+          INFO = 0, the leading PV-by-NVR part of this array
+          contains the output matrix of a minimal realization of V.
+          CV is not referenced if WEIGHT = 'R' or 'N',
+          or MIN(N,M,P) = 0.
+
+  LDCV    INTEGER
+          The leading dimension of array CV.
+          LDCV &gt;= MAX(1,PV), if WEIGHT = 'L' or 'B';
+          LDCV &gt;= 1,         if WEIGHT = 'R' or 'N'.
+
+  DV      (input) DOUBLE PRECISION array, dimension (LDDV,P)
+          If WEIGHT = 'L' or 'B', the leading PV-by-P part of this
+          array must contain the feedthrough matrix DV of the system
+          with the transfer-function matrix V.
+          DV is not referenced if WEIGHT = 'R' or 'N',
+          or MIN(N,M,P) = 0.
+
+  LDDV    INTEGER
+          The leading dimension of array DV.
+          LDDV &gt;= MAX(1,PV), if WEIGHT = 'L' or 'B';
+          LDDV &gt;= 1,         if WEIGHT = 'R' or 'N'.
+
+  AW      (input/output) DOUBLE PRECISION array, dimension (LDAW,NW)
+          On entry, if WEIGHT = 'R' or 'B', the leading NW-by-NW
+          part of this array must contain the state matrix AW of
+          the system with the transfer-function matrix W.
+          On exit, if WEIGHT = 'R' or 'B', MIN(N,M,P) &gt; 0 and
+          INFO = 0, the leading NWR-by-NWR part of this array
+          contains the state matrix of a minimal realization of W
+          in a real Schur form. NWR is returned in IWORK(3).
+          AW is not referenced if WEIGHT = 'L' or 'N',
+          or MIN(N,M,P) = 0.
+
+  LDAW    INTEGER
+          The leading dimension of array AW.
+          LDAW &gt;= MAX(1,NW), if WEIGHT = 'R' or 'B';
+          LDAW &gt;= 1,         if WEIGHT = 'L' or 'N'.
+
+  BW      (input/output) DOUBLE PRECISION array, dimension (LDBW,MW)
+          On entry, if WEIGHT = 'R' or 'B', the leading NW-by-MW
+          part of this array must contain the input matrix BW of the
+          system with the transfer-function matrix W.
+          On exit, if WEIGHT = 'R' or 'B', MIN(N,M,P) &gt; 0 and
+          INFO = 0, the leading NWR-by-MW part of this array
+          contains the input matrix of a minimal realization of W.
+          BW is not referenced if WEIGHT = 'L' or 'N',
+          or MIN(N,M,P) = 0.
+
+  LDBW    INTEGER
+          The leading dimension of array BW.
+          LDBW &gt;= MAX(1,NW), if WEIGHT = 'R' or 'B';
+          LDBW &gt;= 1,         if WEIGHT = 'L' or 'N'.
+
+  CW      (input/output) DOUBLE PRECISION array, dimension (LDCW,NW)
+          On entry, if WEIGHT = 'R' or 'B', the leading M-by-NW part
+          of this array must contain the output matrix CW of the
+          system with the transfer-function matrix W.
+          On exit, if WEIGHT = 'R' or 'B', MIN(N,M,P) &gt; 0 and
+          INFO = 0, the leading M-by-NWR part of this array contains
+          the output matrix of a minimal realization of W.
+          CW is not referenced if WEIGHT = 'L' or 'N',
+          or MIN(N,M,P) = 0.
+
+  LDCW    INTEGER
+          The leading dimension of array CW.
+          LDCW &gt;= MAX(1,M), if WEIGHT = 'R' or 'B';
+          LDCW &gt;= 1,        if WEIGHT = 'L' or 'N'.
+
+  DW      (input) DOUBLE PRECISION array, dimension (LDDW,MW)
+          If WEIGHT = 'R' or 'B', the leading M-by-MW part of this
+          array must contain the feedthrough matrix DW of the system
+          with the transfer-function matrix W.
+          DW is not referenced if WEIGHT = 'L' or 'N',
+          or MIN(N,M,P) = 0.
+
+  LDDW    INTEGER
+          The leading dimension of array DW.
+          LDDW &gt;= MAX(1,M), if WEIGHT = 'R' or 'B';
+          LDDW &gt;= 1,        if WEIGHT = 'L' or 'N'.
+
+  NS      (output) INTEGER
+          The dimension of the ALPHA-stable subsystem.
+
+  HSV     (output) DOUBLE PRECISION array, dimension (N)
+          If INFO = 0, the leading NS elements of this array contain
+          the frequency-weighted Hankel singular values, ordered
+          decreasingly, of the ALPHA-stable part of the original
+          system.
+
+</PRE>
+<B>Tolerances</B>
+<PRE>
+  TOL1    DOUBLE PRECISION
+          If ORDSEL = 'A', TOL1 contains the tolerance for
+          determining the order of reduced system.
+          For model reduction, the recommended value is
+          TOL1 = c*S1, where c is a constant in the
+          interval [0.00001,0.001], and S1 is the largest
+          frequency-weighted Hankel singular value of the
+          ALPHA-stable part of the original system (computed
+          in HSV(1)).
+          If TOL1 &lt;= 0 on entry, the used default value is
+          TOL1 = NS*EPS*S1, where NS is the number of
+          ALPHA-stable eigenvalues of A and EPS is the machine
+          precision (see LAPACK Library Routine DLAMCH).
+          If ORDSEL = 'F', the value of TOL1 is ignored.
+
+  TOL2    DOUBLE PRECISION
+          The tolerance for determining the order of a minimal
+          realization of the ALPHA-stable part of the given system.
+          The recommended value is TOL2 = NS*EPS*S1.
+          This value is used by default if TOL2 &lt;= 0 on entry.
+          If TOL2 &gt; 0 and ORDSEL = 'A', then TOL2 &lt;= TOL1.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  IWORK   INTEGER array, dimension
+          ( MAX( 3, LIWRK1, LIWRK2, LIWRK3 ) ), where
+          LIWRK1 = 0,             if JOB = 'B';
+          LIWRK1 = N,             if JOB = 'F';
+          LIWRK1 = 2*N,           if JOB = 'S' or 'P';
+          LIWRK2 = 0,             if WEIGHT = 'R' or 'N' or  NV = 0;
+          LIWRK2 = NV+MAX(P,PV),  if WEIGHT = 'L' or 'B' and NV &gt; 0;
+          LIWRK3 = 0,             if WEIGHT = 'L' or 'N' or  NW = 0;
+          LIWRK3 = NW+MAX(M,MW),  if WEIGHT = 'R' or 'B' and NW &gt; 0.
+          On exit, if INFO = 0, IWORK(1) contains the order of a
+          minimal realization of the stable part of the system,
+          IWORK(2) and IWORK(3) contain the actual orders
+          of the state space realizations of V and W, respectively.
+
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+          On exit, if INFO = 0, DWORK(1) returns the optimal value
+          of LDWORK.
+
+  LDWORK  INTEGER
+          The length of the array DWORK.
+          LDWORK &gt;= MAX( LMINL, LMINR, LRCF,
+                         2*N*N + MAX( 1, LLEFT, LRIGHT, 2*N*N+5*N,
+                                      N*MAX(M,P) ) ),
+          where
+          LMINL  = 0, if WEIGHT = 'R' or 'N' or NV = 0; otherwise,
+          LMINL  = MAX(LLCF,NV+MAX(NV,3*P))           if P =  PV;
+          LMINL  = MAX(P,PV)*(2*NV+MAX(P,PV))+
+                   MAX(LLCF,NV+MAX(NV,3*P,3*PV))      if P &lt;&gt; PV;
+          LRCF   = 0, and
+          LMINR  = 0, if WEIGHT = 'L' or 'N' or NW = 0; otherwise,
+          LMINR  = NW+MAX(NW,3*M)                     if M =  MW;
+          LMINR  = 2*NW*MAX(M,MW)+NW+MAX(NW,3*M,3*MW) if M &lt;&gt; MW;
+          LLCF   = PV*(NV+PV)+PV*NV+MAX(NV*(NV+5), PV*(PV+2),
+                                        4*PV, 4*P);
+          LRCF   = MW*(NW+MW)+MAX(NW*(NW+5),MW*(MW+2),4*MW,4*M)
+          LLEFT  = (N+NV)*(N+NV+MAX(N+NV,PV)+5)
+                           if WEIGHT = 'L' or 'B' and PV &gt; 0;
+          LLEFT  = N*(P+5) if WEIGHT = 'R' or 'N' or  PV = 0;
+          LRIGHT = (N+NW)*(N+NW+MAX(N+NW,MW)+5)
+                           if WEIGHT = 'R' or 'B' and MW &gt; 0;
+          LRIGHT = N*(M+5) if WEIGHT = 'L' or 'N' or  MW = 0.
+          For optimum performance LDWORK should be larger.
+
+</PRE>
+<B>Warning Indicator</B>
+<PRE>
+  IWARN   INTEGER
+          = 0:  no warning;
+          = 1:  with ORDSEL = 'F', the selected order NR is greater
+                than NSMIN, the sum of the order of the
+                ALPHA-unstable part and the order of a minimal
+                realization of the ALPHA-stable part of the given
+                system; in this case, the resulting NR is set equal
+                to NSMIN;
+          = 2:  with ORDSEL = 'F', the selected order NR corresponds
+                to repeated singular values for the ALPHA-stable
+                part, which are neither all included nor all
+                excluded from the reduced model; in this case, the
+                resulting NR is automatically decreased to exclude
+                all repeated singular values;
+          = 3:  with ORDSEL = 'F', the selected order NR is less
+                than the order of the ALPHA-unstable part of the
+                given system; in this case NR is set equal to the
+                order of the ALPHA-unstable part.
+          = 10+K:  K violations of the numerical stability condition
+                occured during the assignment of eigenvalues in the
+                SLICOT Library routines SB08CD and/or SB08DD.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value;
+          = 1:  the computation of the ordered real Schur form of A
+                failed;
+          = 2:  the separation of the ALPHA-stable/unstable
+                diagonal blocks failed because of very close
+                eigenvalues;
+          = 3:  the reduction to a real Schur form of the state
+                matrix of a minimal realization of V failed;
+          = 4:  a failure was detected during the ordering of the
+                real Schur form of the state matrix of a minimal
+                realization of V or in the iterative process to
+                compute a left coprime factorization with inner
+                denominator;
+          = 5:  if DICO = 'C' and the matrix AV has an observable
+                eigenvalue on the imaginary axis, or DICO = 'D' and
+                AV has an observable eigenvalue on the unit circle;
+          = 6:  the reduction to a real Schur form of the state
+                matrix of a minimal realization of W failed;
+          = 7:  a failure was detected during the ordering of the
+                real Schur form of the state matrix of a minimal
+                realization of W or in the iterative process to
+                compute a right coprime factorization with inner
+                denominator;
+          = 8:  if DICO = 'C' and the matrix AW has a controllable
+                eigenvalue on the imaginary axis, or DICO = 'D' and
+                AW has a controllable eigenvalue on the unit circle;
+          = 9:  the computation of eigenvalues failed;
+          = 10: the computation of Hankel singular values failed.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  Let G be the transfer-function matrix of the original
+  linear system
+
+       d[x(t)] = Ax(t) + Bu(t)
+       y(t)    = Cx(t) + Du(t),                          (1)
+
+  where d[x(t)] is dx(t)/dt for a continuous-time system and x(t+1)
+  for a discrete-time system. The subroutine AB09ID determines
+  the matrices of a reduced order system
+
+       d[z(t)] = Ar*z(t) + Br*u(t)
+       yr(t)   = Cr*z(t) + Dr*u(t),                      (2)
+
+  such that the corresponding transfer-function matrix Gr minimizes
+  the norm of the frequency-weighted error
+
+          V*(G-Gr)*W,                                    (3)
+
+  where V and W are transfer-function matrices without poles on the
+  imaginary axis in continuous-time case or on the unit circle in
+  discrete-time case.
+
+  The following procedure is used to reduce G:
+
+  1) Decompose additively G, of order N, as
+
+       G = G1 + G2,
+
+     such that G1 = (A1,B1,C1,D) has only ALPHA-stable poles and
+     G2 = (A2,B2,C2,0), of order NU, has only ALPHA-unstable poles.
+
+  2) Compute for G1 a B&T or SPA frequency-weighted approximation
+     G1r of order NR-NU using the combination method or the
+     modified combination method of [4].
+
+  3) Assemble the reduced model Gr as
+
+        Gr = G1r + G2.
+
+  For the frequency-weighted reduction of the ALPHA-stable part,
+  several methods described in [4] can be employed in conjunction
+  with the combination method and modified combination method
+  proposed in [4].
+
+  If JOB = 'B', the square-root B&T method is used.
+  If JOB = 'F', the balancing-free square-root version of the
+  B&T method is used.
+  If JOB = 'S', the square-root version of the SPA method is used.
+  If JOB = 'P', the balancing-free square-root version of the
+  SPA method is used.
+
+  For each of these methods, left and right truncation matrices
+  are determined using the Cholesky factors of an input
+  frequency-weighted controllability Grammian P and an output
+  frequency-weighted observability Grammian Q.
+  P and Q are computed from the controllability Grammian Pi of G*W
+  and the observability Grammian Qo of V*G. Using special
+  realizations of G*W and V*G, Pi and Qo are computed in the
+  partitioned forms
+
+        Pi = ( P11  P12 )   and    Qo = ( Q11  Q12 ) ,
+             ( P12' P22 )               ( Q12' Q22 )
+
+  where P11 and Q11 are the leading N-by-N parts of Pi and Qo,
+  respectively. Let P0 and Q0 be non-negative definite matrices
+  defined below
+                                     -1
+         P0 = P11 - ALPHAC**2*P12*P22 *P21 ,
+                                     -1
+         Q0 = Q11 - ALPHAO**2*Q12*Q22 *Q21.
+
+  The frequency-weighted controllability and observability
+  Grammians, P and Q, respectively, are defined as follows:
+  P = P0 if JOBC = 'S' (standard combination method [4]);
+  P = P1 &gt;= P0 if JOBC = 'E', where P1 is the controllability
+  Grammian defined to enforce stability for a modified combination
+  method of [4];
+  Q = Q0 if JOBO = 'S' (standard combination method [4]);
+  Q = Q1 &gt;= Q0 if JOBO = 'E', where Q1 is the observability
+  Grammian defined to enforce stability for a modified combination
+  method of [4].
+
+  If JOBC = JOBO = 'S' and ALPHAC = ALPHAO = 0, the choice of
+  Grammians corresponds to the method of Enns [1], while if
+  ALPHAC = ALPHAO = 1, the choice of Grammians corresponds
+  to the method of Lin and Chiu [2,3].
+
+  If JOBC = 'S' and ALPHAC = 1, no pole-zero cancellations must
+  occur in G*W. If JOBO = 'S' and ALPHAO = 1, no pole-zero
+  cancellations must occur in V*G. The presence of pole-zero
+  cancellations leads to meaningless results and must be avoided.
+
+  The frequency-weighted Hankel singular values HSV(1), ....,
+  HSV(N) are computed as the square roots of the eigenvalues
+  of the product P*Q.
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Enns, D.
+      Model reduction with balanced realizations: An error bound
+      and a frequency weighted generalization.
+      Proc. 23-th CDC, Las Vegas, pp. 127-132, 1984.
+
+  [2] Lin, C.-A. and Chiu, T.-Y.
+      Model reduction via frequency-weighted balanced realization.
+      Control Theory and Advanced Technology, vol. 8,
+      pp. 341-351, 1992.
+
+  [3] Sreeram, V., Anderson, B.D.O and Madievski, A.G.
+      New results on frequency weighted balanced reduction
+      technique.
+      Proc. ACC, Seattle, Washington, pp. 4004-4009, 1995.
+
+  [4] Varga, A. and Anderson, B.D.O.
+      Square-root balancing-free methods for the frequency-weighted
+      balancing related model reduction.
+      (report in preparation)
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  The implemented methods rely on accuracy enhancing square-root
+  techniques.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+*     AB09ID EXAMPLE PROGRAM TEXT
+*
+*     .. Parameters ..
+      INTEGER          NIN, NOUT
+      PARAMETER        ( NIN = 5, NOUT = 6 )
+      INTEGER          MMAX, MWMAX, NMAX, NVMAX, NWMAX, PMAX, PVMAX
+      PARAMETER        ( MMAX = 20, MWMAX = 20,
+     $                   NMAX = 20, NVMAX = 20, NWMAX = 20,
+     $                   PMAX = 20, PVMAX = 20 )
+      INTEGER          LDA, LDAV, LDAW, LDB, LDBV, LDBW,
+     $                 LDC, LDCV, LDCW, LDD, LDDV, LDDW
+      PARAMETER        ( LDA = NMAX, LDAV = NVMAX, LDAW = NWMAX,
+     $                   LDB = NMAX, LDBV = NVMAX, LDBW = NWMAX,
+     $                   LDC = PMAX, LDCV = PVMAX, LDCW = MMAX,
+     $                   LDD = PMAX, LDDV = PVMAX, LDDW = MMAX )
+      INTEGER          LIWORK
+      PARAMETER        ( LIWORK = MAX( 2*NMAX,
+     $                                 NVMAX + MAX( PMAX, PVMAX ),
+     $                                 NWMAX + MAX( MMAX, MWMAX ) ) )
+      INTEGER          LDW1, LDW2, LDW3, LDW4, LDW5, LDW6, LDW7, LDW8,
+     $                 LDWORK
+      PARAMETER        ( LDW1 = NMAX + NVMAX, LDW2 = NMAX + NWMAX,
+     $                   LDW3 = MAX( LDW1*( LDW1 + MAX( LDW1, PVMAX ) +
+     $                               5 ), NMAX*( PMAX + 5 ) ),
+     $                   LDW4 = MAX( LDW2*( LDW2 + MAX( LDW2, MWMAX ) +
+     $                               5 ), NMAX*( MMAX + 5 ) ),
+     $                   LDW5 = PVMAX*( NVMAX + PVMAX ) + PVMAX*NVMAX +
+     $                          MAX( NVMAX*( NVMAX + 5 ), 4*PVMAX,
+     $                               PVMAX*( PVMAX + 2 ), 4*PMAX ),
+     $                   LDW6 = MAX( PMAX, PVMAX )*( 2*NVMAX +
+     $                               MAX( PMAX, PVMAX ) ) +
+     $                               MAX( LDW5, NVMAX +
+     $                                    MAX( NVMAX, 3*PMAX, 3*PVMAX )
+     $                                       ),
+     $                   LDW7 = MAX( NWMAX + MAX( NWMAX, 3*MMAX ),
+     $                               2*NWMAX*MAX( MMAX, MWMAX ) +
+     $                               NWMAX + MAX( NWMAX, 3*MMAX,
+     $                                                   3*MWMAX ) ),
+     $                   LDW8 = MWMAX*( NWMAX + MWMAX ) +
+     $                          MAX( NWMAX*( NWMAX + 5 ), 4*MWMAX,
+     $                               MWMAX*( MWMAX + 2 ), 4*MMAX ) )
+      PARAMETER        ( LDWORK = MAX( LDW6, LDW7, LDW8,
+     $                                 2*NMAX*NMAX +
+     $                                   MAX( 1, LDW3, LDW4,
+     $                                        2*NMAX*NMAX + 5*NMAX,
+     $                                        NMAX*MAX( MMAX, PMAX ) ) )
+     $                  )
+*     .. Local Scalars ..
+      LOGICAL          LEFTW, RIGHTW
+      DOUBLE PRECISION ALPHA, ALPHAC, ALPHAO, TOL1, TOL2
+      INTEGER          I, INFO, IWARN, J, M, MW, N, NR, NS, NV, NW, P,
+     $                 PV
+      CHARACTER*1      DICO, EQUIL, JOB, JOBC, JOBO, ORDSEL, WEIGHT
+*     .. Local Arrays ..
+      DOUBLE PRECISION A(LDA,NMAX), AV(LDAV,NVMAX), AW(LDAW,NWMAX),
+     $                 B(LDB,MMAX), BV(LDBV,PMAX),  BW(LDBW,MWMAX),
+     $                 C(LDC,NMAX), CV(LDCV,NVMAX), CW(LDCW,NWMAX),
+     $                 D(LDD,MMAX), DV(LDDV,PMAX),  DW(LDDW,MWMAX),
+     $                 DWORK(LDWORK), HSV(NMAX)
+      INTEGER          IWORK(LIWORK)
+*     .. External Functions ..
+      LOGICAL          LSAME
+      EXTERNAL         LSAME
+*     .. External Subroutines ..
+      EXTERNAL         AB09ID
+*     .. Intrinsic Functions ..
+      INTRINSIC        MAX
+*     .. Executable Statements ..
+*
+      WRITE ( NOUT, FMT = 99999 )
+*     Skip the heading in the data file and read the data.
+      READ ( NIN, FMT = '()' )
+      READ ( NIN, FMT = * ) N, M, P, NV, PV, NW, MW, NR,
+     $                      ALPHA, ALPHAC, ALPHAO, TOL1, TOL2,
+     $                      DICO, JOBC, JOBO, JOB, WEIGHT,
+     $                      EQUIL, ORDSEL
+      LEFTW  = LSAME( WEIGHT, 'L' ) .OR. LSAME( WEIGHT, 'B' )
+      RIGHTW = LSAME( WEIGHT, 'R' ) .OR. LSAME( WEIGHT, 'B' )
+      IF( N.LE.0 .OR. N.GT.NMAX ) THEN
+         WRITE ( NOUT, FMT = 99990 ) N
+      ELSE
+         READ ( NIN, FMT = * ) ( ( A(I,J), J = 1,N ), I = 1,N )
+         IF( M.LE.0 .OR. M.GT.MMAX ) THEN
+            WRITE ( NOUT, FMT = 99989 ) M
+         ELSE
+            READ ( NIN, FMT = * ) ( ( B(I,J), J = 1,M ), I = 1, N )
+            IF( P.LE.0 .OR. P.GT.PMAX ) THEN
+               WRITE ( NOUT, FMT = 99988 ) P
+            ELSE
+               READ ( NIN, FMT = * ) ( ( C(I,J), J = 1,N ), I = 1,P )
+               READ ( NIN, FMT = * ) ( ( D(I,J), J = 1,M ), I = 1,P )
+               IF( LEFTW ) THEN
+                  IF( NV.LT.0 .OR. NV.GT.NVMAX ) THEN
+                     WRITE ( NOUT, FMT = 99986 ) NV
+                  ELSE
+                     IF( NV.GT.0 ) THEN
+                        READ ( NIN, FMT = * )
+     $                    ( ( AV(I,J), J = 1,NV ), I = 1,NV )
+                        READ ( NIN, FMT = * )
+     $                    ( ( BV(I,J), J = 1,P ),  I = 1,NV )
+                        IF( PV.LE.0 .OR. PV.GT.PVMAX ) THEN
+                           WRITE ( NOUT, FMT = 99985 ) PV
+                        ELSE
+                           READ ( NIN, FMT = * )
+     $                       ( ( CV(I,J), J = 1,NV ), I = 1,PV )
+                        END IF
+                     END IF
+                     IF( PV.LE.0 .OR. PV.GT.PVMAX ) THEN
+                        WRITE ( NOUT, FMT = 99985 ) PV
+                     ELSE
+                        READ ( NIN, FMT = * )
+     $                    ( ( DV(I,J), J = 1,P ), I = 1,PV )
+                     END IF
+                  END IF
+               END IF
+               IF( RIGHTW ) THEN
+                  IF( NW.LT.0 .OR. NW.GT.NWMAX ) THEN
+                     WRITE ( NOUT, FMT = 99984 ) NW
+                  ELSE
+                     IF( NW.GT.0 ) THEN
+                        READ ( NIN, FMT = * )
+     $                    ( ( AW(I,J), J = 1,NW ), I = 1,NW )
+                        IF( MW.LE.0 .OR. MW.GT.MWMAX ) THEN
+                           WRITE ( NOUT, FMT = 99983 ) MW
+                        ELSE
+                           READ ( NIN, FMT = * )
+     $                       ( ( BW(I,J), J = 1,MW ), I = 1,NW )
+                        END IF
+                        READ ( NIN, FMT = * )
+     $                    ( ( CW(I,J), J = 1,NW ), I = 1,M )
+                     END IF
+                     IF( MW.LE.0 .OR. MW.GT.MWMAX ) THEN
+                        WRITE ( NOUT, FMT = 99983 ) MW
+                     ELSE
+                        READ ( NIN, FMT = * )
+     $                     ( ( DW(I,J), J = 1,MW ), I = 1,M )
+                     END IF
+                  END IF
+               END IF
+*              Find a reduced ssr for (A,B,C,D).
+               CALL AB09ID( DICO, JOBC, JOBO, JOB, WEIGHT, EQUIL,
+     $                      ORDSEL, N, M, P, NV, PV, NW, MW, NR, ALPHA,
+     $                      ALPHAC, ALPHAO, A, LDA, B, LDB, C, LDC, D,
+     $                      LDD, AV, LDAV, BV, LDBV, CV, LDCV, DV, LDDV,
+     $                      AW, LDAW, BW, LDBW, CW, LDCW, DW, LDDW,
+     $                      NS, HSV, TOL1, TOL2, IWORK, DWORK, LDWORK,
+     $                      IWARN, INFO )
+*
+               IF ( INFO.NE.0 ) THEN
+                  WRITE ( NOUT, FMT = 99998 ) INFO
+               ELSE
+                  IF( IWARN.NE.0) WRITE ( NOUT, FMT = 99982 ) IWARN
+                  WRITE ( NOUT, FMT = 99997 ) NR
+                  WRITE ( NOUT, FMT = 99987 )
+                  WRITE ( NOUT, FMT = 99995 ) ( HSV(J), J = 1, NS )
+                  IF( NR.GT.0 ) WRITE ( NOUT, FMT = 99996 )
+                  DO 20 I = 1, NR
+                     WRITE ( NOUT, FMT = 99995 ) ( A(I,J), J = 1,NR )
+   20             CONTINUE
+                  IF( NR.GT.0 ) WRITE ( NOUT, FMT = 99993 )
+                  DO 40 I = 1, NR
+                     WRITE ( NOUT, FMT = 99995 ) ( B(I,J), J = 1,M )
+   40             CONTINUE
+                  IF( NR.GT.0 ) WRITE ( NOUT, FMT = 99992 )
+                  DO 60 I = 1, P
+                     WRITE ( NOUT, FMT = 99995 ) ( C(I,J), J = 1,NR )
+   60             CONTINUE
+                  WRITE ( NOUT, FMT = 99991 )
+                  DO 70 I = 1, P
+                     WRITE ( NOUT, FMT = 99995 ) ( D(I,J), J = 1,M )
+   70             CONTINUE
+               END IF
+            END IF
+         END IF
+      END IF
+      STOP
+*
+99999 FORMAT (' AB09ID EXAMPLE PROGRAM RESULTS',/1X)
+99998 FORMAT (' INFO on exit from AB09ID = ',I2)
+99997 FORMAT (/' The order of reduced model = ',I2)
+99996 FORMAT (/' The reduced state dynamics matrix Ar is ')
+99995 FORMAT (20(1X,F8.4))
+99993 FORMAT (/' The reduced input/state matrix Br is ')
+99992 FORMAT (/' The reduced state/output matrix Cr is ')
+99991 FORMAT (/' The reduced input/output matrix Dr is ')
+99990 FORMAT (/' N is out of range.',/' N = ',I5)
+99989 FORMAT (/' M is out of range.',/' M = ',I5)
+99988 FORMAT (/' P is out of range.',/' P = ',I5)
+99987 FORMAT (/' The Hankel singular values of weighted ALPHA-stable',
+     $         ' part are')
+99986 FORMAT (/' NV is out of range.',/' NV = ',I5)
+99985 FORMAT (/' PV is out of range.',/' PV = ',I5)
+99984 FORMAT (/' NW is out of range.',/' NW = ',I5)
+99983 FORMAT (/' MW is out of range.',/' MW = ',I5)
+99982 FORMAT (' IWARN on exit from AB09ID = ',I2)
+      END
+</PRE>
+<B>Program Data</B>
+<PRE>
+ AB09ID EXAMPLE PROGRAM DATA (Continuous system)
+  3  1  1   6  1  0  0   2   0.0  0.0  0.0 0.1E0  0.0    C   S  S   F   L  S  F 
+  -26.4000    6.4023    4.3868
+   32.0000         0         0
+         0    8.0000         0
+    16
+     0
+     0
+    9.2994    1.1624    0.1090
+     0
+   -1.0000         0    4.0000   -9.2994   -1.1624   -0.1090
+         0    2.0000         0   -9.2994   -1.1624   -0.1090
+         0         0   -3.0000   -9.2994   -1.1624   -0.1090
+   16.0000   16.0000   16.0000  -26.4000    6.4023    4.3868
+         0         0         0   32.0000         0         0
+         0         0         0         0    8.0000         0
+     1
+     1
+     1
+     0
+     0
+     0
+     1     1     1     0     0     0
+     0
+
+
+</PRE>
+<B>Program Results</B>
+<PRE>
+ AB09ID EXAMPLE PROGRAM RESULTS
+
+
+ The order of reduced model =  2
+
+ The Hankel singular values of weighted ALPHA-stable part are
+   3.8253   0.2005
+
+ The reduced state dynamics matrix Ar is 
+   9.1900   0.0000
+   0.0000 -34.5297
+
+ The reduced input/state matrix Br is 
+  11.9593
+  16.9329
+
+ The reduced state/output matrix Cr is 
+   2.8955   6.9152
+
+ The reduced input/output matrix Dr is 
+   0.0000
+</PRE>
+
+<HR>
+<p>
+<A HREF=..\libindex.html><B>Return to index</B></A></BODY>
+</HTML>

@@ -1,0 +1,267 @@
+<HTML>
+<HEAD><TITLE>NF01BR - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="NF01BR">NF01BR</A></H2>
+<H3>
+Solving linear systems R x = b, or R' x = b, in the least squares sense
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To solve one of the systems of linear equations
+
+        R*x = b ,  or  R'*x = b ,
+
+  in the least squares sense, where R is an n-by-n block upper
+  triangular matrix, with the structure
+
+      /   R_1    0    ..   0   |   L_1   \
+      |    0    R_2   ..   0   |   L_2   |
+      |    :     :    ..   :   |    :    | ,
+      |    0     0    ..  R_l  |   L_l   |
+      \    0     0    ..   0   |  R_l+1  /
+
+  with the upper triangular submatrices R_k, k = 1:l+1, square, and
+  the first l of the same order, BSN. The diagonal elements of each
+  block R_k have nonincreasing magnitude. The matrix R is stored in
+  the compressed form, as returned by SLICOT Library routine NF01BS,
+
+           /   R_1  |   L_1   \
+           |   R_2  |   L_2   |
+    Rc =   |    :   |    :    | ,
+           |   R_l  |   L_l   |
+           \    X   |  R_l+1  /
+
+  where the submatrix X is irrelevant. If the matrix R does not have
+  full rank, then a least squares solution is obtained. If l &lt;= 1,
+  then R is an upper triangular matrix and its full upper triangle
+  is stored.
+
+  Optionally, the transpose of the matrix R can be stored in the
+  strict lower triangles of the submatrices R_k, k = 1:l+1, and in
+  the arrays SDIAG and S, as described at the parameter UPLO below.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE NF01BR( COND, UPLO, TRANS, N, IPAR, LIPAR, R, LDR,
+     $                   SDIAG, S, LDS, B, RANKS, TOL, DWORK, LDWORK,
+     $                   INFO )
+C     .. Scalar Arguments ..
+      CHARACTER         COND, TRANS, UPLO
+      INTEGER           INFO, LDR, LDS, LDWORK, LIPAR, N
+      DOUBLE PRECISION  TOL
+C     .. Array Arguments ..
+      INTEGER           IPAR(*), RANKS(*)
+      DOUBLE PRECISION  B(*), DWORK(*), R(LDR,*), S(LDS,*), SDIAG(*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  COND    CHARACTER*1
+          Specifies whether the condition of submatrices R_k should
+          be estimated, as follows:
+          = 'E' :  use incremental condition estimation and store
+                   the numerical rank of R_k in the array entry
+                   RANKS(k), for k = 1:l+1;
+          = 'N' :  do not use condition estimation, but check the
+                   diagonal entries of R_k for zero values;
+          = 'U' :  use the ranks already stored in RANKS(1:l+1).
+
+  UPLO    CHARACTER*1
+          Specifies the storage scheme for the matrix R, as follows:
+          = 'U' :  the upper triangular part is stored as in Rc;
+          = 'L' :  the lower triangular part is stored, namely,
+                   - the transpose of the strict upper triangle of
+                     R_k is stored in the strict lower triangle of
+                     R_k, for k = 1:l+1;
+                   - the diagonal elements of R_k, k = 1:l+1, are
+                     stored in the array SDIAG;
+                   - the transpose of the last block column in R
+                     (without R_l+1) is stored in the array S.
+
+  TRANS   CHARACTER*1
+          Specifies the form of the system of equations, as follows:
+          = 'N':  R*x  = b  (No transpose);
+          = 'T':  R'*x = b  (Transpose);
+          = 'C':  R'*x = b  (Transpose).
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The order of the matrix R.  N = BN*BSN + ST &gt;= 0.
+          (See parameter description below.)
+
+  IPAR    (input) INTEGER array, dimension (LIPAR)
+          The integer parameters describing the structure of the
+          matrix R, as follows:
+          IPAR(1) must contain ST, the number of columns of the
+                  submatrices L_k and the order of R_l+1.  ST &gt;= 0.
+          IPAR(2) must contain BN, the number of blocks, l, in the
+                  block diagonal part of R.  BN &gt;= 0.
+          IPAR(3) must contain BSM, the number of rows of the blocks
+                  R_k, k = 1:l.  BSM &gt;= 0.
+          IPAR(4) must contain BSN, the number of columns of the
+                  blocks R_k, k = 1:l.  BSN &gt;= 0.
+          BSM is not used by this routine, but assumed equal to BSN.
+
+  LIPAR   (input) INTEGER
+          The length of the array IPAR.  LIPAR &gt;= 4.
+
+  R       (input) DOUBLE PRECISION array, dimension (LDR, NC)
+          where NC = N if BN &lt;= 1, and NC = BSN+ST, if BN &gt; 1.
+          If UPLO = 'U', the leading N-by-NC part of this array must
+          contain the (compressed) representation (Rc) of the upper
+          triangular matrix R. The submatrix X in Rc and the strict
+          lower triangular parts of the diagonal blocks R_k,
+          k = 1:l+1, are not referenced. If BN &lt;= 1 or BSN = 0, then
+          the full upper triangle of R must be stored.
+          If UPLO = 'L', BN &gt; 1 and BSN &gt; 0, the leading
+          (N-ST)-by-BSN part of this array must contain the
+          transposes of the strict upper triangles of R_k, k = 1:l,
+          stored in the strict lower triangles of R_k, and the
+          strict lower triangle of R_l+1 must contain the transpose
+          of the strict upper triangle of R_l+1. The submatrix X
+          in Rc is not referenced. The diagonal elements of R_k,
+          and, if COND = 'E', the upper triangular parts of R_k,
+          k = 1:l+1, are modified internally, but are restored
+          on exit.
+          If UPLO = 'L' and BN &lt;= 1 or BSN = 0, the leading N-by-N
+          strict lower triangular part of this array must contain
+          the transpose of the strict upper triangular part of R.
+          The diagonal elements and, if COND = 'E', the upper
+          triangular elements are modified internally, but are
+          restored on exit.
+
+  LDR     INTEGER
+          The leading dimension of the array R.  LDR &gt;= MAX(1,N).
+
+  SDIAG   (input) DOUBLE PRECISION array, dimension (N)
+          If UPLO = 'L', this array must contain the diagonal
+          entries of R_k, k = 1:l+1. This array is modified
+          internally, but is restored on exit.
+          This parameter is not referenced if UPLO = 'U'.
+
+  S       (input) DOUBLE PRECISION array, dimension (LDS,N-ST)
+          If UPLO = 'L', BN &gt; 1, and BSN &gt; 0, the leading
+          ST-by-(N-ST) part of this array must contain the transpose
+          of the rectangular part of the last block column in R,
+          that is [ L_1' L_2' ... L_l' ] . If COND = 'E', S is
+          modified internally, but is restored on exit.
+          This parameter is not referenced if UPLO = 'U', or
+          BN &lt;= 1, or BSN = 0.
+
+  LDS     INTEGER
+          The leading dimension of the array S.
+          LDS &gt;= 1,         if UPLO = 'U', or BN &lt;= 1, or BSN = 0;
+          LDS &gt;= MAX(1,ST), if UPLO = 'L', BN &gt; 1, and BSN &gt; 0.
+
+  B       (input/output) DOUBLE PRECISION array, dimension (N)
+          On entry, this array must contain the right hand side
+          vector b.
+          On exit, this array contains the (least squares) solution
+          of the system R*x = b or R'*x = b.
+
+  RANKS   (input or output) INTEGER array, dimension (r), where
+          r = BN + 1,  if ST &gt; 0, BSN &gt; 0, and BN &gt; 1;
+          r = BN,      if ST = 0 and BSN &gt; 0;
+          r = 1,       if ST &gt; 0 and ( BSN = 0 or BN &lt;= 1 );
+          r = 0,       if ST = 0 and BSN = 0.
+          On entry, if COND = 'U' and N &gt; 0, this array must contain
+          the numerical ranks of the submatrices R_k, k = 1:l(+1).
+          On exit, if COND = 'E' or 'N' and N &gt; 0, this array
+          contains the numerical ranks of the submatrices R_k,
+          k = 1:l(+1), estimated according to the value of COND.
+
+</PRE>
+<B>Tolerances</B>
+<PRE>
+  TOL     DOUBLE PRECISION
+          If COND = 'E', the tolerance to be used for finding the
+          ranks of the submatrices R_k. If the user sets TOL &gt; 0,
+          then the given value of TOL is used as a lower bound for
+          the reciprocal condition number;  a (sub)matrix whose
+          estimated condition number is less than 1/TOL is
+          considered to be of full rank. If the user sets TOL &lt;= 0,
+          then an implicitly computed, default tolerance, defined by
+          TOLDEF = N*EPS,  is used instead, where EPS is the machine
+          precision (see LAPACK Library routine DLAMCH).
+          This parameter is not relevant if COND = 'U' or 'N'.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+
+  LDWORK  INTEGER
+          The length of the array DWORK.
+          Denote Full = ( BN &lt;= 1 or  BSN = 0 );
+                 Comp = ( BN &gt;  1 and BSN &gt; 0 ).
+          LDWORK &gt;= 2*N,           if Full and COND = 'E';
+          LDWORK &gt;= 2*MAX(BSN,ST), if Comp and COND = 'E';
+          LDWORK &gt;= 0,   in the remaining cases.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  Block back or forward substitution is used (depending on TRANS
+  and UPLO), exploiting the special structure and storage scheme of
+  the matrix R. If a submatrix R_k, k = 1:l+1, is singular, a local
+  basic least squares solution is computed. Therefore, the returned
+  result is not the basic least squares solution for the whole
+  problem, but a concatenation of (least squares) solutions of the
+  individual subproblems involving R_k, k = 1:l+1 (with adapted
+  right hand sides).
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>                                 2    2
+  The algorithm requires 0(BN*BSN + ST + N*ST) operations and is
+  backward stable, if R is nonsingular.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

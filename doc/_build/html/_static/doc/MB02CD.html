@@ -1,0 +1,337 @@
+<HTML>
+<HEAD><TITLE>MB02CD - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MB02CD">MB02CD</A></H2>
+<H3>
+Cholesky factorization of a positive definite block Toeplitz matrix
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To compute the Cholesky factor and the generator and/or the
+  Cholesky factor of the inverse of a symmetric positive definite
+  (s.p.d.) block Toeplitz matrix T, defined by either its first
+  block row, or its first block column, depending on the routine
+  parameter TYPET. Transformation information is stored.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MB02CD( JOB, TYPET, K, N, T, LDT, G, LDG, R, LDR, L,
+     $                   LDL, CS, LCS, DWORK, LDWORK, INFO )
+C     .. Scalar Arguments ..
+      CHARACTER         JOB, TYPET
+      INTEGER           INFO, K, LCS, LDG, LDL, LDR, LDT, LDWORK, N
+C     .. Array Arguments ..
+      DOUBLE PRECISION  CS(*), DWORK(*), G(LDG, *), L(LDL,*), R(LDR,*),
+     $                  T(LDT,*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  JOB     CHARACTER*1
+          Specifies the output of the routine, as follows:
+          = 'G':  only computes the generator G of the inverse;
+          = 'R':  computes the generator G of the inverse and the
+                  Cholesky factor R of T, i.e., if TYPET = 'R',
+                  then R'*R = T, and if TYPET = 'C', then R*R' = T;
+          = 'L':  computes the generator G and the Cholesky factor L
+                  of the inverse, i.e., if TYPET = 'R', then
+                  L'*L = inv(T), and if TYPET = 'C', then
+                  L*L' = inv(T);
+          = 'A':  computes the generator G, the Cholesky factor L
+                  of the inverse and the Cholesky factor R of T;
+          = 'O':  only computes the Cholesky factor R of T.
+
+  TYPET   CHARACTER*1
+          Specifies the type of T, as follows:
+          = 'R':  T contains the first block row of an s.p.d. block
+                  Toeplitz matrix; if demanded, the Cholesky factors
+                  R and L are upper and lower triangular,
+                  respectively, and G contains the transposed
+                  generator of the inverse;
+          = 'C':  T contains the first block column of an s.p.d.
+                  block Toeplitz matrix; if demanded, the Cholesky
+                  factors R and L are lower and upper triangular,
+                  respectively, and G contains the generator of the
+                  inverse. This choice results in a column oriented
+                  algorithm which is usually faster.
+          Note:   in the sequel, the notation x / y means that
+                  x corresponds to TYPET = 'R' and y corresponds to
+                  TYPET = 'C'.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  K       (input)  INTEGER
+          The number of rows / columns in T, which should be equal
+          to the blocksize.  K &gt;= 0.
+
+  N       (input)  INTEGER
+          The number of blocks in T.  N &gt;= 0.
+
+  T       (input/output)  DOUBLE PRECISION array, dimension
+          (LDT,N*K) / (LDT,K)
+          On entry, the leading K-by-N*K / N*K-by-K part of this
+          array must contain the first block row / column of an
+          s.p.d. block Toeplitz matrix.
+          On exit, if INFO = 0, then the leading K-by-N*K / N*K-by-K
+          part of this array contains, in the first K-by-K block,
+          the upper / lower Cholesky factor of T(1:K,1:K), and in
+          the remaining part, the Householder transformations
+          applied during the process.
+
+  LDT     INTEGER
+          The leading dimension of the array T.
+          LDT &gt;= MAX(1,K),    if TYPET = 'R';
+          LDT &gt;= MAX(1,N*K),  if TYPET = 'C'.
+
+  G       (output)  DOUBLE PRECISION array, dimension
+          (LDG,N*K) / (LDG,2*K)
+          If INFO = 0 and JOB = 'G', 'R', 'L', or 'A', the leading
+          2*K-by-N*K / N*K-by-2*K part of this array contains, in
+          the first K-by-K block of the second block row / column,
+          the lower right block of L (necessary for updating
+          factorizations in SLICOT Library routine MB02DD), and
+          in the remaining part, the generator of the inverse of T.
+          Actually, to obtain a generator one has to set
+              G(K+1:2*K, 1:K) = 0,    if TYPET = 'R';
+              G(1:K, K+1:2*K) = 0,    if TYPET = 'C'.
+
+  LDG     INTEGER
+          The leading dimension of the array G.
+          LDG &gt;= MAX(1,2*K),  if TYPET = 'R' and
+                                 JOB = 'G', 'R', 'L', or 'A';
+          LDG &gt;= MAX(1,N*K),  if TYPET = 'C' and
+                                 JOB = 'G', 'R', 'L', or 'A';
+          LDG &gt;= 1,           if JOB = 'O'.
+
+  R       (output)  DOUBLE PRECISION array, dimension (LDR,N*K)
+          If INFO = 0 and JOB = 'R', 'A', or 'O', then the leading
+          N*K-by-N*K part of this array contains the upper / lower
+          Cholesky factor of T.
+          The elements in the strictly lower / upper triangular part
+          are not referenced.
+
+  LDR     INTEGER
+          The leading dimension of the array R.
+          LDR &gt;= MAX(1,N*K),  if JOB = 'R', 'A', or 'O';
+          LDR &gt;= 1,           if JOB = 'G', or 'L'.
+
+  L       (output)  DOUBLE PRECISION array, dimension (LDL,N*K)
+          If INFO = 0 and JOB = 'L', or 'A', then the leading
+          N*K-by-N*K part of this array contains the lower / upper
+          Cholesky factor of the inverse of T.
+          The elements in the strictly upper / lower triangular part
+          are not referenced.
+
+  LDL     INTEGER
+          The leading dimension of the array L.
+          LDL &gt;= MAX(1,N*K),  if JOB = 'L', or 'A';
+          LDL &gt;= 1,           if JOB = 'G', 'R', or 'O'.
+
+  CS      (output)  DOUBLE PRECISION array, dimension (LCS)
+          If INFO = 0, then the leading 3*(N-1)*K part of this
+          array contains information about the hyperbolic rotations
+          and Householder transformations applied during the
+          process. This information is needed for updating the
+          factorizations in SLICOT Library routine MB02DD.
+
+  LCS     INTEGER
+          The length of the array CS.  LCS &gt;= 3*(N-1)*K.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+          On exit, if INFO = 0,  DWORK(1)  returns the optimal
+          value of LDWORK.
+          On exit, if  INFO = -16,  DWORK(1)  returns the minimum
+          value of LDWORK.
+
+  LDWORK  INTEGER
+          The length of the array DWORK.
+          LDWORK &gt;= MAX(1,(N-1)*K).
+          For optimum performance LDWORK should be larger.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value;
+          = 1:  the reduction algorithm failed. The Toeplitz matrix
+                associated with T is not (numerically) positive
+                definite.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  Householder transformations and modified hyperbolic rotations
+  are used in the Schur algorithm [1], [2].
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Kailath, T. and Sayed, A.
+      Fast Reliable Algorithms for Matrices with Structure.
+      SIAM Publications, Philadelphia, 1999.
+
+  [2] Kressner, D. and Van Dooren, P.
+      Factorizations and linear system solvers for matrices with
+      Toeplitz structure.
+      SLICOT Working Note 2000-2, 2000.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  The implemented method is numerically stable.
+                            3 2
+  The algorithm requires 0(K N ) floating point operations.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+*     MB02CD EXAMPLE PROGRAM TEXT
+*
+*     .. Parameters ..
+      DOUBLE PRECISION ZERO
+      PARAMETER        ( ZERO = 0.0D0 )
+      INTEGER          NIN, NOUT
+      PARAMETER        ( NIN = 5, NOUT = 6 )
+      INTEGER          KMAX, NMAX
+      PARAMETER        ( KMAX = 20, NMAX = 20 )
+      INTEGER          LCS, LDG, LDL, LDR, LDT, LDWORK
+      PARAMETER        ( LDG = 2*KMAX, LDL = NMAX*KMAX, LDR = NMAX*KMAX,
+     $                   LDT = KMAX, LDWORK = ( NMAX - 1 )*KMAX )
+      PARAMETER        ( LCS = 3*LDWORK )
+*     .. Local Scalars ..
+      INTEGER          I, INFO, J, K, M, N
+      CHARACTER        JOB, TYPET
+*     .. Local Arrays .. (Dimensioned for TYPET = 'R'.)
+      DOUBLE PRECISION CS(LCS), DWORK(LDWORK), G(LDG, NMAX*KMAX),
+     $                 L(LDL, NMAX*KMAX), R(LDR, NMAX*KMAX),
+     $                 T(LDT, NMAX*KMAX)
+*     .. External Functions ..
+      LOGICAL          LSAME
+      EXTERNAL         LSAME
+*     .. External Subroutines ..
+      EXTERNAL         DLASET, MB02CD
+*
+*     .. Executable Statements ..
+      WRITE ( NOUT, FMT = 99999 )
+*     Skip the heading in the data file and read the data.
+      READ ( NIN, FMT = '()' )
+      READ ( NIN, FMT = * ) N, K, JOB
+      TYPET = 'R'
+      M = N*K
+      IF( N.LE.0 .OR. N.GT.NMAX ) THEN
+         WRITE ( NOUT, FMT = 99993 ) N
+      ELSE
+         IF( K.LE.0 .OR. K.GT.KMAX ) THEN
+            WRITE ( NOUT, FMT = 99992 ) K
+         ELSE
+            READ ( NIN, FMT = * ) ( ( T(I,J), J = 1,M ), I = 1,K )
+*           Compute the Cholesky factor(s) and/or the generator.
+            CALL MB02CD( JOB, TYPET, K, N, T, LDT, G, LDG, R, LDR, L,
+     $                   LDL, CS, LCS, DWORK, LDWORK, INFO )
+            IF ( INFO.NE.0 ) THEN
+               WRITE ( NOUT, FMT = 99998 ) INFO
+            ELSE
+               IF ( LSAME( JOB, 'G' ) .OR. LSAME( JOB, 'A' ) .OR.
+     $              LSAME( JOB, 'L' ) .OR. LSAME( JOB, 'R' ) ) THEN
+                  WRITE ( NOUT, FMT = 99997 )
+                  CALL DLASET( 'Full', K, K, ZERO, ZERO, G(K+1,1), LDG )
+                  DO 10  I = 1, 2*K
+                     WRITE ( NOUT, FMT = 99994 ) ( G(I,J), J = 1, M )
+   10             CONTINUE
+               END IF
+               IF ( LSAME( JOB, 'L' ) .OR. LSAME( JOB, 'A' ) ) THEN
+                  WRITE ( NOUT, FMT = 99996 )
+                  DO 20  I = 1, M
+                     WRITE ( NOUT, FMT = 99994 ) ( L(I,J), J = 1, M )
+   20             CONTINUE
+               END IF
+               IF ( LSAME( JOB, 'R' ) .OR. LSAME( JOB, 'A' )
+     $                                .OR. LSAME( JOB, 'O' ) ) THEN
+                  WRITE ( NOUT, FMT = 99995 )
+                  DO 30  I = 1, M
+                     WRITE ( NOUT, FMT = 99994 ) ( R(I,J), J = 1, M )
+   30             CONTINUE
+               END IF
+            END IF
+         END IF
+      END IF
+      STOP
+*
+99999 FORMAT (' MB02CD EXAMPLE PROGRAM RESULTS',/1X)
+99998 FORMAT (' INFO on exit from MB02CD = ',I2)
+99997 FORMAT (' The generator of the inverse of block Toeplitz matrix',
+     $        ' is ')
+99996 FORMAT (/' The lower Cholesky factor of the inverse is ')
+99995 FORMAT (/' The upper Cholesky factor of block Toeplitz matrix is '
+     $       )
+99994 FORMAT (20(1X,F8.4))
+99993 FORMAT (/' N is out of range.',/' N = ',I5)
+99992 FORMAT (/' K is out of range.',/' K = ',I5)
+      END
+</PRE>
+<B>Program Data</B>
+<PRE>
+MB02CD EXAMPLE PROGRAM DATA
+  3    2     A
+  3.0000    1.0000    0.1000    0.1000    0.2000    0.0500
+  1.0000    4.0000    0.4000    0.1000    0.0400    0.2000
+</PRE>
+<B>Program Results</B>
+<PRE>
+ MB02CD EXAMPLE PROGRAM RESULTS
+
+ The generator of the inverse of block Toeplitz matrix is 
+  -0.2355   0.5231  -0.0642   0.0077   0.0187  -0.0265
+  -0.5568  -0.0568   0.0229   0.0060   0.0363   0.0000
+   0.0000   0.0000  -0.0387   0.0052   0.0003  -0.0575
+   0.0000   0.0000   0.0119  -0.0265  -0.0110   0.0076
+
+ The lower Cholesky factor of the inverse is 
+   0.5774   0.0000   0.0000   0.0000   0.0000   0.0000
+  -0.1741   0.5222   0.0000   0.0000   0.0000   0.0000
+   0.0000  -0.0581   0.5812   0.0000   0.0000   0.0000
+  -0.0142   0.0080  -0.1747   0.5224   0.0000   0.0000
+  -0.0387   0.0052   0.0003  -0.0575   0.5825   0.0000
+   0.0119  -0.0265  -0.0110   0.0076  -0.1754   0.5231
+
+ The upper Cholesky factor of block Toeplitz matrix is 
+   1.7321   0.5774   0.0577   0.0577   0.1155   0.0289
+   0.0000   1.9149   0.1915   0.0348  -0.0139   0.0957
+   0.0000   0.0000   1.7205   0.5754   0.0558   0.0465
+   0.0000   0.0000   0.0000   1.9142   0.1890   0.0357
+   0.0000   0.0000   0.0000   0.0000   1.7169   0.5759
+   0.0000   0.0000   0.0000   0.0000   0.0000   1.9118
+</PRE>
+
+<HR>
+<p>
+<A HREF=..\libindex.html><B>Return to index</B></A></BODY>
+</HTML>

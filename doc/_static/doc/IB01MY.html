@@ -1,0 +1,293 @@
+<HTML>
+<HEAD><TITLE>IB01MY - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="IB01MY">IB01MY</A></H2>
+<H3>
+Upper triangular factor in the QR factorization of the block Hankel matrix, using a fast QR algorithm
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To construct an upper triangular factor  R  of the concatenated
+  block Hankel matrices using input-output data, via a fast QR
+  algorithm based on displacement rank.  The input-output data can,
+  optionally, be processed sequentially.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE IB01MY( METH, BATCH, CONCT, NOBR, M, L, NSMP, U, LDU,
+     $                   Y, LDY, R, LDR, IWORK, DWORK, LDWORK, IWARN,
+     $                   INFO )
+C     .. Scalar Arguments ..
+      INTEGER            INFO, IWARN, L, LDR, LDU, LDWORK, LDY, M, NOBR,
+     $                   NSMP
+      CHARACTER          BATCH, CONCT, METH
+C     .. Array Arguments ..
+      INTEGER            IWORK(*)
+      DOUBLE PRECISION   DWORK(*), R(LDR, *), U(LDU, *), Y(LDY, *)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  METH    CHARACTER*1
+          Specifies the subspace identification method to be used,
+          as follows:
+          = 'M':  MOESP  algorithm with past inputs and outputs;
+          = 'N':  N4SID  algorithm.
+
+  BATCH   CHARACTER*1
+          Specifies whether or not sequential data processing is to
+          be used, and, for sequential processing, whether or not
+          the current data block is the first block, an intermediate
+          block, or the last block, as follows:
+          = 'F':  the first block in sequential data processing;
+          = 'I':  an intermediate block in sequential data
+                  processing;
+          = 'L':  the last block in sequential data processing;
+          = 'O':  one block only (non-sequential data processing).
+          NOTE that when  100  cycles of sequential data processing
+               are completed for  BATCH = 'I',  a warning is
+               issued, to prevent for an infinite loop.
+
+  CONCT   CHARACTER*1
+          Specifies whether or not the successive data blocks in
+          sequential data processing belong to a single experiment,
+          as follows:
+          = 'C':  the current data block is a continuation of the
+                  previous data block and/or it will be continued
+                  by the next data block;
+          = 'N':  there is no connection between the current data
+                  block and the previous and/or the next ones.
+          This parameter is not used if BATCH = 'O'.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  NOBR    (input) INTEGER
+          The number of block rows,  s,  in the input and output
+          block Hankel matrices to be processed.  NOBR &gt; 0.
+          (In the MOESP theory,  NOBR  should be larger than  n, the
+          estimated dimension of state vector.)
+
+  M       (input) INTEGER
+          The number of system inputs.  M &gt;= 0.
+          When M = 0, no system inputs are processed.
+
+  L       (input) INTEGER
+          The number of system outputs.  L &gt; 0.
+
+  NSMP    (input) INTEGER
+          The number of rows of matrices  U  and  Y  (number of
+          samples,  t). (When sequential data processing is used,
+          NSMP  is the number of samples of the current data
+          block.)
+          NSMP &gt;= 2*(M+L+1)*NOBR - 1,  for non-sequential
+                                       processing;
+          NSMP &gt;= 2*NOBR,  for sequential processing.
+          The total number of samples when calling the routine with
+          BATCH = 'L'  should be at least  2*(M+L+1)*NOBR - 1.
+          The  NSMP  argument may vary from a cycle to another in
+          sequential data processing, but  NOBR, M,  and  L  should
+          be kept constant. For efficiency, it is advisable to use
+          NSMP  as large as possible.
+
+  U       (input) DOUBLE PRECISION array, dimension (LDU,M)
+          The leading NSMP-by-M part of this array must contain the
+          t-by-m input-data sequence matrix  U,
+          U = [u_1 u_2 ... u_m].  Column  j  of  U  contains the
+          NSMP  values of the j-th input component for consecutive
+          time increments.
+          If M = 0, this array is not referenced.
+
+  LDU     INTEGER
+          The leading dimension of the array U.
+          LDU &gt;= NSMP, if M &gt; 0;
+          LDU &gt;= 1,    if M = 0.
+
+  Y       (input) DOUBLE PRECISION array, dimension (LDY,L)
+          The leading NSMP-by-L part of this array must contain the
+          t-by-l output-data sequence matrix  Y,
+          Y = [y_1 y_2 ... y_l].  Column  j  of  Y  contains the
+          NSMP  values of the j-th output component for consecutive
+          time increments.
+
+  LDY     INTEGER
+          The leading dimension of the array Y.  LDY &gt;= NSMP.
+
+  R       (output) DOUBLE PRECISION array, dimension
+          ( LDR,2*(M+L)*NOBR )
+          If INFO = 0 and BATCH = 'L' or 'O', the leading
+          2*(M+L)*NOBR-by-2*(M+L)*NOBR upper triangular part of this
+          array contains the upper triangular factor R from the
+          QR factorization of the concatenated block Hankel
+          matrices.
+
+  LDR     INTEGER
+          The leading dimension of the array  R.
+          LDR &gt;= 2*(M+L)*NOBR.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  IWORK   INTEGER array, dimension MAX(3,M+L)
+          On entry with  BATCH = 'I'  or  BATCH = 'L',  IWORK(1:3)
+          must contain the values of ICYCLE, MAXWRK, and NSMPSM
+          set by the previous call of this routine.
+          On exit with  BATCH = 'F'  or  BATCH = 'I',  IWORK(1:3)
+          contains the values of ICYCLE, MAXWRK, and NSMPSM to be
+          used by the next call of the routine.
+          ICYCLE  counts the cycles for  BATCH = 'I'.
+          MAXWRK  stores the current optimal workspace.
+          NSMPSM  sums up the  NSMP  values for  BATCH &lt;&gt; 'O'.
+          The first three elements of  IWORK  should be preserved
+          during successive calls of the routine with  BATCH = 'F'
+          or  BATCH = 'I',  till the final call with   BATCH = 'L'.
+
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+          On exit, if  INFO = 0,  DWORK(1)  returns the optimal
+          value of LDWORK.
+          On exit, if  INFO = -16,  DWORK(1)  returns the minimum
+          value of LDWORK.
+          The first (M+L)*2*NOBR*(M+L+c) elements of  DWORK  should
+          be preserved during successive calls of the routine
+          with  BATCH = 'F'  or  'I',  till the final call with
+          BATCH = 'L',  where
+          c = 1,  if the successive data blocks do not belong to a
+                  single experiment  (CONCT = 'N');
+          c = 2,  if the successive data blocks belong to a single
+                  experiment  (CONCT = 'C').
+
+  LDWORK  INTEGER
+          The length of the array DWORK.
+          LDWORK &gt;= (M+L)*2*NOBR*(M+L+3),
+                           if BATCH &lt;&gt; 'O' and CONCT = 'C';
+          LDWORK &gt;= (M+L)*2*NOBR*(M+L+1),
+                           if BATCH = 'F' or 'I' and CONCT = 'N';
+          LDWORK &gt;= (M+L)*4*NOBR*(M+L+1)+(M+L)*2*NOBR,
+                           if BATCH = 'L' and CONCT = 'N',
+                           or BATCH = 'O'.
+
+          If LDWORK = -1, then a workspace query is assumed;
+          the routine only calculates the optimal size of the
+          DWORK array, returns this value as the first entry of
+          the DWORK array, and no error message related to LDWORK
+          is issued by XERBLA. The workspace query should be done
+          for BATCH = 'L' or BATCH = 'O'. To get it in advance, use
+          BATCH = 'O'.
+
+</PRE>
+<B>Warning Indicator</B>
+<PRE>
+  IWARN   INTEGER
+          = 0:  no warning;
+          = 1:  the number of 100 cycles in sequential data
+                processing has been exhausted without signaling
+                that the last block of data was get.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value;
+          = 1:  the fast QR factorization algorithm failed. The
+                matrix H'*H is not (numerically) positive definite.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  Consider the  t x 2(m+l)s  matrix H of concatenated block Hankel
+  matrices
+
+       H = [ Uf'         Up'      Y'      ],  for METH = 'M',
+               s+1,2s,t    1,s,t   1,2s,t
+
+       H = [ U'       Y'      ],              for METH = 'N',
+              1,2s,t   1,2s,t
+
+  where  Up     , Uf        , U      , and  Y        are block
+           1,s,t    s+1,2s,t   1,2s,t        1,2s,t
+  Hankel matrices defined in terms of the input and output data [3].
+  The fast QR algorithm uses a factorization of H'*H which exploits
+  the block-Hankel structure, via a displacement rank technique [5].
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Verhaegen M., and Dewilde, P.
+      Subspace Model Identification. Part 1: The output-error
+      state-space model identification class of algorithms.
+      Int. J. Control, 56, pp. 1187-1210, 1992.
+
+  [2] Verhaegen M.
+      Subspace Model Identification. Part 3: Analysis of the
+      ordinary output-error state-space model identification
+      algorithm.
+      Int. J. Control, 58, pp. 555-586, 1993.
+
+  [3] Verhaegen M.
+      Identification of the deterministic part of MIMO state space
+      models given in innovations form from input-output data.
+      Automatica, Vol.30, No.1, pp.61-74, 1994.
+
+  [4] Van Overschee, P., and De Moor, B.
+      N4SID: Subspace Algorithms for the Identification of
+      Combined Deterministic-Stochastic Systems.
+      Automatica, Vol.30, No.1, pp. 75-93, 1994.
+
+  [5] Kressner, D., Mastronardi, N., Sima, V., Van Dooren, P., and
+      Van Huffel, S.
+      A Fast Algorithm for Subspace State-space System
+      Identification via Exploitation of the Displacement Structure.
+      J. Comput. Appl. Math., Vol.132, No.1, pp. 71-81, 2001.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  The implemented method is reliable and efficient. Numerical
+  difficulties are possible when the matrix H'*H is nearly rank
+  defficient. The method cannot be used if the matrix H'*H is not
+  numerically positive definite.
+                                  2           3 2
+  The algorithm requires 0(2t(m+l) s)+0(4(m+l) s ) floating point
+  operations.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

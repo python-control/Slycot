@@ -1,0 +1,256 @@
+<HTML>
+<HEAD><TITLE>AB13ED - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="AB13ED">AB13ED</A></H2>
+<H3>
+Estimating the distance from a real matrix to the nearest complex matrix with an eigenvalue on the imaginary axis, using bisection
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To estimate beta(A), the 2-norm distance from a real matrix A to
+  the nearest complex matrix with an eigenvalue on the imaginary
+  axis. The estimate is given as
+
+         LOW &lt;= beta(A) &lt;= HIGH,
+
+  where either
+
+         (1 + TOL) * LOW &gt;= HIGH,
+
+  or
+
+         LOW = 0   and   HIGH = delta,
+
+  and delta is a small number approximately equal to the square root
+  of machine precision times the Frobenius norm (Euclidean norm)
+  of A. If A is stable in the sense that all eigenvalues of A lie
+  in the open left half complex plane, then beta(A) is the distance
+  to the nearest unstable complex matrix, i.e., the complex
+  stability radius.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE AB13ED( N, A, LDA, LOW, HIGH, TOL, DWORK, LDWORK,
+     $                   INFO )
+C     .. Scalar Arguments ..
+      DOUBLE PRECISION  HIGH, LOW, TOL
+      INTEGER           INFO, LDA, LDWORK, N
+C     .. Array Arguments ..
+      DOUBLE PRECISION  A(LDA,*), DWORK(*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The order of the matrix A.  N &gt;= 0.
+
+  A       (input) DOUBLE PRECISION array, dimension (LDA,N)
+          The leading N-by-N part of this array must contain the
+          matrix A.
+
+  LDA     INTEGER
+          The leading dimension of array A.  LDA &gt;= MAX(1,N).
+
+  LOW     (output) DOUBLE PRECISION
+          A lower bound for beta(A).
+
+  HIGH    (output) DOUBLE PRECISION
+          An upper bound for beta(A).
+
+</PRE>
+<B>Tolerances</B>
+<PRE>
+  TOL     DOUBLE PRECISION
+          Specifies the accuracy with which LOW and HIGH approximate
+          beta(A). If the user sets TOL to be less than SQRT(EPS),
+          where EPS is the machine precision (see LAPACK Library
+          Routine DLAMCH), then the tolerance is taken to be
+          SQRT(EPS).
+          The recommended value is TOL = 9, which gives an estimate
+          of beta(A) correct to within an order of magnitude.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+          On exit, if INFO = 0, DWORK(1) returns the optimal value
+          of LDWORK.
+
+  LDWORK  INTEGER
+          The length of the array DWORK.
+          LDWORK &gt;= MAX( 1, 3*N*(N+1) ).
+          For optimum performance LDWORK should be larger.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value;
+          = 1:  the QR algorithm (LAPACK Library routine DHSEQR)
+                fails to converge; this error is very rare.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  Let beta(A) be the 2-norm distance from a real matrix A to the
+  nearest complex matrix with an eigenvalue on the imaginary axis.
+  It is known that beta(A) = minimum of the smallest singular
+  value of (A - jwI), where I is the identity matrix and j**2 = -1,
+  and the minimum is taken over all real w.
+  The algorithm computes a lower bound LOW and an upper bound HIGH
+  for beta(A) by a bisection method in the following way. Given a
+  non-negative real number sigma, the Hamiltonian matrix H(sigma)
+  is constructed:
+
+                    |   A      -sigma*I |     | A   G  |
+        H(sigma) =  |                   | :=  |        | .
+                    | sigma*I    -A'    |     | F  -A' |
+
+  It can be shown [1] that H(sigma) has an eigenvalue whose real
+  part is zero if and only if sigma &gt;= beta. Any lower and upper
+  bounds on beta(A) can be improved by choosing a number between
+  them and checking to see if H(sigma) has an eigenvalue with zero
+  real part.  This decision is made by computing the eigenvalues of
+  H(sigma) using the square reduced algorithm of Van Loan [2].
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Byers, R.
+      A bisection method for measuring the distance of a stable
+      matrix to the unstable matrices.
+      SIAM J. Sci. Stat. Comput., Vol. 9, No. 5, pp. 875-880, 1988.
+
+  [2] Van Loan, C.F.
+      A symplectic method for approximating all the eigenvalues of a
+      Hamiltonian matrix.
+      Linear Algebra and its Applications, Vol 61, 233-251, 1984.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  Due to rounding errors the computed values of LOW and HIGH can be
+  proven to satisfy
+
+         LOW - p(n) * sqrt(e) * norm(A) &lt;= beta(A)
+  and
+         beta(A) &lt;= HIGH + p(n) * sqrt(e) * norm(A),
+
+  where p(n) is a modest polynomial of degree 3, e is the machine
+  precision and norm(A) is the Frobenius norm of A, see [1].
+  The recommended value for TOL is 9 which gives an estimate of
+  beta(A) correct to within an order of magnitude.
+  AB13ED requires approximately 38*N**3 flops for TOL = 9.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+*     AB13ED EXAMPLE PROGRAM TEXT
+*
+*     .. Parameters ..
+      INTEGER          NIN, NOUT
+      PARAMETER        ( NIN = 5, NOUT = 6 )
+      INTEGER          NMAX
+      PARAMETER        ( NMAX = 20 )
+      INTEGER          LDA
+      PARAMETER        ( LDA = NMAX )
+      INTEGER          LDWORK
+      PARAMETER        ( LDWORK = 3*NMAX*( NMAX + 1 ) )
+*     .. Local Scalars ..
+      INTEGER          I, INFO, J, N
+      DOUBLE PRECISION HIGH, LOW, TOL
+*     .. Local Arrays ..
+      DOUBLE PRECISION A(LDA,NMAX), DWORK(LDWORK)
+*     .. External Subroutines ..
+      EXTERNAL         AB13ED, UD01MD
+*     ..
+*     .. Executable Statements ..
+*
+      WRITE ( NOUT, FMT = 99999 )
+*     Skip the heading in the data file and read the data.
+      READ ( NIN, FMT = '()' )
+*     Read N, TOL and next A (row wise).
+      READ ( NIN, FMT = * ) N, TOL
+      IF ( N.LT.0 .OR. N.GT.NMAX ) THEN
+         WRITE ( NOUT, FMT = 99995 ) N
+      ELSE
+         DO 10 I = 1, N
+            READ ( NIN, FMT = * ) ( A(I,J), J = 1, N )
+   10    CONTINUE
+*
+         WRITE ( NOUT, FMT = 99998 ) N, TOL
+         CALL UD01MD( N, N, 5, NOUT, A, LDA, 'Matrix A', INFO )
+*
+         CALL AB13ED( N, A, LDA, LOW, HIGH, TOL, DWORK, LDWORK, INFO )
+         IF ( INFO.EQ.0 ) THEN
+            WRITE ( NOUT, FMT = 99997 ) LOW, HIGH
+         ELSE
+            WRITE ( NOUT, FMT = 99996 ) INFO
+         END IF
+      END IF
+      STOP
+*
+99999 FORMAT (' AB13ED EXAMPLE PROGRAM RESULTS', /1X)
+99998 FORMAT (' N =', I4, 2X, 'TOL =', D10.3)
+99997 FORMAT (' LOW  =', D18.11, /' HIGH =', D18.11)
+99996 FORMAT (' INFO on exit from AB13ED = ', I2)
+99995 FORMAT (/' N is out of range.',/' N = ',I5)
+      END
+</PRE>
+<B>Program Data</B>
+<PRE>
+AB13ED EXAMPLE PROGRAM DATA
+5, 9.0D0
+1.0D-01  1.0D-00  0.0D-00  0.0D-00  0.0D-00
+0.0D-00  1.0D-01  1.0D-00  0.0D-00  0.0D-00
+0.0D-00  0.0D-00  1.0D-01  1.0D-00  0.0D-00
+0.0D-00  0.0D-00  0.0D-00  1.0D-01  1.0D-00
+0.0D-00  0.0D-00  0.0D-00  0.0D-00  1.0D-01
+</PRE>
+<B>Program Results</B>
+<PRE>
+ AB13ED EXAMPLE PROGRAM RESULTS
+
+ N =   5  TOL = 0.900D+01
+ Matrix A ( 5X 5)
+
+            1              2              3              4              5
+  1    0.1000000D+00  0.1000000D+01  0.0000000D+00  0.0000000D+00  0.0000000D+00
+  2    0.0000000D+00  0.1000000D+00  0.1000000D+01  0.0000000D+00  0.0000000D+00
+  3    0.0000000D+00  0.0000000D+00  0.1000000D+00  0.1000000D+01  0.0000000D+00
+  4    0.0000000D+00  0.0000000D+00  0.0000000D+00  0.1000000D+00  0.1000000D+01
+  5    0.0000000D+00  0.0000000D+00  0.0000000D+00  0.0000000D+00  0.1000000D+00
+ 
+ LOW  = 0.20929379255D-05
+ HIGH = 0.20793050504D-04
+</PRE>
+
+<HR>
+<p>
+<A HREF=..\libindex.html><B>Return to index</B></A></BODY>
+</HTML>

@@ -1,0 +1,196 @@
+<HTML>
+<HEAD><TITLE>SB03OY - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="SB03OY">SB03OY</A></H2>
+<H3>
+Solving (for Cholesky factor) stable 2-by-2 continuous- or discrete-time Lyapunov equations, with matrix A having complex conjugate eigenvalues
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To solve for the Cholesky factor  U  of  X,
+
+     op(U)'*op(U) = X,
+
+  where  U  is a two-by-two upper triangular matrix, either the
+  continuous-time two-by-two Lyapunov equation
+                                      2
+      op(S)'*X + X*op(S) = -ISGN*scale *op(R)'*op(R),
+
+  when DISCR = .FALSE., or the discrete-time two-by-two Lyapunov
+  equation
+                                      2
+      op(S)'*X*op(S) - X = -ISGN*scale *op(R)'*op(R),
+
+  when DISCR = .TRUE., where op(K) = K or K' (i.e., the transpose of
+  the matrix K),  S  is a two-by-two matrix with complex conjugate
+  eigenvalues,  R  is a two-by-two upper triangular matrix,
+  ISGN = -1 or 1,  and  scale  is an output scale factor, set less
+  than or equal to 1 to avoid overflow in  X.  The routine also
+  computes two matrices, B and A, so that
+                                2
+     B*U = U*S  and  A*U = scale *R,  if  LTRANS = .FALSE.,  or
+                                2
+     U*B = S*U  and  U*A = scale *R,  if  LTRANS = .TRUE.,
+  which are used by the general Lyapunov solver.
+  In the continuous-time case  ISGN*S  must be stable, so that its
+  eigenvalues must have strictly negative real parts.
+  In the discrete-time case  S  must be convergent if ISGN = 1, that
+  is, its eigenvalues must have moduli less than unity, or  S  must
+  be completely divergent if ISGN = -1, that is, its eigenvalues
+  must have moduli greater than unity.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE SB03OY( DISCR, LTRANS, ISGN, S, LDS, R, LDR, A, LDA,
+     $                   SCALE, INFO )
+C     .. Scalar Arguments ..
+      LOGICAL           DISCR, LTRANS
+      INTEGER           INFO, ISGN, LDA, LDR, LDS
+      DOUBLE PRECISION  SCALE
+C     .. Array Arguments ..
+      DOUBLE PRECISION  A(LDA,*), R(LDR,*), S(LDS,*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  DISCR   LOGICAL
+          Specifies the equation to be solved:       2
+          = .FALSE.: op(S)'*X + X*op(S) = -ISGN*scale *op(R)'*op(R);
+                                                     2
+          = .TRUE. : op(S)'*X*op(S) - X = -ISGN*scale *op(R)'*op(R).
+
+  LTRANS  LOGICAL
+          Specifies the form of op(K) to be used, as follows:
+          = .FALSE.:  op(K) = K    (No transpose);
+          = .TRUE. :  op(K) = K**T (Transpose).
+
+  ISGN    INTEGER
+          Specifies the sign of the equation as described before.
+          ISGN may only be 1 or -1.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  S       (input/output) DOUBLE PRECISION array, dimension (LDS,2)
+          On entry, S must contain a 2-by-2 matrix.
+          On exit, S contains a 2-by-2 matrix B such that B*U = U*S,
+          if LTRANS = .FALSE., or U*B = S*U, if LTRANS = .TRUE..
+          Notice that if U is nonsingular then
+            B = U*S*inv( U ),  if LTRANS = .FALSE.
+            B = inv( U )*S*U,  if LTRANS = .TRUE..
+
+  LDS     INTEGER
+          The leading dimension of array S.  LDS &gt;= 2.
+
+  R       (input/output) DOUBLE PRECISION array, dimension (LDR,2)
+          On entry, R must contain a 2-by-2 upper triangular matrix.
+          The element R( 2, 1 ) is not referenced.
+          On exit, R contains U, the 2-by-2 upper triangular
+          Cholesky factor of the solution X, X = op(U)'*op(U).
+
+  LDR     INTEGER
+          The leading dimension of array R.  LDR &gt;= 2.
+
+  A       (output) DOUBLE PRECISION array, dimension (LDA,2)
+          A contains a 2-by-2 upper triangular matrix A satisfying
+          A*U/scale = scale*R, if LTRANS = .FALSE., or
+          U*A/scale = scale*R, if LTRANS = .TRUE..
+          Notice that if U is nonsingular then
+            A = scale*scale*R*inv( U ),  if LTRANS = .FALSE.
+            A = scale*scale*inv( U )*R,  if LTRANS = .TRUE..
+
+  LDA     INTEGER
+          The leading dimension of array A.  LDA &gt;= 2.
+
+  SCALE   (output) DOUBLE PRECISION
+          The scale factor, scale, set less than or equal to 1 to
+          prevent the solution overflowing.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          = 1:  if the Lyapunov equation is (nearly) singular
+                (warning indicator);
+                if DISCR = .FALSE., this means that while the
+                matrix S has computed eigenvalues with negative real
+                parts, it is only just stable in the sense that
+                small perturbations in S can make one or more of the
+                eigenvalues have a non-negative real part;
+                if DISCR = .TRUE., this means that while the
+                matrix S has computed eigenvalues inside the unit
+                circle, it is nevertheless only just convergent, in
+                the sense that small perturbations in S can make one
+                or more of the eigenvalues lie outside the unit
+                circle;
+                perturbed values were used to solve the equation
+                (but the matrix S is unchanged);
+          = 2:  if DISCR = .FALSE., and ISGN*S is not stable or
+                if DISCR = .TRUE., ISGN = 1 and S is not convergent
+                or if DISCR = .TRUE., ISGN = -1 and S is not
+                completely divergent;
+          = 4:  if S has real eigenvalues.
+
+  NOTE: In the interests of speed, this routine does not check all
+        inputs for errors.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  The LAPACK scheme for solving 2-by-2 Sylvester equations is
+  adapted for 2-by-2 Lyapunov equations, but directly computing the
+  Cholesky factor of the solution.
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Hammarling S. J.
+      Numerical solution of the stable, non-negative definite
+      Lyapunov equation.
+      IMA J. Num. Anal., 2, pp. 303-325, 1982.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  The algorithm is backward stable.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

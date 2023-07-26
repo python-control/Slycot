@@ -1,0 +1,581 @@
+<HTML>
+<HEAD><TITLE>AB09HD - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="AB09HD">AB09HD</A></H2>
+<H3>
+Stochastic balancing based model reduction
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To compute a reduced order model (Ar,Br,Cr,Dr) for an original
+  state-space representation (A,B,C,D) by using the stochastic
+  balancing approach in conjunction with the square-root or
+  the balancing-free square-root Balance & Truncate (B&T)
+  or Singular Perturbation Approximation (SPA) model reduction
+  methods for the ALPHA-stable part of the system.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE AB09HD( DICO, JOB, EQUIL, ORDSEL, N, M, P, NR, ALPHA,
+     $                   BETA, A, LDA, B, LDB, C, LDC, D, LDD, NS, HSV,
+     $                   TOL1, TOL2, IWORK, DWORK, LDWORK, BWORK, IWARN,
+     $                   INFO )
+C     .. Scalar Arguments ..
+      CHARACTER         DICO, EQUIL, JOB, ORDSEL
+      INTEGER           INFO, IWARN, LDA, LDB, LDC, LDD, LDWORK,
+     $                  M, N, NR, NS, P
+      DOUBLE PRECISION  ALPHA, BETA, TOL1, TOL2
+C     .. Array Arguments ..
+      INTEGER           IWORK(*)
+      DOUBLE PRECISION  A(LDA,*), B(LDB,*), C(LDC,*), D(LDD,*),
+     $                  DWORK(*), HSV(*)
+      LOGICAL           BWORK(*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  DICO    CHARACTER*1
+          Specifies the type of the original system as follows:
+          = 'C':  continuous-time system;
+          = 'D':  discrete-time system.
+
+  JOB     CHARACTER*1
+          Specifies the model reduction approach to be used
+          as follows:
+          = 'B':  use the square-root Balance & Truncate method;
+          = 'F':  use the balancing-free square-root
+                  Balance & Truncate method;
+          = 'S':  use the square-root Singular Perturbation
+                  Approximation method;
+          = 'P':  use the balancing-free square-root
+                  Singular Perturbation Approximation method.
+
+  EQUIL   CHARACTER*1
+          Specifies whether the user wishes to preliminarily
+          equilibrate the triplet (A,B,C) as follows:
+          = 'S':  perform equilibration (scaling);
+          = 'N':  do not perform equilibration.
+
+  ORDSEL  CHARACTER*1
+          Specifies the order selection method as follows:
+          = 'F':  the resulting order NR is fixed;
+          = 'A':  the resulting order NR is automatically determined
+                  on basis of the given tolerance TOL1.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The order of the original state-space representation,
+          i.e., the order of the matrix A.  N &gt;= 0.
+
+  M       (input) INTEGER
+          The number of system inputs.  M &gt;= 0.
+
+  P       (input) INTEGER
+          The number of system outputs.  P &gt;= 0.
+          P &lt;= M if BETA = 0.
+
+  NR      (input/output) INTEGER
+          On entry with ORDSEL = 'F', NR is the desired order of the
+          resulting reduced order system.  0 &lt;= NR &lt;= N.
+          On exit, if INFO = 0, NR is the order of the resulting
+          reduced order model. For a system with NU ALPHA-unstable
+          eigenvalues and NS ALPHA-stable eigenvalues (NU+NS = N),
+          NR is set as follows: if ORDSEL = 'F', NR is equal to
+          NU+MIN(MAX(0,NR-NU),NMIN), where NR is the desired order
+          on entry, and NMIN is the order of a minimal realization
+          of the ALPHA-stable part of the given system; NMIN is
+          determined as the number of Hankel singular values greater
+          than NS*EPS, where EPS is the machine precision
+          (see LAPACK Library Routine DLAMCH);
+          if ORDSEL = 'A', NR is the sum of NU and the number of
+          Hankel singular values greater than MAX(TOL1,NS*EPS);
+          NR can be further reduced to ensure that
+          HSV(NR-NU) &gt; HSV(NR+1-NU).
+
+  ALPHA   (input) DOUBLE PRECISION
+          Specifies the ALPHA-stability boundary for the eigenvalues
+          of the state dynamics matrix A. For a continuous-time
+          system (DICO = 'C'), ALPHA &lt;= 0 is the boundary value for
+          the real parts of eigenvalues, while for a discrete-time
+          system (DICO = 'D'), 0 &lt;= ALPHA &lt;= 1 represents the
+          boundary value for the moduli of eigenvalues.
+          The ALPHA-stability domain does not include the boundary.
+
+  BETA    (input) DOUBLE PRECISION
+          BETA &gt; 0 specifies the absolute/relative error weighting
+          parameter. A large positive value of BETA favours the
+          minimization of the absolute approximation error, while a
+          small value of BETA is appropriate for the minimization
+          of the relative error.
+          BETA = 0 means a pure relative error method and can be
+          used only if rank(D) = P.
+
+  A       (input/output) DOUBLE PRECISION array, dimension (LDA,N)
+          On entry, the leading N-by-N part of this array must
+          contain the state dynamics matrix A.
+          On exit, if INFO = 0, the leading NR-by-NR part of this
+          array contains the state dynamics matrix Ar of the reduced
+          order system.
+          The resulting A has a block-diagonal form with two blocks.
+          For a system with NU ALPHA-unstable eigenvalues and
+          NS ALPHA-stable eigenvalues (NU+NS = N), the leading
+          NU-by-NU block contains the unreduced part of A
+          corresponding to ALPHA-unstable eigenvalues in an
+          upper real Schur form.
+          The trailing (NR+NS-N)-by-(NR+NS-N) block contains
+          the reduced part of A corresponding to ALPHA-stable
+          eigenvalues.
+
+  LDA     INTEGER
+          The leading dimension of array A.  LDA &gt;= MAX(1,N).
+
+  B       (input/output) DOUBLE PRECISION array, dimension (LDB,M)
+          On entry, the leading N-by-M part of this array must
+          contain the original input/state matrix B.
+          On exit, if INFO = 0, the leading NR-by-M part of this
+          array contains the input/state matrix Br of the reduced
+          order system.
+
+  LDB     INTEGER
+          The leading dimension of array B.  LDB &gt;= MAX(1,N).
+
+  C       (input/output) DOUBLE PRECISION array, dimension (LDC,N)
+          On entry, the leading P-by-N part of this array must
+          contain the original state/output matrix C.
+          On exit, if INFO = 0, the leading P-by-NR part of this
+          array contains the state/output matrix Cr of the reduced
+          order system.
+
+  LDC     INTEGER
+          The leading dimension of array C.  LDC &gt;= MAX(1,P).
+
+  D       (input/output) DOUBLE PRECISION array, dimension (LDD,M)
+          On entry, the leading P-by-M part of this array must
+          contain the original input/output matrix D.
+          On exit, if INFO = 0, the leading P-by-M part of this
+          array contains the input/output matrix Dr of the reduced
+          order system.
+
+  LDD     INTEGER
+          The leading dimension of array D.  LDD &gt;= MAX(1,P).
+
+  NS      (output) INTEGER
+          The dimension of the ALPHA-stable subsystem.
+
+  HSV     (output) DOUBLE PRECISION array, dimension (N)
+          If INFO = 0, the leading NS elements of HSV contain the
+          Hankel singular values of the phase system corresponding
+          to the ALPHA-stable part of the original system.
+          The Hankel singular values are ordered decreasingly.
+
+</PRE>
+<B>Tolerances</B>
+<PRE>
+  TOL1    DOUBLE PRECISION
+          If ORDSEL = 'A', TOL1 contains the tolerance for
+          determining the order of reduced system.
+          For model reduction, the recommended value of TOL1 lies
+          in the interval [0.00001,0.001].
+          If TOL1 &lt;= 0 on entry, the used default value is
+          TOL1 = NS*EPS, where NS is the number of
+          ALPHA-stable eigenvalues of A and EPS is the machine
+          precision (see LAPACK Library Routine DLAMCH).
+          If ORDSEL = 'F', the value of TOL1 is ignored.
+          TOL1 &lt; 1.
+
+  TOL2    DOUBLE PRECISION
+          The tolerance for determining the order of a minimal
+          realization of the phase system (see METHOD) corresponding
+          to the ALPHA-stable part of the given system.
+          The recommended value is TOL2 = NS*EPS.
+          This value is used by default if TOL2 &lt;= 0 on entry.
+          If TOL2 &gt; 0 and ORDSEL = 'A', then TOL2 &lt;= TOL1.
+          TOL2 &lt; 1.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  IWORK   INTEGER array, dimension (MAX(1,2*N))
+          On exit with INFO = 0, IWORK(1) contains the order of the
+          minimal realization of the system.
+
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+          On exit, if INFO = 0, DWORK(1) returns the optimal value
+          of LDWORK and DWORK(2) contains RCOND, the reciprocal
+          condition number of the U11 matrix from the expression
+          used to compute the solution X = U21*inv(U11) of the
+          Riccati equation for spectral factorization.
+          A small value RCOND indicates possible ill-conditioning
+          of the respective Riccati equation.
+
+  LDWORK  INTEGER
+          The length of the array DWORK.
+          LDWORK &gt;= 2*N*N + MB*(N+P) + MAX( 2, N*(MAX(N,MB,P)+5),
+                                 2*N*P+MAX(P*(MB+2),10*N*(N+1) ) ),
+          where MB = M if BETA = 0 and MB = M+P if BETA &gt; 0.
+          For optimum performance LDWORK should be larger.
+
+  BWORK   LOGICAL array, dimension 2*N
+
+</PRE>
+<B>Warning Indicator</B>
+<PRE>
+  IWARN   INTEGER
+          = 0:  no warning;
+          = 1:  with ORDSEL = 'F', the selected order NR is greater
+                than NSMIN, the sum of the order of the
+                ALPHA-unstable part and the order of a minimal
+                realization of the ALPHA-stable part of the given
+                system; in this case, the resulting NR is set equal
+                to NSMIN;
+          = 2:  with ORDSEL = 'F', the selected order NR corresponds
+                to repeated singular values for the ALPHA-stable
+                part, which are neither all included nor all
+                excluded from the reduced model; in this case, the
+                resulting NR is automatically decreased to exclude
+                all repeated singular values;
+          = 3:  with ORDSEL = 'F', the selected order NR is less
+                than the order of the ALPHA-unstable part of the
+                given system; in this case NR is set equal to the
+                order of the ALPHA-unstable part.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value;
+          = 1:  the computation of the ordered real Schur form of A
+                failed;
+          = 2:  the reduction of the Hamiltonian matrix to real
+                Schur form failed;
+          = 3:  the reordering of the real Schur form of the
+                Hamiltonian matrix failed;
+          = 4:  the Hamiltonian matrix has less than N stable
+                eigenvalues;
+          = 5:  the coefficient matrix U11 in the linear system
+                X*U11 = U21 to determine X is singular to working
+                precision;
+          = 6:  BETA = 0 and D has not a maximal row rank;
+          = 7:  the computation of Hankel singular values failed;
+          = 8:  the separation of the ALPHA-stable/unstable diagonal
+                blocks failed because of very close eigenvalues;
+          = 9:  the resulting order of reduced stable part is less
+                than the number of unstable zeros of the stable
+                part.
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  Let be the following linear system
+
+       d[x(t)] = Ax(t) + Bu(t)
+       y(t)    = Cx(t) + Du(t),                      (1)
+
+  where d[x(t)] is dx(t)/dt for a continuous-time system and x(t+1)
+  for a discrete-time system. The subroutine AB09HD determines for
+  the given system (1), the matrices of a reduced order system
+
+       d[z(t)] = Ar*z(t) + Br*u(t)
+       yr(t)   = Cr*z(t) + Dr*u(t),                  (2)
+
+  such that
+
+       INFNORM[inv(conj(W))*(G-Gr)] &lt;=
+                    (1+HSV(NR+NS-N+1)) / (1-HSV(NR+NS-N+1)) + ...
+                    + (1+HSV(NS)) / (1-HSV(NS)) - 1,
+
+  where G and Gr are transfer-function matrices of the systems
+  (A,B,C,D) and (Ar,Br,Cr,Dr), respectively, W is the right, minimum
+  phase spectral factor satisfying
+
+      G1*conj(G1) = conj(W)* W,                      (3)
+
+  G1 is the NS-order ALPHA-stable part of G, and INFNORM(G) is the
+  infinity-norm of G. HSV(1), ... , HSV(NS) are the Hankel-singular
+  values of the stable part of the phase system (Ap,Bp,Cp)
+  with the transfer-function matrix
+
+       P = inv(conj(W))*G1.
+
+  If BETA &gt; 0, then the model reduction is performed on [G BETA*I]
+  instead of G. This is the recommended approach to be used when D
+  has not a maximal row rank or when a certain balance between
+  relative and absolute approximation errors is desired. For
+  increasingly large values of BETA, the obtained reduced system
+  assymptotically approaches that computed by using the
+  Balance & Truncate or Singular Perturbation Approximation methods.
+
+  Note: conj(G)  denotes either G'(-s) for a continuous-time system
+        or G'(1/z) for a discrete-time system.
+        inv(G) is the inverse of G.
+
+  The following procedure is used to reduce a given G:
+
+  1) Decompose additively G as
+
+       G = G1 + G2,
+
+     such that G1 = (As,Bs,Cs,D) has only ALPHA-stable poles and
+     G2 = (Au,Bu,Cu) has only ALPHA-unstable poles.
+
+  2) Determine G1r, a reduced order approximation of the
+     ALPHA-stable part G1 using the balancing stochastic method
+     in conjunction with either the B&T [1,2] or SPA methods [3].
+
+  3) Assemble the reduced model Gr as
+
+        Gr = G1r + G2.
+
+  Note: The employed stochastic truncation algorithm [2,3] has the
+  property that right half plane zeros of G1 remain as right half
+  plane zeros of G1r. Thus, the order can not be chosen smaller than
+  the sum of the number of unstable poles of G and the number of
+  unstable zeros of G1.
+
+  The reduction of the ALPHA-stable part G1 is done as follows.
+
+  If JOB = 'B', the square-root stochastic Balance & Truncate
+  method of [1] is used.
+  For an ALPHA-stable continuous-time system (DICO = 'C'),
+  the resulting reduced model is stochastically balanced.
+
+  If JOB = 'F', the balancing-free square-root version of the
+  stochastic Balance & Truncate method [1] is used to reduce
+  the ALPHA-stable part G1.
+
+  If JOB = 'S', the stochastic balancing method is used to reduce
+  the ALPHA-stable part G1, in conjunction with the square-root
+  version of the Singular Perturbation Approximation method [3,4].
+
+  If JOB = 'P', the stochastic balancing method is used to reduce
+  the ALPHA-stable part G1, in conjunction with the balancing-free
+  square-root version of the Singular Perturbation Approximation
+  method [3,4].
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Varga A. and Fasol K.H.
+      A new square-root balancing-free stochastic truncation model
+      reduction algorithm.
+      Proc. 12th IFAC World Congress, Sydney, 1993.
+
+  [2] Safonov M. G. and Chiang R. Y.
+      Model reduction for robust control: a Schur relative error
+      method.
+      Int. J. Adapt. Contr. Sign. Proc., vol. 2, pp. 259-272, 1988.
+
+  [3] Green M. and Anderson B. D. O.
+      Generalized balanced stochastic truncation.
+      Proc. 29-th CDC, Honolulu, Hawaii, pp. 476-481, 1990.
+
+  [4] Varga A.
+      Balancing-free square-root algorithm for computing
+      singular perturbation approximations.
+      Proc. 30-th IEEE CDC,  Brighton, Dec. 11-13, 1991,
+      Vol. 2, pp. 1062-1065.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  The implemented methods rely on accuracy enhancing square-root or
+  balancing-free square-root techniques. The effectiveness of the
+  accuracy enhancing technique depends on the accuracy of the
+  solution of a Riccati equation. An ill-conditioned Riccati
+  solution typically results when [D BETA*I] is nearly
+  rank deficient.
+                                   3
+  The algorithm requires about 100N  floating point operations.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+*     AB09HD EXAMPLE PROGRAM TEXT
+*
+*     .. Parameters ..
+      INTEGER          NIN, NOUT
+      PARAMETER        ( NIN = 5, NOUT = 6 )
+      INTEGER          NMAX, MMAX, PMAX
+      PARAMETER        ( NMAX = 20, MMAX = 20, PMAX = 20 )
+      INTEGER          LDA, LDB, LDC, LDD
+      PARAMETER        ( LDA = NMAX, LDB = NMAX, LDC = PMAX,
+     $                 LDD = PMAX )
+      INTEGER          LBWORK, LIWORK
+      PARAMETER        ( LBWORK = 2*NMAX, LIWORK = 2*NMAX )
+      INTEGER          LDWORK, MBMAX
+      PARAMETER        ( MBMAX = MMAX + PMAX )
+      PARAMETER        ( LDWORK = 2*NMAX*NMAX + MBMAX*(NMAX+PMAX) +
+     $                      MAX( NMAX*(MAX( NMAX, MMAX, PMAX) + 5),
+     $                     2*NMAX*PMAX + MAX( PMAX*(MBMAX+2),
+     $                                        10*NMAX*(NMAX+1) ) ) )
+*     .. Local Scalars ..
+      DOUBLE PRECISION ALPHA, BETA, TOL1, TOL2
+      INTEGER          I, INFO, IWARN, J, M, N, NR, NS, P
+      CHARACTER*1      DICO, EQUIL, JOB, ORDSEL
+*     .. Local Arrays ..
+      DOUBLE PRECISION A(LDA,NMAX), B(LDB,MMAX), C(LDC,NMAX),
+     $                 D(LDD,MMAX), DWORK(LDWORK), HSV(NMAX)
+      LOGICAL          BWORK(LBWORK)
+      INTEGER          IWORK(LIWORK)
+*     .. External Subroutines ..
+      EXTERNAL         AB09HD
+*     .. Intrinsic Functions ..
+      INTRINSIC        MAX
+*     .. Executable Statements ..
+*
+      WRITE ( NOUT, FMT = 99999 )
+*     Skip the heading in the data file and read the data.
+      READ ( NIN, FMT = '()' )
+      READ ( NIN, FMT = * ) N, M, P, NR, ALPHA, BETA, TOL1, TOL2,
+     $                      DICO, JOB, EQUIL, ORDSEL
+      IF ( N.LT.0 .OR. N.GT.NMAX ) THEN
+         WRITE ( NOUT, FMT = 99990 ) N
+      ELSE
+         READ ( NIN, FMT = * ) ( ( A(I,J), J = 1,N ), I = 1,N )
+         IF ( M.LT.0 .OR. M.GT.MMAX ) THEN
+            WRITE ( NOUT, FMT = 99989 ) M
+         ELSE
+            READ ( NIN, FMT = * ) ( ( B(I,J), J = 1,M ), I = 1, N )
+            IF ( P.LT.0 .OR. P.GT.PMAX ) THEN
+               WRITE ( NOUT, FMT = 99988 ) P
+            ELSE
+               READ ( NIN, FMT = * ) ( ( C(I,J), J = 1,N ), I = 1,P )
+               READ ( NIN, FMT = * ) ( ( D(I,J), J = 1,M ), I = 1,P )
+*              Find a reduced ssr for (A,B,C,D).
+               CALL AB09HD( DICO, JOB, EQUIL, ORDSEL, N, M, P, NR,
+     $                      ALPHA, BETA, A, LDA, B, LDB, C, LDC, D, LDD,
+     $                      NS, HSV, TOL1, TOL2, IWORK, DWORK, LDWORK,
+     $                      BWORK, IWARN, INFO )
+*
+               IF ( INFO.NE.0 ) THEN
+                  WRITE ( NOUT, FMT = 99998 ) INFO
+               ELSE
+                  WRITE ( NOUT, FMT = 99997 ) NR
+                  WRITE ( NOUT, FMT = 99987 )
+                  WRITE ( NOUT, FMT = 99995 ) ( HSV(J), J = 1,NS )
+                  IF( NR.GT.0 ) WRITE ( NOUT, FMT = 99996 )
+                  DO 20 I = 1, NR
+                     WRITE ( NOUT, FMT = 99995 ) ( A(I,J), J = 1,NR )
+   20             CONTINUE
+                  IF( NR.GT.0 ) WRITE ( NOUT, FMT = 99993 )
+                  DO 40 I = 1, NR
+                     WRITE ( NOUT, FMT = 99995 ) ( B(I,J), J = 1,M )
+   40             CONTINUE
+                  IF( NR.GT.0 ) WRITE ( NOUT, FMT = 99992 )
+                  DO 60 I = 1, P
+                     WRITE ( NOUT, FMT = 99995 ) ( C(I,J), J = 1,NR )
+   60             CONTINUE
+                  WRITE ( NOUT, FMT = 99991 )
+                  DO 70 I = 1, P
+                     WRITE ( NOUT, FMT = 99995 ) ( D(I,J), J = 1,M )
+   70             CONTINUE
+               END IF
+            END IF
+         END IF
+      END IF
+      STOP
+*
+99999 FORMAT (' AB09HD EXAMPLE PROGRAM RESULTS',/1X)
+99998 FORMAT (' INFO on exit from AB09HD = ',I2)
+99997 FORMAT (' The order of reduced model = ',I2)
+99996 FORMAT (/' The reduced state dynamics matrix Ar is ')
+99995 FORMAT (20(1X,F8.4))
+99993 FORMAT (/' The reduced input/state matrix Br is ')
+99992 FORMAT (/' The reduced state/output matrix Cr is ')
+99991 FORMAT (/' The reduced input/output matrix Dr is ')
+99990 FORMAT (/' N is out of range.',/' N = ',I5)
+99989 FORMAT (/' M is out of range.',/' M = ',I5)
+99988 FORMAT (/' P is out of range.',/' P = ',I5)
+99987 FORMAT (/' The stochastic Hankel singular values of ALPHA-stable'
+     $        ,' part are')
+      END
+</PRE>
+<B>Program Data</B>
+<PRE>
+ AB09HD EXAMPLE PROGRAM DATA (Continuous system)
+  7  2   3   0   0.0   1.0  0.1E0  0.0    C     F     N     A
+ -0.04165  0.0000  4.9200  -4.9200  0.0000  0.0000  0.0000
+ -5.2100  -12.500  0.0000   0.0000  0.0000  0.0000  0.0000
+  0.0000   3.3300 -3.3300   0.0000  0.0000  0.0000  0.0000
+  0.5450   0.0000  0.0000   0.0000 -0.5450  0.0000  0.0000
+  0.0000   0.0000  0.0000   4.9200 -0.04165 0.0000  4.9200
+  0.0000   0.0000  0.0000   0.0000 -5.2100 -12.500  0.0000
+  0.0000   0.0000  0.0000   0.0000  0.0000  3.3300 -3.3300
+  0.0000   0.0000
+  12.500   0.0000
+  0.0000   0.0000
+  0.0000   0.0000
+  0.0000   0.0000
+  0.0000   12.500
+  0.0000   0.0000
+  1.0000   0.0000  0.0000   0.0000  0.0000  0.0000  0.0000
+  0.0000   0.0000  0.0000   1.0000  0.0000  0.0000  0.0000
+  0.0000   0.0000  0.0000   0.0000  1.0000  0.0000  0.0000
+  0.0000   0.0000
+  0.0000   0.0000
+  0.0000   0.0000
+
+</PRE>
+<B>Program Results</B>
+<PRE>
+ AB09HD EXAMPLE PROGRAM RESULTS
+
+ The order of reduced model =  5
+
+ The stochastic Hankel singular values of ALPHA-stable part are
+   0.8803   0.8506   0.8038   0.4494   0.3973   0.0214   0.0209
+
+ The reduced state dynamics matrix Ar is 
+   1.2729   0.0000   6.5947   0.0000  -3.4229
+   0.0000   0.8169   0.0000   2.4821   0.0000
+  -2.9889   0.0000  -2.9028   0.0000  -0.3692
+   0.0000  -3.3921   0.0000  -3.1126   0.0000
+  -1.4767   0.0000  -2.0339   0.0000  -0.6107
+
+ The reduced input/state matrix Br is 
+   0.1331  -0.1331
+  -0.0862  -0.0862
+  -2.6777   2.6777
+  -3.5767  -3.5767
+  -2.3033   2.3033
+
+ The reduced state/output matrix Cr is 
+  -0.6907  -0.6882   0.0779   0.0958  -0.0038
+   0.0676   0.0000   0.6532   0.0000  -0.7522
+   0.6907  -0.6882  -0.0779   0.0958   0.0038
+
+ The reduced input/output matrix Dr is 
+   0.0000   0.0000
+   0.0000   0.0000
+   0.0000   0.0000
+</PRE>
+
+<HR>
+<p>
+<A HREF=..\libindex.html><B>Return to index</B></A></BODY>
+</HTML>

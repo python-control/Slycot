@@ -1,0 +1,338 @@
+<HTML>
+<HEAD><TITLE>MB02JD - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MB02JD">MB02JD</A></H2>
+<H3>
+Full QR factorization of a block Toeplitz matrix of full rank
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To compute a lower triangular matrix R and a matrix Q with
+  Q^T Q = I such that
+                                 T
+                        T  =  Q R ,
+
+  where T is a K*M-by-L*N block Toeplitz matrix with blocks of size
+  (K,L). The first column of T will be denoted by TC and the first
+  row by TR. It is assumed that the first MIN(M*K, N*L) columns of T
+  have full rank.
+
+  By subsequent calls of this routine the factors Q and R can be
+  computed block column by block column.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MB02JD( JOB, K, L, M, N, P, S, TC, LDTC, TR, LDTR, Q,
+     $                   LDQ, R, LDR, DWORK, LDWORK, INFO )
+C     .. Scalar Arguments ..
+      CHARACTER         JOB
+      INTEGER           INFO, K, L, LDQ, LDR, LDTC, LDTR, LDWORK,
+     $                  M, N, P, S
+C     .. Array Arguments ..
+      DOUBLE PRECISION  DWORK(LDWORK), Q(LDQ,*), R(LDR,*), TC(LDTC,*),
+     $                  TR(LDTR,*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  JOB     CHARACTER*1
+          Specifies the output of the routine as follows:
+          = 'Q':  computes Q and R;
+          = 'R':  only computes R.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  K       (input)  INTEGER
+          The number of rows in one block of T.  K &gt;= 0.
+
+  L       (input)  INTEGER
+          The number of columns in one block of T.  L &gt;= 0.
+
+  M       (input)  INTEGER
+          The number of blocks in one block column of T.  M &gt;= 0.
+
+  N       (input)  INTEGER
+          The number of blocks in one block row of T.  N &gt;= 0.
+
+  P       (input)  INTEGER
+          The number of previously computed block columns of R.
+          P*L &lt; MIN( M*K,N*L ) + L and P &gt;= 0.
+
+  S       (input)  INTEGER
+          The number of block columns of R to compute.
+          (P+S)*L &lt; MIN( M*K,N*L ) + L and S &gt;= 0.
+
+  TC      (input) DOUBLE PRECISION array, dimension (LDTC, L)
+          On entry, if P = 0, the leading M*K-by-L part of this
+          array must contain the first block column of T.
+
+  LDTC    INTEGER
+          The leading dimension of the array TC.
+          LDTC &gt;= MAX(1,M*K).
+
+  TR      (input)  DOUBLE PRECISION array, dimension (LDTR,(N-1)*L)
+          On entry, if P = 0, the leading K-by-(N-1)*L part of this
+          array must contain the first block row of T without the
+          leading K-by-L block.
+
+  LDTR    INTEGER
+          The leading dimension of the array TR.
+          LDTR &gt;= MAX(1,K).
+
+  Q       (input/output)  DOUBLE PRECISION array, dimension
+                          (LDQ,MIN( S*L, MIN( M*K,N*L )-P*L ))
+          On entry, if JOB = 'Q'  and  P &gt; 0, the leading M*K-by-L
+          part of this array must contain the last block column of Q
+          from a previous call of this routine.
+          On exit, if JOB = 'Q'  and  INFO = 0, the leading
+          M*K-by-MIN( S*L, MIN( M*K,N*L )-P*L ) part of this array
+          contains the P-th to (P+S)-th block columns of the factor
+          Q.
+
+  LDQ     INTEGER
+          The leading dimension of the array Q.
+          LDQ &gt;= MAX(1,M*K), if JOB = 'Q';
+          LDQ &gt;= 1,          if JOB = 'R'.
+
+  R       (input/output)  DOUBLE PRECISION array, dimension
+                          (LDR,MIN( S*L, MIN( M*K,N*L )-P*L ))
+          On entry, if P &gt; 0, the leading (N-P+1)*L-by-L
+          part of this array must contain the nozero part of the
+          last block column of R from a previous call of this
+          routine.
+          One exit, if INFO = 0, the leading
+          MIN( N, N-P+1 )*L-by-MIN( S*L, MIN( M*K,N*L )-P*L )
+          part of this array contains the nonzero parts of the P-th
+          to (P+S)-th block columns of the lower triangular
+          factor R.
+          Note that elements in the strictly upper triangular part
+          will not be referenced.
+
+  LDR     INTEGER
+          The leading dimension of the array R.
+          LDR &gt;= MAX( 1, MIN( N, N-P+1 )*L )
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+          On exit, if INFO = 0, DWORK(1) returns the optimal value
+          of LDWORK.
+          On exit, if INFO = -17,  DWORK(1) returns the minimum
+          value of LDWORK.
+          If JOB = 'Q', the first 1 + ( (N-1)*L + M*K )*( 2*K + L )
+          elements of DWORK should be preserved during successive
+          calls of the routine.
+          If JOB = 'R', the first 1 + (N-1)*L*( 2*K + L ) elements
+          of DWORK should be preserved during successive calls of
+          the routine.
+
+  LDWORK  INTEGER
+          The length of the array DWORK.
+          JOB = 'Q':
+             LDWORK &gt;= 1 + ( M*K + ( N - 1 )*L )*( L + 2*K ) + 6*L
+                         + MAX( M*K,( N - MAX( 1,P )*L ) );
+          JOB = 'R':
+             If P = 0,
+                LDWORK &gt;= MAX( 1 + ( N - 1 )*L*( L + 2*K ) + 6*L
+                                 + (N-1)*L, M*K*( L + 1 ) + L );
+             If P &gt; 0,
+                LDWORK &gt;= 1 + (N-1)*L*( L + 2*K ) + 6*L + (N-P)*L.
+          For optimum performance LDWORK should be larger.
+
+          If LDWORK = -1, then a workspace query is assumed;
+          the routine only calculates the optimal size of the
+          DWORK array, returns this value as the first entry of
+          the DWORK array, and no error message related to LDWORK
+          is issued by XERBLA.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value;
+          = 1:  the full rank condition for the first MIN(M*K, N*L)
+                columns of T is (numerically) violated.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  Block Householder transformations and modified hyperbolic
+  rotations are used in the Schur algorithm [1], [2].
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Kailath, T. and Sayed, A.
+      Fast Reliable Algorithms for Matrices with Structure.
+      SIAM Publications, Philadelphia, 1999.
+
+  [2] Kressner, D. and Van Dooren, P.
+      Factorizations and linear system solvers for matrices with
+      Toeplitz structure.
+      SLICOT Working Note 2000-2, 2000.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  The implemented method yields a factor R which has comparable
+  accuracy with the Cholesky factor of T^T * T. Q is implicitly
+  computed from the formula Q = T * inv(R^T R) * R, i.e., for ill
+  conditioned problems this factor is of very limited value.
+                              2
+  The algorithm requires 0(K*L *M*N) floating point operations.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+*     MB02JD EXAMPLE PROGRAM TEXT
+*
+*     .. Parameters ..
+      INTEGER          NIN, NOUT
+      PARAMETER        ( NIN = 5, NOUT = 6 )
+      INTEGER          KMAX, LMAX, MMAX, NMAX
+      PARAMETER        ( KMAX = 10, LMAX = 10, MMAX = 20, NMAX = 20 )
+      INTEGER          LDR, LDQ, LDTC, LDTR, LDWORK
+      PARAMETER        ( LDR  = NMAX*LMAX, LDQ  = MMAX*KMAX,
+     $                   LDTC = MMAX*KMAX, LDTR = KMAX,
+     $                   LDWORK = ( MMAX*KMAX + NMAX*LMAX )
+     $                            *( LMAX + 2*KMAX ) + 6*LMAX
+     $                            + MMAX*KMAX + NMAX*LMAX )
+*     .. Local Scalars ..
+      INTEGER          I, INFO, J, K, L, M, N, S
+      CHARACTER        JOB
+*     .. Local Arrays ..
+      DOUBLE PRECISION DWORK(LDWORK), Q(LDQ,NMAX*LMAX),
+     $                 R(LDR,NMAX*LMAX), TC(LDTC,LMAX),
+     $                 TR(LDTR,NMAX*LMAX)
+*     .. External Functions ..
+      LOGICAL          LSAME
+      EXTERNAL         LSAME
+*     .. External Subroutines ..
+      EXTERNAL         MB02JD
+*     .. Intrinsic Functions ..
+      INTRINSIC        MIN
+*
+*     .. Executable Statements ..
+      WRITE ( NOUT, FMT = 99999 )
+*     Skip the heading in the data file and read the data.
+      READ ( NIN, FMT = '()' )
+      READ ( NIN, FMT = * ) K, L, M, N, JOB
+      IF( K.LE.0 .OR. K.GT.KMAX ) THEN
+         WRITE ( NOUT, FMT = 99994 ) K
+      ELSE IF( L.LE.0 .OR. L.GT.LMAX ) THEN
+         WRITE ( NOUT, FMT = 99993 ) L
+      ELSE IF( M.LE.0 .OR. M.GT.MMAX ) THEN
+         WRITE ( NOUT, FMT = 99992 ) M
+      ELSE IF( N.LE.0 .OR. N.GT.NMAX ) THEN
+         WRITE ( NOUT, FMT = 99991 ) N
+      ELSE
+         READ ( NIN, FMT = * ) ( ( TC(I,J), J = 1,L ), I = 1,M*K )
+         READ ( NIN, FMT = * ) ( ( TR(I,J), J = 1,( N - 1 )*L ),
+     $                             I = 1,K )
+         S = ( MIN( M*K, N*L ) + L - 1 ) / L
+*        Compute the required part of the QR factorization.
+         CALL MB02JD( JOB, K, L, M, N, 0, S, TC, LDTC, TR, LDTR, Q, LDQ,
+     $                R, LDR, DWORK, LDWORK, INFO )
+         IF ( INFO.NE.0 ) THEN
+            WRITE ( NOUT, FMT = 99998 ) INFO
+         ELSE
+            IF ( LSAME( JOB, 'Q' ) ) THEN
+               WRITE ( NOUT, FMT = 99997 )
+               DO 10  I = 1, M*K
+                  WRITE ( NOUT, FMT = 99995 )
+     $                  ( Q(I,J), J = 1, MIN( N*L, M*K ) )
+   10          CONTINUE
+            END IF
+            WRITE ( NOUT, FMT = 99996 )
+            DO 20  I = 1, N*L
+               WRITE ( NOUT, FMT = 99995 )
+     $               ( R(I,J), J = 1, MIN( N*L, M*K ) )
+   20       CONTINUE
+         END IF
+      END IF
+*
+      STOP
+*
+99999 FORMAT (' MB02JD EXAMPLE PROGRAM RESULTS',/1X)
+99998 FORMAT (' INFO on exit from MB02JD = ',I2)
+99997 FORMAT (/' The factor Q is ')
+99996 FORMAT (/' The factor R is ')
+99995 FORMAT (20(1X,F8.4))
+99994 FORMAT (/' K is out of range.',/' K = ',I5)
+99993 FORMAT (/' L is out of range.',/' L = ',I5)
+99992 FORMAT (/' M is out of range.',/' M = ',I5)
+99991 FORMAT (/' N is out of range.',/' N = ',I5)
+      END
+</PRE>
+<B>Program Data</B>
+<PRE>
+MB02JD EXAMPLE PROGRAM DATA
+    2   3    4    3    Q
+     1.0     4.0     0.0
+     4.0     1.0     2.0
+     4.0     2.0     2.0
+     5.0     3.0     2.0
+     2.0     4.0     4.0
+     5.0     3.0     4.0
+     2.0     2.0     5.0
+     4.0     2.0     3.0
+     3.0     4.0     2.0     5.0     0.0     4.0
+     5.0     1.0     1.0     2.0     4.0     1.0
+</PRE>
+<B>Program Results</B>
+<PRE>
+ MB02JD EXAMPLE PROGRAM RESULTS
+
+
+ The factor Q is 
+  -0.0967   0.7166  -0.4651   0.1272   0.4357   0.0435   0.2201   0.0673
+  -0.3867  -0.3108  -0.0534   0.5251   0.0963  -0.3894   0.1466   0.5412
+  -0.3867  -0.0990  -0.1443  -0.7021   0.3056  -0.3367  -0.3233   0.1249
+  -0.4834  -0.0178  -0.3368  -0.1763  -0.5446   0.5100   0.1503   0.2054
+  -0.1933   0.5859   0.3214   0.1156  -0.4670  -0.3199  -0.4185   0.0842
+  -0.4834  -0.0178   0.1072   0.0357  -0.0575  -0.2859   0.4339  -0.6928
+  -0.1933   0.1623   0.7251  -0.1966   0.2736   0.3058   0.3398   0.2968
+  -0.3867  -0.0990   0.0777   0.3615   0.3386   0.4421  -0.5693  -0.2641
+
+ The factor R is 
+ -10.3441   0.0000   0.0000   0.0000   0.0000   0.0000   0.0000   0.0000
+  -6.3805   4.7212   0.0000   0.0000   0.0000   0.0000   0.0000   0.0000
+  -7.3472   1.9320   4.5040   0.0000   0.0000   0.0000   0.0000   0.0000
+ -10.0541   2.5101   0.5065   3.6550   0.0000   0.0000   0.0000   0.0000
+  -6.5738   3.6127   1.2702  -1.3146   3.5202   0.0000   0.0000   0.0000
+  -5.2204   2.4764   2.4113   1.3890   1.2780   2.4976   0.0000   0.0000
+  -9.6674   3.2445  -0.5099  -0.0224   2.6548   2.9491   1.0049   0.0000
+  -6.3805   0.6968   1.9483   0.3050   0.7002  -2.0220  -2.8246   2.3147
+  -4.1570   2.4309  -0.7190  -0.1455   3.0149   0.5454   0.9394  -0.0548
+</PRE>
+
+<HR>
+<p>
+<A HREF=..\libindex.html><B>Return to index</B></A></BODY>
+</HTML>

@@ -1,0 +1,194 @@
+<HTML>
+<HEAD><TITLE>AG07BD - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="AG07BD">AG07BD</A></H2>
+<H3>
+Descriptor inverse of a state-space or descriptor representation
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To compute the inverse (Ai-lambda*Ei,Bi,Ci,Di) of a given
+  descriptor system (A-lambda*E,B,C,D).
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE AG07BD( JOBE, N, M, A, LDA, E, LDE, B, LDB, C, LDC,
+     $                   D, LDD, AI, LDAI, EI, LDEI, BI, LDBI, CI, LDCI,
+     $                   DI, LDDI, INFO )
+C     .. Scalar Arguments ..
+      CHARACTER          JOBE
+      INTEGER            INFO, LDA, LDAI, LDB, LDBI, LDC, LDCI,
+     $                   LDD, LDDI, LDE, LDEI, M, N
+C     .. Array Arguments ..
+      DOUBLE PRECISION   A(LDA,*), AI(LDAI,*), B(LDB,*), BI(LDBI,*),
+     $                   C(LDC,*), CI(LDCI,*), D(LDD,*), DI(LDDI,*),
+     $                   E(LDE,*), EI(LDEI,*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  JOBE    CHARACTER*1
+          Specifies whether E is a general square or an identity
+          matrix as follows:
+          = 'G':  E is a general square matrix;
+          = 'I':  E is the identity matrix.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The order of the square matrices A and E;
+          also the number of rows of matrix B and the number of
+          columns of matrix C.  N &gt;= 0.
+
+  M       (input) INTEGER
+          The number of system inputs and outputs, i.e., the number
+          of columns of matrices B and D and the number of rows of
+          matrices C and D.  M &gt;= 0.
+
+  A       (input) DOUBLE PRECISION array, dimension (LDA,N)
+          The leading N-by-N part of this array must contain the
+          state matrix A of the original system.
+
+  LDA     INTEGER
+          The leading dimension of the array A.  LDA &gt;= MAX(1,N).
+
+  E       (input) DOUBLE PRECISION array, dimension (LDE,N)
+          If JOBE = 'G', the leading N-by-N part of this array must
+          contain the descriptor matrix E of the original system.
+          If JOBE = 'I', then E is assumed to be the identity
+          matrix and is not referenced.
+
+  LDE     INTEGER
+          The leading dimension of the array E.
+          LDE &gt;= MAX(1,N), if JOBE = 'G';
+          LDE &gt;= 1,        if JOBE = 'I'.
+
+  B       (input) DOUBLE PRECISION array, dimension (LDB,M)
+          The leading N-by-M part of this array must contain the
+          input matrix B of the original system.
+
+  LDB     INTEGER
+          The leading dimension of the array B.  LDB &gt;= MAX(1,N).
+
+  C       (input) DOUBLE PRECISION array, dimension (LDC,N)
+          The leading M-by-N part of this array must contain the
+          output matrix C of the original system.
+
+  LDC     INTEGER
+          The leading dimension of the array C.  LDC &gt;= MAX(1,M).
+
+  D       (input) DOUBLE PRECISION array, dimension (LDD,M)
+          The leading M-by-M part of this array must contain the
+          feedthrough matrix D of the original system.
+
+  LDD     INTEGER
+          The leading dimension of the array D.  LDD &gt;= MAX(1,M).
+
+  AI      (output) DOUBLE PRECISION array, dimension (LDAI,N+M)
+          The leading (N+M)-by-(N+M) part of this array contains
+          the state matrix Ai of the inverse system.
+          If LDAI = LDA &gt;= N+M, then AI and A can share the same
+          storage locations.
+
+  LDAI    INTEGER
+          The leading dimension of the array AI.
+          LDAI &gt;= MAX(1,N+M).
+
+  EI      (output) DOUBLE PRECISION array, dimension (LDEI,N+M)
+          The leading (N+M)-by-(N+M) part of this array contains
+          the descriptor matrix Ei of the inverse system.
+          If LDEI = LDE &gt;= N+M, then EI and E can share the same
+          storage locations.
+
+  LDEI    INTEGER
+          The leading dimension of the array EI.
+          LDEI &gt;= MAX(1,N+M).
+
+  BI      (output) DOUBLE PRECISION array, dimension (LDBI,M)
+          The leading (N+M)-by-M part of this array contains
+          the input matrix Bi of the inverse system.
+          If LDBI = LDB &gt;= N+M, then BI and B can share the same
+          storage locations.
+
+  LDBI    INTEGER
+          The leading dimension of the array BI.
+          LDBI &gt;= MAX(1,N+M).
+
+  CI      (output) DOUBLE PRECISION array, dimension (LDCI,N+M)
+          The leading M-by-(N+M) part of this array contains
+          the output matrix Ci of the inverse system.
+          If LDCI = LDC, CI and C can share the same storage
+          locations.
+
+  LDCI    INTEGER
+          The leading dimension of the array CI.  LDCI &gt;= MAX(1,M).
+
+  DI      (output) DOUBLE PRECISION array, dimension (LDDI,M)
+          The leading M-by-M part of this array contains
+          the feedthrough matrix Di = 0 of the inverse system.
+          DI and D can share the same storage locations.
+
+  LDDI    INTEGER
+          The leading dimension of the array DI.  LDDI &gt;= MAX(1,M).
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  The matrices of the inverse system are computed with the formulas
+
+             ( E  0 )        ( A  B )         (  0 )
+        Ei = (      ) , Ai = (      ) ,  Bi = (    ),
+             ( 0  0 )        ( C  D )         ( -I )
+
+        Ci = ( 0  I ),  Di = 0.
+
+</PRE>
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  The routine does not perform an invertibility test. This check can
+  be performed by using the SLICOT routines AB08NX or AG08BY.
+
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<p>
+<A HREF=..\libindex.html><B>Return to index</B></A></BODY>
+</HTML>

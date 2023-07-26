@@ -1,0 +1,361 @@
+<HTML>
+<HEAD><TITLE>MB02JX - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MB02JX">MB02JX</A></H2>
+<H3>
+Low rank QR factorization with column pivoting of a block Toeplitz matrix
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To compute a low rank QR factorization with column pivoting of a
+  K*M-by-L*N block Toeplitz matrix T with blocks of size (K,L);
+  specifically,
+                                  T
+                        T P =  Q R ,
+
+  where R is lower trapezoidal, P is a block permutation matrix
+  and Q^T Q = I. The number of columns in R is equivalent to the
+  numerical rank of T with respect to the given tolerance TOL1.
+  Note that the pivoting scheme is local, i.e., only columns
+  belonging to the same block in T are permuted.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MB02JX( JOB, K, L, M, N, TC, LDTC, TR, LDTR, RNK, Q,
+     $                   LDQ, R, LDR, JPVT, TOL1, TOL2, DWORK, LDWORK,
+     $                   INFO )
+C     .. Scalar Arguments ..
+      CHARACTER         JOB
+      INTEGER           INFO, K, L, LDQ, LDR, LDTC, LDTR, LDWORK, M, N,
+     $                  RNK
+      DOUBLE PRECISION  TOL1, TOL2
+C     .. Array Arguments ..
+      DOUBLE PRECISION  DWORK(LDWORK), Q(LDQ,*), R(LDR,*), TC(LDTC,*),
+     $                  TR(LDTR,*)
+      INTEGER           JPVT(*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  JOB     CHARACTER*1
+          Specifies the output of the routine as follows:
+          = 'Q':  computes Q and R;
+          = 'R':  only computes R.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  K       (input)  INTEGER
+          The number of rows in one block of T.  K &gt;= 0.
+
+  L       (input)  INTEGER
+          The number of columns in one block of T.  L &gt;= 0.
+
+  M       (input)  INTEGER
+          The number of blocks in one block column of T.  M &gt;= 0.
+
+  N       (input)  INTEGER
+          The number of blocks in one block row of T.  N &gt;= 0.
+
+  TC      (input) DOUBLE PRECISION array, dimension (LDTC, L)
+          The leading M*K-by-L part of this array must contain
+          the first block column of T.
+
+  LDTC    INTEGER
+          The leading dimension of the array TC.
+          LDTC &gt;= MAX(1,M*K).
+
+  TR      (input)  DOUBLE PRECISION array, dimension (LDTR,(N-1)*L)
+          The leading K-by-(N-1)*L part of this array must contain
+          the first block row of T without the leading K-by-L
+          block.
+
+  LDTR    INTEGER
+          The leading dimension of the array TR.  LDTR &gt;= MAX(1,K).
+
+  RNK     (output)  INTEGER
+          The number of columns in R, which is equivalent to the
+          numerical rank of T.
+
+  Q       (output)  DOUBLE PRECISION array, dimension (LDQ,RNK)
+          If JOB = 'Q', then the leading M*K-by-RNK part of this
+          array contains the factor Q.
+          If JOB = 'R', then this array is not referenced.
+
+  LDQ     INTEGER
+          The leading dimension of the array Q.
+          LDQ &gt;= MAX(1,M*K),  if JOB = 'Q';
+          LDQ &gt;= 1,           if JOB = 'R'.
+
+  R       (output)  DOUBLE PRECISION array, dimension (LDR,RNK)
+          The leading N*L-by-RNK part of this array contains the
+          lower trapezoidal factor R.
+
+  LDR     INTEGER
+          The leading dimension of the array R.
+          LDR &gt;= MAX(1,N*L)
+
+  JPVT    (output)  INTEGER array, dimension (MIN(M*K,N*L))
+          This array records the column pivoting performed.
+          If JPVT(j) = k, then the j-th column of T*P was
+          the k-th column of T.
+
+</PRE>
+<B>Tolerances</B>
+<PRE>
+  TOL1    DOUBLE PRECISION
+          If TOL1 &gt;= 0.0, the user supplied diagonal tolerance;
+          if TOL1 &lt; 0.0, a default diagonal tolerance is used.
+
+  TOL2    DOUBLE PRECISION
+          If TOL2 &gt;= 0.0, the user supplied offdiagonal tolerance;
+          if TOL2 &lt; 0.0, a default offdiagonal tolerance is used.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+          On exit, if INFO = 0, DWORK(1) returns the optimal value
+          of LDWORK;  DWORK(2) and DWORK(3) return the used values
+          for TOL1 and TOL2, respectively.
+          On exit, if INFO = -19,  DWORK(1) returns the minimum
+          value of LDWORK.
+
+  LDWORK  INTEGER
+          The length of the array DWORK.
+          LDWORK &gt;= MAX( 3, ( M*K + ( N - 1 )*L )*( L + 2*K ) + 9*L
+                              + MAX(M*K,(N-1)*L) ),    if JOB = 'Q';
+          LDWORK &gt;= MAX( 3, ( N - 1 )*L*( L + 2*K + 1 ) + 9*L,
+                              M*K*( L + 1 ) + L ),     if JOB = 'R'.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value;
+          = 1:  due to perturbations induced by roundoff errors, or
+                removal of nearly linearly dependent columns of the
+                generator, the Schur algorithm encountered a
+                situation where a diagonal element in the negative
+                generator is larger in magnitude than the
+                corresponding diagonal element in the positive
+                generator (modulo TOL1);
+          = 2:  due to perturbations induced by roundoff errors, or
+                removal of nearly linearly dependent columns of the
+                generator, the Schur algorithm encountered a
+                situation where diagonal elements in the positive
+                and negative generator are equal in magnitude
+                (modulo TOL1), but the offdiagonal elements suggest
+                that these columns are not linearly dependent
+                (modulo TOL2*ABS(diagonal element)).
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  Householder transformations and modified hyperbolic rotations
+  are used in the Schur algorithm [1], [2].
+  If, during the process, the hyperbolic norm of a row in the
+  leading part of the generator is found to be less than or equal
+  to TOL1, then this row is not reduced. If the difference of the
+  corresponding columns has a norm less than or equal to TOL2 times
+  the magnitude of the leading element, then this column is removed
+  from the generator, as well as from R. Otherwise, the algorithm
+  breaks down. TOL1 is set to norm(TC)*sqrt(eps) and TOL2 is set
+  to N*L*sqrt(eps) by default.
+  If M*K &gt; L, the columns of T are permuted so that the diagonal
+  elements in one block column of R have decreasing magnitudes.
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Kailath, T. and Sayed, A.
+      Fast Reliable Algorithms for Matrices with Structure.
+      SIAM Publications, Philadelphia, 1999.
+
+  [2] Kressner, D. and Van Dooren, P.
+      Factorizations and linear system solvers for matrices with
+      Toeplitz structure.
+      SLICOT Working Note 2000-2, 2000.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  The algorithm requires 0(K*RNK*L*M*N) floating point operations.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+*     MB02JX EXAMPLE PROGRAM TEXT
+*
+*     .. Parameters ..
+      INTEGER          NIN, NOUT
+      PARAMETER        ( NIN = 5, NOUT = 6 )
+      INTEGER          KMAX, LMAX, MMAX, NMAX
+      PARAMETER        ( KMAX = 20, LMAX = 20, MMAX = 20, NMAX = 20 )
+      INTEGER          LDR, LDQ, LDTC, LDTR, LDWORK
+      PARAMETER        ( LDR  = NMAX*LMAX, LDQ  = MMAX*KMAX,
+     $                   LDTC = MMAX*KMAX, LDTR = KMAX,
+     $                   LDWORK = ( MMAX*KMAX + NMAX*LMAX )
+     $                            *( LMAX + 2*KMAX ) + 5*LMAX
+     $                            + MMAX*KMAX + NMAX*LMAX )
+*     .. Local Scalars ..
+      CHARACTER        JOB
+      INTEGER          I, INFO, J, K, L, M, N, RNK
+      DOUBLE PRECISION TOL1, TOL2
+*     .. Local Arrays ..
+      INTEGER          JPVT(NMAX*LMAX)
+      DOUBLE PRECISION DWORK(LDWORK), Q(LDQ,NMAX*LMAX),
+     $                 R(LDR,NMAX*LMAX), TC(LDTC,LMAX),
+     $                 TR(LDTR,NMAX*LMAX)
+*     .. External Functions ..
+      LOGICAL          LSAME
+      EXTERNAL         LSAME
+*     .. External Subroutines ..
+      EXTERNAL         MB02JX
+*     .. Intrinsic Functions ..
+      INTRINSIC        MIN
+*
+*     .. Executable Statements ..
+      WRITE ( NOUT, FMT = 99999 )
+*     Skip the heading in the data file and read the data.
+      READ ( NIN, FMT = '()' )
+      READ ( NIN, FMT = * ) K, L, M, N, TOL1, TOL2, JOB
+      IF( K.LE.0 .OR. K.GT.KMAX ) THEN
+         WRITE ( NOUT, FMT = 99991 ) K
+      ELSE IF( L.LE.0 .OR. L.GT.LMAX ) THEN
+         WRITE ( NOUT, FMT = 99990 ) L
+      ELSE IF( M.LE.0 .OR. M.GT.MMAX ) THEN
+         WRITE ( NOUT, FMT = 99989 ) M
+      ELSE IF( N.LE.0 .OR. N.GT.NMAX ) THEN
+         WRITE ( NOUT, FMT = 99988 ) N
+      ELSE
+         READ ( NIN, FMT = * ) ( ( TC(I,J), J = 1,L ), I = 1,M*K )
+         READ ( NIN, FMT = * ) ( ( TR(I,J), J = 1,( N - 1 )*L ),
+     $                             I = 1,K )
+*        Compute the required part of the QR factorization.
+         CALL MB02JX( JOB, K, L, M, N, TC, LDTC, TR, LDTR, RNK, Q, LDQ,
+     $                R, LDR, JPVT, TOL1, TOL2, DWORK, LDWORK, INFO )
+         IF ( INFO.NE.0 ) THEN
+            WRITE ( NOUT, FMT = 99998 ) INFO
+         ELSE
+            WRITE ( NOUT, FMT = 99994 ) RNK
+            IF ( LSAME( JOB, 'Q' ) ) THEN
+               WRITE ( NOUT, FMT = 99997 )
+               DO 10  I = 1, M*K
+                  WRITE ( NOUT, FMT = 99993 ) ( Q(I,J), J = 1, RNK )
+   10          CONTINUE
+            END IF
+            WRITE ( NOUT, FMT = 99996 )
+            DO 20  I = 1, N*L
+               WRITE ( NOUT, FMT = 99993 ) ( R(I,J), J = 1, RNK )
+   20       CONTINUE
+            WRITE ( NOUT, FMT = 99995 )
+            WRITE ( NOUT, FMT = 99992 ) ( JPVT(I),
+     $                                    I = 1, MIN( M*K, N*L ) )
+         END IF
+      END IF
+      STOP
+*
+99999 FORMAT (' MB02JX EXAMPLE PROGRAM RESULTS',/1X)
+99998 FORMAT (' INFO on exit from MB02JX = ',I2)
+99997 FORMAT (/' The factor Q is ')
+99996 FORMAT (/' The factor R is ')
+99995 FORMAT (/' The column permutation is ')
+99994 FORMAT (/' Numerical rank ',/' RNK = ',I5)
+99993 FORMAT (20(1X,F8.4))
+99992 FORMAT (20(1X,I4))
+99991 FORMAT (/' K is out of range.',/' K = ',I5)
+99990 FORMAT (/' L is out of range.',/' L = ',I5)
+99989 FORMAT (/' M is out of range.',/' M = ',I5)
+99988 FORMAT (/' N is out of range.',/' N = ',I5)
+      END
+</PRE>
+<B>Program Data</B>
+<PRE>
+MB02JX EXAMPLE PROGRAM DATA
+   3   3   4   4  -1.0D0  -1.0D0   Q
+     1.0     2.0     3.0
+     1.0     2.0     3.0
+     1.0     2.0     3.0
+     1.0     2.0     3.0
+     1.0     2.0     3.0
+     1.0     2.0     3.0
+     1.0     2.0     3.0
+     1.0     2.0     3.0
+     1.0     2.0     3.0
+     1.0     0.0     1.0
+     1.0     1.0     0.0
+     2.0     2.0     0.0
+     1.0     2.0     3.0     1.0     2.0     3.0     0.0     1.0     1.0
+     1.0     2.0     3.0     1.0     2.0     3.0     1.0     2.0     1.0
+     1.0     2.0     3.0     1.0     2.0     3.0     1.0     1.0     1.0
+     1.0     2.0     3.0     1.0     2.0     3.0     0.0     1.0     0.0
+</PRE>
+<B>Program Results</B>
+<PRE>
+ MB02JX EXAMPLE PROGRAM RESULTS
+
+
+ Numerical rank 
+ RNK =     7
+
+ The factor Q is 
+  -0.3313  -0.0105  -0.0353   0.0000  -0.4714  -0.8165   0.0000
+  -0.3313  -0.0105  -0.0353   0.0000  -0.4714   0.4082   0.7071
+  -0.3313  -0.0105  -0.0353   0.0000  -0.4714   0.4082  -0.7071
+  -0.3313  -0.0105  -0.0353   0.0000   0.2357   0.0000   0.0000
+  -0.3313  -0.0105  -0.0353   0.0000   0.2357   0.0000   0.0000
+  -0.3313  -0.0105  -0.0353   0.0000   0.2357   0.0000   0.0000
+  -0.3313  -0.0105  -0.0353   0.0000   0.2357   0.0000   0.0000
+  -0.3313  -0.0105  -0.0353   0.0000   0.2357   0.0000   0.0000
+  -0.3313  -0.0105  -0.0353   0.0000   0.2357   0.0000   0.0000
+  -0.1104   0.2824   0.9529   0.0000   0.0000   0.0000   0.0000
+   0.0000   0.4288  -0.1271   0.8944   0.0000   0.0000   0.0000
+   0.0000   0.8576  -0.2541  -0.4472   0.0000   0.0000   0.0000
+
+ The factor R is 
+  -9.0554   0.0000   0.0000   0.0000   0.0000   0.0000   0.0000
+  -3.0921   2.3322   0.0000   0.0000   0.0000   0.0000   0.0000
+  -5.9633   1.9557  -1.2706   0.0000   0.0000   0.0000   0.0000
+  -9.2762   4.4238   0.7623   1.3416   0.0000   0.0000   0.0000
+  -6.1842   2.9492   0.5082   0.8944   0.0000   0.0000   0.0000
+  -3.0921   1.4746   0.2541   0.4472   0.0000   0.0000   0.0000
+  -9.2762   4.4238   0.7623   1.3416   0.0000   0.0000   0.0000
+  -6.1842   2.9492   0.5082   0.8944   0.0000   0.0000   0.0000
+  -3.0921   1.4746   0.2541   0.4472   0.0000   0.0000   0.0000
+  -7.2885   4.4866   0.9741   1.3416   2.8284   0.0000   0.0000
+  -2.7608   1.4851   0.2894   0.4472   0.4714   0.8165   0.0000
+  -5.5216   2.9701   0.5788   0.8944   0.9428   0.4082   0.7071
+
+ The column permutation is 
+    3    1    2    6    5    4    9    8    7   12   10   11
+</PRE>
+
+<HR>
+<p>
+<A HREF=..\libindex.html><B>Return to index</B></A></BODY>
+</HTML>

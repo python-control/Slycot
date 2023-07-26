@@ -1,0 +1,302 @@
+<HTML>
+<HEAD><TITLE>MB02GD - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MB02GD">MB02GD</A></H2>
+<H3>
+Cholesky factorization of a banded symmetric positive definite block Toeplitz matrix
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To compute the Cholesky factor of a banded symmetric positive
+  definite (s.p.d.) block Toeplitz matrix, defined by either its
+  first block row, or its first block column, depending on the
+  routine parameter TYPET.
+
+  By subsequent calls of this routine the Cholesky factor can be
+  computed block column by block column.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MB02GD( TYPET, TRIU, K, N, NL, P, S, T, LDT, RB, LDRB,
+     $                   DWORK, LDWORK, INFO )
+C     .. Scalar Arguments ..
+      CHARACTER         TRIU, TYPET
+      INTEGER           INFO, K, LDRB, LDT, LDWORK, N, NL, P, S
+C     .. Array Arguments ..
+      DOUBLE PRECISION  DWORK(LDWORK), RB(LDRB,*), T(LDT,*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  TYPET   CHARACTER*1
+          Specifies the type of T, as follows:
+          = 'R':  T contains the first block row of an s.p.d. block
+                  Toeplitz matrix; the Cholesky factor is upper
+                  triangular;
+          = 'C':  T contains the first block column of an s.p.d.
+                  block Toeplitz matrix; the Cholesky factor is
+                  lower triangular. This choice results in a column
+                  oriented algorithm which is usually faster.
+          Note:   in the sequel, the notation x / y means that
+                  x corresponds to TYPET = 'R' and y corresponds to
+                  TYPET = 'C'.
+
+  TRIU    CHARACTER*1
+          Specifies the structure of the last block in T, as
+          follows:
+          = 'N':  the last block has no special structure;
+          = 'T':  the last block is lower / upper triangular.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  K       (input)  INTEGER
+          The number of rows / columns in T, which should be equal
+          to the blocksize.  K &gt;= 0.
+
+  N       (input)  INTEGER
+          The number of blocks in T.  N &gt;= 1.
+          If TRIU = 'N',   N &gt;= 1;
+          if TRIU = 'T',   N &gt;= 2.
+
+  NL      (input)  INTEGER
+          The lower block bandwidth, i.e., NL + 1 is the number of
+          nonzero blocks in the first block column of the block
+          Toeplitz matrix.
+          If TRIU = 'N',   0 &lt;= NL &lt; N;
+          if TRIU = 'T',   1 &lt;= NL &lt; N.
+
+  P       (input)  INTEGER
+          The number of previously computed block rows / columns of
+          the Cholesky factor.  0 &lt;= P &lt;= N.
+
+  S       (input)  INTEGER
+          The number of block rows / columns of the Cholesky factor
+          to compute.  0 &lt;= S &lt;= N - P.
+
+  T       (input/output)  DOUBLE PRECISION array, dimension
+          (LDT,(NL+1)*K) / (LDT,K)
+          On entry, if P = 0, the leading K-by-(NL+1)*K /
+          (NL+1)*K-by-K part of this array must contain the first
+          block row / column of an s.p.d. block Toeplitz matrix.
+          On entry, if P &gt; 0, the leading K-by-(NL+1)*K /
+          (NL+1)*K-by-K part of this array must contain the P-th
+          block row / column of the Cholesky factor.
+          On exit, if INFO = 0, then the leading K-by-(NL+1)*K /
+          (NL+1)*K-by-K part of this array contains the (P+S)-th
+          block row / column of the Cholesky factor.
+
+  LDT     INTEGER
+          The leading dimension of the array T.
+          LDT &gt;= MAX(1,K) / MAX(1,(NL+1)*K).
+
+  RB      (input/output)  DOUBLE PRECISION array, dimension
+          (LDRB,MIN(P+NL+S,N)*K) / (LDRB,MIN(P+S,N)*K)
+          On entry, if TYPET = 'R'  and  TRIU = 'N'  and  P &gt; 0,
+          the leading (NL+1)*K-by-MIN(NL,N-P)*K part of this array
+          must contain the (P*K+1)-st to ((P+NL)*K)-th columns
+          of the upper Cholesky factor in banded format from a
+          previous call of this routine.
+          On entry, if TYPET = 'R'  and  TRIU = 'T'  and  P &gt; 0,
+          the leading (NL*K+1)-by-MIN(NL,N-P)*K part of this array
+          must contain the (P*K+1)-st to (MIN(P+NL,N)*K)-th columns
+          of the upper Cholesky factor in banded format from a
+          previous call of this routine.
+          On exit, if TYPET = 'R'  and  TRIU = 'N', the leading
+          (NL+1)*K-by-MIN(NL+S,N-P)*K part of this array contains
+          the (P*K+1)-st to (MIN(P+NL+S,N)*K)-th columns of the
+          upper Cholesky factor in banded format.
+          On exit, if TYPET = 'R'  and  TRIU = 'T', the leading
+          (NL*K+1)-by-MIN(NL+S,N-P)*K part of this array contains
+          the (P*K+1)-st to (MIN(P+NL+S,N)*K)-th columns of the
+          upper Cholesky factor in banded format.
+          On exit, if TYPET = 'C'  and  TRIU = 'N', the leading
+          (NL+1)*K-by-MIN(S,N-P)*K part of this array contains
+          the (P*K+1)-st to (MIN(P+S,N)*K)-th columns of the lower
+          Cholesky factor in banded format.
+          On exit, if TYPET = 'C'  and  TRIU = 'T', the leading
+          (NL*K+1)-by-MIN(S,N-P)*K part of this array contains
+          the (P*K+1)-st to (MIN(P+S,N)*K)-th columns of the lower
+          Cholesky factor in banded format.
+          For further details regarding the band storage scheme see
+          the documentation of the LAPACK routine DPBTF2.
+
+  LDRB    INTEGER
+          The leading dimension of the array RB.
+          If TRIU = 'N',   LDRB &gt;= MAX( (NL+1)*K,1 );
+          if TRIU = 'T',   LDRB &gt;= NL*K+1.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+          On exit, if INFO = 0,  DWORK(1)  returns the optimal
+          value of LDWORK.
+          On exit, if  INFO = -13,  DWORK(1)  returns the minimum
+          value of LDWORK.
+          The first 1 + ( NL + 1 )*K*K elements of DWORK should be
+          preserved during successive calls of the routine.
+
+  LDWORK  INTEGER
+          The length of the array DWORK.
+          LDWORK &gt;= 1 + ( NL + 1 )*K*K + NL*K.
+          For optimum performance LDWORK should be larger.
+
+          If LDWORK = -1, then a workspace query is assumed;
+          the routine only calculates the optimal size of the
+          DWORK array, returns this value as the first entry of
+          the DWORK array, and no error message related to LDWORK
+          is issued by XERBLA.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value;
+          = 1:  the reduction algorithm failed. The Toeplitz matrix
+                associated with T is not (numerically) positive
+                definite.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  Householder transformations and modified hyperbolic rotations
+  are used in the Schur algorithm [1], [2].
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Kailath, T. and Sayed, A.
+      Fast Reliable Algorithms for Matrices with Structure.
+      SIAM Publications, Philadelphia, 1999.
+
+  [2] Kressner, D. and Van Dooren, P.
+      Factorizations and linear system solvers for matrices with
+      Toeplitz structure.
+      SLICOT Working Note 2000-2, 2000.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  The implemented method is numerically stable.
+                             3
+  The algorithm requires O( K *N*NL ) floating point operations.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+*     MB02GD EXAMPLE PROGRAM TEXT
+*
+*     .. Parameters ..
+      INTEGER          NIN, NOUT
+      PARAMETER        ( NIN = 5, NOUT = 6 )
+      INTEGER          KMAX, NMAX, NLMAX
+      PARAMETER        ( KMAX = 20, NMAX = 20, NLMAX = 20 )
+      INTEGER          LDRB, LDT, LDWORK
+      PARAMETER        ( LDRB = ( NLMAX + 1 )*KMAX, LDT = KMAX*NMAX,
+     $                   LDWORK = ( NLMAX + 1 )*KMAX*KMAX +
+     $                            ( 3 + NLMAX )*KMAX )
+*     .. Local Scalars ..
+      INTEGER          I, J, INFO, K, M, N, NL, SIZR
+      CHARACTER        TRIU, TYPET
+*     .. Local Arrays dimensioned for TYPET = 'R' ..
+      DOUBLE PRECISION DWORK(LDWORK), RB(LDRB, NMAX*KMAX),
+     $                 T(LDT, NMAX*KMAX)
+*     .. External Functions ..
+      LOGICAL          LSAME
+      EXTERNAL         LSAME
+*     .. External Subroutines ..
+      EXTERNAL         MB02GD
+*
+*     .. Executable Statements ..
+      WRITE ( NOUT, FMT = 99999 )
+*     Skip the heading in the data file and read the data.
+      READ ( NIN, FMT = '()' )
+      READ ( NIN, FMT = * ) K, N, NL, TRIU
+      TYPET = 'R'
+      M = ( NL + 1 )*K
+      IF( N.LE.0 .OR. N.GT.NMAX ) THEN
+         WRITE ( NOUT, FMT = 99995 ) N
+      ELSE IF( NL.LE.0 .OR. NL.GT.NLMAX ) THEN
+         WRITE ( NOUT, FMT = 99994 ) NL
+      ELSE IF( K.LE.0 .OR. K.GT.KMAX ) THEN
+         WRITE ( NOUT, FMT = 99993 ) K
+      ELSE
+         READ ( NIN, FMT = * ) ( ( T(I,J), J = 1,M ), I = 1,K )
+*        Compute the banded Cholesky factor.
+         CALL MB02GD( TYPET, TRIU, K, N, NL, 0, N, T, LDT, RB, LDRB,
+     $                DWORK, LDWORK, INFO )
+*
+         IF ( INFO.NE.0 ) THEN
+            WRITE ( NOUT, FMT = 99998 ) INFO
+         ELSE
+            WRITE ( NOUT, FMT = 99997 )
+            IF ( LSAME( TRIU, 'T' ) ) THEN
+               SIZR = NL*K + 1
+            ELSE
+               SIZR = ( NL + 1 )*K
+            END IF
+            DO 10  I = 1, SIZR
+               WRITE ( NOUT, FMT = 99996 ) ( RB(I,J), J = 1, N*K )
+   10       CONTINUE
+         END IF
+      END IF
+      STOP
+*
+99999 FORMAT (' MB02GD EXAMPLE PROGRAM RESULTS',/1X)
+99998 FORMAT (' INFO on exit from MB02GD = ',I2)
+99997 FORMAT (/' The upper Cholesky factor in banded storage format ')
+99996 FORMAT (20(1X,F8.4))
+99995 FORMAT (/' N is out of range.',/' N = ',I5)
+99994 FORMAT (/' NL is out of range.',/' NL = ',I5)
+99993 FORMAT (/' K is out of range.',/' K = ',I5)
+      END
+</PRE>
+<B>Program Data</B>
+<PRE>
+MB02GD EXAMPLE PROGRAM DATA
+  2    4    2    T
+  3.0000    1.0000    0.1000    0.4000    0.2000    0.0000
+  0.0000    4.0000    0.1000    0.1000    0.0500    0.2000
+</PRE>
+<B>Program Results</B>
+<PRE>
+ MB02GD EXAMPLE PROGRAM RESULTS
+
+
+ The upper Cholesky factor in banded storage format 
+   0.0000   0.0000   0.0000   0.0000   0.1155   0.1044   0.1156   0.1051
+   0.0000   0.0000   0.0000   0.2309  -0.0087   0.2290  -0.0084   0.2302
+   0.0000   0.0000   0.0577  -0.0174   0.0541  -0.0151   0.0544  -0.0159
+   0.0000   0.5774   0.0348   0.5704   0.0222   0.5725   0.0223   0.5724
+   1.7321   1.9149   1.7307   1.9029   1.7272   1.8996   1.7272   1.8995
+</PRE>
+
+<HR>
+<p>
+<A HREF=..\libindex.html><B>Return to index</B></A></BODY>
+</HTML>

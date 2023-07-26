@@ -1,0 +1,192 @@
+<HTML>
+<HEAD><TITLE>MB01RX - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MB01RX">MB01RX</A></H2>
+<H3>
+Computation of a triangle of matrix expression alpha R + beta A B or alpha R + beta B A
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To compute either the upper or lower triangular part of one of the
+  matrix formulas
+     _
+     R = alpha*R + beta*op( A )*B,                               (1)
+     _
+     R = alpha*R + beta*B*op( A ),                               (2)
+                                          _
+  where alpha and beta are scalars, R and R are m-by-m matrices,
+  op( A ) and B are m-by-n and n-by-m matrices for (1), or n-by-m
+  and m-by-n matrices for (2), respectively, and op( A ) is one of
+
+     op( A ) = A   or   op( A ) = A',  the transpose of A.
+
+  The result is overwritten on R.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MB01RX( SIDE, UPLO, TRANS, M, N, ALPHA, BETA, R, LDR,
+     $                   A, LDA, B, LDB, INFO )
+C     .. Scalar Arguments ..
+      CHARACTER         SIDE, TRANS, UPLO
+      INTEGER           INFO, LDA, LDB, LDR, M, N
+      DOUBLE PRECISION  ALPHA, BETA
+C     .. Array Arguments ..
+      DOUBLE PRECISION  A(LDA,*), B(LDB,*), R(LDR,*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  SIDE    CHARACTER*1
+          Specifies whether the matrix A appears on the left or
+          right in the matrix product as follows:
+                  _
+          = 'L':  R = alpha*R + beta*op( A )*B;
+                  _
+          = 'R':  R = alpha*R + beta*B*op( A ).
+
+  UPLO    CHARACTER*1                               _
+          Specifies which triangles of the matrices R and R are
+          computed and given, respectively, as follows:
+          = 'U':  the upper triangular part;
+          = 'L':  the lower triangular part.
+
+  TRANS   CHARACTER*1
+          Specifies the form of op( A ) to be used in the matrix
+          multiplication as follows:
+          = 'N':  op( A ) = A;
+          = 'T':  op( A ) = A';
+          = 'C':  op( A ) = A'.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  M       (input) INTEGER           _
+          The order of the matrices R and R, the number of rows of
+          the matrix op( A ) and the number of columns of the
+          matrix B, for SIDE = 'L', or the number of rows of the
+          matrix B and the number of columns of the matrix op( A ),
+          for SIDE = 'R'.  M &gt;= 0.
+
+  N       (input) INTEGER
+          The number of rows of the matrix B and the number of
+          columns of the matrix op( A ), for SIDE = 'L', or the
+          number of rows of the matrix op( A ) and the number of
+          columns of the matrix B, for SIDE = 'R'.  N &gt;= 0.
+
+  ALPHA   (input) DOUBLE PRECISION
+          The scalar alpha. When alpha is zero then R need not be
+          set before entry.
+
+  BETA    (input) DOUBLE PRECISION
+          The scalar beta. When beta is zero then A and B are not
+          referenced.
+
+  R       (input/output) DOUBLE PRECISION array, dimension (LDR,M)
+          On entry with UPLO = 'U', the leading M-by-M upper
+          triangular part of this array must contain the upper
+          triangular part of the matrix R; the strictly lower
+          triangular part of the array is not referenced.
+          On entry with UPLO = 'L', the leading M-by-M lower
+          triangular part of this array must contain the lower
+          triangular part of the matrix R; the strictly upper
+          triangular part of the array is not referenced.
+          On exit, the leading M-by-M upper triangular part (if
+          UPLO = 'U'), or lower triangular part (if UPLO = 'L') of
+          this array contains the corresponding triangular part of
+                              _
+          the computed matrix R.
+
+  LDR     INTEGER
+          The leading dimension of array R.  LDR &gt;= MAX(1,M).
+
+  A       (input) DOUBLE PRECISION array, dimension (LDA,k), where
+          k = N  when  SIDE = 'L', and TRANS = 'N', or
+                       SIDE = 'R', and TRANS = 'T';
+          k = M  when  SIDE = 'R', and TRANS = 'N', or
+                       SIDE = 'L', and TRANS = 'T'.
+          On entry, if SIDE = 'L', and TRANS = 'N', or
+                       SIDE = 'R', and TRANS = 'T',
+          the leading M-by-N part of this array must contain the
+          matrix A.
+          On entry, if SIDE = 'R', and TRANS = 'N', or
+                       SIDE = 'L', and TRANS = 'T',
+          the leading N-by-M part of this array must contain the
+          matrix A.
+
+  LDA     INTEGER
+          The leading dimension of array A.  LDA &gt;= MAX(1,l), where
+          l = M  when  SIDE = 'L', and TRANS = 'N', or
+                       SIDE = 'R', and TRANS = 'T';
+          l = N  when  SIDE = 'R', and TRANS = 'N', or
+                       SIDE = 'L', and TRANS = 'T'.
+
+  B       (input) DOUBLE PRECISION array, dimension (LDB,p), where
+          p = M  when  SIDE = 'L';
+          p = N  when  SIDE = 'R'.
+          On entry, the leading N-by-M part, if SIDE = 'L', or
+          M-by-N part, if SIDE = 'R', of this array must contain the
+          matrix B.
+
+  LDB     INTEGER
+          The leading dimension of array B.
+          LDB &gt;= MAX(1,N), if SIDE = 'L';
+          LDB &gt;= MAX(1,M), if SIDE = 'R'.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  The matrix expression is evaluated taking the triangular
+  structure into account. BLAS 2 operations are used. A block
+  algorithm can be easily constructed; it can use BLAS 3 GEMM
+  operations for most computations, and calls of this BLAS 2
+  algorithm for computing the triangles.
+
+</PRE>
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  The main application of this routine is when the result should
+  be a symmetric matrix, e.g., when B = X*op( A )', for (1), or
+  B = op( A )'*X, for (2), where B is already available and X = X'.
+
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

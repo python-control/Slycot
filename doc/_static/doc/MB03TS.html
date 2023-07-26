@@ -1,0 +1,190 @@
+<HTML>
+<HEAD><TITLE>MB03TS - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MB03TS">MB03TS</A></H2>
+<H3>
+Swapping two diagonal blocks of a matrix in (skew-)Hamiltonian canonical Schur form
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To swap diagonal blocks A11 and A22 of order 1 or 2 in the upper
+  quasi-triangular matrix A contained in a skew-Hamiltonian matrix
+
+                [  A   G  ]          T
+          X  =  [       T ],   G = -G,
+                [  0   A  ]
+
+  or in a Hamiltonian matrix
+
+                [  A   G  ]          T
+          X  =  [       T ],   G =  G.
+                [  0  -A  ]
+
+  This routine is a modified version of the LAPACK subroutine
+  DLAEX2.
+
+  The matrix A must be in Schur canonical form (as returned by the
+  LAPACK routine DHSEQR), that is, block upper triangular with
+  1-by-1 and 2-by-2 diagonal blocks; each 2-by-2 diagonal block has
+  its diagonal elements equal and its off-diagonal elements of
+  opposite sign.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MB03TS( ISHAM, WANTU, N, A, LDA, G, LDG, U1, LDU1, U2,
+     $                   LDU2, J1, N1, N2, DWORK, INFO )
+C     .. Scalar Arguments ..
+      LOGICAL            ISHAM, WANTU
+      INTEGER            INFO, J1, LDA, LDG, LDU1, LDU2, N, N1, N2
+C     .. Array Arguments ..
+      DOUBLE PRECISION   A(LDA,*), DWORK(*), G(LDG,*), U1(LDU1,*),
+     $                   U2(LDU2,*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  ISHAM   LOGIGAL
+          Specifies the type of X:
+          = .TRUE.:   X is a Hamiltonian matrix;
+          = .FALSE.:  X is a skew-Hamiltonian matrix.
+
+  WANTU   LOGIGAL
+          = .TRUE.:   update the matrices U1 and U2 containing the
+                      Schur vectors;
+          = .FALSE.:  do not update U1 and U2.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The order of the matrix A. N &gt;= 0.
+
+  A       (input/output) DOUBLE PRECISION array, dimension (LDA,N)
+          On entry, the leading N-by-N part of this array must
+          contain the upper quasi-triangular matrix A, in Schur
+          canonical form.
+          On exit, the leading N-by-N part of this array contains
+          the reordered matrix A, again in Schur canonical form.
+
+  LDA     INTEGER
+          The leading dimension of the array A.  LDA &gt;= MAX(1,N).
+
+  G       (input/output) DOUBLE PRECISION array, dimension (LDG,N)
+          On entry, the leading N-by-N part of this array must
+          contain the upper triangular part of the symmetric
+          matrix G, if ISHAM = .TRUE., or the strictly upper
+          triangular part of the skew-symmetric matrix G, otherwise.
+          The rest of this array is not referenced.
+          On exit, the leading N-by-N part of this array contains
+          the upper or strictly upper triangular part of the
+          symmetric or skew-symmetric matrix G, respectively,
+          updated by the orthogonal transformation which reorders A.
+
+  LDG     INTEGER
+          The leading dimension of the array G.  LDG &gt;= MAX(1,N).
+
+  U1      (input/output) DOUBLE PRECISION array, dimension (LDU1,N)
+          On entry, if WANTU = .TRUE., the leading N-by-N part of
+          this array must contain the matrix U1.
+          On exit, if WANTU = .TRUE., the leading N-by-N part of
+          this array contains U1, postmultiplied by the orthogonal
+          transformation which reorders A. See the description in
+          the SLICOT subroutine MB03TD for further details.
+          If WANTU = .FALSE., this array is not referenced.
+
+  LDU1    INTEGER
+          The leading dimension of the array U1.
+          LDU1 &gt;= MAX(1,N),  if WANTU = .TRUE.;
+          LDU1 &gt;= 1,         otherwise.
+
+  U2      (input/output) DOUBLE PRECISION array, dimension (LDU2,N)
+          On entry, if WANTU = .TRUE., the leading N-by-N part of
+          this array must contain the matrix U2.
+          On exit, if WANTU = .TRUE., the leading N-by-N part of
+          this array contains U2, postmultiplied by the orthogonal
+          transformation which reorders A.
+          If WANTU = .FALSE., this array is not referenced.
+
+  LDU2    INTEGER
+          The leading dimension of the array U2.
+          LDU2 &gt;= MAX(1,N),  if WANTU = .TRUE.;
+          LDU2 &gt;= 1,         otherwise.
+
+  J1      (input) INTEGER
+          The index of the first row of the first block A11.
+          If J1+N1 &lt; N, then A11 is swapped with the block starting
+          at (J1+N1+1)-th diagonal element.
+          If J1+N1 &gt; N, then A11 is the last block in A and swapped
+          with -A11', if ISHAM = .TRUE.,
+          or    A11', if ISHAM = .FALSE..
+
+  N1      (input) INTEGER
+          The order of the first block A11. N1 = 0, 1 or 2.
+
+  N2      (input) INTEGER
+          The order of the second block A22. N2 = 0, 1 or 2.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  DWORK   DOUBLE PRECISION array, dimension (N)
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          = 1:  the transformed matrix A would be too far from Schur
+                form; the blocks are not swapped and A, G, U1 and
+                U2 are unchanged.
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Bai, Z., and Demmel, J.W.
+     On swapping diagonal blocks in real Schur form.
+     Linear Algebra Appl., 186, pp. 73-95, 1993.
+
+  [2] Benner, P., Kressner, D., and Mehrmann, V.
+      Skew-Hamiltonian and Hamiltonian Eigenvalue Problems: Theory,
+      Algorithms and Applications. Techn. Report, TU Berlin, 2003.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

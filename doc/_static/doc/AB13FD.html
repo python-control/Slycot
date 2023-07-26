@@ -1,0 +1,257 @@
+<HTML>
+<HEAD><TITLE>AB13FD - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="AB13FD">AB13FD</A></H2>
+<H3>
+Computing the distance from a real matrix to the nearest complex matrix with an eigenvalue on the imaginary axis, using SVD
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To compute beta(A), the 2-norm distance from a real matrix A to
+  the nearest complex matrix with an eigenvalue on the imaginary
+  axis. If A is stable in the sense that all eigenvalues of A lie
+  in the open left half complex plane, then beta(A) is the complex
+  stability radius, i.e., the distance to the nearest unstable
+  complex matrix. The value of beta(A) is the minimum of the
+  smallest singular value of (A - jwI), taken over all real w.
+  The value of w corresponding to the minimum is also computed.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE AB13FD( N, A, LDA, BETA, OMEGA, TOL, DWORK, LDWORK,
+     $                   CWORK, LCWORK, INFO )
+C     .. Scalar Arguments ..
+      INTEGER           INFO, LCWORK, LDA, LDWORK, N
+      DOUBLE PRECISION  BETA, OMEGA, TOL
+C     .. Array Arguments ..
+      DOUBLE PRECISION  A(LDA,*), DWORK(*)
+      COMPLEX*16        CWORK(*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The order of the matrix A.  N &gt;= 0.
+
+  A       (input) DOUBLE PRECISION array, dimension (LDA,N)
+          The leading N-by-N part of this array must contain the
+          matrix A.
+
+  LDA     INTEGER
+          The leading dimension of array A.  LDA &gt;= MAX(1,N).
+
+  BETA    (output) DOUBLE PRECISION
+          The computed value of beta(A), which actually is an upper
+          bound.
+
+  OMEGA   (output) DOUBLE PRECISION
+          The value of w such that the smallest singular value of
+          (A - jwI) equals beta(A).
+
+</PRE>
+<B>Tolerances</B>
+<PRE>
+  TOL     DOUBLE PRECISION
+          Specifies the accuracy with which beta(A) is to be
+          calculated. (See the Numerical Aspects section below.)
+          If the user sets TOL to be less than EPS, where EPS is the
+          machine precision (see LAPACK Library Routine DLAMCH),
+          then the tolerance is taken to be EPS.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+          On exit, if INFO = 0, DWORK(1) returns the optimal value
+          of LDWORK.
+          If DWORK(1) is not needed, the first 2*N*N entries of
+          DWORK may overlay CWORK.
+
+  LDWORK  INTEGER
+          The length of the array DWORK.
+          LDWORK &gt;= MAX( 1, 3*N*(N+2) ).
+          For optimum performance LDWORK should be larger.
+
+  CWORK   COMPLEX*16 array, dimension (LCWORK)
+          On exit, if INFO = 0, CWORK(1) returns the optimal value
+          of LCWORK.
+          If CWORK(1) is not needed, the first N*N entries of
+          CWORK may overlay DWORK.
+
+  LCWORK  INTEGER
+          The length of the array CWORK.
+          LCWORK &gt;= MAX( 1, N*(N+3) ).
+          For optimum performance LCWORK should be larger.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value;
+          = 1:  the routine fails to compute beta(A) within the
+                specified tolerance. Nevertheless, the returned
+                value is an upper bound on beta(A);
+          = 2:  either the QR or SVD algorithm (LAPACK Library
+                routines DHSEQR, DGESVD or ZGESVD) fails to
+                converge; this error is very rare.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  AB13FD combines the methods of [1] and [2] into a provably
+  reliable, quadratically convergent algorithm. It uses the simple
+  bisection strategy of [1] to find an interval which contains
+  beta(A), and then switches to the modified bisection strategy of
+  [2] which converges quadratically to a minimizer. Note that the
+  efficiency of the strategy degrades if there are several local
+  minima that are near or equal the global minimum.
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Byers, R.
+      A bisection method for measuring the distance of a stable
+      matrix to the unstable matrices.
+      SIAM J. Sci. Stat. Comput., Vol. 9, No. 5, pp. 875-880, 1988.
+
+  [2] Boyd, S. and Balakrishnan, K.
+      A regularity result for the singular values of a transfer
+      matrix and a quadratically convergent algorithm for computing
+      its L-infinity norm.
+      Systems and Control Letters, Vol. 15, pp. 1-7, 1990.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  In the presence of rounding errors, the computed function value
+  BETA  satisfies
+
+        beta(A) &lt;= BETA + epsilon,
+
+        BETA/(1+TOL) - delta &lt;= MAX(beta(A), SQRT(2*N*EPS)*norm(A)),
+
+  where norm(A) is the Frobenius norm of A,
+
+        epsilon = p(N) * EPS * norm(A),
+  and
+        delta   = p(N) * SQRT(EPS) * norm(A),
+
+  and p(N) is a low degree polynomial. It is recommended to choose
+  TOL greater than SQRT(EPS). Although rounding errors can cause
+  AB13FD to fail for smaller values of TOL, nevertheless, it usually
+  succeeds. Regardless of success or failure, the first inequality
+  holds.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+*     AB13FD EXAMPLE PROGRAM TEXT
+*
+*     .. Parameters ..
+      INTEGER          NIN, NOUT
+      PARAMETER        ( NIN = 5, NOUT = 6 )
+      INTEGER          NMAX
+      PARAMETER        ( NMAX = 20 )
+      INTEGER          LDA
+      PARAMETER        ( LDA = NMAX )
+      INTEGER          LDWORK
+      PARAMETER        ( LDWORK = 3*NMAX*( NMAX + 2 ) )
+      INTEGER          LCWORK
+      PARAMETER        ( LCWORK = NMAX*( NMAX + 3 ) )
+*     .. Local Scalars ..
+      INTEGER          I, INFO, J, N
+      DOUBLE PRECISION BETA, OMEGA, TOL
+*     .. Local Arrays ..
+      DOUBLE PRECISION A(LDA,NMAX), DWORK(LDWORK)
+      COMPLEX*16       CWORK(LCWORK)
+*     .. External Subroutines ..
+      EXTERNAL         AB13FD, UD01MD
+*     ..
+*     .. Executable Statements ..
+*
+      WRITE ( NOUT, FMT = 99999 )
+*     Skip the heading in the data file and read the data.
+      READ ( NIN, FMT = '()' )
+*     Read N, TOL and next A (row wise).
+      READ ( NIN, FMT = * ) N, TOL
+      IF ( N.LT.0 .OR. N.GT.NMAX ) THEN
+         WRITE ( NOUT, FMT = 99995 ) N
+      ELSE
+         DO 10 I = 1, N
+            READ ( NIN, FMT = * ) ( A(I,J), J = 1, N )
+   10    CONTINUE
+*
+         WRITE ( NOUT, FMT = 99998 ) N, TOL
+         CALL UD01MD( N, N, 5, NOUT, A, LDA, 'A', INFO )
+*
+         CALL AB13FD( N, A, LDA, BETA, OMEGA, TOL, DWORK, LDWORK, CWORK,
+     $                LCWORK, INFO )
+*
+         IF ( INFO.NE.0 )
+     $      WRITE ( NOUT, FMT = 99996 ) INFO
+         WRITE ( NOUT, FMT = 99997 ) BETA, OMEGA
+      END IF
+*
+99999 FORMAT (' AB13FD EXAMPLE PROGRAM RESULTS', /1X)
+99998 FORMAT (' N =', I2, 3X, 'TOL =', D10.3)
+99997 FORMAT (' Stability radius :', D18.11, /
+     *        ' Minimizing omega :', D18.11)
+99996 FORMAT (' INFO on exit from AB13FD = ', I2)
+99995 FORMAT (/' N is out of range.',/' N = ',I5)
+      END
+</PRE>
+<B>Program Data</B>
+<PRE>
+AB13FD EXAMPLE PROGRAM DATA
+4   0.0D-00   0.0D-00
+     246.500        242.500        202.500       -197.500
+    -252.500       -248.500       -207.500        202.500
+    -302.500       -297.500       -248.500        242.500
+    -307.500       -302.500       -252.500        246.500
+</PRE>
+<B>Program Results</B>
+<PRE>
+ AB13FD EXAMPLE PROGRAM RESULTS
+
+ N = 4   TOL = 0.000D+00
+ A ( 4X 4)
+
+            1              2              3              4
+  1    0.2465000D+03  0.2425000D+03  0.2025000D+03 -0.1975000D+03
+  2   -0.2525000D+03 -0.2485000D+03 -0.2075000D+03  0.2025000D+03
+  3   -0.3025000D+03 -0.2975000D+03 -0.2485000D+03  0.2425000D+03
+  4   -0.3075000D+03 -0.3025000D+03 -0.2525000D+03  0.2465000D+03
+ 
+ Stability radius : 0.39196472317D-02
+ Minimizing omega : 0.98966520430D+00
+</PRE>
+
+<HR>
+<p>
+<A HREF=..\libindex.html><B>Return to index</B></A></BODY>
+</HTML>

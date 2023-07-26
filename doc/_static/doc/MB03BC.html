@@ -1,0 +1,151 @@
+<HTML>
+<HEAD><TITLE>MB03BC - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MB03BC">MB03BC</A></H2>
+<H3>
+Product singular value decomposition of K-1 triangular factors of order 2
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To compute the product singular value decomposition of the K-1
+  triangular factors corresponding to a 2-by-2 product of K
+  factors in upper Hessenberg-triangular form.
+  For a general product of 2-by-2 triangular matrices
+
+                     S(2)        S(3)            S(K)
+         A = A(:,:,2)    A(:,:,3)    ... A(:,:,K),
+
+  Givens rotations are computed so that
+                                                       S(i)
+    [  CV(i-1) SV(i-1) ] [ A(1,1,i)(in)  A(1,2,i)(in) ]
+    [ -SV(i-1) CV(i-1) ] [     0         A(2,2,i)(in) ]
+                                   S(i)
+    [ A(1,1,i)(out) A(1,2,i)(out) ]    [  CV(i) SV(i) ]
+  = [     0         A(2,2,i)(out) ]    [ -SV(i) CV(i) ]
+
+  stays upper triangular and
+
+    [  CV(1) SV(1) ]       [ CV(K) -SV(K) ]
+    [ -SV(1) CV(1) ] * A * [ SV(K)  CV(K) ]
+
+  is diagonal.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MB03BC( K, AMAP, S, SINV, A, LDA1, LDA2, MACPAR, CV,
+     $                   SV, DWORK )
+C     .. Scalar Arguments ..
+      INTEGER           K, LDA1, LDA2, SINV
+C     .. Array Arguments ..
+      INTEGER           AMAP(*), S(*)
+      DOUBLE PRECISION  A(LDA1,LDA2,*), CV(*), DWORK(*), MACPAR(*),
+     $                  SV(*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  K       (input)  INTEGER
+          The number of factors.  K &gt;= 1.
+
+  AMAP    (input) INTEGER array, dimension (K)
+          The map for accessing the factors, i.e., if AMAP(I) = J,
+          then the factor A_I is stored at the J-th position in A.
+
+  S       (input)  INTEGER array, dimension (K)
+          The signature array. Each entry of S must be 1 or -1.
+
+  SINV    (input) INTEGER
+          Signature multiplier. Entries of S are virtually
+          multiplied by SINV.
+
+  A       (input/output)  DOUBLE PRECISION array, dimension
+                          (LDA1,LDA2,K)
+          On entry, the leading 2-by-2-by-K part of this array must
+          contain a 2-by-2 product (implicitly represented by its K
+          factors) in upper Hessenberg-triangular form.
+          On exit, the leading 2-by-2-by-K part of this array
+          contains modified triangular factors such that their
+          product is diagonal.
+
+  LDA1    INTEGER
+          The first leading dimension of the array A.  LDA1 &gt;= 2.
+
+  LDA2    INTEGER
+          The second leading dimension of the array A.  LDA2 &gt;= 2.
+
+  MACPAR  (input)  DOUBLE PRECISION array, dimension (5)
+          Machine parameters:
+          MACPAR(1)  overflow threshold,         DLAMCH( 'O' );
+          MACPAR(2)  underflow threshold,        DLAMCH( 'U' );
+          MACPAR(3)  safe minimum,               DLAMCH( 'S' );
+          MACPAR(4)  relative machine precision, DLAMCH( 'E' );
+          MACPAR(5)  base of the machine,        DLAMCH( 'B' ).
+
+  CV      (output)  DOUBLE PRECISION array, dimension (K)
+          On exit, the first K elements of this array contain the
+          cosines of the Givens rotations.
+
+  SV      (output)  DOUBLE PRECISION array, dimension (K)
+          On exit, the first K elements of this array contain the
+          sines of the Givens rotations.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  DWORK   DOUBLE PRECISION array, dimension (3*(K-1))
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  The product singular value decomposition of the K-1
+  triangular factors are computed as described in [1].
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Bojanczyk, A. and Van Dooren, P.
+      On propagating orthogonal transformations in a product of 2x2
+      triangular matrices.
+      In Reichel, Ruttan and Varga: 'Numerical Linear Algebra',
+      pp. 1-9, 1993.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>
