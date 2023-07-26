@@ -1,5 +1,6 @@
 doc/_build
-doc/*/generated
+doc/generated
+doc/source/reference/generated/
 .DS_Store*
 MANIFEST
 dist/
