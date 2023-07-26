@@ -1,0 +1,217 @@
+<HTML>
+<HEAD><TITLE>TG01NX - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="TG01NX">TG01NX</A></H2>
+<H3>
+Block-diagonal decomposition of a descriptor system in generalized real Schur form
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To compute equivalence transformation matrices Q and Z which
+  reduce the regular pole pencil A-lambda*E of the descriptor system
+  (A-lambda*E,B,C), with (A,E) in a generalized real Schur form, to
+  the block-diagonal form
+
+             ( A1  0  )             ( E1  0  )
+     Q*A*Z = (        ) ,   Q*E*Z = (        ) ,                 (1)
+             ( 0   A2 )             ( 0   E2 )
+
+  where the pair (Q*A*Z,Q*E*Z) is in a generalized real Schur form,
+  with (A1,E1) and (A2,E2) having no common generalized eigenvalues.
+  This decomposition corresponds to an additive spectral
+  decomposition of the transfer-function matrix of the descriptor
+  system as the sum of two terms containing the generalized
+  eigenvalues of (A1,E1) and (A2,E2), respectively.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE TG01NX( JOBT, N, M, P, NDIM, A, LDA, E, LDE, B, LDB,
+     $                   C, LDC, Q, LDQ, Z, LDZ, IWORK, INFO )
+C     .. Scalar Arguments ..
+      CHARACTER          JOBT
+      INTEGER            INFO, LDA, LDB, LDC, LDE, LDQ, LDZ, M, N, NDIM,
+     $                   P
+C     .. Array Arguments ..
+      INTEGER            IWORK(*)
+      DOUBLE PRECISION   A(LDA,*), B(LDB,*), C(LDC,*), E(LDE,*),
+     $                   Q(LDQ,*), Z(LDZ,*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  JOBT    CHARACTER*1
+          = 'D':  compute the direct transformation matrices;
+          = 'I':  compute the inverse transformation matrices
+                  inv(Q) and inv(Z).
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The number of rows of the matrix B, the number of columns
+          of the matrix C and the order of the square matrices A
+          and E.  N &gt;= 0.
+
+  M       (input) INTEGER
+          The number of columns of the matrix B.  M &gt;= 0.
+
+  P       (input) INTEGER
+          The number of rows of the matrix C.  P &gt;= 0.
+
+  NDIM    (input) INTEGER
+          The dimension of the leading diagonal blocks of (A,E)
+          having generalized eigenvalues distinct from those of the
+          trailing diagonal block.  0 &lt;= NDIM &lt;= N.
+
+  A       (input/output) DOUBLE PRECISION array, dimension (LDA,N)
+          On entry, the leading N-by-N part of this array must
+          contain the N-by-N state matrix A in a real Schur form.
+          On exit, the leading N-by-N part of this array contains
+          the transformed state matrix Q*A*Z (if JOBT = 'D') or
+          inv(Q)*A*inv(Z) (if JOBT = 'I'), in the form (1), where
+          A1 is a NDIM-by-NDIM matrix.
+
+  LDA     INTEGER
+          The leading dimension of the array A.  LDA &gt;= MAX(1,N).
+
+  E       (input/output) DOUBLE PRECISION array, dimension (LDE,N)
+          On entry, the leading N-by-N part of this array must
+          contain the N-by-N descriptor matrix E in upper triangular
+          form.
+          On exit, the leading N-by-N part of this array contains
+          the transformed descriptor matrix Q*E*Z (if JOBT = 'D') or
+          inv(Q)*E*inv(Z) (if JOBT = 'I'), in the form (1), where
+          E1 is an NDIM-by-NDIM matrix.
+
+  LDE     INTEGER
+          The leading dimension of the array E.  LDE &gt;= MAX(1,N).
+
+  B       (input/output) DOUBLE PRECISION array, dimension (LDB,M)
+          On entry, the leading N-by-M part of this array must
+          contain the N-by-M input matrix B.
+          On exit, the leading N-by-M part of this array contains
+          the transformed input matrix Q*B (if JOBT = 'D') or
+          inv(Q)*B (if JOBT = 'I').
+
+  LDB     INTEGER
+          The leading dimension of the array B.  LDB &gt;= MAX(1,N).
+
+  C       (input/output) DOUBLE PRECISION array, dimension (LDC,N)
+          On entry, the leading P-by-N part of this array must
+          contain the state/output matrix C.
+          On exit, the leading P-by-N part of this array contains
+          the transformed matrix C*Z (if JOBT = 'D') or C*inv(Z)
+          (if JOBT = 'I').
+
+  LDC     INTEGER
+          The leading dimension of the array C.  LDC &gt;= MAX(1,P).
+
+  Q       (input/output) DOUBLE PRECISION array, dimension (LDQ,N)
+          On entry, the leading N-by-N part of this array contains
+          Q1, the orthogonal left transformation matrix Q used to
+          reduce the pair (A,E) to the generalized real Schur form.
+          On exit, the leading N-by-N part of this array contains
+          the left transformation matrix Q = Q2*Q1, if JOBT = 'D',
+          or its inverse inv(Q), if JOBT = 'I'.
+
+  LDQ     INTEGER
+          The leading dimension of the array Q.  LDQ &gt;= MAX(1,N).
+
+  Z       (input/output) DOUBLE PRECISION array, dimension (LDZ,N)
+          On entry, the leading N-by-N part of this array contains
+          the orthogonal right transformation matrix Z1 used to
+          reduce the pair (A,E) to the generalized real Schur form.
+          On exit, the leading N-by-N part of this array contains
+          the right transformation matrix Z = Z1*Z2, if JOBT = 'D',
+          or its inverse inv(Z), if JOBT = 'I'.
+
+  LDZ     INTEGER
+          The leading dimension of the array Z.  LDZ &gt;= MAX(1,N).
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  IWORK   INTEGER array, dimension (N+6)
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value;
+          = 1:  the separation of the two diagonal blocks failed
+                because of very close eigenvalues.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  For the separation, transformation matrices Q2 and Z2 of the form
+
+          ( I -X )          ( I  Y )
+     Q2 = (      ) ,   Z2 = (      )
+          ( 0  I )          ( 0  I )
+
+  are determined, such that Q2*A*Z2 and Q2*E*Z2 are block diagonal
+  as in (1). X and Y are computed by solving generalized Sylvester
+  equations.
+
+  If we partition Q2*B and C*Z2 according to (1) in the form ( B1 )
+                                                             ( B2 )
+  and ( C1 C2 ), then (A1-lambda*E1,B1,C1) and (A2-lambda*E2,B2,C2)
+  represent an additive spectral decomposition of the system
+  transfer-function matrix.
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Kagstrom, B. and Van Dooren, P.
+      Additive decomposition of a transfer function with respect
+      to a specified region.
+      Proc. MTNS Symp., Brussels, 1989.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  The algorithm is numerically backward stable and requires
+  0( N**3 )  floating point operations.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

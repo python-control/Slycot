@@ -1,0 +1,444 @@
+<HTML>
+<HEAD><TITLE>SB03MD - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="SB03MD">SB03MD</A></H2>
+<H3>
+Solution of continuous- or discrete-time Lyapunov equations and separation estimation
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To solve for X either the real continuous-time Lyapunov equation
+
+     op(A)'*X + X*op(A) = scale*C                             (1)
+
+  or the real discrete-time Lyapunov equation
+
+     op(A)'*X*op(A) - X = scale*C                             (2)
+
+  and/or estimate an associated condition number, called separation,
+  where op(A) = A or A' (A**T) and C is symmetric (C = C').
+  (A' denotes the transpose of the matrix A.) A is N-by-N, the right
+  hand side C and the solution X are N-by-N, and scale is an output
+  scale factor, set less than or equal to 1 to avoid overflow in X.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE SB03MD( DICO, JOB, FACT, TRANA, N, A, LDA, U, LDU, C,
+     $                   LDC, SCALE, SEP, FERR, WR, WI, IWORK, DWORK,
+     $                   LDWORK, INFO )
+C     .. Scalar Arguments ..
+      CHARACTER         DICO, FACT, JOB, TRANA
+      INTEGER           INFO, LDA, LDC, LDU, LDWORK, N
+      DOUBLE PRECISION  FERR, SCALE, SEP
+C     .. Array Arguments ..
+      INTEGER           IWORK( * )
+      DOUBLE PRECISION  A( LDA, * ), C( LDC, * ), DWORK( * ),
+     $                  U( LDU, * ), WI( * ), WR( * )
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  DICO    CHARACTER*1
+          Specifies the equation from which X is to be determined
+          as follows:
+          = 'C':  Equation (1), continuous-time case;
+          = 'D':  Equation (2), discrete-time case.
+
+  JOB     CHARACTER*1
+          Specifies the computation to be performed, as follows:
+          = 'X':  Compute the solution only;
+          = 'S':  Compute the separation only;
+          = 'B':  Compute both the solution and the separation.
+
+  FACT    CHARACTER*1
+          Specifies whether or not the real Schur factorization
+          of the matrix A is supplied on entry, as follows:
+          = 'F':  On entry, A and U contain the factors from the
+                  real Schur factorization of the matrix A;
+          = 'N':  The Schur factorization of A will be computed
+                  and the factors will be stored in A and U.
+
+  TRANA   CHARACTER*1
+          Specifies the form of op(A) to be used, as follows:
+          = 'N':  op(A) = A    (No transpose);
+          = 'T':  op(A) = A**T (Transpose);
+          = 'C':  op(A) = A**T (Conjugate transpose = Transpose).
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The order of the matrices A, X, and C.  N &gt;= 0.
+
+  A       (input/output) DOUBLE PRECISION array, dimension (LDA,N)
+          On entry, the leading N-by-N part of this array must
+          contain the matrix A. If FACT = 'F', then A contains
+          an upper quasi-triangular matrix in Schur canonical form;
+          the elements below the upper Hessenberg part of the
+          array A are not referenced.
+          On exit, if INFO = 0 or INFO = N+1, the leading N-by-N
+          upper Hessenberg part of this array contains the upper
+          quasi-triangular matrix in Schur canonical form from the
+          Schur factorization of A. The contents of array A is not
+          modified if FACT = 'F'.
+
+  LDA     INTEGER
+          The leading dimension of array A.  LDA &gt;= MAX(1,N).
+
+  U       (input or output) DOUBLE PRECISION array, dimension
+          (LDU,N)
+          If FACT = 'F', then U is an input argument and on entry
+          the leading N-by-N part of this array must contain the
+          orthogonal matrix U of the real Schur factorization of A.
+          If FACT = 'N', then U is an output argument and on exit,
+          if INFO = 0 or INFO = N+1, it contains the orthogonal
+          N-by-N matrix from the real Schur factorization of A.
+
+  LDU     INTEGER
+          The leading dimension of array U.  LDU &gt;= MAX(1,N).
+
+  C       (input/output) DOUBLE PRECISION array, dimension (LDC,N)
+          On entry with JOB = 'X' or 'B', the leading N-by-N part of
+          this array must contain the symmetric matrix C.
+          On exit with JOB = 'X' or 'B', if INFO = 0 or INFO = N+1,
+          the leading N-by-N part of C has been overwritten by the
+          symmetric solution matrix X.
+          If JOB = 'S', C is not referenced.
+
+  LDC     INTEGER
+          The leading dimension of array C.
+          LDC &gt;= 1,        if JOB = 'S';
+          LDC &gt;= MAX(1,N), otherwise.
+
+  SCALE   (output) DOUBLE PRECISION
+          The scale factor, scale, set less than or equal to 1 to
+          prevent the solution overflowing.
+
+  SEP     (output) DOUBLE PRECISION
+          If JOB = 'S' or JOB = 'B', and INFO = 0 or INFO = N+1, SEP
+          contains the estimated separation of the matrices op(A)
+          and -op(A)', if DICO = 'C' or of op(A) and op(A)', if
+          DICO = 'D'.
+          If JOB = 'X', SEP is not referenced.
+
+  FERR    (output) DOUBLE PRECISION
+          If JOB = 'B', and INFO = 0 or INFO = N+1, FERR contains an
+          estimated forward error bound for the solution X.
+          If XTRUE is the true solution, FERR bounds the relative
+          error in the computed solution, measured in the Frobenius
+          norm:  norm(X - XTRUE)/norm(XTRUE).
+          If JOB = 'X' or JOB = 'S', FERR is not referenced.
+
+  WR      (output) DOUBLE PRECISION array, dimension (N)
+  WI      (output) DOUBLE PRECISION array, dimension (N)
+          If FACT = 'N', and INFO = 0 or INFO = N+1, WR and WI
+          contain the real and imaginary parts, respectively, of
+          the eigenvalues of A.
+          If FACT = 'F', WR and WI are not referenced.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  IWORK   INTEGER array, dimension (N*N)
+          This array is not referenced if JOB = 'X'.
+
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+          On exit, if INFO = 0 or INFO = N+1, DWORK(1) returns the
+          optimal value of LDWORK.
+
+  LDWORK  INTEGER
+          The length of the array DWORK.  LDWORK &gt;= 1, and
+          If JOB = 'X' then
+             If FACT = 'F', LDWORK &gt;= N*N,           for DICO = 'C';
+                            LDWORK &gt;= MAX(N*N, 2*N), for DICO = 'D';
+             If FACT = 'N', LDWORK &gt;= MAX(N*N, 3*N).
+          If JOB = 'S' or JOB = 'B' then
+             If FACT = 'F', LDWORK &gt;= 2*N*N,       for DICO = 'C';
+                            LDWORK &gt;= 2*N*N + 2*N, for DICO = 'D'.
+             If FACT = 'N', LDWORK &gt;= MAX(2*N*N, 3*N), DICO = 'C';
+                            LDWORK &gt;= 2*N*N + 2*N, for DICO = 'D'.
+          For optimum performance LDWORK should be larger.
+
+          If LDWORK = -1, then a workspace query is assumed; the
+          routine only calculates the optimal size of the DWORK
+          array, returns this value as the first entry of the DWORK
+          array, and no error message related to LDWORK is issued by
+          XERBLA.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value;
+          &gt; 0:  if INFO = i, the QR algorithm failed to compute all
+                the eigenvalues (see LAPACK Library routine DGEES);
+                elements i+1:n of WR and WI contain eigenvalues
+                which have converged, and A contains the partially
+                converged Schur form;
+          = N+1:  if DICO = 'C', and the matrices A and -A' have
+                common or very close eigenvalues, or
+                if DICO = 'D', and matrix A has almost reciprocal
+                eigenvalues (that is, lambda(i) = 1/lambda(j) for
+                some i and j, where lambda(i) and lambda(j) are
+                eigenvalues of A and i &lt;&gt; j); perturbed values were
+                used to solve the equation (but the matrix A is
+                unchanged).
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  The Schur factorization of a square matrix  A  is given by
+
+     A = U*S*U'
+
+  where U is orthogonal and S is block upper triangular with 1-by-1
+  and 2-by-2 blocks on its diagonal, these blocks corresponding to
+  the eigenvalues of A, the 2-by-2 blocks being complex conjugate
+  pairs. This factorization is obtained by numerically stable
+  methods: first A is reduced to upper Hessenberg form (if FACT =
+  'N') by means of Householder transformations and then the
+  QR Algorithm is applied to reduce the Hessenberg form to S, the
+  transformation matrices being accumulated at each step to give U.
+  If A has already been factorized prior to calling the routine
+  however, then the factors U and S may be supplied and the initial
+  factorization omitted.
+                _            _
+  If we now put C = U'CU and X = UXU' equations (1) and (2) (see
+  PURPOSE) become (for TRANS = 'N')
+       _   _    _
+     S'X + XS = C,                                               (3)
+  and
+       _    _   _
+     S'XS - X = C,                                               (4)
+
+  respectively. Partition S, C and X as
+                         _   _         _   _
+         (s    s')      (c   c')      (x   x')
+         ( 11    )  _   ( 11   )  _   ( 11   )
+     S = (       ), C = (      ), X = (      )
+         (       )      ( _    )      ( _    )
+         ( 0   S )      ( c  C )      ( x  X )
+                1             1             1
+             _      _
+  where s  , c  and x  are either scalars or 2-by-2 matrices and s,
+         11   11     11
+  _     _
+  c and x are either (N-1) element vectors or matrices with two
+  columns. Equations (3) and (4) can then be re-written as
+        _     _        _
+     s' x   + x  s   = c                                       (3.1)
+      11 11    11 11    11
+
+       _   _           _    _
+     S'x + xs        = c - sx                                  (3.2)
+      1      11              11
+
+                             _    _
+     S'X + X S       = C - (sx' + xs')                         (3.3)
+      1 1   1 1         1
+  and
+        _       _       _
+     s' x  s  - x     = c                                      (4.1)
+      11 11 11   11      11
+
+       _     _          _    _
+     S'xs  - x        = c - sx  s                              (4.2)
+      1  11                   11 11
+
+                             _            _        _
+     S'X S - X        = C - sx  s' - [s(S'x)' + (S'x)s']       (4.3)
+      1 1 1   1          1    11         1        1
+                                               _
+  respectively. If DICO = 'C' ['D'], then once x   has been
+                                                11
+  found from equation (3.1) [(4.1)], equation (3.2) [(4.2)] can be
+                                     _
+  solved by forward substitution for x and then equation (3.3)
+  [(4.3)] is of the same form as (3) [(4)] but of the order (N-1) or
+  (N-2) depending upon whether s   is 1-by-1 or 2-by-2.
+                                11
+                          _      _
+  When s   is 2-by-2 then x  and c   will be 1-by-2 matrices and s,
+        11                 11     11
+  _     _
+  x and c are matrices with two columns. In this case, equation
+  (3.1) [(4.1)] defines the three equations in the unknown elements
+     _
+  of x   and equation (3.2) [(4.2)] can then be solved by forward
+      11                 _
+  substitution, a row of x being found at each step.
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Barraud, A.Y.                   T
+      A numerical algorithm to solve A XA - X = Q.
+      IEEE Trans. Auto. Contr., AC-22, pp. 883-885, 1977.
+
+  [2] Bartels, R.H. and Stewart, G.W.  T
+      Solution of the matrix equation A X + XB = C.
+      Comm. A.C.M., 15, pp. 820-826, 1972.
+
+  [3] Hammarling, S.J.
+      Numerical solution of the stable, non-negative definite
+      Lyapunov equation.
+      IMA J. Num. Anal., 2, pp. 303-325, 1982.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>                            3
+  The algorithm requires 0(N ) operations and is backward stable.
+
+</PRE>
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  If DICO = 'C', SEP is defined as the separation of op(A) and
+  -op(A)':
+
+         sep( op(A), -op(A)' ) = sigma_min( T )
+
+  and if DICO = 'D', SEP is defined as
+
+         sep( op(A), op(A)' ) = sigma_min( T )
+
+  where sigma_min(T) is the smallest singular value of the
+  N*N-by-N*N matrix
+
+    T = kprod( I(N), op(A)' ) + kprod( op(A)', I(N) )  (DICO = 'C'),
+
+    T = kprod( op(A)', op(A)' ) - I(N**2)              (DICO = 'D').
+
+  I(x) is an x-by-x identity matrix, and kprod denotes the Kronecker
+  product. The program estimates sigma_min(T) by the reciprocal of
+  an estimate of the 1-norm of inverse(T). The true reciprocal
+  1-norm of inverse(T) cannot differ from sigma_min(T) by more
+  than a factor of N.
+
+  When SEP is small, small changes in A, C can cause large changes
+  in the solution of the equation. An approximate bound on the
+  maximum relative error in the computed solution is
+
+                   EPS * norm(A) / SEP      (DICO = 'C'),
+
+                   EPS * norm(A)**2 / SEP   (DICO = 'D'),
+
+  where EPS is the machine precision.
+
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+*     SB03MD EXAMPLE PROGRAM TEXT
+*
+*     .. Parameters ..
+      INTEGER          NIN, NOUT
+      PARAMETER        ( NIN = 5, NOUT = 6 )
+      INTEGER          NMAX
+      PARAMETER        ( NMAX = 20 )
+      INTEGER          LDA, LDC, LDU
+      PARAMETER        ( LDA = NMAX, LDC = NMAX, LDU = NMAX )
+      INTEGER          LDWORK, LIWORK
+      PARAMETER        ( LDWORK = 2*NMAX*NMAX + 3*NMAX,
+     $                   LIWORK = NMAX*NMAX )
+*     .. Local Scalars ..
+      INTEGER          I, INFO, J, N
+      CHARACTER*1      DICO, FACT, JOB, TRANA
+      DOUBLE PRECISION FERR, SCALE, SEP
+*     .. Local Arrays ..
+      INTEGER          IWORK(LIWORK)
+      DOUBLE PRECISION A(LDA,NMAX), C(LDC,NMAX), DWORK(LDWORK),
+     $                 U(LDU,NMAX), WI(NMAX), WR(NMAX)
+*     .. External Functions ..
+      LOGICAL          LSAME
+      EXTERNAL         LSAME
+*     .. External Subroutines ..
+      EXTERNAL         SB03MD
+*     .. Executable Statements ..
+*
+      WRITE ( NOUT, FMT = 99999 )
+*     Skip the heading in the data file and read the data.
+      READ ( NIN, FMT = '()' )
+      READ ( NIN, FMT = * ) N, DICO, FACT, JOB, TRANA
+      IF ( N.LE.0 .OR. N.GT.NMAX ) THEN
+         WRITE ( NOUT, FMT = 99995 ) N
+      ELSE
+         READ ( NIN, FMT = * ) ( ( A(I,J), J = 1,N ), I = 1,N )
+         IF ( LSAME( FACT, 'F' ) ) READ ( NIN, FMT = * )
+     $                         ( ( U(I,J), J = 1,N ), I = 1,N )
+         READ ( NIN, FMT = * ) ( ( C(I,J), J = 1,N ), I = 1,N )
+*        Find the solution matrix X.
+         CALL SB03MD( DICO, JOB, FACT, TRANA, N, A, LDA, U, LDU, C, LDC,
+     $                SCALE, SEP, FERR, WR, WI, IWORK, DWORK, LDWORK,
+     $                INFO )
+*
+         IF ( INFO.NE.0 ) THEN
+            WRITE ( NOUT, FMT = 99998 ) INFO
+         ELSE
+            WRITE ( NOUT, FMT = 99997 )
+            DO 20 I = 1, N
+               WRITE ( NOUT, FMT = 99996 ) ( C(I,J), J = 1,N )
+   20       CONTINUE
+            WRITE ( NOUT, FMT = 99994 ) SCALE
+            IF ( .NOT.LSAME( JOB, 'X' ) )
+     $         WRITE ( NOUT, FMT = 99993 ) SEP
+            IF ( LSAME( JOB, 'B' ) )
+     $         WRITE ( NOUT, FMT = 99992 ) FERR
+         END IF
+      END IF
+      STOP
+*
+99999 FORMAT (' SB03MD EXAMPLE PROGRAM RESULTS',/1X)
+99998 FORMAT (' INFO on exit from SB03MD = ',I2)
+99997 FORMAT (' The solution matrix X is ')
+99996 FORMAT (20(1X,F8.4))
+99995 FORMAT (/' N is out of range.',/' N = ',I5)
+99994 FORMAT (/' Scaling factor = ',F8.4)
+99993 FORMAT (/' Estimated separation = ',F8.4)
+99992 FORMAT (/' Estimated forward error bound = ',F8.4)
+      END
+</PRE>
+<B>Program Data</B>
+<PRE>
+ SB03MD EXAMPLE PROGRAM DATA
+   3     D     N     X     N
+   3.0   1.0   1.0
+   1.0   3.0   0.0
+   0.0   0.0   3.0
+  25.0  24.0  15.0
+  24.0  32.0   8.0
+  15.0   8.0  40.0
+</PRE>
+<B>Program Results</B>
+<PRE>
+ SB03MD EXAMPLE PROGRAM RESULTS
+
+ The solution matrix X is 
+   2.0000   1.0000   1.0000
+   1.0000   3.0000   0.0000
+   1.0000   0.0000   4.0000
+
+ Scaling factor =   1.0000
+</PRE>
+
+<HR>
+<p>
+<A HREF=..\libindex.html><B>Return to index</B></A></BODY>
+</HTML>

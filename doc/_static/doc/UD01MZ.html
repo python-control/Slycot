@@ -1,0 +1,126 @@
+<HTML>
+<HEAD><TITLE>UD01MZ - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="UD01MZ">UD01MZ</A></H2>
+<H3>
+Printing a real matrix (complex case)
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To print an M-by-N real matrix A row by row. The elements of A
+  are output to 7 significant figures.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE UD01MZ( M, N, L, NOUT, A, LDA, TEXT, INFO )
+C     .. Scalar Arguments ..
+      INTEGER           INFO, L, LDA, M, N, NOUT
+      CHARACTER*(*)     TEXT
+C     .. Array Arguments ..
+      COMPLEX*16        A(LDA,*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  M       (input) INTEGER
+          The number of rows of matrix A to be printed.  M &gt;= 1.
+
+  N       (input) INTEGER
+          The number of columns of matrix A to be printed.  N &gt;= 1.
+
+  L       (input) INTEGER
+          The number of elements of matrix A to be printed per line.
+          1 &lt;= L &lt;= 3.
+
+  NOUT    (input) INTEGER
+          The output channel to which the results are sent.
+          NOUT &gt;= 0.
+
+  A       (input) COMPLEX*16 array, dimension (LDA,N)
+          The leading M-by-N part of this array must contain the
+          matrix to be printed.
+
+  LDA     INTEGER
+          The leading dimension of array A.  LDA &gt;= M.
+
+  TEXT    (input) CHARACTER*72.
+          Title caption of the matrix to be printed (up to a
+          maximum of 72 characters). For example, TEXT = 'Matrix A'.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  The routine first prints the contents of TEXT as a title, followed
+  by the elements of the matrix A such that
+
+  (i)  if N &lt;= L, the leading M-by-N part is printed;
+  (ii) if N = k*L + p (where k,p &gt; 0), then k M-by-L blocks of
+       consecutive columns of A are printed one after another
+       followed by one M-by-p block containing the last p columns
+       of A.
+
+  Row numbers are printed on the left of each row and a column
+  number appears on top of each complex column.
+  The routine uses 2 + (k + 1)*(m + 1) lines and 7 + 32*c positions
+  per line where c is the actual number of columns, (i.e. c = L
+  or c = p).
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  None.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  None.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<p>
+<A HREF=..\libindex.html><B>Return to index</B></A></BODY>
+</HTML>

@@ -1,0 +1,379 @@
+<HTML>
+<HEAD><TITLE>TG01AZ - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="TG01AZ">TG01AZ</A></H2>
+<H3>
+Balancing the matrices of the system pencil corresponding to a descriptor triple (A-lambda E,B,C) (complex case)
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To balance the matrices of the system pencil
+
+          S =  ( A  B ) - lambda ( E  0 ) :=  Q - lambda Z,
+               ( C  0 )          ( 0  0 )
+
+  corresponding to the descriptor triple (A-lambda E,B,C),
+  by balancing. This involves diagonal similarity transformations
+  (Dl*A*Dr - lambda Dl*E*Dr, Dl*B, C*Dr) applied to the system
+  (A-lambda E,B,C) to make the rows and columns of system pencil
+  matrices
+
+               diag(Dl,I) * S * diag(Dr,I)
+
+  as close in norm as possible. Balancing may reduce the 1-norms
+  of the matrices of the system pencil S.
+
+  The balancing can be performed optionally on the following
+  particular system pencils
+
+           S = A-lambda E,
+
+           S = ( A-lambda E  B ),    or
+
+           S = ( A-lambda E ).
+               (     C      )
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE TG01AZ( JOB, L, N, M, P, THRESH, A, LDA, E, LDE,
+     $                   B, LDB, C, LDC, LSCALE, RSCALE, DWORK, INFO )
+C     .. Scalar Arguments ..
+      CHARACTER          JOB
+      INTEGER            INFO, L, LDA, LDB, LDC, LDE, M, N, P
+      DOUBLE PRECISION   THRESH
+C     .. Array Arguments ..
+      COMPLEX*16         A( LDA, * ), B( LDB, * ), C( LDC, * ),
+     $                   E( LDE, * )
+      DOUBLE PRECISION   DWORK( * ), LSCALE( * ), RSCALE( * )
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  JOB     CHARACTER*1
+          Indicates which matrices are involved in balancing, as
+          follows:
+          = 'A':  All matrices are involved in balancing;
+          = 'B':  B, A and E matrices are involved in balancing;
+          = 'C':  C, A and E matrices are involved in balancing;
+          = 'N':  B and C matrices are not involved in balancing.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  L       (input) INTEGER
+          The number of rows of matrices A, B, and E.  L &gt;= 0.
+
+  N       (input) INTEGER
+          The number of columns of matrices A, E, and C.  N &gt;= 0.
+
+  M       (input) INTEGER
+          The number of columns of matrix B.  M &gt;= 0.
+
+  P       (input) INTEGER
+          The number of rows of matrix C.  P &gt;= 0.
+
+  THRESH  (input) DOUBLE PRECISION
+          Threshold value for magnitude of elements:
+          elements with magnitude less than or equal to
+          THRESH are ignored for balancing. THRESH &gt;= 0.
+          The magnitude is computed as the sum of the absolute
+          values of the real and imaginary parts.
+
+  A       (input/output) COMPLEX*16 array, dimension (LDA,N)
+          On entry, the leading L-by-N part of this array must
+          contain the state dynamics matrix A.
+          On exit, the leading L-by-N part of this array contains
+          the balanced matrix Dl*A*Dr.
+
+  LDA     INTEGER
+          The leading dimension of array A.  LDA &gt;= MAX(1,L).
+
+  E       (input/output) COMPLEX*16 array, dimension (LDE,N)
+          On entry, the leading L-by-N part of this array must
+          contain the descriptor matrix E.
+          On exit, the leading L-by-N part of this array contains
+          the balanced matrix Dl*E*Dr.
+
+  LDE     INTEGER
+          The leading dimension of array E.  LDE &gt;= MAX(1,L).
+
+  B       (input/output) COMPLEX*16 array, dimension (LDB,M)
+          On entry, the leading L-by-M part of this array must
+          contain the input/state matrix B.
+          On exit, if M &gt; 0, the leading L-by-M part of this array
+          contains the balanced matrix Dl*B.
+          The array B is not referenced if M = 0.
+
+  LDB     INTEGER
+          The leading dimension of array B.
+          LDB &gt;= MAX(1,L) if M &gt; 0 or LDB &gt;= 1 if M = 0.
+
+  C       (input/output) COMPLEX*16 array, dimension (LDC,N)
+          On entry, the leading P-by-N part of this array must
+          contain the state/output matrix C.
+          On exit, if P &gt; 0, the leading P-by-N part of this array
+          contains the balanced matrix C*Dr.
+          The array C is not referenced if P = 0.
+
+  LDC     INTEGER
+          The leading dimension of array C.  LDC &gt;= MAX(1,P).
+
+  LSCALE  (output) DOUBLE PRECISION array, dimension (L)
+          The scaling factors applied to S from left.  If Dl(j) is
+          the scaling factor applied to row j, then
+          SCALE(j) = Dl(j), for j = 1,...,L.
+
+  RSCALE  (output) DOUBLE PRECISION array, dimension (N)
+          The scaling factors applied to S from right.  If Dr(j) is
+          the scaling factor applied to column j, then
+          SCALE(j) = Dr(j), for j = 1,...,N.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  DWORK   DOUBLE PRECISION array, dimension (3*(L+N))
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit.
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  Balancing consists of applying a diagonal similarity
+  transformation
+                         -1
+               diag(Dl,I)  * S * diag(Dr,I)
+
+  to make the 1-norms of each row of the first L rows of S and its
+  corresponding N columns nearly equal.
+
+  Information about the diagonal matrices Dl and Dr are returned in
+  the vectors LSCALE and RSCALE, respectively.
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Anderson, E., Bai, Z., Bischof, C., Demmel, J., Dongarra, J.,
+      Du Croz, J., Greenbaum, A., Hammarling, S., McKenney, A.,
+      Ostrouchov, S., and Sorensen, D.
+      LAPACK Users' Guide: Second Edition.
+      SIAM, Philadelphia, 1995.
+
+  [2] R.C. Ward, R. C.
+      Balancing the generalized eigenvalue problem.
+      SIAM J. Sci. Stat. Comp. 2 (1981), 141-152.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  None.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+*     TG01AZ EXAMPLE PROGRAM TEXT
+*
+*     .. Parameters ..
+      INTEGER          NIN, NOUT
+      PARAMETER        ( NIN = 5, NOUT = 6 )
+      INTEGER          LMAX, NMAX, MMAX, PMAX
+      PARAMETER        ( LMAX = 20, NMAX = 20, MMAX = 20, PMAX = 20 )
+      INTEGER          LDA, LDB, LDC, LDE
+      PARAMETER        ( LDA = LMAX, LDB = LMAX, LDC = PMAX,
+     $                   LDE = LMAX )
+      INTEGER          LDWORK
+      PARAMETER        ( LDWORK = MAX( 1, 3*(LMAX+NMAX ) ) )
+*     .. Local Scalars ..
+      CHARACTER*1      JOBS
+      INTEGER          I, INFO, J, L, M, N, P
+      DOUBLE PRECISION ABCNRM, ENORM, SABCNM, SENORM, THRESH
+*     .. Local Arrays ..
+      COMPLEX*16       A(LDA,NMAX), B(LDB,MMAX), C(LDC,NMAX),
+     $                 E(LDE,NMAX)
+      DOUBLE PRECISION DWORK(LDWORK), LSCALE(LMAX), RSCALE(NMAX)
+*     .. External Functions ..
+      DOUBLE PRECISION ZLANGE
+      EXTERNAL         ZLANGE
+*     .. External Subroutines ..
+      EXTERNAL         TG01AZ
+*     .. Intrinsic Functions ..
+      INTRINSIC        MAX
+*     .. Executable Statements ..
+*
+      WRITE ( NOUT, FMT = 99999 )
+*     Skip the heading in the data file and read the data.
+      READ ( NIN, FMT = '()' )
+      READ ( NIN, FMT = * ) L, N, M, P, JOBS, THRESH
+      IF ( L.LT.0 .OR. L.GT.LMAX ) THEN
+         WRITE ( NOUT, FMT = 99989 ) L
+      ELSE
+         IF ( N.LT.0 .OR. N.GT.NMAX ) THEN
+            WRITE ( NOUT, FMT = 99988 ) N
+         ELSE
+            READ ( NIN, FMT = * ) ( ( A(I,J), J = 1,N ), I = 1,L )
+            READ ( NIN, FMT = * ) ( ( E(I,J), J = 1,N ), I = 1,L )
+            IF ( M.LT.0 .OR. M.GT.MMAX ) THEN
+               WRITE ( NOUT, FMT = 99987 ) M
+            ELSE
+               READ ( NIN, FMT = * ) ( ( B(I,J), J = 1,M ), I = 1,L )
+               IF ( P.LT.0 .OR. P.GT.PMAX ) THEN
+                  WRITE ( NOUT, FMT = 99986 ) P
+               ELSE
+                  READ ( NIN, FMT = * ) ( ( C(I,J), J = 1,N ), I = 1,P )
+*                 Compute norms before scaling
+                  ABCNRM = MAX( ZLANGE( '1', L, N, A, LDA, DWORK ),
+     $                          ZLANGE( '1', L, M, B, LDB, DWORK ),
+     $                          ZLANGE( '1', P, N, C, LDC, DWORK ) )
+                  ENORM = ZLANGE( '1', L, N, E, LDE, DWORK )
+*                 Find the transformed descriptor system
+*                 (A-lambda E,B,C).
+                  CALL TG01AZ( JOBS, L, N, M, P, THRESH, A, LDA, E, LDE,
+     $                         B, LDB, C, LDC, LSCALE, RSCALE, DWORK,
+     $                         INFO )
+*
+                  IF ( INFO.NE.0 ) THEN
+                     WRITE ( NOUT, FMT = 99998 ) INFO
+                  ELSE
+                     SABCNM = MAX( ZLANGE( '1', L, N, A, LDA, DWORK ),
+     $                             ZLANGE( '1', L, M, B, LDB, DWORK ),
+     $                             ZLANGE( '1', P, N, C, LDC, DWORK ) )
+                     SENORM = ZLANGE( '1', L, N, E, LDE, DWORK )
+                     WRITE ( NOUT, FMT = 99997 )
+                     DO 10 I = 1, L
+                        WRITE ( NOUT, FMT = 99995 ) ( A(I,J), J = 1,N )
+   10                CONTINUE
+                     WRITE ( NOUT, FMT = 99996 )
+                     DO 20 I = 1, L
+                        WRITE ( NOUT, FMT = 99995 ) ( E(I,J), J = 1,N )
+   20                CONTINUE
+                     WRITE ( NOUT, FMT = 99993 )
+                     DO 30 I = 1, L
+                        WRITE ( NOUT, FMT = 99995 ) ( B(I,J), J = 1,M )
+   30                CONTINUE
+                     WRITE ( NOUT, FMT = 99992 )
+                     DO 40 I = 1, P
+                        WRITE ( NOUT, FMT = 99995 ) ( C(I,J), J = 1,N )
+   40                CONTINUE
+                     WRITE ( NOUT, FMT = 99991 )
+                     WRITE ( NOUT, FMT = 99985 ) ( LSCALE(I), I = 1,L )
+                     WRITE ( NOUT, FMT = 99990 )
+                     WRITE ( NOUT, FMT = 99985 ) ( RSCALE(J), J = 1,N )
+                     WRITE ( NOUT, FMT = 99994 )
+     $                       ABCNRM, SABCNM, ENORM, SENORM
+                  END IF
+               END IF
+            END IF
+         END IF
+      END IF
+      STOP
+*
+99999 FORMAT (' TG01AZ EXAMPLE PROGRAM RESULTS',/1X)
+99998 FORMAT (' INFO on exit from TG01AZ = ',I2)
+99997 FORMAT (/' The transformed state dynamics matrix Dl*A*Dr is ')
+99996 FORMAT (/' The transformed descriptor matrix Dl*E*Dr is ')
+99995 FORMAT (20(1X,F9.4,SP,F9.4,S,'i '))
+99994 FORMAT (/' Norm of [ A B; C 0]         =', 1PD10.3/
+     $         ' Norm of scaled [ A B; C 0]  =', 1PD10.3/
+     $         ' Norm of E                   =', 1PD10.3/
+     $         ' Norm of scaled E            =', 1PD10.3)
+99993 FORMAT (/' The transformed input/state matrix Dl*B is ')
+99992 FORMAT (/' The transformed state/output matrix C*Dr is ')
+99991 FORMAT (/' The diagonal of left scaling matrix Dl is ')
+99990 FORMAT (/' The diagonal of right scaling matrix Dr is ')
+99989 FORMAT (/' L is out of range.',/' L = ',I5)
+99988 FORMAT (/' N is out of range.',/' N = ',I5)
+99987 FORMAT (/' M is out of range.',/' M = ',I5)
+99986 FORMAT (/' P is out of range.',/' P = ',I5)
+99985 FORMAT (20(1X,F9.4))
+      END
+</PRE>
+<B>Program Data</B>
+<PRE>
+TG01AZ EXAMPLE PROGRAM DATA
+  4    4     2     2     A   0.0
+       (-1,0)       (0,0)       (0,0)  (0.003,0)
+        (0,0)       (0,0)  (0.1000,0)   (0.02,0)
+      (100,0)      (10,0)       (0,0)    (0.4,0)
+        (0,0)       (0,0)       (0,0)    (0.0,0)
+        (1,0)     (0.2,0)       (0,0)    (0.0,0)
+        (0,0)       (1,0)       (0,0)  ( 0.01,0)
+      (300,0)      (90,0)       (6,0)    (0.3,0)
+        (0,0)       (0,0)      (20,0)    (0.0,0)
+       (10,0)       (0,0)
+        (0,0)       (0,0)
+        (0,0)    (1000,0)
+    (10000,0)   (10000,0)
+     (-0.1,0)     (0.0,0)   (0.001,0)    (0.0,0)
+      (0.0,0)    (0.01,0)  (-0.001,0) (0.0001,0)
+
+</PRE>
+<B>Program Results</B>
+<PRE>
+ TG01AZ EXAMPLE PROGRAM RESULTS
+
+
+ The transformed state dynamics matrix Dl*A*Dr is 
+   -1.0000  +0.0000i     0.0000  +0.0000i     0.0000  +0.0000i     0.3000  +0.0000i 
+    0.0000  +0.0000i     0.0000  +0.0000i     1.0000  +0.0000i     2.0000  +0.0000i 
+    1.0000  +0.0000i     0.1000  +0.0000i     0.0000  +0.0000i     0.4000  +0.0000i 
+    0.0000  +0.0000i     0.0000  +0.0000i     0.0000  +0.0000i     0.0000  +0.0000i 
+
+ The transformed descriptor matrix Dl*E*Dr is 
+    1.0000  +0.0000i     0.2000  +0.0000i     0.0000  +0.0000i     0.0000  +0.0000i 
+    0.0000  +0.0000i     1.0000  +0.0000i     0.0000  +0.0000i     1.0000  +0.0000i 
+    3.0000  +0.0000i     0.9000  +0.0000i     0.6000  +0.0000i     0.3000  +0.0000i 
+    0.0000  +0.0000i     0.0000  +0.0000i     0.2000  +0.0000i     0.0000  +0.0000i 
+
+ The transformed input/state matrix Dl*B is 
+  100.0000  +0.0000i     0.0000  +0.0000i 
+    0.0000  +0.0000i     0.0000  +0.0000i 
+    0.0000  +0.0000i   100.0000  +0.0000i 
+  100.0000  +0.0000i   100.0000  +0.0000i 
+
+ The transformed state/output matrix C*Dr is 
+   -0.0100  +0.0000i     0.0000  +0.0000i     0.0010  +0.0000i     0.0000  +0.0000i 
+    0.0000  +0.0000i     0.0010  +0.0000i    -0.0010  +0.0000i     0.0010  +0.0000i 
+
+ The diagonal of left scaling matrix Dl is 
+   10.0000   10.0000    0.1000    0.0100
+
+ The diagonal of right scaling matrix Dr is 
+    0.1000    0.1000    1.0000   10.0000
+
+ Norm of [ A B; C 0]         = 1.100D+04
+ Norm of scaled [ A B; C 0]  = 2.000D+02
+ Norm of E                   = 3.010D+02
+ Norm of scaled E            = 4.000D+00
+</PRE>
+
+<HR>
+<p>
+<A HREF=..\libindex.html><B>Return to index</B></A></BODY>
+</HTML>

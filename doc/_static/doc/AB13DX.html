@@ -1,0 +1,250 @@
+<HTML>
+<HEAD><TITLE>AB13DX - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="AB13DX">AB13DX</A></H2>
+<H3>
+Maximum singular value of a transfer-function matrix
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To compute the maximum singular value of a given continuous-time
+  or discrete-time transfer-function matrix, either standard or in
+  the descriptor form,
+
+                                  -1
+     G(lambda) = C*( lambda*E - A ) *B + D ,
+
+  for a given complex value lambda, where lambda = j*omega, in the
+  continuous-time case, and lambda = exp(j*omega), in the
+  discrete-time case. The matrices A, E, B, C, and D are real
+  matrices of appropriate dimensions. Matrix A must be in an upper
+  Hessenberg form, and if JOBE ='G', the matrix E must be upper
+  triangular. The matrices B and C must correspond to the system
+  in (generalized) Hessenberg form.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      DOUBLE PRECISION FUNCTION AB13DX( DICO, JOBE, JOBD, N, M, P,
+     $                                  OMEGA, A, LDA, E, LDE, B, LDB,
+     $                                  C, LDC, D, LDD, IWORK, DWORK,
+     $                                  LDWORK, CWORK, LCWORK, INFO )
+C     .. Scalar Arguments ..
+      CHARACTER          DICO, JOBD, JOBE
+      INTEGER            INFO, LCWORK, LDA, LDB, LDC, LDD, LDE, LDWORK,
+     $                   M, N, P
+      DOUBLE PRECISION   OMEGA
+C     .. Array Arguments ..
+      COMPLEX*16         CWORK(  * )
+      DOUBLE PRECISION   A( LDA, * ), B( LDB, * ), C( LDC, * ),
+     $                   D( LDD, * ), DWORK(  * ), E( LDE, * )
+      INTEGER            IWORK(  * )
+
+</PRE>
+<B><FONT SIZE="+1">Function Value</FONT></B>
+<PRE>
+  AB13DX   DOUBLE PRECISION
+           The maximum singular value of G(lambda).
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  DICO    CHARACTER*1
+          Specifies the type of the system, as follows:
+          = 'C':  continuous-time system;
+          = 'D':  discrete-time system.
+
+  JOBE    CHARACTER*1
+          Specifies whether E is an upper triangular or an identity
+          matrix, as follows:
+          = 'G':  E is a general upper triangular matrix;
+          = 'I':  E is the identity matrix.
+
+  JOBD    CHARACTER*1
+          Specifies whether or not a non-zero matrix D appears in
+          the given state space model:
+          = 'D':  D is present;
+          = 'Z':  D is assumed a zero matrix.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The order of the system.  N &gt;= 0.
+
+  M       (input) INTEGER
+          The column size of the matrix B.  M &gt;= 0.
+
+  P       (input) INTEGER
+          The row size of the matrix C.  P &gt;= 0.
+
+  OMEGA   (input) DOUBLE PRECISION
+          The frequency value for which the calculations should be
+          done.
+
+  A       (input/output) DOUBLE PRECISION array, dimension (LDA,N)
+          On entry, the leading N-by-N upper Hessenberg part of this
+          array must contain the state dynamics matrix A in upper
+          Hessenberg form. The elements below the subdiagonal are
+          not referenced.
+          On exit, if M &gt; 0, P &gt; 0, OMEGA = 0, DICO = 'C', B &lt;&gt; 0,
+          and C &lt;&gt; 0, the leading N-by-N upper Hessenberg part of
+          this array contains the factors L and U from the LU
+          factorization of A (A = P*L*U); the unit diagonal elements
+          of L are not stored, L is lower bidiagonal, and P is
+          stored in IWORK (see SLICOT Library routine MB02SD).
+          Otherwise, this array is unchanged on exit.
+
+  LDA     INTEGER
+          The leading dimension of the array A.  LDA &gt;= max(1,N).
+
+  E       (input) DOUBLE PRECISION array, dimension (LDE,N)
+          If JOBE = 'G', the leading N-by-N upper triangular part of
+          this array must contain the upper triangular descriptor
+          matrix E of the system. The elements of the strict lower
+          triangular part of this array are not referenced.
+          If JOBE = 'I', then E is assumed to be the identity
+          matrix and is not referenced.
+
+  LDE     INTEGER
+          The leading dimension of the array E.
+          LDE &gt;= MAX(1,N), if JOBE = 'G';
+          LDE &gt;= 1,        if JOBE = 'I'.
+
+  B       (input/output) DOUBLE PRECISION array, dimension (LDB,M)
+          On entry, the leading N-by-M part of this array must
+          contain the system input matrix B.
+          On exit, if M &gt; 0, P &gt; 0, OMEGA = 0, DICO = 'C', B &lt;&gt; 0,
+          C &lt;&gt; 0, and INFO = 0 or N+1, the leading N-by-M part of
+          this array contains the solution of the system A*X = B.
+          Otherwise, this array is unchanged on exit.
+
+  LDB     INTEGER
+          The leading dimension of the array B.  LDB &gt;= max(1,N).
+
+  C       (input) DOUBLE PRECISION array, dimension (LDC,N)
+          The leading P-by-N part of this array must contain the
+          system output matrix C.
+
+  LDC     INTEGER
+          The leading dimension of the array C.  LDC &gt;= max(1,P).
+
+  D       (input/output) DOUBLE PRECISION array, dimension (LDD,M)
+          On entry, if JOBD = 'D', the leading P-by-M part of this
+          array must contain the direct transmission matrix D.
+          On exit, if (N = 0, or B = 0, or C = 0) and JOBD = 'D',
+          or (OMEGA = 0, DICO = 'C', JOBD = 'D', and INFO = 0 or
+          N+1), the contents of this array is destroyed.
+          Otherwise, this array is unchanged on exit.
+          This array is not referenced if JOBD = 'Z'.
+
+  LDD     INTEGER
+          The leading dimension of array D.
+          LDD &gt;= MAX(1,P), if JOBD = 'D';
+          LDD &gt;= 1,        if JOBD = 'Z'.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  IWORK   INTEGER array, dimension (LIWORK), where
+          LIWORK = N, if N &gt; 0, M &gt; 0, P &gt; 0, B &lt;&gt; 0, and C &lt;&gt; 0;
+          LIWORK = 0, otherwise.
+          This array contains the pivot indices in the LU
+          factorization of the matrix lambda*E - A; for 1 &lt;= i &lt;= N,
+          row i of the matrix was interchanged with row IWORK(i).
+
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+          On exit, if INFO = 0, DWORK(1) contains the optimal value
+          of LDWORK, and DWORK(2), ..., DWORK(MIN(P,M)) contain the
+          singular values of G(lambda), except for the first one,
+          which is returned in the function value AB13DX.
+          If (N = 0, or B = 0, or C = 0) and JOBD = 'Z', the last
+          MIN(P,M)-1 zero singular values of G(lambda) are not
+          stored in DWORK(2), ..., DWORK(MIN(P,M)).
+
+  LDWORK  INTEGER
+          The dimension of the array DWORK.
+          LDWORK &gt;= MAX(1, LDW1 + LDW2 ),
+          LDW1 = P*M, if N &gt; 0, B &lt;&gt; 0, C &lt;&gt; 0, OMEGA = 0,
+                         DICO = 'C', and JOBD = 'Z';
+          LDW1 = 0,   otherwise;
+          LDW2 = MIN(P,M) + MAX(3*MIN(P,M) + MAX(P,M), 5*MIN(P,M)),
+                      if (N = 0, or B = 0, or C = 0) and JOBD = 'D',
+                      or (N &gt; 0, B &lt;&gt; 0, C &lt;&gt; 0, OMEGA = 0, and
+                          DICO = 'C');
+          LDW2 = 0,   if (N = 0, or B = 0, or C = 0) and JOBD = 'Z',
+                      or MIN(P,M) = 0;
+          LDW2 = 6*MIN(P,M), otherwise.
+          For good performance, LDWORK must generally be larger.
+
+  CWORK   COMPLEX*16 array, dimension (LCWORK)
+          On exit, if INFO = 0, CWORK(1) contains the optimal
+          LCWORK.
+
+  LCWORK  INTEGER
+          The dimension of the array CWORK.
+          LCWORK &gt;= 1, if N = 0, or B = 0, or C = 0, or (OMEGA = 0
+                          and DICO = 'C') or MIN(P,M) = 0;
+          LCWORK &gt;= MAX(1, (N+M)*(N+P) + 2*MIN(P,M) + MAX(P,M)),
+                       otherwise.
+          For good performance, LCWORK must generally be larger.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value;
+          &gt; 0:  if INFO = i, U(i,i) is exactly zero; the LU
+                factorization of the matrix lambda*E - A has been
+                completed, but the factor U is exactly singular,
+                i.e., the matrix lambda*E - A is exactly singular;
+          = N+1:  the SVD algorithm for computing singular values
+                did not converge.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  The routine implements standard linear algebra calculations,
+  taking problem structure into account. LAPACK Library routines
+  DGESVD and ZGESVD are used for finding the singular values.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

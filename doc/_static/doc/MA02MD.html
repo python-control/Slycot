@@ -1,0 +1,114 @@
+<HTML>
+<HEAD><TITLE>MA02MD - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MA02MD">MA02MD</A></H2>
+<H3>
+Compute norms of a real skew-symmetric matrix
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To compute the value of the one norm, or the Frobenius norm, or
+  the infinity norm, or the element of largest absolute value
+  of a real skew-symmetric matrix.
+
+  Note that for this kind of matrices the infinity norm is equal
+  to the one norm.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      DOUBLE PRECISION FUNCTION MA02MD( NORM, UPLO, N, A, LDA, DWORK )
+C     .. Scalar Arguments ..
+      CHARACTER          NORM, UPLO
+      INTEGER            LDA, N
+C     .. Array Arguments ..
+      DOUBLE PRECISION   A( LDA, * ), DWORK( * )
+
+</PRE>
+<B><FONT SIZE="+1">Function Value</FONT></B>
+<PRE>
+  MA02MD  DOUBLE PRECISION
+          The computed norm.
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  NORM    CHARACTER*1
+          Specifies the value to be returned in MA02MD:
+          = '1' or 'O':  one norm of A;
+          = 'F' or 'E':  Frobenius norm of A;
+          = 'I':         infinity norm of A;
+          = 'M':         max(abs(A(i,j)).
+
+  UPLO    CHARACTER*1
+          Specifies whether the upper or lower triangular part of
+          the skew-symmetric matrix A is to be referenced.
+          = 'U':  Upper triangular part of A is referenced;
+          = 'L':  Lower triangular part of A is referenced.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The order of the matrix A.  N &gt;= 0.  When N = 0, MA02MD is
+          set to zero.
+
+  A       (input) DOUBLE PRECISION array, dimension (LDA,N)
+          The skew-symmetric matrix A.  If UPLO = 'U', the leading
+          N-by-N strictly upper triangular part of A contains the
+          strictly upper triangular part of the matrix A, and the
+          lower triangular part of A is not referenced.
+          If UPLO = 'L', the leading N-by-N strictly lower
+          triangular part of A contains the strictly lower
+          triangular part of the matrix A, and the upper triangular
+          part of A is not referenced.
+          The diagonal of A need not be set to zero.
+
+  LDA     INTEGER
+          The leading dimension of the array A.  LDA &gt;= max(1,N).
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  DWORK   DOUBLE PRECISION array, dimension (MAX(1,LDWORK)),
+          where LDWORK &gt;= N when NORM = 'I' or '1' or 'O';
+          otherwise, DWORK is not referenced.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

@@ -1,0 +1,162 @@
+<HTML>
+<HEAD><TITLE>MB04JD - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MB04JD">MB04JD</A></H2>
+<H3>
+LQ factorization of a matrix with an upper right-hand side zero triangle
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To compute an LQ factorization of an n-by-m matrix A (A = L * Q),
+  having a min(n,p)-by-p zero triangle in the upper right-hand side
+  corner, as shown below, for n = 8, m = 7, and p = 2:
+
+         [ x x x x x 0 0 ]
+         [ x x x x x x 0 ]
+         [ x x x x x x x ]
+         [ x x x x x x x ]
+     A = [ x x x x x x x ],
+         [ x x x x x x x ]
+         [ x x x x x x x ]
+         [ x x x x x x x ]
+
+  and optionally apply the transformations to an l-by-m matrix B
+  (from the right). The problem structure is exploited. This
+  computation is useful, for instance, in combined measurement and
+  time update of one iteration of the time-invariant Kalman filter
+  (square root covariance filter).
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MB04JD( N, M, P, L, A, LDA, B, LDB, TAU, DWORK, LDWORK,
+     $                   INFO )
+C     .. Scalar Arguments ..
+      INTEGER           INFO, L, LDA, LDB, LDWORK, M, N, P
+C     .. Array Arguments ..
+      DOUBLE PRECISION  A(LDA,*), B(LDB,*), DWORK(*), TAU(*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The number of rows of the matrix A.  N &gt;= 0.
+
+  M       (input) INTEGER
+          The number of columns of the matrix A.  M &gt;= 0.
+
+  P       (input) INTEGER
+          The order of the zero triagle.  P &gt;= 0.
+
+  L       (input) INTEGER
+          The number of rows of the matrix B.  L &gt;= 0.
+
+  A       (input/output) DOUBLE PRECISION array, dimension (LDA,M)
+          On entry, the leading N-by-M part of this array must
+          contain the matrix A. The elements corresponding to the
+          zero MIN(N,P)-by-P upper trapezoidal/triangular part
+          (if P &gt; 0) are not referenced.
+          On exit, the elements on and below the diagonal of this
+          array contain the N-by-MIN(N,M) lower trapezoidal matrix
+          L (L is lower triangular, if N &lt;= M) of the LQ
+          factorization, and the relevant elements above the
+          diagonal contain the trailing components (the vectors v,
+          see Method) of the elementary reflectors used in the
+          factorization.
+
+  LDA     INTEGER
+          The leading dimension of array A.  LDA &gt;= MAX(1,N).
+
+  B       (input/output) DOUBLE PRECISION array, dimension (LDB,M)
+          On entry, the leading L-by-M part of this array must
+          contain the matrix B.
+          On exit, the leading L-by-M part of this array contains
+          the updated matrix B.
+          If L = 0, this array is not referenced.
+
+  LDB     INTEGER
+          The leading dimension of array B.  LDB &gt;= MAX(1,L).
+
+  TAU     (output) DOUBLE PRECISION array, dimension MIN(N,M)
+          The scalar factors of the elementary reflectors used.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+          On exit, if INFO = 0, DWORK(1) returns the optimal value
+          of LDWORK.
+
+  LDWORK  The length of the array DWORK.
+          LDWORK &gt;= MAX(1,N-1,N-P,L).
+          For optimum performance LDWORK should be larger.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  The routine uses min(N,M) Householder transformations exploiting
+  the zero pattern of the matrix.  A Householder matrix has the form
+
+                                  ( 1 ),
+     H  = I - tau *u *u',    u  = ( v )
+      i          i  i  i      i   (  i)
+
+  where v  is an (M-P+I-2)-vector.  The components of v  are stored
+         i                                             i
+  in the i-th row of A, beginning from the location i+1, and tau
+                                                                i
+  is stored in TAU(i).
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  The algorithm is backward stable.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<p>
+<A HREF=..\libindex.html><B>Return to index</B></A></BODY>
+</HTML>

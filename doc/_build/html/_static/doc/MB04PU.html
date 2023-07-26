@@ -1,0 +1,371 @@
+<HTML>
+<HEAD><TITLE>MB04PU - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MB04PU">MB04PU</A></H2>
+<H3>
+Computation of the Paige/Van Loan (PVL) form of a Hamiltonian matrix (unblocked algorithm)
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To reduce a Hamiltonian matrix,
+
+                [  A   G  ]
+           H =  [       T ] ,
+                [  Q  -A  ]
+
+  where A is an N-by-N matrix and G,Q are N-by-N symmetric matrices,
+  to Paige/Van Loan (PVL) form. That is, an orthogonal symplectic U
+  is computed so that
+
+            T       [  Aout   Gout  ]
+           U H U =  [             T ] ,
+                    [  Qout  -Aout  ]
+
+  where Aout is upper Hessenberg and Qout is diagonal.
+  Unblocked version.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MB04PU( N, ILO, A, LDA, QG, LDQG, CS, TAU, DWORK,
+     $                   LDWORK, INFO )
+C     .. Scalar Arguments ..
+      INTEGER           ILO, INFO, LDA, LDQG, LDWORK, N
+C     .. Array Arguments ..
+      DOUBLE PRECISION  A(LDA,*), CS(*), DWORK(*), QG(LDQG,*), TAU(*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The order of the matrix A.  N &gt;= 0.
+
+  ILO     (input) INTEGER
+          It is assumed that A is already upper triangular and Q is
+          zero in rows and columns 1:ILO-1. ILO is normally set by a
+          previous call to MB04DD; otherwise it should be set to 1.
+          1 &lt;= ILO &lt;= N, if N &gt; 0; ILO = 1, if N = 0.
+
+  A       (input/output) DOUBLE PRECISION array, dimension (LDA,N)
+          On entry, the leading N-by-N part of this array must
+          contain the matrix A.
+          On exit, the leading N-by-N part of this array contains
+          the matrix Aout and, in the zero part of Aout,
+          information about the elementary reflectors used to
+          compute the PVL factorization.
+
+  LDA     INTEGER
+          The leading dimension of the array A.  LDA &gt;= MAX(1,N).
+
+  QG      (input/output) DOUBLE PRECISION array, dimension
+                         (LDQG,N+1)
+          On entry, the leading N-by-N+1 part of this array must
+          contain the lower triangular part of the matrix Q and
+          the upper triangular part of the matrix G.
+          On exit, the leading N-by-N+1 part of this array contains
+          the diagonal of the matrix Qout, the upper triangular part
+          of the matrix Gout and, in the zero parts of Qout,
+          information about the elementary reflectors used to
+          compute the PVL factorization.
+
+  LDQG    INTEGER
+          The leading dimension of the array QG.  LDQG &gt;= MAX(1,N).
+
+  CS      (output) DOUBLE PRECISION array, dimension (2N-2)
+          On exit, the first 2N-2 elements of this array contain the
+          cosines and sines of the symplectic Givens rotations used
+          to compute the PVL factorization.
+
+  TAU     (output) DOUBLE PRECISION array, dimension (N-1)
+          On exit, the first N-1 elements of this array contain the
+          scalar factors of some of the elementary reflectors.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+          On exit, if INFO = 0,  DWORK(1)  returns the optimal
+          value of LDWORK.
+          On exit, if  INFO = -10,  DWORK(1)  returns the minimum
+          value of LDWORK.
+
+  LDWORK  INTEGER
+          The length of the array DWORK.  LDWORK &gt;= MAX(1,N-1).
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  The matrix U is represented as a product of symplectic reflectors
+  and Givens rotations
+
+  U = diag( H(1),H(1) )     G(1)   diag( F(1),F(1) )
+      diag( H(2),H(2) )     G(2)   diag( F(2),F(2) )
+                             ....
+      diag( H(n-1),H(n-1) ) G(n-1) diag( F(n-1),F(n-1) ).
+
+  Each H(i) has the form
+
+        H(i) = I - tau * v * v'
+
+  where tau is a real scalar, and v is a real vector with
+  v(1:i) = 0 and v(i+1) = 1; v(i+2:n) is stored on exit in
+  QG(i+2:n,i), and tau in QG(i+1,i).
+
+  Each F(i) has the form
+
+        F(i) = I - nu * w * w'
+
+  where nu is a real scalar, and w is a real vector with
+  w(1:i) = 0 and w(i+1) = 1; w(i+2:n) is stored on exit in
+  A(i+2:n,i), and nu in TAU(i).
+
+  Each G(i) is a Givens rotation acting on rows i+1 and n+i+1,
+  where the cosine is stored in CS(2*i-1) and the sine in
+  CS(2*i).
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  The algorithm requires 40/3 N**3 + O(N) floating point operations
+  and is strongly backward stable.
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] C. F. VAN LOAN:
+      A symplectic method for approximating all the eigenvalues of
+      a Hamiltonian matrix.
+      Linear Algebra and its Applications, 61, pp. 233-251, 1984.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+*     MB04PU/MB04WP EXAMPLE PROGRAM TEXT
+*
+*     .. Parameters ..
+      DOUBLE PRECISION ZERO, ONE, TWO
+      PARAMETER        ( ZERO = 0.0D0, ONE = 1.0D0, TWO = 2.0D0 )
+      INTEGER          NIN, NOUT
+      PARAMETER        ( NIN = 5, NOUT = 6 )
+      INTEGER          NMAX
+      PARAMETER        ( NMAX = 100 )
+      INTEGER          LDA, LDQG, LDRES, LDU1, LDU2, LDWORK
+      PARAMETER        ( LDA  = NMAX, LDQG = NMAX, LDRES  = NMAX,
+     $                   LDU1 = NMAX, LDU2 = NMAX, LDWORK = 2*NMAX )
+*     .. Local Scalars ..
+      INTEGER          I, INFO, J, N
+*     .. Local Arrays ..
+      DOUBLE PRECISION A(LDA, NMAX), CS(2*NMAX), DWORK(LDWORK),
+     $                 QG(LDQG, NMAX+1), RES(LDRES,3*NMAX+1), TAU(NMAX),
+     $                 U1(LDU1,NMAX), U2(LDU2, NMAX)
+*     .. External Functions ..
+      DOUBLE PRECISION MA02ID, MA02JD
+      EXTERNAL         MA02ID, MA02JD
+*     .. External Subroutines ..
+      EXTERNAL         DGEMM, DLACPY, DLASET, DSCAL, DSYMM, DSYR,
+     $                 DSYR2K, DTRMM, MB04PU, MB04WP
+*     .. Executable Statements ..
+      WRITE ( NOUT, FMT = 99999 )
+*     Skip the heading in the data file and read the data.
+      READ ( NIN, FMT = '()' )
+      READ ( NIN, FMT = * )  N
+      IF( N.LE.0 .OR. N.GT.NMAX ) THEN
+         WRITE ( NOUT, FMT = 99992 ) N
+      ELSE
+         READ ( NIN, FMT = * ) ( ( A(I,J), J = 1,N ), I = 1,N )
+         CALL DLACPY( 'All', N, N, A, LDA, RES(1,N+1), LDRES )
+         READ ( NIN, FMT = * ) ( ( QG(I,J), J = 1,N+1 ), I = 1,N )
+         CALL DLACPY( 'All', N, N+1, QG, LDQG, RES(1,2*N+1), LDRES )
+         CALL MB04PU( N, 1, A, LDA, QG, LDQG, CS, TAU, DWORK, LDWORK,
+     $                INFO )
+         INFO = 0
+         IF ( INFO.NE.0 ) THEN
+            WRITE ( NOUT, FMT = 99998 ) INFO
+         ELSE
+            CALL DLACPY( 'Lower', N, N, A, LDA, U1, LDU1 )
+            CALL DLACPY( 'Lower', N, N, QG, LDQG, U2, LDU2 )
+            CALL MB04WP( N, 1, U1, LDU1, U2, LDU2, CS, TAU, DWORK,
+     $                   LDWORK, INFO )
+            IF ( INFO.NE.0 ) THEN
+               WRITE ( NOUT, FMT = 99997 ) INFO
+            ELSE
+               IF ( N.GT.2 )
+     $            CALL DLASET( 'Lower', N-2, N-2, ZERO, ZERO, A(3,1),
+     $                         LDA )
+               IF ( N.GT.1 )
+     $            CALL DLASET( 'Lower', N-1, N-1, ZERO, ZERO, QG(2,1),
+     $                         LDQG )
+               WRITE ( NOUT, FMT = 99996 )
+               DO 10  I = 1, N
+                  WRITE (NOUT, FMT = 99993)
+     $                  ( U1(I,J), J = 1,N ), ( U2(I,J), J = 1,N )
+10             CONTINUE
+               DO 20  I = 1, N
+                  WRITE (NOUT, FMT = 99993)
+     $                  ( -U2(I,J), J = 1,N ), ( U1(I,J), J = 1,N )
+20             CONTINUE
+               WRITE ( NOUT, FMT = 99991 ) MA02JD( .FALSE., .FALSE., N,
+     $                 U1, LDU1, U2, LDU2, RES, LDRES )
+               WRITE ( NOUT, FMT = 99995 )
+               DO 30  I = 1, N
+                  WRITE (NOUT, FMT = 99993) ( A(I,J), J = 1,N )
+30             CONTINUE
+               WRITE ( NOUT, FMT = 99994 )
+               DO 40  I = 1, N
+                  WRITE (NOUT, FMT = 99993) ( QG(I,J), J = 1,N+1 )
+40             CONTINUE
+C
+               CALL DGEMM( 'No Transpose', 'No Transpose', N, N, N, ONE,
+     $                     U1, LDU1, A, LDA, ZERO, RES, LDRES )
+               CALL DGEMM( 'No Transpose', 'Transpose', N, N, N, -ONE,
+     $                     RES, LDRES, U1, LDU1, ONE, RES(1,N+1),
+     $                     LDRES )
+               CALL DGEMM( 'No Transpose', 'Transpose', N, N, N, ONE,
+     $                     U2, LDU2, A, LDA, ZERO, RES, LDRES )
+               CALL DGEMM( 'No Transpose', 'Transpose', N, N, N, ONE,
+     $                     RES, LDRES, U2, LDU2, ONE, RES(1,N+1),
+     $                     LDRES )
+               CALL DSYMM ( 'Right', 'Upper', N, N, ONE, QG(1,2), LDQG,
+     $                      U1, LDU1, ZERO, RES, LDRES )
+               CALL DGEMM( 'No Transpose', 'Transpose', N, N, N, -ONE,
+     $                     RES, LDRES, U2, LDU2, ONE, RES(1,N+1),
+     $                     LDRES )
+               CALL DLACPY( 'All', N, N, U2, LDU2, RES, LDRES )
+               DO 50 I = 1, N
+                   CALL DSCAL( N, QG(I,I), RES(1,I), 1 )
+50             CONTINUE
+               CALL DGEMM( 'No Transpose', 'Transpose', N, N, N, -ONE,
+     $                     RES, LDRES, U1, LDU1, ONE, RES(1,N+1),
+     $                     LDRES )
+               CALL DGEMM( 'No Transpose', 'No Transpose', N, N, N, ONE,
+     $                     U2, LDU2, A, LDA, ZERO, RES, LDRES )
+               CALL DSYR2K( 'Lower', 'No Transpose', N, N, ONE, RES,
+     $                      LDRES, U1, LDU1, ONE, RES(1,2*N+1), LDRES )
+               CALL DSCAL( N, ONE/TWO, QG(1,2), LDQG+1 )
+               CALL DLACPY( 'Full', N, N, U2, LDU2, RES, LDRES )
+               CALL DTRMM(  'Right', 'Upper' , 'No Transpose',
+     $                      'Not unit', N, N, ONE, QG(1,2), LDQG,
+     $                       RES, LDRES )
+               CALL DSYR2K( 'Lower', 'No Transpose', N, N, ONE, RES,
+     $                      LDRES, U2, LDU2, ONE, RES(1,2*N+1), LDRES )
+               DO 60  I = 1, N
+                  CALL DSYR( 'Lower', N, -QG(I,I), U1(1,I), 1,
+     $                       RES(1,2*N+1), LDRES )
+60             CONTINUE
+               CALL DGEMM( 'No Transpose', 'No Transpose', N, N, N, ONE,
+     $                     U1, LDU1, A, LDA, ZERO, RES, LDRES )
+               CALL DSYR2K( 'Upper', 'No Transpose', N, N, ONE, RES,
+     $                      LDRES, U2, LDU2, ONE, RES(1,2*N+2), LDRES )
+               CALL DLACPY( 'Full', N, N, U1, LDU1, RES, LDRES )
+               CALL DTRMM(  'Right', 'Upper' , 'No Transpose',
+     $                      'Not unit', N, N, ONE, QG(1,2), LDQG,
+     $                       RES, LDRES )
+               CALL DSYR2K( 'Upper', 'No Transpose', N, N, -ONE, RES,
+     $                      LDRES, U1, LDU1, ONE, RES(1,2*N+2), LDRES )
+               DO 70  I = 1, N
+                  CALL DSYR( 'Upper', N, QG(I,I), U2(1,I), 1,
+     $                       RES(1,2*N+2), LDRES )
+70             CONTINUE
+C
+               WRITE ( NOUT, FMT = 99990 )  MA02ID( 'Hamiltonian',
+     $                'Frobenius', N, RES(1,N+1), LDRES, RES(1,2*N+1),
+     $                LDRES, DWORK )
+            END IF
+         END IF
+      END IF
+*
+99999 FORMAT (' TMB04PU EXAMPLE PROGRAM RESULTS',/1X)
+99998 FORMAT (' INFO on exit from MB04PU = ',I2)
+99997 FORMAT (' INFO on exit from MB04WP = ',I2)
+99996 FORMAT (' The symplectic orthogonal factor U is ')
+99995 FORMAT (/' The reduced matrix A is ')
+99994 FORMAT (/' The reduced matrix QG is ')
+99993 FORMAT (20(1X,F9.4))
+99992 FORMAT (/' N is out of range.',/' N = ',I5)
+99991 FORMAT (/' Orthogonality of U: || U''*U - I ||_F = ',G7.2)
+99990 FORMAT (/' Residual: || H - U*R*U'' ||_F = ',G7.2)
+      END
+</PRE>
+<B>Program Data</B>
+<PRE>
+MB04PU EXAMPLE PROGRAM DATA
+        5
+    0.9501    0.7621    0.6154    0.4057    0.0579
+    0.2311    0.4565    0.7919    0.9355    0.3529
+    0.6068    0.0185    0.9218    0.9169    0.8132
+    0.4860    0.8214    0.7382    0.4103    0.0099
+    0.8913    0.4447    0.1763    0.8936    0.1389
+    0.4055    0.3869    1.3801    0.7993    1.2019    0.8780
+    0.2140    1.4936    0.7567    1.7598    1.1956    0.9029
+    1.0224    1.2913    1.0503    1.6433    0.9346    1.6565
+    1.1103    0.9515    0.8839    0.7590    0.6824    1.1022
+    0.7016    1.1755    1.1010    1.1364    0.3793    0.7408
+</PRE>
+<B>Program Results</B>
+<PRE>
+ TMB04PU EXAMPLE PROGRAM RESULTS
+
+ The symplectic orthogonal factor U is 
+    1.0000    0.0000    0.0000    0.0000    0.0000    0.0000    0.0000    0.0000    0.0000    0.0000
+    0.0000   -0.1119    0.7763   -0.2005   -0.0001    0.0000    0.1036   -0.2783   -0.2583    0.4356
+    0.0000   -0.2937    0.2320    0.4014    0.5541    0.0000    0.4949    0.1187   -0.0294   -0.3632
+    0.0000   -0.2352   -0.2243   -0.7056   -0.0500    0.0000    0.5374    0.3102   -0.0893    0.0318
+    0.0000   -0.4314   -0.0354    0.2658   -0.6061    0.0000    0.3396   -0.3230    0.3931    0.0207
+    0.0000    0.0000    0.0000    0.0000    0.0000    1.0000    0.0000    0.0000    0.0000    0.0000
+    0.0000   -0.1036    0.2783    0.2583   -0.4356    0.0000   -0.1119    0.7763   -0.2005   -0.0001
+    0.0000   -0.4949   -0.1187    0.0294    0.3632    0.0000   -0.2937    0.2320    0.4014    0.5541
+    0.0000   -0.5374   -0.3102    0.0893   -0.0318    0.0000   -0.2352   -0.2243   -0.7056   -0.0500
+    0.0000   -0.3396    0.3230   -0.3931   -0.0207    0.0000   -0.4314   -0.0354    0.2658   -0.6061
+
+ Orthogonality of U: || U'*U - I ||_F = .16E-14
+
+ The reduced matrix A is 
+    0.9501   -1.8690    0.8413   -0.0344   -0.0817
+   -2.0660    2.7118   -1.6646    0.7606   -0.0285
+    0.0000   -2.4884    0.4115   -0.4021    0.3964
+    0.0000    0.0000   -0.5222    0.1767   -0.3081
+    0.0000    0.0000    0.0000    0.1915   -0.3426
+
+ The reduced matrix QG is 
+    0.4055    0.3869   -0.4295    0.9242   -0.7990   -0.0268
+    0.0000   -3.0834   -2.5926    0.0804    0.1386   -0.1630
+    0.0000    0.0000    1.3375    0.9618   -0.0263    0.1829
+    0.0000    0.0000    0.0000   -0.3556    0.6662    0.2123
+    0.0000    0.0000    0.0000    0.0000    0.1337   -0.8622
+
+ Residual: || H - U*R*U' ||_F = .60E-14
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

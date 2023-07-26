@@ -1,0 +1,343 @@
+<HTML>
+<HEAD><TITLE>SB16AY - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="SB16AY">SB16AY</A></H2>
+<H3>
+Cholesky factors of the frequency-weighted controllability and observability Grammians for controller reduction
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To compute for given state-space representations (A,B,C,D) and
+  (Ac,Bc,Cc,Dc) of the transfer-function matrices of the
+  open-loop system G and feedback controller K, respectively,
+  the Cholesky factors of the frequency-weighted
+  controllability and observability Grammians corresponding
+  to a frequency-weighted model reduction problem.
+  The controller must stabilize the closed-loop system.
+  The state matrix Ac must be in a block-diagonal real Schur form
+  Ac = diag(Ac1,Ac2), where Ac1 contains the unstable eigenvalues
+  of Ac and Ac2 contains the stable eigenvalues of Ac.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE SB16AY( DICO, JOBC, JOBO, WEIGHT, N, M, P, NC, NCS,
+     $                   A, LDA, B, LDB, C, LDC, D, LDD,
+     $                   AC, LDAC, BC, LDBC, CC, LDCC, DC, LDDC,
+     $                   SCALEC, SCALEO, S, LDS, R, LDR,
+     $                   IWORK, DWORK, LDWORK, INFO )
+C     .. Scalar Arguments ..
+      CHARACTER        DICO, JOBC, JOBO, WEIGHT
+      INTEGER          INFO, LDA, LDAC, LDB, LDBC, LDC, LDCC, LDD, LDDC,
+     $                 LDR, LDS, LDWORK, M, N, NC, NCS, P
+      DOUBLE PRECISION SCALEC, SCALEO
+C     .. Array Arguments ..
+      INTEGER          IWORK(*)
+      DOUBLE PRECISION A(LDA,*), AC(LDAC,*), B(LDB,*), BC(LDBC,*),
+     $                 C(LDC,*), CC(LDCC,*), D(LDD,*), DC(LDDC,*),
+     $                 DWORK(*), R(LDR,*),   S(LDS,*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  DICO    CHARACTER*1
+          Specifies the type of the systems as follows:
+          = 'C':  G and K are continuous-time systems;
+          = 'D':  G and K are discrete-time systems.
+
+  JOBC    CHARACTER*1
+          Specifies the choice of frequency-weighted controllability
+          Grammian as follows:
+          = 'S': choice corresponding to standard Enns' method [1];
+          = 'E': choice corresponding to the stability enhanced
+                 modified Enns' method of [2].
+
+  JOBO    CHARACTER*1
+          Specifies the choice of frequency-weighted observability
+          Grammian as follows:
+          = 'S': choice corresponding to standard Enns' method [1];
+          = 'E': choice corresponding to the stability enhanced
+                 modified combination method of [2].
+
+  WEIGHT  CHARACTER*1
+          Specifies the type of frequency-weighting, as follows:
+          = 'N':  no weightings are used (V = I, W = I);
+          = 'O':  stability enforcing left (output) weighting
+                            -1
+                  V = (I-G*K) *G is used (W = I);
+          = 'I':  stability enforcing right (input) weighting
+                            -1
+                  W = (I-G*K) *G is used (V = I);
+          = 'P':  stability and performance enforcing weightings
+                            -1                -1
+                  V = (I-G*K) *G ,  W = (I-G*K)  are used.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The order of the open-loop system state-space
+          representation, i.e., the order of the matrix A.  N &gt;= 0.
+
+  M       (input) INTEGER
+          The number of system inputs.  M &gt;= 0.
+
+  P       (input) INTEGER
+          The number of system outputs.  P &gt;= 0.
+
+  NC      (input) INTEGER
+          The order of the controller state-space representation,
+          i.e., the order of the matrix AC.  NC &gt;= 0.
+
+  NCS     (input) INTEGER
+          The dimension of the stable part of the controller, i.e.,
+          the order of matrix Ac2.  NC &gt;= NCS &gt;= 0.
+
+  A       (input) DOUBLE PRECISION array, dimension (LDA,N)
+          The leading N-by-N part of this array must contain the
+          state matrix A of the system with the transfer-function
+          matrix G.
+
+  LDA     INTEGER
+          The leading dimension of array A.  LDA &gt;= MAX(1,N).
+
+  B       (input) DOUBLE PRECISION array, dimension (LDB,M)
+          The leading N-by-M part of this array must contain the
+          input/state matrix B.
+
+  LDB     INTEGER
+          The leading dimension of array B.  LDB &gt;= MAX(1,N).
+
+  C       (input) DOUBLE PRECISION array, dimension (LDC,N)
+          The leading P-by-N part of this array must contain the
+          state/output matrix C.
+
+  LDC     INTEGER
+          The leading dimension of array C.  LDC &gt;= MAX(1,P).
+
+  D       (input) DOUBLE PRECISION array, dimension (LDD,M)
+          The leading P-by-M part of this array must contain the
+          input/output matrix D of the open-loop system.
+
+  LDD     INTEGER
+          The leading dimension of array D.  LDD &gt;= MAX(1,P).
+
+  AC      (input) DOUBLE PRECISION array, dimension (LDAC,NC)
+          The leading NC-by-NC part of this array must contain
+          the state dynamics matrix Ac of the controller in a
+          block diagonal real Schur form Ac = diag(Ac1,Ac2), where
+          Ac1 is (NC-NCS)-by-(NC-NCS) and contains the unstable
+          eigenvalues of Ac, and Ac2 is NCS-by-NCS and contains
+          the stable eigenvalues of Ac.
+
+  LDAC    INTEGER
+          The leading dimension of array AC.  LDAC &gt;= MAX(1,NC).
+
+  BC      (input) DOUBLE PRECISION array, dimension (LDBC,P)
+          The leading NC-by-P part of this array must contain
+          the input/state matrix Bc of the controller.
+
+  LDBC    INTEGER
+          The leading dimension of array BC.  LDBC &gt;= MAX(1,NC).
+
+  CC      (input) DOUBLE PRECISION array, dimension (LDCC,NC)
+          The leading M-by-NC part of this array must contain
+          the state/output matrix Cc of the controller.
+
+  LDCC    INTEGER
+          The leading dimension of array CC.  LDCC &gt;= MAX(1,M).
+
+  DC      (input) DOUBLE PRECISION array, dimension (LDDC,P)
+          The leading M-by-P part of this array must contain
+          the input/output matrix Dc of the controller.
+
+  LDDC    INTEGER
+          The leading dimension of array DC.  LDDC &gt;= MAX(1,M).
+
+  SCALEC  (output) DOUBLE PRECISION
+          Scaling factor for the controllability Grammian.
+          See METHOD.
+
+  SCALEO  (output) DOUBLE PRECISION
+          Scaling factor for the observability Grammian. See METHOD.
+
+  S       (output) DOUBLE PRECISION array, dimension (LDS,NCS)
+          The leading NCS-by-NCS upper triangular part of this array
+          contains the Cholesky factor S of the frequency-weighted
+          controllability Grammian P = S*S'. See METHOD.
+
+  LDS     INTEGER
+          The leading dimension of array S.  LDS &gt;= MAX(1,NCS).
+
+  R       (output) DOUBLE PRECISION array, dimension (LDR,NCS)
+          The leading NCS-by-NCS upper triangular part of this array
+          contains the Cholesky factor R of the frequency-weighted
+          observability Grammian Q = R'*R. See METHOD.
+
+  LDR     INTEGER
+          The leading dimension of array R.  LDR &gt;= MAX(1,NCS).
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  IWORK   INTEGER array, dimension (LIWRK)
+          LIWRK = 0,       if WEIGHT = 'N';
+          LIWRK = 2(M+P),  if WEIGHT = 'O', 'I', or 'P'.
+
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+          On exit, if INFO = 0, DWORK(1) returns the optimal value
+          of LDWORK.
+
+  LDWORK  INTEGER
+          The length of the array DWORK.
+          LDWORK &gt;= MAX( 1, LFREQ ),
+          where
+          LFREQ = (N+NC)*(N+NC+2*M+2*P)+
+                  MAX((N+NC)*(N+NC+MAX(N+NC,M,P)+7), (M+P)*(M+P+4))
+                                   if WEIGHT = 'I' or 'O' or 'P';
+          LFREQ  = NCS*(MAX(M,P)+5) if WEIGHT = 'N'.
+          For optimum performance LDWORK should be larger.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value;
+          = 1:  the closed-loop system is not well-posed;
+                its feedthrough matrix is (numerically) singular;
+          = 2:  the computation of the real Schur form of the
+                closed-loop state matrix failed;
+          = 3:  the closed-loop state matrix is not stable;
+          = 4:  the solution of a symmetric eigenproblem failed;
+          = 5:  the NCS-by-NCS trailing part Ac2 of the state
+                matrix Ac is not stable or not in a real Schur form.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  If JOBC = 'S', the controllability Grammian P is determined as
+  follows:
+
+  - if WEIGHT = 'O' or 'N', P satisfies for a continuous-time
+    controller the Lyapunov equation
+
+         Ac2*P + P*Ac2' +  scalec^2*Bc*Bc' = 0
+
+    and for a discrete-time controller
+
+         Ac2*P*Ac2' - P +  scalec^2*Bc*Bc' = 0;
+
+  - if WEIGHT = 'I' or 'P', let Pi be the solution of the
+    continuous-time Lyapunov equation
+
+         Ai*Pi + Pi*Ai' +  scalec^2*Bi*Bi' = 0
+
+    or of the discrete-time Lyapunov equation
+
+         Ai*Pi*Ai' - Pi +  scalec^2*Bi*Bi' = 0,
+
+    where Ai and Bi are the state and input matrices of a special
+    state-space realization of the input frequency weight (see [2]);
+    P results as the trailing NCS-by-NCS part of Pi partitioned as
+
+        Pi = ( *  * ).
+             ( *  P )
+
+  If JOBC = 'E', a modified controllability Grammian P1 &gt;= P is
+  determined to guarantee stability for a modified Enns' method [2].
+
+  If JOBO = 'S', the observability Grammian Q is determined as
+  follows:
+
+  - if WEIGHT = 'I' or 'N', Q satisfies for a continuous-time
+    controller the Lyapunov equation
+
+         Ac2'*Q + Q*Ac2 +  scaleo^2*Cc'*Cc = 0
+
+    and for a discrete-time controller
+
+         Ac2'*Q*Ac2 - Q +  scaleo^2*Cc'*Cc = 0;
+
+  - if WEIGHT = 'O' or 'P', let Qo be the solution of the
+    continuous-time Lyapunov equation
+
+         Ao'*Qo + Qo*Ao +  scaleo^2*Co'*Co = 0
+
+    or of the discrete-time Lyapunov equation
+
+         Ao'*Qo*Ao - Qo +  scaleo^2*Co'*Co = 0,
+
+    where Ao and Co are the state and output matrices of a
+    special state-space realization of the output frequency weight
+    (see [2]); if WEIGHT = 'O', Q results as the leading NCS-by-NCS
+    part of Qo partitioned as
+
+        Qo = ( Q  * )
+             ( *  * )
+
+    while if WEIGHT = 'P', Q results as the trailing NCS-by-NCS
+    part of Qo partitioned as
+
+        Qo = ( *  * ).
+             ( *  Q )
+
+  If JOBO = 'E', a modified observability Grammian Q1 &gt;= Q is
+  determined to guarantee stability for a modified Enns' method [2].
+
+  The routine computes directly the Cholesky factors S and R
+  such that P = S*S' and Q = R'*R according to formulas
+  developed in [2].
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Enns, D.
+      Model reduction with balanced realizations: An error bound
+      and a frequency weighted generalization.
+      Proc. CDC, Las Vegas, pp. 127-132, 1984.
+
+  [2] Varga, A. and Anderson, B.D.O.
+      Frequency-weighted balancing related controller reduction.
+      Proceedings of the 15th IFAC World Congress, July 21-26, 2002,
+      Barcelona, Spain, Vol.15, Part 1, 2002-07-21.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

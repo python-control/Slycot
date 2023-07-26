@@ -1,0 +1,226 @@
+<HTML>
+<HEAD><TITLE>MB03CD - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MB03CD">MB03CD</A></H2>
+<H3>
+Exchanging eigenvalues of a real 2-by-2, 3-by-3 or 4-by-4 block upper triangular pencil (factored version)
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To compute orthogonal matrices Q1, Q2, Q3 for a real 2-by-2,
+  3-by-3, or 4-by-4 regular block upper triangular pencil
+
+                 ( A11 A12 ) ( B11 B12 )     ( D11 D12 )
+    aAB - bD = a (         ) (         ) - b (         ),        (1)
+                 (  0  A22 ) (  0  B22 )     (  0  D22 )
+
+  such that the pencil a(Q3' A Q2 )(Q2' B Q1 ) - b(Q3' D Q1) is
+  still in block upper triangular form, but the eigenvalues in
+  Spec(A11 B11, D11), Spec(A22 B22, D22) are exchanged, where
+  Spec(X,Y) denotes the spectrum of the matrix pencil (X,Y), and M'
+  denotes the transpose of the matrix M.
+
+  Optionally, to upper triangularize the real regular pencil in
+  block lower triangular form
+
+               ( A11  0  ) ( B11  0  )     ( D11  0  )
+  aAB - bD = a (         ) (         ) - b (         ),          (2)
+               ( A21 A22 ) ( B21 B22 )     ( D21 D22 )
+
+  while keeping the eigenvalues in the same diagonal position.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MB03CD( UPLO, N1, N2, PREC, A, LDA, B, LDB, D, LDD, Q1,
+     $                   LDQ1, Q2, LDQ2, Q3, LDQ3, DWORK, LDWORK, INFO )
+C     .. Scalar Arguments ..
+      CHARACTER          UPLO
+      INTEGER            INFO, LDA, LDB, LDD, LDQ1, LDQ2, LDQ3, LDWORK,
+     $                   N1, N2
+      DOUBLE PRECISION   PREC
+C     .. Array Arguments ..
+      DOUBLE PRECISION   A( LDA, * ), B( LDB, * ), D( LDD, * ),
+     $                   DWORK( * ), Q1( LDQ1, * ), Q2( LDQ2, * ),
+     $                   Q3( LDQ3, * )
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  UPLO    CHARACTER*1
+          Specifies if the pencil is in lower or upper block
+          triangular form on entry, as follows:
+          = 'U': Upper block triangular, eigenvalues are exchanged
+                 on exit;
+          = 'L': Lower block triangular, eigenvalues are not
+                 exchanged on exit.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N1      (input/output) INTEGER
+          Size of the upper left block, N1 &lt;= 2.
+          If UPLO = 'U' and INFO = 0, or UPLO = 'L' and INFO &lt;&gt; 0,
+          N1 and N2 are exchanged on exit; otherwise, N1 is
+          unchanged on exit.
+
+  N2      (input/output) INTEGER
+          Size of the lower right block, N2 &lt;= 2.
+          If UPLO = 'U' and INFO = 0, or UPLO = 'L' and INFO &lt;&gt; 0,
+          N1 and N2 are exchanged on exit; otherwise, N2 is
+          unchanged on exit.
+
+  PREC    (input) DOUBLE PRECISION
+          The machine precision, (relative machine precision)*base.
+          See the LAPACK Library routine DLAMCH.
+
+  A       (input or input/output) DOUBLE PRECISION array, dimension
+             (LDA, N1+N2)
+          On entry, the leading (N1+N2)-by-(N1+N2) part of this
+          array must contain the matrix A of the pencil aAB - bD.
+          The (2,1) block, if UPLO = 'U', or the (1,2) block, if
+          UPLO = 'L', need not be set to zero.
+          On exit, if N1 = N2 = 1, this array contains the matrix
+                            [  0 1 ]
+          J' A J, where J = [ -1 0 ]; otherwise, this array is
+          unchanged on exit.
+
+  LDA     INTEGER
+          The leading dimension of the array A.  LDA &gt;= N1+N2.
+
+  B       (input or input/output) DOUBLE PRECISION array, dimension
+             (LDB, N1+N2)
+          On entry, the leading (N1+N2)-by-(N1+N2) part of this
+          array must contain the matrix B of the pencil aAB - bD.
+          The (2,1) block, if UPLO = 'U', or the (1,2) block, if
+          UPLO = 'L', need not be set to zero.
+          On exit, if N1 = N2 = 1, this array contains the matrix
+          J' B J; otherwise, this array is unchanged on exit.
+
+  LDB     INTEGER
+          The leading dimension of the array B.  LDB &gt;= N1+N2.
+
+  D       (input/output) DOUBLE PRECISION array, dimension
+             (LDD, N1+N2)
+          On entry, the leading (N1+N2)-by-(N1+N2) part of this
+          array must contain the matrix D of the pencil aAB - bD.
+          On exit, if N1 = 2 or N2 = 2, the leading
+          (N1+N2)-by-(N1+N2) part of this array contains the
+          transformed matrix D in real Schur form. If N1 = 1 and
+          N2 = 1, this array contains the matrix J' D J.
+
+  LDD     INTEGER
+          The leading dimension of the array D.  LDD &gt;= N1+N2.
+
+  Q1      (output) DOUBLE PRECISION array, dimension (LDQ1, N1+N2)
+          The leading (N1+N2)-by-(N1+N2) part of this array contains
+          the first orthogonal transformation matrix.
+
+  LDQ1    INTEGER
+          The leading dimension of the array Q1.  LDQ1 &gt;= N1+N2.
+
+  Q2      (output) DOUBLE PRECISION array, dimension (LDQ2, N1+N2)
+          The leading (N1+N2)-by-(N1+N2) part of this array contains
+          the second orthogonal transformation matrix.
+
+  LDQ2    INTEGER
+          The leading dimension of the array Q2.  LDQ2 &gt;= N1+N2.
+
+  Q3      (output) DOUBLE PRECISION array, dimension (LDQ3, N1+N2)
+          The leading (N1+N2)-by-(N1+N2) part of this array contains
+          the third orthogonal transformation matrix.
+
+  LDQ3    INTEGER
+          The leading dimension of the array Q3.  LDQ3 &gt;= N1+N2.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+          If N1+N2 = 2 then DWORK is not referenced.
+
+  LDWORK  INTEGER
+          The dimension of the array DWORK.
+          If N1+N2 = 2, then LDWORK = 0; otherwise,
+          LDWORK &gt;= 16*N1 + 10*N2 + 23, UPLO = 'U';
+          LDWORK &gt;= 10*N1 + 16*N2 + 23, UPLO = 'L'.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0: succesful exit;
+          = 1: the QZ iteration failed in the LAPACK routine DGGEV;
+          = 2: another error occured while executing a routine in
+               DGGEV;
+          = 3: the QZ iteration failed in the LAPACK routine DGGES;
+          = 4: another error occured during execution of DGGES;
+          = 5: reordering of aA*B - bD in the LAPACK routine DTGSEN
+               failed because the transformed matrix pencil
+               aA*B - bD would be too far from generalized Schur
+               form; the problem is very ill-conditioned.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  The algorithm uses orthogonal transformations as described in [2]
+  (page 21). The QZ algorithm is used for N1 = 2 or N2 = 2, but it
+  always acts on an upper block triangular pencil.
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Benner, P., Byers, R., Mehrmann, V. and Xu, H.
+      Numerical computation of deflating subspaces of skew-
+      Hamiltonian/Hamiltonian pencils.
+      SIAM J. Matrix Anal. Appl., 24 (1), pp. 165-190, 2002.
+
+  [2] Benner, P., Byers, R., Losse, P., Mehrmann, V. and Xu, H.
+      Numerical Solution of Real Skew-Hamiltonian/Hamiltonian
+      Eigenproblems.
+      Tech. Rep., Technical University Chemnitz, Germany,
+      Nov. 2007.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  The algorithm is numerically backward stable.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

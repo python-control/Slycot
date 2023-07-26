@@ -1,0 +1,318 @@
+<HTML>
+<HEAD><TITLE>MB03PD - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MB03PD">MB03PD</A></H2>
+<H3>
+Matrix rank determination by incremental condition estimation (row pivoting)
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To compute (optionally) a rank-revealing RQ factorization of a
+  real general M-by-N matrix  A,  which may be rank-deficient,
+  and estimate its effective rank using incremental condition
+  estimation.
+
+  The routine uses an RQ factorization with row pivoting:
+     P * A = R * Q,  where  R = [ R11 R12 ],
+                                [  0  R22 ]
+  with R22 defined as the largest trailing submatrix whose estimated
+  condition number is less than 1/RCOND.  The order of R22, RANK,
+  is the effective rank of A.
+
+  MB03PD  does not perform any scaling of the matrix A.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MB03PD( JOBRQ, M, N, A, LDA, JPVT, RCOND, SVLMAX, TAU,
+     $                   RANK, SVAL, DWORK, INFO )
+C     .. Scalar Arguments ..
+      CHARACTER          JOBRQ
+      INTEGER            INFO, LDA, M, N, RANK
+      DOUBLE PRECISION   RCOND, SVLMAX
+C     .. Array Arguments ..
+      INTEGER            JPVT( * )
+      DOUBLE PRECISION   A( LDA, * ), SVAL( 3 ), TAU( * ), DWORK( * )
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  JOBRQ   CHARACTER*1
+          = 'R':  Perform an RQ factorization with row pivoting;
+          = 'N':  Do not perform the RQ factorization (but assume
+                  that it has been done outside).
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  M       (input) INTEGER
+          The number of rows of the matrix A.  M &gt;= 0.
+
+  N       (input) INTEGER
+          The number of columns of the matrix A.  N &gt;= 0.
+
+  A       (input/output) DOUBLE PRECISION array, dimension
+          ( LDA, N )
+          On entry with JOBRQ = 'R', the leading M-by-N part of this
+          array must contain the given matrix A.
+          On exit with JOBRQ = 'R',
+          if M &lt;= N, the upper triangle of the subarray
+          A(1:M,N-M+1:N) contains the M-by-M upper triangular
+          matrix R;
+          if M &gt;= N, the elements on and above the (M-N)-th
+          subdiagonal contain the M-by-N upper trapezoidal matrix R;
+          the remaining elements, with the array TAU, represent the
+          orthogonal matrix Q as a product of min(M,N) elementary
+          reflectors (see METHOD).
+          On entry and on exit with JOBRQ = 'N',
+          if M &lt;= N, the upper triangle of the subarray
+          A(1:M,N-M+1:N) must contain the M-by-M upper triangular
+          matrix R;
+          if M &gt;= N, the elements on and above the (M-N)-th
+          subdiagonal must contain the M-by-N upper trapezoidal
+          matrix R;
+          the remaining elements are not referenced.
+
+  LDA     INTEGER
+          The leading dimension of the array A.  LDA &gt;= max(1,M).
+
+  JPVT    (input/output) INTEGER array, dimension ( M )
+          On entry with JOBRQ = 'R', if JPVT(i) &lt;&gt; 0, the i-th row
+          of A is a final row, otherwise it is a free row. Before
+          the RQ factorization of A, all final rows are permuted
+          to the trailing positions; only the remaining free rows
+          are moved as a result of row pivoting during the
+          factorization.  For rank determination it is preferable
+          that all rows be free.
+          On exit with JOBRQ = 'R', if JPVT(i) = k, then the i-th
+          row of P*A was the k-th row of A.
+          Array JPVT is not referenced when JOBRQ = 'N'.
+
+  RCOND   (input) DOUBLE PRECISION
+          RCOND is used to determine the effective rank of A, which
+          is defined as the order of the largest trailing triangular
+          submatrix R22 in the RQ factorization with pivoting of A,
+          whose estimated condition number is less than 1/RCOND.
+          RCOND &gt;= 0.
+          NOTE that when SVLMAX &gt; 0, the estimated rank could be
+          less than that defined above (see SVLMAX).
+
+  SVLMAX  (input) DOUBLE PRECISION
+          If A is a submatrix of another matrix B, and the rank
+          decision should be related to that matrix, then SVLMAX
+          should be an estimate of the largest singular value of B
+          (for instance, the Frobenius norm of B).  If this is not
+          the case, the input value SVLMAX = 0 should work.
+          SVLMAX &gt;= 0.
+
+  TAU     (output) DOUBLE PRECISION array, dimension ( MIN( M, N ) )
+          On exit with JOBRQ = 'R', the leading min(M,N) elements of
+          TAU contain the scalar factors of the elementary
+          reflectors.
+          Array TAU is not referenced when JOBRQ = 'N'.
+
+  RANK    (output) INTEGER
+          The effective (estimated) rank of A, i.e. the order of
+          the submatrix R22.
+
+  SVAL    (output) DOUBLE PRECISION array, dimension ( 3 )
+          The estimates of some of the singular values of the
+          triangular factor R:
+          SVAL(1): largest singular value of
+                   R(M-RANK+1:M,N-RANK+1:N);
+          SVAL(2): smallest singular value of
+                   R(M-RANK+1:M,N-RANK+1:N);
+          SVAL(3): smallest singular value of R(M-RANK:M,N-RANK:N),
+                   if RANK &lt; MIN( M, N ), or of
+                   R(M-RANK+1:M,N-RANK+1:N), otherwise.
+          If the triangular factorization is a rank-revealing one
+          (which will be the case if the trailing rows were well-
+          conditioned), then SVAL(1) will also be an estimate for
+          the largest singular value of A, and SVAL(2) and SVAL(3)
+          will be estimates for the RANK-th and (RANK+1)-st singular
+          values of A, respectively.
+          By examining these values, one can confirm that the rank
+          is well defined with respect to the chosen value of RCOND.
+          The ratio SVAL(1)/SVAL(2) is an estimate of the condition
+          number of R(M-RANK+1:M,N-RANK+1:N).
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  DWORK   DOUBLE PRECISION array, dimension ( LDWORK )
+          where LDWORK = max( 1, 3*M ),           if JOBRQ = 'R';
+                LDWORK = max( 1, 3*min( M, N ) ), if JOBRQ = 'N'.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  The routine computes or uses an RQ factorization with row
+  pivoting of A,  P * A = R * Q,  with  R  defined above, and then
+  finds the largest trailing submatrix whose estimated condition
+  number is less than 1/RCOND, taking the possible positive value of
+  SVLMAX into account.  This is performed using an adaptation of the
+  LAPACK incremental condition estimation scheme and a slightly
+  modified rank decision test.
+
+  The matrix Q is represented as a product of elementary reflectors
+
+     Q = H(1) H(2) . . . H(k), where k = min(m,n).
+
+  Each H(i) has the form
+
+     H = I - tau * v * v'
+
+  where tau is a real scalar, and v is a real vector with
+  v(n-k+i+1:n) = 0 and v(n-k+i) = 1; v(1:n-k+i-1) is stored on exit
+  in A(m-k+i,1:n-k+i-1), and tau in TAU(i).
+
+  The matrix P is represented in jpvt as follows: If
+     jpvt(j) = i
+  then the jth row of P is the ith canonical unit vector.
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Bischof, C.H. and P. Tang.
+      Generalizing Incremental Condition Estimation.
+      LAPACK Working Notes 32, Mathematics and Computer Science
+      Division, Argonne National Laboratory, UT, CS-91-132,
+      May 1991.
+
+  [2] Bischof, C.H. and P. Tang.
+      Robust Incremental Condition Estimation.
+      LAPACK Working Notes 33, Mathematics and Computer Science
+      Division, Argonne National Laboratory, UT, CS-91-133,
+      May 1991.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  The algorithm is backward stable.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+*     MB03PD EXAMPLE PROGRAM TEXT
+*
+*     .. Parameters ..
+      DOUBLE PRECISION ZERO, ONE
+      PARAMETER        ( ZERO = 0.0D0, ONE = 1.0D0 )
+      INTEGER          NIN, NOUT
+      PARAMETER        ( NIN = 5, NOUT = 6 )
+      INTEGER          NMAX, MMAX
+      PARAMETER        ( NMAX = 10, MMAX = 10 )
+      INTEGER          LDA
+      PARAMETER        ( LDA = NMAX )
+      INTEGER          LDTAU
+      PARAMETER        ( LDTAU = MIN(MMAX,NMAX) )
+      INTEGER          LDWORK
+      PARAMETER        ( LDWORK = 3*MMAX )
+*     .. Local Scalars ..
+      CHARACTER*1      JOBRQ
+      INTEGER          I, INFO, J, M, N, RANK
+      DOUBLE PRECISION RCOND, SVAL(3), SVLMAX
+*     ..
+*     .. Local Arrays ..
+      DOUBLE PRECISION A(LDA,NMAX), DWORK(LDWORK), TAU(LDTAU)
+      INTEGER          JPVT(MMAX)
+*     .. External Subroutines ..
+      EXTERNAL         MB03PD
+*     .. Intrinsic Functions ..
+      INTRINSIC        MIN
+*     .. Executable Statements ..
+*
+      WRITE ( NOUT, FMT = 99999 )
+*     Skip the heading in the data file and read the data.
+      READ ( NIN, FMT = '()' )
+      READ ( NIN, FMT = * ) M, N, JOBRQ, RCOND, SVLMAX
+      IF ( N.LT.0 .OR. N.GT.NMAX ) THEN
+         WRITE ( NOUT, FMT = 99972 ) N
+      ELSE
+         IF ( M.LT.0 .OR. M.GT.MMAX ) THEN
+            WRITE ( NOUT, FMT = 99971 ) M
+         ELSE
+            READ ( NIN, FMT = * ) ( ( A(I,J), J = 1,N ), I = 1,M )
+*           RQ with row pivoting.
+            DO 10 I = 1, M
+               JPVT(I) = 0
+   10       CONTINUE
+            CALL MB03PD( JOBRQ, M, N, A, LDA, JPVT, RCOND, SVLMAX, TAU,
+     $                   RANK, SVAL, DWORK, INFO )
+*
+            IF ( INFO.NE.0 ) THEN
+               WRITE ( NOUT, FMT = 99998 ) INFO
+            ELSE
+               WRITE ( NOUT, FMT = 99995 ) RANK
+               WRITE ( NOUT, FMT = 99994 ) ( JPVT(I), I = 1,M )
+               WRITE ( NOUT, FMT = 99993 ) ( SVAL(I), I = 1,3 )
+            END IF
+         END IF
+      END IF
+*
+      STOP
+*
+99999 FORMAT (' MB03PD EXAMPLE PROGRAM RESULTS',/1X)
+99998 FORMAT (' INFO on exit from MB03PD = ',I2)
+99995 FORMAT (' The rank is ',I5)
+99994 FORMAT (' Row permutations are ',/(20(I3,2X)))
+99993 FORMAT (' SVAL vector is ',/(20(1X,F10.4)))
+99972 FORMAT (/' N is out of range.',/' N = ',I5)
+99971 FORMAT (/' M is out of range.',/' M = ',I5)
+      END
+</PRE>
+<B>Program Data</B>
+<PRE>
+ MB03PD EXAMPLE PROGRAM DATA
+   6     5     R  5.D-16     0.0
+   1.    2.    6.    3.    5.
+  -2.   -1.   -1.    0.   -2.
+   5.    5.    1.    5.    1.
+  -2.   -1.   -1.    0.   -2.
+   4.    8.    4.   20.    4.
+  -2.   -1.   -1.    0.   -2.
+</PRE>
+<B>Program Results</B>
+<PRE>
+ MB03PD EXAMPLE PROGRAM RESULTS
+
+ The rank is     4
+ Row permutations are 
+  2    4    6    3    1    5
+ SVAL vector is 
+    24.5744     0.9580     0.0000
+</PRE>
+
+<HR>
+<p>
+<A HREF=..\libindex.html><B>Return to index</B></A></BODY>
+</HTML>

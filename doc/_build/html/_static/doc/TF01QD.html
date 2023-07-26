@@ -1,0 +1,302 @@
+<HTML>
+<HEAD><TITLE>TF01QD - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="TF01QD">TF01QD</A></H2>
+<H3>
+Markov parameters of a multivariable system from its transfer function matrix
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To compute N Markov parameters M(1), M(2),..., M(N) from a
+  multivariable system whose transfer function matrix G(z) is given.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE TF01QD( NC, NB, N, IORD, AR, MA, H, LDH, INFO )
+C     .. Scalar Arguments ..
+      INTEGER           INFO, LDH, N, NB, NC
+C     .. Array Arguments ..
+      INTEGER           IORD(*)
+      DOUBLE PRECISION  AR(*), H(LDH,*), MA(*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  NC      (input) INTEGER
+          The number of system outputs, i.e. the number of rows in
+          the transfer function matrix G(z).  NC &gt;= 0.
+
+  NB      (input) INTEGER
+          The number of system inputs, i.e. the number of columns in
+          the transfer function matrix G(z).  NB &gt;= 0.
+
+  N       (input) INTEGER
+          The number of Markov parameters M(k) to be computed.
+          N &gt;= 0.
+
+  IORD    (input) INTEGER array, dimension (NC*NB)
+          This array must contain the order r of the elements of the
+          transfer function matrix G(z), stored row by row.
+          For example, the order of the (i,j)-th element of G(z) is
+          given by IORD((i-1)xNB+j).
+
+  AR      (input) DOUBLE PRECISION array, dimension (NA), where
+          NA = IORD(1) + IORD(2) + ... + IORD(NC*NB).
+          The leading NA elements of this array must contain the
+          denominator coefficients AR(1),...,AR(r) in equation (1)
+          of the (i,j)-th element of the transfer function matrix
+          G(z), stored row by row, i.e. in the order
+          (1,1),(1,2),...,(1,NB), (2,1),(2,2),...,(2,NB), ...,
+          (NC,1),(NC,2),...,(NC,NB). The coefficients must be given
+          in decreasing order of powers of z; the coefficient of the
+          highest order term is assumed to be equal to 1.
+
+  MA      (input) DOUBLE PRECISION array, dimension (NA)
+          The leading NA elements of this array must contain the
+          numerator coefficients MA(1),...,MA(r) in equation (1)
+          of the (i,j)-th element of the transfer function matrix
+          G(z), stored row by row, i.e. in the order
+          (1,1),(1,2),...,(1,NB), (2,1),(2,2),...,(2,NB), ...,
+          (NC,1),(NC,2),...,(NC,NB). The coefficients must be given
+          in decreasing order of powers of z.
+
+  H       (output) DOUBLE PRECISION array, dimension (LDH,N*NB)
+          The leading NC-by-N*NB part of this array contains the
+          multivariable Markov parameter sequence M(k), where each
+          parameter M(k) is an NC-by-NB matrix and k = 1,2,...,N.
+          The Markov parameters are stored such that H(i,(k-1)xNB+j)
+          contains the (i,j)-th element of M(k) for i = 1,2,...,NC
+          and j = 1,2,...,NB.
+
+  LDH     INTEGER
+          The leading dimension of array H.  LDH &gt;= MAX(1,NC).
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  The (i,j)-th element of G(z), defining the particular I/O transfer
+  between output i and input j, has the following form:
+
+                       -1         -2               -r
+                 MA(1)z   + MA(2)z   + ... + MA(r)z
+      G  (z) = ----------------------------------------.         (1)
+       ij                -1         -2               -r
+               1 + AR(1)z   + AR(2)z   + ... + AR(r)z
+
+  The (i,j)-th element of G(z) is defined by its order r, its r
+  moving average coefficients (= numerator) MA(1),...,MA(r) and its
+  r autoregressive coefficients (= denominator) AR(1),...,AR(r). The
+  coefficient of the constant term in the denominator is assumed to
+  be equal to 1.
+
+  The relationship between the (i,j)-th element of the Markov
+  parameters M(1),M(2),...,M(N) and the corresponding element of the
+  transfer function matrix G(z) is given by:
+
+                            -1          -2                -k
+   G  (z) = M  (0) + M  (1)z   + M  (2)z   + ... + M  (k)z  + ...(2)
+    ij       ij       ij          ij                ij
+
+  Equating (1) and (2), we find that the relationship between the
+  (i,j)-th element of the Markov parameters M(k) and the ARMA
+  parameters AR(1),...,AR(r) and MA(1),...,MA(r) of the (i,j)-th
+  element of the transfer function matrix G(z) is as follows:
+
+     M  (1)   = MA(1),
+      ij
+                        k-1
+     M  (k)   = MA(k) - SUM AR(p) x M  (k-p) for 1 &lt; k &lt;= r and
+      ij                p=1          ij
+                   r
+     M  (k+r) = - SUM AR(p) x M  (k+r-p) for k &gt; 0.
+      ij          p=1          ij
+
+  From these expressions the Markov parameters M(k) are computed
+  element by element.
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Luenberger, D.G.
+      Introduction to Dynamic Systems: Theory, Models and
+      Applications.
+      John Wiley & Sons, New York, 1979.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  The computation of the (i,j)-th element of M(k) requires:
+     (k-1) multiplications and k additions if k &lt;= r;
+       r   multiplications and r additions if k &gt; r.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+*     TF01QD EXAMPLE PROGRAM TEXT
+*
+*     .. Parameters ..
+      INTEGER          NIN, NOUT
+      PARAMETER        ( NIN = 5, NOUT = 6 )
+      INTEGER          NMAX, NAMAX, NBMAX, NCMAX
+      PARAMETER        ( NMAX = 20, NAMAX = 20, NBMAX = 20, NCMAX = 20 )
+      INTEGER          LDH
+      PARAMETER        ( LDH = NCMAX )
+*     .. Local Scalars ..
+      INTEGER          I, INFO, J, K, L, N, NA, NASUM, NB, NC, NL, NORD
+      LOGICAL          ERROR
+*     .. Local Arrays ..
+      DOUBLE PRECISION AR(NAMAX), H(LDH,NMAX*NBMAX), MA(NAMAX)
+      INTEGER          IORD(NCMAX*NBMAX)
+*     .. External Subroutines ..
+      EXTERNAL         TF01QD
+*     .. Executable Statements ..
+*
+      WRITE ( NOUT, FMT = 99999 )
+*     Skip the heading in the data file and read the data.
+      READ ( NIN, FMT = '()' )
+      READ ( NIN, FMT = * ) N, NA, NB, NC
+      IF ( N.LE.0 .OR. N.GT.NMAX ) THEN
+         WRITE ( NOUT, FMT = 99994 ) N
+      ELSE IF ( NA.LE.0 .OR. NA.GT.NAMAX ) THEN
+         WRITE ( NOUT, FMT = 99993 ) NA
+      ELSE IF ( NB.LE.0 .OR. NB.GT.NBMAX ) THEN
+         WRITE ( NOUT, FMT = 99992 ) NB
+      ELSE IF ( NC.LE.0 .OR. NC.GT.NCMAX ) THEN
+         WRITE ( NOUT, FMT = 99991 ) NC
+      ELSE
+         ERROR = .FALSE.
+         NL = 0
+         K = 1
+         NASUM = 0
+         DO 40 I = 1, NC
+            DO 20 J = 1, NB
+               READ ( NIN, FMT = * ) NORD
+               NASUM = NASUM + NORD
+               IF ( NA.GE.NASUM ) THEN
+                  READ ( NIN, FMT = * ) ( MA(NL+L), L = 1,NORD )
+                  READ ( NIN, FMT = * ) ( AR(NL+L), L = 1,NORD )
+                  IORD(K) = NORD
+                  K = K + 1
+                  NL = NL + NORD
+               ELSE
+                  WRITE ( NOUT, FMT = 99993 ) NA
+                  ERROR = .TRUE.
+               END IF
+   20       CONTINUE
+   40    CONTINUE
+         IF ( .NOT. ERROR ) THEN
+*           Compute M(1),...,M(N) from the given transfer function
+*           matrix G(z).
+            CALL TF01QD( NC, NB, N, IORD, AR, MA, H, LDH, INFO )
+*
+            IF ( INFO.NE.0 ) THEN
+               WRITE ( NOUT, FMT = 99998 ) INFO
+            ELSE
+               WRITE ( NOUT, FMT = 99997 ) N
+               DO 80 K = 1, N
+                  WRITE ( NOUT, FMT = 99996 ) K,
+     $                  ( H(1,(K-1)*NB+J), J = 1,NB )
+                  DO 60 I = 2, NC
+                     WRITE ( NOUT, FMT = 99995 )
+     $                     ( H(I,(K-1)*NB+J), J = 1,NB )
+   60             CONTINUE
+   80          CONTINUE
+            END IF
+         END IF
+      END IF
+      STOP
+*
+99999 FORMAT (' TF01QD EXAMPLE PROGRAM RESULTS',/1X)
+99998 FORMAT (' INFO on exit from TF01QD = ',I2)
+99997 FORMAT (' The Markov Parameters M(1),...,M(',I1,') are ')
+99996 FORMAT (/' M(',I1,') : ',20(1X,F8.4))
+99995 FORMAT (8X,20(1X,F8.4))
+99994 FORMAT (/' N is out of range.',/' N = ',I5)
+99993 FORMAT (/' NA is out of range.',/' NA = ',I5)
+99992 FORMAT (/' NB is out of range.',/' NB = ',I5)
+99991 FORMAT (/' NC is out of range.',/' NC = ',I5)
+      END
+</PRE>
+<B>Program Data</B>
+<PRE>
+ TF01QD EXAMPLE PROGRAM DATA
+   8    10     2     2   
+   2
+   1.0  -0.5
+   0.6  -0.2
+   1
+   1.0
+  -0.8
+   3
+   0.5  -0.4   0.3
+   0.8   0.4   0.1
+   4
+   1.0   0.5  -0.5   0.0
+  -0.8   0.6   0.0  -0.2
+</PRE>
+<B>Program Results</B>
+<PRE>
+ TF01QD EXAMPLE PROGRAM RESULTS
+
+ The Markov Parameters M(1),...,M(8) are 
+
+ M(1) :    1.0000   1.0000
+           0.5000   1.0000
+
+ M(2) :   -1.1000   0.8000
+          -0.8000   1.3000
+
+ M(3) :    0.8600   0.6400
+           0.7400  -0.0600
+
+ M(4) :   -0.7360   0.5120
+          -0.3220  -0.8280
+
+ M(5) :    0.6136   0.4096
+           0.0416  -0.4264
+
+ M(6) :   -0.5154   0.3277
+           0.0215   0.4157
+
+ M(7) :    0.4319   0.2621
+          -0.0017   0.5764
+
+ M(8) :   -0.3622   0.2097
+          -0.0114   0.0461
+</PRE>
+
+<HR>
+<p>
+<A HREF=..\libindex.html><B>Return to index</B></A></BODY>
+</HTML>

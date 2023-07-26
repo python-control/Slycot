@@ -1,0 +1,251 @@
+<HTML>
+<HEAD><TITLE>MC01RD - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MC01RD">MC01RD</A></H2>
+<H3>
+Polynomial operation P(x) = P1(x) P2(x) + alpha P3(x)
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To compute the coefficients of the polynomial
+
+     P(x) = P1(x) * P2(x) + alpha * P3(x),
+
+  where P1(x), P2(x) and P3(x) are given real polynomials and alpha
+  is a real scalar.
+
+  Each of the polynomials P1(x), P2(x) and P3(x) may be the zero
+  polynomial.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MC01RD( DP1, DP2, DP3, ALPHA, P1, P2, P3, INFO )
+C     .. Scalar Arguments ..
+      INTEGER           DP1, DP2, DP3, INFO
+      DOUBLE PRECISION  ALPHA
+C     .. Array Arguments ..
+      DOUBLE PRECISION  P1(*), P2(*), P3(*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  DP1     (input) INTEGER
+          The degree of the polynomial P1(x).  DP1 &gt;= -1.
+
+  DP2     (input) INTEGER
+          The degree of the polynomial P2(x).  DP2 &gt;= -1.
+
+  DP3     (input/output) INTEGER
+          On entry, the degree of the polynomial P3(x).  DP3 &gt;= -1.
+          On exit, the degree of the polynomial P(x).
+
+  ALPHA   (input) DOUBLE PRECISION
+          The scalar value alpha of the problem.
+
+  P1      (input) DOUBLE PRECISION array, dimension (lenp1)
+          where lenp1 = DP1 + 1 if DP1 &gt;= 0 and 1 otherwise.
+          If DP1 &gt;= 0, then this array must contain the
+          coefficients of P1(x) in increasing powers of x.
+          If DP1 = -1, then P1(x) is taken to be the zero
+          polynomial, P1 is not referenced and can be supplied
+          as a dummy array.
+
+  P2      (input) DOUBLE PRECISION array, dimension (lenp2)
+          where lenp2 = DP2 + 1 if DP2 &gt;= 0 and 1 otherwise.
+          If DP2 &gt;= 0, then this array must contain the
+          coefficients of P2(x) in increasing powers of x.
+          If DP2 = -1, then P2(x) is taken to be the zero
+          polynomial, P2 is not referenced and can be supplied
+          as a dummy array.
+
+  P3      (input/output) DOUBLE PRECISION array, dimension (lenp3)
+          where lenp3 = MAX(DP1+DP2,DP3,0) + 1.
+          On entry, if DP3 &gt;= 0, then this array must contain the
+          coefficients of P3(x) in increasing powers of x.
+          On entry, if DP3 = -1, then P3(x) is taken to be the zero
+          polynomial.
+          On exit, the leading (DP3+1) elements of this array
+          contain the coefficients of P(x) in increasing powers of x
+          unless DP3 = -1 on exit, in which case the coefficients of
+          P(x) (the zero polynomial) are not stored in the array.
+          This is the case, for instance, when ALPHA = 0.0 and
+          P1(x) or P2(x) is the zero polynomial.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  Given real polynomials
+
+             DP1           i           DP2           i
+     P1(x) = SUM a(i+1) * x ,  P2(x) = SUM b(i+1) * x  and
+             i=0                       i=0
+
+             DP3           i
+     P3(x) = SUM c(i+1) * x ,
+             i=0
+
+  the routine computes the coefficents of P(x) = P1(x) * P2(x) +
+                  DP3            i
+  alpha * P3(x) = SUM  d(i+1) * x  as follows.
+                  i=0
+
+  Let e(i) = c(i) for 1 &lt;= i &lt;= DP3+1 and e(i) = 0 for i &gt; DP3+1.
+  Then if DP1 &gt;= DP2,
+
+             i
+     d(i) = SUM a(k) * b(i-k+1) + f(i), for i = 1, ..., DP2+1,
+            k=1
+
+              i
+     d(i)  = SUM a(k) * b(i-k+1) + f(i), for i = DP2+2, ..., DP1+1
+            k=i-DP2
+
+  and
+             DP1+1
+     d(i)  = SUM a(k) * b(i-k+1) + f(i) for i = DP1+2,...,DP1+DP2+1,
+            k=i-DP2
+
+  where f(i) = alpha * e(i).
+
+  Similar formulas hold for the case DP1 &lt; DP2.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  None.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+*     MC01RD EXAMPLE PROGRAM TEXT
+*
+*     .. Parameters ..
+      INTEGER          NIN, NOUT
+      PARAMETER        ( NIN = 5, NOUT = 6 )
+      INTEGER          DP1MAX, DP2MAX, DP3MAX
+      PARAMETER        ( DP1MAX = 10, DP2MAX = 10, DP3MAX = 10 )
+      INTEGER          LENP3
+      PARAMETER        ( LENP3 = MAX(DP1MAX+DP2MAX,DP3MAX)+1 )
+*     .. Local Scalars ..
+      DOUBLE PRECISION ALPHA
+      INTEGER          DP1, DP2, DP3, I, INFO
+*     .. Local Arrays ..
+      DOUBLE PRECISION P1(DP1MAX+1), P2(DP2MAX+1), P3(LENP3)
+*    $                 P3(DP1MAX+DP2MAX+DP3MAX+1)
+*     .. External Subroutines ..
+      EXTERNAL         MC01RD
+*     .. Intrinsic Functions ..
+      INTRINSIC        MAX
+*     .. Executable Statements ..
+*
+      WRITE ( NOUT, FMT = 99999 )
+*     Skip the heading in the data file and read the data.
+      READ ( NIN, FMT = '()' )
+      READ ( NIN, FMT = * ) DP1
+      IF ( DP1.LE.-2 .OR. DP1.GT.DP1MAX ) THEN
+         WRITE ( NOUT, FMT = 99994 ) DP1
+      ELSE
+         READ ( NIN, FMT = * ) ( P1(I), I = 1,DP1+1 )
+         READ ( NIN, FMT = * ) DP2
+         IF ( DP2.LE.-2 .OR. DP2.GT.DP2MAX ) THEN
+            WRITE ( NOUT, FMT = 99993 ) DP2
+         ELSE
+            READ ( NIN, FMT = * ) ( P2(I), I = 1,DP2+1 )
+            READ ( NIN, FMT = * ) DP3
+            IF ( DP3.LE.-2 .OR. DP3.GT.DP3MAX ) THEN
+               WRITE ( NOUT, FMT = 99992 ) DP3
+            ELSE
+               READ ( NIN, FMT = * ) ( P3(I), I = 1,DP3+1 )
+            END IF
+            READ ( NIN, FMT = * ) ALPHA
+*           Compute the coefficients of the polynomial P(x).
+            CALL MC01RD( DP1, DP2, DP3, ALPHA, P1, P2, P3, INFO )
+*
+            IF ( INFO.NE.0 ) THEN
+               WRITE ( NOUT, FMT = 99998 ) INFO
+            ELSE
+               WRITE ( NOUT, FMT = 99997 ) DP3
+               IF ( DP3.GE.0 ) THEN
+                  WRITE ( NOUT, FMT = 99996 )
+                  DO 20 I = 0, DP3
+                     WRITE ( NOUT, FMT = 99995 ) I, P3(I+1)
+   20             CONTINUE
+               END IF
+            END IF
+         END IF
+      END IF
+*
+      STOP
+*
+99999 FORMAT (' MC01RD EXAMPLE PROGRAM RESULTS',/1X)
+99998 FORMAT (' INFO on exit from MC01RD = ',I2)
+99997 FORMAT (' Degree of the resulting polynomial P(x) = ',I2)
+99996 FORMAT (/' The coefficients of P(x) are ',//' power of x     coe',
+     $       'fficient ')
+99995 FORMAT (2X,I5,9X,F9.4)
+99994 FORMAT (/' DP1 is out of range.',/' DP1 = ',I5)
+99993 FORMAT (/' DP2 is out of range.',/' DP2 = ',I5)
+99992 FORMAT (/' DP3 is out of range.',/' DP3 = ',I5)
+      END
+</PRE>
+<B>Program Data</B>
+<PRE>
+ MC01RD EXAMPLE PROGRAM DATA
+   1
+   1.00  2.50
+   2
+   1.00  0.10  -0.40
+   1
+   1.15  1.50
+  -2.20
+</PRE>
+<B>Program Results</B>
+<PRE>
+ MC01RD EXAMPLE PROGRAM RESULTS
+
+ Degree of the resulting polynomial P(x) =  3
+
+ The coefficients of P(x) are 
+
+ power of x     coefficient 
+      0           -1.5300
+      1           -0.7000
+      2           -0.1500
+      3           -1.0000
+</PRE>
+
+<HR>
+<p>
+<A HREF=..\libindex.html><B>Return to index</B></A></BODY>
+</HTML>

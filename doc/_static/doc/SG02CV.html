@@ -1,0 +1,256 @@
+<HTML>
+<HEAD><TITLE>SG02CV - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="SG02CV">SG02CV</A></H2>
+<H3>
+Computation of residual matrix for a continuous-time or discrete-time reduced Lyapunov equation
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To compute the residual matrix R for a continuous-time or
+  discrete-time "reduced" Lyapunov equation, using the formulas
+
+     R = op(A)'*X + X*op(A) + Q,
+  or
+     R = op(A)'*X*op(E) + op(E)'*X*op(A) + Q,
+
+  in the continuous-time case, or the formulas
+
+     R = op(A)'*X*op(A) - X + Q,
+  or
+     R = op(A)'*X*op(A) - op(E)'*X*op(E) + Q,
+
+  in the discrete-time case, where X and Q are symmetric matrices,
+  A is in upper real Schur form, E is upper triangular, and op(W) is
+
+     op(W) = W   or   op(W) = W'.
+
+  Optionally, the Frobenius norms of the product terms defining the
+  denominator of the relative residual are also computed. The norms
+  of Q and X are not computed.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE SG02CV( DICO, JOB, JOBE, UPLO, TRANS, N, A, LDA, E,
+     $                   LDE, X, LDX, R, LDR, NORMS, DWORK, LDWORK,
+     $                   INFO )
+C     .. Scalar Arguments ..
+      CHARACTER         DICO, JOB, JOBE, TRANS, UPLO
+      INTEGER           INFO, LDA, LDE, LDR, LDWORK, LDX, N
+C     .. Array Arguments ..
+      DOUBLE PRECISION  A(LDA,*), DWORK(*), E(LDE,*), NORMS(*),
+     $                  R(LDR,*), X(LDX,*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  DICO    CHARACTER*1
+          Specifies the type of the Lyapunov equation, as follows:
+          = 'C':  continuous-time Lyapunov equation;
+          = 'D':  discrete-time Lyapunov equation.
+
+  JOB     CHARACTER*1
+          Specifies which results must be computed, as follows:
+          = 'R':  The matrix R only must be computed;
+          = 'N':  The matrix R and the norms must be computed;
+          = 'B':  The matrix R and the norms must be computed.
+
+  JOBE    CHARACTER*1
+          Specifies whether E is a general or an identity matrix,
+          as follows:
+          = 'G':  The matrix E is general and is given;
+          = 'I':  The matrix E is assumed identity and is not given.
+
+  UPLO    CHARACTER*1
+          Specifies which triangles of the symmetric matrices X and
+          Q are given, as follows:
+          = 'U':  The upper triangular part is given;
+          = 'L':  The lower triangular part is given.
+
+  TRANS   CHARACTER*1
+          Specifies the form of op(W) to be used in the formulas
+          above, as follows:
+          = 'N':  op(W) = W;
+          = 'T':  op(W) = W';
+          = 'C':  op(W) = W'.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The order of the matrices A, E, Q, X, and R.  N &gt;= 0.
+
+  A       (input) DOUBLE PRECISION array, dimension (LDA,N)
+          The leading N-by-N upper part of this array must contain
+          the upper real Schur matrix A.
+          If TRANS = 'N' and (DICO = 'D' or (JOB = 'R' and
+          JOBE = 'G')), the entries 3, 4,..., N of the first column
+          are modified internally, but are restored on exit.
+          Otherwise, the part of this array below the first
+          subdiagonal is not referenced.
+
+  LDA     INTEGER
+          The leading dimension of array A.  LDA &gt;= MAX(1,N).
+
+  E       (input) DOUBLE PRECISION array, dimension (LDE,*)
+          If JOBE = 'G', the leading N-by-N upper triangular part of
+          this array must contain the upper triangular matrix E.
+          The strictly lower triangular part of this array is not
+          referenced.
+          If JOBE = 'I', this array is not referenced.
+
+  LDE     INTEGER
+          The leading dimension of array E.
+          LDE &gt;= MAX(1,N), if JOBE = 'G';
+          LDE &gt;= 1,        if JOBE = 'I'.
+
+  X       (input/works.) DOUBLE PRECISION array, dimension (LDX,N)
+          On entry, if UPLO = 'U', the leading N-by-N upper
+          triangular part of this array must contain the upper
+          triangular part of the symmetric matrix X and the strictly
+          lower triangular part of the array is not referenced.
+          On entry, if UPLO = 'L', the leading N-by-N lower
+          triangular part of this array must contain the lower
+          triangular part of the symmetric matrix X and the strictly
+          upper triangular part of the array is not referenced.
+          If DICO = 'D' or (JOB = 'R' and JOBE = 'G'), the diagonal
+          elements of this array are modified internally, but they
+          are restored on exit.
+
+  LDX     INTEGER
+          The leading dimension of array X.  LDX &gt;= MAX(1,N).
+
+  R       (input/output) DOUBLE PRECISION array, dimension (LDR,*)
+          On entry, the leading N-by-N upper or lower triangular
+          part (depending on UPLO) of this array must contain the
+          upper or lower triangular part, respectively, of the
+          matrix Q. The other strictly triangular part is not
+          referenced.
+          On exit, the leading N-by-N upper or lower triangular
+          part (depending on UPLO) of this array contains the upper
+          or lower triangular part, respectively, of the matrix R.
+
+  LDR     INTEGER
+          The leading dimension of array R.  LDR &gt;= MAX(1,N).
+
+  NORMS   (output) DOUBLE PRECISION array, dimension (LN)
+          If JOB = 'N' or JOB = 'B', LN = 1 or 2, if (DICO = 'C' or
+          JOBE = 'I'), or (DICO = 'D' and JOBE = 'G'), respectively.
+          If DICO = 'C',
+          NORMS(1) contains the Frobenius norm of the matrix
+          op(A)'*X (or of X*op(A)), if JOBE = 'I', or of the matrix
+          op(A)'*X*op(E) (or of op(E)'*X*op(A)), if JOBE = 'G'.
+          If DICO = 'D',
+          NORMS(1) contains the Frobenius norm of the matrix
+          op(A)'*X*op(A);
+          if JOBE = 'G', NORMS(2) contains the Frobenius norm of the
+          matrix op(E)'*X*op(E).
+          If JOB &lt;&gt; 'N', this array is not referenced.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+          On exit, if INFO = -17 or if LDWORK = -2 on input, then
+          DWORK(1) returns the minimum value of LDWORK.
+          On exit, if INFO = 0, or if LDWORK = -1 on input, then
+          DWORK(1) returns the optimal value of LDWORK.
+
+  LDWORK  The length of the array DWORK. LDWORK &gt;= MAX(v,1), with v
+          specified in the following table, where
+             a = 1, if JOBE = 'G';
+             a = 0, if JOBE = 'I'.
+
+          DICO   JOB             v
+          ----------------------------
+          'C'    'R'           a*N*N
+          'C'    'N','B'         N*N
+          ----------------------------
+          'D'    'R'             N*N
+          'D'    'N','B'       2*N*N
+          ----------------------------
+
+          If LDWORK = -1, an optimal workspace query is assumed; the
+          routine only calculates the optimal size of the DWORK
+          array, returns this value as the first entry of the DWORK
+          array, and no error message is issued by XERBLA.
+
+          If LDWORK = -2, a minimal workspace query is assumed; the
+          routine only calculates the minimal size of the DWORK
+          array, returns this value as the first entry of the DWORK
+          array, and no error message is issued by XERBLA.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  The matrix expressions are efficiently evaluated, using symmetry.
+  If JOB = 'N' or JOB = 'B', then:
+  If DICO = 'C', the matrices op(op(A)'*X*op(E)) or op(X*op(A)), are
+  efficiently computed.
+  If DICO = 'D', the matrices op(A)'*X*op(A) and op(E)'*X*op(E), if
+  JOBE = 'G', are efficiently computed. The results are used to
+  evaluate R and the norms.
+  If JOB = 'R', then the needed parts of the intermediate results
+  are obtained and used to evaluate R.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  The calculations are backward stable.
+
+  The algorithm requires approximately a*N^3 operations, where ^
+  denotes the power operator, and
+
+     a = 1,      if DICO = 'C' and JOB &lt;&gt; 'R' and JOBE = 'G';
+     a = 1/2,    otherwise.
+
+  An "operation" includes a multiplication, an addition, and some
+  address calculations.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

@@ -1,0 +1,301 @@
+<HTML>
+<HEAD><TITLE>MB04DY - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MB04DY">MB04DY</A></H2>
+<H3>
+Symplectic scaling of a Hamiltonian matrix
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To perform a symplectic scaling on the Hamiltonian matrix
+
+           ( A    G  )
+       H = (       T ),                                          (1)
+           ( Q   -A  )
+
+  i.e., perform either the symplectic scaling transformation
+
+                                -1
+              ( A'   G'  )   ( D   0 ) ( A   G  ) ( D  0   )
+       H' &lt;-- (        T ) = (       ) (      T ) (     -1 ),    (2)
+              ( Q'  -A'  )   ( 0   D ) ( Q  -A  ) ( 0  D   )
+
+  where D is a diagonal scaling matrix, or the symplectic norm
+  scaling transformation
+
+               ( A''   G''  )    1  (   A   G/tau )
+       H'' &lt;-- (          T ) = --- (           T ),             (3)
+               ( Q''  -A''  )   tau ( tau Q   -A  )
+
+  where tau is a real scalar.  Note that if tau is not equal to 1,
+  then (3) is NOT a similarity transformation.  The eigenvalues
+  of H are then tau times the eigenvalues of H''.
+
+  For symplectic scaling (2), D is chosen to give the rows and
+  columns of A' approximately equal 1-norms and to give Q' and G'
+  approximately equal norms.  (See METHOD below for details.) For
+  norm scaling, tau = MAX(1, ||A||, ||G||, ||Q||) where ||.||
+  denotes the 1-norm (column sum norm).
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MB04DY( JOBSCL, N, A, LDA, QG, LDQG, D, DWORK, INFO )
+C     .. Scalar Arguments ..
+      INTEGER           INFO, LDA, LDQG, N
+      CHARACTER         JOBSCL
+C     .. Array Arguments ..
+      DOUBLE PRECISION  A(LDA,*), D(*), DWORK(*), QG(LDQG,*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  JOBSCL  CHARACTER*1
+          Indicates which scaling strategy is used, as follows:
+          = 'S'       :  do the symplectic scaling (2);
+          = '1' or 'O':  do the 1-norm scaling (3);
+          = 'N'       :  do nothing; set INFO and return.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The order of the matrices A, G, and Q.  N &gt;= 0.
+
+  A       (input/output) DOUBLE PRECISION array, dimension (LDA,N)
+          On input, if JOBSCL &lt;&gt; 'N', the leading N-by-N part of
+          this array must contain the upper left block A of the
+          Hamiltonian matrix H in (1).
+          On output, if JOBSCL &lt;&gt; 'N', the leading N-by-N part of
+          this array contains the leading N-by-N part of the scaled
+          Hamiltonian matrix H' in (2) or H'' in (3), depending on
+          the setting of JOBSCL.
+          If JOBSCL = 'N', this array is not referenced.
+
+  LDA     INTEGER
+          The leading dimension of the array A.
+          LDA &gt;= MAX(1,N), if JOBSCL &lt;&gt; 'N';
+          LDA &gt;= 1,        if JOBSCL =  'N'.
+
+  QG      (input/output) DOUBLE PRECISION array, dimension
+          (LDQG,N+1)
+          On input, if JOBSCL &lt;&gt; 'N', the leading N-by-N lower
+          triangular part of this array must contain the lower
+          triangle of the lower left symmetric block Q of the
+          Hamiltonian matrix H in (1), and the N-by-N upper
+          triangular part of the submatrix in the columns 2 to N+1
+          of this array must contain the upper triangle of the upper
+          right symmetric block G of H in (1).
+          So, if i &gt;= j, then Q(i,j) = Q(j,i) is stored in QG(i,j)
+          and G(i,j) = G(j,i) is stored in QG(j,i+1).
+          On output, if JOBSCL &lt;&gt; 'N', the leading N-by-N lower
+          triangular part of this array contains the lower triangle
+          of the lower left symmetric block Q' or Q'', and the
+          N-by-N upper triangular part of the submatrix in the
+          columns 2 to N+1 of this array contains the upper triangle
+          of the upper right symmetric block G' or G'' of the scaled
+          Hamiltonian matrix H' in (2) or H'' in (3), depending on
+          the setting of JOBSCL.
+          If JOBSCL = 'N', this array is not referenced.
+
+  LDQG    INTEGER
+          The leading dimension of the array QG.
+          LDQG &gt;= MAX(1,N), if JOBSCL &lt;&gt; 'N';
+          LDQG &gt;= 1,        if JOBSCL =  'N'.
+
+  D       (output) DOUBLE PRECISION array, dimension (nd)
+          If JOBSCL = 'S', then nd = N and D contains the diagonal
+          elements of the diagonal scaling matrix in (2).
+          If JOBSCL = '1' or 'O', then nd = 1 and D(1) is set to tau
+          from (3). In this case, no other elements of D are
+          referenced.
+          If JOBSCL = 'N', this array is not referenced.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  DWORK   DOUBLE PRECISION array, dimension (N)
+          If JOBSCL = 'N', this array is not referenced.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, then the i-th argument had an illegal
+                value.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  1. Symplectic scaling (JOBSCL = 'S'):
+
+  First, LAPACK subroutine DGEBAL is used to equilibrate the 1-norms
+  of the rows and columns of A using a diagonal scaling matrix D_A.
+  Then, H is similarily transformed by the symplectic diagonal
+  matrix D1 = diag(D_A,D_A**(-1)).  Next, the off-diagonal blocks of
+  the resulting Hamiltonian matrix are equilibrated in the 1-norm
+  using the symplectic diagonal matrix D2 of the form
+
+              ( I/rho    0   )
+         D2 = (              )
+              (   0    rho*I )
+
+  where rho is a real scalar. Thus, in (2), D = D1*D2.
+
+  2. Norm scaling (JOBSCL = '1' or 'O'):
+
+  The norm of the matrices A and G of (1) is reduced by setting
+  A := A/tau  and  G := G/(tau**2) where tau is the power of the
+  base of the arithmetic closest to MAX(1, ||A||, ||G||, ||Q||) and
+  ||.|| denotes the 1-norm.
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Benner, P., Byers, R., and Barth, E.
+      Fortran 77 Subroutines for Computing the Eigenvalues of
+      Hamiltonian Matrices. I: The Square-Reduced Method.
+      ACM Trans. Math. Software, 26, 1, pp. 49-77, 2000.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  For symplectic scaling, the complexity of the used algorithms is
+  hard to estimate and depends upon how well the rows and columns of
+  A in (1) are equilibrated.  In one sweep, each row/column of A is
+  scaled once, i.e., the cost of one sweep is N**2 multiplications.
+  Usually, 3-6 sweeps are enough to equilibrate the norms of the
+  rows and columns of a matrix.  Roundoff errors are possible as
+  LAPACK routine DGEBAL does NOT use powers of the machine base for
+  scaling. The second stage (equilibrating ||G|| and ||Q||) requires
+  N**2 multiplications.
+  For norm scaling, 3*N**2 + O(N) multiplications are required and
+  NO rounding errors occur as all multiplications are performed with
+  powers of the machine base.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+*     MB04DY EXAMPLE PROGRAM TEXT.
+*
+*     .. Parameters ..
+      INTEGER          NIN, NOUT
+      PARAMETER        ( NIN = 5, NOUT = 6 )
+      INTEGER          NMAX
+      PARAMETER        ( NMAX = 20 )
+      INTEGER          LDA, LDQG
+      PARAMETER        ( LDA = NMAX, LDQG = NMAX )
+      INTEGER          LDWORK
+      PARAMETER        ( LDWORK = NMAX )
+*     .. Local Scalars ..
+      INTEGER          I, INFO, J, N
+      CHARACTER*1      JOBSCL
+*     .. Local Arrays ..
+      DOUBLE PRECISION A(LDA,NMAX), D(NMAX), DWORK(LDWORK),
+     $                 QG(LDQG,NMAX+1)
+*     .. External Functions ..
+      LOGICAL          LSAME
+      EXTERNAL         LSAME
+*     .. External Subroutines ..
+      EXTERNAL         MB04DY
+*     .. Executable Statements ..
+*
+      WRITE ( NOUT, FMT = 99999 )
+*     Skip the heading in the data file and read the data.
+      READ ( NIN, FMT = '()' )
+      READ ( NIN, FMT = * ) N, JOBSCL
+      IF ( N.LT.0 .OR. N.GT.NMAX ) THEN
+         WRITE ( NOUT, FMT = 99998 ) N
+      ELSE
+         READ ( NIN, FMT = * ) ( ( A(I,J),    J = 1,N ), I = 1,N )
+         READ ( NIN, FMT = * ) ( ( QG(J,I+1), I = J,N ), J = 1,N )
+         READ ( NIN, FMT = * ) ( ( QG(I,J),   I = J,N ), J = 1,N )
+*        Scale the Hamiltonian matrix.
+         CALL MB04DY( JOBSCL, N, A, LDA, QG, LDQG, D, DWORK, INFO )
+         IF ( INFO.NE.0 ) THEN
+            WRITE ( NOUT, FMT = 99997 ) INFO
+         ELSE
+*           Show the scaled Hamiltonian matrix.
+            WRITE ( NOUT, FMT = 99996 )
+            DO 10 I = 1, N
+              WRITE ( NOUT, FMT = 99993 )  ( A(I,J),    J = 1,N ),
+     $           ( QG(J,I+1), J = 1,I-1 ), ( QG(I,J+1), J = I,N )
+10          CONTINUE
+            DO 20 I = 1, N
+               WRITE ( NOUT, FMT = 99993 ) (  QG(I,J), J = 1,I-1 ),
+     $               ( QG(J,I), J = I,N ), ( -A(J,I),  J = 1,N )
+20          CONTINUE
+*           Show the scaling factors.
+            IF ( LSAME( JOBSCL, 'S' ) ) THEN
+               WRITE ( NOUT, FMT = 99995 )
+               WRITE ( NOUT, FMT = 99993 ) ( D(I), I = 1,N )
+            ELSE IF ( LSAME( JOBSCL, '1' ) .OR. LSAME( JOBSCL, 'O' ) )
+     $            THEN
+               WRITE ( NOUT, FMT = 99994 )
+               WRITE ( NOUT, FMT = 99993 ) D(1)
+            END IF
+         ENDIF
+      END IF
+      STOP
+*
+99999 FORMAT (' MB04DY EXAMPLE PROGRAM RESULTS',/1X)
+99998 FORMAT (/' N is out of range.',/' N = ',I5)
+99997 FORMAT (' INFO on exit from MB04DY = ',I2)
+99996 FORMAT (/' The scaled Hamiltonian is ')
+99995 format (/' The scaling factors are ')
+99994 format (/' The scaling factor tau is ')
+99993 FORMAT (1X,8(F10.4))
+      END
+</PRE>
+<B>Program Data</B>
+<PRE>
+MB04DY EXAMPLE PROGRAM DATA
+3 S
+-0.4   0.05  0.0007   
+-4.7   0.8   0.025   
+81.0  29.0  -0.9        
+0.0034  0.0014  0.00077 -0.005  0.0004  0.003
+-18.0 -12.0  43.0  99.0  420.0  -200.0
+</PRE>
+<B>Program Results</B>
+<PRE>
+ MB04DY EXAMPLE PROGRAM RESULTS
+
+
+ The scaled Hamiltonian is 
+    -0.4000    0.4000    0.3584  418.4403   21.5374    0.1851
+    -0.5875    0.8000    1.6000   21.5374   -9.6149    0.0120
+     0.1582    0.4531   -0.9000    0.1851    0.0120    0.0014
+    -0.0001   -0.0008    0.1789    0.4000    0.5875   -0.1582
+    -0.0008    0.0515   13.9783   -0.4000   -0.8000   -0.4531
+     0.1789   13.9783 -426.0056   -0.3584   -1.6000    0.9000
+
+ The scaling factors are 
+     0.0029    0.0228    1.4595
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

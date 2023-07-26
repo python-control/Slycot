@@ -1,0 +1,230 @@
+<HTML>
+<HEAD><TITLE>MB04QC - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MB04QC">MB04QC</A></H2>
+<H3>
+Premultiplying a real matrix with an orthogonal symplectic block reflector
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To apply the orthogonal symplectic block reflector
+
+           [  I+V*T*V'  V*R*S*V'  ]
+      Q =  [                      ]
+           [ -V*R*S*V'  I+V*T*V'  ]
+
+  or its transpose to a real 2m-by-n matrix [ op(A); op(B) ] from
+  the left.
+  The k-by-k upper triangular blocks of the matrices
+
+                              [ S1 ]       [ T11 T12 T13 ]
+      R  = [ R1 R2 R3 ],  S = [ S2 ],  T = [ T21 T22 T23 ],
+                              [ S3 ]       [ T31 T32 T33 ]
+
+  with R2 unit and S1, R3, T21, T31, T32 strictly upper triangular,
+  are stored rowwise in the arrays RS and T, respectively.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MB04QC( STRAB, TRANA, TRANB, TRANQ, DIRECT, STOREV,
+     $                   STOREW, M, N, K, V, LDV, W, LDW, RS, LDRS, T,
+     $                   LDT, A, LDA, B, LDB, DWORK )
+C     .. Scalar Arguments ..
+      CHARACTER         DIRECT, STOREV, STOREW, STRAB, TRANA, TRANB,
+     $                  TRANQ
+      INTEGER           K, LDA, LDB, LDRS, LDT, LDV, LDW, M, N
+C     .. Array Arguments ..
+      DOUBLE PRECISION  A(LDA,*), B(LDB,*), DWORK(*), RS(LDRS,*),
+     $                  T(LDT,*), V(LDV,*), W(LDW,*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  STRAB   CHARACTER*1
+          Specifies the structure of the first blocks of A and B:
+          = 'Z':  the leading K-by-N submatrices of op(A) and op(B)
+                  are (implicitly) assumed to be zero;
+          = 'N';  no structure to mention.
+
+  TRANA   CHARACTER*1
+          Specifies the form of op( A ) as follows:
+          = 'N':  op( A ) = A;
+          = 'T':  op( A ) = A';
+          = 'C':  op( A ) = A'.
+
+  TRANB   CHARACTER*1
+          Specifies the form of op( B ) as follows:
+          = 'N':  op( B ) = B;
+          = 'T':  op( B ) = B';
+          = 'C':  op( B ) = B'.
+
+  DIRECT  CHARACTER*1
+          This is a dummy argument, which is reserved for future
+          extensions of this subroutine. Not referenced.
+
+  TRANQ   CHARACTER*1
+          = 'N':  apply Q;
+          = 'T':  apply Q'.
+
+  STOREV  CHARACTER*1
+          Specifies how the vectors which define the concatenated
+          Householder reflectors contained in V are stored:
+          = 'C':  columnwise;
+          = 'R':  rowwise.
+
+  STOREW  CHARACTER*1
+          Specifies how the vectors which define the concatenated
+          Householder reflectors contained in W are stored:
+          = 'C':  columnwise;
+          = 'R':  rowwise.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  M       (input) INTEGER
+          The number of rows of the matrices op(A) and op(B).
+          M &gt;= 0.
+
+  N       (input) INTEGER
+          The number of columns of the matrices op(A) and op(B).
+          N &gt;= 0.
+
+  K       (input) INTEGER
+          The order of the triangular matrices defining R, S and T.
+          M &gt;= K &gt;= 0.
+
+  V       (input) DOUBLE PRECISION array, dimension
+                  (LDV,K) if STOREV = 'C',
+                  (LDV,M) if STOREV = 'R'
+          On entry with STOREV = 'C', the leading M-by-K part of
+          this array must contain in its columns the vectors which
+          define the elementary reflector used to form parts of Q.
+          On entry with STOREV = 'R', the leading K-by-M part of
+          this array must contain in its rows the vectors which
+          define the elementary reflector used to form parts of Q.
+
+  LDV     INTEGER
+          The leading dimension of the array V.
+          LDV &gt;= MAX(1,M),  if STOREV = 'C';
+          LDV &gt;= MAX(1,K),  if STOREV = 'R'.
+
+  W       (input) DOUBLE PRECISION array, dimension
+                  (LDW,K) if STOREW = 'C',
+                  (LDW,M) if STOREW = 'R'
+          On entry with STOREW = 'C', the leading M-by-K part of
+          this array must contain in its columns the vectors which
+          define the elementary reflector used to form parts of Q.
+          On entry with STOREW = 'R', the leading K-by-M part of
+          this array must contain in its rows the vectors which
+          define the elementary reflector used to form parts of Q.
+
+  LDW     INTEGER
+          The leading dimension of the array W.
+          LDW &gt;= MAX(1,M),  if STOREW = 'C';
+          LDW &gt;= MAX(1,K),  if STOREW = 'R'.
+
+  RS      (input) DOUBLE PRECISION array, dimension (K,6*K)
+          On entry, the leading K-by-6*K part of this array must
+          contain the upper triangular matrices defining the factors
+          R and S of the symplectic block reflector Q. The
+          (strictly) lower portions of this array are not
+          referenced.
+
+  LDRS    INTEGER
+          The leading dimension of the array RS.  LDRS &gt;= MAX(1,K).
+
+  T       (input) DOUBLE PRECISION array, dimension (K,9*K)
+          On entry, the leading K-by-9*K part of this array must
+          contain the upper triangular matrices defining the factor
+          T of the symplectic block reflector Q. The (strictly)
+          lower portions of this array are not referenced.
+
+  LDT     INTEGER
+          The leading dimension of the array T.  LDT &gt;= MAX(1,K).
+
+  A       (input/output) DOUBLE PRECISION array, dimension
+                  (LDA,N) if TRANA = 'N',
+                  (LDA,M) if TRANA = 'C' or TRANA = 'T'
+          On entry with TRANA = 'N', the leading M-by-N part of this
+          array must contain the matrix A.
+          On entry with TRANA = 'T' or TRANA = 'C', the leading
+          N-by-M part of this array must contain the matrix A.
+
+  LDA     INTEGER
+          The leading dimension of the array A.
+          LDA &gt;= MAX(1,M),  if TRANA = 'N';
+          LDA &gt;= MAX(1,N),  if TRANA = 'C' or TRANA = 'T'.
+
+  B       (input/output) DOUBLE PRECISION array, dimension
+                  (LDB,N) if TRANB = 'N',
+                  (LDB,M) if TRANB = 'C' or TRANB = 'T'
+          On entry with TRANB = 'N', the leading M-by-N part of this
+          array must contain the matrix B.
+          On entry with TRANB = 'T' or TRANB = 'C', the leading
+          N-by-M part of this array must contain the matrix B.
+
+  LDB     INTEGER
+          The leading dimension of the array B.
+          LDB &gt;= MAX(1,M),  if TRANB = 'N';
+          LDB &gt;= MAX(1,N),  if TRANB = 'C' or TRANB = 'T'.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK), where
+          LDWORK &gt;= 8*N*K,   if STRAB = 'Z',
+          LDWORK &gt;= 9*N*K,   if STRAB = 'N'.
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Kressner, D.
+      Block algorithms for orthogonal symplectic factorizations.
+      BIT, 43 (4), pp. 775-790, 2003.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  The algorithm requires 16*( M - K )*N + ( 26*K - 4 )*K*N floating
+  point operations if STRAB = 'Z' and additional ( 12*K + 2 )*K*N
+  floating point operations if STRAB = 'N'.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

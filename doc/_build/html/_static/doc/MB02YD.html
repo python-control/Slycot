@@ -1,0 +1,200 @@
+<HTML>
+<HEAD><TITLE>MB02YD - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MB02YD">MB02YD</A></H2>
+<H3>
+Solving the linear system A x = b, D x = 0, D diagonal
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To determine a vector x which solves the system of linear
+  equations
+
+        A*x = b ,     D*x = 0 ,
+
+  in the least squares sense, where A is an m-by-n matrix,
+  D is an n-by-n diagonal matrix, and b is an m-vector.
+  It is assumed that a QR factorization, with column pivoting, of A
+  is available, that is, A*P = Q*R, where P is a permutation matrix,
+  Q has orthogonal columns, and R is an upper triangular matrix
+  with diagonal elements of nonincreasing magnitude.
+  The routine needs the full upper triangle of R, the permutation
+  matrix P, and the first n components of Q'*b (' denotes the
+  transpose). The system A*x = b, D*x = 0, is then equivalent to
+
+        R*z = Q'*b ,  P'*D*P*z = 0 ,                             (1)
+
+  where x = P*z. If this system does not have full rank, then a
+  least squares solution is obtained. On output, MB02YD also
+  provides an upper triangular matrix S such that
+
+        P'*(A'*A + D*D)*P = S'*S .
+
+  The system (1) is equivalent to S*z = c , where c contains the
+  first n components of the vector obtained by applying to
+  [ (Q'*b)'  0 ]' the transformations which triangularized
+  [ R'  P'*D*P ]', getting S.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MB02YD( COND, N, R, LDR, IPVT, DIAG, QTB, RANK, X, TOL,
+     $                   DWORK, LDWORK, INFO )
+C     .. Scalar Arguments ..
+      CHARACTER         COND
+      INTEGER           INFO, LDR, LDWORK, N, RANK
+      DOUBLE PRECISION  TOL
+C     .. Array Arguments ..
+      INTEGER           IPVT(*)
+      DOUBLE PRECISION  DIAG(*), DWORK(*), QTB(*), R(LDR,*), X(*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  COND    CHARACTER*1
+          Specifies whether the condition of the matrix S should be
+          estimated, as follows:
+          = 'E' :  use incremental condition estimation and store
+                   the numerical rank of S in RANK;
+          = 'N' :  do not use condition estimation, but check the
+                   diagonal entries of S for zero values;
+          = 'U' :  use the rank already stored in RANK.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The order of the matrix R.  N &gt;= 0.
+
+  R       (input/output) DOUBLE PRECISION array, dimension (LDR, N)
+          On entry, the leading N-by-N upper triangular part of this
+          array must contain the upper triangular matrix R.
+          On exit, the full upper triangle is unaltered, and the
+          strict lower triangle contains the strict upper triangle
+          (transposed) of the upper triangular matrix S.
+
+  LDR     INTEGER
+          The leading dimension of array R.  LDR &gt;= MAX(1,N).
+
+  IPVT    (input) INTEGER array, dimension (N)
+          This array must define the permutation matrix P such that
+          A*P = Q*R. Column j of P is column IPVT(j) of the identity
+          matrix.
+
+  DIAG    (input) DOUBLE PRECISION array, dimension (N)
+          This array must contain the diagonal elements of the
+          matrix D.
+
+  QTB     (input) DOUBLE PRECISION array, dimension (N)
+          This array must contain the first n elements of the
+          vector Q'*b.
+
+  RANK    (input or output) INTEGER
+          On entry, if COND = 'U', this parameter must contain the
+          (numerical) rank of the matrix S.
+          On exit, if COND = 'E' or 'N', this parameter contains
+          the numerical rank of the matrix S, estimated according
+          to the value of COND.
+
+  X       (output) DOUBLE PRECISION array, dimension (N)
+          This array contains the least squares solution of the
+          system A*x = b, D*x = 0.
+
+</PRE>
+<B>Tolerances</B>
+<PRE>
+  TOL     DOUBLE PRECISION
+          If COND = 'E', the tolerance to be used for finding the
+          rank of the matrix S. If the user sets TOL &gt; 0, then the
+          given value of TOL is used as a lower bound for the
+          reciprocal condition number;  a (sub)matrix whose
+          estimated condition number is less than 1/TOL is
+          considered to be of full rank.  If the user sets TOL &lt;= 0,
+          then an implicitly computed, default tolerance, defined by
+          TOLDEF = N*EPS,  is used instead, where EPS is the machine
+          precision (see LAPACK Library routine DLAMCH).
+          This parameter is not relevant if COND = 'U' or 'N'.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+          On exit, the first N elements of this array contain the
+          diagonal elements of the upper triangular matrix S, and
+          the next N elements contain the solution z.
+
+  LDWORK  INTEGER
+          The length of the array DWORK.
+          LDWORK &gt;= 4*N, if COND =  'E';
+          LDWORK &gt;= 2*N, if COND &lt;&gt; 'E'.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  Standard plane rotations are used to annihilate the elements of
+  the diagonal matrix D, updating the upper triangular matrix R
+  and the first n elements of the vector Q'*b. A basic least squares
+  solution is computed.
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] More, J.J., Garbow, B.S, and Hillstrom, K.E.
+      User's Guide for MINPACK-1.
+      Applied Math. Division, Argonne National Laboratory, Argonne,
+      Illinois, Report ANL-80-74, 1980.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>                            2
+  The algorithm requires 0(N ) operations and is backward stable.
+
+</PRE>
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  This routine is a LAPACK-based modification of QRSOLV from the
+  MINPACK package [1], and with optional condition estimation.
+  The option COND = 'U' is useful when dealing with several
+  right-hand side vectors.
+
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

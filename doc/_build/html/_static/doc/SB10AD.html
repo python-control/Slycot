@@ -1,0 +1,404 @@
+<HTML>
+<HEAD><TITLE>SB10AD - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="SB10AD">SB10AD</A></H2>
+<H3>
+H-infinity optimal controller using modified Glover's and Doyle's formulas (continuous-time)
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To compute the matrices of an H-infinity optimal n-state
+  controller
+
+           | AK | BK |
+       K = |----|----|,
+           | CK | DK |
+
+  using modified Glover's and Doyle's 1988 formulas, for the system
+
+           | A  | B1  B2  |   | A | B |
+       P = |----|---------| = |---|---|
+           | C1 | D11 D12 |   | C | D |
+           | C2 | D21 D22 |
+
+  and for the estimated minimal possible value of gamma with respect
+  to GTOL, where B2 has as column size the number of control inputs
+  (NCON) and C2 has as row size the number of measurements (NMEAS)
+  being provided to the controller, and then to compute the matrices
+  of the closed-loop system
+
+           | AC | BC |
+       G = |----|----|,
+           | CC | DC |
+
+  if the stabilizing controller exists.
+
+  It is assumed that
+
+  (A1) (A,B2) is stabilizable and (C2,A) is detectable,
+
+  (A2) D12 is full column rank and D21 is full row rank,
+
+  (A3) | A-j*omega*I  B2  | has full column rank for all omega,
+       |    C1        D12 |
+
+  (A4) | A-j*omega*I  B1  |  has full row rank for all omega.
+       |    C2        D21 |
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE SB10AD( JOB, N, M, NP, NCON, NMEAS, GAMMA, A, LDA,
+     $                   B, LDB, C, LDC, D, LDD, AK, LDAK, BK, LDBK, CK,
+     $                   LDCK, DK, LDDK, AC, LDAC, BC, LDBC, CC, LDCC,
+     $                   DC, LDDC, RCOND, GTOL, ACTOL, IWORK, LIWORK,
+     $                   DWORK, LDWORK, BWORK, LBWORK, INFO )
+C     .. Scalar Arguments ..
+      INTEGER            INFO, JOB, LBWORK, LDA, LDAC, LDAK, LDB, LDBC,
+     $                   LDBK, LDC, LDCC, LDCK, LDD, LDDC, LDDK, LDWORK,
+     $                   LIWORK, M, N, NCON, NMEAS, NP
+      DOUBLE PRECISION   ACTOL, GAMMA, GTOL
+C     .. Array Arguments ..
+      LOGICAL            BWORK( * )
+      INTEGER            IWORK( * )
+      DOUBLE PRECISION   A( LDA, * ), AC( LDAC, * ), AK( LDAK, * ),
+     $                   B( LDB, * ), BC( LDBC, * ), BK( LDBK, * ),
+     $                   C( LDC, * ), CC( LDCC, * ), CK( LDCK, * ),
+     $                   D( LDD, * ), DC( LDDC, * ), DK( LDDK, * ),
+     $                   DWORK( * ), RCOND( 4 )
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  JOB     (input) INTEGER
+          Indicates the strategy for reducing the GAMMA value, as
+          follows:
+          = 1: Use bisection method for decreasing GAMMA from GAMMA
+               to GAMMAMIN until the closed-loop system leaves
+               stability.
+          = 2: Scan from GAMMA to 0 trying to find the minimal GAMMA
+               for which the closed-loop system retains stability.
+          = 3: First bisection, then scanning.
+          = 4: Find suboptimal controller only.
+
+  N       (input) INTEGER
+          The order of the system.  N &gt;= 0.
+
+  M       (input) INTEGER
+          The column size of the matrix B.  M &gt;= 0.
+
+  NP      (input) INTEGER
+          The row size of the matrix C.  NP &gt;= 0.
+
+  NCON    (input) INTEGER
+          The number of control inputs (M2).  M &gt;= NCON &gt;= 0,
+          NP-NMEAS &gt;= NCON.
+
+  NMEAS   (input) INTEGER
+          The number of measurements (NP2).  NP &gt;= NMEAS &gt;= 0,
+          M-NCON &gt;= NMEAS.
+
+  GAMMA   (input/output) DOUBLE PRECISION
+          The initial value of gamma on input. It is assumed that
+          gamma is sufficiently large so that the controller is
+          admissible. GAMMA &gt;= 0.
+          On output it contains the minimal estimated gamma.
+
+  A       (input) DOUBLE PRECISION array, dimension (LDA,N)
+          The leading N-by-N part of this array must contain the
+          system state matrix A.
+
+  LDA     INTEGER
+          The leading dimension of the array A.  LDA &gt;= max(1,N).
+
+  B       (input) DOUBLE PRECISION array, dimension (LDB,M)
+          The leading N-by-M part of this array must contain the
+          system input matrix B.
+
+  LDB     INTEGER
+          The leading dimension of the array B.  LDB &gt;= max(1,N).
+
+  C       (input) DOUBLE PRECISION array, dimension (LDC,N)
+          The leading NP-by-N part of this array must contain the
+          system output matrix C.
+
+  LDC     INTEGER
+          The leading dimension of the array C.  LDC &gt;= max(1,NP).
+
+  D       (input) DOUBLE PRECISION array, dimension (LDD,M)
+          The leading NP-by-M part of this array must contain the
+          system input/output matrix D.
+
+  LDD     INTEGER
+          The leading dimension of the array D.  LDD &gt;= max(1,NP).
+
+  AK      (output) DOUBLE PRECISION array, dimension (LDAK,N)
+          The leading N-by-N part of this array contains the
+          controller state matrix AK.
+
+  LDAK    INTEGER
+          The leading dimension of the array AK.  LDAK &gt;= max(1,N).
+
+  BK      (output) DOUBLE PRECISION array, dimension (LDBK,NMEAS)
+          The leading N-by-NMEAS part of this array contains the
+          controller input matrix BK.
+
+  LDBK    INTEGER
+          The leading dimension of the array BK.  LDBK &gt;= max(1,N).
+
+  CK      (output) DOUBLE PRECISION array, dimension (LDCK,N)
+          The leading NCON-by-N part of this array contains the
+          controller output matrix CK.
+
+  LDCK    INTEGER
+          The leading dimension of the array CK.
+          LDCK &gt;= max(1,NCON).
+
+  DK      (output) DOUBLE PRECISION array, dimension (LDDK,NMEAS)
+          The leading NCON-by-NMEAS part of this array contains the
+          controller input/output matrix DK.
+
+  LDDK    INTEGER
+          The leading dimension of the array DK.
+          LDDK &gt;= max(1,NCON).
+
+  AC      (output) DOUBLE PRECISION array, dimension (LDAC,2*N)
+          The leading 2*N-by-2*N part of this array contains the
+          closed-loop system state matrix AC.
+
+  LDAC    INTEGER
+          The leading dimension of the array AC.
+          LDAC &gt;= max(1,2*N).
+
+  BC      (output) DOUBLE PRECISION array, dimension (LDBC,M-NCON)
+          The leading 2*N-by-(M-NCON) part of this array contains
+          the closed-loop system input matrix BC.
+
+  LDBC    INTEGER
+          The leading dimension of the array BC.
+          LDBC &gt;= max(1,2*N).
+
+  CC      (output) DOUBLE PRECISION array, dimension (LDCC,2*N)
+          The leading (NP-NMEAS)-by-2*N part of this array contains
+          the closed-loop system output matrix CC.
+
+  LDCC    INTEGER
+          The leading dimension of the array CC.
+          LDCC &gt;= max(1,NP-NMEAS).
+
+  DC      (output) DOUBLE PRECISION array, dimension (LDDC,M-NCON)
+          The leading (NP-NMEAS)-by-(M-NCON) part of this array
+          contains the closed-loop system input/output matrix DC.
+
+  LDDC    INTEGER
+          The leading dimension of the array DC.
+          LDDC &gt;= max(1,NP-NMEAS).
+
+  RCOND   (output) DOUBLE PRECISION array, dimension (4)
+                   For the last successful step:
+          RCOND(1) contains the reciprocal condition number of the
+                   control transformation matrix;
+          RCOND(2) contains the reciprocal condition number of the
+                   measurement transformation matrix;
+          RCOND(3) contains an estimate of the reciprocal condition
+                   number of the X-Riccati equation;
+          RCOND(4) contains an estimate of the reciprocal condition
+                   number of the Y-Riccati equation.
+
+</PRE>
+<B>Tolerances</B>
+<PRE>
+  GTOL    DOUBLE PRECISION
+          Tolerance used for controlling the accuracy of GAMMA
+          and its distance to the estimated minimal possible
+          value of GAMMA.
+          If GTOL &lt;= 0, then a default value equal to sqrt(EPS)
+          is used, where EPS is the relative machine precision.
+
+  ACTOL   DOUBLE PRECISION
+          Upper bound for the poles of the closed-loop system
+          used for determining if it is stable.
+          ACTOL &lt;= 0 for stable systems.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  IWORK   INTEGER array, dimension (LIWORK)
+
+  LIWORK  INTEGER
+          The dimension of the array IWORK.
+          LIWORK &gt;= max(2*max(N,M-NCON,NP-NMEAS,NCON,NMEAS),N*N)
+
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+          On exit, if INFO = 0, DWORK(1) contains the optimal
+          value of LDWORK.
+
+  LDWORK  INTEGER
+          The dimension of the array DWORK.
+          LDWORK &gt;= LW1 + max(1,LW2,LW3,LW4,LW5 + MAX(LW6,LW7)),
+          where
+          LW1 = N*M + NP*N + NP*M + M2*M2 + NP2*NP2;
+          LW2 = max( ( N + NP1 + 1 )*( N + M2 ) +
+                       max( 3*( N + M2 ) + N + NP1, 5*( N + M2 ) ),
+                     ( N + NP2 )*( N + M1 + 1 ) +
+                       max( 3*( N + NP2 ) + N + M1, 5*( N + NP2 ) ),
+                     M2 + NP1*NP1 + max( NP1*max( N, M1 ),
+                                         3*M2 + NP1, 5*M2 ),
+                     NP2 + M1*M1 +  max( max( N, NP1 )*M1,
+                                         3*NP2 + M1, 5*NP2 ) );
+          LW3 = max( ND1*M1 + max( 4*min( ND1, M1 ) + max( ND1,M1 ),
+                                   6*min( ND1, M1 ) ),
+                     NP1*ND2 + max( 4*min( NP1, ND2 ) +
+                                                     max( NP1,ND2 ),
+                                    6*min( NP1, ND2 ) ) );
+          LW4 = 2*M*M + NP*NP + 2*M*N + M*NP + 2*N*NP;
+          LW5 = 2*N*N + M*N + N*NP;
+          LW6 = max( M*M   + max( 2*M1, 3*N*N +
+                                  max( N*M, 10*N*N + 12*N + 5 ) ),
+                     NP*NP + max( 2*NP1, 3*N*N +
+                                  max( N*NP, 10*N*N + 12*N + 5 ) ));
+          LW7 = M2*NP2 + NP2*NP2 + M2*M2 +
+                max( ND1*ND1 + max( 2*ND1, ( ND1 + ND2 )*NP2 ),
+                     ND2*ND2 + max( 2*ND2, ND2*M2 ), 3*N,
+                     N*( 2*NP2 + M2 ) +
+                     max( 2*N*M2, M2*NP2 +
+                                  max( M2*M2 + 3*M2, NP2*( 2*NP2 +
+                                       M2 + max( NP2, N ) ) ) ) );
+          M1  = M   - M2, NP1 = NP - NP2,
+          ND1 = NP1 - M2, ND2 = M1 - NP2.
+          For good performance, LDWORK must generally be larger.
+
+  BWORK   LOGICAL array, dimension (LBWORK)
+
+  LBWORK  INTEGER
+          The dimension of the array BWORK.  LBWORK &gt;= 2*N.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value;
+          = 1:  if the matrix | A-j*omega*I  B2  | had not full
+                              |    C1        D12 |
+                column rank in respect to the tolerance EPS;
+          = 2:  if the matrix | A-j*omega*I  B1  |  had not full row
+                              |    C2        D21 |
+                rank in respect to the tolerance EPS;
+          = 3:  if the matrix D12 had not full column rank in
+                respect to the tolerance SQRT(EPS);
+          = 4:  if the matrix D21 had not full row rank in respect
+                to the tolerance SQRT(EPS);
+          = 5:  if the singular value decomposition (SVD) algorithm
+                did not converge (when computing the SVD of one of
+                the matrices |A   B2 |, |A   B1 |, D12 or D21);
+                             |C1  D12|  |C2  D21|
+          = 6:  if the controller is not admissible (too small value
+                of gamma);
+          = 7:  if the X-Riccati equation was not solved
+                successfully (the controller is not admissible or
+                there are numerical difficulties);
+          = 8:  if the Y-Riccati equation was not solved
+                successfully (the controller is not admissible or
+                there are numerical difficulties);
+          = 9:  if the determinant of Im2 + Tu*D11HAT*Ty*D22 is
+                zero [3];
+          = 10: if there are numerical problems when estimating
+                singular values of D1111, D1112, D1111', D1121';
+          = 11: if the matrices Inp2 - D22*DK or Im2 - DK*D22
+                are singular to working precision;
+          = 12: if a stabilizing controller cannot be found.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  The routine implements the Glover's and Doyle's 1988 formulas [1],
+  [2], modified to improve the efficiency as described in [3].
+
+  JOB = 1: It tries with a decreasing value of GAMMA, starting with
+  the given, and with the newly obtained controller estimates of the
+  closed-loop system. If it is stable, (i.e., max(eig(AC)) &lt; ACTOL)
+  the iterations can be continued until the given tolerance between
+  GAMMA and the estimated GAMMAMIN is reached. Otherwise, in the
+  next step GAMMA is increased. The step in the all next iterations
+  is step = step/2. The closed-loop system is obtained by the
+  formulas given in [2].
+
+  JOB = 2: The same as for JOB = 1, but with non-varying step till
+  GAMMA = 0, step = max(0.1, GTOL).
+
+  JOB = 3: Combines the JOB = 1 and JOB = 2 cases for a quicker
+  procedure.
+
+  JOB = 4: Suboptimal controller for current GAMMA only.
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Glover, K. and Doyle, J.C.
+      State-space formulae for all stabilizing controllers that
+      satisfy an Hinf norm bound and relations to risk sensitivity.
+      Systems and Control Letters, vol. 11, pp. 167-172, 1988.
+
+  [2] Balas, G.J., Doyle, J.C., Glover, K., Packard, A., and
+      Smith, R.
+      mu-Analysis and Synthesis Toolbox.
+      The MathWorks Inc., Natick, MA, 1995.
+
+  [3] Petkov, P.Hr., Gu, D.W., and Konstantinov, M.M.
+      Fortran 77 routines for Hinf and H2 design of continuous-time
+      linear control systems.
+      Rep. 98-14, Department of Engineering, Leicester University,
+      Leicester, U.K., 1998.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  The accuracy of the result depends on the condition numbers of the
+  input and output transformations and on the condition numbers of
+  the two Riccati equations, as given by the values of RCOND(1),
+  RCOND(2), RCOND(3) and RCOND(4), respectively.
+  This approach by estimating the closed-loop system and checking
+  its poles seems to be reliable.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<p>
+<A HREF=..\libindex.html><B>Return to index</B></A></BODY>
+</HTML>

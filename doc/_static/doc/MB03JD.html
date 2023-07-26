@@ -1,0 +1,250 @@
+<HTML>
+<HEAD><TITLE>MB03JD - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MB03JD">MB03JD</A></H2>
+<H3>
+Moving eigenvalues with negative real parts of a real skew-Hamiltonian/Hamiltonian pencil in structured Schur form to the leading subpencil
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To move the eigenvalues with strictly negative real parts of an
+  N-by-N real skew-Hamiltonian/Hamiltonian pencil aS - bH in
+  structured Schur form,
+
+        (  A  D  )      (  B  F  )
+    S = (        ), H = (        ),
+        (  0  A' )      (  0 -B' )
+
+  with A upper triangular and B upper quasi-triangular, to the
+  leading principal subpencil, while keeping the triangular form.
+  The notation M' denotes the transpose of the matrix M.
+  The matrices S and H are transformed by an orthogonal matrix Q
+  such that
+
+                         (  Aout  Dout  )  
+    Sout = J Q' J' S Q = (              ),
+                         (    0   Aout' )  
+                                                                 (1)
+                         (  Bout  Fout  )           (  0  I  )
+    Hout = J Q' J' H Q = (              ), with J = (        ),
+                         (  0    -Bout' )           ( -I  0  )
+
+  where Aout is upper triangular and Bout is upper quasi-triangular.
+  Optionally, if COMPQ = 'I' or COMPQ = 'U', the orthogonal matrix Q
+  that fulfills (1), is computed.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MB03JD( COMPQ, N, A, LDA, D, LDD, B, LDB, F, LDF, Q,
+     $                   LDQ, NEIG, IWORK, LIWORK, DWORK, LDWORK, INFO )
+C     .. Scalar Arguments ..
+      CHARACTER          COMPQ
+      INTEGER            INFO, LDA, LDB, LDD, LDF, LDQ, LDWORK, LIWORK,
+     $                   N, NEIG
+C     .. Array Arguments ..
+      INTEGER            IWORK( * )
+      DOUBLE PRECISION   A( LDA, * ), B( LDB, * ), D( LDD, * ),
+     $                   DWORK( * ),  F( LDF, * ), Q( LDQ, * )
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  COMPQ   CHARACTER*1
+          Specifies whether or not the orthogonal transformations
+          should be accumulated in the array Q, as follows:
+          = 'N':  Q is not computed;
+          = 'I':  the array Q is initialized internally to the unit
+                  matrix, and the orthogonal matrix Q is returned;
+          = 'U':  the array Q contains an orthogonal matrix Q0 on
+                  entry, and the matrix Q0*Q is returned, where Q
+                  is the product of the orthogonal transformations
+                  that are applied to the pencil aS - bH to reorder
+                  the eigenvalues.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The order of the pencil aS - bH.  N &gt;= 0, even.
+
+  A       (input/output) DOUBLE PRECISION array, dimension
+                         (LDA, N/2)
+          On entry, the leading N/2-by-N/2 part of this array must
+          contain the upper triangular matrix A. The elements of the
+          strictly lower triangular part of this array are not used.
+          On exit, the leading  N/2-by-N/2 part of this array
+          contains the transformed matrix Aout.
+
+  LDA     INTEGER
+          The leading dimension of the array A.  LDA &gt;= MAX(1, N/2).
+
+  D       (input/output) DOUBLE PRECISION array, dimension
+                        (LDD, N/2)
+          On entry, the leading N/2-by-N/2 part of this array must
+          contain the upper triangular part of the skew-symmetric
+          matrix D. The diagonal need not be set to zero.
+          On exit, the leading  N/2-by-N/2 part of this array
+          contains the transformed upper triangular part of the
+          matrix Dout.
+          The strictly lower triangular part of this array is
+          not referenced, except for the element D(N/2,N/2-1), but
+          its initial value is preserved.
+
+  LDD     INTEGER
+          The leading dimension of the array D.  LDD &gt;= MAX(1, N/2).
+
+  B       (input/output) DOUBLE PRECISION array, dimension
+                         (LDB, N/2)
+          On entry, the leading N/2-by-N/2 part of this array must
+          contain the upper quasi-triangular matrix B.
+          On exit, the leading  N/2-by-N/2 part of this array
+          contains the transformed upper quasi-triangular part of
+          the matrix Bout.
+          The part below the first subdiagonal of this array is
+          not referenced.
+
+  LDB     INTEGER
+          The leading dimension of the array B.  LDB &gt;= MAX(1, N/2).
+
+  F       (input/output) DOUBLE PRECISION array, dimension
+                        (LDF, N/2)
+          On entry, the leading N/2-by-N/2 part of this array must
+          contain the upper triangular part of the symmetric matrix
+          F.
+          On exit, the leading  N/2-by-N/2 part of this array
+          contains the transformed upper triangular part of the
+          matrix Fout.
+          The strictly lower triangular part of this array is not
+          referenced, except for the element F(N/2,N/2-1), but its
+          initial value is preserved.
+
+  LDF     INTEGER
+          The leading dimension of the array F.  LDF &gt;= MAX(1, N/2).
+
+  Q       (input/output) DOUBLE PRECISION array, dimension (LDQ, N)
+          On entry, if COMPQ = 'U', then the leading N-by-N part of
+          this array must contain a given matrix Q0, and on exit,
+          the leading N-by-N part of this array contains the product
+          of the input matrix Q0 and the transformation matrix Q
+          used to transform the matrices S and H.
+          On exit, if COMPQ = 'I', then the leading N-by-N part of
+          this array contains the orthogonal transformation matrix
+          Q.
+          If COMPQ = 'N' this array is not referenced.
+
+  LDQ     INTEGER
+          The leading dimension of the array Q.
+          LDQ &gt;= 1,         if COMPQ = 'N';
+          LDQ &gt;= MAX(1, N), if COMPQ = 'I' or COMPQ = 'U'.
+
+  NEIG    (output) INTEGER
+          The number of eigenvalues in aS - bH with strictly
+          negative real part.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  IWORK   INTEGER array, dimension (LIWORK)
+
+  LIWORK  INTEGER
+          The dimension of the array IWORK.
+          LIWORK &gt;= N+1.
+
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+
+  LDWORK  INTEGER
+          The dimension of the array DWORK.
+          If COMPQ = 'N',
+             LDWORK &gt;= MAX(2*N+32,108);
+          if COMPQ = 'I' or COMPQ = 'U',
+             LDWORK &gt;= MAX(4*N+32,108).
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0: succesful exit;
+          &lt; 0: if INFO = -i, the i-th argument had an illegal value;
+          = 1: error occured during execution of MB03DD;
+          = 2: error occured during execution of MB03HD.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  The algorithm reorders the eigenvalues like the following scheme:
+
+  Step 1: Reorder the eigenvalues in the subpencil aA - bB.
+       I. Reorder the eigenvalues with negative real parts to the
+          top.
+      II. Reorder the eigenvalues with positive real parts to the
+          bottom.
+
+  Step 2: Reorder the remaining eigenvalues with negative real
+          parts in the pencil aS - bH.
+       I. Exchange the eigenvalues between the last diagonal block
+          in aA - bB and the last diagonal block in aS - bH.
+      II. Move the eigenvalues of the R-th block to the (MM+1)-th
+          block, where R denotes the number of upper quasi-
+          triangular blocks in aA - bB and MM denotes the current
+          number of blocks in aA - bB with eigenvalues with negative
+          real parts.
+
+  The algorithm uses a sequence of orthogonal transformations as
+  described on page 33 in [1]. To achieve those transformations the
+  elementary subroutines MB03DD and MB03HD are called for the
+  corresponding matrix structures.
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Benner, P., Byers, R., Losse, P., Mehrmann, V. and Xu, H.
+      Numerical Solution of Real Skew-Hamiltonian/Hamiltonian
+      Eigenproblems.
+      Tech. Rep., Technical University Chemnitz, Germany,
+      Nov. 2007.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>                                                            3
+  The algorithm is numerically backward stable and needs O(N ) real
+  floating point operations.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

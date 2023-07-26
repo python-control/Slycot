@@ -1,0 +1,207 @@
+<HTML>
+<HEAD><TITLE>AB8NXZ - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="AB8NXZ">AB8NXZ</A></H2>
+<H3>
+Construction of a reduced system (Ar,Br,Cr,Dr), having the same transmission zeros as (A,B,C,D), but with Dr of full row rank (complex case)
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To extract from the (N+P)-by-(M+N) system
+               ( B  A )
+               ( D  C )
+  an (NU+MU)-by-(M+NU) "reduced" system
+               ( B' A')
+               ( D' C')
+  having the same transmission zeros but with D' of full row rank.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE AB8NXZ( N, M, P, RO, SIGMA, SVLMAX, ABCD, LDABCD,
+     $                   NINFZ, INFZ, KRONL, MU, NU, NKROL, TOL, IWORK,
+     $                   DWORK, ZWORK, LZWORK, INFO )
+C     .. Scalar Arguments ..
+      INTEGER           INFO, LDABCD, LZWORK, M, MU, N, NINFZ, NKROL,
+     $                  NU, P, RO, SIGMA
+      DOUBLE PRECISION  SVLMAX, TOL
+C     .. Array Arguments ..
+      INTEGER           INFZ(*), IWORK(*), KRONL(*)
+      COMPLEX*16        ABCD(LDABCD,*), ZWORK(*)
+      DOUBLE PRECISION  DWORK(*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The number of state variables.  N &gt;= 0.
+
+  M       (input) INTEGER
+          The number of system inputs.  M &gt;= 0.
+
+  P       (input) INTEGER
+          The number of system outputs.  P &gt;= 0.
+
+  RO      (input/output) INTEGER
+          On entry,
+          = P     for the original system;
+          = MAX(P-M, 0) for the pertransposed system.
+          On exit, RO contains the last computed rank.
+
+  SIGMA   (input/output) INTEGER
+          On entry,
+          = 0  for the original system;
+          = M  for the pertransposed system.
+          On exit, SIGMA contains the last computed value sigma in
+          the algorithm.
+
+  SVLMAX  (input) DOUBLE PRECISION
+          During each reduction step, the rank-revealing QR
+          factorization of a matrix stops when the estimated minimum
+          singular value is smaller than TOL * MAX(SVLMAX,EMSV),
+          where EMSV is the estimated maximum singular value.
+          SVLMAX &gt;= 0.
+
+  ABCD    (input/output) COMPLEX*16 array, dimension (LDABCD,M+N)
+          On entry, the leading (N+P)-by-(M+N) part of this array
+          must contain the compound input matrix of the system.
+          On exit, the leading (NU+MU)-by-(M+NU) part of this array
+          contains the reduced compound input matrix of the system.
+
+  LDABCD  INTEGER
+          The leading dimension of array ABCD.
+          LDABCD &gt;= MAX(1,N+P).
+
+  NINFZ   (input/output) INTEGER
+          On entry, the currently computed number of infinite zeros.
+          It should be initialized to zero on the first call.
+          NINFZ &gt;= 0.
+          On exit, the number of infinite zeros.
+
+  INFZ    (input/output) INTEGER array, dimension (N)
+          On entry, INFZ(i) must contain the current number of
+          infinite zeros of degree i, where i = 1,2,...,N, found in
+          the previous call(s) of the routine. It should be
+          initialized to zero on the first call.
+          On exit, INFZ(i) contains the number of infinite zeros of
+          degree i, where i = 1,2,...,N.
+
+  KRONL   (input/output) INTEGER array, dimension (N+1)
+          On entry, this array must contain the currently computed
+          left Kronecker (row) indices found in the previous call(s)
+          of the routine. It should be initialized to zero on the
+          first call.
+          On exit, the leading NKROL elements of this array contain
+          the left Kronecker (row) indices.
+
+  MU      (output) INTEGER
+          The normal rank of the transfer function matrix of the
+          original system.
+
+  NU      (output) INTEGER
+          The dimension of the reduced system matrix and the number
+          of (finite) invariant zeros if D' is invertible.
+
+  NKROL   (output) INTEGER
+          The number of left Kronecker indices.
+
+</PRE>
+<B>Tolerances</B>
+<PRE>
+  TOL     DOUBLE PRECISION
+          A tolerance used in rank decisions to determine the
+          effective rank, which is defined as the order of the
+          largest leading (or trailing) triangular submatrix in the
+          QR (or RQ) factorization with column (or row) pivoting
+          whose estimated condition number is less than 1/TOL.
+          NOTE that when SVLMAX &gt; 0, the estimated ranks could be
+          less than those defined above (see SVLMAX).
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  IWORK   INTEGER array, dimension (MAX(M,P))
+
+  DWORK   DOUBLE PRECISION array, dimension (2*MAX(M,P))
+
+  ZWORK   COMPLEX*16 array, dimension (LZWORK)
+          On exit, if INFO = 0, ZWORK(1) returns the optimal value
+          of LZWORK.
+
+  LZWORK  INTEGER
+          The length of the array ZWORK.
+          LZWORK &gt;= MAX( 1, MIN(P,M) + MAX(3*M-1,N),
+                            MIN(P,N) + MAX(3*P-1,N+P,N+M) ).
+          For optimum performance LZWORK should be larger.
+
+          If LZWORK = -1, then a workspace query is assumed;
+          the routine only calculates the optimal size of the
+          ZWORK array, returns this value as the first entry of
+          the ZWORK array, and no error message related to LZWORK
+          is issued by XERBLA.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value.
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Svaricek, F.
+      Computation of the Structural Invariants of Linear
+      Multivariable Systems with an Extended Version of
+      the Program ZEROS.
+      System & Control Letters, 6, pp. 261-266, 1985.
+
+  [2] Emami-Naeini, A. and Van Dooren, P.
+      Computation of Zeros of Linear Multivariable Systems.
+      Automatica, 18, pp. 415-430, 1982.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  The algorithm is backward stable.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

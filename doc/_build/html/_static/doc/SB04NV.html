@@ -1,0 +1,116 @@
+<HTML>
+<HEAD><TITLE>SB04NV - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="SB04NV">SB04NV</A></H2>
+<H3>
+Constructing the right-hand sides for a system of equations in Hessenberg form solved via SB04NX (case with 2 right-hand sides)
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To construct the right-hand sides D for a system of equations in
+  Hessenberg form solved via SB04NX (case with 2 right-hand sides).
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE SB04NV( ABSCHR, UL, N, M, C, LDC, INDX, AB, LDAB, D )
+C     .. Scalar Arguments ..
+      CHARACTER         ABSCHR, UL
+      INTEGER           INDX, LDAB, LDC, M, N
+C     .. Array Arguments ..
+      DOUBLE PRECISION  AB(LDAB,*), C(LDC,*), D(*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  ABSCHR  CHARACTER*1
+          Indicates whether AB contains A or B, as follows:
+          = 'A':  AB contains A;
+          = 'B':  AB contains B.
+
+  UL      CHARACTER*1
+          Indicates whether AB is upper or lower Hessenberg matrix,
+          as follows:
+          = 'U':  AB is upper Hessenberg;
+          = 'L':  AB is lower Hessenberg.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The order of the matrix A.  N &gt;= 0.
+
+  M       (input) INTEGER
+          The order of the matrix B.  M &gt;= 0.
+
+  C       (input) DOUBLE PRECISION array, dimension (LDC,M)
+          The leading N-by-M part of this array must contain both
+          the not yet modified part of the coefficient matrix C of
+          the Sylvester equation AX + XB = C, and both the currently
+          computed part of the solution of the Sylvester equation.
+
+  LDC     INTEGER
+          The leading dimension of array C.  LDC &gt;= MAX(1,N).
+
+  INDX    (input) INTEGER
+          The position of the first column/row of C to be used in
+          the construction of the right-hand side D.
+
+  AB      (input) DOUBLE PRECISION array, dimension (LDAB,*)
+          The leading N-by-N or M-by-M part of this array must
+          contain either A or B of the Sylvester equation
+          AX + XB = C.
+
+  LDAB    INTEGER
+          The leading dimension of array AB.
+          LDAB &gt;= MAX(1,N) or LDAB &gt;= MAX(1,M) (depending on
+          ABSCHR = 'A' or ABSCHR = 'B', respectively).
+
+  D       (output) DOUBLE PRECISION array, dimension (*)
+          The leading 2*N or 2*M part of this array (depending on
+          ABSCHR = 'B' or ABSCHR = 'A', respectively) contains the
+          right-hand side stored as a matrix with two rows.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  None.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

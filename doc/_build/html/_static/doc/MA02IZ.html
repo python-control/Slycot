@@ -1,0 +1,134 @@
+<HTML>
+<HEAD><TITLE>MA02IZ - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MA02IZ">MA02IZ</A></H2>
+<H3>
+Matrix 1-, Frobenius, or infinity norms of a complex skew-Hamiltonian matrix
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To compute the value of the one norm, or the Frobenius norm, or
+  the infinity norm, or the element of largest absolute value
+  of a complex skew-Hamiltonian matrix
+
+                [  A   G  ]          H         H
+          X  =  [       H ],   G = -G,   Q = -Q,
+                [  Q   A  ]
+
+  or of a complex Hamiltonian matrix
+
+                [  A   G  ]          H         H
+          X  =  [       H ],   G =  G,   Q =  Q,
+                [  Q  -A  ]
+
+  where A, G and Q are complex n-by-n matrices.
+
+  Note that for this kind of matrices the infinity norm is equal
+  to the one norm.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      DOUBLE PRECISION FUNCTION MA02IZ( TYP, NORM, N, A, LDA, QG,
+     $                                  LDQG, DWORK )
+C     .. Scalar Arguments ..
+      CHARACTER          NORM, TYP
+      INTEGER            LDA, LDQG, N
+C     .. Array Arguments ..
+      COMPLEX*16         A(LDA,*), QG(LDQG,*)
+      DOUBLE PRECISION   DWORK(*)
+
+</PRE>
+<B><FONT SIZE="+1">Function Value</FONT></B>
+<PRE>
+  MA02IZ  DOUBLE PRECISION
+          The computed norm.
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  TYP     CHARACTER*1
+          Specifies the type of the input matrix X:
+          = 'S':         X is skew-Hamiltonian;
+          = 'H':         X is Hamiltonian.
+
+  NORM    CHARACTER*1
+          Specifies the value to be returned in MA02IZ:
+          = '1' or 'O':  one norm of X;
+          = 'F' or 'E':  Frobenius norm of X;
+          = 'I':         infinity norm of X;
+          = 'M':         max(abs(X(i,j)).
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The order of the matrix A.  N &gt;= 0.
+
+  A       (input) COMPLEX*16 array, dimension (LDA,N)
+          On entry, the leading N-by-N part of this array must
+          contain the matrix A.
+
+  LDA     INTEGER
+          The leading dimension of the array A.  LDA &gt;= MAX(1,N).
+
+  QG      (input) COMPLEX*16 array, dimension (LDQG,N+1)
+          On entry, the leading N-by-N+1 part of this array must
+          contain in columns 1:N the lower triangular part of the
+          matrix Q and in columns 2:N+1 the upper triangular part
+          of the matrix G. If TYP = 'S', the real parts of the
+          entries on the diagonal and the first superdiagonal of
+          this array, which should be zero, need not be set, since
+          they are not used. Similarly, if TYP = 'H', the imaginary
+          parts of the entries on the diagonal and the first
+          superdiagonal of this array, which should be zero, need
+          not be set.
+
+  LDQG    INTEGER
+          The leading dimension of the array QG.  LDQG &gt;= MAX(1,N).
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+          where LDWORK &gt;= 2*N when NORM = '1', NORM = 'I' or
+          NORM = 'O'; otherwise, DWORK is not referenced.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

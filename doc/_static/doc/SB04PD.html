@@ -1,0 +1,440 @@
+<HTML>
+<HEAD><TITLE>SB04PD - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="SB04PD">SB04PD</A></H2>
+<H3>
+Solution of continuous-time or discrete-time Sylvester equations (Bartels-Stewart method)
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To solve for X either the real continuous-time Sylvester equation
+
+     op(A)*X + ISGN*X*op(B) = scale*C,                           (1)
+
+  or the real discrete-time Sylvester equation
+
+     op(A)*X*op(B) + ISGN*X = scale*C,                           (2)
+
+  where op(M) = M or M**T, and ISGN = 1 or -1. A is M-by-M and
+  B is N-by-N; the right hand side C and the solution X are M-by-N;
+  and scale is an output scale factor, set less than or equal to 1
+  to avoid overflow in X. The solution matrix X is overwritten
+  onto C.
+
+  If A and/or B are not (upper) quasi-triangular, that is, block
+  upper triangular with 1-by-1 and 2-by-2 diagonal blocks, they are
+  reduced to Schur canonical form, that is, quasi-triangular with
+  each 2-by-2 diagonal block having its diagonal elements equal and
+  its off-diagonal elements of opposite sign.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE SB04PD( DICO, FACTA, FACTB, TRANA, TRANB, ISGN, M, N,
+     $                   A, LDA, U, LDU, B, LDB, V, LDV, C, LDC, SCALE,
+     $                   DWORK, LDWORK, INFO )
+C     .. Scalar Arguments ..
+      CHARACTER          DICO, FACTA, FACTB, TRANA, TRANB
+      INTEGER            INFO, ISGN, LDA, LDB, LDC, LDU, LDV, LDWORK, M,
+     $                   N
+      DOUBLE PRECISION   SCALE
+C     .. Array Arguments ..
+      DOUBLE PRECISION   A( LDA, * ), B( LDB, * ), C( LDC, * ),
+     $                   DWORK( * ),  U( LDU, * ), V( LDV, * )
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  DICO    CHARACTER*1
+          Specifies the equation from which X is to be determined
+          as follows:
+          = 'C':  Equation (1), continuous-time case;
+          = 'D':  Equation (2), discrete-time case.
+
+  FACTA   CHARACTER*1
+          Specifies whether or not the real Schur factorization
+          of the matrix A is supplied on entry, as follows:
+          = 'F':  On entry, A and U contain the factors from the
+                  real Schur factorization of the matrix A;
+          = 'N':  The Schur factorization of A will be computed
+                  and the factors will be stored in A and U;
+          = 'S':  The matrix A is quasi-triangular (or Schur).
+
+  FACTB   CHARACTER*1
+          Specifies whether or not the real Schur factorization
+          of the matrix B is supplied on entry, as follows:
+          = 'F':  On entry, B and V contain the factors from the
+                  real Schur factorization of the matrix B;
+          = 'N':  The Schur factorization of B will be computed
+                  and the factors will be stored in B and V;
+          = 'S':  The matrix B is quasi-triangular (or Schur).
+
+  TRANA   CHARACTER*1
+          Specifies the form of op(A) to be used, as follows:
+          = 'N':  op(A) = A    (No transpose);
+          = 'T':  op(A) = A**T (Transpose);
+          = 'C':  op(A) = A**T (Conjugate transpose = Transpose).
+
+  TRANB   CHARACTER*1
+          Specifies the form of op(B) to be used, as follows:
+          = 'N':  op(B) = B    (No transpose);
+          = 'T':  op(B) = B**T (Transpose);
+          = 'C':  op(B) = B**T (Conjugate transpose = Transpose).
+
+  ISGN    INTEGER
+          Specifies the sign of the equation as described before.
+          ISGN may only be 1 or -1.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  M       (input) INTEGER
+          The order of the matrix A, and the number of rows in the
+          matrices X and C.  M &gt;= 0.
+
+  N       (input) INTEGER
+          The order of the matrix B, and the number of columns in
+          the matrices X and C.  N &gt;= 0.
+
+  A       (input or input/output) DOUBLE PRECISION array,
+          dimension (LDA,M)
+          On entry, the leading M-by-M part of this array must
+          contain the matrix A. If FACTA = 'S', then A contains
+          a quasi-triangular matrix, and if FACTA = 'F', then A
+          is in Schur canonical form; the elements below the upper
+          Hessenberg part of the array A are not referenced.
+          On exit, if FACTA = 'N', and INFO = 0 or INFO &gt;= M+1, the
+          leading M-by-M upper Hessenberg part of this array
+          contains the upper quasi-triangular matrix in Schur
+          canonical form from the Schur factorization of A. The
+          contents of array A is not modified if FACTA = 'F' or 'S'.
+
+  LDA     INTEGER
+          The leading dimension of array A.  LDA &gt;= MAX(1,M).
+
+  U       (input or output) DOUBLE PRECISION array, dimension
+          (LDU,M)
+          If FACTA = 'F', then U is an input argument and on entry
+          the leading M-by-M part of this array must contain the
+          orthogonal matrix U of the real Schur factorization of A.
+          If FACTA = 'N', then U is an output argument and on exit,
+          if INFO = 0 or INFO &gt;= M+1, it contains the orthogonal
+          M-by-M matrix from the real Schur factorization of A.
+          If FACTA = 'S', the array U is not referenced.
+
+  LDU     INTEGER
+          The leading dimension of array U.
+          LDU &gt;= MAX(1,M), if FACTA = 'F' or 'N';
+          LDU &gt;= 1,        if FACTA = 'S'.
+
+  B       (input or input/output) DOUBLE PRECISION array,
+          dimension (LDB,N)
+          On entry, the leading N-by-N part of this array must
+          contain the matrix B. If FACTB = 'S', then B contains
+          a quasi-triangular matrix, and if FACTB = 'F', then B
+          is in Schur canonical form; the elements below the upper
+          Hessenberg part of the array B are not referenced.
+          On exit, if FACTB = 'N', and INFO = 0 or INFO = M+N+1,
+          the leading N-by-N upper Hessenberg part of this array
+          contains the upper quasi-triangular matrix in Schur
+          canonical form from the Schur factorization of B. The
+          contents of array B is not modified if FACTB = 'F' or 'S'.
+
+  LDB     (input) INTEGER
+          The leading dimension of the array B.  LDB &gt;= max(1,N).
+
+  V       (input or output) DOUBLE PRECISION array, dimension
+          (LDV,N)
+          If FACTB = 'F', then V is an input argument and on entry
+          the leading N-by-N part of this array must contain the
+          orthogonal matrix V of the real Schur factorization of B.
+          If FACTB = 'N', then V is an output argument and on exit,
+          if INFO = 0 or INFO = M+N+1, it contains the orthogonal
+          N-by-N matrix from the real Schur factorization of B.
+          If FACTB = 'S', the array V is not referenced.
+
+  LDV     INTEGER
+          The leading dimension of array V.
+          LDV &gt;= MAX(1,N), if FACTB = 'F' or 'N';
+          LDV &gt;= 1,        if FACTB = 'S'.
+
+  C       (input/output) DOUBLE PRECISION array, dimension (LDC,N)
+          On entry, the leading M-by-N part of this array must
+          contain the right hand side matrix C.
+          On exit, if INFO = 0 or INFO = M+N+1, the leading M-by-N
+          part of this array contains the solution matrix X.
+
+  LDC     INTEGER
+          The leading dimension of array C.  LDC &gt;= MAX(1,M).
+
+  SCALE   (output) DOUBLE PRECISION
+          The scale factor, scale, set less than or equal to 1 to
+          prevent the solution overflowing.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+          On exit, if INFO = 0 or M+N+1, then: DWORK(1) returns the
+          optimal value of LDWORK; if FACTA = 'N', DWORK(1+i) and
+          DWORK(1+M+i), i = 1,...,M, contain the real and imaginary
+          parts, respectively, of the eigenvalues of A; and, if
+          FACTB = 'N', DWORK(1+f+j) and DWORK(1+f+N+j), j = 1,...,N,
+          with f = 2*M if FACTA = 'N', and f = 0, otherwise, contain
+          the real and imaginary parts, respectively, of the
+          eigenvalues of B.
+
+  LDWORK  INTEGER
+          The length of the array DWORK.
+          LDWORK &gt;= MAX( 1, a+MAX( c, b+d, b+e ) ),
+          where a = 1+2*M, if FACTA =  'N',
+                a = 0,     if FACTA &lt;&gt; 'N',
+                b = 2*N,   if FACTB =  'N', FACTA =  'N',
+                b = 1+2*N, if FACTB =  'N', FACTA &lt;&gt; 'N',
+                b = 0,     if FACTB &lt;&gt; 'N',
+                c = 3*M,   if FACTA =  'N',
+                c = M,     if FACTA =  'F',
+                c = 0,     if FACTA =  'S',
+                d = 3*N,   if FACTB =  'N',
+                d = N,     if FACTB =  'F',
+                d = 0,     if FACTB =  'S',
+                e = M,     if DICO  =  'C', FACTA &lt;&gt; 'S',
+                e = 0,     if DICO  =  'C', FACTA =  'S',
+                e = 2*M,   if DICO  =  'D'.
+          An upper bound is
+          LDWORK = 1+2*M+MAX( 3*M, 5*N, 2*N+2*M ).
+          For good performance, LDWORK should be larger, e.g.,
+          LDWORK = 1+2*M+MAX( 3*M, 5*N, 2*N+2*M, 2*N+M*N ).
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value;
+          = i:  if INFO = i, i = 1,...,M, the QR algorithm failed
+                to compute all the eigenvalues of the matrix A
+                (see LAPACK Library routine DGEES); the elements
+                2+i:1+M and 2+i+M:1+2*M of DWORK contain the real
+                and imaginary parts, respectively, of the
+                eigenvalues of A which have converged, and the
+                array A contains the partially converged Schur form;
+          = M+j:  if INFO = M+j, j = 1,...,N, the QR algorithm
+                failed to compute all the eigenvalues of the matrix
+                B (see LAPACK Library routine DGEES); the elements
+                2+f+j:1+f+N and 2+f+j+N:1+f+2*N of DWORK contain the
+                real and imaginary parts, respectively, of the
+                eigenvalues of B which have converged, and the
+                array B contains the partially converged Schur form;
+                as defined for the parameter DWORK,
+                f = 2*M, if FACTA =  'N',
+                f = 0,   if FACTA &lt;&gt; 'N';
+          = M+N+1:  if DICO = 'C', and the matrices A and -ISGN*B
+                have common or very close eigenvalues, or
+                if DICO = 'D', and the matrices A and -ISGN*B have
+                almost reciprocal eigenvalues (that is, if lambda(i)
+                and mu(j) are eigenvalues of A and -ISGN*B, then
+                lambda(i) = 1/mu(j) for some i and j);
+                perturbed values were used to solve the equation
+                (but the matrices A and B are unchanged).
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  An extension and refinement of the algorithms in [1,2] is used.
+  If the matrices A and/or B are not quasi-triangular (see PURPOSE),
+  they are reduced to Schur canonical form
+
+     A = U*S*U',  B = V*T*V',
+
+  where U, V are orthogonal, and S, T are block upper triangular
+  with 1-by-1 and 2-by-2 blocks on their diagonal. The right hand
+  side matrix C is updated accordingly,
+
+     C = U'*C*V;
+
+  then, the solution matrix X of the "reduced" Sylvester equation
+  (with A and B in (1) or (2) replaced by S and T, respectively),
+  is computed column-wise via a back substitution scheme. A set of
+  equivalent linear algebraic systems of equations of order at most
+  four are formed and solved using Gaussian elimination with
+  complete pivoting. Finally, the solution X of the original
+  equation is obtained from the updating formula
+
+     X = U*X*V'.
+
+  If A and/or B are already quasi-triangular (or in Schur form), the
+  initial factorizations and the corresponding updating steps are
+  omitted.
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Bartels, R.H. and Stewart, G.W.  T
+      Solution of the matrix equation A X + XB = C.
+      Comm. A.C.M., 15, pp. 820-826, 1972.
+
+  [2] Anderson, E., Bai, Z., Bischof, C., Demmel, J., Dongarra, J.,
+      Du Croz, J., Greenbaum, A., Hammarling, S., McKenney, A.,
+      Ostrouchov, S., and Sorensen, D.
+      LAPACK Users' Guide: Second Edition.
+      SIAM, Philadelphia, 1995.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  The algorithm is stable and reliable, since orthogonal
+  transformations and Gaussian elimination with complete pivoting
+  are used. If INFO = M+N+1, the Sylvester equation is numerically
+  singular.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+*     SB04PD EXAMPLE PROGRAM TEXT
+*
+*     .. Parameters ..
+      INTEGER          NIN, NOUT
+      PARAMETER        ( NIN = 5, NOUT = 6 )
+      INTEGER          MMAX, NMAX
+      PARAMETER        ( MMAX = 20, NMAX = 20 )
+      INTEGER          LDA, LDB, LDC, LDU, LDV
+      PARAMETER        ( LDA = MMAX, LDB = NMAX, LDC = MMAX,
+     $                   LDU = MMAX, LDV = NMAX )
+      INTEGER          LDWORK
+      PARAMETER        ( LDWORK = 1 + 2*MMAX + MAX( 3*MMAX, 5*NMAX,
+     $                                            2*( NMAX + MMAX ) ) )
+*     .. Local Scalars ..
+      CHARACTER        DICO, FACTA, FACTB, TRANA, TRANB
+      INTEGER          I, INFO, ISGN, J, M, N
+      DOUBLE PRECISION SCALE
+*     .. Local Arrays ..
+      DOUBLE PRECISION A(LDA,MMAX), B(LDB,NMAX), C(LDC,NMAX),
+     $                 DWORK(LDWORK), U(LDU,MMAX), V(LDV,NMAX)
+*     .. External Functions ..
+      LOGICAL          LSAME
+      EXTERNAL         LSAME
+*     .. External Subroutines ..
+      EXTERNAL         SB04PD
+*     .. Intrinsic Functions ..
+      INTRINSIC        MAX
+*     .. Executable Statements ..
+*
+      WRITE ( NOUT, FMT = 99999 )
+*     Skip the heading in the data file and read the data.
+      READ ( NIN, FMT = '()' )
+      READ ( NIN, FMT = * ) M, N, ISGN, DICO, FACTA, FACTB, TRANA, TRANB
+      IF ( M.LT.0 .OR. M.GT.MMAX ) THEN
+         WRITE ( NOUT, FMT = 99992 ) M
+      ELSE
+         READ ( NIN, FMT = * ) ( ( A(I,J), J = 1,M ), I = 1,M )
+         IF ( LSAME( FACTA, 'F' ) )
+     $      READ ( NIN, FMT = * ) ( ( U(I,J), J = 1,M ), I = 1,M )
+         IF ( N.LT.0 .OR. N.GT.NMAX ) THEN
+            WRITE ( NOUT, FMT = 99991 ) N
+         ELSE
+            READ ( NIN, FMT = * ) ( ( B(I,J), J = 1,N ), I = 1,N )
+            IF ( LSAME( FACTB, 'F' ) )
+     $         READ ( NIN, FMT = * ) ( ( V(I,J), J = 1,N ), I = 1,N )
+            READ ( NIN, FMT = * ) ( ( C(I,J), J = 1,N ), I = 1,M )
+*           Find the solution matrix X.
+            CALL SB04PD( DICO, FACTA, FACTB, TRANA, TRANB, ISGN, M, N,
+     $                   A, LDA, U, LDU, B, LDB, V, LDV, C, LDC, SCALE,
+     $                   DWORK, LDWORK, INFO )
+*
+            IF ( INFO.NE.0 )
+     $         WRITE ( NOUT, FMT = 99998 ) INFO
+            IF ( INFO.EQ.0 .OR. INFO.EQ.M+N+1 ) THEN
+               WRITE ( NOUT, FMT = 99997 )
+               DO 20 I = 1, M
+                  WRITE ( NOUT, FMT = 99996 ) ( C(I,J), J = 1,N )
+   20          CONTINUE
+               WRITE ( NOUT, FMT = 99995 ) SCALE
+               IF ( LSAME( FACTA, 'N' ) ) THEN
+                  WRITE ( NOUT, FMT = 99994 )
+                  DO 40 I = 1, M
+                     WRITE ( NOUT, FMT = 99996 ) ( U(I,J), J = 1,M )
+   40             CONTINUE
+               END IF
+               IF ( LSAME( FACTB, 'N' ) ) THEN
+                  WRITE ( NOUT, FMT = 99993 )
+                  DO 60 I = 1, N
+                     WRITE ( NOUT, FMT = 99996 ) ( V(I,J), J = 1,N )
+   60             CONTINUE
+               END IF
+            END IF
+         END IF
+      END IF
+      STOP
+*
+99999 FORMAT (' SB04PD EXAMPLE PROGRAM RESULTS',/1X)
+99998 FORMAT (' INFO on exit from SB04PD = ',I2)
+99997 FORMAT (' The solution matrix X is ')
+99996 FORMAT (20(1X,F8.4))
+99995 FORMAT (/' Scaling factor = ',F8.4)
+99994 FORMAT (/' The orthogonal matrix U is ')
+99993 FORMAT (/' The orthogonal matrix V is ')
+99992 FORMAT (/' M is out of range.',/' M = ',I5)
+99991 FORMAT (/' N is out of range.',/' N = ',I5)
+      END
+</PRE>
+<B>Program Data</B>
+<PRE>
+ SB04PD EXAMPLE PROGRAM DATA
+   3     2     1     D     N     N     N     N
+   2.0   1.0   3.0
+   0.0   2.0   1.0
+   6.0   1.0   2.0
+   2.0   1.0
+   1.0   6.0
+   2.0   1.0
+   1.0   4.0
+   0.0   5.0
+</PRE>
+<B>Program Results</B>
+<PRE>
+ SB04PD EXAMPLE PROGRAM RESULTS
+
+ The solution matrix X is 
+  -0.3430   0.1995
+  -0.1856   0.4192
+   0.6922  -0.2952
+
+ Scaling factor =   1.0000
+
+ The orthogonal matrix U is 
+   0.5396  -0.7797   0.3178
+   0.1954  -0.2512  -0.9480
+  -0.8190  -0.5736  -0.0168
+
+ The orthogonal matrix V is 
+  -0.9732  -0.2298
+   0.2298  -0.9732
+</PRE>
+
+<HR>
+<p>
+<A HREF=..\libindex.html><B>Return to index</B></A></BODY>
+</HTML>

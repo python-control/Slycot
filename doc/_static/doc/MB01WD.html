@@ -1,0 +1,190 @@
+<HTML>
+<HEAD><TITLE>MB01WD - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MB01WD">MB01WD</A></H2>
+<H3>
+Residuals of Lyapunov or Stein equations for Cholesky factored solutions
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To compute the matrix formula
+  _
+  R = alpha*( op( A )'*op( T )'*op( T ) + op( T )'*op( T )*op( A ) )
+      + beta*R,                                                  (1)
+
+  if DICO = 'C', or
+  _
+  R = alpha*( op( A )'*op( T )'*op( T )*op( A ) -  op( T )'*op( T ))
+      + beta*R,                                                  (2)
+                                                          _
+  if DICO = 'D', where alpha and beta are scalars, R, and R are
+  symmetric matrices, T is a triangular matrix, A is a general or
+  Hessenberg matrix, and op( M ) is one of
+
+     op( M ) = M   or   op( M ) = M'.
+
+  The result is overwritten on R.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MB01WD( DICO, UPLO, TRANS, HESS, N, ALPHA, BETA, R,
+     $                   LDR, A, LDA, T, LDT, INFO )
+C     .. Scalar Arguments ..
+      CHARACTER         DICO, HESS, TRANS, UPLO
+      INTEGER           INFO, LDA, LDR, LDT, N
+      DOUBLE PRECISION  ALPHA, BETA
+C     .. Array Arguments ..
+      DOUBLE PRECISION  A(LDA,*), R(LDR,*), T(LDT,*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  DICO    CHARACTER*1
+          Specifies the formula to be evaluated, as follows:
+          = 'C':  formula (1), "continuous-time" case;
+          = 'D':  formula (2), "discrete-time" case.
+
+  UPLO    CHARACTER*1
+          Specifies which triangles of the symmetric matrix R and
+          triangular matrix T are given, as follows:
+          = 'U':  the upper triangular parts of R and T are given;
+          = 'L':  the lower triangular parts of R and T are given;
+
+  TRANS   CHARACTER*1
+          Specifies the form of op( M ) to be used, as follows:
+          = 'N':  op( M ) = M;
+          = 'T':  op( M ) = M';
+          = 'C':  op( M ) = M'.
+
+  HESS    CHARACTER*1
+          Specifies the form of the matrix A, as follows:
+          = 'F':  matrix A is full;
+          = 'H':  matrix A is Hessenberg (or Schur), either upper
+                  (if UPLO = 'U'), or lower (if UPLO = 'L').
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The order of the matrices R, A, and T.  N &gt;= 0.
+
+  ALPHA   (input) DOUBLE PRECISION
+          The scalar alpha. When alpha is zero then the arrays A
+          and T are not referenced.
+
+  BETA    (input) DOUBLE PRECISION
+          The scalar beta. When beta is zero then the array R need
+          not be set before entry.
+
+  R       (input/output) DOUBLE PRECISION array, dimension (LDR,N)
+          On entry with UPLO = 'U', the leading N-by-N upper
+          triangular part of this array must contain the upper
+          triangular part of the symmetric matrix R.
+          On entry with UPLO = 'L', the leading N-by-N lower
+          triangular part of this array must contain the lower
+          triangular part of the symmetric matrix R.
+          On exit, the leading N-by-N upper triangular part (if
+          UPLO = 'U'), or lower triangular part (if UPLO = 'L'), of
+          this array contains the corresponding triangular part of
+                              _
+          the computed matrix R.
+
+  LDR     INTEGER
+          The leading dimension of array R.  LDR &gt;= MAX(1,N).
+
+  A       (input/output) DOUBLE PRECISION array, dimension (LDA,N)
+          On entry, the leading N-by-N part of this array must
+          contain the matrix A. If HESS = 'H' the elements below the
+          first subdiagonal, if UPLO = 'U', or above the first
+          superdiagonal, if UPLO = 'L', need not be set to zero,
+          and are not referenced if DICO = 'D'.
+          On exit, the leading N-by-N part of this array contains
+          the following matrix product
+             alpha*T'*T*A, if TRANS = 'N', or
+             alpha*A*T*T', otherwise,
+          if DICO = 'C', or
+             T*A, if TRANS = 'N', or
+             A*T, otherwise,
+          if DICO = 'D' (and in this case, these products have a
+          Hessenberg form, if HESS = 'H').
+
+  LDA     INTEGER
+          The leading dimension of array A.  LDA &gt;= MAX(1,N).
+
+  T       (input) DOUBLE PRECISION array, dimension (LDT,N)
+          If UPLO = 'U', the leading N-by-N upper triangular part of
+          this array must contain the upper triangular matrix T and
+          the strictly lower triangular part need not be set to zero
+          (and it is not referenced).
+          If UPLO = 'L', the leading N-by-N lower triangular part of
+          this array must contain the lower triangular matrix T and
+          the strictly upper triangular part need not be set to zero
+          (and it is not referenced).
+
+  LDT     INTEGER
+          The leading dimension of array T.  LDT &gt;= MAX(1,N).
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -k, the k-th argument had an illegal
+                value.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  The matrix expression (1) or (2) is efficiently evaluated taking
+  the structure into account. BLAS 3 operations (DTRMM, DSYRK and
+  their specializations) are used throughout.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  If A is a full matrix, the algorithm requires approximately
+   3
+  N  operations, if DICO = 'C';
+         3
+  7/6 x N  operations, if DICO = 'D'.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<p>
+<A HREF=..\libindex.html><B>Return to index</B></A></BODY>
+</HTML>

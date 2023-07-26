@@ -1,0 +1,264 @@
+<HTML>
+<HEAD><TITLE>AB07ND - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="AB07ND">AB07ND</A></H2>
+<H3>
+Inverse of a given linear system
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To compute the inverse (Ai,Bi,Ci,Di) of a given system (A,B,C,D).
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE AB07ND( N, M, A, LDA, B, LDB, C, LDC, D, LDD, RCOND,
+     $                   IWORK, DWORK, LDWORK, INFO )
+C     .. Scalar Arguments ..
+      DOUBLE PRECISION   RCOND
+      INTEGER            INFO, LDA, LDB, LDC, LDD, LDWORK, M, N
+C     .. Array Arguments ..
+      DOUBLE PRECISION   A(LDA,*), B(LDB,*), C(LDC,*), D(LDD,*),
+     $                   DWORK(*)
+      INTEGER            IWORK(*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The order of the state matrix A.  N &gt;= 0.
+
+  M       (input) INTEGER
+          The number of system inputs and outputs.  M &gt;= 0.
+
+  A       (input/output) DOUBLE PRECISION array, dimension (LDA,N)
+          On entry, the leading N-by-N part of this array must
+          contain the state matrix A of the original system.
+          On exit, the leading N-by-N part of this array contains
+          the state matrix Ai of the inverse system.
+
+  LDA     INTEGER
+          The leading dimension of the array A.  LDA &gt;= MAX(1,N).
+
+  B       (input/output) DOUBLE PRECISION array, dimension (LDB,M)
+          On entry, the leading N-by-M part of this array must
+          contain the input matrix B of the original system.
+          On exit, the leading N-by-M part of this array contains
+          the input matrix Bi of the inverse system.
+
+  LDB     INTEGER
+          The leading dimension of the array B.  LDB &gt;= MAX(1,N).
+
+  C       (input/output) DOUBLE PRECISION array, dimension (LDC,N)
+          On entry, the leading M-by-N part of this array must
+          contain the output matrix C of the original system.
+          On exit, the leading M-by-N part of this array contains
+          the output matrix Ci of the inverse system.
+
+  LDC     INTEGER
+          The leading dimension of the array C.  LDC &gt;= MAX(1,M).
+
+  D       (input/output) DOUBLE PRECISION array, dimension (LDD,M)
+          On entry, the leading M-by-M part of this array must
+          contain the feedthrough matrix D of the original system.
+          On exit, the leading M-by-M part of this array contains
+          the feedthrough matrix Di of the inverse system.
+
+  LDD     INTEGER
+          The leading dimension of the array D.  LDD &gt;= MAX(1,M).
+
+  RCOND   (output) DOUBLE PRECISION
+          The estimated reciprocal condition number of the
+          feedthrough matrix D of the original system.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  IWORK   INTEGER array, dimension (2*M)
+
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+          On exit, if INFO = 0 or M+1, DWORK(1) returns the optimal
+          value of LDWORK.
+
+  LDWORK  INTEGER
+          The length of the array DWORK.  LDWORK &gt;= MAX(1,4*M).
+          For good performance, LDWORK should be larger.
+
+          If LDWORK = -1, then a workspace query is assumed;
+          the routine only calculates the optimal size of the
+          DWORK array, returns this value as the first entry of
+          the DWORK array, and no error message related to LDWORK
+          is issued by XERBLA.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value;
+          = i:  the matrix D is exactly singular; the (i,i) diagonal
+                element is zero, i &lt;= M; RCOND was set to zero;
+          = M+1:  the matrix D is numerically singular, i.e., RCOND
+                is less than the relative machine precision, EPS
+                (see LAPACK Library routine DLAMCH). The
+                calculations have been completed, but the results
+                could be very inaccurate.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  The matrices of the inverse system are computed with the formulas:
+                -1              -1         -1           -1
+    Ai = A - B*D  *C,  Bi = -B*D  ,  Ci = D  *C,  Di = D  .
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  The accuracy depends mainly on the condition number of the matrix
+  D to be inverted. The estimated reciprocal condition number is
+  returned in RCOND.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+*     AB07ND EXAMPLE PROGRAM TEXT
+*
+*     .. Parameters ..
+      INTEGER          NIN, NOUT
+      PARAMETER        ( NIN = 5, NOUT = 6 )
+      INTEGER          NMAX, MMAX
+      PARAMETER        ( NMAX = 20, MMAX = 20 )
+      INTEGER          LDA, LDB, LDC, LDD
+      PARAMETER        ( LDA = NMAX, LDB = NMAX, LDC = MMAX,
+     $                   LDD = MMAX )
+      INTEGER          LDWORK
+      PARAMETER        ( LDWORK = 4*MMAX )
+*     .. Local Scalars ..
+      INTEGER          I, INFO, J, M, N
+      DOUBLE PRECISION RCOND
+*     .. Local Arrays ..
+      INTEGER          IWORK(2*MMAX)
+      DOUBLE PRECISION A(LDA,NMAX), B(LDB,MMAX), C(LDC,NMAX),
+     $                 D(LDD,MMAX), DWORK(LDWORK)
+*     .. External Subroutines ..
+      EXTERNAL         AB07ND
+*     .. Executable Statements ..
+*
+      WRITE ( NOUT, FMT = 99999 )
+*     Skip the heading in the data file and read in the data.
+      READ ( NIN, FMT = '()' )
+      READ ( NIN, FMT = * ) N, M
+      IF ( N.LT.0 .OR. N.GT.NMAX ) THEN
+         WRITE ( NOUT, FMT = 99992 ) N
+      ELSE
+         READ ( NIN, FMT = * ) ( ( A(I,J), J = 1,N ), I = 1,N )
+         IF ( M.LT.0 .OR. M.GT.MMAX ) THEN
+            WRITE ( NOUT, FMT = 99991 ) M
+         ELSE
+            READ ( NIN, FMT = * ) ( ( B(I,J), J = 1,M ), I = 1,N )
+            READ ( NIN, FMT = * ) ( ( C(I,J), J = 1,N ), I = 1,M )
+            READ ( NIN, FMT = * ) ( ( D(I,J), J = 1,M ), I = 1,M )
+*           Find the inverse of the ssr (A,B,C,D).
+            CALL AB07ND( N, M, A, LDA, B, LDB, C, LDC, D, LDD, RCOND,
+     $                   IWORK, DWORK, LDWORK, INFO )
+*
+            IF ( INFO.NE.0 ) THEN
+               WRITE ( NOUT, FMT = 99998 ) INFO
+            ELSE
+               WRITE ( NOUT, FMT = 99997 )
+               DO 20 I = 1, N
+                  WRITE ( NOUT, FMT = 99996 ) ( A(I,J), J = 1,N )
+   20          CONTINUE
+               WRITE ( NOUT, FMT = 99995 )
+               DO 40 I = 1, N
+                  WRITE ( NOUT, FMT = 99996 ) ( B(I,J), J = 1,M )
+   40          CONTINUE
+               WRITE ( NOUT, FMT = 99994 )
+               DO 60 I = 1, M
+                  WRITE ( NOUT, FMT = 99996 ) ( C(I,J), J = 1,N )
+   60          CONTINUE
+               WRITE ( NOUT, FMT = 99993 )
+               DO 80 I = 1, M
+                  WRITE ( NOUT, FMT = 99996 ) ( D(I,J), J = 1,M )
+   80          CONTINUE
+            END IF
+         END IF
+      END IF
+      STOP
+*
+99999 FORMAT (' AB07ND EXAMPLE PROGRAM RESULTS',/1X)
+99998 FORMAT (' INFO on exit from AB07ND = ',I2)
+99997 FORMAT (' The state dynamics matrix of the inverse system is ')
+99996 FORMAT (20(1X,F8.4))
+99995 FORMAT (/' The input/state matrix of the inverse system is ')
+99994 FORMAT (/' The state/output matrix of the inverse system is ')
+99993 FORMAT (/' The feedthrough matrix of the inverse system is ')
+99992 FORMAT (/' N is out of range.',/' N = ',I5)
+99991 FORMAT (/' M is out of range.',/' M = ',I5)
+      END
+</PRE>
+<B>Program Data</B>
+<PRE>
+ AB07ND EXAMPLE PROGRAM DATA
+   3     2
+   1.0   2.0   0.0
+   4.0  -1.0   0.0
+   0.0   0.0   1.0
+   1.0   0.0
+   0.0   1.0
+   1.0   0.0
+   0.0   1.0  -1.0
+   0.0   0.0   1.0
+   4.0   0.0
+   0.0   1.0
+</PRE>
+<B>Program Results</B>
+<PRE>
+ AB07ND EXAMPLE PROGRAM RESULTS
+
+ The state dynamics matrix of the inverse system is 
+   1.0000   1.7500   0.2500
+   4.0000  -1.0000  -1.0000
+   0.0000  -0.2500   1.2500
+
+ The input/state matrix of the inverse system is 
+  -0.2500   0.0000
+   0.0000  -1.0000
+  -0.2500   0.0000
+
+ The state/output matrix of the inverse system is 
+   0.0000   0.2500  -0.2500
+   0.0000   0.0000   1.0000
+
+ The feedthrough matrix of the inverse system is 
+   0.2500   0.0000
+   0.0000   1.0000
+</PRE>
+
+<HR>
+<p>
+<A HREF=..\libindex.html><B>Return to index</B></A></BODY>
+</HTML>

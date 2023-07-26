@@ -1,0 +1,223 @@
+<HTML>
+<HEAD><TITLE>SB10TD - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="SB10TD">SB10TD</A></H2>
+<H3>
+H2 optimal controller matrices for a discrete-time system
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To compute the matrices of the H2 optimal discrete-time controller
+
+           | AK | BK |
+       K = |----|----|,
+           | CK | DK |
+
+  from the matrices of the controller for the normalized system,
+  as determined by the SLICOT Library routine SB10SD.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE SB10TD( N, M, NP, NCON, NMEAS, D, LDD, TU, LDTU, TY,
+     $                   LDTY, AK, LDAK, BK, LDBK, CK, LDCK, DK, LDDK,
+     $                   RCOND, TOL, IWORK, DWORK, LDWORK, INFO )
+C     .. Scalar Arguments ..
+      INTEGER            INFO, LDAK, LDBK, LDCK, LDD, LDDK, LDTU, LDTY,
+     $                   LDWORK, M, N, NCON, NMEAS, NP
+      DOUBLE PRECISION   RCOND, TOL
+C     .. Array Arguments ..
+      INTEGER            IWORK( * )
+      DOUBLE PRECISION   AK( LDAK, * ), BK( LDBK, * ), CK( LDCK, * ),
+     $                   D( LDD, * ), DK( LDDK, * ), DWORK( * ),
+     $                   TU( LDTU, * ), TY( LDTY, * )
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The order of the system.  N &gt;= 0.
+
+  M       (input) INTEGER
+          The column size of the matrix B.  M &gt;= 0.
+
+  NP      (input) INTEGER
+          The row size of the matrix C.  NP &gt;= 0.
+
+  NCON    (input) INTEGER
+          The number of control inputs (M2).  M &gt;= NCON &gt;= 0.
+          NP-NMEAS &gt;= NCON.
+
+  NMEAS   (input) INTEGER
+          The number of measurements (NP2).  NP &gt;= NMEAS &gt;= 0.
+          M-NCON &gt;= NMEAS.
+
+  D       (input) DOUBLE PRECISION array, dimension (LDD,M)
+          The leading NP-by-M part of this array must contain the
+          system input/output matrix D. Only the trailing
+          NMEAS-by-NCON submatrix D22 is used.
+
+  LDD     INTEGER
+          The leading dimension of the array D.  LDD &gt;= max(1,NP).
+
+  TU      (input) DOUBLE PRECISION array, dimension (LDTU,M2)
+          The leading M2-by-M2 part of this array must contain the
+          control transformation matrix TU, as obtained by the
+          SLICOT Library routine SB10PD.
+
+  LDTU    INTEGER
+          The leading dimension of the array TU.  LDTU &gt;= max(1,M2).
+
+  TY      (input) DOUBLE PRECISION array, dimension (LDTY,NP2)
+          The leading NP2-by-NP2 part of this array must contain the
+          measurement transformation matrix TY, as obtained by the
+          SLICOT Library routine SB10PD.
+
+  LDTY    INTEGER
+          The leading dimension of the array TY.
+          LDTY &gt;= max(1,NP2).
+
+  AK      (input/output) DOUBLE PRECISION array, dimension (LDAK,N)
+          On entry, the leading N-by-N part of this array must
+          contain controller state matrix for the normalized system
+          as obtained by the SLICOT Library routine SB10SD.
+          On exit, the leading N-by-N part of this array contains
+          controller state matrix AK.
+
+  LDAK    INTEGER
+          The leading dimension of the array AK.  LDAK &gt;= max(1,N).
+
+  BK      (input/output) DOUBLE PRECISION array, dimension
+          (LDBK,NMEAS)
+          On entry, the leading N-by-NMEAS part of this array must
+          contain controller input matrix for the normalized system
+          as obtained by the SLICOT Library routine SB10SD.
+          On exit, the leading N-by-NMEAS part of this array
+          contains controller input matrix BK.
+
+  LDBK    INTEGER
+          The leading dimension of the array BK.  LDBK &gt;= max(1,N).
+
+  CK      (input/output) DOUBLE PRECISION array, dimension (LDCK,N)
+          On entry, the leading NCON-by-N part of this array must
+          contain controller output matrix for the normalized
+          system as obtained by the SLICOT Library routine SB10SD.
+          On exit, the leading NCON-by-N part of this array contains
+          controller output matrix CK.
+
+  LDCK    INTEGER
+          The leading dimension of the array CK.
+          LDCK &gt;= max(1,NCON).
+
+  DK      (input/output) DOUBLE PRECISION array, dimension
+          (LDDK,NMEAS)
+          On entry, the leading NCON-by-NMEAS part of this array
+          must contain controller matrix DK for the normalized
+          system as obtained by the SLICOT Library routine SB10SD.
+          On exit, the leading NCON-by-NMEAS part of this array
+          contains controller input/output matrix DK.
+
+  LDDK    INTEGER
+          The leading dimension of the array DK.
+          LDDK &gt;= max(1,NCON).
+
+  RCOND   (output) DOUBLE PRECISION
+          RCOND contains an estimate of the reciprocal condition
+          number of the matrix Im2 + DKHAT*D22 which must be
+          inverted in the computation of the controller.
+
+</PRE>
+<B>Tolerances</B>
+<PRE>
+  TOL     DOUBLE PRECISION
+          Tolerance used in determining the nonsingularity of the
+          matrix which must be inverted. If TOL &lt;= 0, then a default
+          value equal to sqrt(EPS) is used, where EPS is the
+          relative machine precision.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  IWORK   INTEGER array, dimension (2*M2)
+
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+
+  LDWORK  INTEGER
+          The dimension of the array DWORK.
+          LDWORK &gt;= max(N*M2,N*NP2,M2*NP2,M2*M2+4*M2).
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value;
+          = 1:  if the matrix Im2 + DKHAT*D22 is singular, or the
+                estimated condition number is larger than or equal
+                to 1/TOL.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  The routine implements the formulas given in [1].
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Zhou, K., Doyle, J.C., and Glover, K.
+      Robust and Optimal Control.
+      Prentice-Hall, Upper Saddle River, NJ, 1996.
+
+  [2] Petkov, P.Hr., Gu, D.W., and Konstantinov, M.M.
+      Fortran 77 routines for Hinf and H2 design of linear
+      discrete-time control systems.
+      Report 99-8, Department of Engineering, Leicester University,
+      April 1999.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  The accuracy of the result depends on the condition numbers of the
+  input and output transformations and of the matrix Im2 +
+  DKHAT*D22.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

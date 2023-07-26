@@ -1,0 +1,192 @@
+<HTML>
+<HEAD><TITLE>AB09HY - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="AB09HY">AB09HY</A></H2>
+<H3>
+Cholesky factors of the controllability and observability Grammians
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To compute the Cholesky factors Su and Ru of the controllability
+  Grammian P = Su*Su' and observability Grammian Q = Ru'*Ru,
+  respectively, satisfying
+
+         A*P  + P*A' +  scalec^2*B*B'   = 0,       (1)
+
+         A'*Q + Q*A  +  scaleo^2*Cw'*Cw = 0,       (2)
+
+  where
+         Cw = Hw - Bw'*X,
+         Hw = inv(Dw)*C,
+         Bw = (B*D' + P*C')*inv(Dw'),
+         D*D' = Dw*Dw' (Dw upper triangular),
+
+  and, with Aw = A - Bw*Hw, X is the stabilizing solution of the
+  Riccati equation
+
+         Aw'*X + X*Aw + Hw'*Hw + X*Bw*Bw'*X = 0.   (3)
+
+  The P-by-M matrix D must have full row rank. Matrix A must be
+  stable and in a real Schur form.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE AB09HY( N, M, P, A, LDA, B, LDB, C, LDC, D, LDD,
+     $                   SCALEC, SCALEO, S, LDS, R, LDR, IWORK,
+     $                   DWORK, LDWORK, BWORK, INFO )
+C     .. Scalar Arguments ..
+      INTEGER          INFO, LDA, LDB, LDC, LDD, LDR, LDS, LDWORK, M, N,
+     $                 P
+      DOUBLE PRECISION SCALEC, SCALEO
+C     .. Array Arguments ..
+      INTEGER          IWORK(*)
+      DOUBLE PRECISION A(LDA,*), B(LDB,*), C(LDC,*), D(LDD,*),
+     $                 DWORK(*), R(LDR,*), S(LDS,*)
+      LOGICAL          BWORK(*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The order of state-space representation, i.e.,
+          the order of the matrix A.  N &gt;= 0.
+
+  M       (input) INTEGER
+          The number of system inputs.  M &gt;= 0.
+
+  P       (input) INTEGER
+          The number of system outputs.  M &gt;= P &gt;= 0.
+
+  A       (input) DOUBLE PRECISION array, dimension (LDA,N)
+          The leading N-by-N part of this array must contain the
+          stable state dynamics matrix A in a real Schur canonical
+          form.
+
+  LDA     INTEGER
+          The leading dimension of array A.  LDA &gt;= MAX(1,N).
+
+  B       (input) DOUBLE PRECISION array, dimension (LDB,M)
+          The leading N-by-M part of this array must contain the
+          input/state matrix B, corresponding to the Schur matrix A.
+
+  LDB     INTEGER
+          The leading dimension of array B.  LDB &gt;= MAX(1,N).
+
+  C       (input) DOUBLE PRECISION array, dimension (LDC,N)
+          The leading P-by-N part of this array must contain the
+          state/output matrix C, corresponding to the Schur
+          matrix A.
+
+  LDC     INTEGER
+          The leading dimension of array C.  LDC &gt;= MAX(1,P).
+
+  D       (input) DOUBLE PRECISION array, dimension (LDD,M)
+          The leading P-by-M part of this array must
+          contain the full row rank input/output matrix D.
+
+  LDD     INTEGER
+          The leading dimension of array D.  LDD &gt;= MAX(1,P).
+
+  SCALEC  (output) DOUBLE PRECISION
+          Scaling factor for the controllability Grammian in (1).
+
+  SCALEO  (output) DOUBLE PRECISION
+          Scaling factor for the observability Grammian in (2).
+
+  S       (output) DOUBLE PRECISION array, dimension (LDS,N)
+          The leading N-by-N upper triangular part of this array
+          contains the Cholesky factor Su of the cotrollability
+          Grammian P = Su*Su' satisfying (1).
+
+  LDS     INTEGER
+          The leading dimension of array S.  LDS &gt;= MAX(1,N).
+
+  R       (output) DOUBLE PRECISION array, dimension (LDR,N)
+          The leading N-by-N upper triangular part of this array
+          contains the Cholesky factor Ru of the observability
+          Grammian Q = Ru'*Ru satisfying (2).
+
+  LDR     INTEGER
+          The leading dimension of array R.  LDR &gt;= MAX(1,N).
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  IWORK   INTEGER array, dimension (2*N)
+
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+          On exit, if INFO = 0, DWORK(1) returns the optimal value
+          of LDWORK and DWORK(2) contains RCOND, the reciprocal
+          condition number of the U11 matrix from the expression
+          used to compute X = U21*inv(U11). A small value RCOND
+          indicates possible ill-conditioning of the Riccati
+          equation (3).
+
+  LDWORK  INTEGER
+          The length of the array DWORK.
+          LDWORK &gt;= MAX( 2, N*(MAX(N,M,P)+5),
+                         2*N*P+MAX(P*(M+2),10*N*(N+1) ) ).
+          For optimum performance LDWORK should be larger.
+
+  BWORK   LOGICAL array, dimension 2*N
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value;
+          = 1:  the state matrix A is not stable or is not in a
+                real Schur form;
+          = 2:  the reduction of Hamiltonian matrix to real Schur
+                form failed;
+          = 3:  the reordering of the real Schur form of the
+                Hamiltonian matrix failed;
+          = 4:  the Hamiltonian matrix has less than N stable
+                eigenvalues;
+          = 5:  the coefficient matrix U11 in the linear system
+                X*U11 = U21, used to determine X, is singular to
+                working precision;
+          = 6:  the feedthrough matrix D has not a full row rank P.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

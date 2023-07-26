@@ -1,0 +1,293 @@
+<HTML>
+<HEAD><TITLE>SB08MD - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="SB08MD">SB08MD</A></H2>
+<H3>
+Spectral factorization of polynomials (continuous-time case)
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To compute a real polynomial E(s) such that
+
+     (a)  E(-s) * E(s) = A(-s) * A(s) and
+     (b)  E(s) is stable - that is, all the zeros of E(s) have
+          non-positive real parts,
+
+  which corresponds to computing the spectral factorization of the
+  real polynomial A(s) arising from continuous optimality problems.
+
+  The input polynomial may be supplied either in the form
+
+     A(s) = a(0) + a(1) * s + ... + a(DA) * s**DA
+
+  or as
+
+     B(s) = A(-s) * A(s)
+          = b(0) + b(1) * s**2  + ... + b(DA) * s**(2*DA)        (1)
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE SB08MD( ACONA, DA, A, RES, E, DWORK, LDWORK, INFO )
+C     .. Scalar Arguments ..
+      CHARACTER         ACONA
+      INTEGER           DA, INFO, LDWORK
+      DOUBLE PRECISION  RES
+C     .. Array Arguments ..
+      DOUBLE PRECISION  A(*), DWORK(*), E(*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  ACONA   CHARACTER*1
+          Indicates whether the coefficients of A(s) or B(s) =
+          A(-s) * A(s) are to be supplied as follows:
+          = 'A':  The coefficients of A(s) are to be supplied;
+          = 'B':  The coefficients of B(s) are to be supplied.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  DA      (input) INTEGER
+          The degree of the polynomials A(s) and E(s).  DA &gt;= 0.
+
+  A       (input/output) DOUBLE PRECISION array, dimension (DA+1)
+          On entry, this array must contain either the coefficients
+          of the polynomial A(s) in increasing powers of s if
+          ACONA = 'A', or the coefficients of the polynomial B(s) in
+          increasing powers of s**2 (see equation (1)) if ACONA =
+          'B'.
+          On exit, this array contains the coefficients of the
+          polynomial B(s) in increasing powers of s**2.
+
+  RES     (output) DOUBLE PRECISION
+          An estimate of the accuracy with which the coefficients of
+          the polynomial E(s) have been computed (see also METHOD
+          and NUMERICAL ASPECTS).
+
+  E       (output) DOUBLE PRECISION array, dimension (DA+1)
+          The coefficients of the spectral factor E(s) in increasing
+          powers of s.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+
+  LDWORK  INTEGER
+          The length of the array DWORK.  LDWORK &gt;= 5*DA+5.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value;
+          = 1:  if on entry, A(I) = 0.0, for I = 1,2,...,DA+1.
+          = 2:  if on entry, ACONA = 'B' but the supplied
+                coefficients of the polynomial B(s) are not the
+                coefficients of A(-s) * A(s) for some real A(s);
+                in this case, RES and E are unassigned;
+          = 3:  if the iterative process (see METHOD) has failed to
+                converge in 30 iterations;
+          = 4:  if the last computed iterate (see METHOD) is
+                unstable. If ACONA = 'B', then the supplied
+                coefficients of the polynomial B(s) may not be the
+                coefficients of A(-s) * A(s) for some real A(s).
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>      _                                               _
+  Let A(s) be the conjugate polynomial of A(s), i.e., A(s) = A(-s).
+
+  The method used by the routine is based on applying the
+  Newton-Raphson iteration to the function
+            _       _
+     F(e) = A * A - e * e,
+
+  which leads to the iteration formulae (see [1]):
+
+     _(i)   (i)  _(i)   (i)     _      )
+     q   * x   + x   * q    = 2 A * A  )
+                                       )   for i = 0, 1, 2,...
+      (i+1)    (i)   (i)               )
+     q     = (q   + x   )/2            )
+
+                 (0)         DA
+  Starting from q   = (1 + s)   (which has no zeros in the closed
+                                               (1)   (2)   (3)
+  right half-plane), the sequence of iterates q   , q   , q   ,...
+  converges to a solution of F(e) = 0 which has no zeros in the
+  open right half-plane.
+
+  The iterates satisfy the following conditions:
+
+           (i)
+     (a)  q   is a stable polynomial (no zeros in the closed right
+          half-plane) and
+
+           (i)        (i-1)
+     (b)  q   (1) &lt;= q     (1).
+
+                                    (i-1)                       (i)
+  The iterative process stops with q     , (where i &lt;= 30)  if q
+  violates either (a) or (b), or if the condition
+                    _(i) (i)  _
+     (c)  RES  = ||(q   q   - A A)|| &lt; tol,
+
+  is satisfied, where || . || denotes the largest coefficient of
+                  _(i) (i)  _
+  the polynomial (q   q   - A A) and tol is an estimate of the
+                                                 _(i)  (i)
+  rounding error in the computed coefficients of q    q   . If there
+  is no convergence after 30 iterations then the routine returns
+  with the Error Indicator (INFO) set to 3, and the value of RES may
+  indicate whether or not the last computed iterate is close to the
+  solution.
+
+  If ACONA = 'B', then it is possible that the equation e(-s) *
+  e(s) = B(s) has no real solution, which will be the case if A(1)
+  &lt; 0 or if ( -1)**DA * A(DA+1) &lt; 0.
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Vostry, Z.
+      New Algorithm for Polynomial Spectral Factorization with
+      Quadratic Convergence II.
+      Kybernetika, 12, pp. 248-259, 1976.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  The conditioning of the problem depends upon the distance of the
+  zeros of A(s) from the imaginary axis and on their multiplicity.
+  For a well-conditioned problem the accuracy of the computed
+  coefficients of E(s) is of the order of RES. However, for problems
+  with zeros near the imaginary axis or with multiple zeros, the
+  value of RES may be an overestimate of the true accuracy.
+
+</PRE>
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  In order for the problem e(-s) * e(s) = B(s) to have a real
+  solution e(s), it is necessary and sufficient that B(j*omega)
+  &gt;= 0 for any purely imaginary argument j*omega (see [1]).
+
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+*     SB08MD EXAMPLE PROGRAM TEXT
+*
+*     .. Parameters ..
+      INTEGER          NIN, NOUT
+      PARAMETER        ( NIN = 5, NOUT = 6 )
+      INTEGER          DAMAX
+      PARAMETER        ( DAMAX = 10 )
+      INTEGER          LDWORK
+      PARAMETER        ( LDWORK = 5*DAMAX+5 )
+*     .. Local Scalars ..
+      DOUBLE PRECISION RES
+      INTEGER          DA, I, INFO
+      CHARACTER*1      ACONA
+*     .. Local Arrays ..
+      DOUBLE PRECISION A(DAMAX+1), DWORK(LDWORK), E(DAMAX+1)
+*     .. External Functions ..
+      LOGICAL          LSAME
+      EXTERNAL         LSAME
+*     .. External Subroutines ..
+      EXTERNAL         SB08MD
+*     .. Executable Statements ..
+*
+      WRITE ( NOUT, FMT = 99999 )
+      READ ( NIN, FMT = '()' )
+*     Skip the heading in the data file and read the data.
+      READ ( NIN, FMT = * ) DA, ACONA
+      IF ( DA.LE.-1 .OR. DA.GT.DAMAX ) THEN
+         WRITE ( NOUT, FMT = 99993 ) DA
+      ELSE
+         READ ( NIN, FMT = * ) ( A(I), I = 1,DA+1 )
+*        Compute the spectral factorization of the given polynomial.
+         CALL SB08MD( ACONA, DA, A, RES, E, DWORK, LDWORK, INFO )
+*
+         IF ( INFO.NE.0 ) THEN
+            WRITE ( NOUT, FMT = 99998 ) INFO
+         ELSE
+            IF ( LSAME( ACONA, 'A' ) ) THEN
+               WRITE ( NOUT, FMT = 99997 )
+               DO 20 I = 0, DA
+                  WRITE ( NOUT, FMT = 99995 ) 2*I, A(I+1)
+   20          CONTINUE
+               WRITE ( NOUT, FMT = * )
+            END IF
+            WRITE ( NOUT, FMT = 99996 )
+            DO 40 I = 0, DA
+               WRITE ( NOUT, FMT = 99995 ) I, E(I+1)
+   40       CONTINUE
+            WRITE ( NOUT, FMT = 99994 ) RES
+         END IF
+      END IF
+*
+      STOP
+*
+99999 FORMAT (' SB08MD EXAMPLE PROGRAM RESULTS',/1X)
+99998 FORMAT (' INFO on exit from SB08MD = ',I2)
+99997 FORMAT (' The coefficients of the polynomial B(s) are ',//' powe',
+     $       'r of s     coefficient ')
+99996 FORMAT (' The coefficients of the spectral factor E(s) are ',
+     $       //' power of s     coefficient ')
+99995 FORMAT (2X,I5,9X,F9.4)
+99994 FORMAT (/' RES = ',1P,E8.1)
+99993 FORMAT (/' DA is out of range.',/' DA = ',I5)
+      END
+</PRE>
+<B>Program Data</B>
+<PRE>
+ SB08MD EXAMPLE PROGRAM DATA
+   3     A
+   8.0  -6.0  -3.0  1.0
+</PRE>
+<B>Program Results</B>
+<PRE>
+ SB08MD EXAMPLE PROGRAM RESULTS
+
+ The coefficients of the polynomial B(s) are 
+
+ power of s     coefficient 
+      0           64.0000
+      2          -84.0000
+      4           21.0000
+      6           -1.0000
+ 
+ The coefficients of the spectral factor E(s) are 
+
+ power of s     coefficient 
+      0            8.0000
+      1           14.0000
+      2            7.0000
+      3            1.0000
+
+ RES =  2.7E-15
+</PRE>
+
+<HR>
+<p>
+<A HREF=..\libindex.html><B>Return to index</B></A></BODY>
+</HTML>

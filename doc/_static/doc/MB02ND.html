@@ -1,0 +1,583 @@
+<HTML>
+<HEAD><TITLE>MB02ND - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MB02ND">MB02ND</A></H2>
+<H3>
+Solution of Total Least-Squares problem using a partial SVD approach
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To solve the Total Least Squares (TLS) problem using a Partial
+  Singular Value Decomposition (PSVD) approach.
+  The TLS problem assumes an overdetermined set of linear equations
+  AX = B, where both the data matrix A as well as the observation
+  matrix B are inaccurate. The routine also solves determined and
+  underdetermined sets of equations by computing the minimum norm
+  solution.
+  It is assumed that all preprocessing measures (scaling, coordinate
+  transformations, whitening, ... ) of the data have been performed
+  in advance.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MB02ND( M, N, L, RANK, THETA, C, LDC, X, LDX, Q, INUL,
+     $                   TOL, RELTOL, IWORK, DWORK, LDWORK, BWORK,
+     $                   IWARN, INFO )
+C     .. Scalar Arguments ..
+      INTEGER           INFO, IWARN, L, LDC, LDWORK, LDX, M, N, RANK
+      DOUBLE PRECISION  RELTOL, THETA, TOL
+C     .. Array Arguments ..
+      LOGICAL           BWORK(*), INUL(*)
+      INTEGER           IWORK(*)
+      DOUBLE PRECISION  C(LDC,*), DWORK(*), Q(*), X(LDX,*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  M       (input) INTEGER
+          The number of rows in the data matrix A and the
+          observation matrix B.  M &gt;= 0.
+
+  N       (input) INTEGER
+          The number of columns in the data matrix A.  N &gt;= 0.
+
+  L       (input) INTEGER
+          The number of columns in the observation matrix B.
+          L &gt;= 0.
+
+  RANK    (input/output) INTEGER
+          On entry, if RANK &lt; 0, then the rank of the TLS
+          approximation [A+DA|B+DB] (r say) is computed by the
+          routine.
+          Otherwise, RANK must specify the value of r.
+          RANK &lt;= min(M,N).
+          On exit, if RANK &lt; 0 on entry and INFO = 0, then RANK
+          contains the computed rank of the TLS approximation
+          [A+DA|B+DB].
+          Otherwise, the user-supplied value of RANK may be
+          changed by the routine on exit if the RANK-th and the
+          (RANK+1)-th singular values of C = [A|B] are considered
+          to be equal, or if the upper triangular matrix F (as
+          defined in METHOD) is (numerically) singular.
+
+  THETA   (input/output) DOUBLE PRECISION
+          On entry, if RANK &lt; 0, then the rank of the TLS
+          approximation [A+DA|B+DB] is computed using THETA as
+          (min(M,N+L) - d), where d is the number of singular
+          values of [A|B] &lt;= THETA. THETA &gt;= 0.0.
+          Otherwise, THETA is an initial estimate (t say) for
+          computing a lower bound on the RANK largest singular
+          values of [A|B]. If THETA &lt; 0.0 on entry however, then
+          t is computed by the routine.
+          On exit, if RANK &gt;= 0 on entry, then THETA contains the
+          computed bound such that precisely RANK singular values
+          of C = [A|B] are greater than THETA + TOL.
+          Otherwise, THETA is unchanged.
+
+  C       (input/output) DOUBLE PRECISION array, dimension (LDC,N+L)
+          On entry, the leading M-by-(N+L) part of this array must
+          contain the matrices A and B. Specifically, the first N
+          columns must contain the data matrix A and the last L
+          columns the observation matrix B (right-hand sides).
+          On exit, if INFO = 0, the first N+L components of the
+          columns of this array whose index i corresponds with
+          INUL(i) = .TRUE., are the possibly transformed (N+L-RANK)
+          base vectors of the right singular subspace corresponding
+          to the singular values of C = [A|B] which are less than or
+          equal to THETA. Specifically, if L = 0, or if RANK = 0 and
+          IWARN &lt;&gt; 2, these vectors are indeed the base vectors
+          above. Otherwise, these vectors form the matrix V2,
+          transformed as described in Step 4 of the PTLS algorithm
+          (see METHOD). The TLS solution is computed from these
+          vectors. The other columns of array C contain no useful
+          information.
+
+  LDC     INTEGER
+          The leading dimension of array C.  LDC &gt;= max(1,M,N+L).
+
+  X       (output) DOUBLE PRECISION array, dimension (LDX,L)
+          If INFO = 0, the leading N-by-L part of this array
+          contains the solution X to the TLS problem specified by
+          A and B.
+
+  LDX     INTEGER
+          The leading dimension of array X.  LDX &gt;= max(1,N).
+
+  Q       (output) DOUBLE PRECISION array, dimension
+          (max(1,2*min(M,N+L)-1))
+          This array contains the partially diagonalized bidiagonal
+          matrix J computed from C, at the moment that the desired
+          singular subspace has been found. Specifically, the
+          leading p = min(M,N+L) entries of Q contain the diagonal
+          elements q(1),q(2),...,q(p) and the entries Q(p+1),Q(p+2),
+          ...,Q(2*p-1) contain the superdiagonal elements e(1),e(2),
+          ...,e(p-1) of J.
+
+  INUL    (output) LOGICAL array, dimension (N+L)
+          The indices of the elements of this array with value
+          .TRUE. indicate the columns in C containing the base
+          vectors of the right singular subspace of C from which
+          the TLS solution has been computed.
+
+</PRE>
+<B>Tolerances</B>
+<PRE>
+  TOL     DOUBLE PRECISION
+          This parameter defines the multiplicity of singular values
+          by considering all singular values within an interval of
+          length TOL as coinciding. TOL is used in checking how many
+          singular values are less than or equal to THETA. Also in
+          computing an appropriate upper bound THETA by a bisection
+          method, TOL is used as a stopping criterion defining the
+          minimum (absolute) subinterval width. TOL is also taken
+          as an absolute tolerance for negligible elements in the
+          QR/QL iterations. If the user sets TOL to be less than or
+          equal to 0, then the tolerance is taken as specified in
+          SLICOT Library routine MB04YD document.
+
+  RELTOL  DOUBLE PRECISION
+          This parameter specifies the minimum relative width of an
+          interval. When an interval is narrower than TOL, or than
+          RELTOL times the larger (in magnitude) endpoint, then it
+          is considered to be sufficiently small and bisection has
+          converged. If the user sets RELTOL to be less than
+          BASE * EPS, where BASE is machine radix and EPS is machine
+          precision (see LAPACK Library routine DLAMCH), then the
+          tolerance is taken as BASE * EPS.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  IWORK   INTEGER array, dimension (N+2*L)
+
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+          On exit, if INFO = 0, DWORK(1) returns the optimal value
+          of LDWORK, and DWORK(2) returns the reciprocal of the
+          condition number of the matrix F.
+
+  LDWORK  INTEGER
+          The length of the array DWORK.
+          LDWORK = max(2, max(M,N+L) + 2*min(M,N+L),
+                       min(M,N+L) + LW + max(6*(N+L)-5,
+                                             L*L+max(N+L,3*L)),
+          where
+          LW = (N+L)*(N+L-1)/2,  if M &gt;= N+L,
+          LW = M*(N+L-(M-1)/2),  if M &lt;  N+L.
+          For optimum performance LDWORK should be larger.
+
+          If LDWORK = -1, then a workspace query is assumed;
+          the routine only calculates the optimal size of the
+          DWORK array, returns this value as the first entry of
+          the DWORK array, and no error message related to LDWORK
+          is issued by XERBLA.
+
+  BWORK   LOGICAL array, dimension (N+L)
+
+</PRE>
+<B>Warning Indicator</B>
+<PRE>
+  IWARN   INTEGER
+          = 0:  no warnings;
+          = 1:  if the rank of matrix C has been lowered because a
+                singular value of multiplicity greater than 1 was
+                found;
+          = 2:  if the rank of matrix C has been lowered because the
+                upper triangular matrix F is (numerically) singular.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value;
+          = 1:  if the maximum number of QR/QL iteration steps
+                (30*MIN(M,N)) has been exceeded;
+          = 2:  if the computed rank of the TLS approximation
+                [A+DA|B+DB] exceeds MIN(M,N). Try increasing the
+                value of THETA or set the value of RANK to min(M,N).
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  The method used is the Partial Total Least Squares (PTLS) approach
+  proposed by Van Huffel and Vandewalle [5].
+
+  Let C = [A|B] denote the matrix formed by adjoining the columns of
+  B to the columns of A on the right.
+
+  Total Least Squares (TLS) definition:
+  -------------------------------------
+
+    Given matrices A and B, find a matrix X satisfying
+
+         (A + DA) X = B + DB,
+
+    where A and DA are M-by-N matrices, B and DB are M-by-L matrices
+    and X is an N-by-L matrix.
+    The solution X must be such that the Frobenius norm of [DA|DB]
+    is a minimum and each column of B + DB is in the range of
+    A + DA. Whenever the solution is not unique, the routine singles
+    out the minimum norm solution X.
+
+  Let V denote the right singular subspace of C. Since the TLS
+  solution can be computed from any orthogonal basis of the subspace
+  of V corresponding to the smallest singular values of C, the
+  Partial Singular Value Decomposition (PSVD) can be used instead of
+  the classical SVD. The dimension of this subspace of V may be
+  determined by the rank of C or by an upper bound for those
+  smallest singular values.
+
+  The PTLS algorithm proceeds as follows (see [2 - 5]):
+
+  Step 1: Bidiagonalization phase
+          -----------------------
+   (a) If M is large enough than N + L, transform C into upper
+       triangular form R by Householder transformations.
+   (b) Transform C (or R) into upper bidiagonal form
+       (p = min(M,N+L)):
+
+                  |q(1) e(1)  0   ...  0   |
+             (0)  | 0   q(2) e(2)      .   |
+            J   = | .                  .   |
+                  | .                e(p-1)|
+                  | 0             ... q(p) |
+
+       if M &gt;= N + L, or lower bidiagonal form:
+
+                  |q(1)  0    0   ...  0     0   |
+             (0)  |e(1) q(2)  0        .     .   |
+            J   = | .                  .     .   |
+                  | .                 q(p)   .   |
+                  | 0             ... e(p-1) q(p)|
+
+       if M &lt; N + L, using Householder transformations.
+       In the second case, transform the matrix to the upper
+       bidiagonal form by applying Givens rotations.
+   (c) Initialize the right singular base matrix with the identity
+       matrix.
+
+  Step 2: Partial diagonalization phase
+          -----------------------------
+  If the upper bound THETA is not given, then compute THETA such
+  that precisely p - RANK singular values (p=min(M,N+L)) of the
+  bidiagonal matrix are less than or equal to THETA, using a
+  bisection method [5]. Diagonalize the given bidiagonal matrix J
+  partially, using either QL iterations (if the upper left diagonal
+  element of the considered bidiagonal submatrix is smaller than the
+  lower right diagonal element) or QR iterations, such that J is
+  split into unreduced bidiagonal submatrices whose singular values
+  are either all larger than THETA or are all less than or equal
+  to THETA. Accumulate the Givens rotations in V.
+
+  Step 3: Back transformation phase
+          -------------------------
+  Apply the Householder transformations of Step 1(b) onto the base
+  vectors of V associated with the bidiagonal submatrices with all
+  singular values less than or equal to THETA.
+
+  Step 4: Computation of F and Y
+          ----------------------
+  Let V2 be the matrix of the columns of V corresponding to the
+  (N + L - RANK) smallest singular values of C.
+  Compute with Householder transformations the matrices F and Y
+  such that:
+
+                    |VH   Y|
+           V2 x Q = |      |
+                    |0    F|
+
+  where Q is an orthogonal matrix, VH is an N-by-(N-RANK) matrix,
+  Y is an N-by-L matrix and F is an L-by-L upper triangular matrix.
+  If F is singular, then reduce the value of RANK by one and repeat
+  Steps 2, 3 and 4.
+
+  Step 5: Computation of the TLS solution
+          -------------------------------
+  If F is non-singular then the solution X is obtained by solving
+  the following equations by forward elimination:
+
+           X F = -Y.
+
+  Notes:
+  If RANK is lowered in Step 4, some additional base vectors must
+  be computed in Step 2. The additional computations are kept to
+  a minimum.
+  If RANK is lowered in Step 4 but the multiplicity of the RANK-th
+  singular value is larger than 1, then the value of RANK is further
+  lowered with its multiplicity defined by the parameter TOL. This
+  is done at the beginning of Step 2 by calling SLICOT Library
+  routine MB03MD (from MB04YD), which estimates THETA using a
+  bisection method. If F in Step 4 is singular, then the computed
+  solution is infinite and hence does not satisfy the second TLS
+  criterion (see TLS definition). For these cases, Golub and
+  Van Loan [1] claim that the TLS problem has no solution. The
+  properties of these so-called nongeneric problems are described
+  in [6] and the TLS computations are generalized in order to solve
+  them. As proven in [6], the proposed generalization satisfies the
+  TLS criteria for any number L of observation vectors in B provided
+  that, in addition, the solution | X| is constrained to be
+                                  |-I|
+  orthogonal to all vectors of the form |w| which belong to the
+                                        |0|
+  space generated by the columns of the submatrix |Y|.
+                                                  |F|
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Golub, G.H. and Van Loan, C.F.
+      An Analysis of the Total Least-Squares Problem.
+      SIAM J. Numer. Anal., 17, pp. 883-893, 1980.
+
+  [2] Van Huffel, S., Vandewalle, J. and Haegemans, A.
+      An Efficient and Reliable Algorithm for Computing the
+      Singular Subspace of a Matrix Associated with its Smallest
+      Singular Values.
+      J. Comput. and Appl. Math., 19, pp. 313-330, 1987.
+
+  [3] Van Huffel, S.
+      Analysis of the Total Least Squares Problem and its Use in
+      Parameter Estimation.
+      Doctoral dissertation, Dept. of Electr. Eng., Katholieke
+      Universiteit Leuven, Belgium, June 1987.
+
+  [4] Chan, T.F.
+      An Improved Algorithm for Computing the Singular Value
+      Decomposition.
+      ACM TOMS, 8, pp. 72-83, 1982.
+
+  [5] Van Huffel, S. and Vandewalle, J.
+      The Partial Total Least Squares Algorithm.
+      J. Comput. Appl. Math., 21, pp. 333-341, 1988.
+
+  [6] Van Huffel, S. and Vandewalle, J.
+      Analysis and Solution of the Nongeneric Total Least Squares
+      Problem.
+      SIAM J. Matr. Anal. and Appl., 9, pp. 360-372, 1988.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  The computational efficiency of the PTLS algorithm compared with
+  the classical TLS algorithm (see [2 - 5]) is obtained by making
+  use of PSVD (see [1]) instead of performing the entire SVD.
+  Depending on the gap between the RANK-th and the (RANK+1)-th
+  singular values of C, the number (N + L - RANK) of base vectors to
+  be computed with respect to the column dimension (N + L) of C and
+  the desired accuracy RELTOL, the algorithm used by this routine is
+  approximately twice as fast as the classical TLS algorithm at the
+  expense of extra storage requirements, namely:
+    (N + L) x (N + L - 1)/2  if M &gt;= N + L or
+    M x (N + L - (M - 1)/2)  if M &lt;  N + L.
+  This is because the Householder transformations performed on the
+  rows of C in the bidiagonalization phase (see Step 1) must be kept
+  until the end (Step 5).
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+*     MB02ND EXAMPLE PROGRAM TEXT
+*
+*     .. Parameters ..
+      DOUBLE PRECISION ZERO
+      PARAMETER        ( ZERO = 0.0D0 )
+      INTEGER          NIN, NOUT
+      PARAMETER        ( NIN = 5, NOUT = 6 )
+      INTEGER          MMAX, NMAX, LMAX
+      PARAMETER        ( MMAX = 20, NMAX = 20, LMAX = 20 )
+      INTEGER          LDC, LDX
+      PARAMETER        ( LDC = MAX( MMAX, NMAX+LMAX ), LDX = NMAX )
+      INTEGER          LENGQ
+      PARAMETER        ( LENGQ = 2*MIN(MMAX,NMAX+LMAX)-1 )
+      INTEGER          LIWORK
+      PARAMETER        ( LIWORK = NMAX+2*LMAX )
+      INTEGER          LDWORK
+      PARAMETER        ( LDWORK = MAX(2, MAX( MMAX, NMAX+LMAX ) +
+     $                            2*MIN( MMAX, NMAX+LMAX ),
+     $                            MIN( MMAX, NMAX+LMAX ) +
+     $                            MAX( ( NMAX+LMAX )*( NMAX+LMAX-1 )/2,
+     $                              MMAX*( NMAX+LMAX-( MMAX-1 )/2 ) ) +
+     $                            MAX( 6*(NMAX+LMAX)-5, LMAX*LMAX +
+     $                                 MAX( NMAX+LMAX, 3*LMAX ) ) ) )
+      INTEGER          LBWORK
+      PARAMETER        ( LBWORK = NMAX+LMAX )
+*     .. Local Scalars ..
+      DOUBLE PRECISION RELTOL, THETA, THETA1, TOL
+      INTEGER          I, INFO, IWARN, J, K, L, LOOP, M, MINMNL, N,
+     $                 RANK, RANK1
+*     .. Local Arrays ..
+      DOUBLE PRECISION C(LDC,NMAX+LMAX), DWORK(LDWORK),
+     $                 Q(LENGQ), X(LDX,LMAX)
+      INTEGER          IWORK(LIWORK)
+      LOGICAL          BWORK(LBWORK), INUL(NMAX+LMAX)
+*     .. External Subroutines ..
+      EXTERNAL         MB02ND
+*     .. Intrinsic Functions ..
+      INTRINSIC        MAX, MIN
+*     .. Executable Statements ..
+*
+      WRITE ( NOUT, FMT = 99999 )
+*     Skip the heading in the data file and read the data.
+      READ ( NIN, FMT = '()' )
+      READ ( NIN, FMT = * ) M, N, L, RANK, THETA, TOL, RELTOL
+      IF ( M.LT.0 .OR. M.GT.MMAX ) THEN
+         WRITE ( NOUT, FMT = 99982 ) M
+      ELSE IF ( N.LT.0 .OR. N.GT.NMAX ) THEN
+         WRITE ( NOUT, FMT = 99983 ) N
+      ELSE IF ( L.LT.0 .OR. L.GT.LMAX ) THEN
+         WRITE ( NOUT, FMT = 99981 ) L
+      ELSE IF ( RANK.GT.MIN( MMAX, NMAX ) ) THEN
+         WRITE ( NOUT, FMT = 99980 ) RANK
+      ELSE IF ( RANK.LT.0 .AND. THETA.LT.ZERO ) THEN
+         WRITE ( NOUT, FMT = 99979 ) THETA
+      ELSE
+         READ ( NIN, FMT = * ) ( ( C(I,J), J = 1,N+L ), I = 1,M )
+         RANK1 = RANK
+         THETA1 = THETA
+*        Compute the solution to the TLS problem Ax = b.
+         CALL MB02ND( M, N, L, RANK, THETA, C, LDC, X, LDX, Q, INUL,
+     $                TOL, RELTOL, IWORK, DWORK, LDWORK, BWORK, IWARN,
+     $                INFO )
+*
+         IF ( INFO.NE.0 ) THEN
+            WRITE ( NOUT, FMT = 99998 ) INFO
+         ELSE
+            IF ( IWARN.NE.0 ) THEN
+               WRITE ( NOUT, FMT = 99997 ) IWARN
+               WRITE ( NOUT, FMT = 99996 ) RANK
+            ELSE
+               IF ( RANK1.LT.0 ) WRITE ( NOUT, FMT = 99996 ) RANK
+            END IF
+            IF ( THETA1.LT.ZERO ) WRITE ( NOUT, FMT = 99995 ) THETA
+            WRITE ( NOUT, FMT = 99994 )
+            MINMNL = MIN( M, N+L )
+            LOOP = MINMNL - 1
+            DO 20 I = 1, LOOP
+               K = I + MINMNL
+               WRITE ( NOUT, FMT = 99993 ) I, I, Q(I), I, I + 1, Q(K)
+   20       CONTINUE
+            WRITE ( NOUT, FMT = 99992 ) MINMNL, MINMNL, Q(MINMNL)
+            WRITE ( NOUT, FMT = 99991 )
+            DO 60 J = 1, L
+               DO 40 I = 1, N
+                  WRITE ( NOUT, FMT = 99990 ) X(I,J)
+   40          CONTINUE
+               IF ( J.LT.L ) WRITE ( NOUT, FMT = 99989 )
+   60       CONTINUE
+            WRITE ( NOUT, FMT = 99987 ) N + L, N + L
+            WRITE ( NOUT, FMT = 99985 )
+            DO 80 I = 1, MAX( M, N + L )
+               WRITE ( NOUT, FMT = 99984 ) ( C(I,J), J = 1,N+L )
+   80       CONTINUE
+            WRITE ( NOUT, FMT = 99986 )
+            DO 100 J = 1, N + L
+               WRITE ( NOUT, FMT = 99988 ) J, INUL(J)
+  100       CONTINUE
+         END IF
+      END IF
+      STOP
+*
+99999 FORMAT (' MB02ND EXAMPLE PROGRAM RESULTS',/1X)
+99998 FORMAT (' INFO on exit from MB02ND = ',I2)
+99997 FORMAT (' IWARN on exit from MB02ND = ',I2,/)
+99996 FORMAT (' The computed rank of the TLS approximation  = ',I3,/)
+99995 FORMAT (' The computed value of THETA = ',F7.4,/)
+99994 FORMAT (' The elements of the partially diagonalized bidiagonal ',
+     $       'matrix are',/)
+99993 FORMAT (2(' (',I1,',',I1,') = ',F7.4,2X))
+99992 FORMAT (' (',I1,',',I1,') = ',F7.4,/)
+99991 FORMAT (' The solution X to the TLS problem is ',/)
+99990 FORMAT (1X,F8.4)
+99989 FORMAT (' ')
+99988 FORMAT (I3,L8)
+99987 FORMAT (/' Right singular subspace corresponds to the first ',I2,
+     $       ' components of the j-th ',/' column of C for which INUL(',
+     $       'j) = .TRUE., j = 1,...,',I2,/)
+99986 FORMAT (/'  j    INUL(j)',/)
+99985 FORMAT (' Matrix C',/)
+99984 FORMAT (20(1X,F8.4))
+99983 FORMAT (/' N is out of range.',/' N = ',I5)
+99982 FORMAT (/' M is out of range.',/' M = ',I5)
+99981 FORMAT (/' L is out of range.',/' L = ',I5)
+99980 FORMAT (/' RANK is out of range.',/' RANK = ',I5)
+99979 FORMAT (/' THETA must be at least zero.',/' THETA = ',F8.4)
+      END
+</PRE>
+<B>Program Data</B>
+<PRE>
+ MB02ND EXAMPLE PROGRAM DATA
+   6     3     1     -1     0.001     0.0     0.0
+   0.80010  0.39985  0.60005  0.89999
+   0.29996  0.69990  0.39997  0.82997
+   0.49994  0.60003  0.20012  0.79011
+   0.90013  0.20016  0.79995  0.85002
+   0.39998  0.80006  0.49985  0.99016
+   0.20002  0.90007  0.70009  1.02994
+</PRE>
+<B>Program Results</B>
+<PRE>
+ MB02ND EXAMPLE PROGRAM RESULTS
+
+ The computed rank of the TLS approximation  =   3
+
+ The elements of the partially diagonalized bidiagonal matrix are
+
+ (1,1) =  3.2280   (1,2) = -0.0287
+ (2,2) =  0.8714   (2,3) =  0.0168
+ (3,3) =  0.3698   (3,4) =  0.0000
+ (4,4) =  0.0001
+
+ The solution X to the TLS problem is 
+
+   0.5003
+   0.8003
+   0.2995
+
+ Right singular subspace corresponds to the first  4 components of the j-th 
+ column of C for which INUL(j) = .TRUE., j = 1,..., 4
+
+ Matrix C
+
+  -0.3967  -0.7096   0.4612  -0.3555
+   0.9150  -0.2557   0.2414  -0.5687
+  -0.0728   0.6526   0.5215  -0.2128
+   0.0000   0.0720   0.6761   0.7106
+   0.1809   0.3209   0.0247  -0.4139
+   0.0905   0.4609  -0.3528   0.5128
+
+  j    INUL(j)
+
+  1       F
+  2       F
+  3       F
+  4       T
+</PRE>
+
+<HR>
+<p>
+<A HREF=..\libindex.html><B>Return to index</B></A></BODY>
+</HTML>

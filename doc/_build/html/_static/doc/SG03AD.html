@@ -1,0 +1,499 @@
+<HTML>
+<HEAD><TITLE>SG03AD - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="SG03AD">SG03AD</A></H2>
+<H3>
+Solution of continuous- or discrete-time generalized Lyapunov equations and separation estimation
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To solve for X either the generalized continuous-time Lyapunov
+  equation
+
+          T                T
+     op(A)  X op(E) + op(E)  X op(A) = SCALE * Y,                (1)
+
+  or the generalized discrete-time Lyapunov equation
+
+          T                T
+     op(A)  X op(A) - op(E)  X op(E) = SCALE * Y,                (2)
+
+  where op(M) is either M or M**T for M = A, E and the right hand
+  side Y is symmetric. A, E, Y, and the solution X are N-by-N
+  matrices. SCALE is an output scale factor, set to avoid overflow
+  in X.
+
+  Estimates of the separation and the relative forward error norm
+  are provided.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE SG03AD( DICO, JOB, FACT, TRANS, UPLO, N, A, LDA, E,
+     $                   LDE, Q, LDQ, Z, LDZ, X, LDX, SCALE, SEP, FERR,
+     $                   ALPHAR, ALPHAI, BETA, IWORK, DWORK, LDWORK,
+     $                   INFO )
+C     .. Scalar Arguments ..
+      CHARACTER         DICO, FACT, JOB, TRANS, UPLO
+      DOUBLE PRECISION  FERR, SCALE, SEP
+      INTEGER           INFO, LDA, LDE, LDQ, LDWORK, LDX, LDZ, N
+C     .. Array Arguments ..
+      DOUBLE PRECISION  A(LDA,*), ALPHAI(*), ALPHAR(*), BETA(*),
+     $                  DWORK(*), E(LDE,*), Q(LDQ,*), X(LDX,*),
+     $                  Z(LDZ,*)
+      INTEGER           IWORK(*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  DICO    CHARACTER*1
+          Specifies which type of the equation is considered:
+          = 'C':  Continuous-time equation (1);
+          = 'D':  Discrete-time equation (2).
+
+  JOB     CHARACTER*1
+          Specifies if the solution is to be computed and if the
+          separation is to be estimated:
+          = 'X':  Compute the solution only;
+          = 'S':  Estimate the separation only;
+          = 'B':  Compute the solution and estimate the separation.
+
+  FACT    CHARACTER*1
+          Specifies whether the generalized real Schur
+          factorization of the pencil A - lambda * E is supplied
+          on entry or not:
+          = 'N':  Factorization is not supplied;
+          = 'F':  Factorization is supplied.
+
+  TRANS   CHARACTER*1
+          Specifies whether the transposed equation is to be solved
+          or not:
+          = 'N':  op(A) = A,    op(E) = E;
+          = 'T':  op(A) = A**T, op(E) = E**T.
+
+  UPLO    CHARACTER*1
+          Specifies whether the lower or the upper triangle of the
+          array X is needed on input:
+          = 'L':  Only the lower triangle is needed on input;
+          = 'U':  Only the upper triangle is needed on input.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The order of the matrix A.  N &gt;= 0.
+
+  A       (input/output) DOUBLE PRECISION array, dimension (LDA,N)
+          On entry, if FACT = 'F', then the leading N-by-N upper
+          Hessenberg part of this array must contain the
+          generalized Schur factor A_s of the matrix A (see
+          definition (3) in section METHOD). A_s must be an upper
+          quasitriangular matrix. The elements below the upper
+          Hessenberg part of the array A are not referenced.
+          If FACT = 'N', then the leading N-by-N part of this
+          array must contain the matrix A.
+          On exit, the leading N-by-N part of this array contains
+          the generalized Schur factor A_s of the matrix A. (A_s is
+          an upper quasitriangular matrix.)
+
+  LDA     INTEGER
+          The leading dimension of the array A.  LDA &gt;= MAX(1,N).
+
+  E       (input/output) DOUBLE PRECISION array, dimension (LDE,N)
+          On entry, if FACT = 'F', then the leading N-by-N upper
+          triangular part of this array must contain the
+          generalized Schur factor E_s of the matrix E (see
+          definition (4) in section METHOD). The elements below the
+          upper triangular part of the array E are not referenced.
+          If FACT = 'N', then the leading N-by-N part of this
+          array must contain the coefficient matrix E of the
+          equation.
+          On exit, the leading N-by-N part of this array contains
+          the generalized Schur factor E_s of the matrix E. (E_s is
+          an upper triangular matrix.)
+
+  LDE     INTEGER
+          The leading dimension of the array E.  LDE &gt;= MAX(1,N).
+
+  Q       (input/output) DOUBLE PRECISION array, dimension (LDQ,N)
+          On entry, if FACT = 'F', then the leading N-by-N part of
+          this array must contain the orthogonal matrix Q from
+          the generalized Schur factorization (see definitions (3)
+          and (4) in section METHOD).
+          If FACT = 'N', Q need not be set on entry.
+          On exit, the leading N-by-N part of this array contains
+          the orthogonal matrix Q from the generalized Schur
+          factorization.
+
+  LDQ     INTEGER
+          The leading dimension of the array Q.  LDQ &gt;= MAX(1,N).
+
+  Z       (input/output) DOUBLE PRECISION array, dimension (LDZ,N)
+          On entry, if FACT = 'F', then the leading N-by-N part of
+          this array must contain the orthogonal matrix Z from
+          the generalized Schur factorization (see definitions (3)
+          and (4) in section METHOD).
+          If FACT = 'N', Z need not be set on entry.
+          On exit, the leading N-by-N part of this array contains
+          the orthogonal matrix Z from the generalized Schur
+          factorization.
+
+  LDZ     INTEGER
+          The leading dimension of the array Z.  LDZ &gt;= MAX(1,N).
+
+  X       (input/output) DOUBLE PRECISION array, dimension (LDX,N)
+          On entry, if JOB = 'B' or 'X', then the leading N-by-N
+          part of this array must contain the right hand side matrix
+          Y of the equation. Either the lower or the upper
+          triangular part of this array is needed (see mode
+          parameter UPLO).
+          If JOB = 'S', X is not referenced.
+          On exit, if JOB = 'B' or 'X', and INFO = 0, 3, or 4, then
+          the leading N-by-N part of this array contains the
+          solution matrix X of the equation.
+          If JOB = 'S', X is not referenced.
+
+  LDX     INTEGER
+          The leading dimension of the array X.  LDX &gt;= MAX(1,N).
+
+  SCALE   (output) DOUBLE PRECISION
+          The scale factor set to avoid overflow in X.
+          (0 &lt; SCALE &lt;= 1)
+
+  SEP     (output) DOUBLE PRECISION
+          If JOB = 'S' or JOB = 'B', and INFO = 0, 3, or 4, then
+          SEP contains an estimate of the separation of the
+          Lyapunov operator.
+
+  FERR    (output) DOUBLE PRECISION
+          If JOB = 'B', and INFO = 0, 3, or 4, then FERR contains an
+          estimated forward error bound for the solution X. If XTRUE
+          is the true solution, FERR estimates the relative error
+          in the computed solution, measured in the Frobenius norm:
+          norm(X - XTRUE) / norm(XTRUE)
+
+  ALPHAR  (output) DOUBLE PRECISION array, dimension (N)
+  ALPHAI  (output) DOUBLE PRECISION array, dimension (N)
+  BETA    (output) DOUBLE PRECISION array, dimension (N)
+          If FACT = 'N' and INFO = 0, 3, or 4, then
+          (ALPHAR(j) + ALPHAI(j)*i)/BETA(j), j=1,...,N, are the
+          eigenvalues of the matrix pencil A - lambda * E.
+          If FACT = 'F', ALPHAR, ALPHAI, and BETA are not
+          referenced.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  IWORK   INTEGER array, dimension (N**2)
+          IWORK is not referenced if JOB = 'X'.
+
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+          On exit, if INFO = 0, DWORK(1) returns the optimal value
+          of LDWORK.
+
+  LDWORK  INTEGER
+          The length of the array DWORK. The following table
+          contains the minimal work space requirements depending
+          on the choice of JOB and FACT.
+
+                 JOB        FACT    |  LDWORK
+                 -------------------+-------------------
+                 'X'        'F'     |  MAX(1,N)
+                 'X'        'N'     |  MAX(1,8*N+16)
+                 'B', 'S'   'F'     |  MAX(1,2*N**2)
+                 'B', 'S'   'N'     |  MAX(1,2*N**2,8*N+16)
+
+          For optimum performance, LDWORK should be larger.
+
+          If LDWORK = -1, then a workspace query is assumed; the
+          routine only calculates the optimal size of the DWORK
+          array, returns this value as the first entry of the DWORK
+          array, and no error message related to LDWORK is issued by
+          XERBLA.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value;
+          = 1:  FACT = 'F' and the matrix contained in the upper
+                Hessenberg part of the array A is not in upper
+                quasitriangular form;
+          = 2:  FACT = 'N' and the pencil A - lambda * E cannot be
+                reduced to generalized Schur form: LAPACK routine
+                DGGES has failed to converge;
+          = 3:  DICO = 'D' and the pencil A - lambda * E has a
+                pair of reciprocal eigenvalues. That is, lambda_i =
+                1/lambda_j for some i and j, where lambda_i and
+                lambda_j are eigenvalues of A - lambda * E. Hence,
+                equation (2) is singular;  perturbed values were
+                used to solve the equation (but the matrices A and
+                E are unchanged);
+          = 4:  DICO = 'C' and the pencil A - lambda * E has a
+                degenerate pair of eigenvalues. That is, lambda_i =
+                -lambda_j for some i and j, where lambda_i and
+                lambda_j are eigenvalues of A - lambda * E. Hence,
+                equation (1) is singular;  perturbed values were
+                used to solve the equation (but the matrices A and
+                E are unchanged).
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  A straightforward generalization [3] of the method proposed by
+  Bartels and Stewart [1] is utilized to solve (1) or (2).
+
+  First the pencil A - lambda * E is reduced to real generalized
+  Schur form A_s - lambda * E_s by means of orthogonal
+  transformations (QZ-algorithm):
+
+     A_s = Q**T * A * Z   (upper quasitriangular)                (3)
+
+     E_s = Q**T * E * Z   (upper triangular).                    (4)
+
+  If FACT = 'F', this step is omitted. Assuming SCALE = 1 and
+  defining
+
+           ( Z**T * Y * Z   :   TRANS = 'N'
+     Y_s = &lt;
+           ( Q**T * Y * Q   :   TRANS = 'T'
+
+           ( Q**T * X * Q    if TRANS = 'N'
+     X_s = &lt;                                                     (5)
+           ( Z**T * X * Z    if TRANS = 'T'
+
+  leads to the reduced Lyapunov equation
+
+            T                      T
+     op(A_s)  X_s op(E_s) + op(E_s)  X_s op(A_s) = Y_s,          (6)
+
+  or
+            T                      T
+     op(A_s)  X_s op(A_s) - op(E_s)  X_s op(E_s) = Y_s,          (7)
+
+  which are equivalent to (1) or (2), respectively. The solution X_s
+  of (6) or (7) is computed via block back substitution (if TRANS =
+  'N') or block forward substitution (if TRANS = 'T'), where the
+  block order is at most 2. (See [1] and [3] for details.)
+  Equation (5) yields the solution matrix X.
+
+  For fast computation the estimates of the separation and the
+  forward error are gained from (6) or (7) rather than (1) or
+  (2), respectively. We consider (6) and (7) as special cases of the
+  generalized Sylvester equation
+
+     R * X * S + U * X * V = Y,                                  (8)
+
+  whose separation is defined as follows
+
+     sep = sep(R,S,U,V) =   min   || R * X * S + U * X * V || .
+                         ||X|| = 1                           F
+                              F
+
+  Equation (8) is equivalent to the system of linear equations
+
+     K * vec(X) = (kron(S**T,R) + kron(V**T,U)) * vec(X) = vec(Y),
+
+  where kron is the Kronecker product of two matrices and vec
+  is the mapping that stacks the columns of a matrix. If K is
+  nonsingular then
+
+     sep = 1 / ||K**(-1)|| .
+                          2
+
+  We estimate ||K**(-1)|| by a method devised by Higham [2]. Note
+  that this method yields an estimation for the 1-norm but we use it
+  as an approximation for the 2-norm. Estimates for the forward
+  error norm are provided by
+
+     FERR = 2 * EPS * ||A_s||  * ||E_s||  / sep
+                             F          F
+
+  in the continuous-time case (1) and
+
+     FERR = EPS * ( ||A_s|| **2 + ||E_s|| **2 ) / sep
+                           F             F
+
+  in the discrete-time case (2).
+  The reciprocal condition number, RCOND, of the Lyapunov equation
+  can be estimated by FERR/EPS.
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Bartels, R.H., Stewart, G.W.
+      Solution of the equation A X + X B = C.
+      Comm. A.C.M., 15, pp. 820-826, 1972.
+
+  [2] Higham, N.J.
+      FORTRAN codes for estimating the one-norm of a real or complex
+      matrix, with applications to condition estimation.
+      A.C.M. Trans. Math. Soft., vol. 14, no. 4, pp. 381-396, 1988.
+
+  [3] Penzl, T.
+      Numerical solution of generalized Lyapunov equations.
+      Advances in Comp. Math., vol. 8, pp. 33-48, 1998.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  The number of flops required by the routine is given by the
+  following table. Note that we count a single floating point
+  arithmetic operation as one flop. c is an integer number of modest
+  size (say 4 or 5).
+
+                |  FACT = 'F'            FACT = 'N'
+     -----------+------------------------------------------
+     JOB = 'B'  |  (26+8*c)/3 * N**3     (224+8*c)/3 * N**3
+     JOB = 'S'  |  8*c/3 * N**3          (198+8*c)/3 * N**3
+     JOB = 'X'  |  26/3 * N**3           224/3 * N**3
+
+  The algorithm is backward stable if the eigenvalues of the pencil
+  A - lambda * E are real. Otherwise, linear systems of order at
+  most 4 are involved into the computation. These systems are solved
+  by Gauss elimination with complete pivoting. The loss of stability
+  of the Gauss elimination with complete pivoting is rarely
+  encountered in practice.
+
+  The Lyapunov equation may be very ill-conditioned. In particular,
+  if DICO = 'D' and the pencil A - lambda * E has a pair of almost
+  reciprocal eigenvalues, or DICO = 'C' and the pencil has an almost
+  degenerate pair of eigenvalues, then the Lyapunov equation will be
+  ill-conditioned. Perturbed values were used to solve the equation.
+  Ill-conditioning can be detected by a very small value of the
+  reciprocal condition number RCOND.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+*     SG03AD EXAMPLE PROGRAM TEXT
+*
+*     .. Parameters ..
+      INTEGER           NIN, NOUT
+      PARAMETER         ( NIN = 5, NOUT = 6 )
+      INTEGER           NMAX
+      PARAMETER         ( NMAX = 20 )
+      INTEGER           LDA, LDE, LDQ, LDX, LDZ
+      PARAMETER         ( LDA = NMAX, LDE = NMAX, LDQ = NMAX,
+     $                    LDX = NMAX, LDZ = NMAX )
+      INTEGER           LIWORK, LDWORK
+      PARAMETER         ( LIWORK = NMAX**2,
+     $                    LDWORK = MAX( 2*NMAX**2, 4*NMAX ) )
+*     .. Local Scalars ..
+      CHARACTER*1       DICO, FACT, JOB, TRANS, UPLO
+      DOUBLE PRECISION  FERR, SCALE, SEP
+      INTEGER           I, INFO, J, N
+*     .. Local Arrays ..
+      INTEGER           IWORK(LIWORK)
+      DOUBLE PRECISION  A(LDA,NMAX), ALPHAI(NMAX), ALPHAR(NMAX),
+     $                  BETA(NMAX), DWORK(LDWORK), E(LDE,NMAX),
+     $                  Q(LDQ,NMAX), X(LDX,NMAX), Z(LDZ,NMAX)
+*     .. External Functions ..
+      LOGICAL           LSAME
+      EXTERNAL          LSAME
+*     .. External Subroutines ..
+      EXTERNAL          SG03AD
+*     .. Intrinsic Functions ..
+      INTRINSIC         MAX
+*     .. Executable Statements ..
+*
+      WRITE ( NOUT, FMT = 99999 )
+*     Skip the heading in the data file and read the data.
+      READ ( NIN, FMT = '()' )
+      READ ( NIN, FMT = * ) N, JOB, DICO, FACT, TRANS, UPLO
+      IF ( N.LT.0 .OR. N.GT.NMAX ) THEN
+         WRITE ( NOUT, FMT = 99993 ) N
+      ELSE
+         READ ( NIN, FMT = * ) ( ( A(I,J), J = 1,N ), I = 1,N )
+         READ ( NIN, FMT = * ) ( ( E(I,J), J = 1,N ), I = 1,N )
+         IF ( LSAME ( FACT, 'F' ) ) THEN
+            READ ( NIN, FMT = * ) ( ( Q(I,J), J = 1,N ), I = 1,N )
+            READ ( NIN, FMT = * ) ( ( Z(I,J), J = 1,N ), I = 1,N )
+         END IF
+         IF ( .NOT.LSAME ( JOB, 'S' ) )
+     $      READ ( NIN, FMT = * ) ( ( X(I,J), J = 1,N ), I = 1,N )
+*        Find the solution matrix X and the scalar SEP.
+         CALL SG03AD( DICO, JOB, FACT, TRANS, UPLO, N, A, LDA, E, LDE,
+     $                Q, LDQ, Z, LDZ, X, LDX, SCALE, SEP, FERR, ALPHAR,
+     $                ALPHAI, BETA, IWORK, DWORK, LDWORK, INFO )
+         IF ( INFO.NE.0 ) THEN
+            WRITE ( NOUT, FMT = 99998 ) INFO
+         ELSE
+            IF ( LSAME ( JOB, 'B' ) .OR. LSAME ( JOB, 'S' ) ) THEN
+               WRITE ( NOUT, FMT = 99997 ) SEP
+               WRITE ( NOUT, FMT = 99996 ) FERR
+            END IF
+            IF ( LSAME ( JOB, 'B' ) .OR. LSAME ( JOB, 'X' ) ) THEN
+               WRITE ( NOUT, FMT = 99995 ) SCALE
+               DO 20 I = 1, N
+                  WRITE ( NOUT, FMT = 99994 ) ( X(I,J), J = 1,N )
+   20          CONTINUE
+            END IF
+         END IF
+      END IF
+      STOP
+*
+99999 FORMAT (' SG03AD EXAMPLE PROGRAM RESULTS',/1X)
+99998 FORMAT (' INFO on exit from SG03AD = ',I2)
+99997 FORMAT (' SEP =   ',D8.2)
+99996 FORMAT (' FERR =  ',D8.2)
+99995 FORMAT (' SCALE = ',D8.2,//' The solution matrix X is ')
+99994 FORMAT (20(1X,F8.4))
+99993 FORMAT (/' N is out of range.',/' N = ',I5)
+      END
+</PRE>
+<B>Program Data</B>
+<PRE>
+ SG03AD EXAMPLE PROGRAM DATA
+  3       B       C       N       N       U
+  3.0     1.0     1.0
+  1.0     3.0     0.0
+  1.0     0.0     2.0
+  1.0     3.0     0.0
+  3.0     2.0     1.0
+  1.0     0.0     1.0
+-64.0   -73.0   -28.0
+  0.0   -70.0   -25.0
+  0.0     0.0   -18.0 
+</PRE>
+<B>Program Results</B>
+<PRE>
+ SG03AD EXAMPLE PROGRAM RESULTS
+
+ SEP =   0.29D+00
+ FERR =  0.40D-13
+ SCALE = 0.10D+01
+
+ The solution matrix X is 
+  -2.0000  -1.0000   0.0000
+  -1.0000  -3.0000  -1.0000
+   0.0000  -1.0000  -3.0000
+</PRE>
+
+<HR>
+<p>
+<A HREF=..\libindex.html><B>Return to index</B></A></BODY>
+</HTML>

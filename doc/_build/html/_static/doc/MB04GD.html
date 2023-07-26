@@ -1,0 +1,232 @@
+<HTML>
+<HEAD><TITLE>MB04GD - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MB04GD">MB04GD</A></H2>
+<H3>
+RQ factorization with row pivoting of a matrix
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To compute an RQ factorization with row pivoting of a
+  real m-by-n matrix A: P*A = R*Q.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MB04GD( M, N, A, LDA, JPVT, TAU, DWORK, INFO )
+C     .. Scalar Arguments ..
+      INTEGER            INFO, LDA, M, N
+C     .. Array Arguments ..
+      INTEGER            JPVT( * )
+      DOUBLE PRECISION   A( LDA, * ), DWORK( * ), TAU( * )
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  M       (input) INTEGER
+          The number of rows of the matrix A.  M &gt;= 0.
+
+  N       (input) INTEGER
+          The number of columns of the matrix A.  N &gt;= 0.
+
+  A       (input/output) DOUBLE PRECISION array, dimension (LDA,N)
+          On entry, the m-by-n matrix A.
+          On exit,
+          if m &lt;= n, the upper triangle of the subarray
+          A(1:m,n-m+1:n) contains the m-by-m upper triangular
+          matrix R;
+          if m &gt;= n, the elements on and above the (m-n)-th
+          subdiagonal contain the m-by-n upper trapezoidal matrix R;
+          the remaining elements, with the array TAU, represent the
+          orthogonal matrix Q as a product of min(m,n) elementary
+          reflectors (see METHOD).
+
+  LDA     INTEGER
+          The leading dimension of the array A. LDA &gt;= max(1,M).
+
+  JPVT    (input/output) INTEGER array, dimension (M)
+          On entry, if JPVT(i) .ne. 0, the i-th row of A is permuted
+          to the bottom of P*A (a trailing row); if JPVT(i) = 0,
+          the i-th row of A is a free row.
+          On exit, if JPVT(i) = k, then the i-th row of P*A
+          was the k-th row of A.
+
+  TAU     (output) DOUBLE PRECISION array, dimension (min(M,N))
+          The scalar factors of the elementary reflectors.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  DWORK   DOUBLE PRECISION array, dimension (3*M)
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  The matrix Q is represented as a product of elementary reflectors
+
+     Q = H(1) H(2) . . . H(k), where k = min(m,n).
+
+  Each H(i) has the form
+
+     H = I - tau * v * v'
+
+  where tau is a real scalar, and v is a real vector with
+  v(n-k+i+1:n) = 0 and v(n-k+i) = 1; v(1:n-k+i-1) is stored on exit
+  in A(m-k+i,1:n-k+i-1), and tau in TAU(i).
+
+  The matrix P is represented in jpvt as follows: If
+     jpvt(j) = i
+  then the jth row of P is the ith canonical unit vector.
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Anderson, E., Bai, Z., Bischof, C., Demmel, J., Dongarra, J.,
+      Du Croz, J., Greenbaum, A., Hammarling, S., McKenney, A.,
+      Ostrouchov, S., and Sorensen, D.
+      LAPACK Users' Guide: Second Edition.
+      SIAM, Philadelphia, 1995.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  The algorithm is backward stable.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+*     MB04GD EXAMPLE PROGRAM TEXT
+*
+*     .. Parameters ..
+      DOUBLE PRECISION ZERO
+      PARAMETER        ( ZERO = 0.0D0 )
+      INTEGER          NIN, NOUT
+      PARAMETER        ( NIN = 5, NOUT = 6 )
+      INTEGER          NMAX, MMAX
+      PARAMETER        ( NMAX = 10, MMAX = 10 )
+      INTEGER          LDA
+      PARAMETER        ( LDA = MMAX )
+      INTEGER          LDTAU
+      PARAMETER        ( LDTAU = MIN(MMAX,NMAX) )
+      INTEGER          LDWORK
+      PARAMETER        ( LDWORK = 3*MMAX )
+*     .. Local Scalars ..
+      INTEGER          I, INFO, J, M, N
+*     .. Local Arrays ..
+      DOUBLE PRECISION A(LDA,NMAX), DWORK(LDWORK), TAU(LDTAU)
+      INTEGER          JPVT(MMAX)
+*     .. External Subroutines ..
+      EXTERNAL         DLASET, MB04GD
+*     .. Intrinsic Functions ..
+      INTRINSIC        MIN
+*     .. Executable Statements ..
+*
+      WRITE ( NOUT, FMT = 99999 )
+*     Skip the heading in the data file and read the data.
+      READ ( NIN, FMT = '()' )
+      READ ( NIN, FMT = * ) M, N
+      IF ( N.LT.0 .OR. N.GT.NMAX ) THEN
+         WRITE ( NOUT, FMT = 99972 ) N
+      ELSE
+         IF ( M.LT.0 .OR. M.GT.MMAX ) THEN
+            WRITE ( NOUT, FMT = 99971 ) M
+         ELSE
+            READ ( NIN, FMT = * ) ( ( A(I,J), J = 1,N ), I = 1,M )
+            READ ( NIN, FMT = * ) ( JPVT(I), I = 1,M )
+*           RQ with row pivoting.
+            CALL MB04GD( M, N, A, LDA, JPVT, TAU, DWORK, INFO )
+*
+            IF ( INFO.NE.0 ) THEN
+               WRITE ( NOUT, FMT = 99998 ) INFO
+            ELSE
+               WRITE ( NOUT, FMT = 99994 ) ( JPVT(I), I = 1,M )
+               WRITE ( NOUT, FMT = 99990 )
+               IF ( M.GE.N ) THEN
+                  IF ( N.GT.1 )
+     $               CALL DLASET( 'Lower', N-1, N-1, ZERO, ZERO,
+     $                            A(M-N+2,1), LDA )
+                ELSE
+                   CALL DLASET( 'Full', M, N-M-1, ZERO, ZERO, A, LDA )
+                   CALL DLASET( 'Lower', M, M, ZERO, ZERO, A(1,N-M),
+     $                          LDA )
+               END IF
+               DO 20 I = 1, M
+                  WRITE ( NOUT, FMT = 99989 ) ( A(I,J), J = 1,N )
+   20          CONTINUE
+            END IF
+         END IF
+      END IF
+*
+      STOP
+*
+99999 FORMAT (' MB04GD EXAMPLE PROGRAM RESULTS',/1X)
+99998 FORMAT (' INFO on exit from MB04GD = ',I2)
+99994 FORMAT (' Row permutations are ',/(20(I3,2X)))
+99990 FORMAT (/' The matrix A is ')
+99989 FORMAT (20(1X,F8.4))
+99972 FORMAT (/' N is out of range.',/' N = ',I5)
+99971 FORMAT (/' M is out of range.',/' M = ',I5)
+      END
+</PRE>
+<B>Program Data</B>
+<PRE>
+ MB04GD EXAMPLE PROGRAM DATA
+   6     5 
+   1.    2.    6.    3.    5.
+  -2.   -1.   -1.    0.   -2.
+   5.    5.    1.    5.    1.
+  -2.   -1.   -1.    0.   -2.
+   4.    8.    4.   20.    4.
+  -2.   -1.   -1.    0.   -2.
+   0     0     0     0     0     0
+</PRE>
+<B>Program Results</B>
+<PRE>
+ MB04GD EXAMPLE PROGRAM RESULTS
+
+ Row permutations are 
+  2    4    6    3    1    5
+
+ The matrix A is 
+   0.0000  -1.0517  -1.8646  -1.9712   1.2374
+   0.0000  -1.0517  -1.8646  -1.9712   1.2374
+   0.0000  -1.0517  -1.8646  -1.9712   1.2374
+   0.0000   0.0000   4.6768   0.0466  -7.4246
+   0.0000   0.0000   0.0000   6.7059  -5.4801
+   0.0000   0.0000   0.0000   0.0000 -22.6274
+</PRE>
+
+<HR>
+<p>
+<A HREF=..\libindex.html><B>Return to index</B></A></BODY>
+</HTML>

@@ -1,0 +1,316 @@
+<HTML>
+<HEAD><TITLE>TB01TD - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="TB01TD">TB01TD</A></H2>
+<H3>
+Balancing state-space representation by permutations and scalings
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To reduce a given state-space representation (A,B,C,D) to
+  balanced form by means of state permutations and state, input and
+  output scalings.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE TB01TD( N, M, P, A, LDA, B, LDB, C, LDC, D, LDD, LOW,
+     $                   IGH, SCSTAT, SCIN, SCOUT, DWORK, INFO )
+C     .. Scalar Arguments ..
+      INTEGER           IGH, INFO, LDA, LDB, LDC, LDD, LOW, M, N, P
+C     .. Array Arguments ..
+      DOUBLE PRECISION  A(LDA,*), B(LDB,*), C(LDC,*), D(LDD,*),
+     $                  DWORK(*), SCIN(*), SCOUT(*), SCSTAT(*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The order of the state-space representation, i.e. the
+          order of the original state dynamics matrix A.  N &gt;= 0.
+
+  M       (input) INTEGER
+          The number of system inputs.  M &gt;= 0.
+
+  P       (input) INTEGER
+          The number of system outputs.  P &gt;= 0.
+
+  A       (input/output) DOUBLE PRECISION array, dimension (LDA,N)
+          On entry, the leading N-by-N part of this array must
+          contain the original state dynamics matrix A.
+          On exit, the leading N-by-N part of this array contains
+          the balanced state dynamics matrix A.
+
+  LDA     INTEGER
+          The leading dimension of array A.  LDA &gt;= MAX(1,N).
+
+  B       (input/output) DOUBLE PRECISION array, dimension (LDB,M)
+          On entry, the leading N-by-M part of this array must
+          contain the original input/state matrix B.
+          On exit, the leading N-by-M part of this array contains
+          the balanced input/state matrix B.
+
+  LDB     INTEGER
+          The leading dimension of array B.  LDB &gt;= MAX(1,N).
+
+  C       (input/output) DOUBLE PRECISION array, dimension (LDC,N)
+          On entry, the leading P-by-N part of this array must
+          contain the original state/output matrix C.
+          On exit, the leading P-by-N part of this array contains
+          the balanced state/output matrix C.
+
+  LDC     INTEGER
+          The leading dimension of array C.  LDC &gt;= MAX(1,P).
+
+  D       (input/output) DOUBLE PRECISION array, dimension (LDD,M)
+          On entry, the leading P-by-M part of this array must
+          contain the original direct transmission matrix D.
+          On exit, the leading P-by-M part of this array contains
+          the scaled direct transmission matrix D.
+
+  LDD     INTEGER
+          The leading dimension of array D.  LDD &gt;= MAX(1,P).
+
+  LOW     (output) INTEGER
+          The index of the lower end of the balanced submatrix of A.
+
+  IGH     (output) INTEGER
+          The index of the upper end of the balanced submatrix of A.
+
+  SCSTAT  (output) DOUBLE PRECISION array, dimension (N)
+          This array contains the information defining the
+          similarity transformations used to permute and balance
+          the state dynamics matrix A, as returned from the LAPACK
+          library routine DGEBAL.
+
+  SCIN    (output) DOUBLE PRECISION array, dimension (M)
+          Contains the scalars used to scale the system inputs so
+          that the columns of the final matrix B have norms roughly
+          equal to the column sums of the balanced matrix A
+          (see FURTHER COMMENTS).
+          The j-th input of the balanced state-space representation
+          is SCIN(j)*(j-th column of the permuted and balanced
+          input/state matrix B).
+
+  SCOUT   (output) DOUBLE PRECISION array, dimension (P)
+          Contains the scalars used to scale the system outputs so
+          that the rows of the final matrix C have norms roughly
+          equal to the row sum of the balanced matrix A.
+          The i-th output of the balanced state-space representation
+          is SCOUT(i)*(i-th row of the permuted and balanced
+          state/ouput matrix C).
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  DWORK   DOUBLE PRECISION array, dimension (N)
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  Similarity transformations are used to permute the system states
+  and balance the corresponding row and column sum norms of a
+  submatrix of the state dynamics matrix A. These operations are
+  also applied to the input/state matrix B and the system inputs
+  are then scaled (see parameter SCIN) so that the columns of the
+  final matrix B have norms roughly equal to the column sum norm of
+  the balanced matrix A (see FURTHER COMMENTS).
+  The above operations are also applied to the matrix C, and the
+  system outputs are then scaled (see parameter SCOUT) so that the
+  rows of the final matrix C have norms roughly equal to the row sum
+  norm of the balanced matrix A (see FURTHER COMMENTS).
+  Finally, the (I,J)-th element of the direct transmission matrix D
+  is scaled as
+       D(I,J) = D(I,J)*(1.0/SCIN(J))*SCOUT(I), where I = 1,2,...,P
+  and J = 1,2,...,M.
+
+  Scaling performed to balance the row/column sum norms is by
+  integer powers of the machine base so as to avoid introducing
+  rounding errors.
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Wilkinson, J.H. and Reinsch, C.
+      Handbook for Automatic Computation, (Vol II, Linear Algebra).
+      Springer-Verlag, 1971, (contribution II/11).
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>                            3
+  The algorithm requires 0(N ) operations and is backward stable.
+
+</PRE>
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  The columns (rows) of the final matrix B (matrix C) have norms
+  'roughly' equal to the column (row) sum norm of the balanced
+  matrix A, i.e.
+     size/BASE &lt; abssum &lt;= size
+  where
+     BASE   = the base of the arithmetic used on the computer, which
+              can be obtained from the LAPACK Library routine
+              DLAMCH;
+
+     size   = column or row sum norm of the balanced matrix A;
+     abssum = column sum norm of the balanced matrix B or row sum
+              norm of the balanced matrix C.
+
+  The routine is BASE dependent.
+
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+*     TB01TD EXAMPLE PROGRAM TEXT.
+*
+*     .. Parameters ..
+      INTEGER          NIN, NOUT
+      PARAMETER        ( NIN = 5, NOUT = 6 )
+      INTEGER          NMAX, MMAX, PMAX
+      PARAMETER        ( NMAX = 20, MMAX = 20, PMAX = 20 )
+      INTEGER          LDA, LDB, LDC, LDD
+      PARAMETER        ( LDA = NMAX, LDB = NMAX, LDC = PMAX,
+     $                   LDD = PMAX )
+*     .. Local Scalars ..
+      INTEGER          I, INFO, IGH, J, LOW, M, N, P
+*     .. Local Arrays ..
+      DOUBLE PRECISION A(LDA,NMAX), B(LDB,MMAX), C(LDC,NMAX),
+     $                 D(LDD,MMAX), DWORK(NMAX), SCIN(MMAX),
+     $                 SCOUT(PMAX), SCSTAT(NMAX)
+*     .. External Subroutines ..
+      EXTERNAL         TB01TD
+*     .. Executable Statements ..
+*
+      WRITE ( NOUT, FMT = 99999 )
+*     Skip the heading in the data file and read the data.
+      READ ( NIN, FMT = '()' )
+      READ ( NIN, FMT = * ) N, M, P
+      IF ( N.LE.0 .OR. N.GT.NMAX ) THEN
+         WRITE ( NOUT, FMT = 99991 ) N
+      ELSE
+         READ ( NIN, FMT = * ) ( ( A(I,J), J = 1,N ), I = 1,N )
+         IF ( M.LE.0 .OR. M.GT.MMAX ) THEN
+            WRITE ( NOUT, FMT = 99990 ) M
+         ELSE
+            READ ( NIN, FMT = * ) ( ( B(I,J), I = 1,N ), J = 1,M )
+            IF ( P.LE.0 .OR. P.GT.PMAX ) THEN
+               WRITE ( NOUT, FMT = 99989 ) P
+            ELSE
+               READ ( NIN, FMT = * ) ( ( C(I,J), J = 1,N ), I = 1,P )
+               READ ( NIN, FMT = * ) ( ( D(I,J), J = 1,M ), I = 1,P )
+*              Balance the state-space representation (A,B,C,D).
+               CALL TB01TD( N, M, P, A, LDA, B, LDB, C, LDC, D, LDD,
+     $                      LOW, IGH, SCSTAT, SCIN, SCOUT, DWORK, INFO )
+*
+               IF ( INFO.NE.0 ) THEN
+                  WRITE ( NOUT, FMT = 99998 ) INFO
+               ELSE
+                  WRITE ( NOUT, FMT = 99997 ) LOW, IGH
+                  WRITE ( NOUT, FMT = 99996 )
+                  DO 20 I = 1, N
+                     WRITE ( NOUT, FMT = 99995 ) ( A(I,J), J = 1,N )
+   20             CONTINUE
+                  WRITE ( NOUT, FMT = 99994 )
+                  DO 40 I = 1, N
+                     WRITE ( NOUT, FMT = 99995 ) ( B(I,J), J = 1,M )
+   40             CONTINUE
+                  WRITE ( NOUT, FMT = 99993 )
+                  DO 60 I = 1, P
+                     WRITE ( NOUT, FMT = 99995 ) ( C(I,J), J = 1,N )
+   60             CONTINUE
+                  WRITE ( NOUT, FMT = 99992 )
+                  DO 80 I = 1, P
+                     WRITE ( NOUT, FMT = 99995 ) ( D(I,J), J = 1,M )
+   80             CONTINUE
+               END IF
+            END IF
+         END IF
+      END IF
+      STOP
+*
+99999 FORMAT (' TB01TD EXAMPLE PROGRAM RESULTS',/1X)
+99998 FORMAT (' INFO on exit from TB01TD = ',I2)
+99997 FORMAT (' LOW = ',I2,'   IGH = ',I2,/)
+99996 FORMAT (' The balanced state dynamics matrix A is ')
+99995 FORMAT (20(1X,F9.4))
+99994 FORMAT (/' The balanced input/state matrix B is ')
+99993 FORMAT (/' The balanced state/output matrix C is ')
+99992 FORMAT (/' The scaled direct transmission matrix D is ')
+99991 FORMAT (/' N is out of range.',/' N = ',I5)
+99990 FORMAT (/' M is out of range.',/' M = ',I5)
+99989 FORMAT (/' P is out of range.',/' P = ',I5)
+      END
+</PRE>
+<B>Program Data</B>
+<PRE>
+ TB01TD EXAMPLE PROGRAM DATA
+   5     2     2
+   0.0   0.0   1.0   4.0   5.0
+  50.0  10.0   1.0   0.0   0.0
+   0.0   0.0  90.0  10.0   0.0
+   0.0   1.0   1.0   1.0   1.0
+ 100.0   0.0   0.0   0.0  70.0
+   0.0   2.0   0.0   1.0   2.0
+   0.0  20.0 100.0   1.0   0.0
+   1.0   0.0   0.0   1.0   0.0
+   1.0   1.0   0.0   2.0   1.0
+   1.0   1.0   1.0   1.0
+</PRE>
+<B>Program Results</B>
+<PRE>
+ TB01TD EXAMPLE PROGRAM RESULTS
+
+ LOW =  1   IGH =  5
+
+ The balanced state dynamics matrix A is 
+    0.0000    0.0000    1.0000    4.0000   40.0000
+    6.2500   10.0000    0.1250    0.0000    0.0000
+    0.0000    0.0000   90.0000   10.0000    0.0000
+    0.0000    8.0000    1.0000    1.0000    8.0000
+   12.5000    0.0000    0.0000    0.0000   70.0000
+
+ The balanced input/state matrix B is 
+    0.0000    0.0000
+   16.0000    2.5000
+    0.0000  100.0000
+   64.0000    1.0000
+   16.0000    0.0000
+
+ The balanced state/output matrix C is 
+   32.0000    0.0000    0.0000   32.0000    0.0000
+    4.0000   32.0000    0.0000    8.0000   32.0000
+
+ The scaled direct transmission matrix D is 
+ 2048.0000   32.0000
+  256.0000    4.0000
+</PRE>
+
+<HR>
+<p>
+<A HREF=..\libindex.html><B>Return to index</B></A></BODY>
+</HTML>

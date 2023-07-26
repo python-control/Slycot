@@ -1,0 +1,432 @@
+<HTML>
+<HEAD><TITLE>MB03WD - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MB03WD">MB03WD</A></H2>
+<H3>
+Schur decomposition and eigenvalues of a product of matrices in periodic Hessenberg form
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To compute the Schur decomposition and the eigenvalues of a
+  product of matrices, H = H_1*H_2*...*H_p, with H_1 an upper
+  Hessenberg matrix and H_2, ..., H_p upper triangular matrices,
+  without evaluating the product. Specifically, the matrices Z_i
+  are computed, such that
+
+          Z_1' * H_1 * Z_2 = T_1,
+          Z_2' * H_2 * Z_3 = T_2,
+                 ...
+          Z_p' * H_p * Z_1 = T_p,
+
+  where T_1 is in real Schur form, and T_2, ..., T_p are upper
+  triangular.
+
+  The routine works primarily with the Hessenberg and triangular
+  submatrices in rows and columns ILO to IHI, but optionally applies
+  the transformations to all the rows and columns of the matrices
+  H_i, i = 1,...,p. The transformations can be optionally
+  accumulated.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MB03WD( JOB, COMPZ, N, P, ILO, IHI, ILOZ, IHIZ, H,
+     $                   LDH1, LDH2, Z, LDZ1, LDZ2, WR, WI, DWORK,
+     $                   LDWORK, INFO )
+C     .. Scalar Arguments ..
+      CHARACTER         COMPZ, JOB
+      INTEGER           IHI, IHIZ, ILO, ILOZ, INFO, LDH1, LDH2, LDWORK,
+     $                  LDZ1, LDZ2, N, P
+C     .. Array Arguments ..
+      DOUBLE PRECISION  DWORK( * ), H( LDH1, LDH2, * ), WI( * ),
+     $                  WR( * ), Z( LDZ1, LDZ2, * )
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  JOB     CHARACTER*1
+          Indicates whether the user wishes to compute the full
+          Schur form or the eigenvalues only, as follows:
+          = 'E':  Compute the eigenvalues only;
+          = 'S':  Compute the factors T_1, ..., T_p of the full
+                  Schur form, T = T_1*T_2*...*T_p.
+
+  COMPZ   CHARACTER*1
+          Indicates whether or not the user wishes to accumulate
+          the matrices Z_1, ..., Z_p, as follows:
+          = 'N':  The matrices Z_1, ..., Z_p are not required;
+          = 'I':  Z_i is initialized to the unit matrix and the
+                  orthogonal transformation matrix Z_i is returned,
+                  i = 1, ..., p;
+          = 'V':  Z_i must contain an orthogonal matrix Q_i on
+                  entry, and the product Q_i*Z_i is returned,
+                  i = 1, ..., p.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The order of the matrix H.  N &gt;= 0.
+
+  P       (input) INTEGER
+          The number of matrices in the product H_1*H_2*...*H_p.
+          P &gt;= 1.
+
+  ILO     (input) INTEGER
+  IHI     (input) INTEGER
+          It is assumed that all matrices H_j, j = 2, ..., p, are
+          already upper triangular in rows and columns 1:ILO-1 and
+          IHI+1:N, and H_1 is upper quasi-triangular in rows and
+          columns 1:ILO-1 and IHI+1:N, with H_1(ILO,ILO-1) = 0
+          (unless ILO = 1), and H_1(IHI+1,IHI) = 0 (unless IHI = N).
+          The routine works primarily with the Hessenberg submatrix
+          in rows and columns ILO to IHI, but applies the
+          transformations to all the rows and columns of the
+          matrices H_i, i = 1,...,p, if JOB = 'S'.
+          1 &lt;= ILO &lt;= max(1,N); min(ILO,N) &lt;= IHI &lt;= N.
+
+  ILOZ    (input) INTEGER
+  IHIZ    (input) INTEGER
+          Specify the rows of Z to which the transformations must be
+          applied if COMPZ = 'I' or COMPZ = 'V'.
+          1 &lt;= ILOZ &lt;= ILO; IHI &lt;= IHIZ &lt;= N.
+
+  H       (input/output) DOUBLE PRECISION array, dimension
+          (LDH1,LDH2,P)
+          On entry, the leading N-by-N part of H(*,*,1) must contain
+          the upper Hessenberg matrix H_1 and the leading N-by-N
+          part of H(*,*,j) for j &gt; 1 must contain the upper
+          triangular matrix H_j, j = 2, ..., p.
+          On exit, if JOB = 'S', the leading N-by-N part of H(*,*,1)
+          is upper quasi-triangular in rows and columns ILO:IHI,
+          with any 2-by-2 diagonal blocks corresponding to a pair of
+          complex conjugated eigenvalues, and the leading N-by-N
+          part of H(*,*,j) for j &gt; 1 contains the resulting upper
+          triangular matrix T_j.
+          If JOB = 'E', the contents of H are unspecified on exit.
+
+  LDH1    INTEGER
+          The first leading dimension of the array H.
+          LDH1 &gt;= max(1,N).
+
+  LDH2    INTEGER
+          The second leading dimension of the array H.
+          LDH2 &gt;= max(1,N).
+
+  Z       (input/output) DOUBLE PRECISION array, dimension
+          (LDZ1,LDZ2,P)
+          On entry, if COMPZ = 'V', the leading N-by-N-by-P part of
+          this array must contain the current matrix Q of
+          transformations accumulated by SLICOT Library routine
+          MB03VY.
+          If COMPZ = 'I', Z need not be set on entry.
+          On exit, if COMPZ = 'V', or COMPZ = 'I', the leading
+          N-by-N-by-P part of this array contains the transformation
+          matrices which produced the Schur form; the
+          transformations are applied only to the submatrices
+          Z_j(ILOZ:IHIZ,ILO:IHI), j = 1, ..., P.
+          If COMPZ = 'N', Z is not referenced.
+
+  LDZ1    INTEGER
+          The first leading dimension of the array Z.
+          LDZ1 &gt;= 1,        if COMPZ = 'N';
+          LDZ1 &gt;= max(1,N), if COMPZ = 'I' or COMPZ = 'V'.
+
+  LDZ2    INTEGER
+          The second leading dimension of the array Z.
+          LDZ2 &gt;= 1,        if COMPZ = 'N';
+          LDZ2 &gt;= max(1,N), if COMPZ = 'I' or COMPZ = 'V'.
+
+  WR      (output) DOUBLE PRECISION array, dimension (N)
+  WI      (output) DOUBLE PRECISION array, dimension (N)
+          The real and imaginary parts, respectively, of the
+          computed eigenvalues ILO to IHI are stored in the
+          corresponding elements of WR and WI. If two eigenvalues
+          are computed as a complex conjugate pair, they are stored
+          in consecutive elements of WR and WI, say the i-th and
+          (i+1)th, with WI(i) &gt; 0 and WI(i+1) &lt; 0. If JOB = 'S', the
+          eigenvalues are stored in the same order as on the
+          diagonal of the Schur form returned in H.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+
+  LDWORK  INTEGER
+          The length of the array DWORK.  LDWORK &gt;= IHI-ILO+P-1.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value;
+          &gt; 0:  if INFO = i, ILO &lt;= i &lt;= IHI, the QR algorithm
+                failed to compute all the eigenvalues ILO to IHI
+                in a total of 30*(IHI-ILO+1) iterations;
+                the elements i+1:IHI of WR and WI contain those
+                eigenvalues which have been successfully computed.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  A refined version of the QR algorithm proposed in [1] and [2] is
+  used. The elements of the subdiagonal, diagonal, and the first
+  supradiagonal of current principal submatrix of H are computed
+  in the process.
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Bojanczyk, A.W., Golub, G. and Van Dooren, P.
+      The periodic Schur decomposition: algorithms and applications.
+      Proc. of the SPIE Conference (F.T. Luk, Ed.), 1770, pp. 31-42,
+      1992.
+
+  [2] Sreedhar, J. and Van Dooren, P.
+      Periodic Schur form and some matrix equations.
+      Proc. of the Symposium on the Mathematical Theory of Networks
+      and Systems (MTNS'93), Regensburg, Germany (U. Helmke,
+      R. Mennicken and J. Saurer, Eds.), Vol. 1, pp. 339-362, 1994.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  The algorithm is numerically stable.
+
+</PRE>
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  Note that for P = 1, the LAPACK Library routine DHSEQR could be
+  more efficient on some computer architectures than this routine,
+  because DHSEQR uses a block multishift QR algorithm.
+  When P is large and JOB = 'S', it could be more efficient to
+  compute the product matrix H, and use the LAPACK Library routines.
+
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+*     MB03WD EXAMPLE PROGRAM TEXT
+*
+*     .. Parameters ..
+      INTEGER          NIN, NOUT
+      PARAMETER        ( NIN = 5, NOUT = 6 )
+      INTEGER          NMAX, PMAX
+      PARAMETER        ( NMAX = 20, PMAX = 20 )
+      INTEGER          LDA1, LDA2, LDTAU, LDZ1, LDZ2, LDZTA
+      PARAMETER        ( LDA1 = NMAX, LDA2 = NMAX, LDTAU = NMAX-1,
+     $                   LDZ1 = NMAX, LDZ2 = NMAX, LDZTA = NMAX )
+      INTEGER          LDWORK
+      PARAMETER        ( LDWORK = MAX( NMAX, NMAX + PMAX - 2 ) )
+      DOUBLE PRECISION ZERO, ONE
+      PARAMETER        ( ZERO = 0.0D0, ONE = 1.0D0 )
+*     .. Local Scalars ..
+      DOUBLE PRECISION SSQ
+      INTEGER          I, IHI, IHIZ, ILO, ILOZ, INFO, J, K, KP1, N, P
+      CHARACTER        COMPZ, JOB
+*     .. Local Arrays ..
+      DOUBLE PRECISION A(LDA1,LDA2,PMAX), AS(LDA1,LDA2,PMAX),
+     $                 DWORK(LDWORK), TAU(LDTAU,PMAX), WI(NMAX),
+     $                 WR(NMAX), Z(LDZ1,LDZ2,PMAX), ZTA(LDZTA,NMAX)
+*     .. External Functions ..
+      DOUBLE PRECISION DLANGE, DLAPY2
+      LOGICAL          LSAME
+      EXTERNAL         DLANGE, DLAPY2, LSAME
+*     .. External Subroutines ..
+      EXTERNAL         DGEMM, DLACPY, MB03VD, MB03VY, MB03WD, MB03WX
+*     .. Intrinsic Functions ..
+      INTRINSIC        MAX, MIN
+*     .. Executable Statements ..
+      WRITE (NOUT, FMT = 99999 )
+*     Skip the heading in the data file and read the data.
+      READ ( NIN, FMT = '()' )
+      READ ( NIN, FMT = * ) N, P, ILO, IHI, ILOZ, IHIZ, JOB, COMPZ
+      IF ( N.LT.0 .OR. N.GT.MIN( LDA1, LDA2 ) ) THEN
+         WRITE ( NOUT, FMT = 99988 ) N
+      ELSE
+         IF ( P.LE.0 .OR. P.GT.PMAX ) THEN
+            WRITE ( NOUT, FMT = 99987 ) P
+         ELSE
+*           Read matrices A_1, ..., A_p from the input file.
+            DO 10 K = 1, P
+               READ ( NIN, FMT = * )
+     $            ( ( A(I,J,K), J = 1, N ), I = 1, N )
+               CALL DLACPY( 'F', N, N, A(1,1,K), LDA1, AS(1,1,K), LDA1 )
+   10       CONTINUE
+*           Reduce to the periodic Hessenberg form.
+            CALL MB03VD( N, P, ILO, IHI, A, LDA1, LDA2, TAU, LDTAU,
+     $                   DWORK, INFO )
+            IF ( INFO.NE.0 ) THEN
+               WRITE ( NOUT, FMT = 99997 ) INFO
+            ELSE
+               IF ( LSAME( COMPZ, 'V' ) ) THEN
+                  DO 20 K = 1, P
+                     CALL DLACPY( 'L', N, N, A(1,1,K), LDA1, Z(1,1,K),
+     $                            LDZ1 )
+   20             CONTINUE
+*                 Accumulate the transformations.
+                  CALL MB03VY( N, P, ILO, IHI, Z, LDZ1, LDZ2, TAU,
+     $                         LDTAU, DWORK, LDWORK, INFO )
+                  IF ( INFO.NE.0 ) THEN
+                     WRITE ( NOUT, FMT = 99996 ) INFO
+                     STOP
+                  ELSE
+*                    Reduce to the periodic Schur form.
+                     CALL MB03WD( JOB, COMPZ, N, P, ILO, IHI, ILOZ,
+     $                            IHIZ, A, LDA1, LDA2, Z, LDZ1, LDZ2,
+     $                            WR, WI, DWORK, LDWORK, INFO )
+                     IF ( INFO.GT.0 ) THEN
+                        WRITE ( NOUT, FMT = 99998 ) INFO
+                        WRITE ( NOUT, FMT = 99991 )
+                        DO 30 I = MAX( ILO, INFO + 1 ), IHI
+                           WRITE ( NOUT, FMT = 99990 ) WR(I), WI(I)
+   30                   CONTINUE
+                        STOP
+                     END IF
+                     IF ( INFO.LT.0 ) THEN
+                        WRITE ( NOUT, FMT = 99998 ) INFO
+                     ELSE
+*                       Store the isolated eigenvalues.
+                        CALL MB03WX( ILO-1, P, A, LDA1, LDA2, WR, WI,
+     $                               INFO )
+                        IF ( IHI.LT.N )
+     $                     CALL MB03WX( N-IHI, P, A(IHI+1,IHI+1,1),
+     $                                  LDA1, LDA2, WR(IHI+1),
+     $                                  WI(IHI+1), INFO )
+                        WRITE ( NOUT, FMT = 99991 )
+                        DO 40 I = 1, N
+                           WRITE ( NOUT, FMT = 99990 ) WR(I), WI(I)
+   40                   CONTINUE
+                        WRITE ( NOUT, FMT = 99995 )
+                        DO 60 K = 1, P
+                           WRITE ( NOUT, FMT = 99994 ) K
+                           DO 50 I = 1, N
+                              WRITE ( NOUT, FMT = 99993 )
+     $                              ( A(I,J,K), J = 1, N )
+   50                      CONTINUE
+   60                   CONTINUE
+                        WRITE ( NOUT, FMT = 99992 )
+                        DO 80 K = 1, P
+                           WRITE ( NOUT, FMT = 99994 ) K
+                           DO 70 I = 1, N
+                              WRITE ( NOUT, FMT = 99993 )
+     $                              ( Z(I,J,K), J = 1, N )
+   70                      CONTINUE
+   80                   CONTINUE
+*                       Compute error.
+                        SSQ = ZERO
+                        DO 90 K = 1, P
+                           KP1 = K+1
+                           IF( KP1.GT.P ) KP1 = 1
+*                          Compute NORM (Z' * A * Z - Aout)
+                           CALL DGEMM( 'T', 'N', N, N, N, ONE, Z(1,1,K),
+     $                                 LDZ1, AS(1,1,K), LDA1, ZERO, ZTA,
+     $                                 LDZTA )
+                           CALL DGEMM( 'N', 'N', N, N, N, ONE, ZTA,
+     $                                 LDZTA, Z(1,1,KP1), LDZ1, -ONE,
+     $                                 A(1,1,K), LDA1 )
+                           SSQ = DLAPY2( SSQ,
+     $                                   DLANGE( 'Frobenius', N, N,
+     $                                           A(1,1,K), LDA1,
+     $                                           DWORK ) )
+   90                   CONTINUE
+                        WRITE ( NOUT, FMT = 99989 ) SSQ
+                     END IF
+                  END IF
+               END IF
+            END IF
+         END IF
+      END IF
+      STOP
+99999 FORMAT (' MB03WD EXAMPLE PROGRAM RESULTS', /1X)
+99998 FORMAT (' INFO on exit from MB03WD = ', I2)
+99997 FORMAT (' INFO on exit from MB03VD = ', I2)
+99996 FORMAT (' INFO on exit from MB03VY = ', I2)
+99995 FORMAT (/' Reduced matrices')
+99994 FORMAT (/' K = ', I5)
+99993 FORMAT (8F8.4)
+99992 FORMAT (/' Transformation matrices')
+99991 FORMAT ( ' Computed eigenvalues'/)
+99990 FORMAT (4X,'( ', F17.6,' ,', F17.6,' )')
+99989 FORMAT (/,' NORM (Z''*A*Z - Aout) = ', 1PD12.5)
+99988 FORMAT (/, ' N is out of range.',/' N = ', I5)
+99987 FORMAT (/, ' P is out of range.',/' P = ', I5)
+      END
+</PRE>
+<B>Program Data</B>
+<PRE>
+MB03WD EXAMPLE PROGRAM DATA
+4 2 1 4 1 4 S V
+1.5 -.7 3.5 -.7 
+1.  0.  2.  3. 
+1.5 -.7 2.5 -.3 
+1.  0.  2.  1. 
+1.5 -.7 3.5 -.7 
+1.  0.  2.  3. 
+1.5 -.7 2.5 -.3 
+1.  0.  2.  1. 
+</PRE>
+<B>Program Results</B>
+<PRE>
+ MB03WD EXAMPLE PROGRAM RESULTS
+
+ Computed eigenvalues
+
+    (          6.449861 ,         7.817717 )
+    (          6.449861 ,        -7.817717 )
+    (          0.091315 ,         0.000000 )
+    (          0.208964 ,         0.000000 )
+
+ Reduced matrices
+
+ K =     1
+  2.2112  4.3718 -2.3362  0.8907
+ -0.9179  2.7688 -0.6570 -2.2426
+  0.0000  0.0000  0.3022  0.1932
+  0.0000  0.0000  0.0000 -0.4571
+
+ K =     2
+  2.9169  3.4539  2.2016  1.2367
+  0.0000  3.4745  1.0209 -2.0720
+  0.0000  0.0000  0.3022 -0.1932
+  0.0000  0.0000  0.0000 -0.4571
+
+ Transformation matrices
+
+ K =     1
+  0.3493  0.6751 -0.6490  0.0327
+  0.7483 -0.4863 -0.1249 -0.4336
+  0.2939  0.5504  0.7148 -0.3158
+  0.4813 -0.0700  0.2286  0.8433
+
+ K =     2
+  0.2372  0.7221  0.6490  0.0327
+  0.8163 -0.3608  0.1249 -0.4336
+  0.2025  0.5902 -0.7148 -0.3158
+  0.4863  0.0076 -0.2286  0.8433
+
+ NORM (Z'*A*Z - Aout) =  7.18432D-15
+</PRE>
+
+<HR>
+<p>
+<A HREF=..\libindex.html><B>Return to index</B></A></BODY>
+</HTML>

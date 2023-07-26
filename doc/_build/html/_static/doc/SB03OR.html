@@ -1,0 +1,159 @@
+<HTML>
+<HEAD><TITLE>SB03OR - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="SB03OR">SB03OR</A></H2>
+<H3>
+Solving continuous- or discrete-time Sylvester equations, with matrix S quasi-triangular, for an n-by-m matrix X, 1 <= m <= 2
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To compute the solution of the Sylvester equations
+
+     op(S)'*X + X*op(A) = scale*C, if DISCR = .FALSE.  or
+
+     op(S)'*X*op(A) - X = scale*C, if DISCR = .TRUE.
+
+  where op(K) = K or K' (i.e., the transpose of the matrix K), S is
+  an N-by-N block upper triangular matrix with one-by-one and
+  two-by-two blocks on the diagonal, A is an M-by-M matrix (M = 1 or
+  M = 2), X and C are each N-by-M matrices, and scale is an output
+  scale factor, set less than or equal to 1 to avoid overflow in X.
+  The solution X is overwritten on C.
+
+  SB03OR  is a service routine for the Lyapunov solver  SB03OT.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE SB03OR( DISCR, LTRANS, N, M, S, LDS, A, LDA, C, LDC,
+     $                   SCALE, INFO )
+C     .. Scalar Arguments ..
+      LOGICAL            DISCR, LTRANS
+      INTEGER            INFO, LDA, LDS, LDC, M, N
+      DOUBLE PRECISION   SCALE
+C     .. Array Arguments ..
+      DOUBLE PRECISION   A( LDA, * ), C( LDC, * ), S( LDS, * )
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  DISCR   LOGICAL
+          Specifies the equation to be solved:
+          = .FALSE.:  op(S)'*X + X*op(A) = scale*C;
+          = .TRUE. :  op(S)'*X*op(A) - X = scale*C.
+
+  LTRANS  LOGICAL
+          Specifies the form of op(K) to be used, as follows:
+          = .FALSE.:  op(K) = K    (No transpose);
+          = .TRUE. :  op(K) = K**T (Transpose).
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The order of the matrix  S  and also the number of rows of
+          matrices  X and C.  N &gt;= 0.
+
+  M       (input) INTEGER
+          The order of the matrix  A  and also the number of columns
+          of matrices  X and C.  M = 1 or M = 2.
+
+  S       (input) DOUBLE PRECISION array, dimension (LDS,N)
+          The leading  N-by-N  upper Hessenberg part of the array  S
+          must contain the block upper triangular matrix. The
+          elements below the upper Hessenberg part of the array  S
+          are not referenced.  The array  S  must not contain
+          diagonal blocks larger than two-by-two and the two-by-two
+          blocks must only correspond to complex conjugate pairs of
+          eigenvalues, not to real eigenvalues.
+
+  LDS     INTEGER
+          The leading dimension of array S.  LDS &gt;= MAX(1,N).
+
+  A       (input) DOUBLE PRECISION array, dimension (LDS,M)
+          The leading  M-by-M  part of this array must contain a
+          given matrix, where M = 1 or M = 2.
+
+  LDA     INTEGER
+          The leading dimension of array A.  LDA &gt;= M.
+
+  C       (input/output) DOUBLE PRECISION array, dimension (LDC,M)
+          On entry, C must contain an N-by-M matrix, where M = 1 or
+          M = 2.
+          On exit, C contains the N-by-M matrix X, the solution of
+          the Sylvester equation.
+
+  LDC     INTEGER
+          The leading dimension of array C.  LDC &gt;= MAX(1,N).
+
+  SCALE   (output) DOUBLE PRECISION
+          The scale factor, scale, set less than or equal to 1 to
+          prevent the solution overflowing.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          = 1:  if DISCR = .FALSE., and S and -A have common
+                eigenvalues, or if DISCR = .TRUE., and S and A have
+                eigenvalues whose product is equal to unity;
+                a solution has been computed using slightly
+                perturbed values.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  The LAPACK scheme for solving Sylvester equations is adapted.
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Hammarling, S.J.
+      Numerical solution of the stable, non-negative definite
+      Lyapunov equation.
+      IMA J. Num. Anal., 2, pp. 303-325, 1982.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>                            2
+  The algorithm requires 0(N M) operations and is backward stable.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

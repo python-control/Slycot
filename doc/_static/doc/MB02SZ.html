@@ -1,0 +1,116 @@
+<HTML>
+<HEAD><TITLE>MB02SZ - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MB02SZ">MB02SZ</A></H2>
+<H3>
+LU factorization of a complex upper Hessenberg matrix H
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To compute an LU factorization of a complex n-by-n upper
+  Hessenberg matrix H using partial pivoting with row interchanges.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MB02SZ( N, H, LDH, IPIV, INFO )
+C     .. Scalar Arguments ..
+      INTEGER           INFO, LDH, N
+C     .. Array Arguments ..
+      INTEGER           IPIV(*)
+      COMPLEX*16        H(LDH,*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The order of the matrix H.  N &gt;= 0.
+
+  H       (input/output) COMPLEX*16 array, dimension (LDH,N)
+          On entry, the n-by-n upper Hessenberg matrix to be
+          factored.
+          On exit, the factors L and U from the factorization
+          H = P*L*U; the unit diagonal elements of L are not stored,
+          and L is lower bidiagonal.
+
+  LDH     INTEGER
+          The leading dimension of the array H.  LDH &gt;= max(1,N).
+
+  IPIV    (output) INTEGER array, dimension (N)
+          The pivot indices; for 1 &lt;= i &lt;= N, row i of the matrix
+          was interchanged with row IPIV(i).
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value;
+          &gt; 0:  if INFO = i, U(i,i) is exactly zero. The
+                factorization has been completed, but the factor U
+                is exactly singular, and division by zero will occur
+                if it is used to solve a system of equations.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  The factorization has the form
+     H = P * L * U
+  where P is a permutation matrix, L is lower triangular with unit
+  diagonal elements (and one nonzero subdiagonal), and U is upper
+  triangular.
+
+  This is the right-looking Level 2 BLAS version of the algorithm
+  (adapted after ZGETF2).
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  -
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>                             2
+  The algorithm requires 0( N ) complex operations.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<p>
+<A HREF=..\libindex.html><B>Return to index</B></A></BODY>
+</HTML>

@@ -1,0 +1,462 @@
+<HTML>
+<HEAD><TITLE>MB02MD - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MB02MD">MB02MD</A></H2>
+<H3>
+Solution of Total Least-Squares problem using a SVD approach
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To solve the Total Least Squares (TLS) problem using a Singular
+  Value Decomposition (SVD) approach.
+  The TLS problem assumes an overdetermined set of linear equations
+  AX = B, where both the data matrix A as well as the observation
+  matrix B are inaccurate. The routine also solves determined and
+  underdetermined sets of equations by computing the minimum norm
+  solution.
+  It is assumed that all preprocessing measures (scaling, coordinate
+  transformations, whitening, ... ) of the data have been performed
+  in advance.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MB02MD( JOB, M, N, L, RANK, C, LDC, S, X, LDX, TOL,
+     $                   IWORK, DWORK, LDWORK, IWARN, INFO )
+C     .. Scalar Arguments ..
+      CHARACTER         JOB
+      INTEGER           INFO, IWARN, L, LDC, LDWORK, LDX, M, N, RANK
+      DOUBLE PRECISION  TOL
+C     .. Array Arguments ..
+      INTEGER           IWORK(*)
+      DOUBLE PRECISION  C(LDC,*), DWORK(*), S(*), X(LDX,*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  JOB     CHARACTER*1
+          Determines whether the values of the parameters RANK and
+          TOL are to be specified by the user or computed by the
+          routine as follows:
+          = 'R':  Compute RANK only;
+          = 'T':  Compute TOL only;
+          = 'B':  Compute both RANK and TOL;
+          = 'N':  Compute neither RANK nor TOL.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  M       (input) INTEGER
+          The number of rows in the data matrix A and the
+          observation matrix B.  M &gt;= 0.
+
+  N       (input) INTEGER
+          The number of columns in the data matrix A.  N &gt;= 0.
+
+  L       (input) INTEGER
+          The number of columns in the observation matrix B.
+          L &gt;= 0.
+
+  RANK    (input/output) INTEGER
+          On entry, if JOB = 'T' or JOB = 'N', then RANK must
+          specify r, the rank of the TLS approximation [A+DA|B+DB].
+          RANK &lt;= min(M,N).
+          Otherwise, r is computed by the routine.
+          On exit, if JOB = 'R' or JOB = 'B', and INFO = 0, then
+          RANK contains the computed (effective) rank of the TLS
+          approximation [A+DA|B+DB].
+          Otherwise, the user-supplied value of RANK may be
+          changed by the routine on exit if the RANK-th and the
+          (RANK+1)-th singular values of C = [A|B] are considered
+          to be equal, or if the upper triangular matrix F (as
+          defined in METHOD) is (numerically) singular.
+
+  C       (input/output) DOUBLE PRECISION array, dimension (LDC,N+L)
+          On entry, the leading M-by-(N+L) part of this array must
+          contain the matrices A and B. Specifically, the first N
+          columns must contain the data matrix A and the last L
+          columns the observation matrix B (right-hand sides).
+          On exit, the leading (N+L)-by-(N+L) part of this array
+          contains the (transformed) right singular vectors,
+          including null space vectors, if any, of C = [A|B].
+          Specifically, the leading (N+L)-by-RANK part of this array
+          always contains the first RANK right singular vectors,
+          corresponding to the largest singular values of C. If
+          L = 0, or if RANK = 0 and IWARN &lt;&gt; 2, the remaining
+          (N+L)-by-(N+L-RANK) top-right part of this array contains
+          the remaining N+L-RANK right singular vectors. Otherwise,
+          this part contains the matrix V2 transformed as described
+          in Step 3 of the TLS algorithm (see METHOD).
+
+  LDC     INTEGER
+          The leading dimension of array C.  LDC &gt;= max(1,M,N+L).
+
+  S       (output) DOUBLE PRECISION array, dimension (min(M,N+L))
+          If INFO = 0, the singular values of matrix C, ordered
+          such that S(1) &gt;= S(2) &gt;= ... &gt;= S(p-1) &gt;= S(p) &gt;= 0,
+          where p = min(M,N+L).
+
+  X       (output) DOUBLE PRECISION array, dimension (LDX,L)
+          If INFO = 0, the leading N-by-L part of this array
+          contains the solution X to the TLS problem specified
+          by A and B.
+
+  LDX     INTEGER
+          The leading dimension of array X.  LDX &gt;= max(1,N).
+
+</PRE>
+<B>Tolerances</B>
+<PRE>
+  TOL     DOUBLE PRECISION
+          A tolerance used to determine the rank of the TLS
+          approximation [A+DA|B+DB] and to check the multiplicity
+          of the singular values of matrix C. Specifically, S(i)
+          and S(j) (i &lt; j) are considered to be equal if
+          SQRT(S(i)**2 - S(j)**2) &lt;= TOL, and the TLS approximation
+          [A+DA|B+DB] has rank r if S(i) &gt; TOL*S(1) (or S(i) &gt; TOL,
+          if TOL specifies sdev (see below)), for i = 1,2,...,r.
+          TOL is also used to check the singularity of the upper
+          triangular matrix F (as defined in METHOD).
+          If JOB = 'R' or JOB = 'N', then TOL must specify the
+          desired tolerance. If the user sets TOL to be less than or
+          equal to 0, the tolerance is taken as EPS, where EPS is
+          the machine precision (see LAPACK Library routine DLAMCH).
+          Otherwise, the tolerance is computed by the routine and
+          the user must supply the non-negative value sdev, i.e. the
+          estimated standard deviation of the error on each element
+          of the matrix C, as input value of TOL.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  IWORK   INTEGER array, dimension (L)
+
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+          On exit, if INFO = 0, DWORK(1) returns the optimal value
+          of LDWORK, and DWORK(2) returns the reciprocal of the
+          condition number of the matrix F.
+          If INFO &gt; 0, DWORK(1:min(M,N+L)-1) contain the unconverged
+          non-diagonal elements of the bidiagonal matrix whose
+          diagonal is in S (see LAPACK Library routine DGESVD).
+
+  LDWORK  INTEGER
+          The length of the array DWORK.
+          LDWORK = max(2, 3*(N+L) + M, 5*(N+L)),       if M &gt;= N+L;
+          LDWORK = max(2, M*(N+L) + max( 3M+N+L, 5*M), 3*L),
+                                                       if M &lt;  N+L.
+          For optimum performance LDWORK should be larger.
+
+          If LDWORK = -1, then a workspace query is assumed;
+          the routine only calculates the optimal size of the
+          DWORK array, returns this value as the first entry of
+          the DWORK array, and no error message related to LDWORK
+          is issued by XERBLA.
+
+</PRE>
+<B>Warning Indicator</B>
+<PRE>
+  IWARN   INTEGER
+          = 0:  no warnings;
+          = 1:  if the rank of matrix C has been lowered because a
+                singular value of multiplicity greater than 1 was
+                found;
+          = 2:  if the rank of matrix C has been lowered because the
+                upper triangular matrix F is (numerically) singular.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value;
+          &gt; 0:  if the SVD algorithm (in LAPACK Library routine
+                DBDSQR) has failed to converge. In this case, S(1),
+                S(2), ..., S(INFO) may not have been found
+                correctly and the remaining singular values may
+                not be the smallest. This failure is not likely
+                to occur.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  The method used is an extension (see [3,4,5]) of the classical
+  TLS algorithm proposed by Golub and Van Loan [1].
+
+  Let [A|B] denote the matrix formed by adjoining the columns of B
+  to the columns of A on the right.
+
+  Total Least Squares (TLS) definition:
+  -------------------------------------
+
+    Given matrices A and B, find a matrix X satisfying
+
+         (A + DA) X = B + DB,
+
+    where A and DA are M-by-N matrices, B and DB are M-by-L matrices
+    and X is an N-by-L matrix.
+    The solution X must be such that the Frobenius norm of [DA|DB]
+    is a minimum and each column of B + DB is in the range of
+    A + DA. Whenever the solution is not unique, the routine singles
+    out the minimum norm solution X.
+
+  Define matrix C = [A|B] and s(i) as its i-th singular value for
+  i = 1,2,...,min(M,NL), where NL = N + L. If M &lt; NL, then s(j) = 0
+  for j = M+1,...,NL.
+
+  The Classical TLS algorithm proceeds as follows (see [3,4,5]):
+
+  Step 1: Compute part of the singular value decomposition (SVD)
+          USV' of C = [A|B], namely compute S and V'. (An initial
+          QR factorization of C is used when M is larger enough
+          than NL.)
+
+  Step 2: If not fixed by the user, compute the rank r0 of the data
+          [A|B] based on TOL as follows: if JOB = 'R' or JOB = 'N',
+
+             s(1) &gt;= ... &gt;= s(r0) &gt; TOL*s(1) &gt;= ... &gt;= s(NL).
+
+          Otherwise, using [2], TOL can be computed from the
+          standard deviation sdev of the errors on [A|B]:
+
+             TOL = SQRT(2 * max(M,NL)) * sdev,
+
+          and the rank r0 is determined (if JOB = 'R' or 'B') using
+
+             s(1) &gt;= ... &gt;= s(r0) &gt; TOL &gt;= ... &gt;= s(NL).
+
+          The rank r of the approximation [A+DA|B+DB] is then equal
+          to the minimum of N and r0.
+
+  Step 3: Let V2 be the matrix of the columns of V corresponding to
+          the (NL - r) smallest singular values of C, i.e. the last
+          (NL - r) columns of V.
+          Compute with Householder transformations the orthogonal
+          matrix Q such that:
+
+                    |VH   Y|
+           V2 x Q = |      |
+                    |0    F|
+
+          where VH is an N-by-(N - r) matrix, Y is an N-by-L matrix
+          and F is an L-by-L upper triangular matrix.
+          If F is singular, then lower the rank r with the
+          multiplicity of s(r) and repeat this step.
+
+  Step 4: If F is nonsingular then the solution X is obtained by
+          solving the following equations by forward elimination:
+
+             X F = -Y.
+
+  Notes :
+  The TLS solution is unique if r = N, F is nonsingular and
+  s(N) &gt; s(N+1).
+  If F is singular, however, then the computed solution is infinite
+  and hence does not satisfy the second TLS criterion (see TLS
+  definition). For these cases, Golub and Van Loan [1] claim that
+  the TLS problem has no solution. The properties of these so-called
+  nongeneric problems are described in [4] and the TLS computations
+  are generalized in order to solve them. As proven in [4], the
+  proposed generalization satisfies the TLS criteria for any
+  number L of observation vectors in B provided that, in addition,
+  the solution | X| is constrained to be orthogonal to all vectors
+               |-I|
+  of the form |w| which belong to the space generated by the columns
+              |0|
+  of the submatrix |Y|.
+                   |F|
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Golub, G.H. and Van Loan, C.F.
+      An Analysis of the Total Least-Squares Problem.
+      SIAM J. Numer. Anal., 17, pp. 883-893, 1980.
+
+  [2] Staar, J., Vandewalle, J. and Wemans, M.
+      Realization of Truncated Impulse Response Sequences with
+      Prescribed Uncertainty.
+      Proc. 8th IFAC World Congress, Kyoto, I, pp. 7-12, 1981.
+
+  [3] Van Huffel, S.
+      Analysis of the Total Least Squares Problem and its Use in
+      Parameter Estimation.
+      Doctoral dissertation, Dept. of Electr. Eng., Katholieke
+      Universiteit Leuven, Belgium, June 1987.
+
+  [4] Van Huffel, S. and Vandewalle, J.
+      Analysis and Solution of the Nongeneric Total Least Squares
+      Problem.
+      SIAM J. Matr. Anal. and Appl., 9, pp. 360-372, 1988.
+
+  [5] Van Huffel, S. and Vandewalle, J.
+      The Total Least Squares Problem: Computational Aspects and
+      Analysis.
+      Series "Frontiers in Applied Mathematics", Vol. 9,
+      SIAM, Philadelphia, 1991.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  The algorithm consists in (backward) stable steps.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+*     MB02MD EXAMPLE PROGRAM TEXT
+*
+*     .. Parameters ..
+      INTEGER          NIN, NOUT
+      PARAMETER        ( NIN = 5, NOUT = 6 )
+      INTEGER          MMAX, NMAX, LMAX
+      PARAMETER        ( MMAX = 20, NMAX = 20, LMAX = 20 )
+      INTEGER          LDC, LDX
+      PARAMETER        ( LDC = MAX( MMAX,NMAX+LMAX ), LDX = NMAX )
+      INTEGER          LDWORK
+      PARAMETER        ( LDWORK = MMAX*(NMAX+LMAX) +
+     $                            MAX( 3*MIN(MMAX,NMAX+LMAX) +
+     $                                   MAX(MMAX,NMAX+LMAX),
+     $                                 5*MIN(MMAX,NMAX+LMAX),
+     $                                 3*LMAX ) )
+      INTEGER          LIWORK
+      PARAMETER        ( LIWORK = LMAX )
+      INTEGER          LENGS
+      PARAMETER        ( LENGS = MIN( MMAX, NMAX+LMAX ) )
+*     .. Local Scalars ..
+      DOUBLE PRECISION SDEV, TOL
+      INTEGER          I, INFO, IWARN, J, L, M, N, RANK
+      CHARACTER*1      JOB
+*     .. Local Arrays ..
+      DOUBLE PRECISION C(LDC,NMAX+LMAX), DWORK(LDWORK), S(LENGS),
+     $                 X(LDX,LMAX)
+      INTEGER          IWORK(LIWORK)
+*     .. External Functions ..
+      LOGICAL          LSAME
+      EXTERNAL         LSAME
+*     .. External Subroutines ..
+      EXTERNAL         MB02MD
+*     .. Intrinsic Functions ..
+      INTRINSIC        MAX, MIN
+*     .. Executable Statements ..
+*
+      WRITE ( NOUT, FMT = 99999 )
+*     Skip the heading in the data file and read the data.
+      READ ( NIN, FMT = '()' )
+      READ ( NIN, FMT = * ) M, N, L, JOB
+*
+      IF ( LSAME( JOB, 'R' ) ) THEN
+         READ ( NIN, FMT = * ) TOL
+      ELSE IF ( LSAME( JOB, 'T' ) ) THEN
+         READ ( NIN, FMT = * ) RANK, SDEV
+         TOL = SDEV
+      ELSE IF ( LSAME( JOB, 'N' ) ) THEN
+         READ ( NIN, FMT = * ) RANK, TOL
+      ELSE
+         READ ( NIN, FMT = * ) SDEV
+         TOL = SDEV
+      END IF
+*
+      IF ( M.LT.0 .OR. M.GT.MMAX ) THEN
+         WRITE ( NOUT, FMT = 99990 ) M
+      ELSE IF ( N.LT.0 .OR. N.GT.NMAX ) THEN
+         WRITE ( NOUT, FMT = 99991 ) N
+      ELSE IF ( L.LT.0 .OR. L.GT.LMAX ) THEN
+         WRITE ( NOUT, FMT = 99989 ) L
+      ELSE
+         READ ( NIN, FMT = * ) ( ( C(I,J), J = 1,N+L ), I = 1,M )
+*        Compute the solution to the TLS problem Ax = b.
+         CALL MB02MD( JOB, M, N, L, RANK, C, LDC, S, X, LDX, TOL, IWORK,
+     $                DWORK, LDWORK, IWARN, INFO )
+*
+         IF ( INFO.NE.0 ) THEN
+            WRITE ( NOUT, FMT = 99998 ) INFO
+         ELSE
+            IF ( IWARN.NE.0 ) THEN
+               WRITE ( NOUT, FMT = 99997 ) IWARN
+               WRITE ( NOUT, FMT = 99996 ) RANK
+            ELSE
+               IF ( ( LSAME( JOB, 'R' ) ) .OR. ( LSAME( JOB, 'B' ) ) )
+     $            WRITE ( NOUT, FMT = 99996 ) RANK
+            END IF
+            WRITE ( NOUT, FMT = 99995 )
+            DO 40 J = 1, L
+               DO 20 I = 1, N
+                  WRITE ( NOUT, FMT = 99994 ) X(I,J)
+   20          CONTINUE
+               IF ( J.LT.L ) WRITE ( NOUT, FMT = 99993 )
+   40       CONTINUE
+            WRITE ( NOUT, FMT = 99992 ) ( S(J),J = 1, MIN( M, N+L ) )
+         END IF
+      END IF
+      STOP
+*
+99999 FORMAT (' MB02MD EXAMPLE PROGRAM RESULTS',/1X)
+99998 FORMAT (' INFO on exit from MB02MD = ',I2)
+99997 FORMAT (' IWARN on exit from MB02MD = ',I2,/)
+99996 FORMAT (' The computed rank of the TLS approximation = ',I3,/)
+99995 FORMAT (' The solution X to the TLS problem is ',/)
+99994 FORMAT (1X,F8.4)
+99993 FORMAT (' ')
+99992 FORMAT (/' The singular values of C are ',//(1X,F8.4))
+99991 FORMAT (/' N is out of range.',/' N = ',I5)
+99990 FORMAT (/' M is out of range.',/' M = ',I5)
+99989 FORMAT (/' L is out of range.',/' L = ',I5)
+      END
+</PRE>
+<B>Program Data</B>
+<PRE>
+ MB02MD EXAMPLE PROGRAM DATA
+   6     3     1     B
+   0.0
+   0.80010  0.39985  0.60005  0.89999
+   0.29996  0.69990  0.39997  0.82997
+   0.49994  0.60003  0.20012  0.79011
+   0.90013  0.20016  0.79995  0.85002
+   0.39998  0.80006  0.49985  0.99016
+   0.20002  0.90007  0.70009  1.02994
+</PRE>
+<B>Program Results</B>
+<PRE>
+ MB02MD EXAMPLE PROGRAM RESULTS
+
+ The computed rank of the TLS approximation =   3
+
+ The solution X to the TLS problem is 
+
+   0.5003
+   0.8003
+   0.2995
+
+ The singular values of C are 
+
+   3.2281
+   0.8716
+   0.3697
+   0.0001
+</PRE>
+
+<HR>
+<p>
+<A HREF=..\libindex.html><B>Return to index</B></A></BODY>
+</HTML>

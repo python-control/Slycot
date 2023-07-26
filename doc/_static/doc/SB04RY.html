@@ -1,0 +1,138 @@
+<HTML>
+<HEAD><TITLE>SB04RY - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="SB04RY">SB04RY</A></H2>
+<H3>
+Solving a system of equations in Hessenberg form with one right-hand side
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To solve a system of equations in Hessenberg form with one
+  right-hand side.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE SB04RY( RC, UL, M, A, LDA, LAMBDA, D, TOL, IWORK,
+     $                   DWORK, LDDWOR, INFO )
+C     .. Scalar Arguments ..
+      CHARACTER         RC, UL
+      INTEGER           INFO, LDA, LDDWOR, M
+      DOUBLE PRECISION  LAMBDA, TOL
+C     .. Array Arguments ..
+      INTEGER           IWORK(*)
+      DOUBLE PRECISION  A(LDA,*), D(*), DWORK(LDDWOR,*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  RC      CHARACTER*1
+          Indicates processing by columns or rows, as follows:
+          = 'R':  Row transformations are applied;
+          = 'C':  Column transformations are applied.
+
+  UL      CHARACTER*1
+          Indicates whether A is upper or lower Hessenberg matrix,
+          as follows:
+          = 'U':  A is upper Hessenberg;
+          = 'L':  A is lower Hessenberg.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  M       (input) INTEGER
+          The order of the matrix A.  M &gt;= 0.
+
+  A       (input) DOUBLE PRECISION array, dimension (LDA,M)
+          The leading M-by-M part of this array must contain a
+          matrix A in Hessenberg form.
+
+  LDA     INTEGER
+          The leading dimension of array A.  LDA &gt;= MAX(1,M).
+
+  LAMBDA  (input) DOUBLE PRECISION
+          This variable must contain the value to be multiplied with
+          the elements of A.
+
+  D       (input/output) DOUBLE PRECISION array, dimension (M)
+          On entry, this array must contain the right-hand side
+          vector of the Hessenberg system.
+          On exit, if INFO = 0, this array contains the solution
+          vector of the Hessenberg system.
+
+</PRE>
+<B>Tolerances</B>
+<PRE>
+  TOL     DOUBLE PRECISION
+          The tolerance to be used to test for near singularity of
+          the triangular factor R of the Hessenberg matrix. A matrix
+          whose estimated condition number is less than 1/TOL is
+          considered to be nonsingular.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  IWORK   INTEGER array, dimension (M)
+
+  DWORK   DOUBLE PRECISION array, dimension (LDDWOR,M+3)
+          The leading M-by-M part of this array is used for
+          computing the triangular factor of the QR decomposition
+          of the Hessenberg matrix. The remaining 3*M elements are
+          used as workspace for the computation of the reciprocal
+          condition estimate.
+
+  LDDWOR  INTEGER
+          The leading dimension of array DWORK.  LDDWOR &gt;= MAX(1,M).
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          = 1:  if the Hessenberg matrix is (numerically) singular.
+                That is, its estimated reciprocal condition number
+                is less than or equal to TOL.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  None.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

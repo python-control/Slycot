@@ -1,0 +1,214 @@
+<HTML>
+<HEAD><TITLE>MB04YW - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MB04YW">MB04YW</A></H2>
+<H3>
+Performing either one QR or QL iteration step onto an unreduced bidiagonal submatrix of a bidiagonal matrix
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To perform either one QR or QL iteration step onto the unreduced
+  bidiagonal submatrix Jk:
+
+           |D(l) E(l)    0  ...    0   |
+           | 0   D(l+1) E(l+1)     .   |
+      Jk = | .                     .   |
+           | .                     .   |
+           | .                   E(k-1)|
+           | 0   ...        ...   D(k) |
+
+  with k &lt;= p and l &gt;= 1, p = MIN(M,N), of the bidiagonal matrix J:
+
+           |D(1) E(1)  0    ...   0   |
+           | 0   D(2) E(2)        .   |
+       J = | .                    .   |.
+           | .                    .   |
+           | .                  E(p-1)|
+           | 0   ...        ...  D(p) |
+
+  Hereby, Jk is transformed to  S' Jk T with S and T products of
+  Givens rotations. These Givens rotations S (respectively, T) are
+  postmultiplied into U (respectively, V), if UPDATU (respectively,
+  UPDATV) is .TRUE..
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MB04YW( QRIT, UPDATU, UPDATV, M, N, L, K, SHIFT, D, E,
+     $                   U, LDU, V, LDV, DWORK )
+C     .. Scalar Arguments ..
+      LOGICAL           QRIT, UPDATU, UPDATV
+      INTEGER           K, L, LDU, LDV, M, N
+      DOUBLE PRECISION  SHIFT
+C     .. Array Arguments ..
+      DOUBLE PRECISION  D( * ), DWORK( * ), E( * ), U( LDU, * ),
+     $                  V( LDV, * )
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  QRIT    LOGICAL
+          Indicates whether a QR or QL iteration step is to be
+          taken (from larger end diagonal element towards smaller),
+          as follows:
+          = .TRUE. :  QR iteration step (chase bulge from top to
+                      bottom);
+          = .FALSE.:  QL iteration step (chase bulge from bottom to
+                      top).
+
+  UPDATU  LOGICAL
+          Indicates whether the user wishes to accumulate in a
+          matrix U the left-hand Givens rotations S, as follows:
+          = .FALSE.:  Do not form U;
+          = .TRUE. :  The given matrix U is updated (postmultiplied)
+                      by the left-hand Givens rotations S.
+
+  UPDATV  LOGICAL
+          Indicates whether the user wishes to accumulate in a
+          matrix V the right-hand Givens rotations S, as follows:
+          = .FALSE.:  Do not form V;
+          = .TRUE. :  The given matrix V is updated (postmultiplied)
+                      by the right-hand Givens rotations T.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  M       (input) INTEGER
+          The number of rows of the matrix U.  M &gt;= 0.
+
+  N       (input) INTEGER
+          The number of rows of the matrix V.  N &gt;= 0.
+
+  L       (input) INTEGER
+          The index of the first diagonal entry of the considered
+          unreduced bidiagonal submatrix Jk of J.
+
+  K       (input) INTEGER
+          The index of the last diagonal entry of the considered
+          unreduced bidiagonal submatrix Jk of J.
+
+  SHIFT   (input) DOUBLE PRECISION
+          Value of the shift used in the QR or QL iteration step.
+
+  D       (input/output) DOUBLE PRECISION array, dimension (p)
+          where p = MIN(M,N)
+          On entry, D must contain the diagonal entries of the
+          bidiagonal matrix J.
+          On exit, D contains the diagonal entries of the
+          transformed bidiagonal matrix S' J T.
+
+  E       (input/output) DOUBLE PRECISION array, dimension (p-1)
+          On entry, E must contain the superdiagonal entries of J.
+          On exit, E contains the superdiagonal entries of the
+          transformed matrix S' J T.
+
+  U       (input/output) DOUBLE PRECISION array, dimension (LDU,p)
+          On entry, if UPDATU = .TRUE., U must contain the M-by-p
+          left transformation matrix.
+          On exit, if UPDATU = .TRUE., the Givens rotations S on the
+          left have been postmultiplied into U, i.e., U * S is
+          returned.
+          U is not referenced if UPDATU = .FALSE..
+
+  LDU     INTEGER
+          The leading dimension of the array U.
+          LDU &gt;= max(1,M) if UPDATU = .TRUE.;
+          LDU &gt;= 1        if UPDATU = .FALSE..
+
+  V       (input/output) DOUBLE PRECISION array, dimension (LDV,p)
+          On entry, if UPDATV = .TRUE., V must contain the N-by-p
+          right transformation matrix.
+          On exit, if UPDATV = .TRUE., the Givens rotations T on the
+          right have been postmultiplied into V, i.e., V * T is
+          returned.
+          V is not referenced if UPDATV = .FALSE..
+
+  LDV     INTEGER
+          The leading dimension of the array V.
+          LDV &gt;= max(1,N) if UPDATV = .TRUE.;
+          LDV &gt;= 1        if UPDATV = .FALSE..
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  DWORK   DOUBLE PRECISION array, dimension (MAX(1,LDWORK))
+          LDWORK &gt;= 4*MIN(M,N)-4, if UPDATU = UPDATV = .TRUE.;
+          LDWORK &gt;= 2*MIN(M,N)-2, if
+                          UPDATU = .TRUE. and UPDATV = .FALSE. or
+                          UPDATV = .TRUE. and UPDATU = .FALSE.;
+          LDWORK &gt;= 1, if UPDATU = UPDATV = .FALSE..
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  QR iterations diagonalize the bidiagonal matrix by zeroing the
+  super-diagonal elements of Jk from bottom to top.
+  QL iterations diagonalize the bidiagonal matrix by zeroing the
+  super-diagonal elements of Jk from top to bottom.
+  The routine overwrites Jk with the bidiagonal matrix S' Jk T,
+  where S and T are products of Givens rotations.
+  T is essentially the orthogonal matrix that would be obtained by
+  applying one implicit symmetric shift QR (QL) step onto the matrix
+  Jk'Jk. This step factors the matrix (Jk'Jk - shift*I) into a
+  product of an orthogonal matrix T and a upper (lower) triangular
+  matrix. See [1,Sec.8.2-8.3] and [2] for more details.
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Golub, G.H. and Van Loan, C.F.
+      Matrix Computations.
+      The Johns Hopkins University Press, Baltimore, Maryland, 1983.
+
+  [2] Bowdler, H., Martin, R.S. and Wilkinson, J.H.
+      The QR and QL algorithms for symmetric matrices.
+      Numer. Math., 11, pp. 293-306, 1968.
+
+  [3] Demmel, J. and Kahan, W.
+      Computing small singular values of bidiagonal matrices with
+      guaranteed high relative accuracy.
+      SIAM J. Sci. Statist. Comput., 11, pp. 873-912, 1990.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  The algorithm is backward stable.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

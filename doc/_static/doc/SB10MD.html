@@ -1,0 +1,302 @@
+<HTML>
+<HEAD><TITLE>SB10MD - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="SB10MD">SB10MD</A></H2>
+<H3>
+D-step in the D-K iteration for continuous-time case
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To perform the D-step in the D-K iteration. It handles
+  continuous-time case.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE SB10MD( NC, MP, LENDAT, F, ORD, MNB, NBLOCK, ITYPE,
+     $                   QUTOL, A, LDA, B, LDB, C, LDC, D, LDD, OMEGA,
+     $                   TOTORD, AD, LDAD, BD, LDBD, CD, LDCD, DD, LDDD,
+     $                   MJU, IWORK, LIWORK, DWORK, LDWORK, ZWORK,
+     $                   LZWORK, INFO )
+C     .. Scalar Arguments ..
+      INTEGER           F, INFO, LDA, LDAD, LDB, LDBD, LDC, LDCD, LDD,
+     $                  LDDD, LDWORK, LENDAT, LIWORK, LZWORK, MNB, MP,
+     $                  NC, ORD, TOTORD
+      DOUBLE PRECISION  QUTOL
+C     .. Array Arguments ..
+      INTEGER           ITYPE(*), IWORK(*), NBLOCK(*)
+      DOUBLE PRECISION  A(LDA, *), AD(LDAD, *), B(LDB, *), BD(LDBD, *),
+     $                  C(LDC, *), CD(LDCD, *), D(LDD, *), DD(LDDD, *),
+     $                  DWORK(*), MJU(*), OMEGA(*)
+      COMPLEX*16        ZWORK(*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  NC      (input) INTEGER
+          The order of the matrix A.  NC &gt;= 0.
+
+  MP      (input) INTEGER
+          The order of the matrix D.  MP &gt;= 0.
+
+  LENDAT  (input) INTEGER
+          The length of the vector OMEGA.  LENDAT &gt;= 2.
+
+  F       (input) INTEGER
+          The number of the measurements and controls, i.e.,
+          the size of the block I_f in the D-scaling system.
+          F &gt;= 0.
+
+  ORD     (input/output) INTEGER
+          The MAX order of EACH block in the fitting procedure.
+          ORD &lt;= LENDAT-1.
+          On exit, if ORD &lt; 1 then ORD = 1.
+
+  MNB     (input) INTEGER
+          The number of diagonal blocks in the block structure of
+          the uncertainty, and the length of the vectors NBLOCK
+          and ITYPE.  1 &lt;= MNB &lt;= MP.
+
+  NBLOCK  (input) INTEGER array, dimension (MNB)
+          The vector of length MNB containing the block structure
+          of the uncertainty. NBLOCK(I), I = 1:MNB, is the size of
+          each block.
+
+  ITYPE   (input) INTEGER array, dimension (MNB)
+          The vector of length MNB indicating the type of each
+          block.
+          For I = 1 : MNB,
+          ITYPE(I) = 1 indicates that the corresponding block is a
+          real block. IN THIS CASE ONLY MJU(JW) WILL BE ESTIMATED
+          CORRECTLY, BUT NOT D(S)!
+          ITYPE(I) = 2 indicates that the corresponding block is a
+          complex block. THIS IS THE ONLY ALLOWED VALUE NOW!
+          NBLOCK(I) must be equal to 1 if ITYPE(I) is equal to 1.
+
+  QUTOL   (input) DOUBLE PRECISION
+          The acceptable mean relative error between the D(jw) and
+          the frequency responce of the estimated block
+          [ADi,BDi;CDi,DDi]. When it is reached, the result is
+          taken as good enough.
+          A good value is QUTOL = 2.0.
+          If QUTOL &lt; 0 then only mju(jw) is being estimated,
+          not D(s).
+
+  A       (input/output) DOUBLE PRECISION array, dimension (LDA,NC)
+          On entry, the leading NC-by-NC part of this array must
+          contain the A matrix of the closed-loop system.
+          On exit, if MP &gt; 0, the leading NC-by-NC part of this
+          array contains an upper Hessenberg matrix similar to A.
+
+  LDA     INTEGER
+          The leading dimension of the array A.  LDA &gt;= MAX(1,NC).
+
+  B       (input/output) DOUBLE PRECISION array, dimension (LDB,MP)
+          On entry, the leading NC-by-MP part of this array must
+          contain the B matrix of the closed-loop system.
+          On exit, the leading NC-by-MP part of this array contains
+          the transformed B matrix corresponding to the Hessenberg
+          form of A.
+
+  LDB     INTEGER
+          The leading dimension of the array B.  LDB &gt;= MAX(1,NC).
+
+  C       (input/output) DOUBLE PRECISION array, dimension (LDC,NC)
+          On entry, the leading MP-by-NC part of this array must
+          contain the C matrix of the closed-loop system.
+          On exit, the leading MP-by-NC part of this array contains
+          the transformed C matrix corresponding to the Hessenberg
+          form of A.
+
+  LDC     INTEGER
+          The leading dimension of the array C.  LDC &gt;= MAX(1,MP).
+
+  D       (input) DOUBLE PRECISION array, dimension (LDD,MP)
+          The leading MP-by-MP part of this array must contain the
+          D matrix of the closed-loop system.
+
+  LDD     INTEGER
+          The leading dimension of the array D.  LDD &gt;= MAX(1,MP).
+
+  OMEGA   (input) DOUBLE PRECISION array, dimension (LENDAT)
+          The vector with the frequencies.
+
+  TOTORD  (output) INTEGER
+          The TOTAL order of the D-scaling system.
+          TOTORD is set to zero, if QUTOL &lt; 0.
+
+  AD      (output) DOUBLE PRECISION array, dimension (LDAD,MP*ORD)
+          The leading TOTORD-by-TOTORD part of this array contains
+          the A matrix of the D-scaling system.
+          Not referenced if QUTOL &lt; 0.
+
+  LDAD    INTEGER
+          The leading dimension of the array AD.
+          LDAD &gt;= MAX(1,MP*ORD), if QUTOL &gt;= 0;
+          LDAD &gt;= 1,             if QUTOL &lt;  0.
+
+  BD      (output) DOUBLE PRECISION array, dimension (LDBD,MP+F)
+          The leading TOTORD-by-(MP+F) part of this array contains
+          the B matrix of the D-scaling system.
+          Not referenced if QUTOL &lt; 0.
+
+  LDBD    INTEGER
+          The leading dimension of the array BD.
+          LDBD &gt;= MAX(1,MP*ORD), if QUTOL &gt;= 0;
+          LDBD &gt;= 1,             if QUTOL &lt;  0.
+
+  CD      (output) DOUBLE PRECISION array, dimension (LDCD,MP*ORD)
+          The leading (MP+F)-by-TOTORD part of this array contains
+          the C matrix of the D-scaling system.
+          Not referenced if QUTOL &lt; 0.
+
+  LDCD    INTEGER
+          The leading dimension of the array CD.
+          LDCD &gt;= MAX(1,MP+F), if QUTOL &gt;= 0;
+          LDCD &gt;= 1,           if QUTOL &lt;  0.
+
+  DD      (output) DOUBLE PRECISION array, dimension (LDDD,MP+F)
+          The leading (MP+F)-by-(MP+F) part of this array contains
+          the D matrix of the D-scaling system.
+          Not referenced if QUTOL &lt; 0.
+
+  LDDD    INTEGER
+          The leading dimension of the array DD.
+          LDDD &gt;= MAX(1,MP+F), if QUTOL &gt;= 0;
+          LDDD &gt;= 1,           if QUTOL &lt;  0.
+
+  MJU     (output) DOUBLE PRECISION array, dimension (LENDAT)
+          The vector with the upper bound of the structured
+          singular value (mju) for each frequency in OMEGA.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  IWORK   INTEGER array, dimension (LIWORK)
+
+  LIWORK  INTEGER
+          The length of the array IWORK.
+          LIWORK &gt;= MAX( NC, 4*MNB-2, MP, 2*ORD+1 ), if QUTOL &gt;= 0;
+          LIWORK &gt;= MAX( NC, 4*MNB-2, MP ),          if QUTOL &lt;  0.
+
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+          On exit, if INFO = 0, DWORK(1) returns the optimal value
+          of LDWORK, DWORK(2) returns the optimal value of LZWORK,
+          and DWORK(3) returns an estimate of the minimum reciprocal
+          of the condition numbers (with respect to inversion) of
+          the generated Hessenberg matrices.
+
+  LDWORK  INTEGER
+          The length of the array DWORK.
+          LDWORK &gt;= MAX( 3, LWM, LWD ), where
+          LWM = LWA + MAX( NC + MAX( NC, MP-1 ),
+                           2*MP*MP*MNB - MP*MP + 9*MNB*MNB +
+                           MP*MNB + 11*MP + 33*MNB - 11 );
+          LWD = LWB + MAX( 2, LW1, LW2, LW3, LW4, 2*ORD ),
+                           if QUTOL &gt;= 0;
+          LWD = 0,         if QUTOL &lt;  0;
+          LWA = MP*LENDAT + 2*MNB + MP - 1;
+          LWB = LENDAT*(MP + 2) + ORD*(ORD + 2) + 1;
+          LW1 = 2*LENDAT + 4*HNPTS;  HNPTS = 2048;
+          LW2 =   LENDAT + 6*HNPTS;  MN  = MIN( 2*LENDAT, 2*ORD+1 );
+          LW3 = 2*LENDAT*(2*ORD + 1) + MAX( 2*LENDAT, 2*ORD + 1 ) +
+                MAX( MN + 6*ORD + 4, 2*MN + 1 );
+          LW4 = MAX( ORD*ORD + 5*ORD, 6*ORD + 1 + MIN( 1, ORD ) ).
+
+  ZWORK   COMPLEX*16 array, dimension (LZWORK)
+
+  LZWORK  INTEGER
+          The length of the array ZWORK.
+          LZWORK &gt;= MAX( LZM, LZD ), where
+          LZM = MAX( MP*MP + NC*MP + NC*NC + 2*NC,
+                     6*MP*MP*MNB + 13*MP*MP + 6*MNB + 6*MP - 3 );
+          LZD = MAX( LENDAT*(2*ORD + 3), ORD*ORD + 3*ORD + 1 ),
+                           if QUTOL &gt;= 0;
+          LZD = 0,         if QUTOL &lt;  0.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    (output) INTEGER
+          =  0:  successful exit;
+          &lt;  0:  if INFO = -i, the i-th argument had an illegal
+                 value;
+          =  1:  if one or more values w in OMEGA are (close to
+                 some) poles of the closed-loop system, i.e., the
+                 matrix jw*I - A is (numerically) singular;
+          =  2:  the block sizes must be positive integers;
+          =  3:  the sum of block sizes must be equal to MP;
+          =  4:  the size of a real block must be equal to 1;
+          =  5:  the block type must be either 1 or 2;
+          =  6:  errors in solving linear equations or in matrix
+                 inversion;
+          =  7:  errors in computing eigenvalues or singular values.
+          = 1i:  INFO on exit from SB10YD is i. (1i means 10 + i.)
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  I.   First, W(jw) for the given closed-loop system is being
+       estimated.
+  II.  Now, AB13MD SLICOT subroutine can obtain the D(jw) scaling
+       system with respect to NBLOCK and ITYPE, and colaterally,
+       mju(jw).
+       If QUTOL &lt; 0 then the estimations stop and the routine exits.
+  III. Now that we have D(jw), SB10YD subroutine can do block-by-
+       block fit. For each block it tries with an increasing order
+       of the fit, starting with 1 until the
+       (mean quadratic error + max quadratic error)/2
+       between the Dii(jw) and the estimated frequency responce
+       of the block becomes less than or equal to the routine
+       argument QUTOL, or the order becomes equal to ORD.
+  IV.  Arrange the obtained blocks in the AD, BD, CD and DD
+       matrices and estimate the total order of D(s), TOTORD.
+  V.   Add the system I_f to the system obtained in IV.
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Balas, G., Doyle, J., Glover, K., Packard, A. and Smith, R.
+      Mu-analysis and Synthesis toolbox - User's Guide,
+      The Mathworks Inc., Natick, MA, USA, 1998.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<p>
+<A HREF=..\libindex.html><B>Return to index</B></A></BODY>
+</HTML>

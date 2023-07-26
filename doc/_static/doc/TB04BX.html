@@ -1,0 +1,159 @@
+<HTML>
+<HEAD><TITLE>TB04BX - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="TB04BX">TB04BX</A></H2>
+<H3>
+Gain of a SISO linear system, given its state-space representation, poles and zeros
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To compute the gain of a single-input single-output linear system,
+  given its state-space representation (A,b,c,d), and its poles and
+  zeros. The matrix A is assumed to be in an upper Hessenberg form.
+  The gain is computed using the formula
+
+                       -1         IP              IZ
+     g = (c*( S0*I - A ) *b + d)*Prod( S0 - Pi )/Prod( S0 - Zi ) ,
+                                  i=1             i=1            (1)
+
+  where Pi, i = 1 : IP, and Zj, j = 1 : IZ, are the poles and zeros,
+  respectively, and S0 is a real scalar different from all poles and
+  zeros.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE TB04BX( IP, IZ, A, LDA, B, C, D, PR, PI, ZR, ZI, GAIN,
+     $                   IWORK )
+C     .. Scalar Arguments ..
+      DOUBLE PRECISION   D, GAIN
+      INTEGER            IP, IZ, LDA
+C     .. Array Arguments ..
+      DOUBLE PRECISION   A(LDA,*), B(*), C(*), PI(*), PR(*), ZI(*),
+     $                   ZR(*)
+      INTEGER            IWORK(*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  IP      (input) INTEGER
+          The number of the system poles.  IP &gt;= 0.
+
+  IZ      (input) INTEGER
+          The number of the system zeros.  IZ &gt;= 0.
+
+  A       (input/output) DOUBLE PRECISION array, dimension (LDA,IP)
+          On entry, the leading IP-by-IP part of this array must
+          contain the state dynamics matrix A in an upper Hessenberg
+          form. The elements below the second diagonal are not
+          referenced.
+          On exit, the leading IP-by-IP upper Hessenberg part of
+          this array contains the LU factorization of the matrix
+          A - S0*I, as computed by SLICOT Library routine MB02SD.
+
+  LDA     INTEGER
+          The leading dimension of array A.  LDA &gt;= max(1,IP).
+
+  B       (input/output) DOUBLE PRECISION array, dimension (IP)
+          On entry, this array must contain the system input
+          vector b.
+          On exit, this array contains the solution of the linear
+          system ( A - S0*I )x = b .
+
+  C       (input) DOUBLE PRECISION array, dimension (IP)
+          This array must contain the system output vector c.
+
+  D       (input) DOUBLE PRECISION
+          The variable must contain the system feedthrough scalar d.
+
+  PR      (input) DOUBLE PRECISION array, dimension (IP)
+          This array must contain the real parts of the system
+          poles. Pairs of complex conjugate poles must be stored in
+          consecutive memory locations.
+
+  PI      (input) DOUBLE PRECISION array, dimension (IP)
+          This array must contain the imaginary parts of the system
+          poles.
+
+  ZR      (input) DOUBLE PRECISION array, dimension (IZ)
+          This array must contain the real parts of the system
+          zeros. Pairs of complex conjugate zeros must be stored in
+          consecutive memory locations.
+
+  ZI      (input) DOUBLE PRECISION array, dimension (IZ)
+          This array must contain the imaginary parts of the system
+          zeros.
+
+  GAIN    (output) DOUBLE PRECISION
+          The gain of the linear system (A,b,c,d), given by (1).
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  IWORK   INTEGER array, dimension (IP)
+          On exit, it contains the pivot indices; for 1 &lt;= i &lt;= IP,
+          row i of the matrix A - S0*I was interchanged with
+          row IWORK(i).
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  The routine implements the method presented in [1]. A suitable
+  value of S0 is chosen based on the system poles and zeros.
+  Then, the LU factorization of the upper Hessenberg, nonsingular
+  matrix A - S0*I is computed and used to solve the linear system
+  in (1).
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Varga, A. and Sima, V.
+      Numerically Stable Algorithm for Transfer Function Matrix
+      Evaluation.
+      Int. J. Control, vol. 33, nr. 6, pp. 1123-1133, 1981.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  The algorithm is numerically stable in practice and requires
+  O(IP*IP) floating point operations.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

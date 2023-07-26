@@ -1,0 +1,588 @@
+<HTML>
+<HEAD><TITLE>BB02AD - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="BB02AD">BB02AD</A></H2>
+<H3>
+Benchmark examples for discrete-time algebraic Riccati equations
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To generate the benchmark examples for the numerical solution of
+  discrete-time algebraic Riccati equations (DAREs) of the form
+
+         T                T               T    -1  T       T
+  0  =  A X A  -  X  -  (A X B + S) (R + B X B)  (B X A + S )  +  Q
+
+  as presented in [1]. Here, A,Q,X are real N-by-N matrices, B,S are
+  N-by-M, and R is M-by-M. The matrices Q and R are symmetric and Q
+  may be given in factored form
+
+                T
+  (I)    Q  =  C Q0 C .
+
+  Here, C is P-by-N and Q0 is P-by-P. If R is nonsingular and S = 0,
+  the DARE can be rewritten equivalently as
+
+               T             -1
+  0  =  X  -  A X (I_n + G X)  A  -  Q,
+
+  where I_n is the N-by-N identity matrix and
+
+                -1  T
+  (II)   G = B R   B .
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE BB02AD(DEF, NR, DPAR, IPAR, BPAR, CHPAR, VEC, N, M, P,
+     1                  A, LDA, B, LDB, C, LDC, Q, LDQ, R, LDR, S, LDS,
+     2                  X, LDX, DWORK, LDWORK, INFO)
+C     .. Scalar Arguments ..
+      INTEGER          INFO, LDA, LDB, LDC, LDQ, LDR, LDS, LDWORK, LDX,
+     $                 M, N, P
+      CHARACTER        DEF
+C     .. Array Arguments ..
+      DOUBLE PRECISION A(LDA,*), B(LDB,*), C(LDC,*), DPAR(*), DWORK(*),
+     1                 Q(*), R(*), S(LDS,*), X(LDX,*)
+      INTEGER          IPAR(3), NR(2)
+      CHARACTER        CHPAR*255
+      LOGICAL          BPAR(7), VEC(10)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  DEF     CHARACTER
+          This parameter specifies if the default parameters are
+          to be used or not.
+          = 'N' or 'n' : The parameters given in the input vectors
+                         xPAR (x = 'D', 'I', 'B', 'CH') are used.
+          = 'D' or 'd' : The default parameters for the example
+                         are used.
+          This parameter is not meaningful if NR(1) = 1.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  NR      (input) INTEGER array, dimension (2)
+          This array determines the example for which DAREX returns
+          data. NR(1) is the group of examples.
+          NR(1) = 1 : parameter-free problems of fixed size.
+          NR(1) = 2 : parameter-dependent problems of fixed size.
+          NR(1) = 3 : parameter-free problems of scalable size.
+          NR(1) = 4 : parameter-dependent problems of scalable size.
+          NR(2) is the number of the example in group NR(1).
+          Let NEXi be the number of examples in group i. Currently,
+          NEX1 = 13, NEX2 = 5, NEX3 = 0, NEX4 = 1.
+          1 &lt;= NR(1) &lt;= 4;
+          0 &lt;= NR(2) &lt;= NEXi, where i = NR(1).
+
+  DPAR    (input/output) DOUBLE PRECISION array, dimension (4)
+          Double precision parameter vector. For explanation of the
+          parameters see [1].
+          DPAR(1) defines the parameter 'epsilon' for
+          examples NR = 2.2,2.3,2.4, the parameter 'tau'
+          for NR = 2.5, and the 1-by-1 matrix R for NR = 2.1,4.1.
+          For Example 2.5, DPAR(2) - DPAR(4) define in
+          consecutive order 'D', 'K', and 'r'.
+          NOTE that DPAR is overwritten with default values
+          if DEF = 'D' or 'd'.
+
+  IPAR    (input/output) INTEGER array, dimension (3)
+          On input, IPAR(1) determines the actual state dimension,
+          i.e., the order of the matrix A as follows:
+          NR(1) = 1, NR(1) = 2   : IPAR(1) is ignored.
+          NR = NR(1).NR(2) = 4.1 : IPAR(1) determines the order of
+                                   the output matrix A.
+          NOTE that IPAR(1) is overwritten for Examples 1.1-2.3. For
+          the other examples, IPAR(1) is overwritten if the default
+          parameters are to be used.
+          On output, IPAR(1) contains the order of the matrix A.
+
+          On input, IPAR(2) is the number of colums in the matrix B
+          and the order of the matrix R (in control problems, the
+          number of inputs of the system). Currently, IPAR(2) is
+          fixed for all examples and thus is not referenced on
+          input.
+          On output, IPAR(2) is the number of columns of the
+          matrix B from (I).
+
+          On input, IPAR(3) is the number of rows in the matrix C
+          (in control problems, the number of outputs of the
+          system). Currently, IPAR(3) is fixed for all examples
+          and thus is not referenced on input.
+          On output, IPAR(3) is the number of rows of the matrix C
+          from (I).
+
+          NOTE that IPAR(2) and IPAR(3) are overwritten and
+          IPAR(2) &lt;= IPAR(1) and IPAR(3) &lt;= IPAR(1) for all
+          examples.
+
+  BPAR    (input) LOGICAL array, dimension (7)
+          This array defines the form of the output of the examples
+          and the storage mode of the matrices Q, G or R.
+          BPAR(1) = .TRUE.  : Q is returned.
+          BPAR(1) = .FALSE. : Q is returned in factored form, i.e.,
+                              Q0 and C from (I) are returned.
+          BPAR(2) = .TRUE.  : The matrix returned in array Q (i.e.,
+                              Q if BPAR(1) = .TRUE. and Q0 if
+                              BPAR(1) = .FALSE.) is stored as full
+                              matrix.
+          BPAR(2) = .FALSE. : The matrix returned in array Q is
+                              provided in packed storage mode.
+          BPAR(3) = .TRUE.  : If BPAR(2) = .FALSE., the matrix
+                              returned in array Q is stored in upper
+                              packed mode, i.e., the upper triangle
+                              of a symmetric n-by-n matrix is stored
+                              by columns, e.g., the matrix entry
+                              Q(i,j) is stored in the array entry
+                              Q(i+j*(j-1)/2) for i &lt;= j.
+                              Otherwise, this entry is ignored.
+          BPAR(3) = .FALSE. : If BPAR(2) = .FALSE., the matrix
+                              returned in array Q is stored in lower
+                              packed mode, i.e., the lower triangle
+                              of a symmetric n-by-n matrix is stored
+                              by columns, e.g., the matrix entry
+                              Q(i,j) is stored in the array entry
+                              Q(i+(2*n-j)*(j-1)/2) for j &lt;= i.
+                              Otherwise, this entry is ignored.
+          BPAR(4) = .TRUE.  : The product G in (II) is returned.
+          BPAR(4) = .FALSE. : G is returned in factored form, i.e.,
+                              B and R from (II) are returned.
+          BPAR(5) = .TRUE.  : The matrix returned in array R (i.e.,
+                              G if BPAR(4) = .TRUE. and R if
+                              BPAR(4) = .FALSE.) is stored as full
+                              matrix.
+          BPAR(5) = .FALSE. : The matrix returned in array R is
+                              provided in packed storage mode.
+          BPAR(6) = .TRUE.  : If BPAR(5) = .FALSE., the matrix
+                              returned in array R is stored in upper
+                              packed mode (see above).
+                              Otherwise, this entry is ignored.
+          BPAR(6) = .FALSE. : If BPAR(5) = .FALSE., the matrix
+                              returned in array R is stored in lower
+                              packed mode (see above).
+                              Otherwise, this entry is ignored.
+          BPAR(7) = .TRUE.  : The coefficient matrix S of the DARE
+                              is returned in array S.
+          BPAR(7) = .FALSE. : The coefficient matrix S of the DARE
+                              is not returned.
+          NOTE that there are no default values for BPAR.  If all
+          entries are declared to be .TRUE., then matrices Q, G or R
+          are returned in conventional storage mode, i.e., as
+          N-by-N or M-by-M arrays where the array element Z(I,J)
+          contains the matrix entry Z_{i,j}.
+
+  CHPAR   (output) CHARACTER*255
+          On output, this string contains short information about
+          the chosen example.
+
+  VEC     (output) LOGICAL array, dimension (10)
+          Flag vector which displays the availability of the output
+          data:
+          VEC(j), j=1,2,3, refer to N, M, and P, respectively, and
+          are always .TRUE.
+          VEC(4) refers to A and is always .TRUE.
+          VEC(5) is .TRUE. if BPAR(4) = .FALSE., i.e., the factors B
+          and R from (II) are returned.
+          VEC(6) is .TRUE. if BPAR(1) = .FALSE., i.e., the factors C
+          and Q0 from (I) are returned.
+          VEC(7) refers to Q and is always .TRUE.
+          VEC(8) refers to R and is always .TRUE.
+          VEC(9) is .TRUE. if BPAR(7) = .TRUE., i.e., the matrix S
+          is returned.
+          VEC(10) refers to X and is .TRUE. if the exact solution
+          matrix is available.
+          NOTE that VEC(i) = .FALSE. for i = 1 to 10 if on exit
+          INFO .NE. 0.
+
+  N       (output) INTEGER
+          The order of the matrices A, X, G if BPAR(4) = .TRUE., and
+          Q if BPAR(1) = .TRUE.
+
+  M       (output) INTEGER
+          The number of columns in the matrix B (or the dimension of
+          the control input space of the underlying dynamical
+          system).
+
+  P       (output) INTEGER
+          The number of rows in the matrix C (or the dimension of
+          the output space of the underlying dynamical system).
+
+  A       (output) DOUBLE PRECISION array, dimension (LDA,N)
+          The leading N-by-N part of this array contains the
+          coefficient matrix A of the DARE.
+
+  LDA     INTEGER
+          The leading dimension of array A.  LDA &gt;= N.
+
+  B       (output) DOUBLE PRECISION array, dimension (LDB,M)
+          If (BPAR(4) = .FALSE.), then the leading N-by-M part
+          of this array contains the coefficient matrix B of
+          the DARE.  Otherwise, B is used as workspace.
+
+  LDB     INTEGER
+          The leading dimension of array B.  LDB &gt;= N.
+
+  C       (output) DOUBLE PRECISION array, dimension (LDC,N)
+          If (BPAR(1) = .FALSE.), then the leading P-by-N part
+          of this array contains the matrix C of the factored
+          form (I) of Q.  Otherwise, C is used as workspace.
+
+  LDC     INTEGER
+          The leading dimension of array C.  LDC &gt;= P.
+
+  Q       (output) DOUBLE PRECISION array, dimension (NQ)
+          If (BPAR(1) = .TRUE.) and (BPAR(2) = .TRUE.), then
+          NQ = LDQ*N.
+          IF (BPAR(1) = .TRUE.) and (BPAR(2) = .FALSE.), then
+          NQ = N*(N+1)/2.
+          If (BPAR(1) = .FALSE.) and (BPAR(2) = .TRUE.), then
+          NQ = LDQ*P.
+          IF (BPAR(1) = .FALSE.) and (BPAR(2) = .FALSE.), then
+          NQ = P*(P+1)/2.
+          The symmetric matrix contained in array Q is stored
+          according to BPAR(2) and BPAR(3).
+
+  LDQ     INTEGER
+          If conventional storage mode is used for Q, i.e.,
+          BPAR(2) = .TRUE., then Q is stored like a 2-dimensional
+          array with leading dimension LDQ. If packed symmetric
+          storage mode is used, then LDQ is irrelevant.
+          LDQ &gt;= N if BPAR(1) = .TRUE.;
+          LDQ &gt;= P if BPAR(1) = .FALSE..
+
+  R       (output) DOUBLE PRECISION array, dimension (MR)
+          If (BPAR(4) = .TRUE.) and (BPAR(5) = .TRUE.), then
+          MR = LDR*N.
+          IF (BPAR(4) = .TRUE.) and (BPAR(5) = .FALSE.), then
+          MR = N*(N+1)/2.
+          If (BPAR(4) = .FALSE.) and (BPAR(5) = .TRUE.), then
+          MR = LDR*M.
+          IF (BPAR(4) = .FALSE.) and (BPAR(5) = .FALSE.), then
+          MR = M*(M+1)/2.
+          The symmetric matrix contained in array R is stored
+          according to BPAR(5) and BPAR(6).
+
+  LDR     INTEGER
+          If conventional storage mode is used for R, i.e.,
+          BPAR(5) = .TRUE., then R is stored like a 2-dimensional
+          array with leading dimension LDR. If packed symmetric
+          storage mode is used, then LDR is irrelevant.
+          LDR &gt;= N  if BPAR(4) =  .TRUE.;
+          LDR &gt;= M  if BPAR(4) = .FALSE..
+
+  S       (output) DOUBLE PRECISION array, dimension (LDS,M)
+          If (BPAR(7) = .TRUE.), then the leading N-by-M part of
+          this array contains the coefficient matrix S of the DARE.
+
+  LDS     INTEGER
+          The leading dimension of array S.  LDS &gt;= 1, and
+          LDS &gt;= N if BPAR(7) = .TRUE..
+
+  X       (output) DOUBLE PRECISION array, dimension (LDX,NX)
+          If an exact solution is available (NR = 1.1,1.3,1.4,2.1,
+          2.3,2.4,2.5,4.1), then NX = N and the leading N-by-N part
+          of this array contains the solution matrix X.
+          Otherwise, X is not referenced.
+
+  LDX     INTEGER
+          The leading dimension of array X.  LDX &gt;= 1, and
+          LDX &gt;= N if an exact solution is available.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+
+  LDWORK  INTEGER
+          The length of the array DWORK.  LDWORK &gt;= N*N.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0 : successful exit;
+          &lt; 0 : if INFO = -i, the i-th argument had an illegal
+                value;
+          = 1 : data file could not be opened or had wrong format;
+          = 2 : division by zero;
+          = 3 : G can not be computed as in (II) due to a singular R
+                matrix. This error can only occur if
+                BPAR(4) = .TRUE..
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Abels, J. and Benner, P.
+      DAREX - A Collection of Benchmark Examples for Discrete-Time
+      Algebraic Riccati Equations (Version 2.0).
+      SLICOT Working Note 1999-16, November 1999. Available from
+      http://www.win.tue.nl/niconet/NIC2/reports.html.
+
+  This is an updated and extended version of
+
+  [2] Benner, P., Laub, A.J., and Mehrmann, V.
+      A Collection of Benchmark Examples for the Numerical Solution
+      of Algebraic Riccati Equations II: Discrete-Time Case.
+      Technical Report SPC 95_23, Fak. f. Mathematik,
+      TU Chemnitz-Zwickau (Germany), December 1995.
+
+</PRE>
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  Some benchmark examples read data from the data files provided
+  with the collection.
+
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+*     BB02AD EXAMPLE PROGRAM TEXT
+*
+*
+*     .. Parameters ..
+      INTEGER          NIN, NOUT
+      PARAMETER        ( NIN = 5, NOUT = 6 )
+      INTEGER          MMAX, NMAX, PMAX
+      PARAMETER        ( MMAX = 100, NMAX = 100, PMAX = 100 )
+      INTEGER          LDA, LDB, LDC, LDQ, LDR, LDS, LDX
+      PARAMETER        ( LDA = NMAX, LDB = NMAX, LDC = PMAX,
+     $                   LDQ = NMAX, LDR = NMAX, LDS = NMAX,
+     $                   LDX = NMAX )
+      INTEGER          LDWORK
+      PARAMETER        ( LDWORK = NMAX*NMAX )
+*     .. Local Scalars ..
+      CHARACTER        DEF
+      INTEGER          I, INFO, ISYMM, J, LBPAR, LDPAR, LIPAR, M, N, P
+*     .. Local Arrays ..
+      DOUBLE PRECISION A(LDA, NMAX), B(LDB,MMAX), C(LDC, NMAX),
+     $                 DPAR(4), DWORK(LDWORK), Q(LDQ, NMAX),
+     $                 R(LDR, NMAX), S(LDS, NMAX), X(LDX, NMAX)
+      INTEGER          IPAR(3), NR(2)
+      LOGICAL          BPAR(7), VEC(10)
+      CHARACTER        CHPAR(255)
+*     .. External Functions ..
+      LOGICAL          LSAME
+      EXTERNAL         LSAME
+*     .. External Subroutines ..
+      EXTERNAL         BB02AD, MA02DD
+*     .. Executable Statements ..
+      WRITE( NOUT, FMT = 99999 )
+*     Skip the heading in the data file and read the data.
+      READ( NIN, FMT = '()' )
+      READ( NIN, FMT = * ) DEF
+      READ( NIN, FMT = * ) ( NR(I), I = 1, 2 )
+      IF( LSAME( DEF, 'N' ) ) THEN
+        READ( NIN, FMT = * ) LBPAR
+        IF( LBPAR.GT.0 ) READ( NIN, FMT = * ) ( BPAR(I), I = 1, LBPAR )
+        READ( NIN, FMT = * ) LDPAR
+        IF( LDPAR.GT.0 ) READ( NIN, FMT = * ) ( DPAR(I), I = 1, LDPAR )
+        READ( NIN, FMT = * ) LIPAR
+        IF( LIPAR.GT.0 ) READ( NIN, FMT = * ) ( IPAR(I), I = 1, LIPAR )
+      END IF
+*     Generate benchmark example
+      CALL BB02AD( DEF, NR, DPAR, IPAR, BPAR, CHPAR, VEC, N, M, P, A,
+     $             LDA, B, LDB, C, LDC, Q, LDQ, R, LDR, S, LDS, X, LDX,
+     $             DWORK, LDWORK, INFO )
+*
+      IF( INFO.NE.0 ) THEN
+        WRITE( NOUT, FMT = 99998 ) INFO
+      ELSE
+        WRITE( NOUT, FMT = * ) CHPAR(1:70)
+        WRITE( NOUT, FMT = 99997 ) N
+        WRITE( NOUT, FMT = 99996 ) M
+        WRITE( NOUT, FMT = 99995 ) P
+        WRITE( NOUT, FMT = 99994 )
+        DO 10  I = 1, N
+          WRITE( NOUT, FMT = 99977 ) ( A(I,J), J = 1, N )
+   10   CONTINUE
+        IF( VEC(5) ) THEN
+          WRITE( NOUT, FMT = 99993 )
+          DO 20  I = 1, N
+            WRITE( NOUT, FMT = 99977 ) ( B(I,J), J = 1, M )
+   20     CONTINUE
+        ELSE
+          WRITE( NOUT, FMT = 99992 )
+        END IF
+        IF( VEC(6) ) THEN
+          WRITE( NOUT,FMT = 99991 )
+          DO 30  I = 1, P
+            WRITE( NOUT, FMT = 99977 ) ( C(I,J), J = 1, N )
+   30     CONTINUE
+        ELSE
+          WRITE( NOUT, FMT = 99990 )
+        END IF
+        IF( .NOT.VEC(5) ) THEN
+          WRITE( NOUT, FMT = 99989 )
+          IF( .NOT.BPAR(2) ) THEN
+            ISYMM = ( N * ( N + 1 ) ) / 2
+            CALL DCOPY( ISYMM, R, 1, DWORK, 1 )
+            IF( BPAR(3) ) THEN
+              CALL MA02DD( 'Unpack', 'Upper', N, R, LDR, DWORK )
+            ELSE
+              CALL MA02DD( 'Unpack', 'Lower', N, R, LDR, DWORK )
+            END IF
+          END IF
+          DO 40  I = 1, N
+            WRITE( NOUT, FMT = 99977 ) ( R(I,J), J = 1, N )
+   40     CONTINUE
+        ELSE
+          WRITE( NOUT, FMT = 99988 )
+        END IF
+        IF( .NOT.VEC(6) ) THEN
+          IF( .NOT.BPAR(5) ) THEN
+            ISYMM = ( N * ( N + 1 ) ) / 2
+            CALL DCOPY( ISYMM, Q, 1, DWORK, 1 )
+            IF( BPAR(6) ) THEN
+              CALL MA02DD( 'Unpack', 'Upper', N, Q, LDQ, DWORK )
+            ELSE
+              CALL MA02DD( 'Unpack', 'Lower', N, Q, LDQ, DWORK )
+            END IF
+          END IF
+          WRITE( NOUT, FMT = 99987 )
+          DO 50  I = 1, N
+            WRITE( NOUT, FMT = 99977 ) ( Q(I,J), J = 1, N )
+   50     CONTINUE
+        ELSE
+          WRITE( NOUT, FMT = 99986 )
+        END IF
+        IF( VEC(6) ) THEN
+          IF( .NOT.BPAR(5) ) THEN
+            ISYMM = ( P * ( P + 1 ) ) / 2
+            CALL DCOPY( ISYMM, Q, 1, DWORK, 1 )
+            IF( BPAR(6) ) THEN
+              CALL MA02DD( 'Unpack', 'Upper', P, Q, LDQ, DWORK )
+            ELSE
+              CALL MA02DD( 'Unpack', 'Lower', P, Q, LDQ, DWORK )
+            END IF
+          END IF
+          WRITE( NOUT, FMT = 99985 )
+          DO 60  I = 1, P
+            WRITE( NOUT, FMT = 99977 ) ( Q(I,J), J = 1, P )
+   60     CONTINUE
+        ELSE
+          WRITE( NOUT, FMT = 99984 )
+        END IF
+        IF( VEC(5) ) THEN
+          IF( .NOT.BPAR(2) ) THEN
+            ISYMM = ( M * ( M + 1 ) ) / 2
+            CALL DCOPY( ISYMM, R, 1, DWORK, 1 )
+            IF( BPAR(3) ) THEN
+              CALL MA02DD( 'Unpack', 'Upper', M, R, LDR, DWORK )
+            ELSE
+              CALL MA02DD( 'Unpack', 'Lower', M, R, LDR, DWORK )
+            END IF
+          END IF
+          WRITE( NOUT, FMT = 99983 )
+          DO 70  I = 1, M
+            WRITE( NOUT, FMT = 99977 ) ( R(I,J), J = 1, M )
+   70     CONTINUE
+        ELSE
+          WRITE( NOUT, FMT = 99982 )
+        END IF
+        IF( VEC(9) ) THEN
+          WRITE( NOUT, FMT = 99981 )
+          DO 80  I = 1, N
+            WRITE( NOUT, FMT = 99977 ) ( S(I,J), J = 1, M )
+   80     CONTINUE
+        ELSE
+          WRITE( NOUT, FMT = 99980 )
+        END IF
+        IF( VEC(10) ) THEN
+          WRITE( NOUT, FMT = 99979 )
+          DO 90  I = 1, N
+            WRITE( NOUT, FMT = 99977 ) ( X(I,J), J = 1, N )
+   90     CONTINUE
+        ELSE
+          WRITE( NOUT, FMT = 99978 )
+        END IF
+      END IF
+      STOP
+*
+99999 FORMAT (' BB02AD EXAMPLE PROGRAM RESULTS', /1X)
+99998 FORMAT (' INFO on exit from BB02AD = ', I3)
+99997 FORMAT (/' Order of matrix A:              N  = ', I3)
+99996 FORMAT (' Number of columns in matrix B:  M  = ', I3)
+99995 FORMAT (' Number of rows in matrix C:     P  = ', I3)
+99994 FORMAT (' A  = ')
+99993 FORMAT (' B  = ')
+99992 FORMAT (' B is not provided.')
+99991 FORMAT (' C  = ')
+99990 FORMAT (' C is not provided.')
+99989 FORMAT (' G  = ')
+99988 FORMAT (' G is not provided.')
+99987 FORMAT (' Q  = ')
+99986 FORMAT (' Q is not provided.')
+99985 FORMAT (' Q0  = ')
+99984 FORMAT (' Q0 is not provided.')
+99983 FORMAT (' R  = ')
+99982 FORMAT (' R is not provided.')
+99981 FORMAT (' S  = ')
+99980 FORMAT (' S is not provided.')
+99979 FORMAT (' X  = ')
+99978 FORMAT (' X is not provided.')
+99977 FORMAT (20(1X,F8.4))
+*
+      END
+</PRE>
+<B>Program Data</B>
+<PRE>
+BB02AD EXAMPLE PROGRAM DATA
+N
+2 3
+7
+.T. .T. .T. .F. .F. .T. .T.
+1
+.1234
+0
+</PRE>
+<B>Program Results</B>
+<PRE>
+ BB02AD EXAMPLE PROGRAM RESULTS
+
+ increasingly bad scaled system as eps -> oo                           
+
+ Order of matrix A:              N  =   2
+ Number of columns in matrix B:  M  =   1
+ Number of rows in matrix C:     P  =   2
+ A  = 
+   0.0000   0.1234
+   0.0000   0.0000
+ B  = 
+   0.0000
+   1.0000
+ C is not provided.
+ G is not provided.
+ Q  = 
+   1.0000   0.0000
+   0.0000   1.0000
+ Q0 is not provided.
+ R  = 
+   1.0000
+ S  = 
+   0.0000
+   0.0000
+ X  = 
+   1.0000   0.0000
+   0.0000   1.0152
+</PRE>
+
+<HR>
+<p>
+<A HREF=..\libindex.html><B>Return to index</B></A></BODY>
+</HTML>

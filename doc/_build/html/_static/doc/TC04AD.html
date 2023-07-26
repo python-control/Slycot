@@ -1,0 +1,399 @@
+<HTML>
+<HEAD><TITLE>TC04AD - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="TC04AD">TC04AD</A></H2>
+<H3>
+State-space representation for a given left/right polynomial matrix representation
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To find a state-space representation (A,B,C,D) with the same
+  transfer matrix T(s) as that of a given left or right polynomial
+  matrix representation, i.e.
+
+     C*inv(sI-A)*B + D = T(s) = inv(P(s))*Q(s) = Q(s)*inv(P(s)).
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE TC04AD( LERI, M, P, INDEX, PCOEFF, LDPCO1, LDPCO2,
+     $                   QCOEFF, LDQCO1, LDQCO2, N, RCOND, A, LDA, B,
+     $                   LDB, C, LDC, D, LDD, IWORK, DWORK, LDWORK,
+     $                   INFO )
+C     .. Scalar Arguments ..
+      CHARACTER         LERI
+      INTEGER           INFO, LDA, LDB, LDC, LDD, LDPCO1, LDPCO2,
+     $                  LDQCO1, LDQCO2, LDWORK, M, N, P
+      DOUBLE PRECISION  RCOND
+C     .. Array Arguments ..
+      INTEGER           INDEX(*), IWORK(*)
+      DOUBLE PRECISION  A(LDA,*), B(LDB,*), C(LDC,*), D(LDD,*),
+     $                  DWORK(*), PCOEFF(LDPCO1,LDPCO2,*),
+     $                  QCOEFF(LDQCO1,LDQCO2,*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  LERI    CHARACTER*1
+          Indicates whether a left polynomial matrix representation
+          or a right polynomial matrix representation is input as
+          follows:
+          = 'L':  A left matrix fraction is input;
+          = 'R':  A right matrix fraction is input.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  M       (input) INTEGER
+          The number of system inputs.  M &gt;= 0.
+
+  P       (input) INTEGER
+          The number of system outputs.  P &gt;= 0.
+
+  INDEX   (input) INTEGER array, dimension (MAX(M,P))
+          If LERI = 'L', INDEX(I), I = 1,2,...,P, must contain the
+          maximum degree of the polynomials in the I-th row of the
+          denominator matrix P(s) of the given left polynomial
+          matrix representation.
+          If LERI = 'R', INDEX(I), I = 1,2,...,M, must contain the
+          maximum degree of the polynomials in the I-th column of
+          the denominator matrix P(s) of the given right polynomial
+          matrix representation.
+
+  PCOEFF  (input) DOUBLE PRECISION array, dimension
+          (LDPCO1,LDPCO2,kpcoef), where kpcoef = MAX(INDEX(I)) + 1.
+          If LERI = 'L' then porm = P, otherwise porm = M.
+          The leading porm-by-porm-by-kpcoef part of this array must
+          contain the coefficients of the denominator matrix P(s).
+          PCOEFF(I,J,K) is the coefficient in s**(INDEX(iorj)-K+1)
+          of polynomial (I,J) of P(s), where K = 1,2,...,kpcoef; if
+          LERI = 'L' then iorj = I, otherwise iorj = J.
+          Thus for LERI = 'L', P(s) =
+          diag(s**INDEX(I))*(PCOEFF(.,.,1)+PCOEFF(.,.,2)/s+...).
+          If LERI = 'R', PCOEFF is modified by the routine but
+          restored on exit.
+
+  LDPCO1  INTEGER
+          The leading dimension of array PCOEFF.
+          LDPCO1 &gt;= MAX(1,P) if LERI = 'L',
+          LDPCO1 &gt;= MAX(1,M) if LERI = 'R'.
+
+  LDPCO2  INTEGER
+          The second dimension of array PCOEFF.
+          LDPCO2 &gt;= MAX(1,P) if LERI = 'L',
+          LDPCO2 &gt;= MAX(1,M) if LERI = 'R'.
+
+  QCOEFF  (input) DOUBLE PRECISION array, dimension
+          (LDQCO1,LDQCO2,kpcoef)
+          If LERI = 'L' then porp = M, otherwise porp = P.
+          The leading porm-by-porp-by-kpcoef part of this array must
+          contain the coefficients of the numerator matrix Q(s).
+          QCOEFF(I,J,K) is defined as for PCOEFF(I,J,K).
+          If LERI = 'R', QCOEFF is modified by the routine but
+          restored on exit.
+
+  LDQCO1  INTEGER
+          The leading dimension of array QCOEFF.
+          LDQCO1 &gt;= MAX(1,P)   if LERI = 'L',
+          LDQCO1 &gt;= MAX(1,M,P) if LERI = 'R'.
+
+  LDQCO2  INTEGER
+          The second dimension of array QCOEFF.
+          LDQCO2 &gt;= MAX(1,M)   if LERI = 'L',
+          LDQCO2 &gt;= MAX(1,M,P) if LERI = 'R'.
+
+  N       (output) INTEGER
+          The order of the resulting state-space representation.
+                       porm
+          That is, N = SUM INDEX(I).
+                       I=1
+
+  RCOND   (output) DOUBLE PRECISION
+          The estimated reciprocal of the condition number of the
+          leading row (if LERI = 'L') or the leading column (if
+          LERI = 'R') coefficient matrix of P(s).
+          If RCOND is nearly zero, P(s) is nearly row or column
+          non-proper.
+
+  A       (output) DOUBLE PRECISION array, dimension (LDA,N)
+          The leading N-by-N part of this array contains the state
+          dynamics matrix A.
+
+  LDA     INTEGER
+          The leading dimension of array A.  LDA &gt;= MAX(1,N).
+
+  B       (output) DOUBLE PRECISION array, dimension (LDB,MAX(M,P))
+          The leading N-by-M part of this array contains the
+          input/state matrix B; the remainder of the leading
+          N-by-MAX(M,P) part is used as internal workspace.
+
+  LDB     INTEGER
+          The leading dimension of array B.  LDB &gt;= MAX(1,N).
+
+  C       (output) DOUBLE PRECISION array, dimension (LDC,N)
+          The leading P-by-N part of this array contains the
+          state/output matrix C; the remainder of the leading
+          MAX(M,P)-by-N part is used as internal workspace.
+
+  LDC     INTEGER
+          The leading dimension of array C.  LDC &gt;= MAX(1,M,P).
+
+  D       (output) DOUBLE PRECISION array, dimension (LDD,MAX(M,P))
+          The leading P-by-M part of this array contains the direct
+          transmission matrix D; the remainder of the leading
+          MAX(M,P)-by-MAX(M,P) part is used as internal workspace.
+
+  LDD     INTEGER
+          The leading dimension of array D.  LDD &gt;= MAX(1,M,P).
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  IWORK   INTEGER array, dimension (2*MAX(M,P))
+
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+          On exit, if INFO = 0, DWORK(1) returns the optimal value
+          of LDWORK.
+
+  LDWORK  INTEGER
+          The length of the array DWORK.
+          LDWORK &gt;= MAX(1,MAX(M,P)*(MAX(M,P)+4)).
+          For optimum performance LDWORK should be larger.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value;
+          = 1:  if P(s) is not row (if LERI = 'L') or column
+                (if LERI = 'R') proper. Consequently, no state-space
+                representation is calculated.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  The method for a left matrix fraction will be described here;
+  right matrix fractions are dealt with by obtaining the dual left
+  polynomial matrix representation and constructing an equivalent
+  state-space representation for this. The first step is to check
+  if the denominator matrix P(s) is row proper; if it is not then
+  the routine returns with the Error Indicator (INFO) set to 1.
+  Otherwise, Wolovich's Observable  Structure Theorem is used to
+  construct a state-space representation (A,B,C,D) in observable
+  companion form. The sizes of the blocks of matrix A and matrix C
+  here are precisely the row degrees of P(s), while their
+  'non-trivial' columns are given easily from its coefficients.
+  Similarly, the matrix D is obtained from the leading coefficients
+  of P(s) and of the numerator matrix Q(s), while matrix B is given
+  by the relation Sbar(s)B = Q(s) - P(s)D, where Sbar(s) is a
+  polynomial matrix whose (j,k)(th) element is given by
+
+               j-u(k-1)-1
+            ( s           , j = u(k-1)+1,u(k-1)+2,....,u(k)
+  Sbar    = (
+     j,k    (           0 , otherwise
+
+          k
+  u(k) = SUM d , k = 1,2,...,M and d ,d ,...,d  are the
+         i=1  i                     1  2      M
+  controllability indices. For convenience in solving this, C' and B
+  are initially set up to contain the coefficients of P(s) and Q(s),
+  respectively, stored by rows.
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Wolovich, W.A.
+      Linear Multivariate Systems, (Theorem 4.3.3).
+      Springer-Verlag, 1974.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>                            3
+  The algorithm requires 0(N ) operations.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+*     TC04AD EXAMPLE PROGRAM TEXT
+*
+*     .. Parameters ..
+      INTEGER          NIN, NOUT
+      PARAMETER        ( NIN = 5, NOUT = 6 )
+      INTEGER          MMAX, PMAX, KPCMAX, NMAX
+      PARAMETER        ( MMAX = 5, PMAX = 5, KPCMAX = 5, NMAX = 5 )
+      INTEGER          MAXMP
+      PARAMETER        ( MAXMP = MAX( MMAX, PMAX ) )
+      INTEGER          LDPCO1, LDPCO2, LDQCO1, LDQCO2, LDA, LDB, LDC,
+     $                 LDD
+      PARAMETER        ( LDPCO1 = MAXMP, LDPCO2 = MAXMP,
+     $                   LDQCO1 = MAXMP, LDQCO2 = MAXMP,
+     $                   LDA = NMAX, LDB = NMAX, LDC = MAXMP,
+     $                   LDD = MAXMP )
+      INTEGER          LIWORK
+      PARAMETER        ( LIWORK = 2*MAXMP )
+      INTEGER          LDWORK
+      PARAMETER        ( LDWORK = ( MAXMP )*( MAXMP+4 ) )
+*     .. Local Scalars ..
+      DOUBLE PRECISION RCOND
+      INTEGER          I, INFO, J, K, KPCOEF, M, N, P, PORM, PORP
+      CHARACTER*1      LERI
+      LOGICAL          LLERI
+*     .. Local Arrays ..
+      DOUBLE PRECISION A(LDA,NMAX), B(LDB,MAXMP), C(LDC,NMAX),
+     $                 D(LDD,MAXMP), PCOEFF(LDPCO1,LDPCO2,KPCMAX),
+     $                 QCOEFF(LDQCO1,LDQCO2,KPCMAX), DWORK(LDWORK)
+      INTEGER          INDEX(MAXMP), IWORK(LIWORK)
+*     .. External Functions ..
+      LOGICAL          LSAME
+      EXTERNAL         LSAME
+*     .. External Subroutines ..
+      EXTERNAL         TC04AD
+*     .. Intrinsic Functions ..
+      INTRINSIC        MAX
+*     .. Executable Statements ..
+*
+      WRITE ( NOUT, FMT = 99999 )
+*     Skip the heading in the data file and read the data.
+      READ ( NIN, FMT = '()' )
+      READ ( NIN, FMT = * ) M, P, LERI
+      LLERI = LSAME( LERI, 'L' )
+      IF ( M.LE.0 .OR. M.GT.MMAX ) THEN
+         WRITE ( NOUT, FMT = 99991 ) M
+      ELSE IF ( P.LE.0 .OR. P.GT.PMAX ) THEN
+         WRITE ( NOUT, FMT = 99990 ) P
+      ELSE
+         PORM = P
+         IF ( .NOT.LLERI ) PORM = M
+         READ ( NIN, FMT = * ) ( INDEX(I), I = 1,PORM )
+         PORP = M
+         IF ( .NOT.LLERI ) PORP = P
+         KPCOEF = 0
+         DO 20 I = 1, PORM
+            KPCOEF = MAX( KPCOEF, INDEX(I) )
+   20    CONTINUE
+         KPCOEF = KPCOEF + 1
+         IF ( KPCOEF.LE.0 .OR. KPCOEF.GT.KPCMAX ) THEN
+            WRITE ( NOUT, FMT = 99989 ) KPCOEF
+         ELSE
+            READ ( NIN, FMT = * )
+     $         ( ( ( PCOEFF(I,J,K), K = 1,KPCOEF ), J = 1,PORM ),
+     $                              I = 1,PORM )
+            READ ( NIN, FMT = * )
+     $         ( ( ( QCOEFF(I,J,K), K = 1,KPCOEF ), J = 1,PORP ),
+     $                              I = 1,PORM )
+*           Find a ssr of the given left pmr.
+            CALL TC04AD( LERI, M, P, INDEX, PCOEFF, LDPCO1, LDPCO2,
+     $                   QCOEFF, LDQCO1, LDQCO2, N, RCOND, A, LDA, B,
+     $                   LDB, C, LDC, D, LDD, IWORK, DWORK, LDWORK,
+     $                   INFO )
+*
+            IF ( INFO.NE.0 ) THEN
+               WRITE ( NOUT, FMT = 99998 ) INFO
+            ELSE
+               WRITE ( NOUT, FMT = 99997 ) N, RCOND
+               WRITE ( NOUT, FMT = 99996 )
+               DO 40 I = 1, N
+                  WRITE ( NOUT, FMT = 99995 ) ( A(I,J), J = 1,N )
+   40          CONTINUE
+               WRITE ( NOUT, FMT = 99994 )
+               DO 60 I = 1, N
+                  WRITE ( NOUT, FMT = 99995 ) ( B(I,J), J = 1,M )
+   60          CONTINUE
+               WRITE ( NOUT, FMT = 99993 )
+               DO 80 I = 1, P
+                  WRITE ( NOUT, FMT = 99995 ) ( C(I,J), J = 1,N )
+   80          CONTINUE
+               WRITE ( NOUT, FMT = 99992 )
+               DO 100 I = 1, P
+                  WRITE ( NOUT, FMT = 99995 ) ( D(I,J), J = 1,M )
+  100          CONTINUE
+            END IF
+         END IF
+      END IF
+      STOP
+*
+99999 FORMAT (' TC04AD EXAMPLE PROGRAM RESULTS',/1X)
+99998 FORMAT (' INFO on exit from TC04AD = ',I2)
+99997 FORMAT (' The order of the resulting state-space representation ',
+     $       ' =  ',I2,//' RCOND = ',F4.2)
+99996 FORMAT (/' The state dynamics matrix A is ')
+99995 FORMAT (20(1X,F8.4))
+99994 FORMAT (/' The input/state matrix B is ')
+99993 FORMAT (/' The state/output matrix C is ')
+99992 FORMAT (/' The direct transmission matrix D is ')
+99991 FORMAT (/' M is out of range.',/' M = ',I5)
+99990 FORMAT (/' P is out of range.',/' P = ',I5)
+99989 FORMAT (/' KPCOEF is out of range.',/' KPCOEF = ',I5)
+      END
+</PRE>
+<B>Program Data</B>
+<PRE>
+ TC04AD EXAMPLE PROGRAM DATA
+   2     2     L
+   2     2
+   2.0   3.0   1.0
+   4.0  -1.0  -1.0
+   5.0   7.0  -6.0
+   3.0   2.0   2.0
+   6.0  -1.0   5.0
+   1.0   7.0   5.0
+   1.0   1.0   1.0
+   4.0   1.0  -1.0
+</PRE>
+<B>Program Results</B>
+<PRE>
+ TC04AD EXAMPLE PROGRAM RESULTS
+
+ The order of the resulting state-space representation  =   4
+
+ RCOND = 0.25
+
+ The state dynamics matrix A is 
+   0.0000   0.5714   0.0000  -0.4286
+   1.0000   1.0000   0.0000  -1.0000
+   0.0000  -2.0000   0.0000   2.0000
+   0.0000   0.7857   1.0000  -1.7143
+
+ The input/state matrix B is 
+   8.0000   3.8571
+   4.0000   4.0000
+  -9.0000   5.0000
+   4.0000  -5.0714
+
+ The state/output matrix C is 
+   0.0000  -0.2143   0.0000   0.2857
+   0.0000   0.3571   0.0000  -0.1429
+
+ The direct transmission matrix D is 
+  -1.0000   0.9286
+   2.0000  -0.2143
+</PRE>
+
+<HR>
+<p>
+<A HREF=..\libindex.html><B>Return to index</B></A></BODY>
+</HTML>

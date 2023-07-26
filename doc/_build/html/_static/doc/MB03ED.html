@@ -1,0 +1,183 @@
+<HTML>
+<HEAD><TITLE>MB03ED - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MB03ED">MB03ED</A></H2>
+<H3>
+Reducing a real 2-by-2 or 4-by-4 block (anti-)diagonal skew-Hamiltonian/Hamiltonian pencil to generalized Schur form and moving eigenvalues with negative real parts to the top (factored version)
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To compute orthogonal matrices Q1, Q2, Q3 for a real 2-by-2 or
+  4-by-4 regular pencil
+
+                 ( A11  0  ) ( B11  0  )     (  0  D12 )
+    aAB - bD = a (         ) (         ) - b (         ),        (1)
+                 (  0  A22 ) (  0  B22 )     ( D21  0  )
+
+  such that Q3' A Q2 and Q2' B Q1 are upper triangular, Q3' D Q1 is
+  upper quasi-triangular, and the eigenvalues with negative real
+  parts (if there are any) are allocated on the top. The notation M'
+  denotes the transpose of the matrix M. The submatrices A11, A22,
+  B11, B22 and D12 are upper triangular. If D21 is 2-by-2, then all
+  other blocks are nonsingular and the product
+     -1        -1    -1        -1
+  A22   D21 B11   A11   D12 B22   has a pair of complex conjugate
+  eigenvalues.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MB03ED( N, PREC, A, LDA, B, LDB, D, LDD, Q1, LDQ1, Q2,
+     $                   LDQ2, Q3, LDQ3, DWORK, LDWORK, INFO )
+C     .. Scalar Arguments ..
+      INTEGER            INFO, LDA, LDB, LDD, LDQ1, LDQ2, LDQ3, LDWORK,
+     $                   N
+      DOUBLE PRECISION   PREC
+C     .. Array Arguments ..
+      DOUBLE PRECISION   A( LDA, * ), B( LDB, * ), D( LDD, * ),
+     $                   DWORK( * ), Q1( LDQ1, * ), Q2( LDQ2, * ),
+     $                   Q3( LDQ3, * )
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The order of the input pencil, N = 2 or N = 4.
+
+  PREC    (input) DOUBLE PRECISION
+          The machine precision, (relative machine precision)*base.
+          See the LAPACK Library routine DLAMCH.
+
+  A       (input) DOUBLE PRECISION array, dimension (LDA, N)
+          The leading N-by-N upper triangular part of this array
+          must contain the upper triangular matrix A of the pencil
+          aAB - bD. The strictly lower triangular part and the
+          entries of the (1,2) block are not referenced.
+
+  LDA     INTEGER
+          The leading dimension of the array A.  LDA &gt;= N.
+
+  B       (input) DOUBLE PRECISION array, dimension (LDB, N)
+          The leading N-by-N upper triangular part of this array
+          must contain the upper triangular matrix B of the pencil
+          aAB - bD. The strictly lower triangular part and the
+          entries of the (1,2) block are not referenced.
+
+  LDB     INTEGER
+          The leading dimension of the array B.  LDB &gt;= N.
+
+  D       (input/output) DOUBLE PRECISION array, dimension (LDD, N)
+          On entry, the leading N-by-N part of this array must
+          contain the matrix D of the pencil aAB - bD.
+          On exit, if N = 4, the leading N-by-N part of this array
+          contains the transformed matrix D in real Schur form.
+          If N = 2, this array is unchanged on exit.
+
+  LDD     INTEGER
+          The leading dimension of the array D.  LDD &gt;= N.
+
+  Q1      (output) DOUBLE PRECISION array, dimension (LDQ1, N)
+          The leading N-by-N part of this array contains the first
+          orthogonal transformation matrix.
+
+  LDQ1    INTEGER
+          The leading dimension of the array Q1.  LDQ1 &gt;= N.
+
+  Q2      (output) DOUBLE PRECISION array, dimension (LDQ2, N)
+          The leading N-by-N part of this array contains the second
+          orthogonal transformation matrix.
+
+  LDQ2    INTEGER
+          The leading dimension of the array Q2.  LDQ2 &gt;= N.
+
+  Q3      (output) DOUBLE PRECISION array, dimension (LDQ3, N)
+          The leading N-by-N part of this array contains the third
+          orthogonal transformation matrix.
+
+  LDQ3    INTEGER
+          The leading dimension of the array Q3.  LDQ3 &gt;= N.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+          If N = 2, then DWORK is not referenced.
+
+  LDWORK  INTEGER
+          The dimension of the array DWORK.
+          If N = 4, then LDWORK &gt;= 79. For good performance LDWORK
+          should be generally larger.
+          If N = 2, then LDWORK &gt;= 0.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0: succesful exit;
+          = 1: the QZ iteration failed in the LAPACK routine DGGES;
+          = 2: another error occured during execution of DGGES.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  The algorithm uses orthogonal transformations as described on page
+  20 in [2].
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Benner, P., Byers, R., Mehrmann, V. and Xu, H.
+      Numerical computation of deflating subspaces of skew-
+      Hamiltonian/Hamiltonian pencils.
+      SIAM J. Matrix Anal. Appl., 24 (1), pp. 165-190, 2002.
+
+  [2] Benner, P., Byers, R., Losse, P., Mehrmann, V. and Xu, H.
+      Numerical Solution of Real Skew-Hamiltonian/Hamiltonian
+      Eigenproblems.
+      Tech. Rep., Technical University Chemnitz, Germany,
+      Nov. 2007.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  The algorithm is numerically backward stable.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

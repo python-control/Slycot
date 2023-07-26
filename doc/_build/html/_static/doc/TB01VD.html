@@ -1,0 +1,205 @@
+<HTML>
+<HEAD><TITLE>TB01VD - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="TB01VD">TB01VD</A></H2>
+<H3>
+Conversion of a linear discrete-time system into the output normal form
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To convert the linear discrete-time system given as (A, B, C, D),
+  with initial state x0, into the output normal form [1], with
+  parameter vector THETA. The matrix A is assumed to be stable.
+  The matrices A, B, C, D and the vector x0 are converted, so that
+  on exit they correspond to the system defined by THETA.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE TB01VD( APPLY, N, M, L, A, LDA, B, LDB, C, LDC, D, LDD,
+     $                   X0, THETA, LTHETA, DWORK, LDWORK, INFO )
+C     .. Scalar Arguments ..
+      CHARACTER         APPLY
+      INTEGER           INFO, L, LDA, LDB, LDC, LDD, LDWORK, LTHETA, M,
+     $                  N
+C     .. Array Arguments ..
+      DOUBLE PRECISION  A(LDA,*), B(LDB,*), C(LDC,*), D(LDD,*),
+     $                  DWORK(*), THETA(*), X0(*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  APPLY   CHARACTER*1
+          Specifies whether or not the parameter vector should be
+          transformed using a bijective mapping, as follows:
+          = 'A' : apply the bijective mapping to the N vectors in
+                  THETA corresponding to the matrices A and C;
+          = 'N' : do not apply the bijective mapping.
+          The transformation performed when APPLY = 'A' allows
+          to get rid of the constraints norm(THETAi) &lt; 1, i = 1:N.
+          A call of the SLICOT Library routine TB01VY associated to
+          a call of TB01VD must use the same value of APPLY.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The order of the system.  N &gt;= 0.
+
+  M       (input) INTEGER
+          The number of system inputs.  M &gt;= 0.
+
+  L       (input) INTEGER
+          The number of system outputs.  L &gt;= 0.
+
+  A       (input/output) DOUBLE PRECISION array, dimension (LDA,N)
+          On entry, the leading N-by-N part of this array must
+          contain the system state matrix A, assumed to be stable.
+          On exit, the leading N-by-N part of this array contains
+          the transformed system state matrix corresponding to the
+          output normal form with parameter vector THETA.
+
+  LDA     INTEGER
+          The leading dimension of array A.  LDA &gt;= MAX(1,N).
+
+  B       (input/output) DOUBLE PRECISION array, dimension (LDB,M)
+          On entry, the leading N-by-M part of this array must
+          contain the system input matrix B.
+          On exit, the leading N-by-M part of this array contains
+          the transformed system input matrix corresponding to the
+          output normal form with parameter vector THETA.
+
+  LDB     INTEGER
+          The leading dimension of array B.  LDB &gt;= MAX(1,N).
+
+  C       (input/output) DOUBLE PRECISION array, dimension (LDC,N)
+          On entry, the leading L-by-N part of this array must
+          contain the system output matrix C.
+          On exit, the leading L-by-N part of this array contains
+          the transformed system output matrix corresponding to the
+          output normal form with parameter vector THETA.
+
+  LDC     INTEGER
+          The leading dimension of array C.  LDC &gt;= MAX(1,L).
+
+  D       (input) DOUBLE PRECISION array, dimension (LDD,M)
+          The leading L-by-M part of this array must contain the
+          system input/output matrix D.
+
+  LDD     INTEGER
+          The leading dimension of array D.  LDD &gt;= MAX(1,L).
+
+  X0      (input/output) DOUBLE PRECISION array, dimension (N)
+          On entry, this array must contain the initial state of the
+          system, x0.
+          On exit, this array contains the transformed initial state
+          of the system, corresponding to the output normal form
+          with parameter vector THETA.
+
+  THETA   (output) DOUBLE PRECISION array, dimension (LTHETA)
+          The leading N*(L+M+1)+L*M part of this array contains the
+          parameter vector that defines a system (A, B, C, D, x0)
+          which is equivalent up to a similarity transformation to
+          the system given on entry. The parameters are:
+
+          THETA(1:N*L)                      : parameters for A, C;
+          THETA(N*L+1:N*(L+M))              : parameters for B;
+          THETA(N*(L+M)+1:N*(L+M)+L*M)      : parameters for D;
+          THETA(N*(L+M)+L*M+1:N*(L+M+1)+L*M): parameters for x0.
+
+  LTHETA  INTEGER
+          The length of array THETA.  LTHETA &gt;= N*(L+M+1)+L*M.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+          On exit, if INFO = 0, DWORK(1) returns the optimal value
+          of LDWORK.
+
+  LDWORK  INTEGER
+          The length of the array DWORK.
+          LDWORK &gt;= MAX(1, N*N*L + N*L + N,
+                        N*N + MAX(N*N + N*MAX(N,L) + 6*N + MIN(N,L),
+                                  N*M)).
+          For optimum performance LDWORK should be larger.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value;
+          = 1:  if the Lyapunov equation A'*Q*A - Q = -scale^2*C'*C
+                could only be solved with scale = 0;
+          = 2:  if matrix A is not discrete-time stable;
+          = 3:  if the QR algorithm failed to converge for
+                matrix A.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  The matrices A and C are converted to output normal form.
+  First, the Lyapunov equation
+
+     A'*Q*A - Q = -scale^2*C'*C,
+
+  is solved in the Cholesky factor T, T'*T = Q, and then T is used
+  to get the transformation matrix.
+
+  The matrix B and the initial state x0 are transformed accordingly.
+
+  Then, the QR factorization of the transposed observability matrix
+  is computed, and the matrix Q is used to further transform the
+  system matrices. The parameters characterizing A and C are finally
+  obtained by applying a set of N orthogonal transformations.
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Peeters, R.L.M., Hanzon, B., and Olivi, M.
+      Balanced realizations of discrete-time stable all-pass
+      systems and the tangential Schur algorithm.
+      Proceedings of the European Control Conference,
+      31 August - 3 September 1999, Karlsruhe, Germany.
+      Session CP-6, Discrete-time Systems, 1999.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

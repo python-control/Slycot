@@ -1,0 +1,155 @@
+<HTML>
+<HEAD><TITLE>MB01PD - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MB01PD">MB01PD</A></H2>
+<H3>
+Matrix scaling (higher level routine)
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To scale a matrix or undo scaling.  Scaling is performed, if
+  necessary, so that the matrix norm will be in a safe range of
+  representable numbers.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MB01PD( SCUN, TYPE, M, N, KL, KU, ANRM, NBL, NROWS, A,
+     $                   LDA, INFO )
+C     .. Scalar Arguments ..
+      CHARACTER          SCUN, TYPE
+      INTEGER            INFO, KL, KU, LDA, M, MN, N, NBL
+      DOUBLE PRECISION   ANRM
+C     .. Array Arguments ..
+      INTEGER            NROWS ( * )
+      DOUBLE PRECISION   A( LDA, * )
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  SCUN    CHARACTER*1
+          SCUN indicates the operation to be performed.
+          = 'S':  scale the matrix.
+          = 'U':  undo scaling of the matrix.
+
+  TYPE    CHARACTER*1
+          TYPE indicates the storage type of the input matrix.
+          = 'G':  A is a full matrix.
+          = 'L':  A is a (block) lower triangular matrix.
+          = 'U':  A is an (block) upper triangular matrix.
+          = 'H':  A is an (block) upper Hessenberg matrix.
+          = 'B':  A is a symmetric band matrix with lower bandwidth
+                  KL and upper bandwidth KU and with the only the
+                  lower half stored.
+          = 'Q':  A is a symmetric band matrix with lower bandwidth
+                  KL and upper bandwidth KU and with the only the
+                  upper half stored.
+          = 'Z':  A is a band matrix with lower bandwidth KL and
+                  upper bandwidth KU.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  M       (input) INTEGER
+          The number of rows of the matrix A. M &gt;= 0.
+
+  N       (input) INTEGER
+          The number of columns of the matrix A. N &gt;= 0.
+
+  KL      (input) INTEGER
+          The lower bandwidth of A.  Referenced only if TYPE = 'B',
+          'Q' or 'Z'.
+
+  KU      (input) INTEGER
+          The upper bandwidth of A.  Referenced only if TYPE = 'B',
+          'Q' or 'Z'.
+
+  ANRM    (input) DOUBLE PRECISION
+          The norm of the initial matrix A.  ANRM &gt;= 0.
+          When  ANRM = 0  then an immediate return is effected.
+          ANRM should be preserved between the call of the routine
+          with SCUN = 'S' and the corresponding one with SCUN = 'U'.
+
+  NBL     (input) INTEGER
+          The number of diagonal blocks of the matrix A, if it has a
+          block structure.  To specify that matrix A has no block
+          structure, set NBL = 0.  NBL &gt;= 0.
+
+  NROWS   (input) INTEGER array, dimension max(1,NBL)
+          NROWS(i) contains the number of rows and columns of the
+          i-th diagonal block of matrix A.  The sum of the values
+          NROWS(i),  for  i = 1: NBL,  should be equal to min(M,N).
+          The elements of the array  NROWS  are not referenced if
+          NBL = 0.
+
+  A       (input/output) DOUBLE PRECISION array, dimension (LDA,N)
+          On entry, the leading M by N part of this array must
+          contain the matrix to be scaled/unscaled.
+          On exit, the leading M by N part of A will contain
+          the modified matrix.
+          The storage mode of A is specified by TYPE.
+
+  LDA     (input) INTEGER
+          The leading dimension of the array A.  LDA  &gt;= max(1,M).
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    (output) INTEGER
+          = 0:  successful exit
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  Denote by ANRM the norm of the matrix, and by SMLNUM and BIGNUM,
+  two positive numbers near the smallest and largest safely
+  representable numbers, respectively.  The matrix is scaled, if
+  needed, such that the norm of the result is in the range
+  [SMLNUM, BIGNUM].  The scaling factor is represented as a ratio
+  of two numbers, one of them being ANRM, and the other one either
+  SMLNUM or BIGNUM, depending on ANRM being less than SMLNUM or
+  larger than BIGNUM, respectively.  For undoing the scaling, the
+  norm is again compared with SMLNUM or BIGNUM, and the reciprocal
+  of the previous scaling factor is used.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<p>
+<A HREF=..\libindex.html><B>Return to index</B></A></BODY>
+</HTML>

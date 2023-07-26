@@ -1,0 +1,295 @@
+<HTML>
+<HEAD><TITLE>AB01MD - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="AB01MD">AB01MD</A></H2>
+<H3>
+Controllable realization for single-input systems using orthogonal state and input transformations
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To find a controllable realization for the linear time-invariant
+  single-input system
+
+          dX/dt = A * X + B * U,
+
+  where A is an N-by-N matrix and B is an N element vector which
+  are reduced by this routine to orthogonal canonical form using
+  (and optionally accumulating) orthogonal similarity
+  transformations.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE AB01MD( JOBZ, N, A, LDA, B, NCONT, Z, LDZ, TAU, TOL,
+     $                   DWORK, LDWORK, INFO )
+C     .. Scalar Arguments ..
+      CHARACTER         JOBZ
+      INTEGER           INFO, LDA, LDZ, LDWORK, N, NCONT
+      DOUBLE PRECISION  TOL
+C     .. Array Arguments ..
+      DOUBLE PRECISION  A(LDA,*), B(*), DWORK(*), TAU(*), Z(LDZ,*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  JOBZ    CHARACTER*1
+          Indicates whether the user wishes to accumulate in a
+          matrix Z the orthogonal similarity transformations for
+          reducing the system, as follows:
+          = 'N':  Do not form Z and do not store the orthogonal
+                  transformations;
+          = 'F':  Do not form Z, but store the orthogonal
+                  transformations in the factored form;
+          = 'I':  Z is initialized to the unit matrix and the
+                  orthogonal transformation matrix Z is returned.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The order of the original state-space representation,
+          i.e. the order of the matrix A.  N &gt;= 0.
+
+  A       (input/output) DOUBLE PRECISION array, dimension (LDA,N)
+          On entry, the leading N-by-N part of this array must
+          contain the original state dynamics matrix A.
+          On exit, the leading NCONT-by-NCONT upper Hessenberg
+          part of this array contains the canonical form of the
+          state dynamics matrix, given by Z' * A * Z, of a
+          controllable realization for the original system. The
+          elements below the first subdiagonal are set to zero.
+
+  LDA     INTEGER
+          The leading dimension of array A.  LDA &gt;= MAX(1,N).
+
+  B       (input/output) DOUBLE PRECISION array, dimension (N)
+          On entry, the original input/state vector B.
+          On exit, the leading NCONT elements of this array contain
+          canonical form of the input/state vector, given by Z' * B,
+          with all elements but B(1) set to zero.
+
+  NCONT   (output) INTEGER
+          The order of the controllable state-space representation.
+
+  Z       (output) DOUBLE PRECISION array, dimension (LDZ,N)
+          If JOBZ = 'I', then the leading N-by-N part of this array
+          contains the matrix of accumulated orthogonal similarity
+          transformations which reduces the given system to
+          orthogonal canonical form.
+          If JOBZ = 'F', the elements below the diagonal, with the
+          array TAU, represent the orthogonal transformation matrix
+          as a product of elementary reflectors. The transformation
+          matrix can then be obtained by calling the LAPACK Library
+          routine DORGQR.
+          If JOBZ = 'N', the array Z is not referenced and can be
+          supplied as a dummy array (i.e. set parameter LDZ = 1 and
+          declare this array to be Z(1,1) in the calling program).
+
+  LDZ     INTEGER
+          The leading dimension of array Z. If JOBZ = 'I' or
+          JOBZ = 'F', LDZ &gt;= MAX(1,N); if JOBZ = 'N', LDZ &gt;= 1.
+
+  TAU     (output) DOUBLE PRECISION array, dimension (N)
+          The elements of TAU contain the scalar factors of the
+          elementary reflectors used in the reduction of B and A.
+
+</PRE>
+<B>Tolerances</B>
+<PRE>
+  TOL     DOUBLE PRECISION
+          The tolerance to be used in determining the
+          controllability of (A,B). If the user sets TOL &gt; 0, then
+          the given value of TOL is used as an absolute tolerance;
+          elements with absolute value less than TOL are considered
+          neglijible. If the user sets TOL &lt;= 0, then an implicitly
+          computed, default tolerance, defined by
+          TOLDEF = N*EPS*MAX( NORM(A), NORM(B) ) is used instead,
+          where EPS is the machine precision (see LAPACK Library
+          routine DLAMCH).
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+          On exit, if INFO = 0, DWORK(1) returns the optimal value
+          of LDWORK.
+
+  LDWORK  INTEGER
+          The length of the array DWORK. LDWORK &gt;= MAX(1,N).
+          For optimum performance LDWORK should be larger.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  The Householder matrix which reduces all but the first element
+  of vector B to zero is found and this orthogonal similarity
+  transformation is applied to the matrix A. The resulting A is then
+  reduced to upper Hessenberg form by a sequence of Householder
+  transformations. Finally, the order of the controllable state-
+  space representation (NCONT) is determined by finding the position
+  of the first sub-diagonal element of A which is below an
+  appropriate zero threshold, either TOL or TOLDEF (see parameter
+  TOL); if NORM(B) is smaller than this threshold, NCONT is set to
+  zero, and no computations for reducing the system to orthogonal
+  canonical form are performed.
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Konstantinov, M.M., Petkov, P.Hr. and Christov, N.D.
+      Orthogonal Invariants and Canonical Forms for Linear
+      Controllable Systems.
+      Proc. 8th IFAC World Congress, Kyoto, 1, pp. 49-54, 1981.
+
+  [2] Hammarling, S.J.
+      Notes on the use of orthogonal similarity transformations in
+      control.
+      NPL Report DITC 8/82, August 1982.
+
+  [3] Paige, C.C
+      Properties of numerical algorithms related to computing
+      controllability.
+      IEEE Trans. Auto. Contr., AC-26, pp. 130-138, 1981.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>                            3
+  The algorithm requires 0(N ) operations and is backward stable.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+*     AB01MD EXAMPLE PROGRAM TEXT
+*
+*     .. Parameters ..
+      INTEGER          NIN, NOUT
+      PARAMETER        ( NIN = 5, NOUT = 6 )
+      INTEGER          NMAX
+      PARAMETER        ( NMAX = 20 )
+      INTEGER          LDA, LDZ
+      PARAMETER        ( LDA = NMAX, LDZ = NMAX )
+      INTEGER          LDWORK
+      PARAMETER        ( LDWORK = NMAX )
+*     .. Local Scalars ..
+      DOUBLE PRECISION TOL
+      INTEGER          I, INFO, J, N, NCONT
+      CHARACTER*1      JOBZ
+*     .. Local Arrays ..
+      DOUBLE PRECISION A(LDA,NMAX), B(NMAX), DWORK(LDWORK), TAU(NMAX),
+     $                 Z(LDZ,NMAX)
+*     .. External Functions ..
+      LOGICAL          LSAME
+      EXTERNAL         LSAME
+*     .. External Subroutines ..
+      EXTERNAL         AB01MD, DORGQR
+*     .. Executable Statements ..
+*
+      WRITE ( NOUT, FMT = 99999 )
+*     Skip the heading in the data file and read in the data.
+      READ ( NIN, FMT = '()' )
+      READ ( NIN, FMT = * ) N, TOL, JOBZ
+      IF ( N.LE.0 .OR. N.GT.NMAX ) THEN
+         WRITE ( NOUT, FMT = 99993 ) N
+      ELSE
+         READ ( NIN, FMT = * ) ( ( A(I,J), J = 1,N ), I = 1,N )
+         READ ( NIN, FMT = * ) ( B(I), I = 1,N )
+*        Find a controllable realization for the given system.
+         CALL AB01MD( JOBZ, N, A, LDA, B, NCONT, Z, LDZ, TAU, TOL,
+     $                DWORK, LDWORK, INFO )
+*
+         IF ( INFO.NE.0 ) THEN
+            WRITE ( NOUT, FMT = 99998 ) INFO
+         ELSE
+            WRITE ( NOUT, FMT = 99997 ) NCONT
+            DO 20 I = 1, NCONT
+               WRITE ( NOUT, FMT = 99994 ) ( A(I,J), J = 1,NCONT )
+   20       CONTINUE
+            WRITE ( NOUT, FMT = 99996 ) ( B(I), I = 1,NCONT )
+            IF ( LSAME( JOBZ, 'F' ) )
+     $         CALL DORGQR( N, N, N, Z, LDZ, TAU, DWORK, LDWORK, INFO )
+            IF ( LSAME( JOBZ, 'F' ).OR.LSAME( JOBZ, 'I' ) ) THEN
+               WRITE ( NOUT, FMT = 99995 )
+               DO 40 I = 1, N
+                  WRITE ( NOUT, FMT = 99994 ) ( Z(I,J), J = 1,N )
+   40          CONTINUE
+            END IF
+         END IF
+      END IF
+      STOP
+*
+99999 FORMAT (' AB01MD EXAMPLE PROGRAM RESULTS',/1X)
+99998 FORMAT (' INFO on exit from AB01MD = ',I2)
+99997 FORMAT (' The order of the controllable state-space representati',
+     $       'on = ',I2,//' The state dynamics matrix A of a controlla',
+     $       'ble realization is ')
+99996 FORMAT (/' The input/state vector B of a controllable realizatio',
+     $       'n is ',/(1X,F8.4))
+99995 FORMAT (/' The similarity transformation matrix Z is ')
+99994 FORMAT (20(1X,F8.4))
+99993 FORMAT (/' N is out of range.',/' N = ',I5)
+      END
+</PRE>
+<B>Program Data</B>
+<PRE>
+ AB01MD EXAMPLE PROGRAM DATA
+   3     0.0     I
+   1.0   2.0   0.0
+   4.0  -1.0   0.0
+   0.0   0.0   1.0
+   1.0   0.0   1.0
+</PRE>
+<B>Program Results</B>
+<PRE>
+ AB01MD EXAMPLE PROGRAM RESULTS
+
+ The order of the controllable state-space representation =  3
+
+ The state dynamics matrix A of a controllable realization is 
+   1.0000   1.4142   0.0000
+   2.8284  -1.0000   2.8284
+   0.0000   1.4142   1.0000
+
+ The input/state vector B of a controllable realization is 
+  -1.4142
+   0.0000
+   0.0000
+
+ The similarity transformation matrix Z is 
+  -0.7071   0.0000  -0.7071
+   0.0000  -1.0000   0.0000
+  -0.7071   0.0000   0.7071
+</PRE>
+
+<HR>
+<p>
+<A HREF=..\libindex.html><B>Return to index</B></A></BODY>
+</HTML>

@@ -1,0 +1,200 @@
+<HTML>
+<HEAD><TITLE>MB02NY - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MB02NY">MB02NY</A></H2>
+<H3>
+Separation of a zero singular value of a bidiagonal submatrix
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To separate a zero singular value of a bidiagonal submatrix of
+  order k, k &lt;= p, of the bidiagonal matrix
+
+            |Q(1) E(1)  0    ...   0   |
+            | 0   Q(2) E(2)        .   |
+        J = | .                    .   |
+            | .                  E(p-1)|
+            | 0   ...  ...   ...  Q(p) |
+
+  with p = MIN(M,N), by annihilating one or two superdiagonal
+  elements E(i-1) (if i &gt; 1) and/or E(i) (if i &lt; k).
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MB02NY( UPDATU, UPDATV, M, N, I, K, Q, E, U, LDU, V,
+     $                   LDV, DWORK )
+C     .. Scalar Arguments ..
+      LOGICAL           UPDATU, UPDATV
+      INTEGER           I, K, LDU, LDV, M, N
+C     .. Array Arguments ..
+      DOUBLE PRECISION  DWORK(*), E(*), Q(*), U(LDU,*), V(LDV,*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  UPDATU  LOGICAL
+          Indicates whether the user wishes to accumulate in a
+          matrix U the left-hand Givens rotations S, as follows:
+          = .FALSE.:  Do not form U;
+          = .TRUE. :  The given matrix U is updated (postmultiplied)
+                      by the left-hand Givens rotations S.
+
+  UPDATV  LOGICAL
+          Indicates whether the user wishes to accumulate in a
+          matrix V the right-hand Givens rotations T, as follows:
+          = .FALSE.:  Do not form V;
+          = .TRUE. :  The given matrix V is updated (postmultiplied)
+                      by the right-hand Givens rotations T.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  M       (input) INTEGER
+          The number of rows of the matrix U.  M &gt;= 0.
+
+  N       (input) INTEGER
+          The number of rows of the matrix V.  N &gt;= 0.
+
+  I       (input) INTEGER
+          The index of the negligible diagonal entry Q(I) of the
+          bidiagonal matrix J, I &lt;= p.
+
+  K       (input) INTEGER
+          The index of the last diagonal entry of the considered
+          bidiagonal submatrix of J, i.e., E(K-1) is considered
+          negligible, K &lt;= p.
+
+  Q       (input/output) DOUBLE PRECISION array, dimension (p)
+          where p = MIN(M,N).
+          On entry, Q must contain the diagonal entries of the
+          bidiagonal matrix J.
+          On exit, Q contains the diagonal entries of the
+          transformed bidiagonal matrix S' J T.
+
+  E       (input/output) DOUBLE PRECISION array, dimension (p-1)
+          On entry, E must contain the superdiagonal entries of J.
+          On exit, E contains the superdiagonal entries of the
+          transformed bidiagonal matrix S' J T.
+
+  U       (input/output) DOUBLE PRECISION array, dimension (LDU,p)
+          On entry, if UPDATU = .TRUE., U must contain the M-by-p
+          left transformation matrix.
+          On exit, if UPDATU = .TRUE., the Givens rotations S on the
+          left, annihilating E(i) if i &lt; k, have been postmultiplied
+          into U.
+          U is not referenced if UPDATU = .FALSE..
+
+  LDU     INTEGER
+          The leading dimension of the array U.
+          LDU &gt;= max(1,M) if UPDATU = .TRUE.;
+          LDU &gt;= 1        if UPDATU = .FALSE..
+
+  V       (input/output) DOUBLE PRECISION array, dimension (LDV,p)
+          On entry, if UPDATV = .TRUE., V must contain the N-by-p
+          right transformation matrix.
+          On exit, if UPDATV = .TRUE., the Givens rotations T on the
+          right, annihilating E(i-1) if i &gt; 1,  have been
+          postmultiplied into V.
+          V is not referenced if UPDATV = .FALSE..
+
+  LDV     INTEGER
+          The leading dimension of the array V.
+          LDV &gt;= max(1,N) if UPDATV = .TRUE.;
+          LDV &gt;= 1        if UPDATV = .FALSE..
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  DWORK   DOUBLE PRECISION array, dimension (MAX(1,LDWORK))
+          LDWORK &gt;= 2*MAX(K-I,I-1),  if UPDATV = UPDATU = .TRUE.;
+          LDWORK &gt;= 2*(K-I), if UPDATU = .TRUE., UPDATV = .FALSE.;
+          LDWORK &gt;= 2*(I-1), if UPDATV = .TRUE., UPDATU = .FALSE.;
+          LDWORK &gt;= 1,       if UPDATU = UPDATV = .FALSE..
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  Let the considered bidiagonal submatrix be
+
+            |Q(1) E(1)  0                    ...   0   |
+            | 0   Q(2) E(2)                        .   |
+            | .                                    .   |
+            | .           Q(i-1) E(i-1)            .   |
+       Jk = | .                   Q(i) E(i)        .   |.
+            | .                       Q(i+1) .     .   |
+            | .                              ..    .   |
+            | .                                  E(k-1)|
+            | 0    ...                       ...  Q(k) |
+
+  A zero singular value of Jk manifests itself by a zero diagonal
+  entry Q(i) or in practice, a negligible value of Q(i).
+  When a negligible diagonal element Q(i) in Jk is present, the
+  bidiagonal submatrix Jk is split by the routine into 2 or 3
+  unreduced bidiagonal submatrices by annihilating E(i) (if i &lt; k)
+  using Givens rotations S on the left and by annihilating E(i-1)
+  (if i &gt; 1) using Givens rotations T on the right until Jk is
+  reduced to the form:
+
+            |Q(1) E(1)  0                ...   0   |
+            | 0         .                ...   .   |
+            | .                          ...   .   |
+            | .       Q(i-1) 0                 .   |
+  S' Jk T = | .              0   0             .   |.
+            | .                 Q(i+1)   .     .   |
+            | .                          ..    .   |
+            | .                              E(k-1)|
+            | 0    ...                   ...  Q(k) |
+
+  For more details, see [1, pp.11.12-11.14].
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Dongarra, J.J., Bunch, J.R., Moler C.B. and Stewart, G.W.
+      LINPACK User's Guide.
+      SIAM, Philadelphia, 1979.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  The algorithm is backward stable.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

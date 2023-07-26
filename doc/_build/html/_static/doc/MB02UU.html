@@ -1,0 +1,98 @@
+<HTML>
+<HEAD><TITLE>MB02UU - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MB02UU">MB02UU</A></H2>
+<H3>
+Solution of a system of linear equations using LU factorization with complete pivoting
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To solve for x in A * x = scale * RHS, using the LU factorization
+  of the N-by-N matrix A computed by SLICOT Library routine MB02UV.
+  The factorization has the form A = P * L * U * Q, where P and Q
+  are permutation matrices, L is unit lower triangular and U is
+  upper triangular.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MB02UU( N, A, LDA, RHS, IPIV, JPIV, SCALE )
+C     .. Scalar Arguments ..
+      INTEGER            LDA, N
+      DOUBLE PRECISION   SCALE
+C     .. Array Arguments ..
+      INTEGER            IPIV( * ), JPIV( * )
+      DOUBLE PRECISION   A( LDA, * ), RHS( * )
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The order of the matrix A.
+
+  A       (input) DOUBLE PRECISION array, dimension (LDA, N)
+          The leading N-by-N part of this array must contain
+          the LU part of the factorization of the matrix A computed
+          by SLICOT Library routine MB02UV:  A = P * L * U * Q.
+
+  LDA     INTEGER
+          The leading dimension of the array A.  LDA &gt;= max(1, N).
+
+  RHS     (input/output) DOUBLE PRECISION array, dimension (N)
+          On entry, this array must contain the right hand side
+          of the system.
+          On exit, this array contains the solution of the system.
+
+  IPIV    (input) INTEGER array, dimension (N)
+          The pivot indices; for 1 &lt;= i &lt;= N, row i of the
+          matrix has been interchanged with row IPIV(i).
+
+  JPIV    (input) INTEGER array, dimension (N)
+          The pivot indices; for 1 &lt;= j &lt;= N, column j of the
+          matrix has been interchanged with column JPIV(j).
+
+  SCALE   (output) DOUBLE PRECISION
+          The scale factor, chosen 0 &lt; SCALE &lt;= 1 to prevent
+          overflow in the solution.
+
+</PRE>
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  In the interest of speed, this routine does not check the input
+  for errors. It should only be used if the order of the matrix A
+  is very small.
+
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

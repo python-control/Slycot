@@ -1,0 +1,107 @@
+<HTML>
+<HEAD><TITLE>SB01BX - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="SB01BX">SB01BX</A></H2>
+<H3>
+Choosing the closest real (complex conjugate) eigenvalue(s) to a given real (complex) value
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To choose a real eigenvalue or a pair of complex conjugate
+  eigenvalues at "minimal" distance to a given real or complex
+  value.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE SB01BX( REIG, N, XR, XI, WR, WI, S, P )
+C     .. Scalar Arguments ..
+      LOGICAL          REIG
+      INTEGER          N
+      DOUBLE PRECISION P, S, XI ,XR
+C     .. Array Arguments ..
+      DOUBLE PRECISION WI(*), WR(*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  REIG    LOGICAL
+          Specifies the type of eigenvalues as follows:
+          = .TRUE.,  a real eigenvalue is to be selected;
+          = .FALSE., a pair of complex eigenvalues is to be
+                     selected.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The number of eigenvalues contained in the arrays WR
+          and WI.  N &gt;= 1.
+
+  XR,XI   (input) DOUBLE PRECISION
+          If REIG = .TRUE., XR must contain the real value and XI
+          is assumed zero and therefore not referenced.
+          If REIG = .FALSE., XR must contain the real part and XI
+          the imaginary part, respectively, of the complex value.
+
+  WR,WI   (input/output) DOUBLE PRECISION array, dimension (N)
+          On entry, if REIG = .TRUE., WR must contain the real
+          eigenvalues from which an eigenvalue at minimal distance
+          to XR is to be selected. In this case, WI is considered
+          zero and therefore not referenced.
+          On entry, if REIG = .FALSE., WR and WI must contain the
+          real and imaginary parts, respectively, of the eigenvalues
+          from which a pair of complex conjugate eigenvalues at
+          minimal "distance" to XR + jXI is to be selected.
+          The eigenvalues of each pair of complex conjugate
+          eigenvalues must appear consecutively.
+          On exit, the elements of these arrays are reordered such
+          that the selected eigenvalue(s) is (are) found in the
+          last element(s) of these arrays.
+
+  S,P     (output) DOUBLE PRECISION
+          If REIG = .TRUE., S (and also P) contains the value of
+          the selected real eigenvalue.
+          If REIG = .FALSE., S and P contain the sum and product,
+          respectively, of the selected complex conjugate pair of
+          eigenvalues.
+
+</PRE>
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  For efficiency reasons, |x| + |y| is used for a complex number
+  x + jy, instead of its modulus.
+
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

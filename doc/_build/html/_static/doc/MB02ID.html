@@ -1,0 +1,367 @@
+<HTML>
+<HEAD><TITLE>MB02ID - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MB02ID">MB02ID</A></H2>
+<H3>
+Solution of over- or underdetermined linear systems with a full rank block Toeplitz matrix
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To solve the overdetermined or underdetermined real linear systems
+  involving an M*K-by-N*L block Toeplitz matrix T that is specified
+  by its first block column and row. It is assumed that T has full
+  rank.
+  The following options are provided:
+
+  1. If JOB = 'O' or JOB = 'A' :  find the least squares solution of
+     an overdetermined system, i.e., solve the least squares problem
+
+               minimize || B - T*X ||.                           (1)
+
+  2. If JOB = 'U' or JOB = 'A' :  find the minimum norm solution of
+     the undetermined system
+                T
+               T * X = C.                                        (2)
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MB02ID( JOB, K, L, M, N, RB, RC, TC, LDTC, TR, LDTR, B,
+     $                   LDB, C, LDC, DWORK, LDWORK, INFO )
+C     .. Scalar Arguments ..
+      CHARACTER         JOB
+      INTEGER           INFO, K, L, LDB, LDC, LDTC, LDTR, LDWORK, M, N,
+     $                  RB, RC
+C     .. Array Arguments ..
+      DOUBLE PRECISION  B(LDB,*), C(LDC,*), DWORK(LDWORK), TC(LDTC,*),
+     $                  TR(LDTR,*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  JOB     CHARACTER*1
+          Specifies the problem to be solved as follows
+          = 'O':  solve the overdetermined system (1);
+          = 'U':  solve the underdetermined system (2);
+          = 'A':  solve (1) and (2).
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  K       (input) INTEGER
+          The number of rows in the blocks of T.  K &gt;= 0.
+
+  L       (input) INTEGER
+          The number of columns in the blocks of T.  L &gt;= 0.
+
+  M       (input) INTEGER
+          The number of blocks in the first block column of T.
+          M &gt;= 0.
+
+  N       (input) INTEGER
+          The number of blocks in the first block row of T.
+          0 &lt;= N &lt;= M*K / L.
+
+  RB      (input) INTEGER
+          If JOB = 'O' or 'A', the number of columns in B.  RB &gt;= 0.
+
+  RC      (input) INTEGER
+          If JOB = 'U' or 'A', the number of columns in C.  RC &gt;= 0.
+
+  TC      (input)  DOUBLE PRECISION array, dimension (LDTC,L)
+          On entry, the leading M*K-by-L part of this array must
+          contain the first block column of T.
+
+  LDTC    INTEGER
+          The leading dimension of the array TC.  LDTC &gt;= MAX(1,M*K)
+
+  TR      (input)  DOUBLE PRECISION array, dimension (LDTR,(N-1)*L)
+          On entry, the leading K-by-(N-1)*L part of this array must
+          contain the 2nd to the N-th blocks of the first block row
+          of T.
+
+  LDTR    INTEGER
+          The leading dimension of the array TR.  LDTR &gt;= MAX(1,K).
+
+  B       (input/output)  DOUBLE PRECISION array, dimension (LDB,RB)
+          On entry, if JOB = 'O' or JOB = 'A', the leading M*K-by-RB
+          part of this array must contain the right hand side
+          matrix B of the overdetermined system (1).
+          On exit, if JOB = 'O' or JOB = 'A', the leading N*L-by-RB
+          part of this array contains the solution of the
+          overdetermined system (1).
+          This array is not referenced if JOB = 'U'.
+
+  LDB     INTEGER
+          The leading dimension of the array B.
+          LDB &gt;= MAX(1,M*K),  if JOB = 'O'  or  JOB = 'A';
+          LDB &gt;= 1,           if JOB = 'U'.
+
+  C       (input)  DOUBLE PRECISION array, dimension (LDC,RC)
+          On entry, if JOB = 'U' or JOB = 'A', the leading N*L-by-RC
+          part of this array must contain the right hand side
+          matrix C of the underdetermined system (2).
+          On exit, if JOB = 'U' or JOB = 'A', the leading M*K-by-RC
+          part of this array contains the solution of the
+          underdetermined system (2).
+          This array is not referenced if JOB = 'O'.
+
+  LDC     INTEGER
+          The leading dimension of the array C.
+          LDB &gt;= 1,           if JOB = 'O';
+          LDB &gt;= MAX(1,M*K),  if JOB = 'U'  or  JOB = 'A'.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+          On exit, if INFO = 0,  DWORK(1)  returns the optimal
+          value of LDWORK.
+          On exit, if  INFO = -17,  DWORK(1)  returns the minimum
+          value of LDWORK.
+
+  LDWORK  INTEGER
+          The length of the array DWORK.
+          Let x = MAX( 2*N*L*(L+K) + (6+N)*L,(N*L+M*K+1)*L + M*K )
+          and y = N*M*K*L + N*L, then
+          if MIN( M,N ) = 1 and JOB = 'O',
+                      LDWORK &gt;= MAX( y + MAX( M*K,RB ),1 );
+          if MIN( M,N ) = 1 and JOB = 'U',
+                      LDWORK &gt;= MAX( y + MAX( M*K,RC ),1 );
+          if MIN( M,N ) = 1 and JOB = 'A',
+                      LDWORK &gt;= MAX( y +MAX( M*K,MAX( RB,RC ),1 );
+          if MIN( M,N ) &gt; 1 and JOB = 'O',
+                      LDWORK &gt;= MAX( x,N*L*RB + 1 );
+          if MIN( M,N ) &gt; 1 and JOB = 'U',
+                      LDWORK &gt;= MAX( x,N*L*RC + 1 );
+          if MIN( M,N ) &gt; 1 and JOB = 'A',
+                      LDWORK &gt;= MAX( x,N*L*MAX( RB,RC ) + 1 ).
+          For optimum performance LDWORK should be larger.
+
+          If LDWORK = -1, then a workspace query is assumed;
+          the routine only calculates the optimal size of the
+          DWORK array, returns this value as the first entry of
+          the DWORK array, and no error message related to LDWORK
+          is issued by XERBLA.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value;
+          = 1:  the reduction algorithm failed. The Toeplitz matrix
+                associated with T is (numerically) not of full rank.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  Householder transformations and modified hyperbolic rotations
+  are used in the Schur algorithm [1], [2].
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Kailath, T. and Sayed, A.
+      Fast Reliable Algorithms for Matrices with Structure.
+      SIAM Publications, Philadelphia, 1999.
+
+  [2] Kressner, D. and Van Dooren, P.
+      Factorizations and linear system solvers for matrices with
+      Toeplitz structure.
+      SLICOT Working Note 2000-2, 2000.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  The algorithm requires O( L*L*K*(N+M)*log(N+M) + N*N*L*L*(L+K) )
+  and additionally
+
+  if JOB = 'O' or JOB = 'A',
+               O( (K*L+RB*L+K*RB)*(N+M)*log(N+M) + N*N*L*L*RB );
+  if JOB = 'U' or JOB = 'A',
+               O( (K*L+RC*L+K*RC)*(N+M)*log(N+M) + N*N*L*L*RC );
+
+  floating point operations.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+*     MB02ID EXAMPLE PROGRAM TEXT
+*
+*     .. Parameters ..
+      INTEGER          NIN, NOUT
+      PARAMETER        ( NIN = 5, NOUT = 6 )
+      INTEGER          KMAX, LMAX, MMAX, NMAX, RBMAX, RCMAX
+      PARAMETER        ( KMAX  = 20, LMAX  = 20, MMAX = 20, NMAX = 20,
+     $                   RBMAX = 20, RCMAX = 20 )
+      INTEGER          LDB, LDC, LDTC, LDTR, LDWORK
+      PARAMETER        ( LDB  = KMAX*MMAX, LDC  = KMAX*MMAX,
+     $                   LDTC = MMAX*KMAX, LDTR = KMAX,
+     $                   LDWORK = 2*NMAX*LMAX*( LMAX + KMAX ) +
+     $                            ( 6 + NMAX )*LMAX +
+     $                            MMAX*KMAX*( LMAX + 1 ) +
+     $                            RBMAX + RCMAX )
+*     .. Local Scalars ..
+      INTEGER          I, INFO, J, K, L, M, N, RB, RC
+      CHARACTER        JOB
+      DOUBLE PRECISION B(LDB,RBMAX),  C(LDC,RCMAX), DWORK(LDWORK),
+     $                 TC(LDTC,LMAX), TR(LDTR,NMAX*LMAX)
+*     .. External Functions ..
+      LOGICAL          LSAME
+      EXTERNAL         LSAME
+*     .. External Subroutines ..
+      EXTERNAL         MB02ID
+*
+*     .. Executable Statements ..
+      WRITE ( NOUT, FMT = 99999 )
+*     Skip the heading in the data file and read the data.
+      READ ( NIN, FMT = '()' )
+      READ ( NIN, FMT = * )  K, L, M, N, RB, RC, JOB
+      IF( K.LE.0 .OR. K.GT.KMAX ) THEN
+         WRITE ( NOUT, FMT = 99994 ) K
+      ELSE IF( L.LE.0 .OR. L.GT.LMAX ) THEN
+         WRITE ( NOUT, FMT = 99993 ) L
+      ELSE IF( M.LE.0 .OR. M.GT.MMAX ) THEN
+         WRITE ( NOUT, FMT = 99992 ) M
+      ELSE IF( N.LE.0 .OR. N.GT.NMAX ) THEN
+         WRITE ( NOUT, FMT = 99991 ) N
+      ELSE IF ( ( LSAME( JOB, 'O' ) .OR. LSAME( JOB, 'A' ) )
+     $          .AND. ( ( RB.LE.0 ) .OR. ( RB.GT.RBMAX ) ) ) THEN
+         WRITE ( NOUT, FMT = 99990 ) RB
+      ELSE IF ( ( LSAME( JOB, 'U' ) .OR. LSAME( JOB, 'A' ) )
+     $          .AND. ( ( RC.LE.0 ) .OR. ( RC.GT.RCMAX ) ) ) THEN
+         WRITE ( NOUT, FMT = 99989 ) RC
+      ELSE
+         READ ( NIN, FMT = * ) ( ( TC(I,J), J = 1,L ), I = 1,M*K )
+         READ ( NIN, FMT = * ) ( ( TR(I,J), J = 1,(N-1)*L ), I = 1,K )
+         IF ( LSAME( JOB, 'O' ) .OR. LSAME( JOB, 'A' ) ) THEN
+            READ ( NIN, FMT = * ) ( ( B(I,J), J = 1,RB ), I = 1,M*K )
+         END IF
+         IF ( LSAME( JOB, 'U' ) .OR. LSAME( JOB, 'A' ) ) THEN
+            READ ( NIN, FMT = * ) ( ( C(I,J), J = 1,RC ), I = 1,N*L )
+         END IF
+         CALL MB02ID( JOB, K, L, M, N, RB, RC, TC, LDTC, TR, LDTR, B,
+     $                LDB, C, LDC, DWORK, LDWORK, INFO )
+         IF ( INFO.NE.0 ) THEN
+            WRITE ( NOUT, FMT = 99998 ) INFO
+         ELSE
+            IF ( LSAME( JOB, 'O' ) .OR. LSAME( JOB, 'A' ) ) THEN
+               WRITE ( NOUT, FMT = 99997 )
+               DO 10  I = 1, N*L
+                  WRITE ( NOUT, FMT = 99995 ) ( B(I,J), J = 1, RB )
+   10          CONTINUE
+            END IF
+            IF ( LSAME( JOB, 'U' ) .OR. LSAME( JOB, 'A' ) ) THEN
+               WRITE ( NOUT, FMT = 99996 )
+               DO 20  I = 1, M*K
+                  WRITE ( NOUT, FMT = 99995 ) ( C(I,J), J = 1, RC )
+   20          CONTINUE
+            END IF
+         END IF
+      END IF
+      STOP
+*
+99999 FORMAT (' MB02ID EXAMPLE PROGRAM RESULTS',/1X)
+99998 FORMAT (' INFO on exit from MB02ID = ',I2)
+99997 FORMAT (' The least squares solution of T * X = B is ')
+99996 FORMAT (' The minimum norm solution of T^T * X = C is ')
+99995 FORMAT (20(1X,F8.4))
+99994 FORMAT (/' K is out of range.',/' K = ',I5)
+99993 FORMAT (/' L is out of range.',/' L = ',I5)
+99992 FORMAT (/' M is out of range.',/' M = ',I5)
+99991 FORMAT (/' N is out of range.',/' N = ',I5)
+99990 FORMAT (/' RB is out of range.',/' RB = ',I5)
+99989 FORMAT (/' RC is out of range.',/' RC = ',I5)
+      END
+</PRE>
+<B>Program Data</B>
+<PRE>
+MB02ID EXAMPLE PROGRAM DATA
+   3   2   4   3   1   1   A
+     5.0     2.0
+     1.0     2.0
+     4.0     3.0
+     4.0     0.0
+     2.0     2.0
+     3.0     3.0
+     5.0     1.0
+     3.0     3.0
+     1.0     1.0
+     2.0     3.0
+     1.0     3.0
+     2.0     2.0
+     1.0     4.0     2.0     3.0
+     2.0     2.0     2.0     4.0
+     3.0     1.0     0.0     1.0
+     1.0
+     1.0
+     1.0
+     1.0
+     1.0
+     1.0
+     1.0
+     1.0
+     1.0
+     1.0
+     1.0
+     1.0
+     1.0
+     1.0
+     1.0
+     1.0
+     1.0
+     1.0
+</PRE>
+<B>Program Results</B>
+<PRE>
+ MB02ID EXAMPLE PROGRAM RESULTS
+
+ The least squares solution of T * X = B is 
+   0.0379
+   0.1677
+   0.0485
+  -0.0038
+   0.0429
+   0.1365
+ The minimum norm solution of T^T * X = C is 
+   0.0509
+   0.0547
+   0.0218
+   0.0008
+   0.0436
+   0.0404
+   0.0031
+   0.0451
+   0.0421
+   0.0243
+   0.0556
+   0.0472
+</PRE>
+
+<HR>
+<p>
+<A HREF=..\libindex.html><B>Return to index</B></A></BODY>
+</HTML>

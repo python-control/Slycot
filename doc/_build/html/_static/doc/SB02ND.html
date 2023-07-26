@@ -1,0 +1,486 @@
+<HTML>
+<HEAD><TITLE>SB02ND - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="SB02ND">SB02ND</A></H2>
+<H3>
+Optimal state feedback matrix for an optimal control problem
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To compute the optimal feedback matrix F for the problem of
+  optimal control given by
+
+                     -1
+       F = (R + B'XB)  (B'XA + L')                           (1)
+
+  in the discrete-time case and
+
+            -1
+       F = R  (B'X + L')                                     (2)
+
+  in the continuous-time case, where A, B and L are N-by-N, N-by-M
+  and N-by-M matrices respectively; R and X are M-by-M and N-by-N
+  symmetric matrices respectively.
+
+  Optionally, matrix R may be specified in a factored form, and L
+  may be zero.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE SB02ND( DICO, FACT, UPLO, JOBL, N, M, P, A, LDA, B,
+     $                   LDB, R, LDR, IPIV, L, LDL, X, LDX, RNORM, F,
+     $                   LDF, OUFACT, IWORK, DWORK, LDWORK, INFO )
+C     .. Scalar Arguments ..
+      CHARACTER         DICO, FACT, JOBL, UPLO
+      INTEGER           INFO, LDA, LDB, LDF, LDL, LDR, LDWORK, LDX, M,
+     $                  N, P
+      DOUBLE PRECISION  RNORM
+C     .. Array Arguments ..
+      INTEGER           IPIV(*), IWORK(*), OUFACT(2)
+      DOUBLE PRECISION  A(LDA,*), B(LDB,*), DWORK(*), F(LDF,*),
+     $                  L(LDL,*), R(LDR,*), X(LDX,*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  DICO    CHARACTER*1
+          Specifies the equation from which F is to be determined,
+          as follows:
+          = 'D':  Equation (1), discrete-time case;
+          = 'C':  Equation (2), continuous-time case.
+
+  FACT    CHARACTER*1
+          Specifies how the matrix R is given (factored or not), as
+          follows:
+          = 'N':  Array R contains the matrix R;
+          = 'D':  Array R contains a P-by-M matrix D, where R = D'D;
+          = 'C':  Array R contains the Cholesky factor of R;
+          = 'U':  Array R contains the symmetric indefinite UdU' or
+                  LdL' factorization of R. This option is not
+                  available for DICO = 'D'.
+
+  UPLO    CHARACTER*1
+          Specifies which triangle of the possibly factored matrix R
+          (or R + B'XB, on exit) is or should be stored, as follows:
+          = 'U':  Upper triangle is stored;
+          = 'L':  Lower triangle is stored.
+
+  JOBL    CHARACTER*1
+          Specifies whether or not the matrix L is zero, as follows:
+          = 'Z':  L is zero;
+          = 'N':  L is nonzero.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The order of the matrices A and X.  N &gt;= 0.
+          No computations are performed if MIN(N,M) = 0.
+
+  M       (input) INTEGER
+          The number of system inputs.  M &gt;= 0.
+
+  P       (input) INTEGER
+          The number of rows of the matrix D.
+          P &gt;= M for DICO = 'C';
+          P &gt;= 0 for DICO = 'D'.
+          This parameter must be specified only for FACT = 'D'.
+
+  A       (input) DOUBLE PRECISION array, dimension (LDA,N)
+          If DICO = 'D', the leading N-by-N part of this array must
+          contain the state matrix A of the system.
+          If DICO = 'C', this array is not referenced.
+
+  LDA     INTEGER
+          The leading dimension of array A.
+          LDA &gt;= MAX(1,N) if DICO = 'D';
+          LDA &gt;= 1        if DICO = 'C'.
+
+  B       (input/worksp.) DOUBLE PRECISION array, dimension (LDB,M)
+          The leading N-by-M part of this array must contain the
+          input matrix B of the system.
+          If DICO = 'D' and FACT = 'D' or 'C', the contents of this
+          array is destroyed. Specifically, if, on exit,
+          OUFACT(2) = 1, this array contains chol(X)*B, and if
+          OUFACT(2) = 2 and INFO &lt; M+2, but INFO &gt;= 0, its trailing
+          part (in the first N rows) contains the submatrix of
+          sqrt(V)*U'B corresponding to the non-negligible, positive
+          eigenvalues of X, where V and U are the matrices with the
+          eigenvalues and eigenvectors of X.
+          Otherwise, B is unchanged on exit.
+
+  LDB     INTEGER
+          The leading dimension of array B.  LDB &gt;= MAX(1,N).
+
+  R       (input/output) DOUBLE PRECISION array, dimension (LDR,M)
+          On entry, if FACT = 'N', the leading M-by-M upper
+          triangular part (if UPLO = 'U') or lower triangular part
+          (if UPLO = 'L') of this array must contain the upper
+          triangular part or lower triangular part, respectively,
+          of the symmetric input weighting matrix R.
+          On entry, if FACT = 'D', the leading P-by-M part of this
+          array must contain the direct transmission matrix D of the
+          system.
+          On entry, if FACT = 'C', the leading M-by-M upper
+          triangular part (if UPLO = 'U') or lower triangular part
+          (if UPLO = 'L') of this array must contain the Cholesky
+          factor of the positive definite input weighting matrix R
+          (as produced by LAPACK routine DPOTRF).
+          On entry, if DICO = 'C' and FACT = 'U', the leading M-by-M
+          upper triangular part (if UPLO = 'U') or lower triangular
+          part (if UPLO = 'L') of this array must contain the
+          factors of the UdU' or LdL' factorization, respectively,
+          of the symmetric indefinite input weighting matrix R (as
+          produced by LAPACK routine DSYTRF).
+          The strictly lower triangular part (if UPLO = 'U') or
+          strictly upper triangular part (if UPLO = 'L') of this
+          array is used as workspace (filled in by symmetry with the
+          other strictly triangular part of R, of R+B'XB, or of the
+          result, if DICO = 'C', DICO = 'D', or (DICO = 'D' and
+          (FACT = 'D' or FACT = 'C') and UPLO = 'L'), respectively.
+          On exit, if OUFACT(1) = 1, and INFO = 0 (or INFO = M+1),
+          the leading M-by-M upper triangular part (if UPLO = 'U')
+          or lower triangular part (if UPLO = 'L') of this array
+          contains the Cholesky factor of the given input weighting
+          matrix R (for DICO = 'C'), or that of the matrix R + B'XB
+          (for DICO = 'D').
+          On exit, if OUFACT(1) = 2, and INFO = 0 (or INFO = M+1),
+          the leading M-by-M upper triangular part (if UPLO = 'U')
+          or lower triangular part (if UPLO = 'L') of this array
+          contains the factors of the UdU' or LdL' factorization,
+          respectively, of the given input weighting matrix
+          (for DICO = 'C'), or that of the matrix R + B'XB
+          (for DICO = 'D' and FACT = 'N').
+          On exit R is unchanged if FACT = 'U' or N = 0.
+
+  LDR     INTEGER.
+          The leading dimension of the array R.
+          LDR &gt;= MAX(1,M)   if FACT &lt;&gt; 'D';
+          LDR &gt;= MAX(1,M,P) if FACT =  'D'.
+
+  IPIV    (input/output) INTEGER array, dimension (M)
+          On entry, if FACT = 'U', this array must contain details
+          of the interchanges performed and the block structure of
+          the d factor in the UdU' or LdL' factorization of matrix R
+          (as produced by LAPACK routine DSYTRF).
+          On exit, if OUFACT(1) = 2, this array contains details of
+          the interchanges performed and the block structure of the
+          d factor in the UdU' or LdL' factorization of matrix R or
+          R + B'XB, as produced by LAPACK routine DSYTRF.
+          This array is not referenced if FACT = 'D', or FACT = 'C',
+          or N = 0.
+
+  L       (input) DOUBLE PRECISION array, dimension (LDL,M)
+          If JOBL = 'N', the leading N-by-M part of this array must
+          contain the cross weighting matrix L.
+          If JOBL = 'Z', this array is not referenced.
+
+  LDL     INTEGER
+          The leading dimension of array L.
+          LDL &gt;= MAX(1,N) if JOBL = 'N';
+          LDL &gt;= 1        if JOBL = 'Z'.
+
+  X       (input/output) DOUBLE PRECISION array, dimension (LDX,N)
+          On entry, the leading N-by-N part of this array must
+          contain the solution matrix X of the algebraic Riccati
+          equation as produced by SLICOT Library routines SB02MD or
+          SB02OD. Matrix X is assumed non-negative definite if
+          DICO = 'D' and (FACT = 'D' or FACT = 'C').
+          The full matrix X must be given on input if LDWORK &lt; N*M
+          or if DICO = 'D' and (FACT = 'D' or FACT = 'C').
+          On exit, if DICO = 'D', FACT = 'D' or FACT = 'C', and
+          OUFACT(2) = 1, the N-by-N upper triangular part
+          (if UPLO = 'U') or lower triangular part (if UPLO = 'L')
+          of this array contains the Cholesky factor of the given
+          matrix X, which is found to be positive definite.
+          On exit, if DICO = 'D', FACT = 'D' or 'C', OUFACT(2) = 2,
+          and INFO &lt; M+2 (but INFO &gt;= 0), the leading N-by-N part of
+          this array contains the matrix of orthonormal eigenvectors
+          of X.
+          On exit X is unchanged if DICO = 'C' or FACT = 'N'.
+
+  LDX     INTEGER
+          The leading dimension of array X.  LDX &gt;= MAX(1,N).
+
+  RNORM   (input) DOUBLE PRECISION
+          If FACT = 'U', this parameter must contain the 1-norm of
+          the original matrix R (before factoring it).
+          Otherwise, this parameter is not used.
+
+  F       (output) DOUBLE PRECISION array, dimension (LDF,N)
+          The leading M-by-N part of this array contains the
+          optimal feedback matrix F.
+          This array is not referenced if DICO = 'C' and FACT = 'D'
+          and P &lt; M.
+
+  LDF     INTEGER
+          The leading dimension of array F.  LDF &gt;= MAX(1,M).
+
+  OUFACT  (output) INTEGER array, dimension (2)
+          Information about the factorization finally used.
+          OUFACT(1) = 1:  Cholesky factorization of R (or R + B'XB)
+                          has been used;
+          OUFACT(1) = 2:  UdU' (if UPLO = 'U') or LdL' (if UPLO =
+                          'L') factorization of R (or R + B'XB)
+                          has been used;
+          OUFACT(2) = 1:  Cholesky factorization of X has been used;
+          OUFACT(2) = 2:  Spectral factorization of X has been used.
+          The value of OUFACT(2) is not set for DICO = 'C' or for
+          DICO = 'D' and FACT = 'N'.
+          This array is not set if N = 0 or M = 0.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  IWORK   INTEGER array, dimension (M)
+
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+          On exit, if INFO = 0 or LDWORK = -1, DWORK(1) returns the
+          optimal value of LDWORK, and for LDWORK set as specified
+          below, DWORK(2) contains the reciprocal condition number
+          of the matrix R (for DICO = 'C') or of R + B'XB (for
+          DICO = 'D'); DWORK(2) is set to 1 if N = 0.
+          On exit, if LDWORK = -2 on input or INFO = -25, then
+          DWORK(1) returns the minimal value of LDWORK.
+          If on exit INFO = 0, and OUFACT(2) = 2, then DWORK(3),...,
+          DWORK(N+2) contain the eigenvalues of X, in ascending
+          order.
+
+  LDWORK  INTEGER
+          Dimension of working array DWORK.
+          LDWORK &gt;= max(2,2*M)           if FACT =  'U';
+          LDWORK &gt;= max(2,3*M)           if FACT &lt;&gt; 'U', DICO = 'C';
+          LDWORK &gt;= max(2,3*M,N)         if FACT =  'N', DICO = 'D';
+          LDWORK &gt;= max(N+3*M+2,4*N+1)   if FACT &lt;&gt; 'N', DICO = 'D'.
+          For optimum performance LDWORK should be larger.
+
+          If LDWORK = -1, an optimal workspace query is assumed; the
+          routine only calculates the optimal size of the DWORK
+          array, returns this value as the first entry of the DWORK
+          array, and no error message is issued by XERBLA.
+
+          If LDWORK = -2, a minimal workspace query is assumed; the
+          routine only calculates the minimal size of the DWORK
+          array, returns this value as the first entry of the DWORK
+          array, and no error message is issued by XERBLA.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value;
+          = i:  if the i-th element of the d factor is exactly zero;
+                the UdU' (or LdL') factorization has been completed,
+                but the block diagonal matrix d is exactly singular;
+          = M+1:  if the matrix R (if DICO = 'C'), or R + B'XB
+                (if DICO = 'D') is numerically singular (to working
+                precision);
+          = M+2:  if one or more of the eigenvalues of X has not
+                converged;
+          = M+3:  if the matrix X is indefinite and updating the
+                triangular factorization failed.
+          If INFO &gt; M+1, call the routine again with an appropriate,
+          unfactored matrix R.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  The optimal feedback matrix F is obtained as the solution to the
+  system of linear equations
+
+     (R + B'XB) * F = B'XA + L'
+
+  in the discrete-time case and
+
+     R * F = B'X + L'
+
+  in the continuous-time case, with R replaced by D'D if FACT = 'D'.
+  If FACT = 'N', Cholesky factorization is tried first, but
+  if the coefficient matrix is not positive definite, then UdU' (or
+  LdL') factorization is used. If FACT &lt;&gt; 'N', the factored form
+  of R is taken into account. The discrete-time case then involves
+  updating of a triangular factorization of R (or D'D); Cholesky or
+  symmetric spectral factorization of X is employed to avoid
+  squaring of the condition number of the matrix. When D is given,
+  its QR factorization is determined, and the triangular factor is
+  used as described above.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  The algorithm consists of numerically stable steps.
+                                 3     2
+  For DICO = 'C', it requires O(m  + mn ) floating point operations
+                        2
+  if FACT = 'N' and O(mn ) floating point operations, otherwise.
+  For DICO = 'D', the operation counts are similar, but additional
+     3
+  O(n ) floating point operations may be needed in the worst case.
+  These estimates assume that M &lt;= N.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+*     SB02ND EXAMPLE PROGRAM TEXT
+*
+*     .. Parameters ..
+      INTEGER          NIN, NOUT
+      PARAMETER        ( NIN = 5, NOUT = 6 )
+      INTEGER          NMAX, MMAX, PMAX
+      PARAMETER        ( NMAX = 20, MMAX = 20, PMAX = 20 )
+      INTEGER          NMAX2
+      PARAMETER        ( NMAX2 = 2*NMAX )
+      INTEGER          LDA, LDB, LDC, LDL, LDR, LDS, LDT, LDU, LDX, LDF
+      PARAMETER        ( LDA = NMAX, LDB = NMAX, LDC = PMAX, LDL = NMAX,
+     $                   LDR = MAX(MMAX,PMAX), LDS = NMAX2+MMAX,
+     $                   LDT = NMAX2+MMAX, LDU = NMAX2, LDX = NMAX,
+     $                   LDF = MMAX )
+      INTEGER          LIWORK
+      PARAMETER        ( LIWORK = MAX( NMAX2,MMAX ) )
+      INTEGER          LDWORK
+      PARAMETER        ( LDWORK = MAX( NMAX+3*MMAX+2, 14*NMAX+23,
+     $                   16*NMAX ) )
+*     .. Local Scalars ..
+      DOUBLE PRECISION TOL, RCOND, RNORM
+      INTEGER          I, INFO1, INFO2, J, M, N, P
+      CHARACTER*1      DICO, FACT, JOBB, JOBL, SORT, UPLO
+*     .. Local Arrays ..
+      DOUBLE PRECISION A(LDA,NMAX), ALFAI(2*NMAX), ALFAR(2*NMAX),
+     $                 B(LDB,MMAX), BETA(2*NMAX), C(LDC,NMAX),
+     $                 DWORK(LDWORK), F(LDF,NMAX), L(LDL,MMAX),
+     $                 R(LDR,MMAX), S(LDS,NMAX2+MMAX), T(LDT,NMAX2),
+     $                 U(LDU,NMAX2), X(LDX,NMAX)
+      INTEGER          IPIV(LIWORK), IWORK(LIWORK), OUFACT(2)
+      LOGICAL          BWORK(NMAX2)
+*     .. External Functions ..
+      LOGICAL          LSAME
+      EXTERNAL         LSAME
+*     .. External Subroutines ..
+      EXTERNAL         SB02ND, SB02OD
+*     .. Intrinsic Functions ..
+      INTRINSIC        MAX
+*     .. Executable Statements ..
+*
+      WRITE ( NOUT, FMT = 99999 )
+*     Skip the heading in the data file and read the data.
+      READ ( NIN, FMT = '()' )
+      READ ( NIN, FMT = * ) N, M, P, TOL, DICO, FACT, JOBL, UPLO
+      IF ( N.LT.0 .OR. N.GT.NMAX ) THEN
+         WRITE ( NOUT, FMT = 99993 ) N
+      ELSE
+         READ ( NIN, FMT = * ) ( ( A(I,J), J = 1,N ), I = 1,N )
+         IF ( M.LT.0 .OR. M.GT.MMAX ) THEN
+            WRITE ( NOUT, FMT = 99992 ) M
+         ELSE
+            READ ( NIN, FMT = * ) ( ( B(I,J), J = 1,M ), I = 1,N )
+            IF ( P.LT.0 .OR. P.GT.PMAX ) THEN
+               WRITE ( NOUT, FMT = 99991 ) P
+            ELSE
+               READ ( NIN, FMT = * ) ( ( C(I,J), J = 1,N ), I = 1,P )
+               IF ( LSAME( FACT, 'D' ) ) THEN
+                  READ ( NIN, FMT = * ) ( ( R(I,J), J = 1,M ), I = 1,P )
+               ELSE
+                  READ ( NIN, FMT = * ) ( ( R(I,J), J = 1,M ), I = 1,M )
+               END IF
+*              Find the solution matrix X.
+               JOBB = 'B'
+               SORT = 'S'
+               CALL SB02OD( DICO, JOBB, 'Both', UPLO, JOBL, SORT, N, M,
+     $                      P, A, LDA, B, LDB, C, LDC, R, LDR, L, LDL,
+     $                      RCOND, X, LDX, ALFAR, ALFAI, BETA, S, LDS,
+     $                      T, LDT, U, LDU, TOL, IWORK, DWORK, LDWORK,
+     $                      BWORK, INFO1 )
+*
+               IF ( INFO1.NE.0 ) THEN
+                  WRITE ( NOUT, FMT = 99998 ) INFO1
+               ELSE
+                  WRITE ( NOUT, FMT = 99996 )
+                  DO 20 I = 1, N
+                     WRITE ( NOUT, FMT = 99994 ) ( X(I,J), J = 1,N )
+   20             CONTINUE
+*                 Compute the optimal feedback matrix F.
+                  CALL SB02ND( DICO, FACT, UPLO, JOBL, N, M, P, A, LDA,
+     $                         B, LDB, R, LDR, IPIV, L, LDL, X, LDX,
+     $                         RNORM, F, LDF, OUFACT, IWORK, DWORK,
+     $                         LDWORK, INFO2 )
+*
+                  IF ( INFO2.NE.0 ) THEN
+                     WRITE ( NOUT, FMT = 99997 ) INFO2
+                  ELSE
+                     WRITE ( NOUT, FMT = 99995 )
+                     DO 40 I = 1, M
+                        WRITE ( NOUT, FMT = 99994 ) ( F(I,J), J = 1,N )
+   40                CONTINUE
+                  END IF
+               END IF
+            END IF
+         END IF
+      END IF
+      STOP
+*
+99999 FORMAT (' SB02ND EXAMPLE PROGRAM RESULTS',/1X)
+99998 FORMAT (' INFO on exit from SB02OD = ',I2)
+99997 FORMAT (' INFO on exit from SB02ND = ',I2)
+99996 FORMAT (' The solution matrix X is ')
+99995 FORMAT (/' The optimal feedback matrix F is ')
+99994 FORMAT (20(1X,F8.4))
+99993 FORMAT (/' N is out of range.',/' N = ',I5)
+99992 FORMAT (/' M is out of range.',/' M = ',I5)
+99991 FORMAT (/' P is out of range.',/' P = ',I5)
+      END
+</PRE>
+<B>Program Data</B>
+<PRE>
+ SB02ND EXAMPLE PROGRAM DATA
+   2     1     3     0.0     D     N     Z     U
+   2.0 -1.0
+   1.0  0.0
+   1.0
+   0.0
+   0.0  0.0
+   0.0  0.0
+   0.0  1.0
+   0.0
+   0.0
+   0.0
+</PRE>
+<B>Program Results</B>
+<PRE>
+ SB02ND EXAMPLE PROGRAM RESULTS
+
+ The solution matrix X is 
+   1.0000   0.0000
+   0.0000   1.0000
+
+ The optimal feedback matrix F is 
+   2.0000  -1.0000
+</PRE>
+
+<HR>
+<p>
+<A HREF=..\libindex.html><B>Return to index</B></A></BODY>
+</HTML>

@@ -1,0 +1,149 @@
+<HTML>
+<HEAD><TITLE>MB03HD - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MB03HD">MB03HD</A></H2>
+<H3>
+Exchanging eigenvalues of a real 2-by-2 or 4-by-4 skew-Hamiltonian/Hamiltonian pencil in structured Schur form
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To determine an orthogonal matrix Q, for a real regular 2-by-2 or
+  4-by-4 skew-Hamiltonian/Hamiltonian pencil
+
+                  ( A11 A12  )     ( B11  B12  )
+      aA - bB = a (          ) - b (           )
+                  (  0  A11' )     (  0  -B11' )
+
+  in structured Schur form, such that  J Q' J' (aA - bB) Q  is still
+  in structured Schur form but the eigenvalues are exchanged. The
+  notation M' denotes the transpose of the matrix M.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MB03HD( N, A, LDA, B, LDB, MACPAR, Q, LDQ, DWORK,
+     $                   INFO )
+C     .. Scalar Arguments ..
+      INTEGER            INFO, LDA, LDB, LDQ, N
+C     .. Array Arguments ..
+      DOUBLE PRECISION   A( LDA, * ), B( LDB, * ), DWORK( * ),
+     $                   MACPAR( * ), Q( LDQ, * )
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The order of the pencil aA - bB.  N = 2 or N = 4.
+
+  A       (input) DOUBLE PRECISION array, dimension (LDA, N)
+          If N = 4, the leading N/2-by-N upper trapezoidal part of
+          this array must contain the first block row of the skew-
+          Hamiltonian matrix A of the pencil aA - bB in structured
+          Schur form. Only the entries (1,1), (1,2), (1,4), and
+          (2,2) are referenced.
+          If N = 2, this array is not referenced.
+
+  LDA     INTEGER
+          The leading dimension of the array A.  LDA &gt;= N/2.
+
+  B       (input) DOUBLE PRECISION array, dimension (LDB, N)
+          The leading N/2-by-N part of this array must contain the
+          first block row of the Hamiltonian matrix B of the
+          pencil aA - bB in structured Schur form. The entry (2,3)
+          is not referenced.
+
+  LDB     INTEGER
+          The leading dimension of the array B.  LDB &gt;= N/2.
+
+  MACPAR  (input)  DOUBLE PRECISION array, dimension (2)
+          Machine parameters:
+          MACPAR(1)  (machine precision)*base, DLAMCH( 'P' );
+          MACPAR(2)  safe minimum,             DLAMCH( 'S' ).
+          This argument is not used for N = 2.
+
+  Q       (output) DOUBLE PRECISION array, dimension (LDQ, N)
+          The leading N-by-N part of this array contains the
+          orthogonal transformation matrix Q.
+
+  LDQ     INTEGER
+          The leading dimension of the array Q.  LDQ &gt;= N.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  DWORK   DOUBLE PRECISION array, dimension (24)
+          If N = 2, then DWORK is not referenced.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0: succesful exit;
+          = 1: the leading N/2-by-N/2 block of the matrix B is
+               numerically singular, but slightly perturbed values
+               have been used. This is a warning.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  The algorithm uses orthogonal transformations as described on page
+  31 in [2]. The structure is exploited.
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Benner, P., Byers, R., Mehrmann, V. and Xu, H.
+      Numerical computation of deflating subspaces of skew-
+      Hamiltonian/Hamiltonian pencils.
+      SIAM J. Matrix Anal. Appl., 24 (1), pp. 165-190, 2002.
+
+  [2] Benner, P., Byers, R., Losse, P., Mehrmann, V. and Xu, H.
+      Numerical Solution of Real Skew-Hamiltonian/Hamiltonian
+      Eigenproblems.
+      Tech. Rep., Technical University Chemnitz, Germany,
+      Nov. 2007.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  The algorithm is numerically backward stable.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

@@ -1,0 +1,150 @@
+<HTML>
+<HEAD><TITLE>NF01BV - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="NF01BV">NF01BV</A></H2>
+<H3>
+Computation of the matrix J' J + c I, for a full Jacobian J (one output variable)
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To compute the matrix J'*J + c*I, for the Jacobian J as received
+  from SLICOT Library routine NF01BY, for one output variable.
+
+  NOTE: this routine must have the same arguments as SLICOT Library
+  routine NF01BU.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE NF01BV( STOR, UPLO, N, IPAR, LIPAR, DPAR, LDPAR, J,
+     $                   LDJ, JTJ, LDJTJ, DWORK, LDWORK, INFO )
+C     .. Scalar Arguments ..
+      CHARACTER         STOR, UPLO
+      INTEGER           INFO, LDJ, LDJTJ, LDPAR, LDWORK, LIPAR, N
+C     .. Array Arguments ..
+      INTEGER           IPAR(*)
+      DOUBLE PRECISION  DPAR(*), DWORK(*), J(LDJ,*), JTJ(*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  STOR    CHARACTER*1
+          Specifies the storage scheme for the symmetric
+          matrix J'*J + c*I, as follows:
+          = 'F' :  full storage is used;
+          = 'P' :  packed storage is used.
+
+  UPLO    CHARACTER*1
+          Specifies which part of the matrix J'*J + c*I is stored,
+          as follows:
+          = 'U' :  the upper triagular part is stored;
+          = 'L' :  the lower triagular part is stored.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The number of columns of the Jacobian matrix J.  N &gt;= 0.
+
+  IPAR    (input) INTEGER array, dimension (LIPAR)
+          The integer parameters describing the structure of the
+          matrix J, as follows:
+          IPAR(1) must contain the number of rows M of the Jacobian
+                  matrix J.  M &gt;= 0.
+          IPAR is provided for compatibility with SLICOT Library
+          routine MD03AD.
+
+  LIPAR   (input) INTEGER
+          The length of the array IPAR.  LIPAR &gt;= 1.
+
+  DPAR    (input) DOUBLE PRECISION array, dimension (LDPAR)
+          The real parameters needed for solving the problem.
+          The entry DPAR(1) must contain the real scalar c.
+
+  LDPAR   (input) INTEGER
+          The length of the array DPAR.  LDPAR &gt;= 1.
+
+  J       (input) DOUBLE PRECISION array, dimension (LDJ,N)
+          The leading M-by-N part of this array must contain the
+          Jacobian matrix J.
+
+  LDJ     INTEGER
+          The leading dimension of the array J.  LDJ &gt;= MAX(1,M).
+
+  JTJ     (output) DOUBLE PRECISION array,
+                   dimension (LDJTJ,N),    if STOR = 'F',
+                   dimension (N*(N+1)/2),  if STOR = 'P'.
+          The leading N-by-N (if STOR = 'F'), or N*(N+1)/2 (if
+          STOR = 'P') part of this array contains the upper or
+          lower triangle of the matrix J'*J + c*I, depending on
+          UPLO = 'U', or UPLO = 'L', respectively, stored either as
+          a two-dimensional, or one-dimensional array, depending
+          on STOR.
+
+  LDJTJ   INTEGER
+          The leading dimension of the array JTJ.
+          LDJTJ &gt;= MAX(1,N), if STOR = 'F'.
+          LDJTJ &gt;= 1,        if STOR = 'P'.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+          Currently, this array is not used.
+
+  LDWORK  INTEGER
+          The length of the array DWORK.  LDWORK &gt;= 0.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  The matrix product is computed columnn-wise, exploiting the
+  symmetry. BLAS 3 routine DSYRK is used if STOR = 'F', and BLAS 2
+  routine DGEMV is used if STOR = 'P'.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

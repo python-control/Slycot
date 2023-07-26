@@ -1,0 +1,136 @@
+<HTML>
+<HEAD><TITLE>SB04QY - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="SB04QY">SB04QY</A></H2>
+<H3>
+Constructing and solving a linear algebraic system whose coefficient matrix (stored compactly) has zeros below the first subdiagonal
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To construct and solve a linear algebraic system of order M whose
+  coefficient matrix is in upper Hessenberg form. Such systems
+  appear when solving discrete-time Sylvester equations using the
+  Hessenberg-Schur method.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE SB04QY( N, M, IND, A, LDA, B, LDB, C, LDC, D, IPR,
+     $                   INFO )
+C     .. Scalar Arguments ..
+      INTEGER           INFO, IND, LDA, LDB, LDC, M, N
+C     .. Array Arguments ..
+      INTEGER           IPR(*)
+      DOUBLE PRECISION  A(LDA,*), B(LDB,*), C(LDC,*), D(*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The order of the matrix B.  N &gt;= 0.
+
+  M       (input) INTEGER
+          The order of the matrix A.  M &gt;= 0.
+
+  IND     (input) INTEGER
+          The index of the column in C to be computed.  IND &gt;= 1.
+
+  A       (input) DOUBLE PRECISION array, dimension (LDA,M)
+          The leading M-by-M part of this array must contain an
+          upper Hessenberg matrix.
+
+  LDA     INTEGER
+          The leading dimension of array A.  LDA &gt;= MAX(1,M).
+
+  B       (input) DOUBLE PRECISION array, dimension (LDB,N)
+          The leading N-by-N part of this array must contain a
+          matrix in real Schur form.
+
+  LDB     INTEGER
+          The leading dimension of array B.  LDB &gt;= MAX(1,N).
+
+  C       (input/output) DOUBLE PRECISION array, dimension (LDC,N)
+          On entry, the leading M-by-N part of this array must
+          contain the coefficient matrix C of the equation.
+          On exit, the leading M-by-N part of this array contains
+          the matrix C with column IND updated.
+
+  LDC     INTEGER
+          The leading dimension of array C.  LDC &gt;= MAX(1,M).
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  D       DOUBLE PRECISION array, dimension (M*(M+1)/2+2*M)
+
+  IPR     INTEGER array, dimension (2*M)
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &gt; 0:  if INFO = IND, a singular matrix was encountered.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  A special linear algebraic system of order M, with coefficient
+  matrix in upper Hessenberg form is constructed and solved. The
+  coefficient matrix is stored compactly, row-wise.
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Golub, G.H., Nash, S. and Van Loan, C.F.
+      A Hessenberg-Schur method for the problem AX + XB = C.
+      IEEE Trans. Auto. Contr., AC-24, pp. 909-913, 1979.
+
+  [2] Sima, V.
+      Algorithms for Linear-quadratic Optimization.
+      Marcel Dekker, Inc., New York, 1996.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  None.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

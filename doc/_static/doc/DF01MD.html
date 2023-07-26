@@ -1,0 +1,282 @@
+<HTML>
+<HEAD><TITLE>DF01MD - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="DF01MD">DF01MD</A></H2>
+<H3>
+Sine transform or cosine transform of a real signal
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To compute the sine transform or cosine transform of a real
+  signal.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE DF01MD( SICO, N, DT, A, DWORK, INFO )
+C     .. Scalar Arguments ..
+      CHARACTER         SICO
+      INTEGER           INFO, N
+      DOUBLE PRECISION  DT
+C     .. Array Arguments ..
+      DOUBLE PRECISION  A(*), DWORK(*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  SICO    CHARACTER*1
+          Indicates whether the sine transform or cosine transform
+          is to be computed as follows:
+          = 'S':  The sine transform is computed;
+          = 'C':  The cosine transform is computed.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The number of samples.  N must be a power of 2 plus 1.
+          N &gt;= 5.
+
+  DT      (input) DOUBLE PRECISION
+          The sampling time of the signal.
+
+  A       (input/output) DOUBLE PRECISION array, dimension (N)
+          On entry, this array must contain the signal to be
+          processed.
+          On exit, this array contains either the sine transform, if
+          SICO = 'S', or the cosine transform, if SICO = 'C', of the
+          given signal.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  DWORK   DOUBLE PRECISION array, dimension (N+1)
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  Let A(1), A(2),..., A(N) be a real signal of N samples.
+
+  If SICO = 'S', the routine computes the sine transform of A as
+  follows. First, transform A(i), i = 1,2,...,N, into the complex
+  signal B(i), i = 1,2,...,(N+1)/2, where
+
+     B(1) = -2*A(2),
+     B(i) = {A(2i-2) - A(2i)} - j*A(2i-1) for i = 2,3,...,(N-1)/2,
+     B((N+1)/2) = 2*A(N-1) and j**2 = -1.
+
+  Next, perform a discrete inverse Fourier transform on B(i) by
+  calling SLICOT Library Routine DG01ND, to give the complex signal
+  Z(i), i = 1,2,...,(N-1)/2, from which the real signal C(i) may be
+  obtained as follows:
+
+     C(2i-1) = Re(Z(i)),  C(2i) = Im(Z(i)) for i = 1,2,...,(N-1)/2.
+
+  Finally, compute the sine transform coefficients S ,S ,...,S
+                                                    1  2      N
+  given by
+
+     S  = 0,
+      1
+             {                     [C(k) + C(N+1-k)]     }
+     S  = DT*{[C(k) - C(N+1-k)] - -----------------------},
+      k      {                    [2*sin(pi*(k-1)/(N-1))]}
+
+        for k = 2,3,...,N-1, and
+
+     S = 0.
+      N
+
+  If SICO = 'C', the routine computes the cosine transform of A as
+  follows. First, transform A(i), i = 1,2,...,N, into the complex
+  signal B(i), i = 1,2,...,(N+1)/2, where
+
+     B(1) = 2*A(1),
+     B(i) = 2*A(2i-1) + 2*j*{[A(2i-2) - A(2i)]}
+     for i = 2,3,...,(N-1)/2 and B((N+1)/2) = 2*A(N).
+
+  Next, perform a discrete inverse Fourier transform on B(i) by
+  calling SLICOT Library Routine DG01ND, to give the complex signal
+  Z(i), i = 1,2,...,(N-1)/2, from which the real signal D(i) may be
+  obtained as follows:
+
+     D(2i-1) = Re(Z(i)),  D(2i) = Im(Z(i)) for i = 1,2,...,(N-1)/2.
+
+  Finally, compute the cosine transform coefficients S ,S ,...,S
+                                                      1  2      N
+  given by
+
+     S  = 2*DT*[D(1) + A0],
+      1
+             {                     [D(k) - D(N+1-k)]     }
+     S  = DT*{[D(k) + D(N+1-k)] - -----------------------},
+      k      {                    [2*sin(pi*(k-1)/(N-1))]}
+
+        for k = 2,3,...,N-1, and
+
+     S  = 2*DT*[D(1) - A0],
+      N
+              (N-1)/2
+  where A0 = 2*SUM   A(2i).
+               i=1
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Rabiner, L.R. and Rader, C.M.
+      Digital Signal Processing.
+      IEEE Press, 1972.
+
+  [2] Oppenheim, A.V. and Schafer, R.W.
+      Discrete-Time Signal Processing.
+      Prentice-Hall Signal Processing Series, 1989.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  The algorithm requires 0( N*log(N) ) operations.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+*     DF01MD EXAMPLE PROGRAM TEXT
+*
+*     .. Parameters ..
+      INTEGER          NIN, NOUT
+      PARAMETER        ( NIN = 5, NOUT = 6 )
+      INTEGER          NMAX
+      PARAMETER        ( NMAX = 129 )
+*     .. Local Scalars ..
+      DOUBLE PRECISION DT
+      INTEGER          I, INFO, N
+      CHARACTER*1      SICO
+*     .. Local Arrays ..
+      DOUBLE PRECISION A(NMAX), DWORK(NMAX+1)
+*     .. External Functions ..
+      LOGICAL          LSAME
+      EXTERNAL         LSAME
+*     .. External Subroutines ..
+      EXTERNAL         DF01MD
+*     .. Executable Statements ..
+*
+      WRITE ( NOUT, FMT = 99999 )
+*     Skip the heading in the data file and read the data.
+      READ ( NIN, FMT = '()' )
+      READ ( NIN, FMT = * ) N, DT, SICO
+      IF ( N.LE.1 .OR. N.GT.NMAX ) THEN
+         WRITE ( NOUT, FMT = 99994 ) N
+      ELSE
+         READ ( NIN, FMT = * ) ( A(I), I = 1,N )
+*        Compute the sine/cosine transform of the given real signal.
+         CALL DF01MD( SICO, N, DT, A, DWORK, INFO )
+*
+         IF ( INFO.NE.0 ) THEN
+            WRITE ( NOUT, FMT = 99998 ) INFO
+         ELSE
+            IF ( LSAME( SICO, 'S' ) ) THEN
+               WRITE ( NOUT, FMT = 99997 )
+               DO 20 I = 1, N
+                  WRITE ( NOUT, FMT = 99995 ) I, A(I)
+   20          CONTINUE
+            ELSE
+               WRITE ( NOUT, FMT = 99996 )
+               DO 40 I = 1, N
+                  WRITE ( NOUT, FMT = 99995 ) I, A(I)
+   40          CONTINUE
+            END IF
+         END IF
+      END IF
+*
+      STOP
+*
+99999 FORMAT (' DF01MD EXAMPLE PROGRAM RESULTS',/1X)
+99998 FORMAT (' INFO on exit from DF01MD = ',I2)
+99997 FORMAT (' Components of sine transform are',//'   i',6X,'A(i)',/)
+99996 FORMAT (' Components of cosine transform are',//'   i',6X,'A(i)',
+     $       /)
+99995 FORMAT (I4,3X,F8.4)
+99994 FORMAT (/' N is out of range.',/' N = ',I5)
+      END
+</PRE>
+<B>Program Data</B>
+<PRE>
+ DF01MD EXAMPLE PROGRAM DATA
+  17     1.0     C
+  -0.1862
+   0.1288
+   0.3948
+   0.0671
+   0.6788
+  -0.2417
+   0.1861
+   0.8875
+   0.7254
+   0.9380
+   0.5815
+  -0.2682
+   0.4904
+   0.9312
+  -0.9599
+  -0.3116
+   0.8743
+</PRE>
+<B>Program Results</B>
+<PRE>
+ DF01MD EXAMPLE PROGRAM RESULTS
+
+ Components of cosine transform are
+
+   i      A(i)
+
+   1    28.0536
+   2     3.3726
+   3   -20.8158
+   4     6.0566
+   5     5.7317
+   6    -3.9347
+   7   -12.8074
+   8    -6.8780
+   9    16.2892
+  10   -17.0788
+  11    21.7836
+  12   -20.8203
+  13    -7.3277
+  14    -2.5325
+  15    -0.3636
+  16     7.8792
+  17    11.0048
+</PRE>
+
+<HR>
+<p>
+<A HREF=..\libindex.html><B>Return to index</B></A></BODY>
+</HTML>

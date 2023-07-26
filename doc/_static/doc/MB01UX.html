@@ -1,0 +1,184 @@
+<HTML>
+<HEAD><TITLE>MB01UX - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MB01UX">MB01UX</A></H2>
+<H3>
+Computation of matrix expressions alpha T A or alpha A T, over A, T quasi-triangular
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To compute one of the matrix products
+
+    A : = alpha*op( T ) * A, or A : = alpha*A * op( T ),
+
+  where alpha is a scalar, A is an m-by-n matrix, T is a quasi-
+  triangular matrix, and op( T ) is one of
+
+     op( T ) = T   or   op( T ) = T',  the transpose of T.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MB01UX( SIDE, UPLO, TRANS, M, N, ALPHA, T, LDT, A, LDA,
+     $                   DWORK, LDWORK, INFO )
+C     .. Scalar Arguments ..
+      CHARACTER         SIDE, TRANS, UPLO
+      INTEGER           INFO, LDA, LDT, LDWORK, M, N
+      DOUBLE PRECISION  ALPHA
+C     .. Array Arguments ..
+      DOUBLE PRECISION  A(LDA,*), DWORK(*), T(LDT,*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  SIDE    CHARACTER*1
+          Specifies whether the upper quasi-triangular matrix H
+          appears on the left or right in the matrix product as
+          follows:
+          = 'L':  A := alpha*op( T ) * A;
+          = 'R':  A := alpha*A * op( T ).
+
+  UPLO    CHARACTER*1.
+          Specifies whether the matrix T is an upper or lower
+          quasi-triangular matrix as follows:
+          = 'U':  T is an upper quasi-triangular matrix;
+          = 'L':  T is a lower quasi-triangular matrix.
+
+  TRANS   CHARACTER*1
+          Specifies the form of op( T ) to be used in the matrix
+          multiplication as follows:
+          = 'N':  op( T ) = T;
+          = 'T':  op( T ) = T';
+          = 'C':  op( T ) = T'.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  M       (input) INTEGER
+          The number of rows of the matrix A.  M &gt;= 0.
+
+  N       (input) INTEGER
+          The number of columns of the matrix A.  N &gt;= 0.
+
+  ALPHA   (input) DOUBLE PRECISION
+          The scalar alpha. When alpha is zero then T is not
+          referenced and A need not be set before entry.
+
+  T       (input) DOUBLE PRECISION array, dimension (LDT,k)
+          where k is M when SIDE = 'L' and is N when SIDE = 'R'.
+          On entry with UPLO = 'U', the leading k-by-k upper
+          Hessenberg part of this array must contain the upper
+          quasi-triangular matrix T. The elements below the
+          subdiagonal are not referenced.
+          On entry with UPLO = 'L', the leading k-by-k lower
+          Hessenberg part of this array must contain the lower
+          quasi-triangular matrix T. The elements above the
+          supdiagonal are not referenced.
+
+  LDT     INTEGER
+          The leading dimension of the array T.  LDT &gt;= max(1,k),
+          where k is M when SIDE = 'L' and is N when SIDE = 'R'.
+
+  A       (input/output) DOUBLE PRECISION array, dimension (LDA,N)
+          On entry, the leading M-by-N part of this array must
+          contain the matrix A.
+          On exit, the leading M-by-N part of this array contains
+          the computed product.
+
+  LDA     INTEGER
+          The leading dimension of the array A.  LDA &gt;= max(1,M).
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+          On exit, if INFO = 0 and ALPHA&lt;&gt;0,  DWORK(1)  returns the
+          optimal value of LDWORK.
+          On exit, if  INFO = -12,  DWORK(1)  returns the minimum
+          value of LDWORK.
+          This array is not referenced when alpha = 0.
+
+  LDWORK  The length of the array DWORK.
+          LDWORK &gt;= 1,       if alpha =  0 or MIN(M,N) = 0;
+          LDWORK &gt;= 2*(M-1), if SIDE  = 'L';
+          LDWORK &gt;= 2*(N-1), if SIDE  = 'R'.
+          For maximal efficiency LDWORK should be at least
+          NOFF*N + M - 1,    if SIDE  = 'L';
+          NOFF*M + N - 1,    if SIDE  = 'R';
+          where NOFF is the number of nonzero elements on the
+          subdiagonal (if UPLO = 'U') or supdiagonal (if UPLO = 'L')
+          of T.
+
+          If LDWORK = -1, then a workspace query is assumed;
+          the routine only calculates the optimal size of the
+          DWORK array, returns this value as the first entry of
+          the DWORK array, and no error message related to LDWORK
+          is issued by XERBLA.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  The technique used in this routine is similiar to the technique
+  used in the SLICOT [1] subroutine MB01UW developed by Vasile Sima.
+  The required matrix product is computed in two steps. In the first
+  step, the triangle of T specified by UPLO is used; in the second
+  step, the contribution of the sub-/supdiagonal is added. If the
+  workspace can accommodate parts of A, a fast BLAS 3 DTRMM
+  operation is used in the first step.
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Benner, P., Mehrmann, V., Sima, V., Van Huffel, S., and
+      Varga, A.
+      SLICOT - A subroutine library in systems and control theory.
+      In: Applied and computational control, signals, and circuits,
+      Vol. 1, pp. 499-539, Birkhauser, Boston, 1999.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<p>
+<A HREF=..\libindex.html><B>Return to index</B></A></BODY>
+</HTML>

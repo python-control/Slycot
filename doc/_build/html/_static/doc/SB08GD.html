@@ -1,0 +1,181 @@
+<HTML>
+<HEAD><TITLE>SB08GD - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="SB08GD">SB08GD</A></H2>
+<H3>
+State-space representation of a left coprime factorization
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To construct the state-space representation for the system
+  G = (A,B,C,D) from the factors Q = (AQR,BQ,CQR,DQ) and
+  R = (AQR,BR,CQR,DR) of its left coprime factorization
+                -1
+           G = R  * Q,
+
+  where G, Q and R are the corresponding transfer-function matrices.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE SB08GD( N, M, P, A, LDA, B, LDB, C, LDC, D, LDD, BR,
+     $                   LDBR, DR, LDDR, IWORK, DWORK, INFO )
+C     .. Scalar Arguments ..
+      INTEGER           INFO, LDA, LDB, LDBR, LDC, LDD, LDDR, M, N, P
+C     .. Array Arguments ..
+      DOUBLE PRECISION  A(LDA,*), B(LDB,*), BR(LDBR,*), C(LDC,*),
+     $                  D(LDD,*), DR(LDDR,*), DWORK(*)
+      INTEGER           IWORK(*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The order of the matrix A. Also the number of rows of the
+          matrices B and BR and the number of columns of the matrix
+          C. N represents the order of the systems Q and R.  N &gt;= 0.
+
+  M       (input) INTEGER
+          The dimension of input vector, i.e. the number of columns
+          of the matrices B and D.  M &gt;= 0.
+
+  P       (input) INTEGER
+          The dimension of output vector, i.e. the number of rows of
+          the matrices C, D and DR and the number of columns of the
+          matrices BR and DR.  P &gt;= 0.
+
+  A       (input/output) DOUBLE PRECISION array, dimension (LDA,N)
+          On entry, the leading N-by-N part of this array must
+          contain the state dynamics matrix AQR of the systems
+          Q and R.
+          On exit, the leading N-by-N part of this array contains
+          the state dynamics matrix of the system G.
+
+  LDA     INTEGER
+          The leading dimension of array A.  LDA &gt;= MAX(1,N).
+
+  B       (input/output) DOUBLE PRECISION array, dimension (LDB,M)
+          On entry, the leading N-by-M part of this array must
+          contain the input/state matrix BQ of the system Q.
+          On exit, the leading N-by-M part of this array contains
+          the input/state matrix of the system G.
+
+  LDB     INTEGER
+          The leading dimension of array B.  LDB &gt;= MAX(1,N).
+
+  C       (input/output) DOUBLE PRECISION array, dimension (LDC,N)
+          On entry, the leading P-by-N part of this array must
+          contain the state/output matrix CQR of the systems
+          Q and R.
+          On exit, the leading P-by-N part of this array contains
+          the state/output matrix of the system G.
+
+  LDC     INTEGER
+          The leading dimension of array C.  LDC &gt;= MAX(1,P).
+
+  D       (input/output) DOUBLE PRECISION array, dimension (LDD,M)
+          On entry, the leading P-by-M part of this array must
+          contain the input/output matrix DQ of the system Q.
+          On exit, the leading P-by-M part of this array contains
+          the input/output matrix of the system G.
+
+  LDD     INTEGER
+          The leading dimension of array D.  LDD &gt;= MAX(1,P).
+
+  BR      (input) DOUBLE PRECISION array, dimension (LDBR,P)
+          The leading N-by-P part of this array must contain the
+          input/state matrix BR of the system R.
+
+  LDBR    INTEGER
+          The leading dimension of array BR.  LDBR &gt;= MAX(1,N).
+
+  DR      (input/output) DOUBLE PRECISION array, dimension (LDDR,P)
+          On entry, the leading P-by-P part of this array must
+          contain the input/output matrix DR of the system R.
+          On exit, the leading P-by-P part of this array contains
+          the LU factorization of the matrix DR, as computed by
+          LAPACK Library routine DGETRF.
+
+  LDDR    INTEGER
+          The leading dimension of array DR.  LDDR &gt;= MAX(1,P).
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  IWORK   INTEGER array, dimension (P)
+
+  DWORK   DOUBLE PRECISION array, dimension (MAX(1,4*P))
+          On exit, DWORK(1) contains an estimate of the reciprocal
+          condition number of the matrix DR.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value;
+          = 1:  the matrix DR is singular;
+          = 2:  the matrix DR is numerically singular (warning);
+                the calculations continued.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  The subroutine computes the matrices of the state-space
+  representation G = (A,B,C,D) by using the formulas:
+
+                   -1              -1
+  A = AQR - BR * DR  * CQR,  C = DR  * CQR,
+                   -1              -1
+  B = BQ  - BR * DR  * DQ,   D = DR  * DQ.
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Varga A.
+      Coprime factors model reduction method based on
+      square-root balancing-free techniques.
+      System Analysis, Modelling and Simulation,
+      vol. 11, pp. 303-311, 1993.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<p>
+<A HREF=..\libindex.html><B>Return to index</B></A></BODY>
+</HTML>

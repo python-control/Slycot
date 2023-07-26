@@ -1,0 +1,120 @@
+<HTML>
+<HEAD><TITLE>MA02JZ - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MA02JZ">MA02JZ</A></H2>
+<H3>
+Test if a matrix is a unitary symplectic matrix
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To compute || Q^H Q - I ||_F for a complex matrix of the form
+
+                    [  op( Q1 )  op( Q2 ) ]
+               Q =  [                     ],
+                    [ -op( Q2 )  op( Q1 ) ]
+
+  where Q1 and Q2 are N-by-N matrices. This residual can be used to
+  test wether Q is numerically a unitary symplectic matrix.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      DOUBLE PRECISION FUNCTION MA02JZ( LTRAN1, LTRAN2, N, Q1, LDQ1, Q2,
+     $                                  LDQ2, RES, LDRES )
+C     .. Scalar Arguments ..
+      LOGICAL           LTRAN1, LTRAN2
+      INTEGER           LDQ1, LDQ2, LDRES, N
+C     .. Array Arguments ..
+      COMPLEX*16        Q1(LDQ1,*), Q2(LDQ2,*), RES(LDRES,*)
+
+</PRE>
+<B><FONT SIZE="+1">Function Value</FONT></B>
+<PRE>
+  MA02JZ  DOUBLE PRECISION
+          The computed residual.
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  LTRAN1  LOGICAL
+          Specifies the form of op( Q1 ) as follows:
+          = .FALSE.:  op( Q1 ) = Q1;
+          = .TRUE. :  op( Q1 ) = Q1'.
+
+  LTRAN2  LOGICAL
+          Specifies the form of op( Q2 ) as follows:
+          = .FALSE.:  op( Q2 ) = Q2;
+          = .TRUE. :  op( Q2 ) = Q2'.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The order of the matrices Q1 and Q2.  N &gt;= 0.
+
+  Q1      (input) COMPLEX*16 array, dimension (LDQ1,N)
+          On entry, the leading N-by-N part of this array must
+          contain the matrix op( Q1 ).
+
+  LDQ1    INTEGER
+          The leading dimension of the array Q1.  LDQ1 &gt;= MAX(1,N).
+
+  Q2      (input) COMPLEX*16 array, dimension (LDQ2,N)
+          On entry, the leading N-by-N part of this array must
+          contain the matrix op( Q2 ).
+
+  LDQ2    INTEGER
+          The leading dimension of the array Q2.  LDQ2 &gt;= MAX(1,N).
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  RES     DOUBLE PRECISION array, dimension (LDRES,N)
+
+  LDRES   INTEGER
+          The leading dimension of the array RES.
+          LDRES &gt;= MAX(1,N).
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  The routine computes the residual by simple elementary operations.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

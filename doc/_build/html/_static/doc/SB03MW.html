@@ -1,0 +1,157 @@
+<HTML>
+<HEAD><TITLE>SB03MW - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="SB03MW">SB03MW</A></H2>
+<H3>
+Solving a continuous-time Lyapunov equation for a 2-by-2 matrix
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To solve for the 2-by-2 symmetric matrix X in
+
+         op(T)'*X + X*op(T) = SCALE*B,
+
+  where T is 2-by-2, B is symmetric 2-by-2, and op(T) = T or T',
+  where T' denotes the transpose of T.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE SB03MW( LTRAN, LUPPER, T, LDT, B, LDB, SCALE, X, LDX,
+     $                   XNORM, INFO )
+C     .. Scalar Arguments ..
+      LOGICAL            LTRAN, LUPPER
+      INTEGER            INFO, LDB, LDT, LDX
+      DOUBLE PRECISION   SCALE, XNORM
+C     .. Array Arguments ..
+      DOUBLE PRECISION   B( LDB, * ), T( LDT, * ), X( LDX, * )
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  LTRAN   LOGICAL
+          Specifies the form of op(T) to be used, as follows:
+          = .FALSE.:  op(T) = T,
+          = .TRUE. :  op(T) = T'.
+
+  LUPPER  LOGICAL
+          Specifies which triangle of the matrix B is used, and
+          which triangle of the matrix X is computed, as follows:
+          = .TRUE. :  The upper triangular part;
+          = .FALSE.:  The lower triangular part.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  T       (input) DOUBLE PRECISION array, dimension (LDT,2)
+          The leading 2-by-2 part of this array must contain the
+          matrix T.
+
+  LDT     INTEGER
+          The leading dimension of array T.  LDT &gt;= 2.
+
+  B       (input) DOUBLE PRECISION array, dimension (LDB,2)
+          On entry with LUPPER = .TRUE., the leading 2-by-2 upper
+          triangular part of this array must contain the upper
+          triangular part of the symmetric matrix B and the strictly
+          lower triangular part of B is not referenced.
+          On entry with LUPPER = .FALSE., the leading 2-by-2 lower
+          triangular part of this array must contain the lower
+          triangular part of the symmetric matrix B and the strictly
+          upper triangular part of B is not referenced.
+
+  LDB     INTEGER
+          The leading dimension of array B.  LDB &gt;= 2.
+
+  SCALE   (output) DOUBLE PRECISION
+          The scale factor. SCALE is chosen less than or equal to 1
+          to prevent the solution overflowing.
+
+  X       (output) DOUBLE PRECISION array, dimension (LDX,2)
+          On exit with LUPPER = .TRUE., the leading 2-by-2 upper
+          triangular part of this array contains the upper
+          triangular part of the symmetric solution matrix X and the
+          strictly lower triangular part of X is not referenced.
+          On exit with LUPPER = .FALSE., the leading 2-by-2 lower
+          triangular part of this array contains the lower
+          triangular part of the symmetric solution matrix X and the
+          strictly upper triangular part of X is not referenced.
+          Note that X may be identified with B in the calling
+          statement.
+
+  LDX     INTEGER
+          The leading dimension of array X.  LDX &gt;= 2.
+
+  XNORM   (output) DOUBLE PRECISION
+          The infinity-norm of the solution.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          = 1:  if T and -T have too close eigenvalues, so T
+                is perturbed to get a nonsingular equation.
+
+          NOTE: In the interests of speed, this routine does not
+                check the inputs for errors.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  The equivalent linear algebraic system of equations is formed and
+  solved using Gaussian elimination with complete pivoting.
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Anderson, E., Bai, Z., Bischof, C., Demmel, J., Dongarra, J.,
+      Du Croz, J., Greenbaum, A., Hammarling, S., McKenney, A.,
+      Ostrouchov, S., and Sorensen, D.
+      LAPACK Users' Guide: Second Edition.
+      SIAM, Philadelphia, 1995.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  The algorithm is stable and reliable, since Gaussian elimination
+  with complete pivoting is used.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

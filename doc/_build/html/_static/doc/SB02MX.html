@@ -1,0 +1,353 @@
+<HTML>
+<HEAD><TITLE>SB02MX - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="SB02MX">SB02MX</A></H2>
+<H3>
+Conversion of optimal problems with coupling weighting terms to standard problems
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To compute the following matrices
+
+             -1
+      G = B*R  *B',
+
+      -               -1
+      A = A +/- op(B*R  *L'),
+
+      -            -1
+      Q = Q +/- L*R  *L',
+
+  where A, B, Q, R, L, and G are N-by-N, N-by-M, N-by-N, M-by-M,
+  N-by-M, and N-by-N matrices, respectively, with Q, R and G
+  symmetric matrices, and op(W) is one of
+
+      op(W) = W  or  op(W) = W'.
+
+  When R is well-conditioned with respect to inversion, standard
+  algorithms for solving linear-quadratic optimization problems will
+  then also solve optimization problems with coupling weighting
+  matrix L. Moreover, a gain in efficiency is possible using matrix
+  G in the deflating subspace algorithms (see SLICOT Library routine
+  SB02OD) or in the Newton's algorithms (see SLICOT Library routine
+  SG02CD).
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE SB02MX( JOBG, JOBL, FACT, UPLO, TRANS, FLAG, DEF, N, M,
+     $                   A, LDA, B, LDB, Q, LDQ, R, LDR, L, LDL, IPIV,
+     $                   OUFACT, G, LDG, IWORK, DWORK, LDWORK, INFO )
+C     .. Scalar Arguments ..
+      CHARACTER         DEF, FACT, FLAG, JOBG, JOBL, TRANS, UPLO
+      INTEGER           INFO, LDA, LDB, LDG, LDL, LDQ, LDR, LDWORK, M,
+     $                  N, OUFACT
+C     .. Array Arguments ..
+      INTEGER           IPIV(*), IWORK(*)
+      DOUBLE PRECISION  A(LDA,*), B(LDB,*), DWORK(*), G(LDG,*),
+     $                  L(LDL,*), Q(LDQ,*), R(LDR,*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  JOBG    CHARACTER*1
+          Specifies whether or not the matrix G is to be computed,
+          as follows:
+          = 'G':  Compute G;
+          = 'N':  Do not compute G.
+
+  JOBL    CHARACTER*1
+          Specifies whether or not the matrix L is zero, as follows:
+          = 'Z':  L is zero;
+          = 'N':  L is nonzero.
+
+  FACT    CHARACTER*1
+          Specifies how the matrix R is given (factored or not), as
+          follows:
+          = 'N':  Array R contains the matrix R;
+          = 'C':  Array R contains the Cholesky factor of R;
+          = 'U':  Array R contains the factors of the symmetric
+                  indefinite UdU' or LdL' factorization of R.
+
+  UPLO    CHARACTER*1
+          Specifies which triangle of the matrices R, Q (if
+          JOBL = 'N'), and G (if JOBG = 'G') is stored, as follows:
+          = 'U':  Upper triangle is stored;
+          = 'L':  Lower triangle is stored.
+
+  TRANS   CHARACTER*1
+          Specifies the form of op(W) to be used in the matrix
+          multiplication, as follows:
+          = 'N':  op(W) = W;
+          = 'T':  op(W) = W';
+          = 'C':  op(W) = W'.
+
+  FLAG    CHARACTER*1
+          Specifies which sign is used, as follows:
+          = 'P':  The plus  sign is used;
+          = 'M':  The minus sign is used.
+
+  DEF     CHARACTER*1
+          If FACT = 'N', specifies whether or not it is assumed that
+          matrix R is positive definite, as follows:
+          = 'D':  Matrix R is assumed positive definite;
+          = 'I':  Matrix R is assumed indefinite.
+          Both values can be used to perform the computations,
+          irrespective to the R definiteness, but using the adequate
+          value will save some computational effort (see FURTHER
+          COMMENTS).
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The order of the matrices A, Q, and G, and the number of
+          rows of the matrices B and L.  N &gt;= 0.
+
+  M       (input) INTEGER
+          The order of the matrix R, and the number of columns of
+          the matrices B and L.  M &gt;= 0.
+
+  A       (input/output) DOUBLE PRECISION array, dimension (LDA,N)
+          On entry, if JOBL = 'N', the leading N-by-N part of this
+          array must contain the matrix A.
+          On exit, if JOBL = 'N', and INFO = 0, the leading N-by-N
+                                                 -
+          part of this array contains the matrix A.
+          If JOBL = 'Z', this array is not referenced.
+
+  LDA     INTEGER
+          The leading dimension of array A.
+          LDA &gt;= MAX(1,N) if JOBL = 'N';
+          LDA &gt;= 1        if JOBL = 'Z'.
+
+  B       (input/output) DOUBLE PRECISION array, dimension (LDB,M)
+          On entry, the leading N-by-M part of this array must
+          contain the matrix B.
+          On exit, if OUFACT = 1, and INFO = 0, the leading N-by-M
+                                                          -1
+          part of this array contains the matrix B*chol(R)  .
+          On exit, B is unchanged if OUFACT &lt;&gt; 1 (hence also when
+          FACT = 'U').
+
+  LDB     INTEGER
+          The leading dimension of array B.  LDB &gt;= MAX(1,N).
+
+  Q       (input/output) DOUBLE PRECISION array, dimension (LDQ,N)
+          On entry, if JOBL = 'N', the leading N-by-N upper
+          triangular part (if UPLO = 'U') or lower triangular part
+          (if UPLO = 'L') of this array must contain the upper
+          triangular part or lower triangular part, respectively, of
+          the symmetric matrix Q. The strictly lower triangular part
+          (if UPLO = 'U') or strictly upper triangular part (if
+          UPLO = 'L') is not referenced.
+          On exit, if JOBL = 'N' and INFO = 0, the leading N-by-N
+          upper triangular part (if UPLO = 'U') or lower triangular
+          part (if UPLO = 'L') of this array contains the upper
+          triangular part or lower triangular part, respectively, of
+                               -            -1
+          the symmetric matrix Q = Q +/- L*R  *L'.
+          If JOBL = 'Z', this array is not referenced.
+
+  LDQ     INTEGER
+          The leading dimension of array Q.
+          LDQ &gt;= MAX(1,N) if JOBL = 'N';
+          LDQ &gt;= 1        if JOBL = 'Z'.
+
+  R       (input/output) DOUBLE PRECISION array, dimension (LDR,M)
+          On entry, if FACT = 'N', the leading M-by-M upper
+          triangular part (if UPLO = 'U') or lower triangular part
+          (if UPLO = 'L') of this array must contain the upper
+          triangular part or lower triangular part, respectively,
+          of the symmetric input weighting matrix R.
+          On entry, if FACT = 'C', the leading M-by-M upper
+          triangular part (if UPLO = 'U') or lower triangular part
+          (if UPLO = 'L') of this array must contain the Cholesky
+          factor of the positive definite input weighting matrix R
+          (as produced by LAPACK routine DPOTRF).
+          On entry, if FACT = 'U', the leading M-by-M upper
+          triangular part (if UPLO = 'U') or lower triangular part
+          (if UPLO = 'L') of this array must contain the factors of
+          the UdU' or LdL' factorization, respectively, of the
+          symmetric indefinite input weighting matrix R (as produced
+          by LAPACK routine DSYTRF).
+          If FACT = 'N' and DEF = 'D', the strictly lower triangular
+          part (if UPLO = 'U') or strictly upper triangular part
+          (if UPLO = 'L') of this array is used as workspace (filled
+          in by symmetry). If FACT = 'N' and DEF = 'I', the strictly
+          lower triangular part (if UPLO = 'U') or strictly upper
+          triangular part (if UPLO = 'L') is unchanged.
+          On exit, if OUFACT = 1, and INFO = 0 (or INFO = M+1),
+          the leading M-by-M upper triangular part (if UPLO = 'U')
+          or lower triangular part (if UPLO = 'L') of this array
+          contains the Cholesky factor of the given input weighting
+          matrix.
+          On exit, if OUFACT = 2, and INFO = 0 (or INFO = M+1),
+          the leading M-by-M upper triangular part (if UPLO = 'U')
+          or lower triangular part (if UPLO = 'L') of this array
+          contains the factors of the UdU' or LdL' factorization,
+          respectively, of the given input weighting matrix.
+          On exit R is unchanged if FACT = 'C' or 'U'.
+
+  LDR     INTEGER
+          The leading dimension of array R.  LDR &gt;= MAX(1,M).
+
+  L       (input/output) DOUBLE PRECISION array, dimension (LDL,M)
+          On entry, if JOBL = 'N', the leading N-by-M part of this
+          array must contain the matrix L.
+          On exit, if JOBL = 'N', OUFACT = 1, and INFO = 0, the
+          leading N-by-M part of this array contains the matrix
+                   -1
+          L*chol(R)  .
+          On exit, L is unchanged if OUFACT &lt;&gt; 1 (hence also when
+          FACT = 'U').
+          L is not referenced if JOBL = 'Z'.
+
+  LDL     INTEGER
+          The leading dimension of array L.
+          LDL &gt;= MAX(1,N) if JOBL = 'N';
+          LDL &gt;= 1        if JOBL = 'Z'.
+
+  IPIV    (input/output) INTEGER array, dimension (M)
+          On entry, if FACT = 'U', this array must contain details
+          of the interchanges performed and the block structure of
+          the d factor in the UdU' or LdL' factorization of matrix R
+          (as produced by LAPACK routine DSYTRF).
+          On exit, if OUFACT = 2, this array contains details of
+          the interchanges performed and the block structure of the
+          d factor in the UdU' or LdL' factorization of matrix R,
+          as produced by LAPACK routine DSYTRF.
+          This array is not referenced if FACT = 'C'.
+
+  OUFACT  (output) INTEGER
+          Information about the factorization finally used.
+          OUFACT = 0:  no factorization of R has been used (M = 0);
+          OUFACT = 1:  Cholesky factorization of R has been used;
+          OUFACT = 2:  UdU' (if UPLO = 'U') or LdL' (if UPLO = 'L')
+                       factorization of R has been used.
+
+  G       (output) DOUBLE PRECISION array, dimension (LDG,N)
+          If JOBG = 'G', and INFO = 0, the leading N-by-N upper
+          triangular part (if UPLO = 'U') or lower triangular part
+          (if UPLO = 'L') of this array contains the upper
+          triangular part (if UPLO = 'U') or lower triangular part
+                                                              -1
+          (if UPLO = 'L'), respectively, of the matrix G = B*R  B'.
+          If JOBG = 'N', this array is not referenced.
+
+  LDG     INTEGER
+          The leading dimension of array G.
+          LDG &gt;= MAX(1,N) if JOBG = 'G';
+          LDG &gt;= 1        if JOBG = 'N'.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  IWORK   INTEGER array, dimension (M)
+          If FACT = 'C' or FACT = 'U', this array is not referenced.
+
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+          On exit, if INFO = 0 or LDWORK = -1, DWORK(1) returns the
+          optimal value of LDWORK; if FACT = 'N' and LDWORK is set
+          as specified below, DWORK(2) contains the reciprocal
+          condition number of the given matrix R. DWORK(2) is set to
+          zero if M = 0.
+          On exit, if LDWORK = -2 on input or INFO = -26, then
+          DWORK(1) returns the minimal value of LDWORK.
+
+  LDWORK  INTEGER
+          The length of the array DWORK.
+          LDWORK &gt;= 1              if FACT = 'C' or  (FACT = 'U' and
+                                      JOBG = 'N' and  JOBL = 'Z');
+          LDWORK &gt;= MAX(2,3*M)     if FACT = 'N' and  JOBG = 'N' and
+                                                      JOBL = 'Z';
+          LDWORK &gt;= MAX(2,3*M,N*M) if FACT = 'N' and (JOBG = 'G' or
+                                                      JOBL = 'N');
+          LDWORK &gt;= MAX(1,N*M)     if FACT = 'U' and (JOBG = 'G' or
+                                                      JOBL = 'N').
+          For optimum performance LDWORK should be larger than 3*M,
+          if FACT = 'N'.
+
+          If LDWORK = -1, an optimal workspace query is assumed; the
+          routine only calculates the optimal size of the DWORK
+          array, returns this value as the first entry of the DWORK
+          array, and no error message is issued by XERBLA.
+
+          If LDWORK = -2, a minimal workspace query is assumed; the
+          routine only calculates the minimal size of the DWORK
+          array, returns this value as the first entry of the DWORK
+          array, and no error message is issued by XERBLA.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value;
+          = i:  if the i-th element (1 &lt;= i &lt;= M) of the d factor is
+                exactly zero; the UdU' (or LdL') factorization has
+                been completed, but the block diagonal matrix d is
+                exactly singular;
+          = M+1:  if the matrix R is numerically singular.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>                         -     -
+  The matrices G, and/or A and Q are evaluated using the given or
+  computed symmetric factorization of R.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  The routine should not be used when R is ill-conditioned.
+
+</PRE>
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  Using argument TRANS allows to avoid the transposition of matrix A
+  needed to solve optimal filtering/estimation problems by the same
+  routines solving optimal control problems.
+  If DEF is set to 'D', but R is indefinite, the computational
+  effort for factorization will be approximately double, since
+  Cholesky factorization, tried first, will fail, and symmetric
+  indefinite factorization will then be used.
+  If DEF is set to 'I', but R is positive definite, the
+  computational effort will be slightly higher than that when using
+  Cholesky factorization. It is recommended to use DEF = 'D' also if
+  the definiteness is not known, but M is (much) smaller than N.
+
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<p>
+<A HREF=..\libindex.html><B>Return to index</B></A></BODY>
+</HTML>

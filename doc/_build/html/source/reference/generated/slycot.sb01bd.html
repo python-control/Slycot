@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>slycot.sb01bd &mdash; Slycot 0.6 documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+        <script src="../../../_static/sphinx_highlight.js"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <link rel="next" title="slycot.sb02md" href="slycot.sb02md.html" />
+    <link rel="prev" title="slycot.mb05nd" href="slycot.mb05nd.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            Slycot
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../../intro.html">Introduction</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../index.html">Slycot reference</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="../slycot_outer.html">Outer function reference</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="../slycot_outer.html#analysis">Analysis</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../slycot_outer.html#mathematical-routines">Mathematical routines</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="../slycot_outer.html#synthesis">Synthesis</a><ul class="current">
+<li class="toctree-l4 current"><a class="current reference internal" href="#">slycot.sb01bd</a></li>
+<li class="toctree-l4"><a class="reference internal" href="slycot.sb02md.html">slycot.sb02md</a></li>
+<li class="toctree-l4"><a class="reference internal" href="slycot.sb02mt.html">slycot.sb02mt</a></li>
+<li class="toctree-l4"><a class="reference internal" href="slycot.sb02od.html">slycot.sb02od</a></li>
+<li class="toctree-l4"><a class="reference internal" href="slycot.sb03md.html">slycot.sb03md</a></li>
+<li class="toctree-l4"><a class="reference internal" href="slycot.sb03md57.html">slycot.sb03md57</a></li>
+<li class="toctree-l4"><a class="reference internal" href="slycot.sb03od.html">slycot.sb03od</a></li>
+<li class="toctree-l4"><a class="reference internal" href="slycot.sb04md.html">slycot.sb04md</a></li>
+<li class="toctree-l4"><a class="reference internal" href="slycot.sb04qd.html">slycot.sb04qd</a></li>
+<li class="toctree-l4"><a class="reference internal" href="slycot.sb10ad.html">slycot.sb10ad</a></li>
+<li class="toctree-l4"><a class="reference internal" href="slycot.sb10dd.html">slycot.sb10dd</a></li>
+<li class="toctree-l4"><a class="reference internal" href="slycot.sb10fd.html">slycot.sb10fd</a></li>
+<li class="toctree-l4"><a class="reference internal" href="slycot.sb10hd.html">slycot.sb10hd</a></li>
+<li class="toctree-l4"><a class="reference internal" href="slycot.sg02ad.html">slycot.sg02ad</a></li>
+<li class="toctree-l4"><a class="reference internal" href="slycot.sg03ad.html">slycot.sg03ad</a></li>
+<li class="toctree-l4"><a class="reference internal" href="slycot.sg03bd.html">slycot.sg03bd</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../slycot_outer.html#transformation-routines">Transformation Routines</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../slycot_inner.html">Inner function reference</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../dev/index.html">Development</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">Slycot</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Slycot reference</a></li>
+          <li class="breadcrumb-item"><a href="../slycot_outer.html">Outer function reference</a></li>
+      <li class="breadcrumb-item active">slycot.sb01bd</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../../_sources/source/reference/generated/slycot.sb01bd.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <div class="section" id="slycot-sb01bd">
+<h1>slycot.sb01bd<a class="headerlink" href="#slycot-sb01bd" title="Permalink to this heading"></a></h1>
+<dl class="py function">
+<dt class="sig sig-object py" id="slycot.sb01bd">
+<span class="sig-prename descclassname"><span class="pre">slycot.</span></span><span class="sig-name descname"><span class="pre">sb01bd</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">m</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">np</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alpha</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">A</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">B</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">w</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dico</span></span></em><span class="optional">[</span>, <em class="sig-param"><span class="n"><span class="pre">tol</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ldwork</span></span></em><span class="optional">]</span><span class="sig-paren">)</span><a class="headerlink" href="#slycot.sb01bd" title="Permalink to this definition"></a></dt>
+<dd><p>To determine the state feedback matrix F for a given system (A,B) such that
+the closed-loop state matrix A+B*F has specified eigenvalues.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>n</strong> (<em>int</em>) – The dimension of the state vector, n &gt;= 0.</p></li>
+<li><p><strong>m</strong> (<em>int</em>) – The dimension of input vector, m &gt;= 0.</p></li>
+<li><p><strong>np</strong> (<em>int</em>) – The number of given eigenvalues. At most n eigenvalues can be
+assigned.  0 &lt;= np &lt;= n.</p></li>
+<li><p><strong>alpha</strong> (<em>float</em>) – Specifies the maximum admissible value, either for real parts,
+if dico = ‘C’, or for moduli, if dico = ‘D’, of the eigenvalues of
+A which will not be modified by the eigenvalue assignment algorithm.
+alpha &gt;= 0 if dico = ‘D’.</p></li>
+<li><p><strong>A</strong> (<em>(</em><em>n</em><em>, </em><em>n</em><em>) </em><em>array_like</em>) – State dynamics matrix.</p></li>
+<li><p><strong>B</strong> (<em>(</em><em>n</em><em>, </em><em>m</em><em>) </em><em>array_like</em>) – Input/state matrix.</p></li>
+<li><p><strong>w</strong> (<em>(</em><em>np</em><em>, </em><em>) </em><em>complex array_like</em>) – Array of the desired eigenvalues of the closed-loop system state-matrix
+A+B*F. The eigenvalues can be unordered, except that complex conjugate
+pairs must appear consecutively.</p></li>
+<li><p><strong>dico</strong> (<em>{'C'</em><em>, </em><em>'D'}</em>) – <dl class="simple">
+<dt>Specifies the type of the original system as follows:</dt><dd><dl class="field-list simple">
+<dt class="field-odd">= ‘C’</dt>
+<dd class="field-odd"><p>continuous-time system;</p>
+</dd>
+<dt class="field-even">= ‘D’</dt>
+<dd class="field-even"><p>discrete-time system.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</p></li>
+<li><p><strong>tol</strong> (<em>float</em><em>, </em><em>optional</em>) – The absolute tolerance level below which the elements of A or B are
+considered zero (used for controllability tests).
+If tol &lt;= 0 the default value is used.</p></li>
+<li><p><strong>ldwork</strong> (<em>int</em><em>, </em><em>optional</em>) – The length of the cache array. The default value is
+max(1,5*m,5*n,2*n+4*m), for optimum performance it should be larger.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>A_z</strong> (<em>(n, n) ndarray</em>) – This array contains the matrix Z’<a href="#id1"><span class="problematic" id="id2">*</span></a>(A+B*F)*Z in a real Schur form.
+The diagonal block A[:nfp, :nfp] corresponds to the fixed (unmodified)
+eigenvalues having real parts less than alpha, if dico = ‘C’, or moduli
+less than alpha if dico = ‘D’.
+The diagonal block A[n-nup:, n-nup:] corresponds to the uncontrollable
+eigenvalues detected by the eigenvalue assignment algorithm.
+The elements under the first subdiagonal are set to zero.</p></li>
+<li><p><strong>w</strong> (<em>(np, ) complex ndarray</em>) – The first part w[:nap] contain the assigned eigenvalues.
+The rest w[np-nap:] contain the unassigned eigenvalues.</p></li>
+<li><p><strong>nfp</strong> (<em>int</em>) – The number of eigenvalues of A having real parts less than alpha,
+if dico = ‘C’, or moduli less than alpha, if dico = ‘D’. These
+eigenvalues are not modified by the eigenvalue assignment algorithm.</p></li>
+<li><p><strong>nap</strong> (<em>int</em>) – The number of assigned eigenvalues.</p></li>
+<li><p><strong>nup</strong> (<em>int</em>) – The number of uncontrollable eigenvalues detected by the eigenvalue
+assignment algorithm.</p></li>
+<li><p><strong>F</strong> (<em>(m, n) ndarray</em>) – The state feedback F, which assigns nap closed-loop eigenvalues and
+keeps unaltered n-nap open-loop eigenvalues.</p></li>
+<li><p><strong>Z</strong> (<em>(n, n) ndarray</em>) – The orthogonal matrix Z which reduces the closed-loop system state
+matrix A + B*F to upper real Schur form.</p></li>
+</ul>
+</p>
+</dd>
+<dt class="field-odd">Raises</dt>
+<dd class="field-odd"><p><strong>SlycotArithmeticError</strong> – <dl class="field-list simple">
+<dt class="field-odd">info = 1</dt>
+<dd class="field-odd"><p>the reduction of A to a real Schur form failed;</p>
+</dd>
+<dt class="field-even">info = 2</dt>
+<dd class="field-even"><p>a failure was detected during the ordering of the
+real Schur form of A, or in the iterative process
+for reordering the eigenvalues of Z’<a href="#id3"><span class="problematic" id="id4">*</span></a>(A + B*F)*Z
+along the diagonal.</p>
+</dd>
+</dl>
+</p>
+</dd>
+<dt class="field-even">Warns</dt>
+<dd class="field-even"><p><strong>SlycotResultWarning</strong> –</p>
+<dl class="field-list simple">
+<dt class="field-odd">info = 3</dt>
+<dd class="field-odd"><p>the number of eigenvalues to be assigned is less
+than the number of possibly assignable eigenvalues;
+<a href="#id5"><span class="problematic" id="id6">`</span></a>nap`={nap} eigenvalues have been properly assigned,
+but some assignable eigenvalues remain unmodified.</p>
+</dd>
+<dt class="field-even">info = 4</dt>
+<dd class="field-even"><p>an attempt is made to place a complex conjugate
+pair on the location of a real eigenvalue. This
+situation can only appear when <code class="docutils literal notranslate"><span class="pre">n-nfp</span></code> is odd,
+<code class="docutils literal notranslate"><span class="pre">np</span> <span class="pre">&gt;</span> <span class="pre">n-nfp-nup</span></code> is even, and for the last real
+eigenvalue to be modified there exists no available
+real eigenvalue to be assigned. However, <a href="#id7"><span class="problematic" id="id8">`</span></a>nap`={nap}
+eigenvalues have been already properly assigned.</p>
+</dd>
+<dt class="field-odd">iwarn &gt; 0</dt>
+<dd class="field-odd"><p>{iwarn} violations of the numerical stability condition
+<code class="docutils literal notranslate"><span class="pre">NORM(F)</span> <span class="pre">&lt;=</span> <span class="pre">100*NORM(A)/NORM(B)</span></code> occured during the
+assignment of eigenvalues</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">slycot</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">A</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">]])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">B</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">]])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">eig</span><span class="p">(</span><span class="n">A</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="c1"># open loop eigenvalues</span>
+<span class="go">array([ 3.11490754,  0.74589831, -0.86080585])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">w</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.4</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">slycot</span><span class="o">.</span><span class="n">sb01bd</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="s1">&#39;D&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">A_fb</span> <span class="o">=</span> <span class="n">A</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">B</span><span class="p">,</span> <span class="n">out</span><span class="p">[</span><span class="mi">5</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">eig</span><span class="p">(</span><span class="n">A_fb</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="c1"># closed loop eigenvalues</span>
+<span class="go">array([ 0.2       ,  0.40000001,  0.5       ])</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</div>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="slycot.mb05nd.html" class="btn btn-neutral float-left" title="slycot.mb05nd" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="slycot.sb02md.html" class="btn btn-neutral float-right" title="slycot.sb02md" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Slycot Developers.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

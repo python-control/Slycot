@@ -1,0 +1,322 @@
+<HTML>
+<HEAD><TITLE>AB13AD - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="AB13AD">AB13AD</A></H2>
+<H3>
+Hankel-norm of a stable projection
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To compute the Hankel-norm of the ALPHA-stable projection of the
+  transfer-function matrix G of the state-space system (A,B,C).
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      DOUBLE PRECISION FUNCTION AB13AD( DICO, EQUIL, N, M, P, ALPHA, A,
+     $                                  LDA, B, LDB, C, LDC, NS, HSV,
+     $                                  DWORK, LDWORK, INFO )
+C     .. Scalar Arguments ..
+      CHARACTER         DICO, EQUIL
+      INTEGER           INFO, LDA, LDB, LDC, LDWORK, M, N, NS, P
+      DOUBLE PRECISION  ALPHA
+C     .. Array Arguments ..
+      DOUBLE PRECISION  A(LDA,*), B(LDB,*), C(LDC,*), DWORK(*), HSV(*)
+
+</PRE>
+<B><FONT SIZE="+1">Function Value</FONT></B>
+<PRE>
+  AB13AD  DOUBLE PRECISION
+          The Hankel-norm of the ALPHA-stable projection of G
+          (if INFO = 0).
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  DICO    CHARACTER*1
+          Specifies the type of the system as follows:
+          = 'C':  continuous-time system;
+          = 'D':  discrete-time system.
+
+  EQUIL   CHARACTER*1
+          Specifies whether the user wishes to preliminarily
+          equilibrate the triplet (A,B,C) as follows:
+          = 'S':  perform equilibration (scaling);
+          = 'N':  do not perform equilibration.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The order of the state-space representation, i.e. the
+          order of the matrix A.  N &gt;= 0.
+
+  M       (input) INTEGER
+          The number of system inputs.  M &gt;= 0.
+
+  P       (input) INTEGER
+          The number of system outputs.  P &gt;= 0.
+
+  ALPHA   (input) DOUBLE PRECISION
+          Specifies the ALPHA-stability boundary for the eigenvalues
+          of the state dynamics matrix A. For a continuous-time
+          system (DICO = 'C'), ALPHA &lt;= 0 is the boundary value for
+          the real parts of eigenvalues, while for a discrete-time
+          system (DICO = 'D'), 0 &lt;= ALPHA &lt;= 1 represents the
+          boundary value for the moduli of eigenvalues.
+          The ALPHA-stability domain does not include the boundary
+          (see the Note below).
+
+  A       (input/output) DOUBLE PRECISION array, dimension (LDA,N)
+          On entry, the leading N-by-N part of this array must
+          contain the state dynamics matrix A.
+          On exit, if INFO = 0, the leading N-by-N part of this
+          array contains the state dynamics matrix A in a block
+          diagonal real Schur form with its eigenvalues reordered
+          and separated. The resulting A has two diagonal blocks.
+          The leading NS-by-NS part of A has eigenvalues in the
+          ALPHA-stability domain and the trailing (N-NS) x (N-NS)
+          part has eigenvalues outside the ALPHA-stability domain.
+          Note: The ALPHA-stability domain is defined either
+                as the open half complex plane left to ALPHA,
+                for a continous-time system (DICO = 'C'), or the
+                interior of the ALPHA-radius circle centered in the
+                origin, for a discrete-time system (DICO = 'D').
+
+  LDA     INTEGER
+          The leading dimension of array A.  LDA &gt;= MAX(1,N).
+
+  B       (input/output) DOUBLE PRECISION array, dimension (LDB,M)
+          On entry, the leading N-by-M part of this array must
+          contain the original input/state matrix B.
+          On exit, if INFO = 0, the leading N-by-M part of this
+          array contains the input/state matrix B of the transformed
+          system.
+
+  LDB     INTEGER
+          The leading dimension of array B.  LDB &gt;= MAX(1,N).
+
+  C       (input/output) DOUBLE PRECISION array, dimension (LDC,N)
+          On entry, the leading P-by-N part of this array must
+          contain the original state/output matrix C.
+          On exit, if INFO = 0, the leading P-by-N part of this
+          array contains the state/output matrix C of the
+          transformed system.
+
+  LDC     INTEGER
+          The leading dimension of array C.  LDC &gt;= MAX(1,P).
+
+  NS      (output) INTEGER
+          The dimension of the ALPHA-stable subsystem.
+
+  HSV     (output) DOUBLE PRECISION array, dimension (N)
+          If INFO = 0, the leading NS elements of HSV contain the
+          Hankel singular values of the ALPHA-stable part of the
+          original system ordered decreasingly.
+          HSV(1) is the Hankel norm of the ALPHA-stable subsystem.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+          On exit, if INFO = 0, DWORK(1) returns the optimal value
+          of LDWORK.
+
+  LDWORK  INTEGER
+          The length of the array DWORK.
+          LDWORK &gt;= MAX(1,N*(MAX(N,M,P)+5)+N*(N+1)/2).
+          For optimum performance LDWORK should be larger.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value;
+          = 1:  the computation of the ordered real Schur form of A
+                failed;
+          = 2:  the separation of the ALPHA-stable/unstable diagonal
+                blocks failed because of very close eigenvalues;
+          = 3:  the computed ALPHA-stable part is just stable,
+                having stable eigenvalues very near to the imaginary
+                axis (if DICO = 'C') or to the unit circle
+                (if DICO = 'D');
+          = 4:  the computation of Hankel singular values failed.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  Let be the following linear system
+
+       d[x(t)] = Ax(t) + Bu(t)
+       y(t)    = Cx(t)                               (1)
+
+  where d[x(t)] is dx(t)/dt for a continuous-time system and x(t+1)
+  for a discrete-time system, and let G be the corresponding
+  transfer-function matrix. The following procedure is used to
+  compute the Hankel-norm of the ALPHA-stable projection of G:
+
+  1) Decompose additively G as
+
+       G = G1 + G2
+
+     such that G1 = (As,Bs,Cs) has only ALPHA-stable poles and
+     G2 = (Au,Bu,Cu) has only ALPHA-unstable poles.
+     For the computation of the additive decomposition, the
+     algorithm presented in [1] is used.
+
+  2) Compute the Hankel-norm of ALPHA-stable projection G1 as the
+     the maximum Hankel singular value of the system (As,Bs,Cs).
+     The computation of the Hankel singular values is performed
+     by using the square-root method of [2].
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Safonov, M.G., Jonckheere, E.A., Verma, M. and Limebeer, D.J.
+      Synthesis of positive real multivariable feedback systems,
+      Int. J. Control, Vol. 45, pp. 817-842, 1987.
+
+  [2] Tombs, M.S. and Postlethwaite, I.
+      Truncated balanced realization of stable, non-minimal
+      state-space systems.
+      Int. J. Control, Vol. 46, pp. 1319-1330, 1987.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  The implemented method relies on a square-root technique.
+                                  3
+  The algorithms require about 17N  floating point operations.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+*     AB13AD EXAMPLE PROGRAM TEXT
+*
+*     .. Parameters ..
+      INTEGER          NIN, NOUT
+      PARAMETER        ( NIN = 5, NOUT = 6 )
+      INTEGER          NMAX, MMAX, PMAX
+      PARAMETER        ( NMAX = 20, MMAX = 20, PMAX = 20 )
+      INTEGER          LDA, LDB, LDC
+      PARAMETER        ( LDA = NMAX, LDB = NMAX, LDC = PMAX )
+      INTEGER          LDWORK
+      PARAMETER        ( LDWORK = NMAX*( MAX( NMAX, MMAX, PMAX ) + 5 )
+     $                        + ( NMAX*( NMAX + 1 ) )/2 )
+*     .. Local Scalars ..
+      DOUBLE PRECISION ALPHA, SHNORM
+      INTEGER          I, INFO, J, M, N, NS, P
+      CHARACTER*1      DICO, EQUIL
+*     .. Local Arrays ..
+      DOUBLE PRECISION A(LDA,NMAX), B(LDB,MMAX), C(LDC,NMAX),
+     $                 DWORK(LDWORK), HSV(NMAX)
+*     .. External Functions ..
+      DOUBLE PRECISION AB13AD
+      EXTERNAL         AB13AD
+*     .. Intrinsic Functions ..
+      INTRINSIC        MAX
+*     .. Executable Statements ..
+*
+      WRITE ( NOUT, FMT = 99999 )
+*     Skip the heading in the data file and read the data.
+      READ ( NIN, FMT = '()' )
+      READ ( NIN, FMT = * ) N, M, P, ALPHA, DICO, EQUIL
+      IF ( N.LT.0 .OR. N.GT.NMAX ) THEN
+         WRITE ( NOUT, FMT = 99990 ) N
+      ELSE
+         READ ( NIN, FMT = * ) ( ( A(I,J), J = 1,N ), I = 1,N )
+         IF ( M.LT.0 .OR. M.GT.MMAX ) THEN
+            WRITE ( NOUT, FMT = 99989 ) M
+         ELSE
+            READ ( NIN, FMT = * ) ( ( B(I,J), J = 1,M ), I = 1, N )
+            IF ( P.LT.0 .OR. P.GT.PMAX ) THEN
+               WRITE ( NOUT, FMT = 99988 ) P
+            ELSE
+               READ ( NIN, FMT = * ) ( ( C(I,J), J = 1,N ), I = 1,P )
+*              Compute the Hankel-norm of the ALPHA-stable projection of
+*              (A,B,C).
+               SHNORM = AB13AD( DICO, EQUIL, N, M, P, ALPHA, A, LDA, B,
+     $                          LDB, C, LDC, NS, HSV, DWORK, LDWORK,
+     $                          INFO)
+*
+               IF ( INFO.NE.0 ) THEN
+                  WRITE ( NOUT, FMT = 99998 ) INFO
+               ELSE
+                  WRITE ( NOUT, FMT = 99997 ) SHNORM
+                  WRITE ( NOUT, FMT = 99987 )
+                  WRITE ( NOUT, FMT = 99995 ) ( HSV(J), J = 1,NS )
+               END IF
+            END IF
+         END IF
+      END IF
+      STOP
+*
+99999 FORMAT (' AB13AD EXAMPLE PROGRAM RESULTS',/1X)
+99998 FORMAT (' INFO on exit from AB13AD = ',I2)
+99997 FORMAT (' The Hankel-norm of the ALPHA-projection = ',1PD14.5)
+99995 FORMAT (20(1X,F8.4))
+99990 FORMAT (/' N is out of range.',/' N = ',I5)
+99989 FORMAT (/' M is out of range.',/' M = ',I5)
+99988 FORMAT (/' P is out of range.',/' P = ',I5)
+99987 FORMAT (/' The Hankel singular values of ALPHA-projection are')
+      END
+</PRE>
+<B>Program Data</B>
+<PRE>
+ AB13AD EXAMPLE PROGRAM DATA (Continuous system)
+  7  2  3   0.0  C  N
+ -0.04165  0.0000  4.9200  -4.9200  0.0000  0.0000  0.0000
+ -5.2100  -12.500  0.0000   0.0000  0.0000  0.0000  0.0000
+  0.0000   3.3300 -3.3300   0.0000  0.0000  0.0000  0.0000
+  0.5450   0.0000  0.0000   0.0000 -0.5450  0.0000  0.0000
+  0.0000   0.0000  0.0000   4.9200 -0.04165 0.0000  4.9200
+  0.0000   0.0000  0.0000   0.0000 -5.2100 -12.500  0.0000
+  0.0000   0.0000  0.0000   0.0000  0.0000  3.3300 -3.3300
+  0.0000   0.0000
+  12.500   0.0000
+  0.0000   0.0000
+  0.0000   0.0000
+  0.0000   0.0000
+  0.0000   12.500
+  0.0000   0.0000
+  1.0000   0.0000  0.0000   0.0000  0.0000  0.0000  0.0000
+  0.0000   0.0000  0.0000   1.0000  0.0000  0.0000  0.0000
+  0.0000   0.0000  0.0000   0.0000  1.0000  0.0000  0.0000
+</PRE>
+<B>Program Results</B>
+<PRE>
+ AB13AD EXAMPLE PROGRAM RESULTS
+
+ The Hankel-norm of the ALPHA-projection =    2.51388D+00
+
+ The Hankel singular values of ALPHA-projection are
+   2.5139   2.0846   1.9178   0.7666   0.5473   0.0253   0.0246
+</PRE>
+
+<HR>
+<p>
+<A HREF=..\libindex.html><B>Return to index</B></A></BODY>
+</HTML>

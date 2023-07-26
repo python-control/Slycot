@@ -1,0 +1,305 @@
+<HTML>
+<HEAD><TITLE>IB01PX - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="IB01PX">IB01PX</A></H2>
+<H3>
+Estimating system matrices B and D using Kronecker products
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To build and solve the least squares problem  T*X = Kv,  and
+  estimate the matrices B and D of a linear time-invariant (LTI)
+  state space model, using the solution  X,  and the singular
+  value decomposition information and other intermediate results,
+  provided by other routines.
+
+  The matrix  T  is computed as a sum of Kronecker products,
+
+     T = T + kron(Uf(:,(i-1)*m+1:i*m),N_i),  for i = 1 : s,
+
+  (with  T  initialized by zero), where  Uf  is the triangular
+  factor of the QR factorization of the future input part (see
+  SLICOT Library routine IB01ND),  N_i  is given by the i-th block
+  row of the matrix
+
+         [ Q_11  Q_12  ...  Q_1,s-2  Q_1,s-1  Q_1s ]   [ I_L  0  ]
+         [ Q_12  Q_13  ...  Q_1,s-1    Q_1s    0   ]   [         ]
+     N = [ Q_13  Q_14  ...    Q_1s      0      0   ] * [         ],
+         [  :     :            :        :      :   ]   [         ]
+         [ Q_1s   0    ...     0        0      0   ]   [  0  GaL ]
+
+  and where
+
+            [   -L_1|1    ]          [ M_i-1 - L_1|i ]
+     Q_11 = [             ],  Q_1i = [               ],  i = 2:s,
+            [ I_L - L_2|1 ]          [     -L_2|i    ]
+
+  are  (n+L)-by-L  matrices, and  GaL  is built from the first  n
+  relevant singular vectors,  GaL = Un(1:L(s-1),1:n),  computed
+  by IB01ND.
+
+  The vector  Kv  is vec(K), with the matrix  K  defined by
+
+     K = [ K_1  K_2  K_3  ...  K_s ],
+
+  where  K_i = K(:,(i-1)*m+1:i*m),  i = 1:s,  is  (n+L)-by-m.
+  The given matrices are  Uf,  GaL,  and
+
+         [ L_1|1  ...  L_1|s ]
+     L = [                   ],   (n+L)-by-L*s,
+         [ L_2|1  ...  L_2|s ]
+
+     M = [ M_1  ...  M_s-1 ],      n-by-L*(s-1),  and
+     K,                            (n+L)-by-m*s.
+
+  Matrix  M  is the pseudoinverse of the matrix  GaL,  computed by
+  SLICOT Library routine IB01PD.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE IB01PX( JOB, NOBR, N, M, L, UF, LDUF, UN, LDUN, UL,
+     $                   LDUL, PGAL, LDPGAL, K, LDK, R, LDR, X, B, LDB,
+     $                   D, LDD, TOL, IWORK, DWORK, LDWORK, IWARN,
+     $                   INFO )
+C     .. Scalar Arguments ..
+      DOUBLE PRECISION   TOL
+      INTEGER            INFO, IWARN, L, LDB, LDD, LDK, LDPGAL, LDR,
+     $                   LDUF, LDUL, LDUN, LDWORK, M, N, NOBR
+      CHARACTER          JOB
+C     .. Array Arguments ..
+      DOUBLE PRECISION   B(LDB, *), D(LDD, *), DWORK(*), K(LDK, *),
+     $                   PGAL(LDPGAL, *), R(LDR, *), UF(LDUF, *),
+     $                   UL(LDUL, *), UN(LDUN, *), X(*)
+      INTEGER            IWORK( * )
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  JOB     CHARACTER*1
+          Specifies which of the matrices B and D should be
+          computed, as follows:
+          = 'B':  compute the matrix B, but not the matrix D;
+          = 'D':  compute both matrices B and D.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  NOBR    (input) INTEGER
+          The number of block rows,  s,  in the input and output
+          Hankel matrices processed by other routines.  NOBR &gt; 1.
+
+  N       (input) INTEGER
+          The order of the system.  NOBR &gt; N &gt; 0.
+
+  M       (input) INTEGER
+          The number of system inputs.  M &gt;= 0.
+
+  L       (input) INTEGER
+          The number of system outputs.  L &gt; 0.
+
+  UF      (input/output) DOUBLE PRECISION array, dimension
+          ( LDUF,M*NOBR )
+          On entry, the leading  M*NOBR-by-M*NOBR  upper triangular
+          part of this array must contain the upper triangular
+          factor of the QR factorization of the future input part,
+          as computed by SLICOT Library routine IB01ND.
+          The strict lower triangle need not be set to zero.
+          On exit, the leading  M*NOBR-by-M*NOBR  upper triangular
+          part of this array is unchanged, and the strict lower
+          triangle is set to zero.
+
+  LDUF    INTEGER
+          The leading dimension of the array  UF.
+          LDUF &gt;= MAX( 1, M*NOBR ).
+
+  UN      (input) DOUBLE PRECISION array, dimension ( LDUN,N )
+          The leading  L*(NOBR-1)-by-N  part of this array must
+          contain the matrix  GaL,  i.e., the leading part of the
+          first  N  columns of the matrix  Un  of relevant singular
+          vectors.
+
+  LDUN    INTEGER
+          The leading dimension of the array  UN.
+          LDUN &gt;= L*(NOBR-1).
+
+  UL      (input/output) DOUBLE PRECISION array, dimension
+          ( LDUL,L*NOBR )
+          On entry, the leading  (N+L)-by-L*NOBR  part of this array
+          must contain the given matrix  L.
+          On exit, if  M &gt; 0,  the leading  (N+L)-by-L*NOBR  part of
+          this array is overwritten by the matrix
+          [ Q_11  Q_12  ...  Q_1,s-2  Q_1,s-1  Q_1s ].
+
+  LDUL    INTEGER
+          The leading dimension of the array  UL.  LDUL &gt;= N+L.
+
+  PGAL    (input) DOUBLE PRECISION array, dimension
+          ( LDPGAL,L*(NOBR-1) )
+          The leading  N-by-L*(NOBR-1)  part of this array must
+          contain the pseudoinverse of the matrix  GaL,  computed by
+          SLICOT Library routine IB01PD.
+
+  LDPGAL  INTEGER
+          The leading dimension of the array  PGAL.  LDPGAL &gt;= N.
+
+  K       (input) DOUBLE PRECISION array, dimension ( LDK,M*NOBR )
+          The leading  (N+L)-by-M*NOBR  part of this array must
+          contain the given matrix  K.
+
+  LDK     INTEGER
+          The leading dimension of the array  K.  LDK &gt;= N+L.
+
+  R       (output) DOUBLE PRECISION array, dimension ( LDR,M*(N+L) )
+          The leading  (N+L)*M*NOBR-by-M*(N+L)  part of this array
+          contains details of the complete orthogonal factorization
+          of the coefficient matrix  T  of the least squares problem
+          which is solved for getting the system matrices B and D.
+
+  LDR     INTEGER
+          The leading dimension of the array  R.
+          LDR &gt;= MAX( 1, (N+L)*M*NOBR ).
+
+  X       (output) DOUBLE PRECISION array, dimension
+          ( (N+L)*M*NOBR )
+          The leading  M*(N+L)  elements of this array contain the
+          least squares solution of the system  T*X = Kv.
+          The remaining elements are used as workspace (to store the
+          corresponding part of the vector Kv = vec(K)).
+
+  B       (output) DOUBLE PRECISION array, dimension ( LDB,M )
+          The leading N-by-M part of this array contains the system
+          input matrix.
+
+  LDB     INTEGER
+          The leading dimension of the array B.  LDB &gt;= N.
+
+  D       (output) DOUBLE PRECISION array, dimension ( LDD,M )
+          If  JOB = 'D',  the leading L-by-M part of this array
+          contains the system input-output matrix.
+          If  JOB = 'B',  this array is not referenced.
+
+  LDD     INTEGER
+          The leading dimension of the array D.
+          LDD &gt;= L, if  JOB = 'D';
+          LDD &gt;= 1, if  JOB = 'B'.
+
+</PRE>
+<B>Tolerances</B>
+<PRE>
+  TOL     DOUBLE PRECISION
+          The tolerance to be used for estimating the rank of
+          matrices. If the user sets  TOL &gt; 0,  then the given value
+          of  TOL  is used as a lower bound for the reciprocal
+          condition number;  an m-by-n matrix whose estimated
+          condition number is less than  1/TOL  is considered to
+          be of full rank.  If the user sets  TOL &lt;= 0,  then an
+          implicitly computed, default tolerance, defined by
+          TOLDEF = m*n*EPS,  is used instead, where  EPS  is the
+          relative machine precision (see LAPACK Library routine
+          DLAMCH).
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  IWORK   INTEGER array, dimension ( M*(N+L) )
+
+  DWORK   DOUBLE PRECISION array, dimension ( LDWORK )
+          On exit, if  INFO = 0,  DWORK(1) returns the optimal value
+          of LDWORK,  and, if  M &gt; 0,  DWORK(2)  contains the
+          reciprocal condition number of the triangular factor of
+          the matrix  T.
+          On exit, if  INFO = -26,  DWORK(1)  returns the minimum
+          value of LDWORK.
+
+  LDWORK  INTEGER
+          The length of the array DWORK.
+          LDWORK &gt;= MAX( (N+L)*(N+L), 4*M*(N+L)+1 ).
+          For good performance,  LDWORK  should be larger.
+
+</PRE>
+<B>Warning Indicator</B>
+<PRE>
+  IWARN   INTEGER
+          = 0:  no warning;
+          = 4:  the least squares problem to be solved has a
+                rank-deficient coefficient matrix.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  The matrix  T  is computed, evaluating the sum of Kronecker
+  products, and then the linear system  T*X = Kv  is solved in a
+  least squares sense. The matrices  B  and  D  are then directly
+  obtained from the least squares solution.
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Verhaegen M., and Dewilde, P.
+      Subspace Model Identification. Part 1: The output-error
+      state-space model identification class of algorithms.
+      Int. J. Control, 56, pp. 1187-1210, 1992.
+
+  [2] Van Overschee, P., and De Moor, B.
+      N4SID: Two Subspace Algorithms for the Identification
+      of Combined Deterministic-Stochastic Systems.
+      Automatica, Vol.30, No.1, pp. 75-93, 1994.
+
+  [3] Van Overschee, P.
+      Subspace Identification : Theory - Implementation -
+      Applications.
+      Ph. D. Thesis, Department of Electrical Engineering,
+      Katholieke Universiteit Leuven, Belgium, Feb. 1995.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  The implemented method is numerically stable.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

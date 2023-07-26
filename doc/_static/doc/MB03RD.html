@@ -1,0 +1,387 @@
+<HTML>
+<HEAD><TITLE>MB03RD - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MB03RD">MB03RD</A></H2>
+<H3>
+Reduction of a real Schur form matrix to a block-diagonal form
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To reduce a matrix A in real Schur form to a block-diagonal form
+  using well-conditioned non-orthogonal similarity transformations.
+  The condition numbers of the transformations used for reduction
+  are roughly bounded by PMAX, where PMAX is a given value.
+  The transformations are optionally postmultiplied in a given
+  matrix X. The real Schur form is optionally ordered, so that
+  clustered eigenvalues are grouped in the same block.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MB03RD( JOBX, SORT, N, PMAX, A, LDA, X, LDX, NBLCKS,
+     $                   BLSIZE, WR, WI, TOL, DWORK, INFO )
+C     .. Scalar Arguments ..
+      CHARACTER         JOBX, SORT
+      INTEGER           INFO, LDA, LDX, N, NBLCKS
+      DOUBLE PRECISION  PMAX, TOL
+C     .. Array Arguments ..
+      INTEGER           BLSIZE(*)
+      DOUBLE PRECISION  A(LDA,*), DWORK(*), WI(*), WR(*), X(LDX,*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  JOBX    CHARACTER*1
+          Specifies whether or not the transformations are
+          accumulated, as follows:
+          = 'N':  The transformations are not accumulated;
+          = 'U':  The transformations are accumulated in X (the
+                  given matrix X is updated).
+
+  SORT    CHARACTER*1
+          Specifies whether or not the diagonal blocks of the real
+          Schur form are reordered, as follows:
+          = 'N':  The diagonal blocks are not reordered;
+          = 'S':  The diagonal blocks are reordered before each
+                  step of reduction, so that clustered eigenvalues
+                  appear in the same block;
+          = 'C':  The diagonal blocks are not reordered, but the
+                  "closest-neighbour" strategy is used instead of
+                  the standard "closest to the mean" strategy
+                  (see METHOD);
+          = 'B':  The diagonal blocks are reordered before each
+                  step of reduction, and the "closest-neighbour"
+                  strategy is used (see METHOD).
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The order of the matrices A and X.  N &gt;= 0.
+
+  PMAX    (input) DOUBLE PRECISION
+          An upper bound for the infinity norm of elementary
+          submatrices of the individual transformations used for
+          reduction (see METHOD).  PMAX &gt;= 1.0D0.
+
+  A       (input/output) DOUBLE PRECISION array, dimension (LDA,N)
+          On entry, the leading N-by-N part of this array must
+          contain the matrix A to be block-diagonalized, in real
+          Schur form.
+          On exit, the leading N-by-N part of this array contains
+          the computed block-diagonal matrix, in real Schur
+          canonical form. The non-diagonal blocks are set to zero.
+
+  LDA     INTEGER
+          The leading dimension of array A.  LDA &gt;= MAX(1,N).
+
+  X       (input/output) DOUBLE PRECISION array, dimension (LDX,N)
+          On entry, if JOBX = 'U', the leading N-by-N part of this
+          array must contain a given matrix X.
+          On exit, if JOBX = 'U', the leading N-by-N part of this
+          array contains the product of the given matrix X and the
+          transformation matrix that reduced A to block-diagonal
+          form. The transformation matrix is itself a product of
+          non-orthogonal similarity transformations having elements
+          with magnitude less than or equal to PMAX.
+          If JOBX = 'N', this array is not referenced.
+
+  LDX     INTEGER
+          The leading dimension of array X.
+          LDX &gt;= 1,        if JOBX = 'N';
+          LDX &gt;= MAX(1,N), if JOBX = 'U'.
+
+  NBLCKS  (output) INTEGER
+          The number of diagonal blocks of the matrix A.
+
+  BLSIZE  (output) INTEGER array, dimension (N)
+          The first NBLCKS elements of this array contain the orders
+          of the resulting diagonal blocks of the matrix A.
+
+  WR,     (output) DOUBLE PRECISION arrays, dimension (N)
+  WI      These arrays contain the real and imaginary parts,
+          respectively, of the eigenvalues of the matrix A.
+
+</PRE>
+<B>Tolerances</B>
+<PRE>
+  TOL     DOUBLE PRECISION
+          The tolerance to be used in the ordering of the diagonal
+          blocks of the real Schur form matrix.
+          If the user sets TOL &gt; 0, then the given value of TOL is
+          used as an absolute tolerance: a block i and a temporarily
+          fixed block 1 (the first block of the current trailing
+          submatrix to be reduced) are considered to belong to the
+          same cluster if their eigenvalues satisfy
+
+            | lambda_1 - lambda_i | &lt;= TOL.
+
+          If the user sets TOL &lt; 0, then the given value of TOL is
+          used as a relative tolerance: a block i and a temporarily
+          fixed block 1 are considered to belong to the same cluster
+          if their eigenvalues satisfy, for j = 1, ..., N,
+
+            | lambda_1 - lambda_i | &lt;= | TOL | * max | lambda_j |.
+
+          If the user sets TOL = 0, then an implicitly computed,
+          default tolerance, defined by TOL = SQRT( SQRT( EPS ) )
+          is used instead, as a relative tolerance, where EPS is
+          the machine precision (see LAPACK Library routine DLAMCH).
+          If SORT = 'N' or 'C', this parameter is not referenced.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  DWORK   DOUBLE PRECISION array, dimension (N)
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  Consider first that SORT = 'N'. Let
+
+         ( A    A   )
+         (  11   12 )
+     A = (          ),
+         ( 0    A   )
+         (       22 )
+
+  be the given matrix in real Schur form, where initially A   is the
+                                                           11
+  first diagonal block of dimension 1-by-1 or 2-by-2. An attempt is
+  made to compute a transformation matrix X of the form
+
+         ( I   P )
+     X = (       )                                               (1)
+         ( 0   I )
+
+  (partitioned as A), so that
+
+              ( A     0  )
+      -1      (  11      )
+     X  A X = (          ),
+              ( 0    A   )
+              (       22 )
+
+  and the elements of P do not exceed the value PMAX in magnitude.
+  An adaptation of the standard method for solving Sylvester
+  equations [1], which controls the magnitude of the individual
+  elements of the computed solution [2], is used to obtain matrix P.
+  When this attempt failed, an 1-by-1 (or 2-by-2) diagonal block of
+  A  , whose eigenvalue(s) is (are) the closest to the mean of those
+   22
+  of A   is selected, and moved by orthogonal similarity
+      11
+  transformations in the leading position of A  ; the moved diagonal
+                                              22
+  block is then added to the block A  , increasing its order by 1
+                                    11
+  (or 2). Another attempt is made to compute a suitable
+  transformation matrix X with the new definitions of the blocks A
+                                                                  11
+  and A  . After a successful transformation matrix X has been
+       22
+  obtained, it postmultiplies the current transformation matrix
+  (if JOBX = 'U'), and the whole procedure is repeated for the
+  matrix A  .
+          22
+
+  When SORT = 'S', the diagonal blocks of the real Schur form are
+  reordered before each step of the reduction, so that each cluster
+  of eigenvalues, defined as specified in the definition of TOL,
+  appears in adjacent blocks. The blocks for each cluster are merged
+  together, and the procedure described above is applied to the
+  larger blocks. Using the option SORT = 'S' will usually provide
+  better efficiency than the standard option (SORT = 'N'), proposed
+  in [2], because there could be no or few unsuccessful attempts
+  to compute individual transformation matrices X of the form (1).
+  However, the resulting dimensions of the blocks are usually
+  larger; this could make subsequent calculations less efficient.
+
+  When SORT = 'C' or 'B', the procedure is similar to that for
+  SORT = 'N' or 'S', respectively, but the block of A   whose
+                                                     22
+  eigenvalue(s) is (are) the closest to those of A   (not to their
+                                                  11
+  mean) is selected and moved to the leading position of A  . This
+                                                          22
+  is called the "closest-neighbour" strategy.
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Bartels, R.H. and Stewart, G.W.  T
+      Solution of the matrix equation A X + XB = C.
+      Comm. A.C.M., 15, pp. 820-826, 1972.
+
+  [2] Bavely, C. and Stewart, G.W.
+      An Algorithm for Computing Reducing Subspaces by Block
+      Diagonalization.
+      SIAM J. Numer. Anal., 16, pp. 359-367, 1979.
+
+  [3] Demmel, J.
+      The Condition Number of Equivalence Transformations that
+      Block Diagonalize Matrix Pencils.
+      SIAM J. Numer. Anal., 20, pp. 599-610, 1983.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>                                    3                     4
+  The algorithm usually requires 0(N ) operations, but 0(N ) are
+  possible in the worst case, when all diagonal blocks in the real
+  Schur form of A are 1-by-1, and the matrix cannot be diagonalized
+  by well-conditioned transformations.
+
+</PRE>
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  The individual non-orthogonal transformation matrices used in the
+  reduction of A to a block-diagonal form have condition numbers
+  of the order PMAX. This does not guarantee that their product
+  is well-conditioned enough. The routine can be easily modified to
+  provide estimates for the condition numbers of the clusters of
+  eigenvalues.
+
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+*     MB03RD EXAMPLE PROGRAM TEXT
+*
+*     .. Parameters ..
+      INTEGER          NIN, NOUT
+      PARAMETER        ( NIN = 5, NOUT = 6 )
+      INTEGER          NMAX
+      PARAMETER        ( NMAX = 10 )
+      INTEGER          LDA, LDX
+      PARAMETER        ( LDA = NMAX, LDX = NMAX )
+      INTEGER          LDWORK
+      PARAMETER        ( LDWORK = 3*NMAX )
+*     .. Local Scalars ..
+      CHARACTER*1      JOBX, SORT
+      INTEGER          I, INFO, J, N, NBLCKS, SDIM
+      DOUBLE PRECISION PMAX, TOL
+*     .. Local Arrays ..
+      DOUBLE PRECISION A(LDA,NMAX), DWORK(LDWORK), WI(NMAX), WR(NMAX),
+     $                 X(LDX,NMAX)
+      INTEGER          BLSIZE(NMAX)
+      LOGICAL          BWORK(NMAX)
+*     .. External Functions ..
+      LOGICAL          SELECT
+*     .. External Subroutines ..
+      EXTERNAL         DGEES, MB03RD
+*     .. Executable Statements ..
+*
+      WRITE ( NOUT, FMT = 99999 )
+*     Skip the heading in the data file and read the data.
+      READ ( NIN, FMT = '()' )
+      READ ( NIN, FMT = * ) N, PMAX, TOL, JOBX, SORT
+      IF ( N.LT.0 .OR. N.GT.NMAX ) THEN
+         WRITE ( NOUT, FMT = 99972 ) N
+      ELSE
+         READ ( NIN, FMT = * ) ( ( A(I,J), J = 1,N ), I = 1,N )
+*        Compute Schur form, eigenvalues and Schur vectors.
+         CALL DGEES( 'Vectors', 'Not sorted', SELECT, N, A, LDA, SDIM,
+     $               WR, WI, X, LDX, DWORK, LDWORK, BWORK, INFO )
+         IF ( INFO.NE.0 ) THEN
+            WRITE ( NOUT, FMT = 99998 ) INFO
+         ELSE
+*           Block-diagonalization.
+            CALL MB03RD( JOBX, SORT, N, PMAX, A, LDA, X, LDX, NBLCKS,
+     $                   BLSIZE, WR, WI, TOL, DWORK, INFO )
+            IF ( INFO.NE.0 ) THEN
+               WRITE ( NOUT, FMT = 99997 ) INFO
+            ELSE
+               WRITE ( NOUT, FMT = 99995 ) NBLCKS
+               WRITE ( NOUT, FMT = 99994 ) ( BLSIZE(I), I = 1,NBLCKS )
+               WRITE ( NOUT, FMT = 99993 )
+               DO 10 I = 1, N
+                  WRITE ( NOUT, FMT = 99992 ) ( A(I,J), J = 1,N )
+   10          CONTINUE
+               WRITE ( NOUT, FMT = 99991 )
+               DO 20 I = 1, N
+                  WRITE ( NOUT, FMT = 99992 ) ( X(I,J), J = 1,N )
+   20          CONTINUE
+            END IF
+         END IF
+      END IF
+*
+      STOP
+*
+99999 FORMAT (' MB03RD EXAMPLE PROGRAM RESULTS',/1X)
+99998 FORMAT (' INFO on exit from DGEES  = ',I2)
+99997 FORMAT (' INFO on exit from MB03RD = ',I2)
+99995 FORMAT (' The number of blocks is ',I5)
+99994 FORMAT (' The orders of blocks are ',/(20(I3,2X)))
+99993 FORMAT (' The block-diagonal matrix is ')
+99992 FORMAT (8X,20(1X,F8.4))
+99991 FORMAT (' The transformation matrix is ')
+99972 FORMAT (/' N is out of range.',/' N = ',I5)
+      END
+</PRE>
+<B>Program Data</B>
+<PRE>
+ MB03RD EXAMPLE PROGRAM DATA
+   8   1.D03   1.D-2     U     S
+   1.   -1.    1.    2.    3.    1.    2.    3.
+   1.    1.    3.    4.    2.    3.    4.    2.
+   0.    0.    1.   -1.    1.    5.    4.    1.
+   0.    0.    0.    1.   -1.    3.    1.    2.
+   0.    0.    0.    1.    1.    2.    3.   -1.
+   0.    0.    0.    0.    0.    1.    5.    1.
+   0.    0.    0.    0.    0.    0.    0.99999999   -0.99999999
+   0.    0.    0.    0.    0.    0.    0.99999999    0.99999999
+</PRE>
+<B>Program Results</B>
+<PRE>
+ MB03RD EXAMPLE PROGRAM RESULTS
+
+ The number of blocks is     2
+ The orders of blocks are 
+  6    2
+ The block-diagonal matrix is 
+           1.0000  -1.0000  -1.2247  -0.7071  -3.4186   1.4577   0.0000   0.0000
+           1.0000   1.0000   0.0000   1.4142  -5.1390   3.1637   0.0000   0.0000
+           0.0000   0.0000   1.0000  -1.7321  -0.0016   2.0701   0.0000   0.0000
+           0.0000   0.0000   0.5774   1.0000   0.7516   1.1379   0.0000   0.0000
+           0.0000   0.0000   0.0000   0.0000   1.0000  -5.8606   0.0000   0.0000
+           0.0000   0.0000   0.0000   0.0000   0.1706   1.0000   0.0000   0.0000
+           0.0000   0.0000   0.0000   0.0000   0.0000   0.0000   1.0000  -0.8850
+           0.0000   0.0000   0.0000   0.0000   0.0000   0.0000   0.0000   1.0000
+ The transformation matrix is 
+           1.0000   0.0000   0.0000   0.0000   0.0000   0.0000   0.9045   0.1957
+           0.0000   1.0000   0.0000   0.0000   0.0000   0.0000  -0.3015   0.9755
+           0.0000   0.0000   0.8165   0.0000  -0.5768  -0.0156  -0.3015   0.0148
+           0.0000   0.0000  -0.4082   0.7071  -0.5768  -0.0156   0.0000  -0.0534
+           0.0000   0.0000  -0.4082  -0.7071  -0.5768  -0.0156   0.0000   0.0801
+           0.0000   0.0000   0.0000   0.0000  -0.0276   0.9805   0.0000   0.0267
+           0.0000   0.0000   0.0000   0.0000   0.0332  -0.0066   0.0000   0.0000
+           0.0000   0.0000   0.0000   0.0000   0.0011   0.1948   0.0000   0.0000
+</PRE>
+
+<HR>
+<p>
+<A HREF=..\libindex.html><B>Return to index</B></A></BODY>
+</HTML>

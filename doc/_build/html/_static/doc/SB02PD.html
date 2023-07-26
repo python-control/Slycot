@@ -1,0 +1,360 @@
+<HTML>
+<HEAD><TITLE>SB02PD - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="SB02PD">SB02PD</A></H2>
+<H3>
+Solution of continuous-time algebraic Riccati equations (matrix sign function method) with error bounds and condition estimates
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To solve the real continuous-time matrix algebraic Riccati
+  equation
+
+     op(A)'*X + X*op(A) + Q - X*G*X = 0,
+
+  where op(A) = A or A' = A**T and G, Q are symmetric (G = G**T,
+  Q = Q**T). The matrices A, G and Q are N-by-N and the solution X
+  is an N-by-N symmetric matrix.
+
+  An error bound on the solution and a condition estimate are also
+  optionally provided.
+
+  It is assumed that the matrices A, G and Q are such that the
+  corresponding Hamiltonian matrix has N eigenvalues with negative
+  real parts.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE SB02PD( JOB, TRANA, UPLO, N, A, LDA, G, LDG, Q, LDQ, X,
+     $                   LDX, RCOND, FERR, WR, WI, IWORK, DWORK, LDWORK,
+     $                   INFO )
+C     .. Scalar Arguments ..
+      CHARACTER          JOB, TRANA, UPLO
+      INTEGER            INFO, LDA, LDG, LDQ, LDWORK, LDX, N
+      DOUBLE PRECISION   FERR, RCOND
+C     .. Array Arguments ..
+      INTEGER            IWORK( * )
+      DOUBLE PRECISION   A( LDA, * ), DWORK( * ), G( LDG, * ),
+     $                   Q( LDQ, * ), WI( * ), WR( * ), X( LDX, * )
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  JOB     CHARACTER*1
+          Specifies the computation to be performed, as follows:
+          = 'X':  Compute the solution only;
+          = 'A':  Compute all: the solution, reciprocal condition
+                  number, and the error bound.
+
+  TRANA   CHARACTER*1
+          Specifies the option op(A):
+          = 'N':  op(A) = A    (No transpose);
+          = 'T':  op(A) = A**T (Transpose);
+          = 'C':  op(A) = A**T (Conjugate transpose = Transpose).
+
+  UPLO    CHARACTER*1
+          Specifies which triangle of the matrices G and Q is
+          stored, as follows:
+          = 'U':  Upper triangles of G and Q are stored;
+          = 'L':  Lower triangles of G and Q are stored.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The order of the matrices A, G, Q, and X.  N &gt;= 0.
+
+  A       (input) DOUBLE PRECISION array, dimension (LDA,N)
+          The leading N-by-N part of this array must contain the
+          coefficient matrix A of the equation.
+
+  LDA     INTEGER
+          The leading dimension of the array A.  LDA &gt;= max(1,N).
+
+  G       (input) DOUBLE PRECISION array, dimension (LDG,N)
+          If UPLO = 'U', the leading N-by-N upper triangular part of
+          this array must contain the upper triangular part of the
+          matrix G.
+          If UPLO = 'L', the leading N-by-N lower triangular part of
+          this array must contain the lower triangular part of the
+          matrix G.
+
+  LDG     INTEGER
+          The leading dimension of the array G.  LDG &gt;= max(1,N).
+
+  Q       (input) DOUBLE PRECISION array, dimension (LDQ,N)
+          If UPLO = 'U', the leading N-by-N upper triangular part of
+          this array must contain the upper triangular part of the
+          matrix Q.
+          If UPLO = 'L', the leading N-by-N lower triangular part of
+          this array must contain the lower triangular part of the
+          matrix Q.
+
+  LDQ     INTEGER
+          The leading dimension of the array Q.  LDQ &gt;= max(1,N).
+
+  X       (output) DOUBLE PRECISION array, dimension (LDX,N)
+          If INFO = 0, INFO = 2, or INFO = 4, the leading N-by-N
+          part of this array contains the symmetric solution matrix
+          X of the algebraic Riccati equation.
+
+  LDX     INTEGER
+          The leading dimension of the array X.  LDX &gt;= max(1,N).
+
+  RCOND   (output) DOUBLE PRECISION
+          If JOB = 'A', the estimate of the reciprocal condition
+          number of the Riccati equation.
+
+  FERR    (output) DOUBLE PRECISION
+          If JOB = 'A', the estimated forward error bound for the
+          solution X. If XTRUE is the true solution, FERR bounds the
+          magnitude of the largest entry in (X - XTRUE) divided by
+          the magnitude of the largest entry in X.
+
+  WR      (output) DOUBLE PRECISION array, dimension (N)
+  WI      (output) DOUBLE PRECISION array, dimension (N)
+          If JOB = 'A' and TRANA = 'N', WR and WI contain the real
+          and imaginary parts, respectively, of the eigenvalues of
+          the matrix A - G*X, i.e., the closed-loop system poles.
+          If JOB = 'A' and TRANA = 'T' or 'C', WR and WI contain the
+          real and imaginary parts, respectively, of the eigenvalues
+          of the matrix A - X*G, i.e., the closed-loop system poles.
+          If JOB = 'X', these arrays are not referenced.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  IWORK   INTEGER array, dimension (LIWORK), where
+          LIWORK &gt;= 2*N,          if JOB = 'X';
+          LIWORK &gt;= max(2*N,N*N), if JOB = 'A'.
+
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+          On exit, if INFO = 0 or INFO = 2, DWORK(1) contains the
+          optimal value of LDWORK. If JOB = 'A', then DWORK(2:N*N+1)
+          and DWORK(N*N+2:2*N*N+1) contain a real Schur form of the
+          closed-loop system matrix, Ac = A - G*X (if TRANA = 'N')
+          or Ac = A - X*G (if TRANA = 'T' or 'C'), and the
+          orthogonal matrix which reduced Ac to real Schur form,
+          respectively.
+
+  LDWORK  INTEGER
+          The dimension of the array DWORK.
+          LDWORK &gt;= 4*N*N + 8*N + 1,               if JOB = 'X';
+          LDWORK &gt;= max( 4*N*N + 8*N + 1, 6*N*N ), if JOB = 'A'.
+          For good performance, LDWORK should be larger, e.g.,
+          LDWORK &gt;= 4*N*N + 6*N +( 2*N+1 )*NB,     if JOB = 'X',
+          where NB is the optimal blocksize.
+
+          If LDWORK = -1, then a workspace query is assumed;
+          the routine only calculates the optimal size of the
+          DWORK array, returns this value as the first entry of
+          the DWORK array, and no error message related to LDWORK
+          is issued by XERBLA.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value;
+          = 1:  the Hamiltonian matrix has eigenvalues on the
+                imaginary axis, so the solution and error bounds
+                could not be computed;
+          = 2:  the iteration for the matrix sign function failed to
+                converge after 50 iterations, but an approximate
+                solution and error bounds (if JOB = 'A') have been
+                computed;
+          = 3:  the system of linear equations for the solution is
+                singular to working precision, so the solution and
+                error bounds could not be computed;
+          = 4:  the matrix A-G*X (or A-X*G) cannot be reduced to
+                Schur canonical form and condition number estimate
+                and forward error estimate have not been computed.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  The Riccati equation is solved by the matrix sign function
+  approach [1], [2], implementing a scaling which enhances the
+  numerical stability [4].
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Bai, Z., Demmel, J., Dongarra, J., Petitet, A., Robinson, H.,
+      and Stanley, K.
+      The spectral decomposition of nonsymmetric matrices on
+      distributed memory parallel computers.
+      SIAM J. Sci. Comput., vol. 18, pp. 1446-1461, 1997.
+
+  [2] Byers, R., He, C., and Mehrmann, V.
+      The matrix sign function method and the computation of
+      invariant subspaces.
+      SIAM J. Matrix Anal. Appl., vol. 18, pp. 615-632, 1997.
+
+  [3] Higham, N.J.
+      Perturbation theory and backward error for AX-XB=C.
+      BIT, vol. 33, pp. 124-136, 1993.
+
+  [4] Petkov, P.Hr., Konstantinov, M.M., and Mehrmann, V.,
+      DGRSVX and DMSRIC: Fortran 77 subroutines for solving
+      continuous-time matrix algebraic Riccati equations with
+      condition and accuracy estimates.
+      Preprint SFB393/98-16, Fak. f. Mathematik, Technical
+      University Chemnitz, May 1998.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  The solution accuracy can be controlled by the output parameter
+  FERR.
+
+</PRE>
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  The condition number of the Riccati equation is estimated as
+
+  cond = ( norm(Theta)*norm(A) + norm(inv(Omega))*norm(Q) +
+              norm(Pi)*norm(G) ) / norm(X),
+
+  where Omega, Theta and Pi are linear operators defined by
+
+  Omega(W) = op(Ac)'*W + W*op(Ac),
+  Theta(W) = inv(Omega(op(W)'*X + X*op(W))),
+     Pi(W) = inv(Omega(X*W*X)),
+
+  and the matrix Ac (the closed-loop system matrix) is given by
+     Ac = A - G*X, if TRANA = 'N', or
+     Ac = A - X*G, if TRANA = 'T' or 'C'.
+
+  The program estimates the quantities
+
+  sep(op(Ac),-op(Ac)') = 1 / norm(inv(Omega)),
+
+  norm(Theta) and norm(Pi) using 1-norm condition estimator.
+
+  The forward error bound is estimated using a practical error bound
+  similar to the one proposed in [3].
+
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+*     SB02PD EXAMPLE PROGRAM TEXT.
+*
+*     .. Parameters ..
+      INTEGER          NIN, NOUT
+      PARAMETER        ( NIN = 5, NOUT = 6 )
+      INTEGER          NMAX
+      PARAMETER        ( NMAX = 20 )
+      INTEGER          LDA, LDG, LDQ, LDX
+      PARAMETER        ( LDA = NMAX, LDG = NMAX, LDQ = NMAX,
+     $                   LDX = NMAX )
+      INTEGER          LIWORK
+      PARAMETER        ( LIWORK = MAX( 2*NMAX, NMAX*NMAX ) )
+      INTEGER          LDWORK
+      PARAMETER        ( LDWORK = MAX( 4*NMAX*NMAX + 8*NMAX,
+     $                                 6*NMAX*NMAX ) + 1 )
+*     .. Local Scalars ..
+      DOUBLE PRECISION FERR, RCOND
+      INTEGER          I, INFO, J, N
+      CHARACTER        JOB, TRANA, UPLO
+*     .. Local Arrays ..
+      DOUBLE PRECISION A(LDA,NMAX), DWORK(LDWORK), G(LDG,NMAX),
+     $                 Q(LDQ,NMAX), WI(NMAX), WR(NMAX),
+     $                 X(LDX,NMAX)
+      INTEGER          IWORK(LIWORK)
+*     .. External Functions ..
+      LOGICAL          LSAME
+      EXTERNAL         LSAME
+*     .. External Subroutines ..
+      EXTERNAL         SB02PD
+*     .. Intrinsic Functions ..
+      INTRINSIC        MAX
+*     .. Executable Statements ..
+*
+      WRITE ( NOUT, FMT = 99999 )
+*     Skip the heading in the data file and read the data.
+      READ ( NIN, FMT = '()' )
+      READ ( NIN, FMT = * ) N, JOB, TRANA, UPLO
+      IF ( N.LT.0 .OR. N.GT.NMAX ) THEN
+         WRITE ( NOUT, FMT = 99995 ) N
+      ELSE
+         READ ( NIN, FMT = * ) ( ( A(I,J), J = 1,N ), I = 1,N )
+         READ ( NIN, FMT = * ) ( ( Q(I,J), J = 1,N ), I = 1,N )
+         READ ( NIN, FMT = * ) ( ( G(I,J), J = 1,N ), I = 1,N )
+*        Find the solution matrix X.
+         CALL SB02PD( JOB, TRANA, UPLO, N, A, LDA, G, LDG, Q, LDQ, X,
+     $                LDX, RCOND, FERR, WR, WI, IWORK, DWORK, LDWORK,
+     $                INFO )
+*
+         IF ( INFO.NE.0 ) THEN
+            WRITE ( NOUT, FMT = 99998 ) INFO
+         END IF
+         IF ( INFO.EQ.0 .OR. INFO.EQ.2 .OR. INFO.EQ.4 ) THEN
+             WRITE ( NOUT, FMT = 99997 )
+             DO 20 I = 1, N
+                WRITE ( NOUT, FMT = 99996 ) ( X(I,J), J = 1,N )
+   20        CONTINUE
+             IF ( LSAME( JOB, 'A' ) .AND. INFO.NE.4 ) THEN
+                WRITE ( NOUT, FMT = 99994 ) RCOND
+                WRITE ( NOUT, FMT = 99993 ) FERR
+            END IF
+         END IF
+      END IF
+      STOP
+*
+99999 FORMAT (' SB02PD EXAMPLE PROGRAM RESULTS',/1X)
+99998 FORMAT (' INFO on exit from SB02PD = ',I2)
+99997 FORMAT (' The solution matrix X is ')
+99996 FORMAT (20(1X,F8.4))
+99995 FORMAT (/' N is out of range.',/' N = ',I5)
+99994 FORMAT (/' Estimated reciprocal condition number = ',F8.4)
+99993 FORMAT (/' Estimated error bound = ',F20.16)
+      END
+</PRE>
+<B>Program Data</B>
+<PRE>
+ SB02PD EXAMPLE PROGRAM DATA
+   2     A     N     U 
+   0.0   1.0
+   0.0   0.0
+   1.0   0.0
+   0.0   2.0
+   0.0   0.0
+   0.0   1.0
+</PRE>
+<B>Program Results</B>
+<PRE>
+ SB02PD EXAMPLE PROGRAM RESULTS
+
+ The solution matrix X is 
+   2.0000   1.0000
+   1.0000   2.0000
+
+ Estimated reciprocal condition number =   0.1333
+
+ Estimated error bound =   0.0000000000000063
+</PRE>
+
+<HR>
+<p>
+<A HREF=..\libindex.html><B>Return to index</B></A></BODY>
+</HTML>

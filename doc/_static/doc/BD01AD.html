@@ -1,0 +1,352 @@
+<HTML>
+<HEAD><TITLE>BD01AD - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="BD01AD">BD01AD</A></H2>
+<H3>
+Benchmark examples for time-invariant continuous-time dynamical systems
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To generate benchmark examples for time-invariant,
+  continuous-time dynamical systems
+
+      .
+    E x(t) = A x(t) + B u(t)
+
+      y(t) = C x(t) + D u(t)
+
+  E, A are real N-by-N matrices, B is N-by-M, C is P-by-N, and
+  D is P-by-M. In many examples, E is the identity matrix and D is
+  the zero matrix.
+
+  This routine is an implementation of the benchmark library
+  CTDSX (Version 1.0) described in [1].
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE BD01AD( DEF, NR, DPAR, IPAR, VEC, N, M, P, E, LDE, A,
+     1                   LDA, B, LDB, C, LDC, D, LDD, NOTE, DWORK,
+     2                   LDWORK, INFO )
+C     .. Scalar Arguments ..
+      CHARACTER         DEF
+      CHARACTER*70      NOTE
+      INTEGER           INFO, LDA, LDB, LDC, LDD, LDE, LDWORK, M, N, P
+C     .. Array Arguments ..
+      LOGICAL           VEC(8)
+      INTEGER           IPAR(*), NR(*)
+      DOUBLE PRECISION  A(LDA,*), B(LDB,*), C(LDC,*), D(LDD,*), DPAR(*),
+     1                  DWORK(*), E(LDE,*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  DEF     CHARACTER*1
+          Specifies the kind of values used as parameters when
+          generating parameter-dependent and scalable examples
+          (i.e., examples with NR(1) = 2, 3, or 4):
+          = 'D':  Default values defined in [1] are used;
+          = 'N':  Values set in DPAR and IPAR are used.
+          This parameter is not referenced if NR(1) = 1.
+          Note that the scaling parameter of examples with
+          NR(1) = 3 or 4 is considered as a regular parameter in
+          this context.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  NR      (input) INTEGER array, dimension (2)
+          Specifies the index of the desired example according
+          to [1].
+          NR(1) defines the group:
+                1 : parameter-free problems of fixed size
+                2 : parameter-dependent problems of fixed size
+                3 : parameter-free problems of scalable size
+                4 : parameter-dependent problems of scalable size
+          NR(2) defines the number of the benchmark example
+          within a certain group according to [1].
+
+  DPAR    (input/output) DOUBLE PRECISION array, dimension (7)
+          On entry, if DEF = 'N' and the desired example depends on
+          real parameters, then the array DPAR must contain the
+          values for these parameters.
+          For an explanation of the parameters see [1].
+          For Examples 2.1 and 2.2, DPAR(1) defines the parameter
+          'epsilon'.
+          For Example 2.4, DPAR(1), ..., DPAR(7) define 'b', 'mu',
+          'r', 'r_c', 'k_l', 'sigma', 'a', respectively.
+          For Example 2.7, DPAR(1) and DPAR(2) define 'mu' and 'nu',
+          respectively.
+          For Example 4.1, DPAR(1), ..., DPAR(7) define 'a', 'b',
+          'c', 'beta_1', 'beta_2', 'gamma_1', 'gamma_2',
+          respectively.
+          For Example 4.2, DPAR(1), ..., DPAR(3) define 'mu',
+          'delta', 'kappa', respectively.
+          On exit, if DEF = 'D' and the desired example depends on
+          real parameters, then the array DPAR is overwritten by the
+          default values given in [1].
+
+  IPAR    (input/output) INTEGER array, dimension (1)
+          On entry, if DEF = 'N' and the desired example depends on
+          integer parameters, then the array IPAR must contain the
+          values for these parameters.
+          For an explanation of the parameters see [1].
+          For Examples 2.3, 2.5, and 2.6, IPAR(1) defines the
+          parameter 's'.
+          For Example 3.1, IPAR(1) defines 'q'.
+          For Examples 3.2 and 3.3, IPAR(1) defines 'n'.
+          For Example 3.4, IPAR(1) defines 'l'.
+          For Example 4.1, IPAR(1) defines 'n'.
+          For Example 4.2, IPAR(1) defines 'l'.
+          On exit, if DEF = 'D' and the desired example depends on
+          integer parameters, then the array IPAR is overwritten by
+          the default values given in [1].
+
+  VEC     (output) LOGICAL array, dimension (8)
+          Flag vector which displays the availabilty of the output
+          data:
+          VEC(1), ..., VEC(3) refer to N, M, and P, respectively,
+          and are always .TRUE..
+          VEC(4) is .TRUE. iff E is NOT the identity matrix.
+          VEC(5), ..., VEC(7) refer to A, B, and C, respectively,
+          and are always .TRUE..
+          VEC(8) is .TRUE. iff D is NOT the zero matrix.
+
+  N       (output) INTEGER
+          The actual state dimension, i.e., the order of the
+          matrices E and A.
+
+  M       (output) INTEGER
+          The number of columns in the matrices B and D.
+
+  P       (output) INTEGER
+          The number of rows in the matrices C and D.
+
+  E       (output) DOUBLE PRECISION array, dimension (LDE,N)
+          The leading N-by-N part of this array contains the
+          matrix E.
+          NOTE that this array is overwritten (by the identity
+          matrix), if VEC(4) = .FALSE..
+
+  LDE     INTEGER
+          The leading dimension of array E.  LDE &gt;= N.
+
+  A       (output) DOUBLE PRECISION array, dimension (LDA,N)
+          The leading N-by-N part of this array contains the
+          matrix A.
+
+  LDA     INTEGER
+          The leading dimension of array A.  LDA &gt;= N.
+
+  B       (output) DOUBLE PRECISION array, dimension (LDB,M)
+          The leading N-by-M part of this array contains the
+          matrix B.
+
+  LDB     INTEGER
+          The leading dimension of array B.  LDB &gt;= N.
+
+  C       (output) DOUBLE PRECISION array, dimension (LDC,N)
+          The leading P-by-N part of this array contains the
+          matrix C.
+
+  LDC     INTEGER
+          The leading dimension of array C.  LDC &gt;= P.
+
+  D       (output) DOUBLE PRECISION array, dimension (LDD,M)
+          The leading P-by-M part of this array contains the
+          matrix D.
+          NOTE that this array is overwritten (by the zero
+          matrix), if VEC(8) = .FALSE..
+
+  LDD     INTEGER
+          The leading dimension of array D.  LDD &gt;= P.
+
+  NOTE    (output) CHARACTER*70
+          String containing short information about the chosen
+          example.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+
+  LDWORK  INTEGER
+          The length of the array DWORK.
+          For Example 3.4, LDWORK &gt;= 4*IPAR(1) is required.
+          For the other examples, no workspace is needed, i.e.,
+          LDWORK &gt;= 1.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value; in particular, INFO = -3 or -4 indicates
+                that at least one of the parameters in DPAR or
+                IPAR, respectively, has an illegal value;
+          = 1:  data file can not be opened or has wrong format.
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1]  Kressner, D., Mehrmann, V. and Penzl, T.
+       CTDSX - a Collection of Benchmark Examples for State-Space
+       Realizations of Continuous-Time Dynamical Systems.
+       SLICOT Working Note 1998-9. 1998.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  None
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+C     BD01AD EXAMPLE PROGRAM TEXT
+C
+C     .. Parameters ..
+      INTEGER          NIN, NOUT
+      PARAMETER        (NIN = 5, NOUT = 6)
+      INTEGER          NMAX, MMAX, PMAX
+      PARAMETER        (NMAX = 421, MMAX = 211, PMAX = 211)
+      INTEGER          LDA, LDB, LDC, LDD, LDE, LDWORK
+      PARAMETER        (LDA = NMAX, LDB = NMAX, LDC = PMAX, LDD = PMAX,
+     1                  LDE = NMAX, LDWORK = 4*NMAX)
+C     .. Local Scalars ..
+      CHARACTER        DEF
+      INTEGER          I, INFO, J, LDPAR, LIPAR, M, N, P
+      CHARACTER*70     NOTE
+C     .. Local Arrays ..
+      DOUBLE PRECISION A(LDA,NMAX), B(LDB,MMAX), C(LDC,NMAX),
+     1                 D(LDD,MMAX), DPAR(7), DWORK(LDWORK), E(LDE,NMAX)
+      INTEGER          NR(2), IPAR(7)
+      LOGICAL          VEC(8)
+C     .. External Functions ..
+      LOGICAL          LSAME
+      EXTERNAL         LSAME
+C     .. External Subroutines ..
+      EXTERNAL         BD01AD
+C     .. Executable Statements ..
+      WRITE (NOUT, FMT = 99999)
+C     Skip the heading in the data file and read the data.
+      READ (NIN, FMT = '()')
+      READ (NIN, FMT = *) DEF
+      READ (NIN, FMT = *) (NR(I), I = 1, 2)
+      IF (LSAME(DEF,'N')) THEN
+        READ (NIN, FMT = *) LDPAR
+        IF (LDPAR .GT. 0)  READ (NIN, FMT = *) (DPAR(I), I = 1, LDPAR)
+        READ (NIN, FMT = *) LIPAR
+        IF (LIPAR .GT. 0)  READ (NIN, FMT = *) (IPAR(I), I = 1, LIPAR)
+      END IF
+C     Generate benchmark example
+      CALL BD01AD(DEF, NR, DPAR, IPAR, VEC, N, M, P, E, LDE, A, LDA,
+     1            B, LDB, C, LDC, D, LDD, NOTE, DWORK, LDWORK, INFO)
+C
+      IF (INFO .NE. 0) THEN
+        WRITE (NOUT, FMT = 99998) INFO
+      ELSE
+        WRITE (NOUT, FMT = *) NOTE
+        WRITE (NOUT, FMT = 99997) N
+        WRITE (NOUT, FMT = 99996) M
+        WRITE (NOUT, FMT = 99995) P
+        IF (VEC(4)) THEN
+          WRITE (NOUT, FMT = 99994)
+          DO 10  I = 1, N
+            WRITE (NOUT, FMT = 99987) (E(I,J), J = 1, N)
+10        CONTINUE
+        ELSE
+          WRITE (NOUT, FMT = 99993)
+        END IF
+        WRITE (NOUT,FMT = 99992)
+        DO 20  I = 1, N
+          WRITE (NOUT, FMT = 99987) (A(I,J), J = 1, N)
+20      CONTINUE
+        WRITE (NOUT,FMT = 99991)
+        DO 30  I = 1, N
+          WRITE (NOUT, FMT = 99987) (B(I,J), J = 1, M)
+30      CONTINUE
+        WRITE (NOUT,FMT = 99990)
+        DO 40  I = 1, P
+          WRITE (NOUT, FMT = 99987) (C(I,J), J = 1, N)
+40      CONTINUE
+        IF (VEC(8)) THEN
+          WRITE (NOUT,FMT = 99989)
+          DO 50  I = 1, P
+            WRITE (NOUT, FMT = 99987) (D(I,J), J = 1, M)
+50        CONTINUE
+        ELSE
+          WRITE (NOUT, FMT = 99988)
+        END IF
+      END IF
+C
+99999 FORMAT (' BD01AD EXAMPLE PROGRAM RESULTS', /1X)
+99998 FORMAT (' INFO on exit from BD01AD = ', I3)
+99997 FORMAT (/' Order of matrix A:               N  = ', I3)
+99996 FORMAT (' Number of columns in matrix B:   M  = ', I3)
+99995 FORMAT (' Number of rows in matrix C:      P  = ', I3)
+99994 FORMAT (/' E  = ')
+99993 FORMAT (/' E is the identity matrix.')
+99992 FORMAT (' A  = ')
+99991 FORMAT (' B  = ')
+99990 FORMAT (' C  = ')
+99989 FORMAT (' D  = ')
+99988 FORMAT (' D is of zeros.')
+99987 FORMAT (20(1X,F8.4))
+C
+      END
+</PRE>
+<B>Program Data</B>
+<PRE>
+BD01AD EXAMPLE PROGRAM DATA
+D
+1 1
+</PRE>
+<B>Program Results</B>
+<PRE>
+ BD01AD EXAMPLE PROGRAM RESULTS
+
+ Laub 1979, Ex.1                                                       
+
+ Order of matrix A:               N  =   2
+ Number of columns in matrix B:   M  =   1
+ Number of rows in matrix C:      P  =   2
+
+ E is the identity matrix.
+ A  = 
+   0.0000   1.0000
+   0.0000   0.0000
+ B  = 
+   0.0000
+   1.0000
+ C  = 
+   1.0000   0.0000
+   0.0000   1.0000
+ D is of zeros.
+</PRE>
+
+<HR>
+<p>
+<A HREF=..\libindex.html><B>Return to index</B></A></BODY>
+</HTML>

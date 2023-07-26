@@ -1,0 +1,481 @@
+<HTML>
+<HEAD><TITLE>FB01RD - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="FB01RD">FB01RD</A></H2>
+<H3>
+Time-invariant square root covariance Kalman filter (observer Hessenberg form)
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To calculate a combined measurement and time update of one
+  iteration of the time-invariant Kalman filter. This update is
+  given for the square root covariance filter, using the condensed
+  observer Hessenberg form.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE FB01RD( JOBK, MULTBQ, N, M, P, S, LDS, A, LDA, B,
+     $                   LDB, Q, LDQ, C, LDC, R, LDR, K, LDK, TOL,
+     $                   IWORK, DWORK, LDWORK, INFO )
+C     .. Scalar Arguments ..
+      CHARACTER         JOBK, MULTBQ
+      INTEGER           INFO, LDA, LDB, LDC, LDK, LDQ, LDR, LDS, LDWORK,
+     $                  M, N, P
+      DOUBLE PRECISION  TOL
+C     .. Array Arguments ..
+      INTEGER           IWORK(*)
+      DOUBLE PRECISION  A(LDA,*), B(LDB,*), C(LDC,*), DWORK(*),
+     $                  K(LDK,*), Q(LDQ,*), R(LDR,*), S(LDS,*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  JOBK    CHARACTER*1
+          Indicates whether the user wishes to compute the Kalman
+          filter gain matrix K  as follows:
+                              i
+          = 'K':  K  is computed and stored in array K;
+                   i
+          = 'N':  K  is not required.
+                   i
+
+  MULTBQ  CHARACTER*1                    1/2
+          Indicates how matrices B  and Q    are to be passed to
+                                  i      i
+          the routine as follows:
+          = 'P':  Array Q is not used and the array B must contain
+                                 1/2
+                  the product B Q   ;
+                               i i
+          = 'N':  Arrays B and Q must contain the matrices as
+                  described below.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The actual state dimension, i.e., the order of the
+          matrices S    and A.  N &gt;= 0.
+                    i-1
+
+  M       (input) INTEGER
+          The actual input dimension, i.e., the order of the matrix
+           1/2
+          Q   .  M &gt;= 0.
+           i
+
+  P       (input) INTEGER
+          The actual output dimension, i.e., the order of the matrix
+           1/2
+          R   .  P &gt;= 0.
+           i
+
+  S       (input/output) DOUBLE PRECISION array, dimension (LDS,N)
+          On entry, the leading N-by-N lower triangular part of this
+          array must contain S   , the square root (left Cholesky
+                              i-1
+          factor) of the state covariance matrix at instant (i-1).
+          On exit, the leading N-by-N lower triangular part of this
+          array contains S , the square root (left Cholesky factor)
+                          i
+          of the state covariance matrix at instant i.
+          The strict upper triangular part of this array is not
+          referenced.
+
+  LDS     INTEGER
+          The leading dimension of array S.  LDS &gt;= MAX(1,N).
+
+  A       (input) DOUBLE PRECISION array, dimension (LDA,N)
+          The leading N-by-N part of this array must contain A,
+          the state transition matrix of the discrete system in
+          lower observer Hessenberg form (e.g., as produced by
+          SLICOT Library Routine TB01ND).
+
+  LDA     INTEGER
+          The leading dimension of array A.  LDA &gt;= MAX(1,N).
+
+  B       (input) DOUBLE PRECISION array, dimension (LDB,M)
+          The leading N-by-M part of this array must contain B ,
+                                                     1/2      i
+          the input weight matrix (or the product B Q    if
+                                                   i i
+          MULTBQ = 'P') of the discrete system at instant i.
+
+  LDB     INTEGER
+          The leading dimension of array B.  LDB &gt;= MAX(1,N).
+
+  Q       (input) DOUBLE PRECISION array, dimension (LDQ,*)
+          If MULTBQ = 'N', then the leading M-by-M lower triangular
+                                           1/2
+          part of this array must contain Q   , the square root
+                                           i
+          (left Cholesky factor) of the input (process) noise
+          covariance matrix at instant i.
+          The strict upper triangular part of this array is not
+          referenced.
+          Otherwise, Q is not referenced and can be supplied as a
+          dummy array (i.e., set parameter LDQ = 1 and declare this
+          array to be Q(1,1) in the calling program).
+
+  LDQ     INTEGER
+          The leading dimension of array Q.
+          LDQ &gt;= MAX(1,M) if MULTBQ = 'N';
+          LDQ &gt;= 1        if MULTBQ = 'P'.
+
+  C       (input) DOUBLE PRECISION array, dimension (LDC,N)
+          The leading P-by-N part of this array must contain C,
+          the output weight matrix of the discrete system in lower
+          observer Hessenberg form (e.g., as produced by SLICOT
+          Library routine TB01ND).
+
+  LDC     INTEGER
+          The leading dimension of array C.  LDC &gt;= MAX(1,P).
+
+  R       (input/output) DOUBLE PRECISION array, dimension (LDR,P)
+          On entry, the leading P-by-P lower triangular part of this
+                              1/2
+          array must contain R   , the square root (left Cholesky
+                              i
+          factor) of the output (measurement) noise covariance
+          matrix at instant i.
+          On exit, the leading P-by-P lower triangular part of this
+                                 1/2
+          array contains (RINOV )   , the square root (left Cholesky
+                               i
+          factor) of the covariance matrix of the innovations at
+          instant i.
+          The strict upper triangular part of this array is not
+          referenced.
+
+  LDR     INTEGER
+          The leading dimension of array R.  LDR &gt;= MAX(1,P).
+
+  K       (output) DOUBLE PRECISION array, dimension (LDK,P)
+          If JOBK = 'K', and INFO = 0, then the leading N-by-P part
+          of this array contains K , the Kalman filter gain matrix
+                                  i
+          at instant i.
+          If JOBK = 'N', or JOBK = 'K' and INFO = 1, then the
+          leading N-by-P part of this array contains AK ,  a matrix
+                                                       i
+          related to the Kalman filter gain matrix at instant i (see
+                                                         -1/2
+          METHOD). Specifically, AK  = A P     C'(RINOV')    .
+                                   i      i|i-1        i
+
+  LDK     INTEGER
+          The leading dimension of array K.  LDK &gt;= MAX(1,N).
+
+</PRE>
+<B>Tolerances</B>
+<PRE>
+  TOL     DOUBLE PRECISION
+          If JOBK = 'K', then TOL is used to test for near
+                                            1/2
+          singularity of the matrix (RINOV )   . If the user sets
+                                          i
+          TOL &gt; 0, then the given value of TOL is used as a
+          lower bound for the reciprocal condition number of that
+          matrix; a matrix whose estimated condition number is less
+          than 1/TOL is considered to be nonsingular. If the user
+          sets TOL &lt;= 0, then an implicitly computed, default
+          tolerance, defined by TOLDEF = P*P*EPS, is used instead,
+          where EPS is the machine precision (see LAPACK Library
+          routine DLAMCH).
+          Otherwise, TOL is not referenced.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  IWORK   INTEGER array, dimension (LIWORK)
+          where LIWORK = P if JOBK = 'K',
+          and   LIWORK = 1 otherwise.
+
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+          On exit, if INFO = 0, DWORK(1) returns the optimal value
+          of LDWORK.  If INFO = 0 and JOBK = 'K', DWORK(2) returns
+          an estimate of the reciprocal of the condition number
+                                     1/2
+          (in the 1-norm) of (RINOV )   .
+                                   i
+
+  LDWORK  The length of the array DWORK.
+          LDWORK &gt;= MAX(1,N*(P+N+1),N*(P+N)+2*P,N*(N+M+2)),
+                        if JOBK = 'N';
+          LDWORK &gt;= MAX(2,N*(P+N+1),N*(P+N)+2*P,N*(N+M+2),3*P),
+                        if JOBK = 'K'.
+          For optimum performance LDWORK should be larger.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value;
+                                                     1/2
+          = 1:  if JOBK = 'K' and the matrix (RINOV )   is singular,
+                                                   i           1/2
+                i.e., the condition number estimate of (RINOV )
+                                                             i
+                (in the 1-norm) exceeds 1/TOL.  The matrices S, AK ,
+                            1/2                                   i
+                and (RINOV )    have been computed.
+                          i
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  The routine performs one recursion of the square root covariance
+  filter algorithm, summarized as follows:
+
+   |  1/2                     |     |         1/2          |
+   | R      0        C x S    |     | (RINOV )     0     0 |
+   |  i                   i-1 |     |       i              |
+   |             1/2          | T = |                      |
+   | 0      B x Q    A x S    |     |     AK       S     0 |
+   |         i   i        i-1 |     |       i       i      |
+
+        (Pre-array)                      (Post-array)
+
+  where T is unitary and (A,C) is in lower observer Hessenberg form.
+
+  An example of the pre-array is given below (where N = 6, P = 2
+  and M = 3):
+
+       |x   |      | x          |
+       |x x |      | x x        |
+       |____|______|____________|
+       |    | x x x| x x x      |
+       |    | x x x| x x x x    |
+       |    | x x x| x x x x x  |
+       |    | x x x| x x x x x x|
+       |    | x x x| x x x x x x|
+       |    | x x x| x x x x x x|
+
+  The corresponding state covariance matrix P      is then
+                                             i|i-1
+  factorized as
+
+      P     = S  S'
+       i|i-1   i  i
+
+  and one combined time and measurement update for the state X
+                                                              i|i-1
+  is given by
+
+      X     = A X      + K (Y - C X     )
+       i+1|i     i|i-1    i  i     i|i-1
+
+                       -1/2
+  where K = AK (RINOV )     is the Kalman filter gain matrix and Y
+         i    i      i                                            i
+  is the observed output of the system.
+
+  The triangularization is done entirely via Householder
+  transformations exploiting the zero pattern of the pre-array.
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Anderson, B.D.O. and Moore, J.B.
+      Optimal Filtering.
+      Prentice Hall, Englewood Cliffs, New Jersey, 1979.
+
+  [2] Van Dooren, P. and Verhaegen, M.H.G.
+      Condensed Forms for Efficient Time-Invariant Kalman Filtering.
+      SIAM J. Sci. Stat. Comp., 9. pp. 516-530, 1988.
+
+  [3] Verhaegen, M.H.G. and Van Dooren, P.
+      Numerical Aspects of Different Kalman Filter Implementations.
+      IEEE Trans. Auto. Contr., AC-31, pp. 907-917, Oct. 1986.
+
+  [4] Vanbegin, M., Van Dooren, P., and Verhaegen, M.H.G.
+      Algorithm 675: FORTRAN Subroutines for Computing the Square
+      Root Covariance Filter and Square Root Information Filter in
+      Dense or Hessenberg Forms.
+      ACM Trans. Math. Software, 15, pp. 243-256, 1989.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  The algorithm requires
+
+         3    2                           2         3
+  1/6 x N  + N x (3/2 x P + M) + 2 x N x P + 2/3 x P
+
+  operations and is backward stable (see [3]).
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+*     FB01RD EXAMPLE PROGRAM TEXT
+*
+*     .. Parameters ..
+      INTEGER          NIN, NOUT
+      PARAMETER        ( NIN = 5, NOUT = 6 )
+      INTEGER          NMAX, MMAX, PMAX
+      PARAMETER        ( NMAX = 20, MMAX = 20, PMAX = 20 )
+      INTEGER          LDA, LDB, LDC, LDK, LDQ, LDR, LDS
+      PARAMETER        ( LDA = NMAX, LDB = NMAX, LDC = PMAX, LDK = NMAX,
+     $                   LDQ = MMAX, LDR = PMAX, LDS = NMAX )
+      INTEGER          LDWORK
+      PARAMETER        ( LDWORK = MAX( NMAX*(PMAX+NMAX+1),
+     $                                 NMAX*(PMAX+NMAX)+2*PMAX,
+     $                                 NMAX*(NMAX+MMAX+2), 3*PMAX ) )
+*     .. Local Scalars ..
+      DOUBLE PRECISION TOL
+      INTEGER          I, INFO, ISTEP, J, M, N, P
+      CHARACTER*1      JOBK, MULTBQ
+*     .. Local Arrays ..
+      DOUBLE PRECISION A(LDA,NMAX), B(LDB,MMAX), C(LDC,NMAX),
+     $                 DIAG(PMAX), DWORK(LDWORK), K(LDK,PMAX),
+     $                 Q(LDQ,MMAX), R(LDR,PMAX), S(LDS,NMAX)
+      INTEGER          IWORK(PMAX)
+*     .. External Functions ..
+      LOGICAL          LSAME
+      EXTERNAL         LSAME
+*     .. External Subroutines ..
+      EXTERNAL         DCOPY, FB01RD
+*     .. Intrinsic Functions ..
+      INTRINSIC        MAX
+*     .. Executable Statements ..
+*
+      WRITE ( NOUT, FMT = 99999 )
+*     Skip the heading in the data file and read the data.
+      READ ( NIN, FMT = '()' )
+      READ ( NIN, FMT = * ) N, M, P, JOBK, TOL, MULTBQ
+      IF ( N.LE.0 .OR. N.GT.NMAX ) THEN
+         WRITE ( NOUT, FMT = 99994 ) N
+      ELSE
+         READ ( NIN, FMT = * ) ( ( S(I,J), J = 1,N ), I = 1,N )
+         READ ( NIN, FMT = * ) ( ( A(I,J), J = 1,N ), I = 1,N )
+         IF ( M.LE.0 .OR. M.GT.MMAX ) THEN
+            WRITE ( NOUT, FMT = 99993 ) M
+         ELSE
+            READ ( NIN, FMT = * ) ( ( B(I,J), J = 1,M ), I = 1,N )
+            IF ( LSAME( MULTBQ, 'N' ) ) READ ( NIN, FMT = * )
+     $                               ( ( Q(I,J), J = 1,M ), I = 1,M )
+            IF ( P.LE.0 .OR. P.GT.PMAX ) THEN
+               WRITE ( NOUT, FMT = 99992 ) P
+            ELSE
+               READ ( NIN, FMT = * ) ( ( C(I,J), J = 1,N ), I = 1,P )
+               READ ( NIN, FMT = * ) ( ( R(I,J), J = 1,P ), I = 1,P )
+*              Save the strict lower triangle of R in its strict upper
+*              triangle and the diagonal in the array DIAG.
+               DO 10 I = 2, P
+                  CALL DCOPY( I, R(I,1), LDR, R(1,I), 1 )
+   10          CONTINUE
+               CALL DCOPY( P, R, LDR+1, DIAG, 1 )
+*              Perform three iterations of the (Kalman) filter recursion
+*              (in square root covariance form).
+               ISTEP = 1
+   20          CONTINUE
+                  CALL FB01RD( JOBK, MULTBQ, N, M, P, S, LDS, A, LDA,
+     $                         B, LDB, Q, LDQ, C, LDC, R, LDR, K, LDK,
+     $                         TOL, IWORK, DWORK, LDWORK, INFO )
+                  ISTEP = ISTEP + 1
+                  IF ( INFO.EQ.0 .AND. ISTEP.LE.3 ) THEN
+*                    Restore the lower triangle of R.
+                     DO 30 I = 2, P
+                        CALL DCOPY( I, R(1,I), 1, R(I,1), LDR )
+   30                CONTINUE
+                     CALL DCOPY( P, DIAG, 1, R, LDR+1 )
+                     GO TO 20
+                  END IF
+*
+               IF ( INFO.NE.0 ) THEN
+                  WRITE ( NOUT, FMT = 99998 ) INFO
+               ELSE
+                  WRITE ( NOUT, FMT = 99997 )
+                  DO 40 I = 1, N
+                     WRITE ( NOUT, FMT = 99995 ) ( S(I,J), J = 1,N )
+   40             CONTINUE
+                  IF ( LSAME( JOBK, 'K' ) ) THEN
+                     WRITE ( NOUT, FMT = 99996 )
+                     DO 60 I = 1, N
+                        WRITE ( NOUT, FMT = 99995 ) ( K(I,J), J = 1,P )
+   60                CONTINUE
+                  END IF
+               END IF
+            END IF
+         END IF
+      END IF
+      STOP
+*
+99999 FORMAT (' FB01RD EXAMPLE PROGRAM RESULTS',/1X)
+99998 FORMAT (' INFO on exit from FB01QD = ',I2)
+99997 FORMAT (' The square root of the state covariance matrix is ')
+99996 FORMAT (/' The Kalman gain matrix is ')
+99995 FORMAT (20(1X,F8.4))
+99994 FORMAT (/' N is out of range.',/' N = ',I5)
+99993 FORMAT (/' M is out of range.',/' M = ',I5)
+99992 FORMAT (/' P is out of range.',/' P = ',I5)
+      END
+</PRE>
+<B>Program Data</B>
+<PRE>
+ FB01RD EXAMPLE PROGRAM DATA
+   4     2     2     K     0.0     N
+   0.0000  0.0000  0.0000  0.0000
+   0.0000  0.0000  0.0000  0.0000
+   0.0000  0.0000  0.0000  0.0000
+   0.0000  0.0000  0.0000  0.0000
+   0.2113  0.8497  0.7263  0.0000
+   0.7560  0.6857  0.1985  0.6525
+   0.0002  0.8782  0.5442  0.3076
+   0.3303  0.0683  0.2320  0.9329
+   0.5618  0.5042
+   0.5896  0.3493
+   0.6853  0.3873
+   0.8906  0.9222
+   1.0000  0.0000
+   0.0000  1.0000
+   0.3616  0.0000  0.0000  0.0000
+   0.2922  0.4826  0.0000  0.0000
+   0.9488  0.0000
+   0.3760  0.7340
+</PRE>
+<B>Program Results</B>
+<PRE>
+ FB01RD EXAMPLE PROGRAM RESULTS
+
+ The square root of the state covariance matrix is 
+  -1.7223   0.0000   0.0000   0.0000
+  -2.1073   0.5467   0.0000   0.0000
+  -1.7649   0.1412  -0.1710   0.0000
+  -1.8291   0.2058  -0.1497   0.7760
+
+ The Kalman gain matrix is 
+  -0.2135   1.6649
+  -0.2345   2.1442
+  -0.2147   1.7069
+  -0.1345   1.4777
+</PRE>
+
+<HR>
+<p>
+<A HREF=..\libindex.html><B>Return to index</B></A></BODY>
+</HTML>

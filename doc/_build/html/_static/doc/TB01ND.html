@@ -1,0 +1,298 @@
+<HTML>
+<HEAD><TITLE>TB01ND - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="TB01ND">TB01ND</A></H2>
+<H3>
+Upper/lower observer Hessenberg form using unitary state-space transformations
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To reduce the pair (A,C) to lower or upper observer Hessenberg
+  form using (and optionally accumulating) unitary state-space
+  transformations.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE TB01ND( JOBU, UPLO, N, P, A, LDA, C, LDC, U, LDU,
+     $                   DWORK, INFO )
+C     .. Scalar Arguments ..
+      INTEGER           INFO, LDA, LDC, LDU, N, P
+      CHARACTER         JOBU, UPLO
+C     .. Array Arguments ..
+      DOUBLE PRECISION  A(LDA,*), C(LDC,*), DWORK(*), U(LDU,*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  JOBU    CHARACTER*1
+          Indicates whether the user wishes to accumulate in a
+          matrix U the unitary state-space transformations for
+          reducing the system, as follows:
+          = 'N':  Do not form U;
+          = 'I':  U is initialized to the unit matrix and the
+                  unitary transformation matrix U is returned;
+          = 'U':  The given matrix U is updated by the unitary
+                  transformations used in the reduction.
+
+  UPLO    CHARACTER*1
+          Indicates whether the user wishes the pair (A,C) to be
+          reduced to upper or lower observer Hessenberg form as
+          follows:
+          = 'U':  Upper observer Hessenberg form;
+          = 'L':  Lower observer Hessenberg form.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The actual state dimension, i.e. the order of the
+          matrix A.  N &gt;= 0.
+
+  P       (input) INTEGER
+          The actual output dimension, i.e. the number of rows of
+          the matrix C.  0 &lt;= P &lt;= N.
+
+  A       (input/output) DOUBLE PRECISION array, dimension (LDA,N)
+          On entry, the leading N-by-N part of this array must
+          contain the state transition matrix A to be transformed.
+          On exit, the leading N-by-N part of this array contains
+          the transformed state transition matrix U' * A * U.
+          The annihilated elements are set to zero.
+
+  LDA     INTEGER
+          The leading dimension of array A.  LDA &gt;= MAX(1,N).
+
+  C       (input/output) DOUBLE PRECISION array, dimension (LDC,N)
+          On entry, the leading P-by-N part of this array must
+          contain the output matrix C to be transformed.
+          On exit, the leading P-by-N part of this array contains
+          the transformed output matrix C * U.
+          The annihilated elements are set to zero.
+
+  LDC     INTEGER
+          The leading dimension of array C.  LDC &gt;= MAX(1,P).
+
+  U       (input/output) DOUBLE PRECISION array, dimension (LDU,*)
+          On entry, if JOBU = 'U', then the leading N-by-N part of
+          this array must contain a given matrix U (e.g. from a
+          previous call to another SLICOT routine), and on exit, the
+          leading N-by-N part of this array contains the product of
+          the input matrix U and the state-space transformation
+          matrix which reduces the given pair to observer Hessenberg
+          form.
+          On exit, if JOBU = 'I', then the leading N-by-N part of
+          this array contains the matrix of accumulated unitary
+          similarity transformations which reduces the given pair
+          to observer Hessenberg form.
+          If JOBU = 'N', the array U is not referenced and can be
+          supplied as a dummy array (i.e. set parameter LDU = 1 and
+          declare this array to be U(1,1) in the calling program).
+
+  LDU     INTEGER
+          The leading dimension of array U. If JOBU = 'U' or
+          JOBU = 'I', LDU &gt;= MAX(1,N); if JOBU = 'N', LDU &gt;= 1.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  DWORK   DOUBLE PRECISION array, dimension (MAX(N,P-1))
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  The routine computes a unitary state-space transformation U, which
+  reduces the pair (A,C) to one of the following observer Hessenberg
+  forms:
+
+                             N
+                    |*  . . . . . .  *|
+                    |.               .|
+                    |.               .|
+                    |.               .| N
+                    |*               .|
+         |U'AU|     |   .            .|
+         |----|  =  |     .          .|
+         |CU  |     |       * . . .  *|
+                    -------------------
+                    |         * . .  *|
+                    |           .    .| P
+                    |             .  .|
+                    |                *|
+
+      if UPLO = 'U', or
+
+                            N
+                   |*                |
+                   |.  .             |
+                   |.    .           | P
+                   |*  . . *         |
+         |CU  |    -------------------
+         |----|  = |*  . . . *       |
+         |U'AU|    |.          .     |
+                   |.            .   |
+                   |.               *|
+                   |.               .| N
+                   |.               .|
+                   |.               .|
+                   |*  . . . . . .  *|
+
+  if UPLO = 'L'.
+
+  If P &gt;= N, then the matrix CU is trapezoidal and U'AU is full.
+  If P  = 0, but N &gt; 0, the array A is unchanged on exit.
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Van Dooren, P. and Verhaegen, M.H.G.
+      On the use of unitary state-space transformations.
+      In : Contemporary Mathematics on Linear Algebra and its Role
+      in Systems Theory, 47, AMS, Providence, 1985.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  The algorithm requires O((N + P) x N**2) operations and is
+  backward stable (see [1]).
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+*     TB01ND EXAMPLE PROGRAM TEXT
+*
+*     .. Parameters ..
+      INTEGER          NIN, NOUT
+      PARAMETER        ( NIN = 5, NOUT = 6 )
+      INTEGER          NMAX, PMAX
+      PARAMETER        ( NMAX = 20, PMAX = 20 )
+      INTEGER          LDA, LDC, LDU, LDWORK
+      PARAMETER        ( LDA = NMAX, LDC = PMAX, LDU = NMAX,
+     $                   LDWORK = NMAX )
+*     .. Local Scalars ..
+      INTEGER          I, INFO, J, N, P
+      CHARACTER*1      JOBU, UPLO
+*     .. Local Arrays ..
+      DOUBLE PRECISION A(LDA,NMAX), C(LDC,NMAX), U(LDU,NMAX),
+     $                 DWORK(LDWORK)
+*     .. External Functions ..
+      LOGICAL          LSAME
+      EXTERNAL         LSAME
+*     .. External Subroutines ..
+      EXTERNAL         TB01ND
+*     .. Executable Statements ..
+*
+      WRITE ( NOUT, FMT = 99999 )
+*     Skip the heading in the data file and read the data.
+      READ ( NIN, FMT = '()' )
+      READ ( NIN, FMT = * ) N, P, JOBU, UPLO
+      IF ( N.LE.0 .OR. N.GT.NMAX ) THEN
+         WRITE ( NOUT, FMT = 99993 ) N
+      ELSE
+         READ ( NIN, FMT = * ) ( ( A(I,J), I = 1,N ), J = 1,N )
+         IF ( P.LE.0 .OR. P.GT.PMAX ) THEN
+            WRITE ( NOUT, FMT = 99992 ) P
+         ELSE
+            READ ( NIN, FMT = * ) ( ( C(I,J), J = 1,N ), I = 1,P )
+            IF ( LSAME( JOBU, 'U' ) )
+     $         READ ( NIN, FMT = * ) ( ( U(I,J), J = 1,N ), I = 1,N )
+*           Reduce the pair (A,C) to observer Hessenberg form.
+            CALL TB01ND( JOBU, UPLO, N, P, A, LDA, C, LDC, U, LDU,
+     $                   DWORK, INFO )
+*
+            IF ( INFO.NE.0 ) THEN
+               WRITE ( NOUT, FMT = 99998 ) INFO
+            ELSE
+               WRITE ( NOUT, FMT = 99997 )
+               DO 60 I = 1, N
+                  WRITE ( NOUT, FMT = 99996 ) ( A(I,J), J = 1,N )
+   60          CONTINUE
+               WRITE ( NOUT, FMT = 99995 )
+               DO 80 I = 1, P
+                  WRITE ( NOUT, FMT = 99996 ) ( C(I,J), J = 1,N )
+   80          CONTINUE
+               IF ( LSAME( JOBU, 'I' ).OR.LSAME( JOBU, 'U' ) ) THEN
+                  WRITE ( NOUT, FMT = 99994 )
+                  DO 100 I = 1, N
+                     WRITE ( NOUT, FMT = 99996 ) ( U(I,J), J = 1,N )
+  100             CONTINUE
+               END IF
+            END IF
+         END IF
+      END IF
+      STOP
+*
+99999 FORMAT (' TB01ND EXAMPLE PROGRAM RESULTS',/1X)
+99998 FORMAT (' INFO on exit from TB01ND = ',I2)
+99997 FORMAT (' The transformed state transition matrix is ')
+99996 FORMAT (20(1X,F8.4))
+99995 FORMAT (/' The transformed output matrix is ')
+99994 FORMAT (/' The transformation matrix that reduces (A,C) to obser',
+     $       'ver Hessenberg form is ')
+99993 FORMAT (/' N is out of range.',/' N = ',I5)
+99992 FORMAT (/' P is out of range.',/' P = ',I5)
+      END
+</PRE>
+<B>Program Data</B>
+<PRE>
+ TB01ND EXAMPLE PROGRAM DATA
+   5     3     N     U
+  15.0  21.0  -3.0   3.0   9.0
+  20.0   1.0   2.0   8.0   9.0
+   4.0   1.0   7.0  13.0  14.0
+   5.0   6.0  12.0  13.0  -6.0
+   5.0  11.0  17.0  -7.0  -1.0
+   7.0  -1.0   3.0  -6.0  -3.0
+   4.0   5.0   6.0  -2.0  -3.0
+   9.0   8.0   5.0   2.0   1.0
+</PRE>
+<B>Program Results</B>
+<PRE>
+ TB01ND EXAMPLE PROGRAM RESULTS
+
+ The transformed state transition matrix is 
+   7.1637  -0.9691 -16.5046   0.2869   0.9205
+  -2.3285  11.5431  -8.7471   3.4122  -3.7118
+ -10.5440  -7.6032  -0.3215   3.6571  -0.4335
+  -3.6845   5.6449   0.5906 -15.6996  17.4267
+   0.0000  -6.4260   1.5591  14.4317  32.3143
+
+ The transformed output matrix is 
+   0.0000   0.0000   7.6585   5.2973  -4.1576
+   0.0000   0.0000   0.0000   5.8305  -7.4837
+   0.0000   0.0000   0.0000   0.0000 -13.2288
+</PRE>
+
+<HR>
+<p>
+<A HREF=..\libindex.html><B>Return to index</B></A></BODY>
+</HTML>

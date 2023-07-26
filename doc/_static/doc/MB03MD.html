@@ -1,0 +1,319 @@
+<HTML>
+<HEAD><TITLE>MB03MD - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MB03MD">MB03MD</A></H2>
+<H3>
+Upper bound for L singular values of a bidiagonal matrix
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To compute an upper bound THETA using a bisection method such that
+  the bidiagonal matrix
+
+           |q(1) e(1)  0    ...   0   |
+           | 0   q(2) e(2)        .   |
+       J = | .                    .   |
+           | .                  e(N-1)|
+           | 0   ...        ...  q(N) |
+
+  has precisely L singular values less than or equal to THETA plus
+  a given tolerance TOL.
+
+  This routine is mainly intended to be called only by other SLICOT
+  routines.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MB03MD( N, L, THETA, Q, E, Q2, E2, PIVMIN, TOL, RELTOL,
+     $                   IWARN, INFO )
+C     .. Scalar Arguments ..
+      INTEGER           INFO, IWARN, L, N
+      DOUBLE PRECISION  PIVMIN, RELTOL, THETA, TOL
+C     .. Array Arguments ..
+      DOUBLE PRECISION  E(*), E2(*), Q(*), Q2(*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The order of the bidiagonal matrix J.  N &gt;= 0.
+
+  L       (input/output) INTEGER
+          On entry, L must contain the number of singular values
+          of J which must be less than or equal to the upper bound
+          computed by the routine.  0 &lt;= L &lt;= N.
+          On exit, L may be increased if the L-th smallest singular
+          value of J has multiplicity greater than 1. In this case,
+          L is increased by the number of singular values of J which
+          are larger than its L-th smallest one and approach the
+          L-th smallest singular value of J within a distance less
+          than TOL.
+          If L has been increased, then the routine returns with
+          IWARN set to 1.
+
+  THETA   (input/output) DOUBLE PRECISION
+          On entry, THETA must contain an initial estimate for the
+          upper bound to be computed. If THETA &lt; 0.0 on entry, then
+          one of the following default values is used.
+          If L = 0, THETA is set to 0.0 irrespective of the input
+          value of THETA; if L = 1, then THETA is taken as
+          MIN(ABS(Q(i))), for i = 1,2,...,N; otherwise, THETA is
+          taken as ABS(Q(N-L+1)).
+          On exit, THETA contains the computed upper bound such that
+          the bidiagonal matrix J has precisely L singular values
+          less than or equal to THETA + TOL.
+
+  Q       (input) DOUBLE PRECISION array, dimension (N)
+          This array must contain the diagonal elements q(1),
+          q(2),...,q(N) of the bidiagonal matrix J. That is,
+          Q(i) = J(i,i) for i = 1,2,...,N.
+
+  E       (input) DOUBLE PRECISION array, dimension (N-1)
+          This array must contain the superdiagonal elements
+          e(1),e(2),...,e(N-1) of the bidiagonal matrix J. That is,
+          E(k) = J(k,k+1) for k = 1,2,...,N-1.
+
+  Q2      (input) DOUBLE PRECISION array, dimension (N)
+          This array must contain the squares of the diagonal
+          elements q(1),q(2),...,q(N) of the bidiagonal matrix J.
+          That is, Q2(i) = J(i,i)**2 for i = 1,2,...,N.
+
+  E2      (input) DOUBLE PRECISION array, dimension (N-1)
+          This array must contain the squares of the superdiagonal
+          elements e(1),e(2),...,e(N-1) of the bidiagonal matrix J.
+          That is, E2(k) = J(k,k+1)**2 for k = 1,2,...,N-1.
+
+  PIVMIN  (input) DOUBLE PRECISION
+          The minimum absolute value of a "pivot" in the Sturm
+          sequence loop.
+          PIVMIN &gt;= max( max( |q(i)|, |e(k)| )**2*sf_min, sf_min ),
+          where i = 1,2,...,N, k = 1,2,...,N-1, and sf_min is at
+          least the smallest number that can divide one without
+          overflow (see LAPACK Library routine DLAMCH).
+          Note that this condition is not checked by the routine.
+
+</PRE>
+<B>Tolerances</B>
+<PRE>
+  TOL     DOUBLE PRECISION
+          This parameter defines the multiplicity of singular values
+          by considering all singular values within an interval of
+          length TOL as coinciding. TOL is used in checking how many
+          singular values are less than or equal to THETA. Also in
+          computing an appropriate upper bound THETA by a bisection
+          method, TOL is used as a stopping criterion defining the
+          minimum (absolute) subinterval width.  TOL &gt;= 0.
+
+  RELTOL  DOUBLE PRECISION
+          This parameter specifies the minimum relative width of an
+          interval. When an interval is narrower than TOL, or than
+          RELTOL times the larger (in magnitude) endpoint, then it
+          is considered to be sufficiently small and bisection has
+          converged.
+          RELTOL &gt;= BASE * EPS, where BASE is machine radix and EPS
+          is machine precision (see LAPACK Library routine DLAMCH).
+
+</PRE>
+<B>Warning Indicator</B>
+<PRE>
+  IWARN   INTEGER
+          = 0:  no warnings;
+          = 1:  if the value of L has been increased as the L-th
+                smallest singular value of J coincides with the
+                (L+1)-th smallest one.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  Let s(i), i = 1,2,...,N, be the N non-negative singular values of
+  the bidiagonal matrix J arranged so that s(1) &gt;= ... &gt;= s(N) &gt;= 0.
+  The routine then computes an upper bound T such that s(N-L) &gt; T &gt;=
+  s(N-L+1) as follows (see [2]).
+  First, if the initial estimate of THETA is not specified by the
+  user then the routine initialises THETA to be an estimate which
+  is close to the requested value of THETA if s(N-L) &gt;&gt; s(N-L+1).
+  Second, a bisection method (see [1, 8.5]) is used which generates
+  a sequence of shrinking intervals [Y,Z] such that either THETA in
+  [Y,Z] was found (so that J has L singular values less than or
+  equal to THETA), or
+
+     (number of s(i) &lt;= Y) &lt; L &lt; (number of s(i) &lt;= Z).
+
+  This bisection method is applied to an associated 2N-by-2N
+  symmetric tridiagonal matrix T" whose eigenvalues (see [1]) are
+  given by s(1),s(2),...,s(N),-s(1),-s(2),...,-s(N). One of the
+  starting values for the bisection method is the initial value of
+  THETA. If this value is an upper bound, then the initial lower
+  bound is set to zero, else the initial upper bound is computed
+  from the Gershgorin Circle Theorem [1, Theorem 7.2-1], applied to
+  T". The computation of the "number of s(i) &lt;= Y (or Z)" is
+  achieved by calling SLICOT Library routine MB03ND, which applies
+  Sylvester's Law of Inertia or equivalently Sturm sequences
+  [1, 8.5] to the associated matrix T". If
+
+     Z - Y &lt;= MAX( TOL, PIVMIN, RELTOL*MAX( ABS( Y ), ABS( Z ) ) )
+
+  at some stage of the bisection method, then at least two singular
+  values of J lie in the interval [Y,Z] within a distance less than
+  TOL from each other. In this case, s(N-L) and s(N-L+1) are assumed
+  to coincide, the upper bound T is set to the value of Z, the value
+  of L is increased and IWARN is set to 1.
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Golub, G.H. and Van Loan, C.F.
+      Matrix Computations.
+      The Johns Hopkins University Press, Baltimore, Maryland, 1983.
+
+  [2] Van Huffel, S. and Vandewalle, J.
+      The Partial Total Least Squares Algorithm.
+      J. Comput. and Appl. Math., 21, pp. 333-341, 1988.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  None.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+*     MB03MD EXAMPLE PROGRAM TEXT
+*
+*     .. Parameters ..
+      DOUBLE PRECISION ZERO
+      PARAMETER        ( ZERO = 0.0D0 )
+      INTEGER          NIN, NOUT
+      PARAMETER        ( NIN = 5, NOUT = 6 )
+      INTEGER          NMAX
+      PARAMETER        ( NMAX = 20 )
+*     .. Local Scalars ..
+      DOUBLE PRECISION PIVMIN, RELTOL, SAFMIN, THETA, TOL
+      INTEGER          I, INFO, IWARN, L, N
+*     .. Local Arrays ..
+      DOUBLE PRECISION E(NMAX-1), E2(NMAX-1), Q(NMAX), Q2(NMAX)
+*     .. External Functions ..
+      DOUBLE PRECISION DLAMCH
+      EXTERNAL         DLAMCH
+*     .. External Subroutines ..
+      EXTERNAL         MB03MD
+*     .. Intrinsic Functions ..
+      INTRINSIC        MAX
+*     .. Executable Statements ..
+*
+      WRITE ( NOUT, FMT = 99999 )
+*     Skip the heading in the data file and read the data.
+      READ ( NIN, FMT = '()' )
+      READ ( NIN, FMT = * ) N, THETA, L, TOL, RELTOL
+      IF ( N.LT.0 .OR. N.GT.NMAX ) THEN
+         WRITE ( NOUT, FMT = 99991 ) N
+      ELSE IF ( L.LT.0 .OR. L.GT.N ) THEN
+         WRITE ( NOUT, FMT = 99990 ) L
+      ELSE
+         READ ( NIN, FMT = * ) ( Q(I), I = 1,N )
+         READ ( NIN, FMT = * ) ( E(I), I = 1,N-1 )
+*        Print out the bidiagonal matrix J.
+         WRITE ( NOUT, FMT = 99997 )
+         DO 20 I = 1, N - 1
+            WRITE ( NOUT, FMT = 99996 ) I, I, Q(I), I, (I+1), E(I)
+   20    CONTINUE
+         WRITE ( NOUT, FMT = 99995 ) N, N, Q(N)
+*        Compute Q**2, E**2, and PIVMIN.
+         Q2(N) = Q(N)**2
+         PIVMIN = Q2(N)
+         DO 40 I = 1, N - 1
+            Q2(I) = Q(I)**2
+            E2(I) = E(I)**2
+            PIVMIN = MAX( PIVMIN, Q2(I), E2(I) )
+   40    CONTINUE
+         SAFMIN = DLAMCH( 'Safe minimum' )
+         PIVMIN = MAX( PIVMIN*SAFMIN, SAFMIN )
+         TOL = MAX( TOL, ZERO )
+         IF ( RELTOL.LE.ZERO )
+     $      RELTOL = DLAMCH( 'Base' )*DLAMCH( 'Epsilon' )
+*        Compute an upper bound THETA such that J has 3 singular values
+*        < =  THETA.
+         CALL MB03MD( N, L, THETA, Q, E, Q2, E2, PIVMIN, TOL, RELTOL,
+     $                IWARN, INFO )
+*
+         IF ( INFO.NE.0 ) THEN
+            WRITE ( NOUT, FMT = 99998 ) INFO
+         ELSE
+            IF ( IWARN.NE.0 ) WRITE ( NOUT, FMT = 99994 ) IWARN
+            WRITE ( NOUT, FMT = 99993 ) THETA
+            WRITE ( NOUT, FMT = 99992 ) L
+         END IF
+      END IF
+      STOP
+*
+99999 FORMAT (' MB03MD EXAMPLE PROGRAM RESULTS',/1X)
+99998 FORMAT (' INFO on exit from MB03MD = ',I2)
+99997 FORMAT (' The Bidiagonal Matrix J is',/)
+99996 FORMAT (2(' (',I1,',',I1,') = ',F7.4,2X))
+99995 FORMAT (' (',I1,',',I1,') = ',F7.4)
+99994 FORMAT (' IWARN on exit from MB03MD = ',I2,/)
+99993 FORMAT (/' The computed value of THETA is ',F7.4)
+99992 FORMAT (/' J has ',I2,' singular values < =  THETA')
+99991 FORMAT (/' N is out of range.',/' N = ',I5)
+99990 FORMAT (/' L is out of range.',/' L = ',I5)
+      END
+</PRE>
+<B>Program Data</B>
+<PRE>
+ MB03MD EXAMPLE PROGRAM DATA
+   5     -3.0     3     0.0     0.0
+   1.0  2.0  3.0  4.0  5.0
+   2.0  3.0  4.0  5.0
+</PRE>
+<B>Program Results</B>
+<PRE>
+ MB03MD EXAMPLE PROGRAM RESULTS
+
+ The Bidiagonal Matrix J is
+
+ (1,1) =  1.0000   (1,2) =  2.0000
+ (2,2) =  2.0000   (2,3) =  3.0000
+ (3,3) =  3.0000   (3,4) =  4.0000
+ (4,4) =  4.0000   (4,5) =  5.0000
+ (5,5) =  5.0000
+
+ The computed value of THETA is  4.7500
+
+ J has  3 singular values < =  THETA
+</PRE>
+
+<HR>
+<p>
+<A HREF=..\libindex.html><B>Return to index</B></A></BODY>
+</HTML>

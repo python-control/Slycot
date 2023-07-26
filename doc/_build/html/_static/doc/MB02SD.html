@@ -1,0 +1,208 @@
+<HTML>
+<HEAD><TITLE>MB02SD - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MB02SD">MB02SD</A></H2>
+<H3>
+LU factorization of an upper Hessenberg matrix
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To compute an LU factorization of an n-by-n upper Hessenberg
+  matrix H using partial pivoting with row interchanges.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MB02SD( N, H, LDH, IPIV, INFO )
+C     .. Scalar Arguments ..
+      INTEGER           INFO, LDH, N
+C     .. Array Arguments ..
+      INTEGER           IPIV(*)
+      DOUBLE PRECISION  H(LDH,*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The order of the matrix H.  N &gt;= 0.
+
+  H       (input/output) DOUBLE PRECISION array, dimension (LDH,N)
+          On entry, the n-by-n upper Hessenberg matrix to be
+          factored.
+          On exit, the factors L and U from the factorization
+          H = P*L*U; the unit diagonal elements of L are not stored,
+          and L is lower bidiagonal.
+
+  LDH     INTEGER
+          The leading dimension of the array H.  LDH &gt;= max(1,N).
+
+  IPIV    (output) INTEGER array, dimension (N)
+          The pivot indices; for 1 &lt;= i &lt;= N, row i of the matrix
+          was interchanged with row IPIV(i).
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value;
+          &gt; 0:  if INFO = i, U(i,i) is exactly zero. The
+                factorization has been completed, but the factor U
+                is exactly singular, and division by zero will occur
+                if it is used to solve a system of equations.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  The factorization has the form
+     H = P * L * U
+  where P is a permutation matrix, L is lower triangular with unit
+  diagonal elements (and one nonzero subdiagonal), and U is upper
+  triangular.
+
+  This is the right-looking Level 1 BLAS version of the algorithm
+  (adapted after DGETF2).
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  -
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>                             2
+  The algorithm requires 0( N ) operations.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+*     MB02SD EXAMPLE PROGRAM TEXT
+*
+*     .. Parameters ..
+      DOUBLE PRECISION ZERO
+      PARAMETER        ( ZERO = 0.0D0 )
+      INTEGER          NIN, NOUT
+      PARAMETER        ( NIN = 5, NOUT = 6 )
+      INTEGER          NMAX, NRHMAX
+      PARAMETER        ( NMAX = 20, NRHMAX = 20 )
+      INTEGER          LDB, LDH
+      PARAMETER        ( LDB = NMAX, LDH = NMAX )
+      INTEGER          LDWORK
+      PARAMETER        ( LDWORK = 3*NMAX )
+      INTEGER          LIWORK
+      PARAMETER        ( LIWORK = NMAX )
+*     .. Local Scalars ..
+      DOUBLE PRECISION HNORM, RCOND
+      INTEGER          I, INFO, INFO1, J, N, NRHS
+      CHARACTER*1      NORM, TRANS
+*     .. Local Arrays ..
+      DOUBLE PRECISION H(LDH,NMAX), B(LDB,NRHMAX), DWORK(LDWORK)
+      INTEGER          IPIV(NMAX), IWORK(LIWORK)
+*     .. External Functions ..
+      DOUBLE PRECISION DLAMCH, DLANHS
+      EXTERNAL         DLAMCH, DLANHS
+*     .. External Subroutines ..
+      EXTERNAL         DLASET, MB02RD, MB02SD, MB02TD
+*     .. Executable Statements ..
+*
+      WRITE ( NOUT, FMT = 99999 )
+*     Skip the heading in the data file and read in the data.
+      READ ( NIN, FMT = '()' )
+      READ ( NIN, FMT = * ) N, NRHS, NORM, TRANS
+      IF ( N.LT.0 .OR. N.GT.NMAX ) THEN
+         WRITE ( NOUT, FMT = 99994 ) N
+      ELSE
+         READ ( NIN, FMT = * ) ( ( H(I,J), J = 1,N ), I = 1,N )
+         IF ( NRHS.LT.0 .OR. NRHS.GT.NRHMAX ) THEN
+            WRITE ( NOUT, FMT = 99993 ) NRHS
+         ELSE
+            READ ( NIN, FMT = * ) ( ( B(I,J), J = 1,NRHS ), I = 1,N )
+            IF ( N.GT.2 )
+     $         CALL DLASET( 'Lower', N-2, N-2, ZERO, ZERO, H(3,1), LDH )
+*           Compute the LU factorization of the upper Hessenberg matrix.
+            CALL MB02SD( N, H, LDH, IPIV, INFO )
+*           Estimate the reciprocal condition number of the matrix.
+            HNORM = DLANHS( NORM, N, H, LDH, DWORK )
+            CALL MB02TD( NORM, N, HNORM, H, LDH, IPIV, RCOND, IWORK,
+     $                   DWORK, INFO1 )
+            IF ( INFO.EQ.0 .AND. RCOND.GT.DLAMCH( 'Epsilon' ) ) THEN
+*              Solve the linear system.
+               CALL MB02RD( TRANS, N, NRHS, H, LDH, IPIV, B, LDB, INFO )
+*
+               WRITE ( NOUT, FMT = 99997 )
+            ELSE
+               WRITE ( NOUT, FMT = 99998 ) INFO
+            END IF
+               DO 10 I = 1, N
+                  WRITE ( NOUT, FMT = 99996 ) ( B(I,J), J = 1,NRHS )
+   10          CONTINUE
+            WRITE ( NOUT, FMT = 99995 ) RCOND
+         END IF
+      END IF
+      STOP
+*
+99999 FORMAT (' MB02SD EXAMPLE PROGRAM RESULTS',/1X)
+99998 FORMAT (' INFO on exit from MB02SD = ',I2)
+99997 FORMAT (' The solution matrix is ')
+99996 FORMAT (20(1X,F8.4))
+99995 FORMAT (/' Reciprocal condition number = ',D12.4)
+99994 FORMAT (/' N is out of range.',/' N = ',I5)
+99993 FORMAT (/' NRHS is out of range.',/' NRHS = ',I5)
+      END
+</PRE>
+<B>Program Data</B>
+<PRE>
+ MB02SD EXAMPLE PROGRAM DATA
+   5    4      O      N
+   1.    2.    6.    3.    5.
+  -2.   -1.   -1.    0.   -2.
+   0.    3.    1.    5.    1.
+   0.    0.    2.    0.   -4.
+   0.    0.    0.    1.    4.
+   5.    5.    1.    5.
+  -2.    1.    3.    1.
+   0.    0.    4.    5.
+   2.    1.    1.    3.
+  -1.    3.    3.    1.
+</PRE>
+<B>Program Results</B>
+<PRE>
+ MB02SD EXAMPLE PROGRAM RESULTS
+
+ The solution matrix is 
+   0.0435   1.2029   1.6377   1.1014
+   1.0870  -4.4275  -5.5580  -2.9638
+   0.9130   0.7609  -0.1087   0.6304
+  -0.8261   2.4783   4.2174   2.7391
+  -0.0435   0.1304  -0.3043  -0.4348
+
+ Reciprocal condition number =   0.1554D-01
+</PRE>
+
+<HR>
+<p>
+<A HREF=..\libindex.html><B>Return to index</B></A></BODY>
+</HTML>

@@ -1,0 +1,253 @@
+<HTML>
+<HEAD><TITLE>MB02CU - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MB02CU">MB02CU</A></H2>
+<H3>
+Bringing the first blocks of a generator in proper form (extended version of MB02CX)
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To bring the first blocks of a generator to proper form.
+  The positive part of the generator is contained in the arrays A1
+  and A2. The negative part of the generator is contained in B.
+  Transformation information will be stored and can be applied
+  via SLICOT Library routine MB02CV.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MB02CU( TYPEG, K, P, Q, NB, A1, LDA1, A2, LDA2, B, LDB,
+     $                   RNK, IPVT, CS, TOL, DWORK, LDWORK, INFO )
+C     .. Scalar Arguments ..
+      CHARACTER          TYPEG
+      INTEGER            INFO, K, LDA1, LDA2, LDB, LDWORK, NB, P, Q, RNK
+      DOUBLE PRECISION   TOL
+C     .. Array Arguments ..
+      INTEGER            IPVT(*)
+      DOUBLE PRECISION   A1(LDA1,*), A2(LDA2,*), B(LDB,*), CS(*),
+     $                   DWORK(*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  TYPEG   CHARACTER*1
+          Specifies the type of the generator, as follows:
+          = 'D':  generator is column oriented and rank
+                  deficiencies are expected;
+          = 'C':  generator is column oriented and rank
+                  deficiencies are not expected;
+          = 'R':  generator is row oriented and rank
+                  deficiencies are not expected.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  K       (input)  INTEGER
+          The number of rows in A1 to be processed.  K &gt;= 0.
+
+  P       (input)  INTEGER
+          The number of columns of the positive generator.  P &gt;= K.
+
+  Q       (input)  INTEGER
+          The number of columns in B containing the negative
+          generators.
+          If TYPEG = 'D',        Q &gt;= K;
+          If TYPEG = 'C' or 'R', Q &gt;= 0.
+
+  NB      (input)  INTEGER
+          On entry, if TYPEG = 'C'  or  TYPEG = 'R', NB specifies
+          the block size to be used in the blocked parts of the
+          algorithm. If NB &lt;= 0, an unblocked algorithm is used.
+
+  A1      (input/output)  DOUBLE PRECISION array, dimension
+          (LDA1, K)
+          On entry, the leading K-by-K part of this array must
+          contain the leading submatrix of the positive part of the
+          generator. If TYPEG = 'C', A1 is assumed to be lower
+          triangular and the strictly upper triangular part is not
+          referenced. If TYPEG = 'R', A1 is assumed to be upper
+          triangular and the strictly lower triangular part is not
+          referenced.
+          On exit, if TYPEG = 'D', the leading K-by-RNK part of this
+          array contains the lower trapezoidal part of the proper
+          generator and information for the Householder
+          transformations applied during the reduction process.
+          On exit, if TYPEG = 'C', the leading K-by-K part of this
+          array contains the leading lower triangular part of the
+          proper generator.
+          On exit, if TYPEG = 'R', the leading K-by-K part of this
+          array contains the leading upper triangular part of the
+          proper generator.
+
+  LDA1    INTEGER
+          The leading dimension of the array A1.  LDA1 &gt;= MAX(1,K).
+
+  A2      (input/output)  DOUBLE PRECISION array,
+          if TYPEG = 'D'  or  TYPEG = 'C',  dimension (LDA2, P-K);
+          if TYPEG = 'R',                   dimension (LDA2, K).
+          On entry, if TYPEG = 'D'  or  TYPEG = 'C', the leading
+          K-by-(P-K) part of this array must contain the (K+1)-st
+          to P-th columns of the positive part of the generator.
+          On entry, if TYPEG = 'R', the leading (P-K)-by-K part of
+          this array must contain the (K+1)-st to P-th rows of the
+          positive part of the generator.
+          On exit, if TYPEG = 'D'  or  TYPEG = 'C', the leading
+          K-by-(P-K) part of this array contains information for
+          Householder transformations.
+          On exit, if TYPEG = 'R', the leading (P-K)-by-K part of
+          this array contains information for Householder
+          transformations.
+
+  LDA2    INTEGER
+          The leading dimension of the array A2.
+          If P = K,                   LDA2 &gt;= 1;
+          If P &gt; K and (TYPEG = 'D' or TYPEG = 'C'),
+                                      LDA2 &gt;= MAX(1,K);
+          if P &gt; K and TYPEG = 'R',   LDA2 &gt;= P-K.
+
+  B       (input/output)  DOUBLE PRECISION array,
+          if TYPEG = 'D'  or  TYPEG = 'C',  dimension (LDB, Q);
+          if TYPEG = 'R',                   dimension (LDB, K).
+          On entry, if TYPEG = 'D'  or  TYPEG = 'C', the leading
+          K-by-Q part of this array must contain the negative part
+          of the generator.
+          On entry, if TYPEG = 'R', the leading Q-by-K part of this
+          array must contain the negative part of the generator.
+          On exit, if TYPEG = 'D'  or  TYPEG = 'C', the leading
+          K-by-Q part of this array contains information for
+          Householder transformations.
+          On exit, if TYPEG = 'R', the leading Q-by-K part of this
+          array contains information for Householder transformations.
+
+  LDB     INTEGER
+          The leading dimension of the array B.
+          If Q = 0,                  LDB &gt;= 1;
+          if Q &gt; 0 and (TYPEG = 'D' or TYPEG = 'C'),
+                                     LDB &gt;= MAX(1,K);
+          if Q &gt; 0 and TYPEG = 'R',  LDB &gt;= Q.
+
+  RNK     (output)  INTEGER
+          If TYPEG = 'D', the number of columns in the reduced
+          generator which are found to be linearly independent.
+          If TYPEG = 'C' or TYPEG = 'R', then RNK is not set.
+
+  IPVT    (output)  INTEGER array, dimension (K)
+          If TYPEG = 'D', then if IPVT(i) = k, the k-th row of the
+          proper generator is the reduced i-th row of the input
+          generator.
+          If TYPEG = 'C' or TYPEG = 'R', this array is not
+          referenced.
+
+  CS      (output)  DOUBLE PRECISION array, dimension (x)
+          If TYPEG = 'D' and P = K,                   x = 3*K;
+          if TYPEG = 'D' and P &gt; K,                   x = 5*K;
+          if (TYPEG = 'C' or TYPEG = 'R') and P = K,  x = 4*K;
+          if (TYPEG = 'C' or TYPEG = 'R') and P &gt; K,  x = 6*K.
+          On exit, the first x elements of this array contain
+          necessary information for the SLICOT library routine
+          MB02CV (Givens and modified hyperbolic rotation
+          parameters, scalar factors of the Householder
+          transformations).
+
+</PRE>
+<B>Tolerances</B>
+<PRE>
+  TOL     DOUBLE PRECISION
+          If TYPEG = 'D', this number specifies the used tolerance
+          for handling deficiencies. If the hyperbolic norm
+          of two diagonal elements in the positive and negative
+          generators appears to be less than or equal to TOL, then
+          the corresponding columns are not reduced.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+          On exit, if INFO = -17,  DWORK(1) returns the minimum
+          value of LDWORK.
+
+  LDWORK  INTEGER
+          The length of the array DWORK.
+          LDWORK &gt;= MAX(1,4*K),         if TYPEG = 'D';
+          LDWORK &gt;= MAX(1,MAX(NB,1)*K), if TYPEG = 'C' or 'R'.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value;
+          = 1:  if TYPEG = 'D', the generator represents a
+                (numerically) indefinite matrix; and if TYPEG = 'C'
+                or TYPEG = 'R', the generator represents a
+                (numerically) semidefinite matrix.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  If TYPEG = 'C' or TYPEG = 'R', blocked Householder transformations
+  and modified hyperbolic rotations are used to downdate the
+  matrix [ A1  A2  sqrt(-1)*B ], cf. [1], [2].
+  If TYPEG = 'D', then an algorithm with row pivoting is used. In
+  the first stage it maximizes the hyperbolic norm of the active
+  row. As soon as the hyperbolic norm is below the threshold TOL,
+  the strategy is changed. Now, in the second stage, the algorithm
+  applies an LQ decomposition with row pivoting on B such that
+  the Euclidean norm of the active row is maximized.
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Kailath, T. and Sayed, A.
+      Fast Reliable Algorithms for Matrices with Structure.
+      SIAM Publications, Philadelphia, 1999.
+
+  [2] Kressner, D. and Van Dooren, P.
+      Factorizations and linear system solvers for matrices with
+      Toeplitz structure.
+      SLICOT Working Note 2000-2, 2000.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>                            2
+  The algorithm requires 0(K *( P + Q )) floating point operations.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

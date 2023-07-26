@@ -1,0 +1,197 @@
+<HTML>
+<HEAD><TITLE>MB04MD - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MB04MD">MB04MD</A></H2>
+<H3>
+Balancing a general real matrix
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To reduce the 1-norm of a general real matrix A by balancing.
+  This involves diagonal similarity transformations applied
+  iteratively to A to make the rows and columns as close in norm as
+  possible.
+
+  This routine can be used instead LAPACK Library routine DGEBAL,
+  when no reduction of the 1-norm of the matrix is possible with
+  DGEBAL, as for upper triangular matrices. LAPACK Library routine
+  DGEBAK, with parameters ILO = 1, IHI = N, and JOB = 'S', should
+  be used to apply the backward transformation.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MB04MD( N, MAXRED, A, LDA, SCALE, INFO )
+C     .. Scalar Arguments ..
+      INTEGER            INFO, LDA, N
+      DOUBLE PRECISION   MAXRED
+C     .. Array Arguments ..
+      DOUBLE PRECISION   A( LDA, * ), SCALE( * )
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The order of the matrix A.  N &gt;= 0.
+
+  MAXRED  (input/output) DOUBLE PRECISION
+          On entry, the maximum allowed reduction in the 1-norm of
+          A (in an iteration) if zero rows or columns are
+          encountered.
+          If MAXRED &gt; 0.0, MAXRED must be larger than one (to enable
+          the norm reduction).
+          If MAXRED &lt;= 0.0, then the value 10.0 for MAXRED is
+          used.
+          On exit, if the 1-norm of the given matrix A is non-zero,
+          the ratio between the 1-norm of the given matrix and the
+          1-norm of the balanced matrix. Usually, this ratio will be
+          larger than one, but it can sometimes be one, or even less
+          than one (for instance, for some companion matrices).
+
+  A       (input/output) DOUBLE PRECISION array, dimension (LDA,N)
+          On entry, the leading N-by-N part of this array must
+          contain the input matrix A.
+          On exit, the leading N-by-N part of this array contains
+          the balanced matrix.
+
+  LDA     INTEGER
+          The leading dimension of the array A.  LDA &gt;= max(1,N).
+
+  SCALE   (output) DOUBLE PRECISION array, dimension (N)
+          The scaling factors applied to A.  If D(j) is the scaling
+          factor applied to row and column j, then SCALE(j) = D(j),
+          for j = 1,...,N.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit.
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  Balancing consists of applying a diagonal similarity
+  transformation inv(D) * A * D to make the 1-norms of each row
+  of A and its corresponding column nearly equal.
+
+  Information about the diagonal matrix D is returned in the vector
+  SCALE.
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Anderson, E., Bai, Z., Bischof, C., Demmel, J., Dongarra, J.,
+      Du Croz, J., Greenbaum, A., Hammarling, S., McKenney, A.,
+      Ostrouchov, S., and Sorensen, D.
+      LAPACK Users' Guide: Second Edition.
+      SIAM, Philadelphia, 1995.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  None.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+*     MB04MD EXAMPLE PROGRAM TEXT.
+*
+*     .. Parameters ..
+      INTEGER          NIN, NOUT
+      PARAMETER        ( NIN = 5, NOUT = 6 )
+      INTEGER          NMAX
+      PARAMETER        ( NMAX = 20 )
+      INTEGER          LDA
+      PARAMETER        ( LDA = NMAX )
+*     .. Local Scalars ..
+      INTEGER          I, INFO, J, N
+      DOUBLE PRECISION MAXRED
+*     .. Local Arrays ..
+      DOUBLE PRECISION A(LDA,NMAX), SCALE(NMAX)
+*     .. External Subroutines ..
+      EXTERNAL         MB04MD
+*     .. Executable Statements ..
+*
+      WRITE ( NOUT, FMT = 99999 )
+*     Skip the heading in the data file and read the data.
+      READ ( NIN, FMT = '()' )
+      READ ( NIN, FMT = * ) N, MAXRED
+      IF ( N.LE.0 .OR. N.GT.NMAX ) THEN
+         WRITE ( NOUT, FMT = 99993 ) N
+      ELSE
+         READ ( NIN, FMT = * ) ( ( A(I,J), J = 1,N ), I = 1,N )
+*        Balance matrix A.
+         CALL MB04MD( N, MAXRED, A, LDA, SCALE, INFO )
+*
+         IF ( INFO.NE.0 ) THEN
+            WRITE ( NOUT, FMT = 99998 ) INFO
+         ELSE
+            WRITE ( NOUT, FMT = 99997 )
+            DO 20 I = 1, N
+               WRITE ( NOUT, FMT = 99996 ) ( A(I,J), J = 1,N )
+   20       CONTINUE
+            WRITE ( NOUT, FMT = 99994 ) ( SCALE(I), I = 1,N )
+         END IF
+      END IF
+      STOP
+*
+99999 FORMAT (' MB04MD EXAMPLE PROGRAM RESULTS',/1X)
+99998 FORMAT (' INFO on exit from MB04MD = ',I2)
+99997 FORMAT (' The balanced matrix is ')
+99996 FORMAT (20(1X,F10.4))
+99994 FORMAT (/' SCALE is ',/20(1X,F10.4))
+99993 FORMAT (/' N is out of range.',/' N = ',I5)
+      END
+</PRE>
+<B>Program Data</B>
+<PRE>
+ MB04MD EXAMPLE PROGRAM DATA
+   4    0.0
+   1.0   0.0   0.0   0.0
+ 300.0 400.0 500.0 600.0
+   1.0   2.0   0.0   0.0
+   1.0   1.0   1.0   1.0
+</PRE>
+<B>Program Results</B>
+<PRE>
+ MB04MD EXAMPLE PROGRAM RESULTS
+
+ The balanced matrix is 
+     1.0000     0.0000     0.0000     0.0000
+    30.0000   400.0000    50.0000    60.0000
+     1.0000    20.0000     0.0000     0.0000
+     1.0000    10.0000     1.0000     1.0000
+
+ SCALE is 
+     1.0000    10.0000     1.0000     1.0000
+</PRE>
+
+<HR>
+<p>
+<A HREF=..\libindex.html><B>Return to index</B></A></BODY>
+</HTML>

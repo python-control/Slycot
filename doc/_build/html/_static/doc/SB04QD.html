@@ -1,0 +1,272 @@
+<HTML>
+<HEAD><TITLE>SB04QD - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="SB04QD">SB04QD</A></H2>
+<H3>
+Solution of discrete-time Sylvester equations (Hessenberg-Schur method)
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To solve for X the discrete-time Sylvester equation
+
+     X + AXB = C,
+
+  where A, B, C and X are general N-by-N, M-by-M, N-by-M and
+  N-by-M matrices respectively. A Hessenberg-Schur method, which
+  reduces A to upper Hessenberg form, H = U'AU, and B' to real
+  Schur form, S = Z'B'Z (with U, Z orthogonal matrices), is used.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE SB04QD( N, M, A, LDA, B, LDB, C, LDC, Z, LDZ, IWORK,
+     $                   DWORK, LDWORK, INFO )
+C     .. Scalar Arguments ..
+      INTEGER           INFO, LDA, LDB, LDC, LDWORK, LDZ, M, N
+C     .. Array Arguments ..
+      INTEGER           IWORK(*)
+      DOUBLE PRECISION  A(LDA,*), B(LDB,*), C(LDC,*), DWORK(*), Z(LDZ,*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The order of the matrix A.  N &gt;= 0.
+
+  M       (input) INTEGER
+          The order of the matrix B.  M &gt;= 0.
+
+  A       (input/output) DOUBLE PRECISION array, dimension (LDA,N)
+          On entry, the leading N-by-N part of this array must
+          contain the coefficient matrix A of the equation.
+          On exit, the leading N-by-N upper Hessenberg part of this
+          array contains the matrix H, and the remainder of the
+          leading N-by-N part, together with the elements 2,3,...,N
+          of array DWORK, contain the orthogonal transformation
+          matrix U (stored in factored form).
+
+  LDA     INTEGER
+          The leading dimension of array A.  LDA &gt;= MAX(1,N).
+
+  B       (input/output) DOUBLE PRECISION array, dimension (LDB,M)
+          On entry, the leading M-by-M part of this array must
+          contain the coefficient matrix B of the equation.
+          On exit, the leading M-by-M part of this array contains
+          the quasi-triangular Schur factor S of the matrix B'.
+
+  LDB     INTEGER
+          The leading dimension of array B.  LDB &gt;= MAX(1,M).
+
+  C       (input/output) DOUBLE PRECISION array, dimension (LDC,M)
+          On entry, the leading N-by-M part of this array must
+          contain the coefficient matrix C of the equation.
+          On exit, the leading N-by-M part of this array contains
+          the solution matrix X of the problem.
+
+  LDC     INTEGER
+          The leading dimension of array C.  LDC &gt;= MAX(1,N).
+
+  Z       (output) DOUBLE PRECISION array, dimension (LDZ,M)
+          The leading M-by-M part of this array contains the
+          orthogonal matrix Z used to transform B' to real upper
+          Schur form.
+
+  LDZ     INTEGER
+          The leading dimension of array Z.  LDZ &gt;= MAX(1,M).
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  IWORK   INTEGER array, dimension (4*N)
+
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+          On exit, if INFO = 0, DWORK(1) returns the optimal value
+          of LDWORK, and DWORK(2), DWORK(3),..., DWORK(N) contain
+          the scalar factors of the elementary reflectors used to
+          reduce A to upper Hessenberg form, as returned by LAPACK
+          Library routine DGEHRD.
+
+  LDWORK  INTEGER
+          The length of the array DWORK.
+          LDWORK = MAX(1, 2*N*N + 9*N, 5*M, N + M).
+          For optimum performance LDWORK should be larger.
+
+          If LDWORK = -1, then a workspace query is assumed; the
+          routine only calculates the optimal size of the DWORK
+          array, returns this value as the first entry of the DWORK
+          array, and no error message related to LDWORK is issued by
+          XERBLA.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value;
+          &gt; 0:  if INFO = i, 1 &lt;= i &lt;= M, the QR algorithm failed to
+                compute all the eigenvalues of B (see LAPACK Library
+                routine DGEES);
+          &gt; M:  if a singular matrix was encountered whilst solving
+                for the (INFO-M)-th column of matrix X.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  The matrix A is transformed to upper Hessenberg form H = U'AU by
+  the orthogonal transformation matrix U; matrix B' is transformed
+  to real upper Schur form S = Z'B'Z using the orthogonal
+  transformation matrix Z. The matrix C is also multiplied by the
+  transformations, F = U'CZ, and the solution matrix Y of the
+  transformed system
+
+     Y + HYS' = F
+
+  is computed by back substitution. Finally, the matrix Y is then
+  multiplied by the orthogonal transformation matrices, X = UYZ', in
+  order to obtain the solution matrix X to the original problem.
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Golub, G.H., Nash, S. and Van Loan, C.F.
+      A Hessenberg-Schur method for the problem AX + XB = C.
+      IEEE Trans. Auto. Contr., AC-24, pp. 909-913, 1979.
+
+  [2] Sima, V.
+      Algorithms for Linear-quadratic Optimization.
+      Marcel Dekker, Inc., New York, 1996.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>                                      3       3      2         2
+  The algorithm requires about (5/3) N  + 10 M  + 5 N M + 2.5 M N
+  operations and is backward stable.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+*     SB04QD EXAMPLE PROGRAM TEXT
+*
+*     .. Parameters ..
+      INTEGER          NIN, NOUT
+      PARAMETER        ( NIN = 5, NOUT = 6 )
+      INTEGER          NMAX, MMAX
+      PARAMETER        ( NMAX = 20, MMAX = 20 )
+      INTEGER          LDA, LDB, LDC, LDZ
+      PARAMETER        ( LDA = NMAX, LDB = MMAX, LDC = NMAX,
+     $                   LDZ = MMAX )
+      INTEGER          LIWORK
+      PARAMETER        ( LIWORK = 4*NMAX )
+      INTEGER          LDWORK
+      PARAMETER        ( LDWORK = MAX( 1, 2*NMAX*NMAX+9*NMAX, 5*MMAX,
+     $                   NMAX+MMAX ) )
+*     .. Local Scalars ..
+      INTEGER          I, INFO, J, M, N
+*     .. Local Arrays ..
+      DOUBLE PRECISION A(LDA,NMAX), B(LDB,MMAX), C(LDC,MMAX),
+     $                 DWORK(LDWORK), Z(LDZ,MMAX)
+      INTEGER          IWORK(LIWORK)
+*     .. External Subroutines ..
+      EXTERNAL         SB04QD
+*     .. Intrinsic Functions ..
+      INTRINSIC        MAX
+*     .. Executable Statements ..
+*
+      WRITE ( NOUT, FMT = 99999 )
+*     Skip the heading in the data file and read the data.
+      READ ( NIN, FMT = '()' )
+      READ ( NIN, FMT = * ) N, M
+      IF ( N.LT.0 .OR. N.GT.NMAX ) THEN
+         WRITE ( NOUT, FMT = 99994 ) N
+      ELSE
+         READ ( NIN, FMT = * ) ( ( A(I,J), J = 1,N ), I = 1,N )
+         IF ( M.LT.0 .OR. M.GT.MMAX ) THEN
+            WRITE ( NOUT, FMT = 99993 ) M
+         ELSE
+            READ ( NIN, FMT = * ) ( ( B(I,J), J = 1,M ), I = 1,M )
+            READ ( NIN, FMT = * ) ( ( C(I,J), J = 1,M ), I = 1,N )
+*           Find the solution matrix X.
+            CALL SB04QD( N, M, A, LDA, B, LDB, C, LDC, Z, LDZ, IWORK,
+     $                   DWORK, LDWORK, INFO )
+*
+            IF ( INFO.NE.0 ) THEN
+               WRITE ( NOUT, FMT = 99998 ) INFO
+            ELSE
+               WRITE ( NOUT, FMT = 99997 )
+               DO 20 I = 1, N
+                  WRITE ( NOUT, FMT = 99996 ) ( C(I,J), J = 1,M )
+   20          CONTINUE
+               WRITE ( NOUT, FMT = 99995 )
+               DO 40 I = 1, M
+                  WRITE ( NOUT, FMT = 99996 ) ( Z(I,J), J = 1,M )
+   40          CONTINUE
+            END IF
+         END IF
+      END IF
+      STOP
+*
+99999 FORMAT (' SB04QD EXAMPLE PROGRAM RESULTS',/1X)
+99998 FORMAT (' INFO on exit from SB04QD = ',I2)
+99997 FORMAT (' The solution matrix X is ')
+99996 FORMAT (20(1X,F8.4))
+99995 FORMAT (/' The orthogonal matrix Z is ')
+99994 FORMAT (/' N is out of range.',/' N = ',I5)
+99993 FORMAT (/' M is out of range.',/' M = ',I5)
+      END
+</PRE>
+<B>Program Data</B>
+<PRE>
+ SB04QD EXAMPLE PROGRAM DATA
+   3     3
+   1.0   2.0   3.0 
+   6.0   7.0   8.0 
+   9.0   2.0   3.0 
+   7.0   2.0   3.0 
+   2.0   1.0   2.0 
+   3.0   4.0   1.0 
+   271.0   135.0   147.0
+   923.0   494.0   482.0
+   578.0   383.0   287.0
+</PRE>
+<B>Program Results</B>
+<PRE>
+ SB04QD EXAMPLE PROGRAM RESULTS
+
+ The solution matrix X is 
+   2.0000   3.0000   6.0000
+   4.0000   7.0000   1.0000
+   5.0000   3.0000   2.0000
+
+ The orthogonal matrix Z is 
+   0.8337   0.5204  -0.1845
+   0.3881  -0.7900  -0.4746
+   0.3928  -0.3241   0.8606
+</PRE>
+
+<HR>
+<p>
+<A HREF=..\libindex.html><B>Return to index</B></A></BODY>
+</HTML>

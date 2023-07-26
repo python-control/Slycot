@@ -1,0 +1,370 @@
+<HTML>
+<HEAD><TITLE>IB01MD - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="IB01MD">IB01MD</A></H2>
+<H3>
+Upper triangular factor in the QR factorization of the block-Hankel matrix
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To construct an upper triangular factor  R  of the concatenated
+  block Hankel matrices using input-output data.  The input-output
+  data can, optionally, be processed sequentially.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE IB01MD( METH, ALG, BATCH, CONCT, NOBR, M, L, NSMP, U,
+     $                   LDU, Y, LDY, R, LDR, IWORK, DWORK, LDWORK,
+     $                   IWARN, INFO )
+C     .. Scalar Arguments ..
+      INTEGER            INFO, IWARN, L, LDR, LDU, LDWORK, LDY, M, NOBR,
+     $                   NSMP
+      CHARACTER          ALG, BATCH, CONCT, METH
+C     .. Array Arguments ..
+      INTEGER            IWORK(*)
+      DOUBLE PRECISION   DWORK(*), R(LDR, *), U(LDU, *), Y(LDY, *)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  METH    CHARACTER*1
+          Specifies the subspace identification method to be used,
+          as follows:
+          = 'M':  MOESP  algorithm with past inputs and outputs;
+          = 'N':  N4SID  algorithm.
+
+  ALG     CHARACTER*1
+          Specifies the algorithm for computing the triangular
+          factor R, as follows:
+          = 'C':  Cholesky algorithm applied to the correlation
+                  matrix of the input-output data;
+          = 'F':  Fast QR algorithm;
+          = 'Q':  QR algorithm applied to the concatenated block
+                  Hankel matrices.
+
+  BATCH   CHARACTER*1
+          Specifies whether or not sequential data processing is to
+          be used, and, for sequential processing, whether or not
+          the current data block is the first block, an intermediate
+          block, or the last block, as follows:
+          = 'F':  the first block in sequential data processing;
+          = 'I':  an intermediate block in sequential data
+                  processing;
+          = 'L':  the last block in sequential data processing;
+          = 'O':  one block only (non-sequential data processing).
+          NOTE that when  100  cycles of sequential data processing
+               are completed for  BATCH = 'I',  a warning is
+               issued, to prevent for an infinite loop.
+
+  CONCT   CHARACTER*1
+          Specifies whether or not the successive data blocks in
+          sequential data processing belong to a single experiment,
+          as follows:
+          = 'C':  the current data block is a continuation of the
+                  previous data block and/or it will be continued
+                  by the next data block;
+          = 'N':  there is no connection between the current data
+                  block and the previous and/or the next ones.
+          This parameter is not used if BATCH = 'O'.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  NOBR    (input) INTEGER
+          The number of block rows,  s,  in the input and output
+          block Hankel matrices to be processed.  NOBR &gt; 0.
+          (In the MOESP theory,  NOBR  should be larger than  n,
+          the estimated dimension of state vector.)
+
+  M       (input) INTEGER
+          The number of system inputs.  M &gt;= 0.
+          When M = 0, no system inputs are processed.
+
+  L       (input) INTEGER
+          The number of system outputs.  L &gt; 0.
+
+  NSMP    (input) INTEGER
+          The number of rows of matrices  U  and  Y  (number of
+          samples,  t). (When sequential data processing is used,
+          NSMP  is the number of samples of the current data
+          block.)
+          NSMP &gt;= 2*(M+L+1)*NOBR - 1,  for non-sequential
+                                       processing;
+          NSMP &gt;= 2*NOBR,  for sequential processing.
+          The total number of samples when calling the routine with
+          BATCH = 'L'  should be at least  2*(M+L+1)*NOBR - 1.
+          The  NSMP  argument may vary from a cycle to another in
+          sequential data processing, but  NOBR, M,  and  L  should
+          be kept constant. For efficiency, it is advisable to use
+          NSMP  as large as possible.
+
+  U       (input) DOUBLE PRECISION array, dimension (LDU,M)
+          The leading NSMP-by-M part of this array must contain the
+          t-by-m input-data sequence matrix  U,
+          U = [u_1 u_2 ... u_m].  Column  j  of  U  contains the
+          NSMP  values of the j-th input component for consecutive
+          time increments.
+          If M = 0, this array is not referenced.
+
+  LDU     INTEGER
+          The leading dimension of the array U.
+          LDU &gt;= NSMP, if M &gt; 0;
+          LDU &gt;= 1,    if M = 0.
+
+  Y       (input) DOUBLE PRECISION array, dimension (LDY,L)
+          The leading NSMP-by-L part of this array must contain the
+          t-by-l output-data sequence matrix  Y,
+          Y = [y_1 y_2 ... y_l].  Column  j  of  Y  contains the
+          NSMP  values of the j-th output component for consecutive
+          time increments.
+
+  LDY     INTEGER
+          The leading dimension of the array Y.  LDY &gt;= NSMP.
+
+  R       (output or input/output) DOUBLE PRECISION array, dimension
+          ( LDR,2*(M+L)*NOBR )
+          On exit, if INFO = 0 and ALG = 'Q', or (ALG = 'C' or 'F',
+          and BATCH = 'L' or 'O'), the leading
+          2*(M+L)*NOBR-by-2*(M+L)*NOBR upper triangular part of
+          this array contains the (current) upper triangular factor
+          R from the QR factorization of the concatenated block
+          Hankel matrices. The diagonal elements of R are positive
+          when the Cholesky algorithm was successfully used.
+          On exit, if ALG = 'C' and BATCH = 'F' or 'I', the leading
+          2*(M+L)*NOBR-by-2*(M+L)*NOBR upper triangular part of this
+          array contains the current upper triangular part of the
+          correlation matrix in sequential data processing.
+          If ALG = 'F' and BATCH = 'F' or 'I', the array R is not
+          referenced.
+          On entry, if ALG = 'C', or ALG = 'Q', and BATCH = 'I' or
+          'L', the leading  2*(M+L)*NOBR-by-2*(M+L)*NOBR  upper
+          triangular part of this array must contain the upper
+          triangular matrix R computed at the previous call of this
+          routine in sequential data processing. The array R need
+          not be set on entry if ALG = 'F' or if BATCH = 'F' or 'O'.
+
+  LDR     INTEGER
+          The leading dimension of the array  R.
+          LDR &gt;= 2*(M+L)*NOBR.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  IWORK   INTEGER array, dimension (LIWORK)
+          LIWORK &gt;= MAX(3,M+L), if ALG = 'F';
+          LIWORK &gt;= 3,          if ALG = 'C' or 'Q'.
+          On entry with  BATCH = 'I'  or  BATCH = 'L',  IWORK(1:3)
+          must contain the values of ICYCLE, MAXWRK, and NSMPSM
+          set by the previous call of this routine.
+          On exit with  BATCH = 'F'  or  BATCH = 'I',  IWORK(1:3)
+          contains the values of ICYCLE, MAXWRK, and NSMPSM to be
+          used by the next call of the routine.
+          ICYCLE  counts the cycles for  BATCH = 'I'.
+          MAXWRK  stores the current optimal workspace.
+          NSMPSM  sums up the  NSMP  values for  BATCH &lt;&gt; 'O'.
+          The first three elements of  IWORK  should be preserved
+          during successive calls of the routine with  BATCH = 'F'
+          or  BATCH = 'I',  till the final call with   BATCH = 'L'.
+
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+          On exit, if  INFO = 0,  DWORK(1)  returns the optimal
+          value of LDWORK.
+          On exit, if  INFO = -17,  DWORK(1)  returns the minimum
+          value of LDWORK.
+          Let
+          k = 0,               if CONCT = 'N' and ALG = 'C' or 'Q';
+          k = 2*NOBR-1,        if CONCT = 'C' and ALG = 'C' or 'Q';
+          k = 2*NOBR*(M+L+1),  if CONCT = 'N' and ALG = 'F';
+          k = 2*NOBR*(M+L+2),  if CONCT = 'C' and ALG = 'F'.
+          The first (M+L)*k elements of  DWORK  should be preserved
+          during successive calls of the routine with  BATCH = 'F'
+          or  'I',  till the final call with  BATCH = 'L'.
+
+  LDWORK  INTEGER
+          The length of the array DWORK.
+          LDWORK &gt;= (4*NOBR-2)*(M+L), if ALG = 'C', BATCH &lt;&gt; 'O' and
+                                  CONCT = 'C';
+          LDWORK &gt;= 1,            if ALG = 'C', BATCH = 'O' or
+                                  CONCT = 'N';
+          LDWORK &gt;= (M+L)*2*NOBR*(M+L+3), if ALG = 'F',
+                                  BATCH &lt;&gt; 'O' and CONCT = 'C';
+          LDWORK &gt;= (M+L)*2*NOBR*(M+L+1), if ALG = 'F',
+                                  BATCH = 'F', 'I' and CONCT = 'N';
+          LDWORK &gt;= (M+L)*4*NOBR*(M+L+1)+(M+L)*2*NOBR, if ALG = 'F',
+                                  BATCH = 'L' and CONCT = 'N', or
+                                  BATCH = 'O';
+          LDWORK &gt;= 4*(M+L)*NOBR, if ALG = 'Q', BATCH = 'F' or 'O',
+                                  and LDR &gt;= NS = NSMP - 2*NOBR + 1;
+          LDWORK &gt;= 6*(M+L)*NOBR, if ALG = 'Q', BATCH = 'F' or 'O',
+                                  and LDR &lt; NS, or BATCH = 'I' or
+                                  'L' and CONCT = 'N';
+          LDWORK &gt;= 4*(NOBR+1)*(M+L)*NOBR, if ALG = 'Q', BATCH = 'I'
+                                  or 'L' and CONCT = 'C'.
+          The workspace used for ALG = 'Q' is
+                    LDRWRK*2*(M+L)*NOBR + 4*(M+L)*NOBR,
+          where LDRWRK = LDWORK/(2*(M+L)*NOBR) - 2; recommended
+          value LDRWRK = NS, assuming a large enough cache size.
+          For good performance,  LDWORK  should be larger.
+
+          If LDWORK = -1, then a workspace query is assumed;
+          the routine only calculates the optimal size of the
+          DWORK array, returns this value as the first entry of
+          the DWORK array, and no error message related to LDWORK
+          is issued by XERBLA.
+
+</PRE>
+<B>Warning Indicator</B>
+<PRE>
+  IWARN   INTEGER
+          = 0:  no warning;
+          = 1:  the number of 100 cycles in sequential data
+                processing has been exhausted without signaling
+                that the last block of data was get; the cycle
+                counter was reinitialized;
+          = 2:  a fast algorithm was requested (ALG = 'C' or 'F'),
+                but it failed, and the QR algorithm was then used
+                (non-sequential data processing).
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value;
+          = 1:  a fast algorithm was requested (ALG = 'C', or 'F')
+                in sequential data processing, but it failed. The
+                routine can be repeatedly called again using the
+                standard QR algorithm.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  1) For non-sequential data processing using QR algorithm, a
+  t x 2(m+l)s  matrix H is constructed, where
+
+       H = [ Uf'         Up'      Y'      ],  for METH = 'M',
+               s+1,2s,t    1,s,t   1,2s,t
+
+       H = [ U'       Y'      ],              for METH = 'N',
+              1,2s,t   1,2s,t
+
+  and  Up     , Uf        , U      , and  Y        are block Hankel
+         1,s,t    s+1,2s,t   1,2s,t        1,2s,t
+  matrices defined in terms of the input and output data [3].
+  A QR factorization is used to compress the data.
+  The fast QR algorithm uses a QR factorization which exploits
+  the block-Hankel structure. Actually, the Cholesky factor of H'*H
+  is computed.
+
+  2) For sequential data processing using QR algorithm, the QR
+  decomposition is done sequentially, by updating the upper
+  triangular factor  R.  This is also performed internally if the
+  workspace is not large enough to accommodate an entire batch.
+
+  3) For non-sequential or sequential data processing using
+  Cholesky algorithm, the correlation matrix of input-output data is
+  computed (sequentially, if requested), taking advantage of the
+  block Hankel structure [7].  Then, the Cholesky factor of the
+  correlation matrix is found, if possible.
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Verhaegen M., and Dewilde, P.
+      Subspace Model Identification. Part 1: The output-error
+      state-space model identification class of algorithms.
+      Int. J. Control, 56, pp. 1187-1210, 1992.
+
+  [2] Verhaegen M.
+      Subspace Model Identification. Part 3: Analysis of the
+      ordinary output-error state-space model identification
+      algorithm.
+      Int. J. Control, 58, pp. 555-586, 1993.
+
+  [3] Verhaegen M.
+      Identification of the deterministic part of MIMO state space
+      models given in innovations form from input-output data.
+      Automatica, Vol.30, No.1, pp.61-74, 1994.
+
+  [4] Van Overschee, P., and De Moor, B.
+      N4SID: Subspace Algorithms for the Identification of
+      Combined Deterministic-Stochastic Systems.
+      Automatica, Vol.30, No.1, pp. 75-93, 1994.
+
+  [5] Peternell, K., Scherrer, W. and Deistler, M.
+      Statistical Analysis of Novel Subspace Identification Methods.
+      Signal Processing, 52, pp. 161-177, 1996.
+
+  [6] Sima, V.
+      Subspace-based Algorithms for Multivariable System
+      Identification.
+      Studies in Informatics and Control, 5, pp. 335-344, 1996.
+
+  [7] Sima, V.
+      Cholesky or QR Factorization for Data Compression in
+      Subspace-based Identification ?
+      Proceedings of the Second NICONET Workshop on ``Numerical
+      Control Software: SLICOT, a Useful Tool in Industry'',
+      December 3, 1999, INRIA Rocquencourt, France, pp. 75-80, 1999.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  The implemented method is numerically stable (when QR algorithm is
+  used), reliable and efficient. The fast Cholesky or QR algorithms
+  are more efficient, but the accuracy could diminish by forming the
+  correlation matrix.
+                                     2
+  The QR algorithm needs 0(t(2(m+l)s) ) floating point operations.
+                                        2              3
+  The Cholesky algorithm needs 0(2t(m+l) s)+0((2(m+l)s) ) floating
+  point operations.
+                                       2           3 2
+  The fast QR algorithm needs 0(2t(m+l) s)+0(4(m+l) s ) floating
+  point operations.
+
+</PRE>
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  For ALG = 'Q', BATCH = 'O' and LDR &lt; NS, or BATCH &lt;&gt; 'O', the
+  calculations could be rather inefficient if only minimal workspace
+  (see argument LDWORK) is provided. It is advisable to provide as
+  much workspace as possible. Almost optimal efficiency can be
+  obtained for  LDWORK = (NS+2)*(2*(M+L)*NOBR),  assuming that the
+  cache size is large enough to accommodate R, U, Y, and DWORK.
+
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

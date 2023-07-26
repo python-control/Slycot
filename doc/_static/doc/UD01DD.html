@@ -1,0 +1,176 @@
+<HTML>
+<HEAD><TITLE>UD01DD - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="UD01DD">UD01DD</A></H2>
+<H3>
+Reading a sparse real matrix
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To read the elements of a sparse matrix.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE UD01DD( M, N, NIN, A, LDA, INFO )
+C     .. Scalar Arguments ..
+      INTEGER           INFO, LDA, M, N, NIN
+C     .. Array Arguments ..
+      DOUBLE PRECISION  A(LDA,*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  M       (input) INTEGER
+          The number of rows of the matrix A.  M &gt;= 0.
+
+  N       (input) INTEGER
+          The number of columns of the matrix A.  N &gt;= 0.
+
+  NIN     (input) INTEGER
+          The input channel from which the elements of A are read.
+          NIN &gt;= 0.
+
+  A       (output) DOUBLE PRECISION array, dimension (LDA,N)
+          The leading M-by-N part of this array contains the sparse
+          matrix A. The not assigned elements are set to zero.
+
+  LDA     INTEGER
+          The leading dimension of array A.  LDA &gt;= MAX(1,M).
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value;
+          = 1 : if a row index i is read with i &lt; 1 or i &gt; M or
+                a column index j is read with j &lt; 1 or j &gt; N.
+                This is a warning.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  First, the elements A(i,j) with 1 &lt;= i &lt;= M and 1 &lt;= j &lt;= N are
+  set to zero. Next the nonzero elements are read from the input
+  file NIN. Each line of NIN must contain consecutively the values
+  i, j, A(i,j). The routine terminates after the last line has been
+  read.
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  None.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  None.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+*     UD01DD EXAMPLE PROGRAM TEXT
+*
+*     .. Parameters ..
+      INTEGER          NIN, NOUT
+      PARAMETER        ( NIN = 5, NOUT = 6 )
+      INTEGER          MMAX, NMAX
+      PARAMETER        ( MMAX = 10, NMAX = 10 )
+      INTEGER          LDA
+      PARAMETER        ( LDA = NMAX )
+*     .. Local Scalars ..
+      INTEGER          INFO, INFO1, M, N
+*     .. Local Arrays ..
+      DOUBLE PRECISION A(LDA,NMAX)
+*     .. External Subroutines ..
+      EXTERNAL         UD01DD, UD01MD
+*     .. Executable Statements ..
+*
+      WRITE ( NOUT, FMT = 99999 )
+*     Skip the heading in the data file and read the data.
+      READ ( NIN, FMT = '()' )
+      READ ( NIN, FMT = * ) M, N
+      IF ( M.LT.0 .OR. M.GT.MMAX ) THEN
+         WRITE ( NOUT, FMT = 99994 ) M
+      ELSE IF ( N.LT.0 .OR. N.GT.NMAX ) THEN
+         WRITE ( NOUT, FMT = 99995 ) N
+      ELSE
+*        Read the coefficients of the matrix polynomial P(s).
+         CALL UD01DD( M, N, NIN, A, LDA, INFO )
+         IF ( INFO.GE.0 ) THEN
+*           Write the matrix A.
+            CALL UD01MD( M, N, 5, NOUT, A, LDA, ' Matrix A', INFO1 )
+            IF ( INFO1.NE.0 )
+     $         WRITE ( NOUT, FMT = 99998 ) INFO1
+         END IF
+         IF ( INFO.NE.0 )
+     $      WRITE ( NOUT, FMT = 99997 ) INFO
+      END IF
+      STOP
+*
+99999 FORMAT (' UD01DD EXAMPLE PROGRAM RESULTS', /1X)
+99998 FORMAT (' INFO on exit from UD01MD = ',I2)
+99997 FORMAT (' INFO on exit from UD01DD = ',I2)
+99995 FORMAT (/' N is out of range.',/' N = ',I5)
+99994 FORMAT (/' M is out of range.',/' M = ',I5)
+      END
+</PRE>
+<B>Program Data</B>
+<PRE>
+UD01DD EXAMPLE PROGRAM DATA
+6  5
+1   1   -1.1
+6   1    1.5
+2   2   -2.2
+6   2    2.5
+3   3   -3.3
+6   3    3.5
+4   4   -4.4
+6   4    4.5
+5   5   -5.5
+6   5    5.5
+</PRE>
+<B>Program Results</B>
+<PRE>
+ UD01DD EXAMPLE PROGRAM RESULTS
+
+  Matrix A ( 6X 5)
+
+            1              2              3              4              5
+  1   -0.1100000D+01  0.0000000D+00  0.0000000D+00  0.0000000D+00  0.0000000D+00
+  2    0.0000000D+00 -0.2200000D+01  0.0000000D+00  0.0000000D+00  0.0000000D+00
+  3    0.0000000D+00  0.0000000D+00 -0.3300000D+01  0.0000000D+00  0.0000000D+00
+  4    0.0000000D+00  0.0000000D+00  0.0000000D+00 -0.4400000D+01  0.0000000D+00
+  5    0.0000000D+00  0.0000000D+00  0.0000000D+00  0.0000000D+00 -0.5500000D+01
+  6    0.1500000D+01  0.2500000D+01  0.3500000D+01  0.4500000D+01  0.5500000D+01
+ 
+</PRE>
+
+<HR>
+<p>
+<A HREF=..\libindex.html><B>Return to index</B></A></BODY>
+</HTML>

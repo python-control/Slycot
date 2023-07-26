@@ -1,0 +1,249 @@
+<HTML>
+<HEAD><TITLE>MC01QD - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MC01QD">MC01QD</A></H2>
+<H3>
+Quotient and remainder polynomials for polynomial division
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To compute, for two given real polynomials A(x) and B(x), the
+  quotient polynomial Q(x) and the remainder polynomial R(x) of
+  A(x) divided by B(x).
+
+  The polynomials Q(x) and R(x) satisfy the relationship
+
+     A(x) = B(x) * Q(x) + R(x),
+
+  where the degree of R(x) is less than the degree of B(x).
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MC01QD( DA, DB, A, B, RQ, IWARN, INFO )
+C     .. Scalar Arguments ..
+      INTEGER           DA, DB, INFO, IWARN
+C     .. Array Arguments ..
+      DOUBLE PRECISION  A(*), B(*), RQ(*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  DA      (input) INTEGER
+          The degree of the numerator polynomial A(x).  DA &gt;= -1.
+
+  DB      (input/output) INTEGER
+          On entry, the degree of the denominator polynomial B(x).
+          DB &gt;= 0.
+          On exit, if B(DB+1) = 0.0 on entry, then DB contains the
+          index of the highest power of x for which B(DB+1) &lt;&gt; 0.0.
+
+  A       (input) DOUBLE PRECISION array, dimension (DA+1)
+          This array must contain the coefficients of the
+          numerator polynomial A(x) in increasing powers of x
+          unless DA = -1 on entry, in which case A(x) is taken
+          to be the zero polynomial.
+
+  B       (input) DOUBLE PRECISION array, dimension (DB+1)
+          This array must contain the coefficients of the
+          denominator polynomial B(x) in increasing powers of x.
+
+  RQ      (output) DOUBLE PRECISION array, dimension (DA+1)
+          If DA &lt; DB on exit, then this array contains the
+          coefficients of the remainder polynomial R(x) in
+          increasing powers of x; Q(x) is the zero polynomial.
+          Otherwise, the leading DB elements of this array contain
+          the coefficients of R(x) in increasing powers of x, and
+          the next (DA-DB+1) elements contain the coefficients of
+          Q(x) in increasing powers of x.
+
+</PRE>
+<B>Warning Indicator</B>
+<PRE>
+  IWARN   INTEGER
+          = 0:  no warning;
+          = k:  if the degree of the denominator polynomial B(x) has
+                been reduced to (DB - k) because B(DB+1-j) = 0.0 on
+                entry for j = 0, 1, ..., k-1 and B(DB+1-k) &lt;&gt; 0.0.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value;
+          = 1:  if on entry, DB &gt;= 0 and B(i) = 0.0, where
+                i = 1, 2, ..., DB+1.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  Given real polynomials
+                                               DA
+     A(x) = a(1) + a(2) * x + ... + a(DA+1) * x
+
+  and
+                                               DB
+     B(x) = b(1) + b(2) * x + ... + b(DB+1) * x
+
+  where b(DB+1) is non-zero, the routine computes the coeffcients of
+  the quotient polynomial
+                                                  DA-DB
+     Q(x) = q(1) + q(2) * x + ... + q(DA-DB+1) * x
+
+  and the remainder polynomial
+                                             DB-1
+     R(x) = r(1) + r(2) * x + ... + r(DB) * x
+
+  such that A(x) = B(x) * Q(x) + R(x).
+
+  The algorithm used is synthetic division of polynomials (see [1]),
+  which involves the following steps:
+
+     (a) compute q(k+1) = a(DB+k+1) / b(DB+1)
+
+  and
+
+     (b) set a(j) = a(j) - q(k+1) * b(j-k) for j = k+1, ..., DB+k.
+
+  Steps (a) and (b) are performed for k = DA-DB, DA-DB-1, ..., 0 and
+  the algorithm terminates with r(i) = a(i) for i = 1, 2, ..., DB.
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Knuth, D.E.
+      The Art of Computer Programming, (Vol. 2, Seminumerical
+      Algorithms).
+      Addison-Wesley, Reading, Massachusetts (2nd Edition), 1981.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  None.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+*     MC01QD EXAMPLE PROGRAM TEXT
+*
+*     .. Parameters ..
+      INTEGER          NIN, NOUT
+      PARAMETER        ( NIN = 5, NOUT = 6 )
+      INTEGER          DAMAX, DBMAX
+      PARAMETER        ( DAMAX = 10, DBMAX = 10 )
+*     .. Local Scalars ..
+      INTEGER          DA, DB, DBB, DQ, DR, I, IMAX, INFO, IWARN
+*     .. Local Arrays ..
+      DOUBLE PRECISION A(DAMAX+1), B(DBMAX+1), RQ(DAMAX+1)
+*     .. External Subroutines ..
+      EXTERNAL         MC01QD
+*     .. Executable Statements ..
+*
+      WRITE ( NOUT, FMT = 99999 )
+*     Skip the heading in the data file and read the data.
+      READ ( NIN, FMT = '()' )
+      READ ( NIN, FMT = * ) DA
+      IF ( DA.LE.-2 .OR. DA.GT.DAMAX ) THEN
+         WRITE ( NOUT, FMT = 99991 ) DA
+      ELSE
+         READ ( NIN, FMT = * ) ( A(I), I = 1,DA+1 )
+         READ ( NIN, FMT = * ) DB
+         DBB = DB
+         IF ( DB.LE.-1 .OR. DB.GT.DBMAX ) THEN
+            WRITE ( NOUT, FMT = 99990 ) DB
+         ELSE
+            READ ( NIN, FMT = * ) ( B(I), I = 1,DB+1 )
+*           Compute Q(x) and R(x) from the given A(x) and B(x).
+            CALL MC01QD( DA, DB, A, B, RQ, IWARN, INFO )
+*
+            IF ( INFO.NE.0 ) THEN
+               WRITE ( NOUT, FMT = 99998 ) INFO
+            ELSE
+               IF ( IWARN.NE.0 ) THEN
+                  WRITE ( NOUT, FMT = 99997 ) IWARN
+                  WRITE ( NOUT, FMT = 99996 ) DBB, DB
+               END IF
+               WRITE ( NOUT, FMT = 99995 )
+               DQ = DA - DB
+               DR = DB - 1
+               IMAX = DQ
+               IF ( DR.GT.IMAX ) IMAX = DR
+               DO 20 I = 0, IMAX
+                  IF ( I.LE.DQ .AND. I.LE.DR ) THEN
+                     WRITE ( NOUT, FMT = 99994 ) I, RQ(DB+I+1), RQ(I+1)
+                  ELSE IF ( I.LE.DQ ) THEN
+                     WRITE ( NOUT, FMT = 99993 ) I, RQ(DB+I+1)
+                  ELSE
+                     WRITE ( NOUT, FMT = 99992 ) I, RQ(I+1)
+                  END IF
+   20          CONTINUE
+            END IF
+         END IF
+      END IF
+*
+      STOP
+*
+99999 FORMAT (' MC01QD EXAMPLE PROGRAM RESULTS',/1X)
+99998 FORMAT (' INFO on exit from MC01QD = ',I2)
+99997 FORMAT (' IWARN on exit from MC01QD = ',I2,/)
+99996 FORMAT (' The degree of the denominator polynomial B(x) has been',
+     $       ' reduced from ',I2,' to ',I2,/)
+99995 FORMAT (' The coefficients of the polynomials Q(x) and R(x) are ',
+     $       //'                    Q(x)            R(x) ',/' power of',
+     $       ' x     coefficient     coefficient ')
+99994 FORMAT (2X,I5,9X,F9.4,7X,F9.4)
+99993 FORMAT (2X,I5,9X,F9.4)
+99992 FORMAT (2X,I5,25X,F9.4)
+99991 FORMAT (/' DA is out of range.',/' DA = ',I5)
+99990 FORMAT (/' DB is out of range.',/' DB = ',I5)
+      END
+</PRE>
+<B>Program Data</B>
+<PRE>
+ MC01QD EXAMPLE PROGRAM DATA
+   4
+   2.0  2.0  -1.0  2.0  1.0
+   2
+   1.0  -1.0  1.0
+</PRE>
+<B>Program Results</B>
+<PRE>
+ MC01QD EXAMPLE PROGRAM RESULTS
+
+ The coefficients of the polynomials Q(x) and R(x) are 
+
+                    Q(x)            R(x) 
+ power of x     coefficient     coefficient 
+      0            1.0000          1.0000
+      1            3.0000          0.0000
+      2            1.0000
+</PRE>
+
+<HR>
+<p>
+<A HREF=..\libindex.html><B>Return to index</B></A></BODY>
+</HTML>

@@ -1,0 +1,223 @@
+<HTML>
+<HEAD><TITLE>SB10VD - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="SB10VD">SB10VD</A></H2>
+<H3>
+State feedback and output injection matrices for an H2 optimal state controller (continuous-time)
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To compute the state feedback and the output injection
+  matrices for an H2 optimal n-state controller for the system
+
+                | A  | B1  B2  |   | A | B |
+            P = |----|---------| = |---|---|
+                | C1 |  0  D12 |   | C | D |
+                | C2 | D21 D22 |
+
+  where B2 has as column size the number of control inputs (NCON)
+  and C2 has as row size the number of measurements (NMEAS) being
+  provided to the controller.
+
+  It is assumed that
+
+  (A1) (A,B2) is stabilizable and (C2,A) is detectable,
+
+  (A2) D12 is full column rank with D12 = | 0 | and D21 is
+                                          | I |
+       full row rank with D21 = | 0 I | as obtained by the
+       SLICOT Library routine SB10UD. Matrix D is not used
+       explicitly.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE SB10VD( N, M, NP, NCON, NMEAS, A, LDA, B, LDB, C, LDC,
+     $                   F, LDF, H, LDH, X, LDX, Y, LDY, XYCOND, IWORK,
+     $                   DWORK, LDWORK, BWORK, INFO )
+C     .. Scalar Arguments ..
+      INTEGER            INFO, LDA, LDB, LDC, LDF, LDH, LDWORK, LDX,
+     $                   LDY, M, N, NCON, NMEAS, NP
+C     .. Array Arguments ..
+      LOGICAL            BWORK( * )
+      INTEGER            IWORK( * )
+      DOUBLE PRECISION   A( LDA, * ), B( LDB, * ), C( LDC, * ),
+     $                   DWORK( * ),  F( LDF, * ), H( LDH, * ),
+     $                   X( LDX, * ), XYCOND( 2 ), Y( LDY, * )
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The order of the system.  N &gt;= 0.
+
+  M       (input) INTEGER
+          The column size of the matrix B.  M &gt;= 0.
+
+  NP      (input) INTEGER
+          The row size of the matrix C.  NP &gt;= 0.
+
+  NCON    (input) INTEGER
+          The number of control inputs (M2).  M &gt;= NCON &gt;= 0,
+          NP-NMEAS &gt;= NCON.
+
+  NMEAS   (input) INTEGER
+          The number of measurements (NP2).  NP &gt;= NMEAS &gt;= 0,
+          M-NCON &gt;= NMEAS.
+
+  A       (input) DOUBLE PRECISION array, dimension (LDA,N)
+          The leading N-by-N part of this array must contain the
+          system state matrix A.
+
+  LDA     INTEGER
+          The leading dimension of the array A.  LDA &gt;= max(1,N).
+
+  B       (input) DOUBLE PRECISION array, dimension (LDB,M)
+          The leading N-by-M part of this array must contain the
+          system input matrix B.
+
+  LDB     INTEGER
+          The leading dimension of the array B.  LDB &gt;= max(1,N).
+
+  C       (input) DOUBLE PRECISION array, dimension (LDC,N)
+          The leading NP-by-N part of this array must contain the
+          system output matrix C.
+
+  LDC     INTEGER
+          The leading dimension of the array C.  LDC &gt;= max(1,NP).
+
+  F       (output) DOUBLE PRECISION array, dimension (LDF,N)
+          The leading NCON-by-N part of this array contains the
+          state feedback matrix F.
+
+  LDF     INTEGER
+          The leading dimension of the array F.  LDF &gt;= max(1,NCON).
+
+  H       (output) DOUBLE PRECISION array, dimension (LDH,NMEAS)
+          The leading N-by-NMEAS part of this array contains the
+          output injection matrix H.
+
+  LDH     INTEGER
+          The leading dimension of the array H.  LDH &gt;= max(1,N).
+
+  X       (output) DOUBLE PRECISION array, dimension (LDX,N)
+          The leading N-by-N part of this array contains the matrix
+          X, solution of the X-Riccati equation.
+
+  LDX     INTEGER
+          The leading dimension of the array X.  LDX &gt;= max(1,N).
+
+  Y       (output) DOUBLE PRECISION array, dimension (LDY,N)
+          The leading N-by-N part of this array contains the matrix
+          Y, solution of the Y-Riccati equation.
+
+  LDY     INTEGER
+          The leading dimension of the array Y.  LDY &gt;= max(1,N).
+
+  XYCOND  (output) DOUBLE PRECISION array, dimension (2)
+          XYCOND(1) contains an estimate of the reciprocal condition
+                    number of the X-Riccati equation;
+          XYCOND(2) contains an estimate of the reciprocal condition
+                    number of the Y-Riccati equation.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  IWORK   INTEGER array, dimension (max(2*N,N*N))
+
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+          On exit, if INFO = 0, DWORK(1) contains the optimal
+          LDWORK.
+
+  LDWORK  INTEGER
+          The dimension of the array DWORK.
+          LDWORK &gt;= 13*N*N + 12*N + 5.
+          For good performance, LDWORK must generally be larger.
+
+  BWORK   LOGICAL array, dimension (2*N)
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value;
+          = 1:  if the X-Riccati equation was not solved
+                successfully;
+          = 2:  if the Y-Riccati equation was not solved
+                successfully.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  The routine implements the formulas given in [1], [2]. The X-
+  and Y-Riccati equations are solved with condition and accuracy
+  estimates [3].
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Zhou, K., Doyle, J.C., and Glover, K.
+      Robust and Optimal Control.
+      Prentice-Hall, Upper Saddle River, NJ, 1996.
+
+  [2] Balas, G.J., Doyle, J.C., Glover, K., Packard, A., and
+      Smith, R.
+      mu-Analysis and Synthesis Toolbox.
+      The MathWorks Inc., Natick, Mass., 1995.
+
+  [3] Petkov, P.Hr., Konstantinov, M.M., and Mehrmann, V.
+      DGRSVX and DMSRIC: Fortan 77 subroutines for solving
+      continuous-time matrix algebraic Riccati equations with
+      condition and accuracy estimates.
+      Preprint SFB393/98-16, Fak. f. Mathematik, Tech. Univ.
+      Chemnitz, May 1998.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  The precision of the solution of the matrix Riccati equations
+  can be controlled by the values of the condition numbers
+  XYCOND(1) and XYCOND(2) of these equations.
+
+</PRE>
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  The Riccati equations are solved by the Schur approach
+  implementing condition and accuracy estimates.
+
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

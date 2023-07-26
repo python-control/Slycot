@@ -1,0 +1,205 @@
+<HTML>
+<HEAD><TITLE>DG01MD - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="DG01MD">DG01MD</A></H2>
+<H3>
+Discrete Fourier transform, or inverse transform, of a complex signal
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To compute the discrete Fourier transform, or inverse transform,
+  of a complex signal.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE DG01MD( INDI, N, XR, XI, INFO )
+C     .. Scalar Arguments ..
+      CHARACTER         INDI
+      INTEGER           INFO, N
+C     .. Array Arguments ..
+      DOUBLE PRECISION  XI(*), XR(*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  INDI    CHARACTER*1
+          Indicates whether a Fourier transform or inverse Fourier
+          transform is to be performed as follows:
+          = 'D':  (Direct) Fourier transform;
+          = 'I':  Inverse Fourier transform.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The number of complex samples.  N must be a power of 2.
+          N &gt;= 2.
+
+  XR      (input/output) DOUBLE PRECISION array, dimension (N)
+          On entry, this array must contain the real part of either
+          the complex signal z if INDI = 'D', or f(z) if INDI = 'I'.
+          On exit, this array contains either the real part of the
+          computed Fourier transform f(z) if INDI = 'D', or the
+          inverse Fourier transform z of f(z) if INDI = 'I'.
+
+  XI      (input/output) DOUBLE PRECISION array, dimension (N)
+          On entry, this array must contain the imaginary part of
+          either z if INDI = 'D', or f(z) if INDI = 'I'.
+          On exit, this array contains either the imaginary part of
+          f(z) if INDI = 'D', or z if INDI = 'I'.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  If INDI = 'D', then the routine performs a discrete Fourier
+  transform on the complex signal Z(i), i = 1,2,...,N. If the result
+  is denoted by FZ(k), k = 1,2,...,N, then the relationship between
+  Z and FZ is given by the formula:
+
+                  N            ((k-1)*(i-1))
+         FZ(k) = SUM ( Z(i) * V              ),
+                 i=1
+                                  2
+  where V = exp( -2*pi*j/N ) and j  = -1.
+
+  If INDI = 'I', then the routine performs an inverse discrete
+  Fourier transform on the complex signal FZ(k), k = 1,2,...,N. If
+  the result is denoted by Z(i), i = 1,2,...,N, then the
+  relationship between Z and FZ is given by the formula:
+
+                 N             ((k-1)*(i-1))
+         Z(i) = SUM ( FZ(k) * W              ),
+                k=1
+
+  where W = exp( 2*pi*j/N ).
+
+  Note that a discrete Fourier transform, followed by an inverse
+  discrete Fourier transform, will result in a signal which is a
+  factor N larger than the original input signal.
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Rabiner, L.R. and Rader, C.M.
+      Digital Signal Processing.
+      IEEE Press, 1972.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  The algorithm requires 0( N*log(N) ) operations.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+*     DG01MD EXAMPLE PROGRAM TEXT
+*
+*     .. Parameters ..
+      INTEGER          NIN, NOUT
+      PARAMETER        ( NIN = 5, NOUT = 6 )
+      INTEGER          NMAX
+      PARAMETER        ( NMAX = 128 )
+*     .. Local Scalars ..
+      INTEGER          I, INFO, N
+      CHARACTER*1      INDI
+*     .. Local Arrays ..
+      DOUBLE PRECISION XI(NMAX), XR(NMAX)
+*     .. External Subroutines ..
+      EXTERNAL         DG01MD
+*     .. Executable Statements ..
+*
+      WRITE ( NOUT, FMT = 99999 )
+*     Skip the heading in the data file and read the data.
+      READ ( NIN, FMT = '()' )
+      READ ( NIN, FMT = * ) N, INDI
+      IF ( N.LE.0 .OR. N.GT.NMAX ) THEN
+         WRITE ( NOUT, FMT = 99995 ) N
+      ELSE
+         READ ( NIN, FMT = * ) ( XR(I), XI(I), I = 1,N )
+*        Find the Fourier transform of the given complex signal.
+         CALL DG01MD( INDI, N, XR, XI, INFO )
+*
+         IF ( INFO.NE.0 ) THEN
+            WRITE ( NOUT, FMT = 99998 ) INFO
+         ELSE
+            WRITE ( NOUT, FMT = 99997 )
+            DO 20 I = 1, N
+               WRITE ( NOUT, FMT = 99996 ) I, XR(I), XI(I)
+   20       CONTINUE
+         END IF
+      END IF
+      STOP
+*
+99999 FORMAT (' DG01MD EXAMPLE PROGRAM RESULTS',/1X)
+99998 FORMAT (' INFO on exit from DG01MD = ',I2)
+99997 FORMAT (' Components of Fourier transform are',//'   i',6X,
+     $       'XR(i)',6X,'XI(i)',/)
+99996 FORMAT (I4,3X,F8.4,3X,F8.4)
+99995 FORMAT (/' N is out of range.',/' N = ',I5)
+      END
+</PRE>
+<B>Program Data</B>
+<PRE>
+ DG01MD EXAMPLE PROGRAM DATA
+   8     D
+  -0.1862   0.1288
+   0.3948   0.0671
+   0.6788  -0.2417
+   0.1861   0.8875
+   0.7254   0.9380
+   0.5815  -0.2682
+   0.4904   0.9312
+  -0.9599  -0.3116
+</PRE>
+<B>Program Results</B>
+<PRE>
+ DG01MD EXAMPLE PROGRAM RESULTS
+
+ Components of Fourier transform are
+
+   i      XR(i)      XI(i)
+
+   1     1.9109     2.1311
+   2    -1.9419    -2.2867
+   3    -1.4070    -1.3728
+   4     2.2886    -0.6883
+   5     1.5059     1.3815
+   6    -2.2271     0.2915
+   7     0.1470     2.1274
+   8    -1.7660    -0.5533
+</PRE>
+
+<HR>
+<p>
+<A HREF=..\libindex.html><B>Return to index</B></A></BODY>
+</HTML>

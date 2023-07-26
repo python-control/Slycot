@@ -1,0 +1,185 @@
+<HTML>
+<HEAD><TITLE>NF01BY - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="NF01BY">NF01BY</A></H2>
+<H3>
+Computing the Jacobian of the error function for a neural network (one output variable)
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To compute the Jacobian of the error function for a neural network
+  of the structure
+
+          - tanh(w1*z+b1) -
+        /      :            \
+      z ---    :          --- sum(ws(i)*...)+ b(n+1)  --- y,
+        \      :            /
+          - tanh(wn*z+bn) -
+
+  for the single-output case. The Jacobian has the form
+
+             d e(1)  / d WB(1)   ...    d e(1)  / d WB(NWB)
+      J =            :                          :           ,
+           d e(NSMP) / d WB(1)   ...  d e(NSMP) / d WB(NWB)
+
+  where e(z) is the error function, WB is the set of weights and
+  biases of the network (for the considered output), and NWB is
+  the number of elements of this set, NWB = IPAR(1)*(NZ+2)+1
+  (see below).
+
+  In the multi-output case, this routine should be called for each
+  output.
+
+  NOTE: this routine must have the same arguments as SLICOT Library
+  routine NF01BD.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE NF01BY( CJTE, NSMP, NZ, L, IPAR, LIPAR, WB, LWB, Z,
+     $                   LDZ, E, J, LDJ, JTE, DWORK, LDWORK, INFO )
+C     .. Scalar Arguments ..
+      CHARACTER         CJTE
+      INTEGER           INFO, L, LDJ, LDWORK, LDZ, LIPAR, LWB, NSMP, NZ
+C     .. Array Arguments ..
+      DOUBLE PRECISION  DWORK(*), E(*), J(LDJ,*), JTE(*), WB(*),
+     $                  Z(LDZ,*)
+      INTEGER           IPAR(*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  CJTE    CHARACTER*1
+          Specifies whether the matrix-vector product J'*e should be
+          computed or not, as follows:
+          = 'C' :  compute J'*e;
+          = 'N' :  do not compute J'*e.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  NSMP    (input) INTEGER
+          The number of training samples.  NSMP &gt;= 0.
+
+  NZ      (input) INTEGER
+          The length of each input sample.  NZ &gt;= 0.
+
+  L       (input) INTEGER
+          The length of each output sample.
+          Currently, L must be 1.
+
+  IPAR    (input/output) INTEGER array, dimension (LIPAR)
+          The integer parameters needed.
+          On entry, the first element of this array must contain
+          a value related to the number of neurons, n; specifically,
+          n = abs(IPAR(1)), since setting IPAR(1) &lt; 0 has a special
+          meaning (see below).
+          On exit, if IPAR(1) &lt; 0 on entry, then no computations are
+          performed, except the needed tests on input parameters,
+          but the following values are returned:
+          IPAR(1) contains the length of the array J, LJ;
+          LDJ     contains the leading dimension of array J.
+          Otherwise, IPAR(1) and LDJ are unchanged on exit.
+
+  LIPAR   (input) INTEGER
+          The length of the vector IPAR.  LIPAR &gt;= 1.
+
+  WB      (input) DOUBLE PRECISION array, dimension (LWB)
+          The leading NWB = IPAR(1)*(NZ+2)+1 part of this array
+          must contain the weights and biases of the network,
+          WB = ( w(1,1), ..., w(1,NZ), ..., w(n,1), ...,  w(n,NZ),
+                 ws(1), ..., ws(n), b(1), ..., b(n+1) ),
+          where w(i,j) are the weights of the hidden layer,
+          ws(i) are the weights of the linear output layer and
+          b(i) are the biases.
+
+  LWB     (input) INTEGER
+          The length of array WB.  LWB &gt;= NWB.
+
+  Z       (input) DOUBLE PRECISION array, dimension (LDZ, NZ)
+          The leading NSMP-by-NZ part of this array must contain the
+          set of input samples,
+          Z = ( Z(1,1),...,Z(1,NZ); ...; Z(NSMP,1),...,Z(NSMP,NZ) ).
+
+  LDZ     INTEGER
+          The leading dimension of array Z.  LDZ &gt;= MAX(1,NSMP).
+
+  E       (input) DOUBLE PRECISION array, dimension (NSMP)
+          If CJTE = 'C', this array must contain the error vector e.
+          If CJTE = 'N', this array is not referenced.
+
+  J       (output) DOUBLE PRECISION array, dimension (LDJ, NWB)
+          The leading NSMP-by-NWB part of this array contains the
+          Jacobian of the error function.
+
+  LDJ     INTEGER
+          The leading dimension of array J.  LDJ &gt;= MAX(1,NSMP).
+          Note that LDJ is an input parameter, except for
+          IPAR(1) &lt; 0 on entry, when it is an output parameter.
+
+  JTE     (output) DOUBLE PRECISION array, dimension (NWB)
+          If CJTE = 'C', this array contains the matrix-vector
+          product J'*e.
+          If CJTE = 'N', this array is not referenced.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+          This argument is included for combatibility with SLICOT
+          Library routine NF01BD.
+
+  LDWORK  INTEGER
+          Normally, the length of the array DWORK.  LDWORK &gt;= 0.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  The Jacobian is computed analytically.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

@@ -1,0 +1,260 @@
+<HTML>
+<HEAD><TITLE>TG01BD - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="TG01BD">TG01BD</A></H2>
+<H3>
+Orthogonal reduction of a descriptor system to the generalized Hessenberg form
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To reduce the matrices A and E of the system pencil
+
+          S =  ( A  B ) - lambda ( E  0 ) ,
+               ( C  0 )          ( 0  0 )
+
+  corresponding to the descriptor triple (A-lambda E,B,C),
+  to generalized upper Hessenberg form using orthogonal
+  transformations,
+
+       Q' * A * Z = H,   Q' * E * Z = T,
+
+  where H is upper Hessenberg, T is upper triangular, Q and Z
+  are orthogonal, and ' means transpose. The corresponding
+  transformations, written compactly as diag(Q',I) * S * diag(Z,I),
+  are also applied to B and C, getting Q' * B and C * Z.
+
+  The orthogonal matrices Q and Z are determined as products of
+  Givens rotations. They may either be formed explicitly, or they
+  may be postmultiplied into input matrices Q1 and Z1, so that
+
+       Q1 * A * Z1' = (Q1*Q) * H * (Z1*Z)'
+       Q1 * E * Z1' = (Q1*Q) * T * (Z1*Z)'.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE TG01BD( JOBE, COMPQ, COMPZ, N, M, P, ILO, IHI, A, LDA,
+     $                   E, LDE, B, LDB, C, LDC, Q, LDQ, Z, LDZ, DWORK,
+     $                   LDWORK, INFO )
+C     .. Scalar Arguments ..
+      CHARACTER          COMPQ, COMPZ, JOBE
+      INTEGER            IHI, ILO, INFO, LDA, LDB, LDC, LDE, LDQ,
+     $                   LDWORK, LDZ, M, N, P
+C     .. Array Arguments ..
+      DOUBLE PRECISION   A( LDA, * ), B( LDB, * ), C( LDC, * ),
+     $                   DWORK(  * ), E( LDE, * ), Q( LDQ, * ),
+     $                   Z( LDZ, * )
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  JOBE    CHARACTER*1
+          Specifies whether E is a general square or an upper
+          triangular matrix, as follows:
+          = 'G':  E is a general square matrix;
+          = 'U':  E is an upper triangular matrix.
+
+  COMPQ   CHARACTER*1
+          Indicates what should be done with matrix Q, as follows:
+          = 'N':  do not compute Q;
+          = 'I':  Q is initialized to the unit matrix, and the
+                  orthogonal matrix Q is returned;
+          = 'V':  Q must contain an orthogonal matrix Q1 on entry,
+                  and the product Q1*Q is returned.
+
+  COMPZ   CHARACTER*1
+          Indicates what should be done with matrix Z, as follows:
+          = 'N':  do not compute Z;
+          = 'I':  Z is initialized to the unit matrix, and the
+                  orthogonal matrix Z is returned;
+          = 'V':  Z must contain an orthogonal matrix Z1 on entry,
+                  and the product Z1*Z is returned.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The order of the matrices A, E, and the number of rows of
+          the matrix B.  N &gt;= 0.
+
+  M       (input) INTEGER
+          The number of columns of the matrix B.  M &gt;= 0.
+
+  P       (input) INTEGER
+          The number of rows of the matrix C.  P &gt;= 0.
+
+  ILO     (input) INTEGER
+  IHI     (input) INTEGER
+          It is assumed that A and E are already upper triangular in
+          rows and columns 1:ILO-1 and IHI+1:N.  ILO and IHI could
+          normally be set by a previous call to LAPACK Library
+          routine DGGBAL; otherwise they should be set to 1 and N,
+          respectively.
+          1 &lt;= ILO &lt;= IHI &lt;= N, if N &gt; 0; ILO=1 and IHI=0, if N=0.
+          If JOBE = 'U', the matrix E is assumed upper triangular.
+
+  A       (input/output) DOUBLE PRECISION array, dimension (LDA,N)
+          On entry, the leading N-by-N part of this array must
+          contain the state dynamics matrix A.
+          On exit, the leading N-by-N part of this array contains
+          the upper Hessenberg matrix H = Q' * A * Z. The elements
+          below the first subdiagonal are set to zero.
+
+  LDA     INTEGER
+          The leading dimension of array A.  LDA &gt;= MAX(1,N).
+
+  E       (input/output) DOUBLE PRECISION array, dimension (LDE,N)
+          On entry, the leading N-by-N part of this array must
+          contain the descriptor matrix E. If JOBE = 'U', this
+          matrix is assumed upper triangular.
+          On exit, the leading N-by-N part of this array contains
+          the upper triangular matrix T = Q' * E * Z. The elements
+          below the diagonal are set to zero.
+
+  LDE     INTEGER
+          The leading dimension of array E.  LDE &gt;= MAX(1,N).
+
+  B       (input/output) DOUBLE PRECISION array, dimension (LDB,M)
+          On entry, the leading N-by-M part of this array must
+          contain the input/state matrix B.
+          On exit, if M &gt; 0, the leading N-by-M part of this array
+          contains the transformed matrix Q' * B.
+          The array B is not referenced if M = 0.
+
+  LDB     INTEGER
+          The leading dimension of array B.
+          LDB &gt;= MAX(1,N) if M &gt; 0;  LDB &gt;= 1 if M = 0.
+
+  C       (input/output) DOUBLE PRECISION array, dimension (LDC,N)
+          On entry, the leading P-by-N part of this array must
+          contain the state/output matrix C.
+          On exit, if P &gt; 0, the leading P-by-N part of this array
+          contains the transformed matrix C * Z.
+          The array C is not referenced if P = 0.
+
+  LDC     INTEGER
+          The leading dimension of array C.  LDC &gt;= MAX(1,P).
+
+  Q       (input/output) DOUBLE PRECISION array, dimension (LDQ,N)
+          If COMPQ = 'N':  Q is not referenced;
+          If COMPQ = 'I':  on entry, Q need not be set, and on exit
+                           it contains the orthogonal matrix Q,
+                           where Q' is the product of the Givens
+                           transformations which are applied to A,
+                           E, and B on the left;
+          If COMPQ = 'V':  on entry, Q must contain an orthogonal
+                           matrix Q1, and on exit this is
+                           overwritten by Q1*Q.
+
+  LDQ     INTEGER
+          The leading dimension of array Q.
+          LDQ &gt;= 1,        if COMPQ = 'N';
+          LDQ &gt;= MAX(1,N), if COMPQ = 'I' or 'V'.
+
+  Z       (input/output) DOUBLE PRECISION array, dimension (LDZ,N)
+          If COMPZ = 'N':  Z is not referenced;
+          If COMPZ = 'I':  on entry, Z need not be set, and on exit
+                           it contains the orthogonal matrix Z,
+                           which is the product of the Givens
+                           transformations applied to A, E, and C
+                           on the right;
+          If COMPZ = 'V':  on entry, Z must contain an orthogonal
+                           matrix Z1, and on exit this is
+                           overwritten by Z1*Z.
+
+  LDZ     INTEGER
+          The leading dimension of array Z.
+          LDZ &gt;= 1,        if COMPZ = 'N';
+          LDZ &gt;= MAX(1,N), if COMPZ = 'I' or 'V'.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+          On exit, if INFO = 0, DWORK(1) contains the optimal value
+          of LDWORK.
+
+  LDWORK  INTEGER
+          The dimension of the array DWORK.
+          LDWORK &gt;= 1,                          if JOBE = 'U';
+          LDWORK &gt;= MAX(1,IHI+1-ILO+MAX(NI,M)), if JOBE = 'G', where
+          NI = N+1-ILO, if COMPQ = 'N', and NI = N, otherwise.
+          For good performance, if JOBE = 'G', LDWORK must generally
+          be larger, LDWORK &gt;= MAX(1,IHI+1-ILO+MAX(NI,M)*NB), where
+          NB is the optimal block size.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit.
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  First, this routine computes the QR factorization of E and applies
+  the transformations to A, B, and possibly Q. Then, the routine
+  reduces A to upper Hessenberg form, preserving E triangular, by
+  an unblocked reduction [1], using two sequences of plane rotations
+  applied alternately from the left and from the right. The
+  corresponding transformations may be accumulated and/or applied
+  to the matrices B and C. If JOBE = 'U', the initial reduction of E
+  to upper triangular form is skipped.
+
+  This routine is a modification and extension of the LAPACK Library
+  routine DGGHRD [2].
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Golub, G.H. and van Loan, C.F.
+      Matrix Computations. Third Edition.
+      M. D. Johns Hopkins University Press, Baltimore, 1996.
+
+  [2] Anderson, E., Bai, Z., Bischof, C., Demmel, J., Dongarra, J.,
+      Du Croz, J., Greenbaum, A., Hammarling, S., McKenney, A.,
+      Ostrouchov, S., and Sorensen, D.
+      LAPACK Users' Guide: Second Edition.
+      SIAM, Philadelphia, 1995.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<p>
+<A HREF=..\libindex.html><B>Return to index</B></A></BODY>
+</HTML>

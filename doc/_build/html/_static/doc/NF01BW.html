@@ -1,0 +1,147 @@
+<HTML>
+<HEAD><TITLE>NF01BW - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="NF01BW">NF01BW</A></H2>
+<H3>
+Matrix-vector product x <-- (J' J + c I) x, for J in a compressed form
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To compute the matrix-vector product x &lt;-- (J'*J + c*I)*x, for the
+  Jacobian J as received from SLICOT Library routine NF01BD:
+
+       /  dy(1)/dwb(1)  |  dy(1)/dtheta  \
+  Jc = |       :        |       :        | .
+       \  dy(L)/dwb(L)  |  dy(L)/dtheta  /
+
+  This is a compressed representation of the actual structure
+
+      /   J_1    0    ..   0   |  L_1  \
+      |    0    J_2   ..   0   |  L_2  |
+  J = |    :     :    ..   :   |   :   | .
+      |    :     :    ..   :   |   :   |
+      \    0     0    ..  J_L  |  L_L  /
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE NF01BW( N, IPAR, LIPAR, DPAR, LDPAR, J, LDJ, X, INCX,
+     $                   DWORK, LDWORK, INFO )
+C     .. Scalar Arguments ..
+      INTEGER           INCX, INFO, LDJ, LDPAR, LDWORK, LIPAR, N
+C     .. Array Arguments ..
+      DOUBLE PRECISION  DPAR(*), DWORK(*), J(LDJ,*), X(*)
+      INTEGER           IPAR(*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The dimension of the vector x.
+          N = BN*BSN + ST &gt;= 0.  (See parameter description below.)
+
+  IPAR    (input) INTEGER array, dimension (LIPAR)
+          The integer parameters describing the structure of the
+          matrix J, as follows:
+          IPAR(1) must contain ST, the number of parameters
+                  corresponding to the linear part.  ST &gt;= 0.
+          IPAR(2) must contain BN, the number of blocks, BN = L,
+                  for the parameters corresponding to the nonlinear
+                  part.  BN &gt;= 0.
+          IPAR(3) must contain BSM, the number of rows of the blocks
+                  J_k = dy(k)/dwb(k), k = 1:BN, if BN &gt; 0, or the
+                  number of rows of the matrix J, if BN &lt;= 1.
+          IPAR(4) must contain BSN, the number of columns of the
+                  blocks J_k, k = 1:BN.  BSN &gt;= 0.
+
+  LIPAR   (input) INTEGER
+          The length of the array IPAR.  LIPAR &gt;= 4.
+
+  DPAR    (input) DOUBLE PRECISION array, dimension (LDPAR)
+          The real parameters needed for solving the problem.
+          The entry DPAR(1) must contain the real scalar c.
+
+  LDPAR   (input) INTEGER
+          The length of the array DPAR.  LDPAR &gt;= 1.
+
+  J       (input) DOUBLE PRECISION array, dimension (LDJ, NC)
+          where NC = N if BN &lt;= 1, and NC = BSN+ST, if BN &gt; 1.
+          The leading NR-by-NC part of this array must contain
+          the (compressed) representation (Jc) of the Jacobian
+          matrix J, where NR = BSM if BN &lt;= 1, and NR = BN*BSM,
+          if BN &gt; 1.
+
+  LDJ     (input) INTEGER
+          The leading dimension of array J.  LDJ &gt;= MAX(1,NR).
+
+  X       (input/output) DOUBLE PRECISION array, dimension
+          (1+(N-1)*INCX)
+          On entry, this incremented array must contain the
+          vector x.
+          On exit, this incremented array contains the value of the
+          matrix-vector product (J'*J + c*I)*x.
+
+  INCX    (input) INTEGER
+          The increment for the elements of X.  INCX &gt;= 1.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+
+  LDWORK  INTEGER
+          The length of the array DWORK.  LDWORK &gt;= NR.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  The associativity of matrix multiplications is used; the result
+  is obtained as:  x_out = J'*( J*x ) + c*x.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

@@ -1,0 +1,192 @@
+<HTML>
+<HEAD><TITLE>MB01RH - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MB01RH">MB01RH</A></H2>
+<H3>
+Computation of matrix expression alpha R + beta op(H) X op(H)' with R, X symmetric and H upper Hessenberg
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To compute the matrix formula
+
+     R := alpha*R + beta*op( H )*X*op( H )',
+
+  where alpha and beta are scalars, R and X are symmetric matrices,
+  H is an upper Hessenberg matrix, and op( H ) is one of
+
+     op( H ) = H   or   op( H ) = H'.
+
+  The result is overwritten on R.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MB01RH( UPLO, TRANS, N, ALPHA, BETA, R, LDR, H, LDH,
+     $                   X, LDX, DWORK, LDWORK, INFO )
+C     .. Scalar Arguments ..
+      CHARACTER         TRANS, UPLO
+      INTEGER           INFO, LDH, LDR, LDWORK, LDX, N
+      DOUBLE PRECISION  ALPHA, BETA
+C     .. Array Arguments ..
+      DOUBLE PRECISION  DWORK(*), H(LDH,*), R(LDR,*), X(LDX,*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  UPLO    CHARACTER*1
+          Specifies which triangles of the symmetric matrices R
+          and X are given as follows:
+          = 'U':  the upper triangular part is given;
+          = 'L':  the lower triangular part is given.
+
+  TRANS   CHARACTER*1
+          Specifies the form of op( H ) to be used in the matrix
+          multiplication as follows:
+          = 'N':  op( H ) = H;
+          = 'T':  op( H ) = H';
+          = 'C':  op( H ) = H'.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The order of the matrices R, H, and X.  N &gt;= 0.
+
+  ALPHA   (input) DOUBLE PRECISION
+          The scalar alpha. When alpha is zero then R need not be
+          set before entry, except when R is identified with X in
+          the call.
+
+  BETA    (input) DOUBLE PRECISION
+          The scalar beta. When beta is zero then H and X are not
+          referenced.
+
+  R       (input/output) DOUBLE PRECISION array, dimension (LDR,N)
+          On entry with UPLO = 'U', the leading N-by-N upper
+          triangular part of this array must contain the upper
+          triangular part of the symmetric matrix R.
+          On entry with UPLO = 'L', the leading N-by-N lower
+          triangular part of this array must contain the lower
+          triangular part of the symmetric matrix R.
+          In both cases, the other strictly triangular part is not
+          referenced.
+          On exit, the leading N-by-N upper triangular part (if
+          UPLO = 'U'), or lower triangular part (if UPLO = 'L'), of
+          this array contains the corresponding triangular part of
+          the computed matrix R. 
+
+  LDR     INTEGER
+          The leading dimension of array R.  LDR &gt;= MAX(1,N).
+
+  H       (input) DOUBLE PRECISION array, dimension (LDH,N)
+          On entry, the leading N-by-N upper Hessenberg part of this
+          array must contain the upper Hessenberg matrix H.
+          If TRANS = 'N', the entries 3, 4,..., N of the first
+          column are modified internally, but are restored on exit.
+          The remaining part of this array is not referenced.
+
+  LDH     INTEGER
+          The leading dimension of array H.  LDH &gt;= MAX(1,N).
+
+  X       (input) DOUBLE PRECISION array, dimension (LDX,N)
+          On entry, if UPLO = 'U', the leading N-by-N upper
+          triangular part of this array must contain the upper
+          triangular part of the symmetric matrix X and the strictly
+          lower triangular part of the array is not referenced.
+          On entry, if UPLO = 'L', the leading N-by-N lower
+          triangular part of this array must contain the lower
+          triangular part of the symmetric matrix X and the strictly
+          upper triangular part of the array is not referenced.
+          The diagonal elements of this array are modified
+          internally, but are restored on exit.
+
+  LDX     INTEGER
+          The leading dimension of array X.  LDX &gt;= MAX(1,N).
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+          This array is not referenced when beta = 0, or N = 0.
+
+  LDWORK  The length of the array DWORK.
+          LDWORK &gt;= N*N, if  beta &lt;&gt; 0;
+          LDWORK &gt;= 0,   if  beta =  0.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -k, the k-th argument had an illegal
+                value.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  The matrix expression is efficiently evaluated taking the symmetry
+  into account. Specifically, let X = U + L, with U and L upper and
+  lower triangular matrices, defined by
+
+     U = triu( X ) - (1/2)*diag( X ),
+     L = tril( X ) - (1/2)*diag( X ),
+
+  where triu, tril, and diag denote the upper triangular part, lower
+  triangular part, and diagonal part of X, respectively. Then,
+  if UPLO = 'U',
+
+     H*X*H' = ( H*U )*H' + H*( H*U )',  for TRANS = 'N',
+     H'*X*H = H'*( U*H ) + ( U*H )'*H,  for TRANS = 'T', or 'C',
+
+  and if UPLO = 'L',
+
+     H*X*H' = ( H*L' )*H' + H*( H*L' )',  for TRANS = 'N',
+     H'*X*H = H'*( L'*H ) + ( L'*H )'*H,  for TRANS = 'T', or 'C',
+
+  which involve operations like in BLAS 2 and 3 (DTRMV and DSYR2K).
+  This approach ensures that the matrices H*U, U*H, H*L', or L'*H
+  are upper Hessenberg.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  The algorithm requires approximately N**3/2 operations.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

@@ -1,0 +1,198 @@
+<HTML>
+<HEAD><TITLE>MB02VD - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MB02VD">MB02VD</A></H2>
+<H3>
+Solution of linear equations X op(A) = B
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To compute the solution to a real system of linear equations
+     X * op(A) = B,
+  where op(A) is either A or its transpose, A is an N-by-N matrix,
+  and X and B are M-by-N matrices.
+  The LU decomposition with partial pivoting and row interchanges,
+  A = P * L * U, is used, where P is a permutation matrix, L is unit
+  lower triangular, and U is upper triangular.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MB02VD( TRANS, M, N, A, LDA, IPIV, B, LDB, INFO )
+C     .. Scalar Arguments ..
+      CHARACTER          TRANS
+      INTEGER            INFO, LDA, LDB, M, N
+C     .. Array Arguments ..
+      INTEGER            IPIV( * )
+      DOUBLE PRECISION   A( LDA, * ), B( LDB, * )
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  TRANS   CHARACTER*1
+          Specifies the form of op(A) to be used as follows:
+          = 'N':  op(A) = A;
+          = 'T':  op(A) = A';
+          = 'C':  op(A) = A'.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  M       (input) INTEGER
+          The number of rows of the matrix B.  M &gt;= 0.
+
+  N       (input) INTEGER
+          The number of columns of the matrix B, and the order of
+          the matrix A.  N &gt;= 0.
+
+  A       (input/output) DOUBLE PRECISION array, dimension (LDA,N)
+          On entry, the leading N-by-N part of this array must
+          contain the coefficient matrix A.
+          On exit, the leading N-by-N part of this array contains
+          the factors L and U from the factorization A = P*L*U;
+          the unit diagonal elements of L are not stored.
+
+  LDA     INTEGER
+          The leading dimension of the array A.  LDA &gt;= MAX(1,N).
+
+  IPIV    (output) INTEGER array, dimension (N)
+          The pivot indices that define the permutation matrix P;
+          row i of the matrix was interchanged with row IPIV(i).
+
+  B       (input/output) DOUBLE PRECISION array, dimension (LDB,N)
+          On entry, the leading M-by-N part of this array must
+          contain the right hand side matrix B.
+          On exit, if INFO = 0, the leading M-by-N part of this
+          array contains the solution matrix X.
+
+  LDB     (input) INTEGER
+          The leading dimension of the array B.  LDB &gt;= max(1,M).
+
+  INFO    (output) INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value;
+          &gt; 0:  if INFO = i, U(i,i) is exactly zero.  The
+                factorization has been completed, but the factor U
+                is exactly singular, so the solution could not be
+                computed.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  The LU decomposition with partial pivoting and row interchanges is
+  used to factor A as
+     A = P * L * U,
+  where P is a permutation matrix, L is unit lower triangular, and
+  U is upper triangular.  The factored form of A is then used to
+  solve the system of equations X * A = B or X * A' = B.
+
+</PRE>
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  This routine enables to solve the system X * A = B or X * A' = B
+  as easily and efficiently as possible; it is similar to the LAPACK
+  Library routine DGESV, which solves A * X = B.
+
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+*     MB02VD EXAMPLE PROGRAM TEXT
+*
+      INTEGER          NIN, NOUT
+      PARAMETER        ( NIN = 5, NOUT = 6 )
+      INTEGER          MMAX, NMAX
+      PARAMETER        ( MMAX = 20, NMAX = 20 )
+      INTEGER          LDA, LDB
+      PARAMETER        ( LDA = NMAX, LDB = MMAX )
+*     .. Local Scalars ..
+      INTEGER          I, INFO, J, M, N
+      CHARACTER*1      TRANS
+*     .. Local Arrays ..
+      DOUBLE PRECISION A(LDA,NMAX), B(LDB,NMAX)
+      INTEGER          IPIV(NMAX)
+*     .. External Subroutines ..
+      EXTERNAL         MB02VD
+*     .. Executable Statements ..
+*
+      WRITE ( NOUT, FMT = 99999 )
+*     Skip the heading in the data file and read in the data.
+      READ ( NIN, FMT = '()' )
+      READ ( NIN, FMT = * ) M, N, TRANS
+      IF ( N.LT.0 .OR. N.GT.NMAX ) THEN
+         WRITE ( NOUT, FMT = 99995 ) N
+      ELSE
+         READ ( NIN, FMT = * ) ( ( A(I,J), J = 1,N ), I = 1,N )
+         IF ( M.LT.0 .OR. M.GT.MMAX ) THEN
+            WRITE ( NOUT, FMT = 99994 ) M
+         ELSE
+            READ ( NIN, FMT = * ) ( ( B(I,J), J = 1,N ), I = 1,M )
+*           Solve the linear system using the LU factorization.
+            CALL MB02VD( TRANS, M, N, A, LDA, IPIV, B, LDB, INFO )
+*
+            IF ( INFO.EQ.0 ) THEN
+               WRITE ( NOUT, FMT = 99997 )
+               DO 10 I = 1, M
+                  WRITE ( NOUT, FMT = 99996 ) ( B(I,J), J = 1,N )
+   10          CONTINUE
+            ELSE
+               WRITE ( NOUT, FMT = 99998 ) INFO
+            END IF
+         END IF
+      END IF
+      STOP
+*
+99999 FORMAT (' MB02VD EXAMPLE PROGRAM RESULTS',/1X)
+99998 FORMAT (' INFO on exit from MB02VD = ',I2)
+99997 FORMAT (' The solution matrix is ')
+99996 FORMAT (20(1X,F8.4))
+99995 FORMAT (/' N is out of range.',/' N = ',I5)
+99994 FORMAT (/' M is out of range.',/' M = ',I5)
+      END
+</PRE>
+<B>Program Data</B>
+<PRE>
+ MB02VD EXAMPLE PROGRAM DATA
+   5    4      N
+   1.    2.    6.    3.
+  -2.   -1.   -1.    0.
+   2.    3.    1.    5.
+   1.   -1.    2.    0.
+   0.    0.    0.    1.
+   5.    5.    1.    5.
+  -2.    1.    3.    1.
+   0.    0.    4.    5.
+   2.    1.    1.    3.
+</PRE>
+<B>Program Results</B>
+<PRE>
+ MB02VD EXAMPLE PROGRAM RESULTS
+
+ The solution matrix is 
+  -0.0690   0.3333   0.2414   0.2529
+  -0.1724  -1.6667   1.1034  -0.3678
+   0.9655   0.6667  -0.3793  -0.8736
+   0.3448   1.6667   0.7931   1.4023
+  -0.2069   0.0000   0.7241   0.7586
+</PRE>
+
+<HR>
+<p>
+<A HREF=..\libindex.html><B>Return to index</B></A></BODY>
+</HTML>

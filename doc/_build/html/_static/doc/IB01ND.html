@@ -1,0 +1,249 @@
+<HTML>
+<HEAD><TITLE>IB01ND - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="IB01ND">IB01ND</A></H2>
+<H3>
+Singular value decomposition giving the system order
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To find the singular value decomposition (SVD) giving the system
+  order, using the triangular factor of the concatenated block
+  Hankel matrices. Related preliminary calculations needed for
+  computing the system matrices are also performed.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE IB01ND( METH, JOBD, NOBR, M, L, R, LDR, SV, TOL, IWORK,
+     $                   DWORK, LDWORK, IWARN, INFO )
+C     .. Scalar Arguments ..
+      DOUBLE PRECISION   TOL
+      INTEGER            INFO, IWARN, L, LDR, LDWORK, M, NOBR
+      CHARACTER          JOBD, METH
+C     .. Array Arguments ..
+      DOUBLE PRECISION   DWORK(*), R(LDR, *), SV(*)
+      INTEGER            IWORK(*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  METH    CHARACTER*1
+          Specifies the subspace identification method to be used,
+          as follows:
+          = 'M':  MOESP  algorithm with past inputs and outputs;
+          = 'N':  N4SID  algorithm.
+
+  JOBD    CHARACTER*1
+          Specifies whether or not the matrices B and D should later
+          be computed using the MOESP approach, as follows:
+          = 'M':  the matrices B and D should later be computed
+                  using the MOESP approach;
+          = 'N':  the matrices B and D should not be computed using
+                  the MOESP approach.
+          This parameter is not relevant for METH = 'N'.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  NOBR    (input) INTEGER
+          The number of block rows,  s,  in the input and output
+          block Hankel matrices.  NOBR &gt; 0.
+
+  M       (input) INTEGER
+          The number of system inputs.  M &gt;= 0.
+
+  L       (input) INTEGER
+          The number of system outputs.  L &gt; 0.
+
+  R       (input/output) DOUBLE PRECISION array, dimension
+          ( LDR,2*(M+L)*NOBR )
+          On entry, the leading 2*(M+L)*NOBR-by-2*(M+L)*NOBR upper
+          triangular part of this array must contain the upper
+          triangular factor R from the QR factorization of the
+          concatenated block Hankel matrices. Denote  R_ij,
+          i,j = 1:4,  the ij submatrix of  R,  partitioned by
+          M*NOBR,  M*NOBR,  L*NOBR,  and  L*NOBR  rows and columns.
+          On exit, if INFO = 0, the leading
+          2*(M+L)*NOBR-by-2*(M+L)*NOBR upper triangular part of this
+          array contains the matrix S, the processed upper
+          triangular factor R, as required by other subroutines.
+          Specifically, let  S_ij, i,j = 1:4,  be the ij submatrix
+          of  S,  partitioned by  M*NOBR,  L*NOBR,  M*NOBR,  and
+          L*NOBR  rows and columns. The submatrix  S_22  contains
+          the matrix of left singular vectors needed subsequently.
+          Useful information is stored in  S_11  and in the
+          block-column  S_14 : S_44.  For METH = 'M' and JOBD = 'M',
+          the upper triangular part of  S_31  contains the upper
+          triangular factor in the QR factorization of the matrix
+          R_1c = [ R_12'  R_22'  R_11' ]',  and  S_12  contains the
+          corresponding leading part of the transformed matrix
+          R_2c = [ R_13'  R_23'  R_14' ]'.  For  METH = 'N',  the
+          subarray  S_41 : S_43  contains the transpose of the
+          matrix contained in  S_14 : S_34.
+
+  LDR     INTEGER
+          The leading dimension of the array  R.
+          LDR &gt;= MAX( 2*(M+L)*NOBR, 3*M*NOBR ),
+                               for METH = 'M' and JOBD = 'M';
+          LDR &gt;= 2*(M+L)*NOBR, for METH = 'M' and JOBD = 'N' or
+                               for METH = 'N'.
+
+  SV      (output) DOUBLE PRECISION array, dimension ( L*NOBR )
+          The singular values of the relevant part of the triangular
+          factor from the QR factorization of the concatenated block
+          Hankel matrices.
+
+</PRE>
+<B>Tolerances</B>
+<PRE>
+  TOL     DOUBLE PRECISION
+          The tolerance to be used for estimating the rank of
+          matrices. If the user sets  TOL &gt; 0,  then the given value
+          of  TOL  is used as a lower bound for the reciprocal
+          condition number;  an m-by-n matrix whose estimated
+          condition number is less than  1/TOL  is considered to
+          be of full rank.  If the user sets  TOL &lt;= 0,  then an
+          implicitly computed, default tolerance, defined by
+          TOLDEF = m*n*EPS,  is used instead, where  EPS  is the
+          relative machine precision (see LAPACK Library routine
+          DLAMCH).
+          This parameter is not used for  METH = 'M'.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  IWORK   INTEGER array, dimension ((M+L)*NOBR)
+          This parameter is not referenced for METH = 'M'.
+
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+          On exit, if  INFO = 0,  DWORK(1) returns the optimal value
+          of LDWORK,  and, for  METH = 'N',  DWORK(2)  and  DWORK(3)
+          contain the reciprocal condition numbers of the
+          triangular factors of the matrices  U_f  and  r_1  [6].
+          On exit, if  INFO = -12,  DWORK(1)  returns the minimum
+          value of LDWORK.
+
+  LDWORK  INTEGER
+          The length of the array DWORK.
+          LDWORK &gt;= max( (2*M-1)*NOBR, (M+L)*NOBR, 5*L*NOBR ),
+                                      if METH = 'M' and JOBD = 'M';
+          LDWORK &gt;=  5*L*NOBR,        if METH = 'M' and JOBD = 'N';
+          LDWORK &gt;=  5*(M+L)*NOBR+1,  if METH = 'N'.
+          For good performance,  LDWORK  should be larger.
+
+</PRE>
+<B>Warning Indicator</B>
+<PRE>
+  IWARN   INTEGER
+          = 0:  no warning;
+          = 4:  the least squares problems with coefficient matrix
+                U_f,  used for computing the weighted oblique
+                projection (for METH = 'N'), have a rank-deficient
+                coefficient matrix;
+          = 5:  the least squares problem with coefficient matrix
+                r_1  [6], used for computing the weighted oblique
+                projection (for METH = 'N'), has a rank-deficient
+                coefficient matrix.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value;
+          = 2:  the singular value decomposition (SVD) algorithm did
+                not converge.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  A singular value decomposition (SVD) of a certain matrix is
+  computed, which reveals the order  n  of the system as the number
+  of "non-zero" singular values. For the MOESP approach, this matrix
+  is  [ R_24'  R_34' ]' := R(ms+1:(2m+l)s,(2m+l)s+1:2(m+l)s),
+  where  R  is the upper triangular factor  R  constructed by SLICOT
+  Library routine  IB01MD.  For the N4SID approach, a weighted
+  oblique projection is computed from the upper triangular factor  R
+  and its SVD is then found.
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Verhaegen M., and Dewilde, P.
+      Subspace Model Identification. Part 1: The output-error
+      state-space model identification class of algorithms.
+      Int. J. Control, 56, pp. 1187-1210, 1992.
+
+  [2] Verhaegen M.
+      Subspace Model Identification. Part 3: Analysis of the
+      ordinary output-error state-space model identification
+      algorithm.
+      Int. J. Control, 58, pp. 555-586, 1993.
+
+  [3] Verhaegen M.
+      Identification of the deterministic part of MIMO state space
+      models given in innovations form from input-output data.
+      Automatica, Vol.30, No.1, pp.61-74, 1994.
+
+  [4] Van Overschee, P., and De Moor, B.
+      N4SID: Subspace Algorithms for the Identification of
+      Combined Deterministic-Stochastic Systems.
+      Automatica, Vol.30, No.1, pp. 75-93, 1994.
+
+  [5] Van Overschee, P., and De Moor, B.
+      Subspace Identification for Linear Systems: Theory -
+      Implementation - Applications.
+      Kluwer Academic Publishers, Boston/London/Dordrecht, 1996.
+
+  [6] Sima, V.
+      Subspace-based Algorithms for Multivariable System
+      Identification.
+      Studies in Informatics and Control, 5, pp. 335-344, 1996.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  The implemented method is numerically stable.
+                                   3
+  The algorithm requires 0(((m+l)s) ) floating point operations.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

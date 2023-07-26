@@ -1,0 +1,279 @@
+<HTML>
+<HEAD><TITLE>NF01BQ - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="NF01BQ">NF01BQ</A></H2>
+<H3>
+Solving the linear system J x = b, D x = 0, D diagonal, for Wiener system identification
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To determine a vector x which solves the system of linear
+  equations
+
+        J*x = b ,     D*x = 0 ,
+
+  in the least squares sense, where J is an m-by-n matrix,
+  D is an n-by-n diagonal matrix, and b is an m-vector. The matrix J
+  is the current Jacobian of a nonlinear least squares problem,
+  provided in a compressed form by SLICOT Library routine NF01BD.
+  It is assumed that a block QR factorization, with column pivoting,
+  of J is available, that is, J*P = Q*R, where P is a permutation
+  matrix, Q has orthogonal columns, and R is an upper triangular
+  matrix with diagonal elements of nonincreasing magnitude for each
+  block, as returned by SLICOT Library routine NF01BS. The routine
+  NF01BQ needs the upper triangle of R in compressed form, the
+  permutation matrix P, and the first n components of Q'*b
+  (' denotes the transpose). The system J*x = b, D*x = 0, is then
+  equivalent to
+
+        R*z = Q'*b ,  P'*D*P*z = 0 ,                             (1)
+
+  where x = P*z. If this system does not have full rank, then an
+  approximate least squares solution is obtained (see METHOD).
+  On output, NF01BQ also provides an upper triangular matrix S
+  such that
+
+        P'*(J'*J + D*D)*P = S'*S .
+
+  The system (1) is equivalent to S*z = c , where c contains the
+  first n components of the vector obtained by applying to
+  [ (Q'*b)'  0 ]' the transformations which triangularized
+  [ R'  P'*D*P ]', getting S.
+
+  The matrix R has the following structure
+
+      /   R_1    0    ..   0   |   L_1   \
+      |    0    R_2   ..   0   |   L_2   |
+      |    :     :    ..   :   |    :    | ,
+      |    0     0    ..  R_l  |   L_l   |
+      \    0     0    ..   0   |  R_l+1  /
+
+  where the submatrices R_k, k = 1:l, have the same order BSN,
+  and R_k, k = 1:l+1, are square and upper triangular. This matrix
+  is stored in the compressed form
+
+           /   R_1  |   L_1   \
+           |   R_2  |   L_2   |
+    Rc =   |    :   |    :    | ,
+           |   R_l  |   L_l   |
+           \    X   |  R_l+1  /
+
+  where the submatrix X is irrelevant. The matrix S has the same
+  structure as R, and its diagonal blocks are denoted by S_k,
+  k = 1:l+1.
+
+  If l &lt;= 1, then the full upper triangle of the matrix R is stored.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE NF01BQ( COND, N, IPAR, LIPAR, R, LDR, IPVT, DIAG, QTB,
+     $                   RANKS, X, TOL, DWORK, LDWORK, INFO )
+C     .. Scalar Arguments ..
+      CHARACTER         COND
+      INTEGER           INFO, LDR, LDWORK, LIPAR, N
+      DOUBLE PRECISION  TOL
+C     .. Array Arguments ..
+      INTEGER           IPAR(*), IPVT(*), RANKS(*)
+      DOUBLE PRECISION  DIAG(*), DWORK(*), QTB(*), R(LDR,*), X(*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  COND    CHARACTER*1
+          Specifies whether the condition of the matrices S_k should
+          be estimated, as follows:
+          = 'E' :  use incremental condition estimation and store
+                   the numerical rank of S_k in the array entry
+                   RANKS(k), for k = 1:l+1;
+          = 'N' :  do not use condition estimation, but check the
+                   diagonal entries of S_k for zero values;
+          = 'U' :  use the ranks already stored in RANKS(1:l+1).
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The order of the matrix R.  N = BN*BSN + ST &gt;= 0.
+          (See parameter description below.)
+
+  IPAR    (input) INTEGER array, dimension (LIPAR)
+          The integer parameters describing the structure of the
+          matrix R, as follows:
+          IPAR(1) must contain ST, the number of columns of the
+                  submatrices L_k and the order of R_l+1.  ST &gt;= 0.
+          IPAR(2) must contain BN, the number of blocks, l, in the
+                  block diagonal part of R.  BN &gt;= 0.
+          IPAR(3) must contain BSM, the number of rows of the blocks
+                  R_k, k = 1:l.  BSM &gt;= 0.
+          IPAR(4) must contain BSN, the number of columns of the
+                  blocks R_k, k = 1:l.  BSN &gt;= 0.
+          BSM is not used by this routine, but assumed equal to BSN.
+
+  LIPAR   (input) INTEGER
+          The length of the array IPAR.  LIPAR &gt;= 4.
+
+  R       (input/output) DOUBLE PRECISION array, dimension (LDR, NC)
+          where NC = N if BN &lt;= 1, and NC = BSN+ST, if BN &gt; 1.
+          On entry, the leading N-by-NC part of this array must
+          contain the (compressed) representation (Rc) of the upper
+          triangular matrix R. If BN &gt; 1, the submatrix X in Rc is
+          not referenced. The zero strict lower triangles of R_k,
+          k = 1:l+1, need not be set. If BN &lt;= 1 or BSN = 0, then
+          the full upper triangle of R must be stored.
+          On exit, the full upper triangles of R_k, k = 1:l+1, and
+          L_k, k = 1:l, are unaltered, and the strict lower
+          triangles of R_k, k = 1:l+1, contain the corresponding
+          strict upper triangles (transposed) of the upper
+          triangular matrix S.
+          If BN &lt;= 1 or BSN = 0, then the transpose of the strict
+          upper triangle of S is stored in the strict lower triangle
+          of R.
+
+  LDR     INTEGER
+          The leading dimension of the array R.  LDR &gt;= MAX(1,N).
+
+  IPVT    (input) INTEGER array, dimension (N)
+          This array must define the permutation matrix P such that
+          J*P = Q*R. Column j of P is column IPVT(j) of the identity
+          matrix.
+
+  DIAG    (input) DOUBLE PRECISION array, dimension (N)
+          This array must contain the diagonal elements of the
+          matrix D.
+
+  QTB     (input) DOUBLE PRECISION array, dimension (N)
+          This array must contain the first n elements of the
+          vector Q'*b.
+
+  RANKS   (input or output) INTEGER array, dimension (r), where
+          r = BN + 1,  if ST &gt; 0, BSN &gt; 0, and BN &gt; 1;
+          r = BN,      if ST = 0 and BSN &gt; 0;
+          r = 1,       if ST &gt; 0 and ( BSN = 0 or BN &lt;= 1 );
+          r = 0,       if ST = 0 and BSN = 0.
+          On entry, if COND = 'U' and N &gt; 0, this array must contain
+          the numerical ranks of the submatrices S_k, k = 1:l(+1).
+          On exit, if COND = 'E' or 'N' and N &gt; 0, this array
+          contains the numerical ranks of the submatrices S_k,
+          k = 1:l(+1), estimated according to the value of COND.
+
+  X       (output) DOUBLE PRECISION array, dimension (N)
+          This array contains the least squares solution of the
+          system J*x = b, D*x = 0.
+
+</PRE>
+<B>Tolerances</B>
+<PRE>
+  TOL     DOUBLE PRECISION
+          If COND = 'E', the tolerance to be used for finding the
+          ranks of the submatrices S_k. If the user sets TOL &gt; 0,
+          then the given value of TOL is used as a lower bound for
+          the reciprocal condition number;  a (sub)matrix whose
+          estimated condition number is less than 1/TOL is
+          considered to be of full rank.  If the user sets TOL &lt;= 0,
+          then an implicitly computed, default tolerance, defined by
+          TOLDEF = N*EPS,  is used instead, where EPS is the machine
+          precision (see LAPACK Library routine DLAMCH).
+          This parameter is not relevant if COND = 'U' or 'N'.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+          On exit, the first N elements of this array contain the
+          diagonal elements of the upper triangular matrix S, and
+          the next N elements contain the solution z.
+          If BN &gt; 1 and BSN &gt; 0, the elements 2*N+1 : 2*N+ST*(N-ST)
+          contain the submatrix (S(1:N-ST,N-ST+1:N))' of the
+          matrix S.
+
+  LDWORK  INTEGER
+          The length of the array DWORK.
+          LDWORK &gt;= 2*N,              if BN &lt;= 1 or  BSN = 0 and
+                                                     COND &lt;&gt; 'E';
+          LDWORK &gt;= 4*N,              if BN &lt;= 1 or  BSN = 0 and
+                                                     COND =  'E';
+          LDWORK &gt;= ST*(N-ST) + 2*N,  if BN &gt;  1 and BSN &gt; 0 and
+                                                     COND &lt;&gt; 'E';
+          LDWORK &gt;= ST*(N-ST) + 2*N + 2*MAX(BSN,ST),
+                                      if BN &gt;  1 and BSN &gt; 0 and
+                                                     COND = 'E'.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  Standard plane rotations are used to annihilate the elements of
+  the diagonal matrix D, updating the upper triangular matrix R
+  and the first n elements of the vector Q'*b. A basic least squares
+  solution is computed. The computations exploit the special
+  structure and storage scheme of the matrix R. If one or more of
+  the submatrices S_k, k = 1:l+1, is singular, then the computed
+  result is not the basic least squares solution for the whole
+  problem, but a concatenation of (least squares) solutions of the
+  individual subproblems involving R_k, k = 1:l+1 (with adapted
+  right hand sides).
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] More, J.J., Garbow, B.S, and Hillstrom, K.E.
+      User's Guide for MINPACK-1.
+      Applied Math. Division, Argonne National Laboratory, Argonne,
+      Illinois, Report ANL-80-74, 1980.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  The algorithm requires 0(N*(BSN+ST)) operations and is backward
+  stable, if R is nonsingular.
+
+</PRE>
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  This routine is a structure-exploiting, LAPACK-based modification
+  of QRSOLV from the MINPACK package [1], and with optional
+  condition estimation.
+  The option COND = 'U' is useful when dealing with several
+  right-hand side vectors.
+
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

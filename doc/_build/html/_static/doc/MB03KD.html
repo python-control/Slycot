@@ -1,0 +1,521 @@
+<HTML>
+<HEAD><TITLE>MB03KD - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MB03KD">MB03KD</A></H2>
+<H3>
+Reordering the diagonal blocks of a formal matrix product using periodic QZ algorithm
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To reorder the diagonal blocks of the formal matrix product
+
+     T22_K^S(K) * T22_K-1^S(K-1) * ... * T22_1^S(1),             (1)
+
+  of length K, in the generalized periodic Schur form,
+
+           [  T11_k  T12_k  T13_k  ]
+     T_k = [    0    T22_k  T23_k  ],    k = 1, ..., K,          (2)
+           [    0      0    T33_k  ]
+
+  where
+
+  - the submatrices T11_k are NI(k+1)-by-NI(k), if S(k) = 1, or
+    NI(k)-by-NI(k+1), if S(k) = -1, and contain dimension-induced
+    infinite eigenvalues,
+  - the submatrices T22_k are NC-by-NC and contain core eigenvalues,
+    which are generically neither zero nor infinite,
+  - the submatrices T33_k contain dimension-induced zero
+    eigenvalues,
+
+  such that the M selected eigenvalues pointed to by the logical
+  vector SELECT end up in the leading part of the matrix sequence
+  T22_k.
+
+  Given that N(k) = N(k+1) for all k where S(k) = -1, the T11_k are
+  void and the first M columns of the updated orthogonal
+  transformation matrix sequence Q_1, ..., Q_K span a periodic
+  deflating subspace corresponding to the same eigenvalues.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MB03KD( COMPQ, WHICHQ, STRONG, K, NC, KSCHUR, N, NI, S,
+     $                   SELECT, T, LDT, IXT, Q, LDQ, IXQ, M, TOL,
+     $                   IWORK, DWORK, LDWORK, INFO )
+C     .. Scalar Arguments ..
+      CHARACTER          COMPQ, STRONG
+      INTEGER            INFO, K, KSCHUR, LDWORK, M, NC
+      DOUBLE PRECISION   TOL
+C     .. Array Arguments ..
+      LOGICAL            SELECT( * )
+      INTEGER            IWORK( * ), IXQ( * ), IXT( * ), LDQ( * ),
+     $                   LDT( * ), N( * ), NI( * ), S( * ), WHICHQ( * )
+      DOUBLE PRECISION   DWORK( * ), Q( * ), T( * )
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  COMPQ   CHARACTER*1
+          Specifies whether to compute the orthogonal transformation
+          matrices Q_k, as follows:
+          = 'N': do not compute any of the matrices Q_k;
+          = 'I': each coefficient of Q is initialized internally to
+                 the identity matrix, and the orthogonal matrices
+                 Q_k are returned, where Q_k, k = 1, ..., K,
+                 performed the reordering;
+          = 'U': each coefficient of Q must contain an orthogonal
+                 matrix Q1_k on entry, and the products Q1_k*Q_k are
+                 returned;
+          = 'W': the computation of each Q_k is specified
+                 individually in the array WHICHQ.
+
+  WHICHQ  INTEGER array, dimension (K)
+          If COMPQ = 'W', WHICHQ(k) specifies the computation of Q_k
+          as follows:
+          = 0:   do not compute Q_k;
+          = 1:   the kth coefficient of Q is initialized to the
+                 identity matrix, and the orthogonal matrix Q_k is
+                 returned;
+          = 2:   the kth coefficient of Q must contain an orthogonal
+                 matrix Q1_k on entry, and the product Q1_k*Q_k is
+                 returned.
+          This array is not referenced if COMPQ &lt;&gt; 'W'.
+
+  STRONG  CHARACTER*1
+          Specifies whether to perform the strong stability tests,
+          as follows:
+          = 'N': do not perform the strong stability tests;
+          = 'S': perform the strong stability tests; often, this is
+                 not needed, and omitting them can save some
+                 computations.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  K       (input) INTEGER
+          The period of the periodic matrix sequences T and Q (the
+          number of factors in the matrix product).  K &gt;= 2.
+          (For K = 1, a standard eigenvalue reordering problem is
+          obtained.)
+
+  NC      (input) INTEGER
+          The number of core eigenvalues.  0 &lt;= NC &lt;= min(N).
+
+  KSCHUR  (input) INTEGER
+          The index for which the matrix T22_kschur is upper quasi-
+          triangular. All other T22 matrices are upper triangular.
+
+  N       (input) INTEGER array, dimension (K)
+          The leading K elements of this array must contain the
+          dimensions of the factors of the formal matrix product T,
+          such that the k-th coefficient T_k is an N(k+1)-by-N(k)
+          matrix, if S(k) = 1, or an N(k)-by-N(k+1) matrix,
+          if S(k) = -1, k = 1, ..., K, where N(K+1) = N(1).
+
+  NI      (input) INTEGER array, dimension (K)
+          The leading K elements of this array must contain the
+          dimensions of the factors of the matrix sequence T11_k.
+          N(k) &gt;= NI(k) + NC &gt;= 0.
+
+  S       (input) INTEGER array, dimension (K)
+          The leading K elements of this array must contain the
+          signatures (exponents) of the factors in the K-periodic
+          matrix sequence. Each entry in S must be either 1 or -1;
+          the value S(k) = -1 corresponds to using the inverse of
+          the factor T_k.
+
+  SELECT  (input) LOGICAL array, dimension (NC)
+          SELECT specifies the eigenvalues in the selected cluster.
+          To select a real eigenvalue w(j), SELECT(j) must be set to
+          .TRUE.. To select a complex conjugate pair of eigenvalues
+          w(j) and w(j+1), corresponding to a 2-by-2 diagonal block,
+          either SELECT(j) or SELECT(j+1) or both must be set to
+          .TRUE.; a complex conjugate pair of eigenvalues must be
+          either both included in the cluster or both excluded.
+
+  T       (input/output) DOUBLE PRECISION array, dimension (*)
+          On entry, this array must contain at position IXT(k) the
+          matrix T_k, which is at least N(k+1)-by-N(k), if S(k) = 1,
+          or at least N(k)-by-N(k+1), if S(k) = -1, in periodic
+          Schur form.
+          On exit, the matrices T_k are overwritten by the reordered
+          periodic Schur form.
+
+  LDT     INTEGER array, dimension (K)
+          The leading dimensions of the matrices T_k in the one-
+          dimensional array T.
+          LDT(k) &gt;= max(1,N(k+1)),  if S(k) =  1,
+          LDT(k) &gt;= max(1,N(k)),    if S(k) = -1.
+
+  IXT     INTEGER array, dimension (K)
+          Start indices of the matrices T_k in the one-dimensional
+          array T.
+
+  Q       (input/output) DOUBLE PRECISION array, dimension (*)
+          On entry, this array must contain at position IXQ(k) a
+          matrix Q_k of size at least N(k)-by-N(k), provided that
+          COMPQ = 'U', or COMPQ = 'W' and WHICHQ(k) = 2.
+          On exit, if COMPQ = 'I' or COMPQ = 'W' and WHICHQ(k) = 1,
+          Q_k contains the orthogonal matrix that performed the
+          reordering. If COMPQ = 'U', or COMPQ = 'W' and
+          WHICHQ(k) = 2, Q_k is post-multiplied with the orthogonal
+          matrix that performed the reordering.
+          This array is not referenced if COMPQ = 'N'.
+
+  LDQ     INTEGER array, dimension (K)
+          The leading dimensions of the matrices Q_k in the one-
+          dimensional array Q.
+          LDQ(k) &gt;= max(1,N(k)), if COMPQ = 'I', or COMPQ = 'U', or
+                                    COMPQ = 'W' and WHICHQ(k) &gt; 0;
+          This array is not referenced if COMPQ = 'N'.
+
+  IXQ     INTEGER array, dimension (K)
+          Start indices of the matrices Q_k in the one-dimensional
+          array Q.
+          This array is not referenced if COMPQ = 'N'.
+
+  M       (output) INTEGER
+          The number of selected core eigenvalues which were
+          reordered to the top of T22_k.
+
+</PRE>
+<B>Tolerances</B>
+<PRE>
+  TOL     DOUBLE PRECISION
+          The tolerance parameter c. The weak and strong stability
+          tests performed for checking the reordering use a
+          threshold computed by the formula  MAX(c*EPS*NRM, SMLNUM),
+          where NRM is the varying Frobenius norm of the matrices
+          formed by concatenating K pairs of adjacent diagonal
+          blocks of sizes 1 and/or 2 in the T22_k submatrices from
+          (2), which are swapped, and EPS and SMLNUM are the machine
+          precision and safe minimum divided by EPS, respectively
+          (see LAPACK Library routine DLAMCH). The value c should
+          normally be at least 10.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  IWORK   INTEGER array, dimension (4*K)
+
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+          On exit, if INFO = 0, DWORK(1) returns the optimal LDWORK.
+
+  LDWORK  INTEGER
+          The dimension of the array DWORK.
+          LDWORK &gt;= 10*K + MN, if all blocks involved in reordering
+                               have order 1;
+          LDWORK &gt;= 25*K + MN, if there is at least a block of
+                               order 2, but no adjacent blocks of
+                               order 2 are involved in reordering;
+          LDWORK &gt;= MAX(42*K + MN, 80*K - 48), if there is at least
+                               a pair of adjacent blocks of order 2
+                               involved in reordering;
+          where MN = MXN, if MXN &gt; 10, and MN = 0, otherwise, with
+          MXN = MAX(N(k),k=1,...,K).
+
+          If LDWORK = -1  a workspace query is assumed; the
+          routine only calculates the optimal size of the DWORK
+          array, returns this value as the first entry of the DWORK
+          array, and no error message is issued by XERBLA.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value;
+          = 1:  the reordering of T failed because some eigenvalues
+                are too close to separate (the problem is very ill-
+                conditioned); T may have been partially reordered.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  An adaptation of the LAPACK Library routine DTGSEN is used.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  The implemented method is numerically backward stable.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+*     MB03KD EXAMPLE PROGRAM TEXT
+*
+*     .. Parameters ..
+      INTEGER            NIN, NOUT
+      PARAMETER          ( NIN = 5, NOUT = 6 )
+      INTEGER            KMAX, NMAX
+      PARAMETER          ( KMAX = 6, NMAX = 50 )
+      INTEGER            LDA1, LDA2, LDQ1, LDQ2, LDWORK, LIWORK
+      PARAMETER          ( LDA1 = NMAX, LDA2 = NMAX, LDQ1 = NMAX,
+     $                     LDQ2 = NMAX,
+     $                     LDWORK = MAX( 42*KMAX + NMAX, 80*KMAX - 48,
+     $                                   KMAX + MAX( 2*NMAX, 8*KMAX ) ),
+     $                     LIWORK = MAX( 4*KMAX, 2*KMAX + NMAX ) )
+      DOUBLE PRECISION   HUND, ZERO
+      PARAMETER          ( HUND = 1.0D2, ZERO = 0.0D0 )
+*
+*     .. Local Scalars ..
+      CHARACTER          COMPQ, DEFL, JOB, STRONG
+      INTEGER            H, I, IHI, ILO, INFO, IWARN, J, K, L, M, N, P
+      DOUBLE PRECISION   TOL
+*
+*     .. Local Arrays ..
+      LOGICAL            SELECT( NMAX )
+      INTEGER            IWORK( LIWORK ), IXQ( KMAX ), IXT( KMAX ),
+     $                   LDQ( KMAX ), LDT( KMAX ), ND( KMAX ),
+     $                   NI( KMAX ), QIND( KMAX ), S( KMAX ),
+     $                   SCAL( NMAX )
+      DOUBLE PRECISION   A( LDA1, LDA2, KMAX ), ALPHAI( NMAX ),
+     $                   ALPHAR( NMAX ), BETA( NMAX ), DWORK( LDWORK),
+     $                   Q( LDQ1, LDQ2, KMAX ), QK( NMAX*NMAX*KMAX ),
+     $                   T( NMAX*NMAX*KMAX )
+*
+*     .. External Functions ..
+      LOGICAL            LSAME
+      EXTERNAL           LSAME
+*
+*     .. External Subroutines ..
+      EXTERNAL           DLACPY, MB03BD, MB03KD
+*
+*     .. Intrinsic Functions ..
+      INTRINSIC          INT, MAX
+*
+*     .. Executable Statements ..
+*
+      WRITE( NOUT, FMT = 99999 )
+*     Skip the heading in the data file and read in the data.
+      READ( NIN, FMT = * )
+      READ( NIN, FMT = * ) JOB, DEFL, COMPQ, STRONG, K, N, H, ILO, IHI
+      IF( N.LT.0 .OR. N.GT.NMAX ) THEN
+         WRITE( NOUT, FMT = 99998 ) N
+      ELSE
+         TOL = HUND
+         READ( NIN, FMT = * ) ( S( I ), I = 1, K )
+         READ( NIN, FMT = * ) ( ( ( A( I, J, L ), J = 1, N ),
+     $                                I = 1, N ), L = 1, K )
+         IF( LSAME( COMPQ, 'U' ) )
+     $      READ( NIN, FMT = * ) ( ( ( Q( I, J, L ), J = 1, N ),
+     $                                   I = 1, N ), L = 1, K )
+         IF( LSAME( COMPQ, 'P' ) ) THEN
+            READ( NIN, FMT = * ) ( QIND( I ), I = 1, K )
+            DO 10 L = 1, K
+               IF( QIND( L ).GT.0 )
+     $            READ( NIN, FMT = * ) ( ( Q( I, J, QIND( L ) ),
+     $                                    J = 1, N ), I = 1, N )
+   10       CONTINUE
+         END IF
+         IF( LSAME( JOB, 'E' ) )
+     $      JOB = 'S'
+*        Compute the eigenvalues and the transformed matrices.
+         CALL MB03BD( JOB, DEFL, COMPQ, QIND, K, N, H, ILO, IHI, S, A,
+     $                LDA1, LDA2, Q, LDQ1, LDQ2, ALPHAR, ALPHAI, BETA,
+     $                SCAL, IWORK, LIWORK, DWORK, LDWORK, IWARN, INFO )
+*
+         IF( INFO.NE.0 ) THEN
+            WRITE( NOUT, FMT = 99997 ) INFO
+         ELSE IF( IWARN.EQ.0 ) THEN
+*           Prepare the data for calling MB03KD, which uses different
+*           data structures and reverse ordering of the factors.
+            DO 20 L = 1, K
+               ND(  L ) = MAX( 1, N )
+               NI(  L ) = 0
+               LDT( L ) = MAX( 1, N )
+               IXT( L ) = ( L - 1 )*LDT( L )*N + 1
+               LDQ( L ) = MAX( 1, N )
+               IXQ( L ) = IXT( L )
+               IF( L.LE.INT( K/2 ) ) THEN
+                  I = S( K - L + 1 )
+                  S( K - L + 1 ) = S( L )
+                  S( L ) = I
+               END IF
+   20       CONTINUE
+            DO 30 L = 1, K
+               CALL DLACPY( 'Full', N, N, A( 1, 1, K-L+1 ), LDA1,
+     $                      T( IXT( L ) ), LDT( L ) )
+   30       CONTINUE
+            IF( LSAME( COMPQ, 'U' ) .OR. LSAME( COMPQ, 'I' ) ) THEN
+               COMPQ = 'U'
+               DO 40 L = 1, K
+                  CALL DLACPY( 'Full', N, N, Q( 1, 1, K-L+1 ), LDQ1,
+     $                         QK( IXQ( L ) ), LDQ( L ) )
+   40          CONTINUE
+            ELSE IF( LSAME( COMPQ, 'P' ) ) THEN
+               COMPQ = 'W'
+               DO 50 L = 1, K
+                  IF( QIND( L ).LT.0 )
+     $                QIND( L ) = 2
+                  P = QIND( L )
+                  IF( P.NE.0 )
+     $               CALL DLACPY( 'Full', N, N, Q( 1, 1, K-P+1 ), LDQ1,
+     $                            QK( IXQ( P ) ), LDQ( P ) )
+   50          CONTINUE
+            END IF
+*           Select eigenvalues with negative real part.
+            DO 60 I = 1, N
+               SELECT( I ) = ALPHAR( I ).LT.ZERO
+   60       CONTINUE
+            WRITE( NOUT, FMT = 99996 )
+            WRITE( NOUT, FMT = 99995 ) ( ALPHAR( I ), I = 1, N )
+            WRITE( NOUT, FMT = 99994 )
+            WRITE( NOUT, FMT = 99995 ) ( ALPHAI( I ), I = 1, N )
+            WRITE( NOUT, FMT = 99993 )
+            WRITE( NOUT, FMT = 99995 ) (   BETA( I ), I = 1, N )
+            WRITE( NOUT, FMT = 99992 )
+            WRITE( NOUT, FMT = 99991 ) (   SCAL( I ), I = 1, N )
+*           Compute the transformed matrices, after reordering the
+*           eigenvalues.
+            CALL MB03KD( COMPQ, QIND, STRONG, K, N, H, ND, NI, S,
+     $                   SELECT, T, LDT, IXT, QK, LDQ, IXQ, M, TOL,
+     $                   IWORK, DWORK, LDWORK, INFO )
+            IF( INFO.NE.0 ) THEN
+               WRITE( NOUT, FMT = 99990 ) INFO
+            ELSE
+               WRITE( NOUT, FMT = 99989 )
+               DO 80 L = 1, K
+                  P = K - L + 1
+                  WRITE( NOUT, FMT = 99988 ) L
+                  DO 70 I = 1, N
+                     WRITE( NOUT, FMT = 99995 )
+     $                    ( T( IXT( P ) + I - 1 + ( J - 1 )*LDT( P ) ),
+     $                       J = 1, N )
+   70             CONTINUE
+   80          CONTINUE
+               IF( LSAME( COMPQ, 'U' ) .OR. LSAME( COMPQ, 'I' ) ) THEN
+                  WRITE( NOUT, FMT = 99987 )
+                  DO 100 L = 1, K
+                     P = K - L + 1
+                     WRITE( NOUT, FMT = 99988 ) L
+                     DO 90 I = 1, N
+                        WRITE( NOUT, FMT = 99995 )
+     $                       ( QK( IXQ( P ) + I - 1 +
+     $                           ( J - 1 )*LDQ( P ) ), J = 1, N )
+   90                CONTINUE
+  100             CONTINUE
+               ELSE IF( LSAME( COMPQ, 'W' ) ) THEN
+                  WRITE( NOUT, FMT = 99987 )
+                  DO 120 L = 1, K
+                     IF( QIND( L ).GT.0 ) THEN
+                        P = K - QIND( L ) + 1
+                        WRITE( NOUT, FMT = 99988 ) QIND( L )
+                        DO 110 I = 1, N
+                           WRITE( NOUT, FMT = 99995 )
+     $                          ( QK( IXQ( P ) + I - 1 +
+     $                              ( J - 1 )*LDQ( P ) ), J = 1, N )
+  110                   CONTINUE
+                     END IF
+  120             CONTINUE
+               END IF
+            END IF
+         ELSE
+            WRITE( NOUT, FMT = 99979 ) IWARN
+         END IF
+      END IF
+      STOP
+*
+99999 FORMAT( 'MB03KD EXAMPLE PROGRAM RESULTS', 1X )
+99998 FORMAT( 'N is out of range.', /, 'N = ', I5 )
+99997 FORMAT( 'INFO on exit from MB03BD = ', I2 )
+99996 FORMAT( 'The vector ALPHAR is ' )
+99995 FORMAT( 50( 1X, F8.4 ) )
+99994 FORMAT( 'The vector ALPHAI is ' )
+99993 FORMAT( 'The vector BETA is ' )
+99992 FORMAT( 'The vector SCAL is ' )
+99991 FORMAT( 50( 1X, I5 ) )
+99990 FORMAT( 'INFO on exit from MB03KD = ', I2 )
+99989 FORMAT( 'The matrix A on exit is ' )
+99988 FORMAT( 'The factor ', I2, ' is ' )
+99987 FORMAT( 'The matrix Q on exit is ' )
+99986 FORMAT( 'LDT', 3I5 )
+99985 FORMAT( 'IXT', 3I5 )
+99984 FORMAT( 'LDQ', 3I5 )
+99983 FORMAT( 'IXQ', 3I5 )
+99982 FORMAT( 'ND' , 3I5 )
+99981 FORMAT( 'NI' , 3I5)
+99980 FORMAT( 'SELECT', 3L5 )
+99979 FORMAT( 'IWARN on exit from MB03BD = ', I2 )
+      END
+</PRE>
+<B>Program Data</B>
+<PRE>
+MB03KD EXAMPLE PROGRAM DATA
+   S   C   I   N   3   3   2   1   3
+  -1     1    -1
+   2.0   0.0   1.0
+   0.0  -2.0  -1.0
+   0.0   0.0   3.0
+   1.0   2.0   0.0
+   4.0  -1.0   3.0
+   0.0   3.0   1.0
+   1.0   0.0   1.0
+   0.0   4.0  -1.0
+   0.0   0.0  -2.0
+
+</PRE>
+<B>Program Results</B>
+<PRE>
+MB03KD EXAMPLE PROGRAM RESULTS
+The vector ALPHAR is 
+   0.3230   0.3230  -0.8752
+The vector ALPHAI is 
+   0.5694  -0.5694   0.0000
+The vector BETA is 
+   1.0000   1.0000   1.0000
+The vector SCAL is 
+     0     0    -1
+The matrix A on exit is 
+The factor  1 is 
+   2.5997  -0.0087   1.6898
+   0.0000   1.9846   0.1942
+   0.0000   0.0000   2.3259
+The factor  2 is 
+  -2.0990  -1.0831  -2.5601
+   0.0000   3.4838   0.2950
+   0.0000   3.4552  -2.1690
+The factor  3 is 
+   1.8451   0.9260   1.2717
+   0.0000   1.3976  -2.3544
+   0.0000   0.0000  -3.1023
+The matrix Q on exit is 
+The factor  1 is 
+  -0.2052   0.4647  -0.8614
+   0.2033   0.8811   0.4270
+  -0.9574   0.0875   0.2753
+The factor  2 is 
+  -0.7743  -0.1384   0.6176
+   0.6070  -0.4386   0.6627
+   0.1791   0.8880   0.4236
+The factor  3 is 
+  -0.6714   0.7225  -0.1651
+  -0.3658  -0.5168  -0.7740
+  -0.6446  -0.4593   0.6112
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

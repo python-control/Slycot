@@ -1,0 +1,499 @@
+<HTML>
+<HEAD><TITLE>TB03AD - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="TB03AD">TB03AD</A></H2>
+<H3>
+Left/right polynomial matrix representation of a given state-space representation
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To find a relatively prime left polynomial matrix representation
+  inv(P(s))*Q(s) or right polynomial matrix representation
+  Q(s)*inv(P(s)) with the same transfer matrix T(s) as that of a
+  given state-space representation, i.e.
+
+     inv(P(s))*Q(s) = Q(s)*inv(P(s)) = T(s) = C*inv(s*I-A)*B + D.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE TB03AD( LERI, EQUIL, N, M, P, A, LDA, B, LDB, C, LDC,
+     $                   D, LDD, NR, INDEX, PCOEFF, LDPCO1, LDPCO2,
+     $                   QCOEFF, LDQCO1, LDQCO2, VCOEFF, LDVCO1, LDVCO2,
+     $                   TOL, IWORK, DWORK, LDWORK, INFO )
+C     .. Scalar Arguments ..
+      CHARACTER         EQUIL, LERI
+      INTEGER           INFO, LDA, LDB, LDC, LDD, LDPCO1, LDPCO2,
+     $                  LDQCO1, LDQCO2, LDVCO1, LDVCO2, LDWORK, M, N,
+     $                  NR, P
+      DOUBLE PRECISION  TOL
+C     .. Array Arguments ..
+      INTEGER           INDEX(*), IWORK(*)
+      DOUBLE PRECISION  A(LDA,*), B(LDB,*), C(LDC,*), D(LDD,*),
+     $                  DWORK(*), PCOEFF(LDPCO1,LDPCO2,*),
+     $                  QCOEFF(LDQCO1,LDQCO2,*), VCOEFF(LDVCO1,LDVCO2,*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  LERI    CHARACTER*1
+          Indicates whether the left polynomial matrix
+          representation or the right polynomial matrix
+          representation is required as follows:
+          = 'L':  A left matrix fraction is required;
+          = 'R':  A right matrix fraction is required.
+
+  EQUIL   CHARACTER*1
+          Specifies whether the user wishes to balance the triplet
+          (A,B,C), before computing a minimal state-space
+          representation, as follows:
+          = 'S':  Perform balancing (scaling);
+          = 'N':  Do not perform balancing.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The order of the state-space representation, i.e. the
+          order of the original state dynamics matrix A.  N &gt;= 0.
+
+  M       (input) INTEGER
+          The number of system inputs.  M &gt;= 0.
+
+  P       (input) INTEGER
+          The number of system outputs.  P &gt;= 0.
+
+  A       (input/output) DOUBLE PRECISION array, dimension (LDA,N)
+          On entry, the leading N-by-N part of this array must
+          contain the original state dynamics matrix A.
+          On exit, the leading NR-by-NR part of this array contains
+          the upper block Hessenberg state dynamics matrix Amin of a
+          minimal realization for the original system.
+
+  LDA     INTEGER
+          The leading dimension of array A.  LDA &gt;= MAX(1,N).
+
+  B       (input/output) DOUBLE PRECISION array, dimension
+          (LDB,MAX(M,P))
+          On entry, the leading N-by-M part of this array must
+          contain the original input/state matrix B; the remainder
+          of the leading N-by-MAX(M,P) part is used as internal
+          workspace.
+          On exit, the leading NR-by-M part of this array contains
+          the transformed input/state matrix Bmin.
+
+  LDB     INTEGER
+          The leading dimension of array B.  LDB &gt;= MAX(1,N).
+
+  C       (input/output) DOUBLE PRECISION array, dimension (LDC,N)
+          On entry, the leading P-by-N part of this array must
+          contain the original state/output matrix C; the remainder
+          of the leading MAX(M,P)-by-N part is used as internal
+          workspace.
+          On exit, the leading P-by-NR part of this array contains
+          the transformed state/output matrix Cmin.
+
+  LDC     INTEGER
+          The leading dimension of array C.  LDC &gt;= MAX(1,M,P).
+
+  D       (input) DOUBLE PRECISION array, dimension (LDD,MAX(M,P))
+          The leading P-by-M part of this array must contain the
+          original direct transmission matrix D; the remainder of
+          the leading MAX(M,P)-by-MAX(M,P) part is used as internal
+          workspace.
+
+  LDD     INTEGER
+          The leading dimension of array D.  LDD &gt;= MAX(1,M,P).
+
+  NR      (output) INTEGER
+          The order of the minimal state-space representation
+          (Amin,Bmin,Cmin).
+
+  INDEX   (output) INTEGER array, dimension (P), if LERI = 'L', or
+                                  dimension (M), if LERI = 'R'.
+          If LERI = 'L', INDEX(I), I = 1,2,...,P, contains the
+          maximum degree of the polynomials in the I-th row of the
+          denominator matrix P(s) of the left polynomial matrix
+          representation.
+          These elements are ordered so that
+          INDEX(1) &gt;= INDEX(2) &gt;= ... &gt;= INDEX(P).
+          If LERI = 'R', INDEX(I), I = 1,2,...,M, contains the
+          maximum degree of the polynomials in the I-th column of
+          the denominator matrix P(s) of the right polynomial
+          matrix representation.
+          These elements are ordered so that
+          INDEX(1) &gt;= INDEX(2) &gt;= ... &gt;= INDEX(M).
+
+  PCOEFF  (output) DOUBLE PRECISION array, dimension
+          (LDPCO1,LDPCO2,N+1)
+          If LERI = 'L' then porm = P, otherwise porm = M.
+          The leading porm-by-porm-by-kpcoef part of this array
+          contains the coefficients of the denominator matrix P(s),
+          where kpcoef = MAX(INDEX(I)) + 1.
+          PCOEFF(I,J,K) is the coefficient in s**(INDEX(iorj)-K+1)
+          of polynomial (I,J) of P(s), where K = 1,2,...,kpcoef; if
+          LERI = 'L' then iorj = I, otherwise iorj = J.
+          Thus for LERI = 'L', P(s) =
+          diag(s**INDEX(I))*(PCOEFF(.,.,1)+PCOEFF(.,.,2)/s+...).
+
+  LDPCO1  INTEGER
+          The leading dimension of array PCOEFF.
+          LDPCO1 &gt;= MAX(1,P), if LERI = 'L';
+          LDPCO1 &gt;= MAX(1,M), if LERI = 'R'.
+
+  LDPCO2  INTEGER
+          The second dimension of array PCOEFF.
+          LDPCO2 &gt;= MAX(1,P), if LERI = 'L';
+          LDPCO2 &gt;= MAX(1,M), if LERI = 'R'.
+
+  QCOEFF  (output) DOUBLE PRECISION array, dimension
+          (LDQCO1,LDQCO2,N+1)
+          If LERI = 'L' then porp = M, otherwise porp = P.
+          If LERI = 'L', the leading porm-by-porp-by-kpcoef part
+          of this array contains the coefficients of the numerator
+          matrix Q(s).
+          If LERI = 'R', the leading porp-by-porm-by-kpcoef part
+          of this array contains the coefficients of the numerator
+          matrix Q(s).
+          QCOEFF(I,J,K) is defined as for PCOEFF(I,J,K).
+
+  LDQCO1  INTEGER
+          The leading dimension of array QCOEFF.
+          LDQCO1 &gt;= MAX(1,P),   if LERI = 'L';
+          LDQCO1 &gt;= MAX(1,M,P), if LERI = 'R'.
+
+  LDQCO2  INTEGER
+          The second dimension of array QCOEFF.
+          LDQCO2 &gt;= MAX(1,M),   if LERI = 'L';
+          LDQCO2 &gt;= MAX(1,M,P), if LERI = 'R'.
+
+  VCOEFF  (output) DOUBLE PRECISION array, dimension
+          (LDVCO1,LDVCO2,N+1)
+          The leading porm-by-NR-by-kpcoef part of this array
+          contains the coefficients of the intermediate matrix V(s).
+          VCOEFF(I,J,K) is defined as for PCOEFF(I,J,K).
+
+  LDVCO1  INTEGER
+          The leading dimension of array VCOEFF.
+          LDVCO1 &gt;= MAX(1,P), if LERI = 'L';
+          LDVCO1 &gt;= MAX(1,M), if LERI = 'R'.
+
+  LDVCO2  INTEGER
+          The second dimension of array VCOEFF.  LDVCO2 &gt;= MAX(1,N).
+
+</PRE>
+<B>Tolerances</B>
+<PRE>
+  TOL     DOUBLE PRECISION
+          The tolerance to be used in rank determination when
+          transforming (A, B, C). If the user sets TOL &gt; 0, then
+          the given value of TOL is used as a lower bound for the
+          reciprocal condition number (see the description of the
+          argument RCOND in the SLICOT routine MB03OD);  a
+          (sub)matrix whose estimated condition number is less than
+          1/TOL is considered to be of full rank.  If the user sets
+          TOL &lt;= 0, then an implicitly computed, default tolerance
+          (determined by the SLICOT routine TB01UD) is used instead.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  IWORK   INTEGER array, dimension (N+MAX(M,P))
+          On exit, if INFO = 0, the first nonzero elements of
+          IWORK(1:N) return the orders of the diagonal blocks of A.
+
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+          On exit, if INFO = 0, DWORK(1) returns the optimal value
+          of LDWORK.
+
+  LDWORK  INTEGER
+          The length of the array DWORK.
+          LDWORK &gt;= MAX(1, N + MAX(N, 3*M, 3*P), PM*(PM + 2))
+          where  PM = P, if LERI = 'L';
+                 PM = M, if LERI = 'R'.
+          For optimum performance LDWORK should be larger.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value;
+          = 1:  if a singular matrix was encountered during the
+                computation of V(s);
+          = 2:  if a singular matrix was encountered during the
+                computation of P(s).
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  The method for a left matrix fraction will be described here:
+  right matrix fractions are dealt with by constructing a left
+  fraction for the dual of the original system. The first step is to
+  obtain, by means of orthogonal similarity transformations, a
+  minimal state-space representation (Amin,Bmin,Cmin,D) for the
+  original system (A,B,C,D), where Amin is lower block Hessenberg
+  with all its superdiagonal blocks upper triangular and Cmin has
+  all but its first rank(C) columns zero.  The number and dimensions
+  of the blocks of Amin now immediately yield the row degrees of
+  P(s) with P(s) row proper: furthermore, the P-by-NR polynomial
+  matrix V(s) (playing a similar role to S(s) in Wolovich's
+  Structure Theorem) can be calculated a column block at a time, in
+  reverse order, from Amin. P(s) is then found as if it were the
+  O-th column block of V(s) (using Cmin as well as Amin), while
+  Q(s) = (V(s) * Bmin) + (P(s) * D). Finally, a special similarity
+  transformation is used to put Amin in an upper block Hessenberg
+  form.
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Williams, T.W.C.
+      An Orthogonal Structure Theorem for Linear Systems.
+      Kingston Polytechnic Control Systems Research Group,
+      Internal Report 82/2, July 1982.
+
+  [2] Patel, R.V.
+      On Computing Matrix Fraction Descriptions and Canonical
+      Forms of Linear Time-Invariant Systems.
+      UMIST Control Systems Centre Report 489, 1980.
+      (Algorithms 1 and 2, extensively modified).
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>                            3
+  The algorithm requires 0(N ) operations.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+*     TB03AD EXAMPLE PROGRAM TEXT
+*
+*     .. Parameters ..
+      INTEGER          NIN, NOUT
+      PARAMETER        ( NIN = 5, NOUT = 6 )
+      INTEGER          NMAX, MMAX, PMAX
+      PARAMETER        ( NMAX = 20, MMAX = 20, PMAX = 20 )
+      INTEGER          MAXMP
+      PARAMETER        ( MAXMP = MAX( MMAX, PMAX ) )
+      INTEGER          LDA, LDB, LDC, LDD, LDPCO1, LDPCO2, LDQCO1,
+     $                 LDQCO2, LDVCO1, LDVCO2, NMAXP1
+      PARAMETER        ( LDA = NMAX, LDB = NMAX, LDC = MAXMP,
+     $                   LDD = MAXMP, LDPCO1 = MAXMP, LDPCO2 = MAXMP,
+     $                   LDQCO1 = MAXMP, LDQCO2 = MAXMP, LDVCO1 = MAXMP,
+     $                   LDVCO2 = NMAX, NMAXP1 = NMAX+1 )
+      INTEGER          LIWORK
+      PARAMETER        ( LIWORK = NMAX + MAXMP )
+      INTEGER          LDWORK
+      PARAMETER        ( LDWORK = MAX( NMAX + MAX( NMAX, 3*MAXMP ),
+     $                                 MAXMP*( MAXMP + 2 ) ) )
+*     .. Local Scalars ..
+      DOUBLE PRECISION TOL
+      INTEGER          I, INDBLK, INFO, J, K, KPCOEF, M, N, NR, P, PORM,
+     $                 PORP
+      CHARACTER*1      EQUIL, LERI
+      LOGICAL          LLERI
+*     .. Local Arrays ..
+      DOUBLE PRECISION A(LDA,NMAX), B(LDB,MAXMP), C(LDC,NMAX),
+     $                 D(LDD,MAXMP), DWORK(LDWORK),
+     $                 PCOEFF(LDPCO1,LDPCO2,NMAXP1),
+     $                 QCOEFF(LDQCO1,LDQCO2,NMAXP1),
+     $                 VCOEFF(LDVCO1,LDVCO2,NMAXP1)
+      INTEGER          INDEX(MAXMP), IWORK(LIWORK)
+*     .. External Functions ..
+      LOGICAL          LSAME
+      EXTERNAL         LSAME
+*     .. External Subroutines ..
+      EXTERNAL         TB03AD
+*     .. Intrinsic Functions ..
+      INTRINSIC        MAX
+*     .. Executable Statements ..
+*
+      WRITE ( NOUT, FMT = 99999 )
+*     Skip the heading in the data file and read the data.
+      READ ( NIN, FMT = '()' )
+      READ ( NIN, FMT = * ) N, M, P, TOL, LERI, EQUIL
+      LLERI = LSAME( LERI, 'L' )
+      IF ( N.LT.0 .OR. N.GT.NMAX ) THEN
+         WRITE ( NOUT, FMT = 99987 ) N
+      ELSE
+         READ ( NIN, FMT = * ) ( ( A(I,J), J = 1,N ), I = 1,N )
+         IF ( M.LT.0 .OR. M.GT.MMAX ) THEN
+            WRITE ( NOUT, FMT = 99986 ) M
+         ELSE
+            READ ( NIN, FMT = * ) ( ( B(I,J), J = 1,M ), I = 1,N )
+            IF ( P.LT.0 .OR. P.GT.PMAX ) THEN
+               WRITE ( NOUT, FMT = 99985 ) P
+            ELSE
+               READ ( NIN, FMT = * ) ( ( C(I,J), J = 1,N ), I = 1,P )
+               READ ( NIN, FMT = * ) ( ( D(I,J), J = 1,M ), I = 1,P )
+*              Find the right pmr which is equivalent to the ssr
+*              C*inv(sI-A)*B+D.
+               CALL TB03AD( LERI, EQUIL, N, M, P, A, LDA, B, LDB, C,
+     $                      LDC, D, LDD, NR, INDEX, PCOEFF, LDPCO1,
+     $                      LDPCO2, QCOEFF, LDQCO1, LDQCO2, VCOEFF,
+     $                      LDVCO1, LDVCO2, TOL, IWORK, DWORK, LDWORK,
+     $                      INFO )
+*
+               IF ( INFO.NE.0 ) THEN
+                  WRITE ( NOUT, FMT = 99998 ) INFO
+               ELSE
+                  WRITE ( NOUT, FMT = 99997 ) NR
+                  DO 20 I = 1, NR
+                     WRITE ( NOUT, FMT = 99996 ) ( A(I,J), J = 1,NR )
+   20             CONTINUE
+                  INDBLK = 0
+                  DO 40 I = 1, N
+                     IF ( IWORK(I).NE.0 ) INDBLK = INDBLK + 1
+   40             CONTINUE
+                  WRITE ( NOUT, FMT = 99995 ) ( IWORK(I), I = 1,INDBLK )
+                  WRITE ( NOUT, FMT = 99994 )
+                  DO 60 I = 1, NR
+                     WRITE ( NOUT, FMT = 99996 ) ( B(I,J), J = 1,M )
+   60             CONTINUE
+                  WRITE ( NOUT, FMT = 99993 )
+                  DO 80 I = 1, P
+                     WRITE ( NOUT, FMT = 99996 ) ( C(I,J), J = 1,NR )
+   80             CONTINUE
+                  IF ( LLERI ) THEN
+                     PORM = P
+                     PORP = M
+                     WRITE ( NOUT, FMT = 99992 ) INDBLK
+                  ELSE
+                     PORM = M
+                     PORP = P
+                     WRITE ( NOUT, FMT = 99991 ) INDBLK
+                  END IF
+                  WRITE ( NOUT, FMT = 99990 ) ( INDEX(I), I = 1,PORM )
+                  KPCOEF = 0
+                  DO 100 I = 1, PORM
+                     KPCOEF = MAX( KPCOEF, INDEX(I) )
+  100             CONTINUE
+                  KPCOEF = KPCOEF + 1
+                  WRITE ( NOUT, FMT = 99989 )
+                  DO 140 I = 1, PORM
+                     DO 120 J = 1, PORM
+                        WRITE ( NOUT, FMT = 99996 )
+     $                        ( PCOEFF(I,J,K), K = 1,KPCOEF )
+  120                CONTINUE
+  140             CONTINUE
+                  WRITE ( NOUT, FMT = 99988 )
+                  IF ( LLERI ) THEN
+                     DO 180 I = 1, PORM
+                        DO 160 J = 1, PORP
+                           WRITE ( NOUT, FMT = 99996 )
+     $                           ( QCOEFF(I,J,K), K = 1,KPCOEF )
+  160                   CONTINUE
+  180                CONTINUE
+                  ELSE
+                     DO 220 I = 1, PORP
+                        DO 200 J = 1, PORM
+                           WRITE ( NOUT, FMT = 99996 )
+     $                           ( QCOEFF(I,J,K), K = 1,KPCOEF )
+  200                   CONTINUE
+  220                CONTINUE
+                  END IF
+               END IF
+            END IF
+         END IF
+      END IF
+      STOP
+*
+99999 FORMAT (' TB03AD EXAMPLE PROGRAM RESULTS',/1X)
+99998 FORMAT (' INFO on exit from TB03AD = ',I2)
+99997 FORMAT (' The order of the minimal state-space representation = ',
+     $       I2,//' The transformed state dynamics matrix of a minimal',
+     $       ' realization is ')
+99996 FORMAT (20(1X,F8.4))
+99995 FORMAT (/' and the dimensions of its diagonal blocks are ',/20(I5)
+     $       )
+99994 FORMAT (/' The transformed input/state matrix of a minimal reali',
+     $       'zation is ')
+99993 FORMAT (/' The transformed state/output matrix of a minimal real',
+     $       'ization is ')
+99992 FORMAT (/' The observability index of the transformed minimal sy',
+     $       'stem representation = ',I2)
+99991 FORMAT (/' The controllability index of the transformed minimal ',
+     $       'system representation = ',I2)
+99990 FORMAT (/' INDEX is ',/20(I5))
+99989 FORMAT (/' The denominator matrix P(s) is ')
+99988 FORMAT (/' The numerator matrix Q(s) is ')
+99987 FORMAT (/' N is out of range.',/' N = ',I5)
+99986 FORMAT (/' M is out of range.',/' M = ',I5)
+99985 FORMAT (/' P is out of range.',/' P = ',I5)
+      END
+</PRE>
+<B>Program Data</B>
+<PRE>
+ TB03AD EXAMPLE PROGRAM DATA
+   3     1     2     0.0     R     N
+   1.0   2.0   0.0
+   4.0  -1.0   0.0
+   0.0   0.0   1.0
+   1.0   0.0   1.0
+   0.0   1.0  -1.0
+   0.0   0.0   1.0
+   0.0   1.0
+</PRE>
+<B>Program Results</B>
+<PRE>
+ TB03AD EXAMPLE PROGRAM RESULTS
+
+ The order of the minimal state-space representation =  3
+
+ The transformed state dynamics matrix of a minimal realization is 
+   1.0000  -1.4142   0.0000
+  -2.8284  -1.0000   2.8284
+   0.0000   1.4142   1.0000
+
+ and the dimensions of its diagonal blocks are 
+    1    1    1
+
+ The transformed input/state matrix of a minimal realization is 
+  -1.4142
+   0.0000
+   0.0000
+
+ The transformed state/output matrix of a minimal realization is 
+   0.7071   1.0000   0.7071
+  -0.7071   0.0000  -0.7071
+
+ The controllability index of the transformed minimal system representation =  3
+
+ INDEX is 
+    3
+
+ The denominator matrix P(s) is 
+   0.1768  -0.1768  -1.5910   1.5910
+
+ The numerator matrix Q(s) is 
+   0.0000  -0.1768   0.7071   0.8839
+   0.1768   0.0000  -1.5910   0.0000
+</PRE>
+
+<HR>
+<p>
+<A HREF=..\libindex.html><B>Return to index</B></A></BODY>
+</HTML>

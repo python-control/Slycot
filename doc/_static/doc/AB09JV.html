@@ -1,0 +1,365 @@
+<HTML>
+<HEAD><TITLE>AB09JV - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="AB09JV">AB09JV</A></H2>
+<H3>
+State-space representation of a projection of a left weighted transfer-function matrix
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To construct a state-space representation (A,BS,CS,DS) of the
+  projection of V*G or conj(V)*G containing the poles of G, from the
+  state-space representations (A,B,C,D) and (AV-lambda*EV,BV,CV,DV),
+  of the transfer-function matrices G and V, respectively.
+  G is assumed to be a stable transfer-function matrix and
+  the state matrix A must be in a real Schur form.
+  When computing the stable projection of V*G, it is assumed
+  that G and V have completely distinct poles.
+  When computing the stable projection of conj(V)*G, it is assumed
+  that G and conj(V) have completely distinct poles.
+
+  Note: For a transfer-function matrix G, conj(G) denotes the
+  conjugate of G given by G'(-s) for a continuous-time system or
+  G'(1/z) for a discrete-time system.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE AB09JV( JOB, DICO, JOBEV, STBCHK, N, M, P, NV, PV,
+     $                   A, LDA, B, LDB, C, LDC, D, LDD, AV, LDAV,
+     $                   EV, LDEV, BV, LDBV, CV, LDCV, DV, LDDV, IWORK,
+     $                   DWORK, LDWORK, INFO )
+C     .. Scalar Arguments ..
+      CHARACTER         DICO, JOB, JOBEV, STBCHK
+      INTEGER           INFO, LDA, LDAV, LDB, LDBV, LDC, LDCV,
+     $                  LDD, LDDV, LDEV, LDWORK, M, N, NV, P, PV
+C     .. Array Arguments ..
+      INTEGER           IWORK(*)
+      DOUBLE PRECISION  A(LDA,*), AV(LDAV,*), B(LDB,*), BV(LDBV,*),
+     $                  C(LDC,*), CV(LDCV,*), D(LDD,*), DV(LDDV,*),
+     $                  DWORK(*), EV(LDEV,*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  JOB     CHARACTER*1
+          Specifies the projection to be computed as follows:
+          = 'V':  compute the projection of V*G containing
+                  the poles of G;
+          = 'C':  compute the projection of conj(V)*G containing
+                  the poles of G.
+
+  DICO    CHARACTER*1
+          Specifies the type of the systems as follows:
+          = 'C':  G and V are continuous-time systems;
+          = 'D':  G and V are discrete-time systems.
+
+  JOBEV   CHARACTER*1
+          Specifies whether EV is a general square or an identity
+          matrix as follows:
+          = 'G':  EV is a general square matrix;
+          = 'I':  EV is the identity matrix.
+
+  STBCHK  CHARACTER*1
+          Specifies whether stability/antistability of V is to be
+          checked as follows:
+          = 'C':  check stability if JOB = 'C' or antistability if
+                  JOB = 'V';
+          = 'N':  do not check stability or antistability.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The dimension of the state vector of the system with
+          the transfer-function matrix G.  N &gt;= 0.
+
+  M       (input) INTEGER
+          The dimension of the input vector of the system with
+          the transfer-function matrix G.  M &gt;= 0.
+
+  P       (input) INTEGER
+          The dimension of the output vector of the system with the
+          transfer-function matrix G, and also the dimension of
+          the input vector if JOB = 'V', or of the output vector
+          if JOB = 'C', of the system with the transfer-function
+          matrix V.  P &gt;= 0.
+
+  NV      (input) INTEGER
+          The dimension of the state vector of the system with
+          the transfer-function matrix V.  NV &gt;= 0.
+
+  PV      (input) INTEGER
+          The dimension of the output vector, if JOB = 'V', or
+          of the input vector, if JOB = 'C', of the system with
+          the transfer-function matrix V.  PV &gt;= 0.
+
+  A       (input) DOUBLE PRECISION array, dimension (LDA,N)
+          The leading N-by-N part of this array must contain the
+          state matrix A of the system with the transfer-function
+          matrix G in a real Schur form.
+
+  LDA     INTEGER
+          The leading dimension of the array A.  LDA &gt;= MAX(1,N).
+
+  B       (input) DOUBLE PRECISION array, dimension (LDB,M)
+          The leading N-by-M part of this array must contain
+          the input/state matrix B of the system with the
+          transfer-function matrix G. The matrix BS is equal to B.
+
+  LDB     INTEGER
+          The leading dimension of the array B.  LDB &gt;= MAX(1,N).
+
+  C       (input/output) DOUBLE PRECISION array, dimension (LDC,N)
+          On entry, the leading P-by-N part of this array must
+          contain the output matrix C of the system with the
+          transfer-function matrix G.
+          On exit, if INFO = 0, the leading PV-by-N part of this
+          array contains the output matrix CS of the projection of
+          V*G, if JOB = 'V', or of conj(V)*G, if JOB = 'C'.
+
+  LDC     INTEGER
+          The leading dimension of the array C.  LDC &gt;= MAX(1,P,PV).
+
+  D       (input/output) DOUBLE PRECISION array, dimension (LDD,M)
+          On entry, the leading P-by-M part of this array must
+          contain the feedthrough matrix D of the system with the
+          transfer-function matrix G.
+          On exit, if INFO = 0, the leading PV-by-M part of
+          this array contains the feedthrough matrix DS of the
+          projection of V*G, if JOB = 'V', or of conj(V)*G,
+          if JOB = 'C'.
+
+  LDD     INTEGER
+          The leading dimension of the array D.  LDD &gt;= MAX(1,P,PV).
+
+  AV      (input/output) DOUBLE PRECISION array, dimension (LDAV,NV)
+          On entry, the leading NV-by-NV part of this array must
+          contain the state matrix AV of the system with the
+          transfer-function matrix V.
+          On exit, if INFO = 0, the leading NV-by-NV part of this
+          array contains a condensed matrix as follows:
+          if JOBEV = 'I', it contains the real Schur form of AV;
+          if JOBEV = 'G' and JOB = 'V', it contains a quasi-upper
+          triangular matrix representing the real Schur matrix
+          in the real generalized Schur form of the pair (AV,EV);
+          if JOBEV = 'G', JOB = 'C' and DICO = 'C', it contains a
+          quasi-upper triangular matrix corresponding to the
+          generalized real Schur form of the pair (AV',EV');
+          if JOBEV = 'G', JOB = 'C' and DICO = 'D', it contains an
+          upper triangular matrix corresponding to the generalized
+          real Schur form of the pair (EV',AV').
+
+  LDAV    INTEGER
+          The leading dimension of the array AV.  LDAV &gt;= MAX(1,NV).
+
+  EV      (input/output) DOUBLE PRECISION array, dimension (LDEV,NV)
+          On entry, if JOBEV = 'G', the leading NV-by-NV part of
+          this array must contain the descriptor matrix EV of the
+          system with the transfer-function matrix V.
+          If JOBEV = 'I', EV is assumed to be an identity matrix
+          and is not referenced.
+          On exit, if INFO = 0 and JOBEV = 'G', the leading NV-by-NV
+          part of this array contains a condensed matrix as follows:
+          if JOB = 'V', it contains an upper triangular matrix
+          corresponding to the real generalized Schur form of the
+          pair (AV,EV);
+          if JOB = 'C' and DICO = 'C', it contains an upper
+          triangular matrix corresponding to the generalized real
+          Schur form of the pair (AV',EV');
+          if JOB = 'C' and DICO = 'D', it contains a quasi-upper
+          triangular matrix corresponding to the generalized
+          real Schur form of the pair (EV',AV').
+
+  LDEV    INTEGER
+          The leading dimension of the array EV.
+          LDEV &gt;= MAX(1,NV), if JOBEV = 'G';
+          LDEV &gt;= 1,         if JOBEV = 'I'.
+
+  BV      (input/output) DOUBLE PRECISION array,
+          dimension (LDBV,MBV), where MBV = P, if JOB = 'V', and
+          MBV = PV, if JOB = 'C'.
+          On entry, the leading NV-by-MBV part of this array must
+          contain the input matrix BV of the system with the
+          transfer-function matrix V.
+          On exit, if INFO = 0, the leading NV-by-MBV part of this
+          array contains Q'*BV, where Q is the orthogonal matrix
+          that reduces AV to the real Schur form or the left
+          orthogonal matrix used to reduce the pair (AV,EV),
+          (AV',EV') or (EV',AV') to the generalized real Schur form.
+
+  LDBV    INTEGER
+          The leading dimension of the array BV.  LDBV &gt;= MAX(1,NV).
+
+  CV      (input/output) DOUBLE PRECISION array, dimension (LDCV,NV)
+          On entry, the leading PCV-by-NV part of this array must
+          contain the output matrix CV of the system with the
+          transfer-function matrix V, where PCV = PV, if JOB = 'V',
+          or PCV = P, if JOB = 'C'.
+          On exit, if INFO = 0, the leading PCV-by-NV part of this
+          array contains CV*Q, where Q is the orthogonal matrix that
+          reduces AV to the real Schur form, or CV*Z, where Z is the
+          right orthogonal matrix used to reduce the pair (AV,EV),
+          (AV',EV') or (EV',AV') to the generalized real Schur form.
+
+  LDCV    INTEGER
+          The leading dimension of the array CV.
+          LDCV &gt;= MAX(1,PV) if JOB = 'V';
+          LDCV &gt;= MAX(1,P)  if JOB = 'C'.
+
+  DV      (input) DOUBLE PRECISION array,
+          dimension (LDDV,MBV), where MBV = P, if JOB = 'V', and
+          MBV = PV, if JOB = 'C'.
+          The leading PCV-by-MBV part of this array must contain
+          the feedthrough matrix DV of the system with the
+          transfer-function matrix V, where PCV = PV, if JOB = 'V',
+          or PCV = P, if JOB = 'C'.
+
+  LDDV    INTEGER
+          The leading dimension of the array DV.
+          LDDV &gt;= MAX(1,PV) if JOB = 'V';
+          LDDV &gt;= MAX(1,P)  if JOB = 'C'.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  IWORK   INTEGER array, dimension (LIWORK)
+          LIWORK =   0,    if JOBEV = 'I';
+          LIWORK = NV+N+6, if JOBEV = 'G'.
+
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+          On exit, if INFO = 0, DWORK(1) returns the optimal value
+          of LDWORK.
+
+  LDWORK  INTEGER
+          The length of the array DWORK.
+          LDWORK &gt;= LW1, if JOBEV = 'I',
+          LDWORK &gt;= LW2, if JOBEV = 'G', where
+            LW1 = MAX( 1, NV*(NV+5), NV*N + MAX( a, PV*N, PV*M ) )
+                  a = 0,    if DICO = 'C' or  JOB = 'V',
+                  a = 2*NV, if DICO = 'D' and JOB = 'C';
+            LW2 = MAX( 2*NV*NV + MAX( 11*NV+16, P*NV, PV*NV ),
+                       NV*N + MAX( NV*N+N*N, PV*N, PV*M ) ).
+          For good performance, LDWORK should be larger.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          =  0:  successful exit;
+          &lt;  0:  if INFO = -i, the i-th argument had an illegal
+                 value;
+          =  1:  the reduction of the pair (AV,EV) to the real
+                 generalized Schur form failed (JOBEV = 'G'),
+                 or the reduction of the matrix AV to the real
+                 Schur form failed (JOBEV = 'I);
+          =  2:  the solution of the Sylvester equation failed
+                 because the matrix A and the pencil AV-lambda*EV
+                 have common eigenvalues (if JOB = 'V'), or the
+                 pencil -AV-lambda*EV and A have common eigenvalues
+                 (if JOB = 'C' and DICO = 'C'), or the pencil
+                 AV-lambda*EV has an eigenvalue which is the
+                 reciprocal of one of eigenvalues of A
+                 (if JOB = 'C' and DICO = 'D');
+          =  3:  the solution of the Sylvester equation failed
+                 because the matrices A and AV have common
+                 eigenvalues (if JOB = 'V'), or the matrices A
+                 and -AV have common eigenvalues (if JOB = 'C' and
+                 DICO = 'C'), or the matrix A has an eigenvalue
+                 which is the reciprocal of one of eigenvalues of AV
+                 (if JOB = 'C' and DICO = 'D');
+          =  4:  JOB = 'V' and the pair (AV,EV) has not completely
+                 unstable generalized eigenvalues, or JOB = 'C' and
+                 the pair (AV,EV) has not completely stable
+                 generalized eigenvalues.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  If JOB = 'V', the matrices of the stable projection of V*G are
+  computed as
+
+    BS = B,  CS = CV*X + DV*C,  DS = DV*D,
+
+  where X satisfies the generalized Sylvester equation
+
+    AV*X - EV*X*A + BV*C = 0.
+
+  If JOB = 'C', the matrices of the stable projection of conj(V)*G
+  are computed using the following formulas:
+
+  - for a continuous-time system, the matrices BS, CS and DS of
+    the stable projection are computed as
+
+      BS = B,  CS = BV'*X + DV'*C,  DS = DV'*D,
+
+    where X satisfies the generalized Sylvester equation
+
+      AV'*X + EV'*X*A + CV'*C = 0.
+
+  - for a discrete-time system, the matrices BS, CS and DS of
+    the stable projection are computed as
+
+      BS = B,  CS = BV'*X*A + DV'*C,  DS = DV'*D + BV'*X*B,
+
+    where X satisfies the generalized Sylvester equation
+
+      EV'*X - AV'*X*A = CV'*C.
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Varga, A.
+      Efficient and numerically reliable implementation of the
+      frequency-weighted Hankel-norm approximation model reduction
+      approach.
+      Proc. 2001 ECC, Porto, Portugal, 2001.
+
+  [2] Zhou, K.
+      Frequency-weighted H-infinity norm and optimal Hankel norm
+      model reduction.
+      IEEE Trans. Autom. Control, vol. 40, pp. 1687-1699, 1995.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  The implemented methods rely on numerically stable algorithms.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

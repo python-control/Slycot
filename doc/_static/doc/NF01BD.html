@@ -1,0 +1,210 @@
+<HTML>
+<HEAD><TITLE>NF01BD - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="NF01BD">NF01BD</A></H2>
+<H3>
+Computing the Jacobian of a Wiener system
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To calculate the Jacobian dy/dX of the Wiener system
+
+     x(t+1) = A*x(t) + B*u(t)
+     z(t)   = C*x(t) + D*u(t),
+
+     y(t,i) = sum( ws(k, i)*f(w(k, i)*z(t) + b(k,i)) ) + b(k+1,i),
+
+  where t = 1, 2, ...,  NSMP,
+        i = 1, 2, ...,  L,
+        k = 1, 2, ...,  NN.
+
+  NN is arbitrary eligible and has to be provided in IPAR(2), and
+  X = ( wb(1), ..., wb(L), theta ) is described below.
+
+  Denoting y(j) = y(1:NSMP,j), the Jacobian J has the block form
+
+    dy(1)/dwb(1)       0         .....       0         dy(1)/dtheta
+         0        dy(2)/dwb(2)   .....       0         dy(2)/dtheta
+       .....         .....       .....     .....          .....
+         0           .....         0    dy(L)/dwb(L)   dy(L)/dtheta
+
+  but it will be returned without the zero blocks, in the form
+
+  dy(1)/dwb(1)    dy(1)/dtheta
+               ...
+  dy(L)/dwb(L)    dy(L)/dtheta.
+
+  dy(i)/dwb(i) depends on f and is calculated by the routine NF01BY;
+  dy(i)/dtheta is computed by a forward-difference approximation.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE NF01BD( CJTE, NSMP, M, L, IPAR, LIPAR, X, LX, U, LDU,
+     $                   E, J, LDJ, JTE, DWORK, LDWORK, INFO )
+C     .. Scalar Arguments ..
+      CHARACTER         CJTE
+      INTEGER           INFO, L, LDJ, LDU, LDWORK, LX, LIPAR, M, NSMP
+C     .. Array Arguments ..
+      INTEGER           IPAR(*)
+      DOUBLE PRECISION  DWORK(*), E(*), J(LDJ, *), JTE(*), U(LDU,*),
+     $                  X(*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  CJTE    CHARACTER*1
+          Specifies whether the matrix-vector product J'*e should be
+          computed or not, as follows:
+          = 'C' :  compute J'*e;
+          = 'N' :  do not compute J'*e.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  NSMP    (input) INTEGER
+          The number of training samples.  NSMP &gt;= 0.
+
+  M       (input) INTEGER
+          The length of each input sample.  M &gt;= 0.
+
+  L       (input) INTEGER
+          The length of each output sample.  L &gt;= 0.
+
+  IPAR    (input/output) INTEGER array, dimension (LIPAR)
+          On entry, the first entries of this array must contain
+          the integer parameters needed; specifically,
+          IPAR(1)  must contain the order of the linear part, N;
+                   actually, N = abs(IPAR(1)), since setting
+                   IPAR(1) &lt; 0 has a special meaning (see below);
+          IPAR(2)  must contain the number of neurons for the
+                   nonlinear part, NN, NN &gt;= 0.
+          On exit, if IPAR(1) &lt; 0 on entry, then no computations are
+          performed, except the needed tests on input parameters,
+          but the following values are returned:
+          IPAR(1) contains the length of the array J, LJ;
+          LDJ     contains the leading dimension of array J.
+          Otherwise, IPAR(1) and LDJ are unchanged on exit.
+
+  LIPAR   (input) INTEGER
+          The length of the array IPAR.  LIPAR &gt;= 2.
+
+  X       (input) DOUBLE PRECISION array, dimension (LX)
+          The leading LPAR entries of this array must contain the
+          set of system parameters, where
+             LPAR = (NN*(L + 2) + 1)*L + N*(M + L + 1) + L*M.
+          X has the form (wb(1), ..., wb(L), theta), where the
+          vectors wb(i) have the structure
+           (w(1,1), ..., w(1,L), ..., w(NN,1), ..., w(NN,L),
+             ws(1), ..., ws(NN), b(1), ..., b(NN+1) ),
+          and the vector theta represents the matrices A, B, C, D
+          and x(1), and it can be retrieved from these matrices
+          by SLICOT Library routine TB01VD and retranslated by
+          TB01VY.
+
+  LX      (input) INTEGER
+          The length of X.
+          LX &gt;= (NN*(L + 2) + 1)*L + N*(M + L + 1) + L*M.
+
+  U       (input) DOUBLE PRECISION array, dimension (LDU, M)
+          The leading NSMP-by-M part of this array must contain the
+          set of input samples,
+          U = ( U(1,1),...,U(1,M); ...; U(NSMP,1),...,U(NSMP,M) ).
+
+  LDU     INTEGER
+          The leading dimension of array U.  LDU &gt;= MAX(1,NSMP).
+
+  E       (input) DOUBLE PRECISION array, dimension (NSMP*L)
+          If CJTE = 'C', this array must contain a vector e, which
+          will be premultiplied with J', e = vec( Y - y ), where
+          Y is set of output samples, and vec denotes the
+          concatenation of the columns of a matrix.
+          If CJTE = 'N', this array is not referenced.
+
+  J       (output) DOUBLE PRECISION array, dimension (LDJ, *)
+          The leading NSMP*L-by-NCOLJ part of this array contains
+          the Jacobian of the error function stored in a compressed
+          form, as described above, where
+          NCOLJ = NN*(L + 2) + 1 + N*(M + L + 1) + L*M.
+
+  LDJ     INTEGER
+          The leading dimension of array J.  LDJ &gt;= MAX(1,NSMP*L).
+          Note that LDJ is an input parameter, except for
+          IPAR(1) &lt; 0 on entry, when it is an output parameter.
+
+  JTE     (output) DOUBLE PRECISION array, dimension (LPAR)
+          If CJTE = 'C', this array contains the matrix-vector
+          product J'*e.
+          If CJTE = 'N', this array is not referenced.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+
+  LDWORK  INTEGER
+          The length of the array DWORK.
+          LDWORK &gt;= 2*NSMP*L + MAX( 2*NN, (N + L)*(N + M) + 2*N +
+                                    MAX( N*(N + L), N + M + L ) )
+                                                           if M &gt; 0;
+          LDWORK &gt;= 2*NSMP*L + MAX( 2*NN, (N + L)*N + 2*N +
+                                    MAX( N*(N + L), L ) ), if M = 0.
+          A larger value of LDWORK could improve the efficiency.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  BLAS routines are used for the matrix-vector multiplications, and
+  the SLICOT Library routine TB01VY is called for the conversion of
+  the output normal form parameters to an LTI-system; the routine
+  NF01AD is then used for the simulation of the system with given
+  parameters, and the routine NF01BY is called for the (analytically
+  performed) calculation of the parts referring to the parameters
+  of the static nonlinearity.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

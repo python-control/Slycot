@@ -1,0 +1,310 @@
+<HTML>
+<HEAD><TITLE>MB04UD - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MB04UD">MB04UD</A></H2>
+<H3>
+Column echelon form by unitary transformations for a rectangular matrix (added functionality)
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To compute orthogonal transformations Q and Z such that the
+  transformed pencil Q'(sE-A)Z has the E matrix in column echelon
+  form, where E and A are M-by-N matrices.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MB04UD( JOBQ, JOBZ, M, N, A, LDA, E, LDE, Q, LDQ,
+     $                   Z, LDZ, RANKE, ISTAIR, TOL, DWORK, INFO )
+C     .. Scalar Arguments ..
+      CHARACTER         JOBQ, JOBZ
+      INTEGER           INFO, LDA, LDE, LDQ, LDZ, M, N, RANKE
+      DOUBLE PRECISION  TOL
+C     .. Array Arguments ..
+      INTEGER           ISTAIR(*)
+      DOUBLE PRECISION  A(LDA,*), DWORK(*), E(LDE,*), Q(LDQ,*), Z(LDZ,*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  JOBQ    CHARACTER*1
+          Indicates whether the user wishes to accumulate in a
+          matrix Q the unitary row permutations, as follows:
+          = 'N':  Do not form Q;
+          = 'I':  Q is initialized to the unit matrix and the
+                  unitary row permutation matrix Q is returned;
+          = 'U':  The given matrix Q is updated by the unitary
+                  row permutations used in the reduction.
+
+  JOBZ    CHARACTER*1
+          Indicates whether the user wishes to accumulate in a
+          matrix Z the unitary column transformations, as follows:
+          = 'N':  Do not form Z;
+          = 'I':  Z is initialized to the unit matrix and the
+                  unitary transformation matrix Z is returned;
+          = 'U':  The given matrix Z is updated by the unitary
+                  transformations used in the reduction.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  M       (input) INTEGER
+          The number of rows in the matrices A, E and the order of
+          the matrix Q.  M &gt;= 0.
+
+  N       (input) INTEGER
+          The number of columns in the matrices A, E and the order
+          of the matrix Z.  N &gt;= 0.
+
+  A       (input/output) DOUBLE PRECISION array, dimension (LDA,N)
+          On entry, the leading M-by-N part of this array must
+          contain the A matrix of the pencil sE-A.
+          On exit, the leading M-by-N part of this array contains
+          the unitary transformed matrix Q' * A * Z.
+
+  LDA     INTEGER
+          The leading dimension of array A.  LDA &gt;= MAX(1,M).
+
+  E       (input/output) DOUBLE PRECISION array, dimension (LDE,N)
+          On entry, the leading M-by-N part of this array must
+          contain the E matrix of the pencil sE-A, to be reduced to
+          column echelon form.
+          On exit, the leading M-by-N part of this array contains
+          the unitary transformed matrix Q' * E * Z, which is in
+          column echelon form.
+
+  LDE     INTEGER
+          The leading dimension of array E.  LDE &gt;= MAX(1,M).
+
+  Q       (input/output) DOUBLE PRECISION array, dimension (LDQ,*)
+          On entry, if JOBQ = 'U', then the leading M-by-M part of
+          this array must contain a given matrix Q (e.g. from a
+          previous call to another SLICOT routine), and on exit, the
+          leading M-by-M part of this array contains the product of
+          the input matrix Q and the row permutation matrix used to
+          transform the rows of matrix E.
+          On exit, if JOBQ = 'I', then the leading M-by-M part of
+          this array contains the matrix of accumulated unitary
+          row transformations performed.
+          If JOBQ = 'N', the array Q is not referenced and can be
+          supplied as a dummy array (i.e. set parameter LDQ = 1 and
+          declare this array to be Q(1,1) in the calling program).
+
+  LDQ     INTEGER
+          The leading dimension of array Q. If JOBQ = 'U' or
+          JOBQ = 'I', LDQ &gt;= MAX(1,M); if JOBQ = 'N', LDQ &gt;= 1.
+
+  Z       (input/output) DOUBLE PRECISION array, dimension (LDZ,*)
+          On entry, if JOBZ = 'U', then the leading N-by-N part of
+          this array must contain a given matrix Z (e.g. from a
+          previous call to another SLICOT routine), and on exit, the
+          leading N-by-N part of this array contains the product of
+          the input matrix Z and the column transformation matrix
+          used to transform the columns of matrix E.
+          On exit, if JOBZ = 'I', then the leading N-by-N part of
+          this array contains the matrix of accumulated unitary
+          column transformations performed.
+          If JOBZ = 'N', the array Z is not referenced and can be
+          supplied as a dummy array (i.e. set parameter LDZ = 1 and
+          declare this array to be Z(1,1) in the calling program).
+
+  LDZ     INTEGER
+          The leading dimension of array Z. If JOBZ = 'U' or
+          JOBZ = 'I', LDZ &gt;= MAX(1,N); if JOBZ = 'N', LDZ &gt;= 1.
+
+  RANKE   (output) INTEGER
+          The computed rank of the unitary transformed matrix E.
+
+  ISTAIR  (output) INTEGER array, dimension (M)
+          This array contains information on the column echelon form
+          of the unitary transformed matrix E. Specifically,
+          ISTAIR(i) = +j if the first non-zero element E(i,j)
+          is a corner point and -j otherwise, for i = 1,2,...,M.
+
+</PRE>
+<B>Tolerances</B>
+<PRE>
+  TOL     DOUBLE PRECISION
+          A tolerance below which matrix elements are considered
+          to be zero. If the user sets TOL to be less than (or
+          equal to) zero then the tolerance is taken as
+          EPS * MAX(ABS(E(I,J))), where EPS is the machine
+          precision (see LAPACK Library routine DLAMCH),
+          I = 1,2,...,M and J = 1,2,...,N.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  DWORK   DOUBLE PRECISION array, dimension (MAX(M,N))
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  Given an M-by-N matrix pencil sE-A with E not necessarily regular,
+  the routine computes a unitary transformed pencil Q'(sE-A)Z such
+  that the matrix Q' * E * Z is in column echelon form (trapezoidal
+  form).  Further details can be found in [1].
+
+  [An M-by-N matrix E with rank(E) = r is said to be in column
+  echelon form if the following conditions are satisfied:
+  (a) the first (N - r) columns contain only zero elements; and
+  (b) if E(i(k),k) is the last nonzero element in column k for
+      k = N-r+1,...,N, i.e. E(i(k),k) &lt;&gt; 0 and E(j,k) = 0 for
+      j &gt; i(k), then 1 &lt;= i(N-r+1) &lt; i(N-r+2) &lt; ... &lt; i(N) &lt;= M.]
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Beelen, Th. and Van Dooren, P.
+      An improved algorithm for the computation of Kronecker's
+      canonical form of a singular pencil.
+      Linear Algebra and Applications, 105, pp. 9-65, 1988.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  It is shown in [1] that the algorithm is numerically backward
+  stable. The operations count is proportional to (MAX(M,N))**3.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+*     MB04UD EXAMPLE PROGRAM TEXT
+*
+*     .. Parameters ..
+      INTEGER          NIN, NOUT
+      PARAMETER        ( NIN = 5, NOUT = 6 )
+      INTEGER          MMAX, NMAX
+      PARAMETER        ( MMAX = 20, NMAX = 20 )
+      INTEGER          LDA, LDE, LDQ, LDZ
+      PARAMETER        ( LDA = MMAX, LDE = MMAX, LDQ = MMAX,
+     $                   LDZ = NMAX )
+      INTEGER          LDWORK
+      PARAMETER        ( LDWORK = MAX( NMAX,MMAX ) )
+*     PARAMETER        ( LDWORK = NMAX+MMAX )
+*     .. Local Scalars ..
+      DOUBLE PRECISION TOL
+      INTEGER          I, INFO, J, M, N, RANKE
+      CHARACTER*1      JOBQ, JOBZ
+*     .. Local Arrays ..
+      DOUBLE PRECISION A(LDA,NMAX), DWORK(LDWORK), E(LDE,NMAX),
+     $                 Q(LDQ,MMAX), Z(LDZ,NMAX)
+      INTEGER          ISTAIR(MMAX)
+*     .. External Subroutines ..
+      EXTERNAL         MB04UD
+*     .. Intrinsic Functions ..
+      INTRINSIC        MAX
+*     .. Executable Statements ..
+*
+      WRITE ( NOUT, FMT = 99999 )
+*     Skip the heading in the data file and read the data.
+      READ ( NIN, FMT = '()' )
+      READ ( NIN, FMT = * ) M, N, TOL
+      IF ( M.LT.0 .OR. M.GT.MMAX ) THEN
+         WRITE ( NOUT, FMT = 99993 ) M
+      ELSE IF ( N.LT.0 .OR. N.GT.NMAX ) THEN
+         WRITE ( NOUT, FMT = 99992 ) N
+      ELSE
+         READ ( NIN, FMT = * ) ( ( A(I,J), J = 1,N ), I = 1,M )
+         READ ( NIN, FMT = * ) ( ( E(I,J), J = 1,N ), I = 1,M )
+         JOBQ = 'N'
+         JOBZ = 'N'
+*        Reduce E to column echelon form and compute Q'*A*Z.
+         CALL MB04UD( JOBQ, JOBZ, M, N, A, LDA, E, LDE, Q, LDQ, Z, LDZ,
+     $                RANKE, ISTAIR, TOL, DWORK, INFO )
+*
+         IF ( INFO.NE.0 ) THEN
+            WRITE ( NOUT, FMT = 99998 ) INFO
+         ELSE
+            WRITE ( NOUT, FMT = 99991 )
+            DO 10 I = 1, M
+               WRITE ( NOUT, FMT = 99996 ) ( A(I,J), J = 1,N )
+   10       CONTINUE
+            WRITE ( NOUT, FMT = 99997 )
+            DO 100 I = 1, M
+               WRITE ( NOUT, FMT = 99996 ) ( E(I,J), J = 1,N )
+  100       CONTINUE
+            WRITE ( NOUT, FMT = 99995 ) RANKE
+            WRITE ( NOUT, FMT = 99994 ) ( ISTAIR(I), I = 1,M )
+         END IF
+      END IF
+      STOP
+*
+99999 FORMAT (' MB04UD EXAMPLE PROGRAM RESULTS',/1X)
+99998 FORMAT (' INFO on exit from MB04UD = ',I2)
+99997 FORMAT (' The transformed matrix E is ')
+99996 FORMAT (20(1X,F8.4))
+99995 FORMAT (/' The computed rank of E = ',I2)
+99994 FORMAT (/' ISTAIR is ',/20(1X,I5))
+99993 FORMAT (/' M is out of range.',/' M = ',I5)
+99992 FORMAT (/' N is out of range.',/' N = ',I5)
+99991 FORMAT (' The transformed matrix A is ')
+      END
+</PRE>
+<B>Program Data</B>
+<PRE>
+ MB04UD EXAMPLE PROGRAM DATA
+   4     4     0.0
+   2.0  0.0  2.0 -2.0
+   0.0 -2.0  0.0  2.0
+   2.0  0.0 -2.0  0.0
+   2.0 -2.0  0.0  2.0
+   1.0  0.0  1.0 -1.0
+   0.0 -1.0  0.0  1.0
+   1.0  0.0 -1.0  0.0
+   1.0 -1.0  0.0  1.0
+</PRE>
+<B>Program Results</B>
+<PRE>
+ MB04UD EXAMPLE PROGRAM RESULTS
+
+ The transformed matrix A is 
+   0.5164   1.0328   1.1547  -2.3094
+   0.0000  -2.5820   0.0000  -1.1547
+   0.0000   0.0000  -3.4641   0.0000
+   0.0000   0.0000   0.0000  -3.4641
+ The transformed matrix E is 
+   0.2582   0.5164   0.5774  -1.1547
+   0.0000  -1.2910   0.0000  -0.5774
+   0.0000   0.0000  -1.7321   0.0000
+   0.0000   0.0000   0.0000  -1.7321
+
+ The computed rank of E =  4
+
+ ISTAIR is 
+     1     2     3     4
+</PRE>
+
+<HR>
+<p>
+<A HREF=..\libindex.html><B>Return to index</B></A></BODY>
+</HTML>

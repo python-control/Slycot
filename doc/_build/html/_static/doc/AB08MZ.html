@@ -1,0 +1,190 @@
+<HTML>
+<HEAD><TITLE>AB08MZ - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="AB08MZ">AB08MZ</A></H2>
+<H3>
+Normal rank of the transfer-function matrix of a state space model (complex case)
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To compute the normal rank of the transfer-function matrix of a
+  state-space model (A,B,C,D).
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE AB08MZ( EQUIL, N, M, P, A, LDA, B, LDB, C, LDC, D, LDD,
+     $                   RANK, TOL, IWORK, DWORK, ZWORK, LZWORK, INFO )
+C     .. Scalar Arguments ..
+      CHARACTER         EQUIL
+      INTEGER           INFO, LDA, LDB, LDC, LDD, LZWORK, M, N, P, RANK
+      DOUBLE PRECISION  TOL
+C     .. Array Arguments ..
+      INTEGER           IWORK(*)
+      COMPLEX*16        A(LDA,*), B(LDB,*), C(LDC,*), D(LDD,*), ZWORK(*)
+      DOUBLE PRECISION  DWORK(*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  EQUIL   CHARACTER*1
+          Specifies whether the user wishes to balance the compound
+          matrix (see METHOD) as follows:
+          = 'S':  Perform balancing (scaling);
+          = 'N':  Do not perform balancing.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The number of state variables, i.e., the order of the
+          matrix A.  N &gt;= 0.
+
+  M       (input) INTEGER
+          The number of system inputs.  M &gt;= 0.
+
+  P       (input) INTEGER
+          The number of system outputs.  P &gt;= 0.
+
+  A       (input) COMPLEX*16 array, dimension (LDA,N)
+          The leading N-by-N part of this array must contain the
+          state dynamics matrix A of the system.
+
+  LDA     INTEGER
+          The leading dimension of array A.  LDA &gt;= MAX(1,N).
+
+  B       (input) COMPLEX*16 array, dimension (LDB,M)
+          The leading N-by-M part of this array must contain the
+          input/state matrix B of the system.
+
+  LDB     INTEGER
+          The leading dimension of array B.  LDB &gt;= MAX(1,N).
+
+  C       (input) COMPLEX*16 array, dimension (LDC,N)
+          The leading P-by-N part of this array must contain the
+          state/output matrix C of the system.
+
+  LDC     INTEGER
+          The leading dimension of array C.  LDC &gt;= MAX(1,P).
+
+  D       (input) COMPLEX*16 array, dimension (LDD,M)
+          The leading P-by-M part of this array must contain the
+          direct transmission matrix D of the system.
+
+  LDD     INTEGER
+          The leading dimension of array D.  LDD &gt;= MAX(1,P).
+
+  RANK    (output) INTEGER
+          The normal rank of the transfer-function matrix.
+
+</PRE>
+<B>Tolerances</B>
+<PRE>
+  TOL     DOUBLE PRECISION
+          A tolerance used in rank decisions to determine the
+          effective rank, which is defined as the order of the
+          largest leading (or trailing) triangular submatrix in the
+          QR (or RQ) factorization with column (or row) pivoting
+          whose estimated condition number is less than 1/TOL.
+          If the user sets TOL to be less than SQRT((N+P)*(N+M))*EPS
+          then the tolerance is taken as SQRT((N+P)*(N+M))*EPS,
+          where EPS is the machine precision (see LAPACK Library
+          Routine DLAMCH).
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  IWORK   INTEGER array, dimension (2*N+MAX(M,P)+1)
+
+  DWORK   DOUBLE PRECISION array, dimension (2*MAX(M,P))
+
+  ZWORK   COMPLEX*16 array, dimension (LZWORK)
+          On exit, if INFO = 0, ZWORK(1) returns the optimal value
+          of LZWORK.
+
+  LZWORK  INTEGER
+          The length of the array ZWORK.
+          LZWORK &gt;= (N+P)*(N+M) + MAX(MIN(P,M) + MAX(3*M-1,N), 1,
+                                      MIN(P,N) + MAX(3*P-1,N+P,N+M))
+          For optimum performance LZWORK should be larger.
+
+          If LZWORK = -1, then a workspace query is assumed;
+          the routine only calculates the optimal size of the
+          ZWORK array, returns this value as the first entry of
+          the ZWORK array, and no error message related to LZWORK
+          is issued by XERBLA.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  The routine reduces the (N+P)-by-(M+N) compound matrix (B  A)
+                                                         (D  C)
+
+  to one with the same invariant zeros and with D of full row rank.
+  The normal rank of the transfer-function matrix is the rank of D.
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Svaricek, F.
+      Computation of the Structural Invariants of Linear
+      Multivariable Systems with an Extended Version of
+      the Program ZEROS.
+      System & Control Letters, 6, pp. 261-266, 1985.
+
+  [2] Emami-Naeini, A. and Van Dooren, P.
+      Computation of Zeros of Linear Multivariable Systems.
+      Automatica, 18, pp. 415-430, 1982.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  The algorithm is backward stable (see [2] and [1]).
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<p>
+<A HREF=..\libindex.html><B>Return to index</B></A></BODY>
+</HTML>

@@ -1,0 +1,87 @@
+<HTML>
+<HEAD><TITLE>MB03BA - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MB03BA">MB03BA</A></H2>
+<H3>
+Computing maps for Hessenberg index and signature array
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To compute the suitable maps for Hessenberg index H and
+  signature array S. Auxiliary routine for the periodic QZ
+  algorithms.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MB03BA( K, H, S, SMULT, AMAP, QMAP )
+C     .. Scalar Arguments ..
+      INTEGER           K, H, SMULT
+C     .. Array Arguments ..
+      INTEGER           AMAP(*), QMAP(*), S(*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  K       (input)  INTEGER
+          The number of factors.  K &gt;= 1.
+
+  H       (input)  INTEGER
+          Index which corresponds to A_1.
+
+  S       (input)  INTEGER array, dimension (K)
+          The signature array. Each entry of S must be 1 or -1.
+
+  SMULT   (output)  INTEGER
+          Signature multiplier. Entries of S are virtually
+          multiplied by SMULT.
+
+  AMAP    (output)  INTEGER array, dimension (K)
+          The map for accessing the factors, that is,
+          if AMAP(I) = J, then the factor A_I is stored at the J-th
+          position in A.
+
+  QMAP    (output)  INTEGER array, dimension (K)
+          The map for accessing the orthognal transformation
+          matrices, that is, if QMAP(I) = J, then the matrix Q_I is
+          stored at the J-th position in Q.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

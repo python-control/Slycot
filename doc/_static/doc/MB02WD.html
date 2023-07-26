@@ -1,0 +1,308 @@
+<HTML>
+<HEAD><TITLE>MB02WD - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MB02WD">MB02WD</A></H2>
+<H3>
+Solution of Ax = b or f(A, x) = b, for a positive definite linear mapping, using conjugate gradients
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To solve the system of linear equations Ax = b, with A symmetric,
+  positive definite, or, in the implicit form, f(A, x) = b, where
+  y = f(A, x) is a symmetric positive definite linear mapping
+  from x to y, using the conjugate gradient (CG) algorithm without
+  preconditioning.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MB02WD( FORM, F, N, IPAR, LIPAR, DPAR, LDPAR, ITMAX,
+     $                   A, LDA, B, INCB, X, INCX, TOL, DWORK, LDWORK,
+     $                   IWARN, INFO )
+C     .. Scalar Arguments ..
+      CHARACTER         FORM
+      INTEGER           INCB, INCX, INFO, ITMAX, IWARN, LDA, LDPAR,
+     $                  LDWORK, LIPAR, N
+      DOUBLE PRECISION  TOL
+C     .. Array Arguments ..
+      DOUBLE PRECISION  A(LDA,*), B(*), DPAR(*), DWORK(*), X(*)
+      INTEGER           IPAR(*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  FORM     CHARACTER*1
+           Specifies the form of the system of equations, as
+           follows:
+           = 'U' :  Ax = b, the upper triagular part of A is used;
+           = 'L' :  Ax = b, the lower triagular part of A is used;
+           = 'F' :  the implicit, function form, f(A, x) = b.
+
+</PRE>
+<B>Function Parameters</B>
+<PRE>
+  F       EXTERNAL
+          If FORM = 'F', then F is a subroutine which calculates the
+          value of f(A, x), for given A and x.
+          If FORM &lt;&gt; 'F', then F is not called.
+
+          F must have the following interface:
+
+          SUBROUTINE F( N, IPAR, LIPAR, DPAR, LDPAR, A, LDA, X,
+         $              INCX, DWORK, LDWORK, INFO )
+
+          where
+
+          N       (input) INTEGER
+                  The dimension of the vector x.  N &gt;= 0.
+
+          IPAR    (input) INTEGER array, dimension (LIPAR)
+                  The integer parameters describing the structure of
+                  the matrix A.
+
+          LIPAR   (input) INTEGER
+                  The length of the array IPAR.  LIPAR &gt;= 0.
+
+          DPAR    (input) DOUBLE PRECISION array, dimension (LDPAR)
+                  The real parameters needed for solving the
+                  problem.
+
+          LDPAR   (input) INTEGER
+                  The length of the array DPAR.  LDPAR &gt;= 0.
+
+          A       (input) DOUBLE PRECISION array, dimension
+                  (LDA, NC), where NC is the number of columns.
+                  The leading NR-by-NC part of this array must
+                  contain the (compressed) representation of the
+                  matrix A, where NR is the number of rows of A
+                  (function of IPAR entries).
+
+          LDA     (input) INTEGER
+                  The leading dimension of the array A.
+                  LDA &gt;= MAX(1,NR).
+
+          X       (input/output) DOUBLE PRECISION array, dimension
+                  (1+(N-1)*INCX)
+                  On entry, this incremented array must contain the
+                  vector x.
+                  On exit, this incremented array contains the value
+                  of the function f, y = f(A, x).
+
+          INCX    (input) INTEGER
+                  The increment for the elements of X.  INCX &gt; 0.
+
+          DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+                  The workspace array for subroutine F.
+
+          LDWORK  (input) INTEGER
+                  The size of the array DWORK (as large as needed
+                  in the subroutine F).
+
+          INFO    INTEGER
+                  Error indicator, set to a negative value if an
+                  input scalar argument is erroneous, and to
+                  positive values for other possible errors in the
+                  subroutine F. The LAPACK Library routine XERBLA
+                  should be used in conjunction with negative INFO.
+                  INFO must be zero if the subroutine finished
+                  successfully.
+
+          Parameters marked with "(input)" must not be changed.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The dimension of the vector x.  N &gt;= 0.
+          If FORM = 'U' or FORM = 'L', N is also the number of rows
+          and columns of the matrix A.
+
+  IPAR    (input) INTEGER array, dimension (LIPAR)
+          If FORM = 'F', the integer parameters describing the
+          structure of the matrix A.
+          This parameter is ignored if FORM = 'U' or FORM = 'L'.
+
+  LIPAR   (input) INTEGER
+          The length of the array IPAR.  LIPAR &gt;= 0.
+
+  DPAR    (input) DOUBLE PRECISION array, dimension (LDPAR)
+          If FORM = 'F', the real parameters needed for solving
+          the problem.
+          This parameter is ignored if FORM = 'U' or FORM = 'L'.
+
+  LDPAR   (input) INTEGER
+          The length of the array DPAR.  LDPAR &gt;= 0.
+
+  ITMAX   (input) INTEGER
+          The maximal number of iterations to do.  ITMAX &gt;= 0.
+
+  A       (input) DOUBLE PRECISION array,
+                  dimension (LDA, NC), if FORM = 'F',
+                  dimension (LDA, N),  otherwise.
+          If FORM = 'F', the leading NR-by-NC part of this array
+          must contain the (compressed) representation of the
+          matrix A, where NR and NC are the number of rows and
+          columns, respectively, of the matrix A. The array A is
+          not referenced by this routine itself, except in the
+          calls to the routine F.
+          If FORM &lt;&gt; 'F', the leading N-by-N part of this array
+          must contain the matrix A, assumed to be symmetric;
+          only the triangular part specified by FORM is referenced.
+
+  LDA     (input) INTEGER
+          The leading dimension of array A.
+          LDA &gt;= MAX(1,NR), if FORM = 'F';
+          LDA &gt;= MAX(1,N),  if FORM = 'U' or FORM = 'L'.
+
+  B       (input) DOUBLE PRECISION array, dimension (1+(N-1)*INCB)
+          The incremented vector b.
+
+  INCB    (input) INTEGER
+          The increment for the elements of B.  INCB &gt; 0.
+
+  X       (input/output) DOUBLE PRECISION array, dimension
+          (1+(N-1)*INCX)
+          On entry, this incremented array must contain an initial
+          approximation of the solution. If an approximation is not
+          known, setting all elements of x to zero is recommended.
+          On exit, this incremented array contains the computed
+          solution x of the system of linear equations.
+
+  INCX    (input) INTEGER
+          The increment for the elements of X.  INCX &gt; 0.
+
+</PRE>
+<B>Tolerances</B>
+<PRE>
+  TOL     DOUBLE PRECISION
+          If TOL &gt; 0, absolute tolerance for the iterative process.
+          The algorithm will stop if || Ax - b ||_2 &lt;= TOL. Since
+          it is advisable to use a relative tolerance, say TOLER,
+          TOL should be chosen as TOLER*|| b ||_2.
+          If TOL &lt;= 0, a default relative tolerance,
+          TOLDEF = N*EPS*|| b ||_2,  is used, where EPS is the
+          machine precision (see LAPACK Library routine DLAMCH).
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+          On exit, if INFO = 0, DWORK(1) returns the number of
+          iterations performed and DWORK(2) returns the remaining
+          residual, || Ax - b ||_2.
+
+  LDWORK  INTEGER
+          The length of the array DWORK.
+          LDWORK &gt;= MAX(2,3*N + DWORK(F)),  if FORM = 'F',
+                    where DWORK(F) is the workspace needed by F;
+          LDWORK &gt;= MAX(2,3*N),       if FORM = 'U' or FORM = 'L'.
+
+</PRE>
+<B>Warning Indicator</B>
+<PRE>
+  IWARN   INTEGER
+          = 0:  no warning;
+          = 1:  the algorithm finished after ITMAX &gt; 0 iterations,
+                without achieving the desired precision TOL;
+          = 2:  ITMAX is zero; in this case, DWORK(2) is not set.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value;
+          &gt; 0:  if INFO = i, then F returned with INFO = i.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  The following CG iteration is used for solving Ax = b:
+
+  Start: q(0) = r(0) = Ax - b
+
+                &lt; q(k),  r(k) &gt;
+  ALPHA(k) = - ----------------
+                &lt; q(k), Aq(k) &gt;
+  x(k+1)   = x(k) - ALPHA(k) * q(k)
+  r(k+1)   = r(k) - ALPHA(k) * Aq(k)
+              &lt; r(k+1), r(k+1) &gt;
+  BETA(k)  = --------------------
+              &lt; r(k)  , r(k)   &gt;
+  q(k+1)   = r(k+1) + BETA(k) * q(k)
+
+  where &lt;.,.&gt; denotes the scalar product.
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Golub, G.H. and van Loan, C.F.
+      Matrix Computations. Third Edition.
+      M. D. Johns Hopkins University Press, Baltimore, pp. 520-528,
+      1996.
+
+  [2] Luenberger, G.
+      Introduction to Linear and Nonlinear Programming.
+      Addison-Wesley, Reading, MA, p.187, York, 1973.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  Since the residuals are orthogonal in the scalar product
+  &lt;x, y&gt; = y'Ax, the algorithm is theoretically finite. But rounding
+  errors cause a loss of orthogonality, so a finite termination
+  cannot be guaranteed. However, one can prove [2] that
+
+     || x-x_k ||_A := sqrt( (x-x_k)' * A * (x-x_k) )
+
+                                          sqrt( kappa_2(A) ) - 1
+                   &lt;=  2 || x-x_0 ||_A * ------------------------ ,
+                                          sqrt( kappa_2(A) ) + 1
+
+  where kappa_2 is the condition number.
+
+  The approximate number of floating point operations is
+     (k*(N**2 + 15*N) + N**2 + 3*N)/2, if FORM &lt;&gt; 'F',
+     k*(f + 7*N) + f,                  if FORM =  'F',
+  where k is the number of CG iterations performed, and f is the
+  number of floating point operations required by the subroutine F.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

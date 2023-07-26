@@ -1,0 +1,98 @@
+<HTML>
+<HEAD><TITLE>SB03OV - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="SB03OV">SB03OV</A></H2>
+<H3>
+Construction of a complex plane rotation to annihilate a real number, modifying a complex number
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To construct a complex plane rotation such that, for a complex
+  number  a  and a real number  b,
+
+     ( conjg( c )  s )*( a ) = ( d ),
+     (       -s    c ) ( b )   ( 0 )
+
+  where  d  is always real and is overwritten on  a,  so that on
+  return the imaginary part of  a  is zero.  b  is unaltered.
+
+  This routine has A and C declared as REAL, because it is intended
+  for use within a real Lyapunov solver and the REAL declarations
+  mean that a standard Fortran DOUBLE PRECISION version may be
+  readily constructed.  However A and C could safely be declared
+  COMPLEX in the calling program, although some systems may give a
+  type mismatch warning.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE SB03OV( A, B, SMALL, C, S )
+C     .. Scalar Arguments ..
+      DOUBLE PRECISION  B, S, SMALL
+C     .. Array Arguments ..
+      DOUBLE PRECISION  A(2), C(2)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  A       (input/output) DOUBLE PRECISION array, dimension (2)
+          On entry, A(1) and A(2) must contain the real and
+          imaginary part, respectively, of the complex number a.
+          On exit, A(1) contains the real part of d, and A(2) is
+          set to zero.
+
+  B       (input) DOUBLE PRECISION
+          The real number b.
+
+  SMALL   (input) DOUBLE PRECISION
+          A small real number. If the norm d of [ a; b ] is smaller
+          than SMALL, then the rotation is taken as a unit matrix,
+          and A(1) and A(2) are set to d and 0, respectively.
+
+  C       (output) DOUBLE PRECISION array, dimension (2)
+          C(1) and C(2) contain the real and imaginary part,
+          respectively, of the complex number c, the cosines of
+          the plane rotation.
+
+  S       (output) DOUBLE PRECISION
+          The real number s, the sines of the plane rotation.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

@@ -1,0 +1,157 @@
+<HTML>
+<HEAD><TITLE>MB03VY - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MB03VY">MB03VY</A></H2>
+<H3>
+Orthogonal matrices for reduction to periodic Hessenberg form of a product of matrices
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To generate the real orthogonal matrices Q_1, Q_2, ..., Q_p,
+  which are defined as the product of ihi-ilo elementary reflectors
+  of order n, as returned by SLICOT Library routine MB03VD:
+
+     Q_j = H_j(ilo) H_j(ilo+1) . . . H_j(ihi-1).
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MB03VY( N, P, ILO, IHI, A, LDA1, LDA2, TAU, LDTAU,
+     $                   DWORK, LDWORK, INFO )
+C     .. Scalar Arguments ..
+      INTEGER           IHI, ILO, INFO, LDA1, LDA2, LDTAU, LDWORK, N, P
+C     .. Array Arguments ..
+      DOUBLE PRECISION  A( LDA1, LDA2, * ), DWORK( * ), TAU( LDTAU, * )
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The order of the matrices Q_1, Q_2, ..., Q_p.  N &gt;= 0.
+
+  P       (input) INTEGER
+          The number p of transformation matrices.  P &gt;= 1.
+
+  ILO     (input) INTEGER
+  IHI     (input) INTEGER
+          The values of the indices ilo and ihi, respectively, used
+          in the previous call of the SLICOT Library routine MB03VD.
+          1 &lt;= ILO &lt;= max(1,N); min(ILO,N) &lt;= IHI &lt;= N.
+
+  A       (input/output) DOUBLE PRECISION array, dimension
+          (LDA1,LDA2,N)
+          On entry, the leading N-by-N strictly lower triangular
+          part of A(*,*,j) must contain the vectors which define the
+          elementary reflectors used for reducing A_j, as returned
+          by SLICOT Library routine MB03VD, j = 1, ..., p.
+          On exit, the leading N-by-N part of A(*,*,j) contains the
+          N-by-N orthogonal matrix Q_j, j = 1, ..., p.
+
+  LDA1    INTEGER
+          The first leading dimension of the array A.
+          LDA1 &gt;= max(1,N).
+
+  LDA2    INTEGER
+          The second leading dimension of the array A.
+          LDA2 &gt;= max(1,N).
+
+  TAU     (input) DOUBLE PRECISION array, dimension (LDTAU,P)
+          The leading N-1 elements in the j-th column must contain
+          the scalar factors of the elementary reflectors used to
+          form the matrix Q_j, as returned by SLICOT Library routine
+          MB03VD.
+
+  LDTAU   INTEGER
+          The leading dimension of the array TAU.
+          LDTAU &gt;= max(1,N-1).
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+          On exit, if INFO = 0, DWORK(1) returns the optimal value
+          of LDWORK.
+
+  LDWORK  INTEGER
+          The length of the array DWORK.  LDWORK &gt;= MAX(1,N).
+          For optimum performance LDWORK should be larger.
+
+          If LDWORK = -1, then a workspace query is assumed;
+          the routine only calculates the optimal size of the
+          DWORK array, returns this value as the first entry of
+          the DWORK array, and no error message related to LDWORK
+          is issued by XERBLA.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  Each matrix Q_j is generated as the product of the elementary
+  reflectors used for reducing A_j. Standard LAPACK routines for
+  Hessenberg and QR decompositions are used.
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Bojanczyk, A.W., Golub, G. and Van Dooren, P.
+      The periodic Schur decomposition: algorithms and applications.
+      Proc. of the SPIE Conference (F.T. Luk, Ed.), 1770, pp. 31-42,
+      1992.
+
+  [2] Sreedhar, J. and Van Dooren, P.
+      Periodic Schur form and some matrix equations.
+      Proc. of the Symposium on the Mathematical Theory of Networks
+      and Systems (MTNS'93), Regensburg, Germany (U. Helmke,
+      R. Mennicken and J. Saurer, Eds.), Vol. 1, pp. 339-362, 1994.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  The algorithm is numerically stable.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

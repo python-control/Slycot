@@ -1,0 +1,780 @@
+<HTML>
+<HEAD><TITLE>KINSOL - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="KINSOL">KINSOL</A></H2>
+<H3>
+Solving a nonlinear system of equations using Krylov Inexact Newton techniques
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To solve a nonlinear system of equations F(u)=0, where F(u) is
+                             n    n
+  a nonlinear function from R to R , using Krylov Inexact Newton
+  techniques.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE KINSOL (GSTRAT, LINSU, NEQ, OPTIN, MAXL, MAXLRST,
+     &                   MSBPRE, UU, USCALE, FSCALE, CONSTR,
+     &                   IOPT, ROPT, TOL1, TOL2, INFO)
+C     .. Scalar Arguments ..
+      LOGICAL           OPTIN
+      INTEGER           INFO, GSTRAT, MAXL, MAXLRST, MSBPRE, NEQ
+      DOUBLE PRECISION  TOL1, TOL2
+C     .. Array Arguments ..
+      INTEGER           IOPT(40)
+      DOUBLE PRECISION  CONSTR(NEQ), FSCALE(NEQ), ROPT(40), USCALE(NEQ),
+     $                  UU(NEQ)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+ 
+<B>Input/Output Parameters</B>
+<PRE>
+  GSTRAT  (input) INTEGER
+          Indicates the global strategy to apply the computed
+          increment delta in the solution UU.  Choices are:
+          0 - Inexact Newton.
+          1 - Linesearch.
+
+  LINSU   SUBROUTINE
+          Linear Solver Set-up Routine. This is the KINSOL routine
+          to be called to set-up the linear solver. The user should
+          specify here one of the 6 different Fortran-callable
+          routines provided by KINSOL for this purpose. The choice
+          to be used depends on which of the optional user-defined
+          routines are provided by the user (see User-defined
+          routines below).
+          LINSU can be one of the following routines: FKINSPGMR00,
+          FKINSPGMR01, FKINSPGMR10, FKINSPGMR11, FKINSPGMR20, and
+          FKINSPGMR21, where the first digit in the name of the
+          function is: 0 if neither KPSOL nor KPRECO routines are
+          provided; 1 if only the preconditioner solve routine
+          (KPSOL) is provided; and 2 if both the preconditioner
+          solve (KPSOL) and setup (KPRECO) routines are provided.
+          The second digit is: 0 if a function FATIMES is not
+          provided; and 1 if a function FATIMES is provided.
+
+  NEQ     (input) INTEGER
+          Number of equations (and unknowns) in the algebraic
+          system.
+
+  OPTIN   (input) LOGICAL
+          Flag indicating whether optional inputs from the user in
+          the arrays IOPT and ROPT are to be used.
+          Pass FALSE to ignore all optional inputs and TRUE to use
+          all optional inputs that are present. Either choice does
+          NOT affect outputs in other positions of IOPT or ROPT.
+
+  MAXL    (input) INTEGER
+          Maximum Krylov dimension for the Linear Solver. Pass 0
+          to use the default value MIN(Neq, 10). 
+
+  MAXLRST (input) INTEGER
+          Maximum number of linear solver restarts allowed. Values
+          outside the range 0 to 2*NEQ/MAXL will be restricted to
+          that range. 0, meaning no restarts, is a safe starting
+          value.
+
+  MSBPRE  (input) INTEGER
+          Maximum number of steps calling the solver KPSOL
+          without calling the preconditioner KPRECO. (The default is
+          10).
+
+  UU      (input/output) DOUBLE PRECISION array, dimension (NEQ)
+          On entry, UU is the initial guess.
+          On exit, if no errors ocurr, UU is the solution of
+          the system KFUN(UU) = 0.
+
+  USCALE  (input) DOUBLE PRECISION array, dimension (NEQ)
+          Array of diagonal elements of the scaling matrix for UU.
+          The elements of USCALE must be positive values. The
+          scaling matrix USCALE should be chosen so that 
+          USCALE * UU (as a matrix multiplication) should have all
+          its components with roughly the same magnitude when UU is
+          close to a root of KFUN.
+
+  FSCALE  (input) DOUBLE PRECISION array, dimension (NEQ)
+          Array of diagonal elements of the scaling matrix for
+          KFUN. The elements of FSCALE must be positive values.
+          The scaling matrix FSCALE should be chosen so that
+          FSCALE * KFUN(UU) (as a matrix multiplication) should
+          have all its components with roughly the same magnitude
+          when UU is NOT too near a root of KFUN.
+
+  CONSTR  (input) DOUBLE PRECISION array, dimension (NEQ)
+          Constraints on UU.
+          A positive value in CONSTR(I) implies that the Ith
+          component of UU is to be constrained &gt; 0.
+          A negative value in CONSTR(I) implies that the Ith
+          component of UU is to be constrained &lt; 0.
+          A zero value in CONSTR(I) implies there is no constraint
+          on UU(I). 
+
+  IOPT    (input/output) INTEGER array, dimension (40)
+          Array of optional integer inputs and outputs.
+          If OPTIN is TRUE, the user should preset to 0 those
+          locations for which default values are to be used.
+          See Optional Inputs and Outputs, below. 
+
+  ROPT    (input/output) DOUBLE PRECISION array, dimension (40)
+          Array of optional double precision inputs and outputs.
+          If OPTIN is TRUE, the user should preset to 0 those
+          locations for which default values are to be used.
+          See Optional Inputs and Outputs, below. 
+
+</PRE>
+<B>Tolerances</B>
+<PRE>
+  TOL1    DOUBLE PRECISION
+          Stopping tolerance on maxnorm( FSCALE * KFUN(UU) ).
+          If TOL1 is input as 0., then a default value of
+          (uround) to the 1/3 power will be used. uround is the
+          unit roundoff for the machine in use for the calculation.
+
+  TOL2    DOUBLE PRECISION
+          Stopping tolerance on the maximum scaled step 
+          UU(K) - UU(K-1). 
+          If TOL2 is input as 0., then a default value of (uround)
+          to the 2/3 power will be used. uround is the unit 
+          roundoff for the machine in use for the calculation.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    (output) INTEGER
+          See Termination Codes below.
+
+  ---------------------------------------------------------------
+
+  Termination Codes
+
+  (Note: in this documentation we use named constants for 
+  certain integer constant values. To see the values of these
+  symbols see Named constants below.)
+
+  The termination values KINS_***** are now given. These are the
+  values of the INFO argument.
+
+  SUCCESS :    means maxnorm(FSCALE*KFUN(UU) &lt;= TOL1, where
+               maxnorm() is the maximum norm function N_VMaxNorm.
+               Therefore, UU is probably an approximate root of
+               KFUN.
+
+  INITIAL_GUESS_OK: means the initial guess UU has been found
+               to already satisfy the system to the desired
+               accuracy. No calculation was performed other
+               than testing UU.
+
+  STEP_LT_STPTOL:  means the scaled distance between the last
+               two steps is less than TOL2.  UU may be an
+               approximate root of KFUN, but it is also possible
+               that the algorithm is making very slow progress
+               and is not near a root or that TOL2 is too
+               large
+
+  LNSRCH_NONCONV: means the LineSearch module failed to reduce
+               norm(KFUN) sufficiently on the last global step.
+               Either UU is close to a root of F and no more
+               accuracy is possible, or the finite-difference
+               approximation to J*v is inaccurate, or TOL2
+               is too large. Check the outputs NCFL and NNI: if
+               NCFL is close to NNI, it may be the case that the
+               Krylov iteration is converging very slowly. In
+               this case, the user may want to use precondition-
+               ing and/or increase the MAXL argument (that is,
+               increase the max dimension of the Krylov subspace)
+               by setting MAXL to nonzero (thus not using the
+               default value of KINSPGMR_MAXL) or if MAXL is being
+               set, increase its value.
+
+  MAXITER_REACHED: means that the maximum allowable number of
+               nonlinear iterations has been reached. This is by
+               default 200, but may be changed through optional
+               input IOPT(MXITER).
+
+  MXNEWT_5X_EXCEEDED: means 5 consecutive steps of length mxnewt
+               (maximum Newton stepsize limit) have been taken.
+               Either norm(F) asymptotes from above to a finite
+               value in some direction, or mxnewt is too small.
+               Mxnewt is computed internally (by default) as
+               mxnewt = 1000*max(norm(USCALE*UU0),1), where
+               UU0 is the initial guess for UU, and norm() is
+               the Euclidean norm. Mxnewt can be  set by the
+               user through optional input ROPT(MXNEWTSTEP).
+
+  LINESEARCH_BCFAIL: means that more than the allowed maximum
+               number of failures (MXNBCF) occurred when trying
+               to satisfy the beta condition in the linesearch
+               algorithm. It is likely that the iteration is
+               making poor progress.
+
+  KRYLOV_FAILURE: means there was a failure of the Krylov
+               iteration process to converge.
+
+  PRECONDSET_FAILURE: means there was a nonrecoverable
+               error in PrecondSet causing the iteration to halt.
+
+  PRECONDSOLVE_FAILURE: means there was a nonrecoverable
+            error in PrecondSolve causing the iteration to halt.
+
+  NO_MEM:    the KINSol memory pointer received was NULL.
+
+  INPUT_ERROR: one or more input parameters or arrays was in
+               error. See the program output for further info.
+
+  LSOLV_NO_MEM: The linear solver memory pointer (lmem) was
+             received as NULL. The return value from the linear
+             solver needs to be checked and the cause found.
+
+  ---------------------------------------------------------------
+
+</PRE>
+<B>Optional inputs and outputs</B>
+<PRE>
+  (Note: in this documentation we use named constants for 
+  certain integer constant values. To see the values of these
+  symbols see Named constants below.)
+
+  The user should declare two arrays for optional input and
+  output, an IOPT array for optional integer input and output
+  and an ROPT array for optional real input and output. These
+  arrays should both be of size OPT_SIZE.
+  So the user's declaration should look like:
+
+  INTEGER          IOPT(OPT_SIZE)
+  DOUBLE PRECISION ROPT(OPT_SIZE)
+
+  The following definitions are indices into the IOPT and ROPT
+  arrays. A brief description of the contents of these positions
+  follows.
+
+  IOPT(PRINTFL)  (input)  Allows user to select from 4 levels
+                 of output.
+                 =0 no statistics printed   (DEFAULT)
+                 =1 output the nonlinear iteration count, the
+                    scaled norm of KFUN(UU), and number of
+                    KFUN calls.
+                 =2 same as 1 with the addition of global
+                    strategy statistics:
+                    f1 = 0.5*norm(FSCALE*KFUN(UU))**2   and
+                    f1new = 0.5*norm(FSCALE*KFUN(unew))**2 .
+                 =3 same as 2 with the addition of further
+                    Krylov iteration statistics.
+
+  IOPT(MXITER)   (input) Maximum allowable number of nonlinear
+                  iterations. The default is MXITER_DEFAULT.
+
+  IOPT(PRECOND_NO_INIT) (input) Set to 1 to prevent the initial
+                   call to the routine KPRECO upon a given
+                   call to KINSol. Set to 0 or leave unset to
+                   force the initial call to KPRECO.
+                   Use the choice of 1 only after beginning the
+                   first of a series of calls with a 0 value.
+                   If a value other than 0 or 1 is encountered,
+                   the default, 0, is set in this element of
+                   IOPT and thus the routine KPRECO will
+                   be called upon every call to KINSol, unless
+                   IOPT(PRECOND_NO_INIT) is changed by the user.
+
+  IOPT(ETACHOICE) (input) A flag indicating which of three
+                   methods to use for computing eta, the
+                   coefficient in the linear solver
+                   convergence tolerance eps, given by
+                     eps = (eta+u_round)*norm(KFUN(UU)).
+                   Here, all norms are  the scaled L2 norm.
+                   The linear solver attempts to produce a step
+                   p such that norm(KFUN(UU)+J(UU)*p) &lt;= eps.
+                   Two of the methods for computing eta
+                   calculate a value based on the convergence
+                   process in the routine KINForcingTerm.
+                   The third method does not require
+                   calculation; a constant eta is selected.
+
+                   The default if IOPT(ETACHOICE) is  not
+                   specified is ETACHOICE1, (see below).
+
+                   The allowed values (methods)  are:
+              ETACONSTANT  constant eta, default of 0.1 or user
+                 supplied choice, for which see ROPT(ETACONST),
+
+              ETACHOICE1 (default) which uses choice 1 of
+                 Eisenstat and Walker's paper of SIAM J. Sci.
+                 Comput.,17 (1996), pp 16-32 wherein eta is:
+                         eta(k) =
+  ABS( norm(KFUN(UU(k))) - norm(KFUN(UU(k-1))+J(UU(k-1))*p) )
+                      / norm(KFUN(UU(k-1))),
+
+              ETACHOICE2   which uses choice 2 of
+                 Eisenstat and Walker wherein eta is:
+                 eta(k) = egamma *
+             ( norm(KFUN(UU(k))) / norm(KFUN(u(k-1))) )^ealpha
+
+                 egamma and ealpha for choice 2, both required,
+                 are from either defaults (egamma = 0.9 ,
+                 ealpha = 2)  or from  user input,
+                 see ROPT(ETAALPHA) and ROPT(ETAGAMMA), below.
+
+                 For eta(k) determined by either Choice 1 or
+                 Choice 2, a value eta_safe is determined, and
+                 the safeguard   eta(k) &lt;- max(eta_safe,eta(k))
+                 is applied to prevent eta(k) from becoming too
+                 small too quickly.
+                  For Choice 1,
+                    eta_safe = eta(k-1)^((1.+sqrt(5.))/2.)
+           and    for Choice 2,
+                    eta_safe = egamma*eta(k-1)^ealpha.
+                 (These safeguards are turned off if they drop
+                 below 0.1 . Also, eta is never allowed to be
+                 less than eta_min = 1.e-4).
+
+  IOPT(NO_MIN_EPS) (input) Set to 1 or greater to remove
+                 protection agains eps becoming too small.
+                 This option is useful for debugging linear
+                 and nonlinear solver interactions. Set to 0
+                 for standard eps minimum value testing.
+
+  IOPT(NNI)      (output) Total number of nonlinear iterations.
+
+  IOPT(NFE)      (output) Total number of calls to the user-
+                  supplied system function KFUN.
+
+  IOPT(NBCF)     (output) Total number of times the beta
+                  condition could not be met in the linesearch
+                  algorithm. The nonlinear iteration is halted
+                  if this value ever exceeds MXNBCF (10).
+
+  IOPT(NBKTRK)   (output) Total number of backtracks in the
+                  linesearch algorithm.
+
+  IOPT(SPGMR_NLI) (output) Number of linear iterations.
+
+  IOPT(SPGMR_NPE) (output) Number of preconditioner evaluations.
+
+  IOPT(SPGMR_NPS) (output) Number of calls made to user's psolve
+                  function.
+
+  IOPT(SPGMR_NCFL) (output) Number of linear convergence failures.
+
+  ROPT(MXNEWTSTEP) (input) Maximum allowable length of a Newton
+                  step. The default value is calculated from
+                  1000*max(norm(USCALE*UU(0),norm(USCALE)).
+
+  ROPT(RELFUNC)  (input) Relative error in computing KFUN(UU)
+                  if known. Default is the machine epsilon.
+
+  ROPT(RELU)     (input) A scalar constraint which restricts
+                  the update of UU to  del(UU)/UU &lt; ROPT(RELU)
+                  The default is no constraint on the relative
+                  step in UU.
+
+  ROPT(ETAGAMMA) (input) The coefficient egamma in the eta
+                  computation. See routine KINForcingTerm
+           (SEE IOPT(ETACHOICE) above for additional info).
+
+  ROPT(ETAALPHA) (input) The coefficient ealpha in the eta
+                  computation. See routine KINForcingTerm
+           (SEE IOPT(ETACHOICE) above for additional info).
+
+  ROPT(ETACONST) (input) A user specified constant value for
+                   eta, used in lieu of that computed by
+                       routine KINForcingTerm
+           (SEE IOPT(ETACHOICE) above for additional info).
+
+  ROPT(FNORM)    (output) The scaled norm at a given iteration:
+                  norm(FSCALE(KFUN(UU)).
+
+  ROPT(STEPL)    (output) Last step length in the global
+                  strategy routine:
+                  KINLineSearch or KINInexactNewton.
+
+  ---------------------------------------------------------------
+
+</PRE>
+<B>User-defined routines</B>
+<PRE>
+  In order to use this routine, some user-defined routines have to
+  be provided. One of them is required, while the others are
+  optional. These routines are described next.
+
+  KFUN    Required
+
+          SUBROUTINE KFUN (NEQ, UU, FVAL)
+          INTEGER           NEQ
+          DOUBLE PRECISION  UU(NEQ), FVAL(NEQ)
+
+          PURPOSE
+
+          Evaluates the KFUN function which defines the system
+          to be solved:
+                            KFUN(UU)=0
+
+          ARGUMENTS
+
+          NEQ
+          (input) INTEGER
+          Number of equations (and unknowns) in the algebraic
+          system
+
+          UU
+          (input) DOUBLE PRECISION array, dimension (NEQ)
+          independent variable vector
+
+          FVAL
+          (output) DOUBLE PRECISION array, dimension (NEQ)
+          Result of KFUN(UU)
+
+  KPRECO  Optional
+
+          SUBROUTINE KPRECO (NEQ, UU, USCALE, FVAL, FSCALE,
+                             VTEMP1, VTEMP2, UROUND, NFE, IER)
+          INTEGER           NEQ, NFE, IER
+          DOUBLE PRECISION  UROUND
+          DOUBLE PRECISION  UU(NEQ), USCALE(NEQ), FVAL(NEQ),
+                            FSCALE(NEQ), VTEMP1(NEQ), VTEMP2(NEQ)
+
+          PURPOSE
+
+          The user-supplied preconditioner setup function KPRECO and
+          the user-supplied preconditioner solve function KPSOL
+          together must define the right preconditoner matrix P
+          chosen so as to provide an easier system for the Krylov
+          solver to solve. KPRECO is called to provide any matrix
+          data required by the subsequent call(s) to KPSOL. The
+          data is expected to be stored in variables within a
+          COMMON block and the definition of those variables is up
+          to the user. More specifically, the user-supplied
+          preconditioner setup function KPRECO is to evaluate and
+          preprocess any Jacobian-related data needed by the
+          preconditioner solve function KPSOL. This might include
+          forming a crude approximate Jacobian, and performing an
+          LU factorization on the resulting approximation to J.
+          This function will not be called in advance of every call
+          to KPSOL, but instead will be called only as often as
+          necessary to achieve convergence within the Newton
+          iteration in KINSol.  If the KPSOL function needs no
+          preparation, the KPRECO function need not be provided.
+
+          KPRECO should not modify the contents of the arrays
+          UU or FVAL as those arrays are used elsewhere in the
+          iteration process.
+
+          Each call to the KPRECO function is preceded by a call to
+          the system function KFUN. Thus the KPRECO function can use
+          any auxiliary data that is computed by the KFUN function
+          and saved in a way accessible to KPRECO.
+
+          The two scaling arrays, FSCALE and USCALE, and unit
+          roundoff UROUND are provided to the KPRECO function for
+          possible use in approximating Jacobian data, e.g. by
+          difference quotients. These arrays should also not be
+          altered
+
+          ARGUMENTS
+
+          NEQ
+          (input) INTEGER
+          Number of equations (and unknowns) in the algebraic
+          system.
+
+          UU
+          (input) DOUBLE PRECISION array, dimension (NEQ)
+          Independent variable vector.
+
+          USCALE
+          (input) DOUBLE PRECISION array, dimension (NEQ)
+          See USCALE above.
+
+          FVAL
+          (input) DOUBLE PRECISION array, dimension (NEQ)
+          Current value of KFUN(UU).
+
+          FSCALE
+          (input) DOUBLE PRECISION array, dimension (NEQ)
+          See FSCALE above.
+
+          VTEMP1
+          DOUBLE PRECISION array, dimension (NEQ)
+          Temporary work array.
+
+          VTEMP2
+          DOUBLE PRECISION array, dimension (NEQ)
+          Temporary work array.
+
+          UROUND
+          (input) DOUBLE PRECISION
+          Machine unit roundoff.
+
+          NFE
+          (input/output) INTEGER
+          Number of calls to KFUN made by the package. The KPRECO
+          routine should update this counter by adding on the
+          number of KFUN calls made in order to approximate the
+          Jacobian, if any.  For example, if the routine calls
+          KFUN a total of W times, then the update is 
+          NFE = NFE + W.
+
+          IER
+          (output) INTEGER
+          Error indicator. 
+          0 if successful,
+          1 if failure, in which case KINSOL stops.
+
+  KPSOL   Optional
+
+          SUBROUTINE KPSOL (NEQ, UU, USCALE, FVAL, FSCALE, VTEM,
+                            FTEM, UROUND, NFE, IER)
+          INTEGER           NEQ, NFE, IER
+          DOUBLE PRECISION  UU(NEQ), USCALE(NEQ), FVAL(NEQ),
+                            FSCALE(NEQ), VTEM(NEQ), FTEM(NEQ)
+
+          PURPOSE
+
+          The user-supplied preconditioner solve function KPSOL
+          is to solve a linear system P x = r in which the matrix
+          P is the (right) preconditioner matrix P.
+
+          KPSOL should not modify the contents of the iterate
+          array UU  or the current function value array  FVAL as
+          those are used elsewhere in the iteration process.
+
+          ARGUMENTS
+
+          NEQ
+          (input) INTEGER
+          Number of equations (and unknowns) in the algebraic
+          system.
+
+          UU
+          (input) DOUBLE PRECISION array, dimension (NEQ)
+          Independent variable vector.
+
+          USCALE
+          (input) DOUBLE PRECISION array, dimension (NEQ)
+          See USCALE above.
+
+          FVAL
+          (input) DOUBLE PRECISION array, dimension (NEQ)
+          Current value of KFUN(UU).
+
+          FSCALE
+          (input) DOUBLE PRECISION array, dimension (NEQ)
+          See FSCALE above.
+
+          VTEM
+          (input/output) DOUBLE PRECISION array, dimension (NEQ)
+          On entry, holds the RHS vector r.
+          On exit, holds the result x.
+
+          FTEM
+          DOUBLE PRECISION array, dimension (NEQ)
+          Temporary work array.
+
+          UROUND
+          (input) DOUBLE PRECISION
+          Machine unit roundoff.
+
+          NFE
+          (input/output) INTEGER
+          Number of calls to KFUN made by the package. The KPRECO
+          routine should update this counter by adding on the
+          number of KFUN calls made in order to carry out the
+          solution, if any.  For example, if the routine calls
+          KFUN a total of W times, then the update is 
+          NFE = NFE + W.
+
+          IER
+          (output) INTEGER
+          Error indicator. 
+          0 if successful,
+          1 if failure, in which case KINSOL stops.
+
+  FATIMES Optional
+
+          SUBROUTINE FATIMES(V, Z, NEWU, UU, IER)
+          INTEGER           NEWU, IER
+          DOUBLE PRECISION  V(:), Z(:), UU(:)
+
+          PURPOSE
+
+          The user-supplied A times V routine (optional) where
+          A is the Jacobian matrix dF/du, or an approximation to
+          it, and V is a given  vector.  This routine computes the
+          product Z = J V.
+
+          ARGUMENTS
+
+          V
+          (input) DOUBLE PRECISION array, dimension (NEQ)
+          Vector to be multiplied by J
+          (preconditioned and unscaled as received).
+
+          Z
+          (output) DOUBLE PRECISION array, dimension (NEQ)
+          Vector resulting from the application of J to V.
+
+          NEW_UU
+          (input) INTEGER
+          Flag indicating whether or not the UU vector has been
+          changed since the last call to this function (0 means
+          FALSE, 1 TRUE).
+          If this function computes and saves Jacobian data, then
+          this computation can be skipped if NEW_UU = FALSE.
+
+          UU
+          (input) DOUBLE PRECISION array, dimension (NEQ)
+          Current iterate u.
+
+          IER
+          (output) INTEGER
+          Error indicator. 
+          0 if successful,
+          1 if failure, in which case KINSOL stops.
+
+  ---------------------------------------------------------------
+
+</PRE>
+<B>Named constants</B>
+<PRE>
+  Here we specify the value of the named integer constants used
+  in this documentation. We use Fortran code for the specification,
+  so that the user can copy and paste these lines in order to
+  use the named constants in his/her programs.
+
+   KINSOL return values
+   Note that the value of these constants differ from those of
+   the KINSOL package. This is due to the adaptation to the 
+   SLICOT standards.
+   INTEGER KINS_NO_MEM, KINS_INPUT_ERROR, KINS_LSOLV_NO_MEM, 
+  &        KINS_SUCCESS, KINS_INITIAL_GUESS_OK,KINS_STEP_LT_STPTOL,
+  &        KINS_LNSRCH_NONCONV, KINS_MAXITER_REACHED, 
+  &        KINS_MXNEWT_5X_EXCEEDED, KINS_LINESEARCH_BCFAIL,
+  &        KINS_KRYLOV_FAILURE, KINS_PRECONDSET_FAILURE, 
+  &        KINS_PRECONDSOLVE_FAILURE}
+
+   PARAMETER(KINS_NO_MEM=101)
+   PARAMETER(KINS_INPUT_ERROR=102)
+   PARAMETER(KINS_LSOLV_NO_MEM=103)
+   PARAMETER(KINS_SUCCESS=0)
+   PARAMETER(KINS_INITIAL_GUESS_OK=2)
+   PARAMETER(KINS_STEP_LT_STPTOL=3)
+   PARAMETER(KINS_LNSRCH_NONCONV=4)
+   PARAMETER(KINS_MAXITER_REACHED=5)
+   PARAMETER(KINS_MXNEWT_5X_EXCEEDED=6)
+   PARAMETER(KINS_LINESEARCH_BCFAIL=7)
+   PARAMETER(KINS_KRYLOV_FAILURE = 8)
+   PARAMETER(KINS_PRECONDSET_FAILURE=9)
+   PARAMETER(KINS_PRECONDSOLVE_FAILURE=10)
+
+   Size of IOPT, ROPT
+   INTEGER OPT_SIZE
+   PARAMETER(OPT_SIZE=40)
+
+   IOPT indices
+   INTEGER PRINTFL, MXITER, PRECOND_NO_INIT, NNI ,NFE ,NBCF, NBKTRK,
+  &        ETACHOICE, NO_MIN_EPS
+   INTEGER SPGMR_NLI, SPGMR_NPE, SPGMR_NPS, SPGMR_NCFL
+
+   PARAMETER(PRINTFL=1)
+   PARAMETER(MXITER=2)
+   PARAMETER(PRECOND_NO_INIT=3)
+   PARAMETER(NNI=4)
+   PARAMETER(NFE=5)
+   PARAMETER(NBCF=6)
+   PARAMETER(NBKTRK=7)
+   PARAMETER(ETACHOICE=8)
+   PARAMETER(NO_MIN_EPS=9)
+   PARAMETER(SPGMR_NLI=11)
+   PARAMETER(SPGMR_NPE=12)
+   PARAMETER(SPGMR_NPS=13)
+   PARAMETER(SPGMR_NCFL=14)
+
+   ROPT indices
+   INTEGER MXNEWTSTEP , RELFUNC , RELU , FNORM , STEPL,
+  &        ETACONST, ETAGAMMA, ETAALPHA
+
+   PARAMETER(MXNEWTSTEP=1)
+   PARAMETER(RELFUNC=2)
+   PARAMETER(RELU=3)
+   PARAMETER(FNORM=4)
+   PARAMETER(STEPL=5)
+   PARAMETER(ETACONST=6)
+   PARAMETER(ETAGAMMA=7)
+   PARAMETER(ETAALPHA=8)
+
+   Values for IOPT(ETACHOICE)
+   INTEGER ETACHOICE1, ETACHOICE2, ETACONSTANT
+
+   PARAMETER(ETACHOICE1=0)
+   PARAMETER(ETACHOICE2=1)
+   PARAMETER(ETACONSTANT=2)
+   
+  ---------------------------------------------------------------
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  KINSOL (Krylov Inexact Newton SOLver) is a general purpose
+  solver for nonlinear systems of equations. Its most notable
+  feature is that it uses Krylov Inexact Newton techniques in the
+  system's approximate solution. 
+  The Newton method used results in the solution of linear systems
+  of the form
+                          J(u)*x = b
+  where J(u) is the Jacobian of F at u. The solution of these
+  systems by a Krylov method requires products of the form J(u)*v,
+  which are approximated by a difference quotient of the form
+                       F(u+sigma*v)-F(u)
+                       -----------------
+                            sigma
+  Thus, the Jacobian need not be formed explicitly.
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Allan G. Taylor and Alan C. Hindmarsh, "User Documentation
+      for KINSOL, a Nonlinear Solver for Sequential and Parallel
+      Computers", Center for Applied Scientific Computing, L-561,
+      LLNL, Livermore, CA 94551.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<p>
+<!--Click <a href=../../SLICOT/arc/TaskVB.tar.gz><B>here</B></a> to get a compressed (gzip) tar file containing the source code
+of the routine and related files.-->
+</p>
+<A HREF=..\libindex.html><B>Return to index</B></A></BODY>
+</HTML>

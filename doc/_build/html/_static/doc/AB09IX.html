@@ -1,0 +1,363 @@
+<HTML>
+<HEAD><TITLE>AB09IX - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="AB09IX">AB09IX</A></H2>
+<H3>
+Accuracy enhanced balancing related model reduction
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To compute a reduced order model (Ar,Br,Cr,Dr) for an original
+  state-space representation (A,B,C,D) by using the square-root or
+  balancing-free square-root Balance & Truncate (B&T) or
+  Singular Perturbation Approximation (SPA) model reduction methods.
+  The computation of truncation matrices TI and T is based on
+  the Cholesky factor S of a controllability Grammian P = S*S'
+  and the Cholesky factor R of an observability Grammian Q = R'*R,
+  where S and R are given upper triangular matrices.
+
+  For the B&T approach, the matrices of the reduced order system
+  are computed using the truncation formulas:
+
+       Ar = TI * A * T ,  Br = TI * B ,  Cr = C * T .     (1)
+
+  For the SPA approach, the matrices of a minimal realization
+  (Am,Bm,Cm) are computed using the truncation formulas:
+
+       Am = TI * A * T ,  Bm = TI * B ,  Cm = C * T .     (2)
+
+  Am, Bm, Cm and D serve further for computing the SPA of the given
+  system.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE AB09IX( DICO, JOB, FACT, ORDSEL, N, M, P, NR,
+     $                   SCALEC, SCALEO, A, LDA, B, LDB, C, LDC, D, LDD,
+     $                   TI, LDTI, T, LDT, NMINR, HSV, TOL1, TOL2,
+     $                   IWORK, DWORK, LDWORK, IWARN, INFO )
+C     .. Scalar Arguments ..
+      CHARACTER         DICO, FACT, JOB, ORDSEL
+      INTEGER           INFO, IWARN, LDA, LDB, LDC, LDD, LDT, LDTI,
+     $                  LDWORK, M, N, NMINR, NR, P
+      DOUBLE PRECISION  SCALEC, SCALEO, TOL1, TOL2
+C     .. Array Arguments ..
+      INTEGER           IWORK(*)
+      DOUBLE PRECISION  A(LDA,*), B(LDB,*), C(LDC,*), D(LDD,*),
+     $                  DWORK(*), HSV(*), T(LDT,*), TI(LDTI,*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  DICO    CHARACTER*1
+          Specifies the type of the original system as follows:
+          = 'C':  continuous-time system;
+          = 'D':  discrete-time system.
+
+  JOB     CHARACTER*1
+          Specifies the model reduction approach to be used
+          as follows:
+          = 'B':  use the square-root B&T method;
+          = 'F':  use the balancing-free square-root B&T method;
+          = 'S':  use the square-root SPA method;
+          = 'P':  use the balancing-free square-root SPA method.
+
+  FACT    CHARACTER*1
+          Specifies whether or not, on entry, the matrix A is in a
+          real Schur form, as follows:
+          = 'S':  A is in a real Schur form;
+          = 'N':  A is a general dense square matrix.
+
+  ORDSEL  CHARACTER*1
+          Specifies the order selection method as follows:
+          = 'F':  the resulting order NR is fixed;
+          = 'A':  the resulting order NR is automatically determined
+                  on basis of the given tolerance TOL1.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The order of the original state-space representation,
+          i.e., the order of the matrix A.  N &gt;= 0.
+
+  M       (input) INTEGER
+          The number of system inputs.  M &gt;= 0.
+
+  P       (input) INTEGER
+          The number of system outputs.  P &gt;= 0.
+
+  NR      (input/output) INTEGER
+          On entry with ORDSEL = 'F', NR is the desired order of
+          the resulting reduced order system.  0 &lt;= NR &lt;= N.
+          On exit, if INFO = 0, NR is the order of the resulting
+          reduced order model. NR is set as follows:
+          if ORDSEL = 'F', NR is equal to MIN(NR,NMINR), where NR
+          is the desired order on entry and NMINR is the number of
+          the Hankel singular values greater than N*EPS*S1, where
+          EPS is the machine precision (see LAPACK Library Routine
+          DLAMCH) and S1 is the largest Hankel singular value
+          (computed in HSV(1));
+          NR can be further reduced to ensure HSV(NR) &gt; HSV(NR+1);
+          if ORDSEL = 'A', NR is equal to the number of Hankel
+          singular values greater than MAX(TOL1,N*EPS*S1).
+
+  SCALEC  (input) DOUBLE PRECISION
+          Scaling factor for the Cholesky factor S of the
+          controllability Grammian, i.e., S/SCALEC is used to
+          compute the Hankel singular values.  SCALEC &gt; 0.
+
+  SCALEO  (input) DOUBLE PRECISION
+          Scaling factor for the Cholesky factor R of the
+          observability Grammian, i.e., R/SCALEO is used to
+          compute the Hankel singular values.  SCALEO &gt; 0.
+
+  A       (input/output) DOUBLE PRECISION array, dimension (LDA,N)
+          On entry, the leading N-by-N part of this array must
+          contain the state dynamics matrix A. If FACT = 'S',
+          A is in a real Schur form.
+          On exit, if INFO = 0, the leading NR-by-NR part of this
+          array contains the state dynamics matrix Ar of the
+          reduced order system.
+
+  LDA     INTEGER
+          The leading dimension of array A.  LDA &gt;= MAX(1,N).
+
+  B       (input/output) DOUBLE PRECISION array, dimension (LDB,M)
+          On entry, the leading N-by-M part of this array must
+          contain the original input/state matrix B.
+          On exit, if INFO = 0, the leading NR-by-M part of this
+          array contains the input/state matrix Br of the reduced
+          order system.
+
+  LDB     INTEGER
+          The leading dimension of array B.  LDB &gt;= MAX(1,N).
+
+  C       (input/output) DOUBLE PRECISION array, dimension (LDC,N)
+          On entry, the leading P-by-N part of this array must
+          contain the original state/output matrix C.
+          On exit, if INFO = 0, the leading P-by-NR part of this
+          array contains the state/output matrix Cr of the reduced
+          order system.
+
+  LDC     INTEGER
+          The leading dimension of array C.  LDC &gt;= MAX(1,P).
+
+  D       (input/output) DOUBLE PRECISION array, dimension (LDD,M)
+          On entry, if JOB = 'S' or JOB = 'P', the leading P-by-M
+          part of this array must contain the original input/output
+          matrix D.
+          On exit, if INFO = 0 and JOB = 'S' or JOB = 'P', the
+          leading P-by-M part of this array contains the
+          input/output matrix Dr of the reduced order system.
+          If JOB = 'B' or JOB = 'F', this array is not referenced.
+
+  LDD     INTEGER
+          The leading dimension of array D.
+          LDD &gt;= 1,        if JOB = 'B' or JOB = 'F';
+          LDD &gt;= MAX(1,P), if JOB = 'S' or JOB = 'P'.
+
+  TI      (input/output) DOUBLE PRECISION array, dimension (LDTI,N)
+          On entry, the leading N-by-N upper triangular part of
+          this array must contain the Cholesky factor S of a
+          controllability Grammian P = S*S'.
+          On exit, if INFO = 0, and NR &gt; 0, the leading NMINR-by-N
+          part of this array contains the left truncation matrix
+          TI in (1), for the B&T approach, or in (2), for the
+          SPA approach.
+
+  LDTI    INTEGER
+          The leading dimension of array TI.  LDTI &gt;= MAX(1,N).
+
+  T       (input/output) DOUBLE PRECISION array, dimension (LDT,N)
+          On entry, the leading N-by-N upper triangular part of
+          this array must contain the Cholesky factor R of an
+          observability Grammian Q = R'*R.
+          On exit, if INFO = 0, and NR &gt; 0, the leading N-by-NMINR
+          part of this array contains the right truncation matrix
+          T in (1), for the B&T approach, or in (2), for the
+          SPA approach.
+
+  LDT     INTEGER
+          The leading dimension of array T.  LDT &gt;= MAX(1,N).
+
+  NMINR   (output) INTEGER
+          The number of Hankel singular values greater than
+          MAX(TOL2,N*EPS*S1).
+          Note: If S and R are the Cholesky factors of the
+          controllability and observability Grammians of the
+          original system (A,B,C,D), respectively, then NMINR is
+          the order of a minimal realization of the original system.
+
+  HSV     (output) DOUBLE PRECISION array, dimension (N)
+          If INFO = 0, it contains the Hankel singular values,
+          ordered decreasingly. The Hankel singular values are
+          singular values of the product R*S.
+
+</PRE>
+<B>Tolerances</B>
+<PRE>
+  TOL1    DOUBLE PRECISION
+          If ORDSEL = 'A', TOL1 contains the tolerance for
+          determining the order of the reduced system.
+          For model reduction, the recommended value lies in the
+          interval [0.00001,0.001].
+          If TOL1 &lt;= 0 on entry, the used default value is
+          TOL1 = N*EPS*S1, where EPS is the machine precision
+          (see LAPACK Library Routine DLAMCH) and S1 is the largest
+          Hankel singular value (computed in HSV(1)).
+          If ORDSEL = 'F', the value of TOL1 is ignored.
+
+  TOL2    DOUBLE PRECISION
+          The tolerance for determining the order of a minimal
+          realization of the system.
+          The recommended value is TOL2 = N*EPS*S1.
+          This value is used by default if TOL2 &lt;= 0 on entry.
+          If TOL2 &gt; 0, and ORDSEL = 'A', then TOL2 &lt;= TOL1.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  IWORK   INTEGER array, dimension (LIWORK), where
+          LIWORK = 0,   if JOB = 'B';
+          LIWORK = N,   if JOB = 'F';
+          LIWORK = 2*N, if JOB = 'S' or 'P'.
+
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+          On exit, if INFO = 0, DWORK(1) returns the optimal value
+          of LDWORK.
+
+  LDWORK  INTEGER
+          The length of the array DWORK.
+          LDWORK &gt;= MAX( 1, 2*N*N + 5*N, N*MAX(M,P) ).
+          For optimum performance LDWORK should be larger.
+
+</PRE>
+<B>Warning Indicator</B>
+<PRE>
+  IWARN   INTEGER
+          = 0:  no warning;
+          = 1:  with ORDSEL = 'F', the selected order NR is greater
+                than NMINR, the order of a minimal realization of
+                the given system; in this case, the resulting NR is
+                set automatically to NMINR;
+          = 2:  with ORDSEL = 'F', the selected order NR corresponds
+                to repeated singular values, which are neither all
+                included nor all excluded from the reduced model;
+                in this case, the resulting NR is set automatically
+                to the largest value such that HSV(NR) &gt; HSV(NR+1).
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value;
+          = 1:  the computation of Hankel singular values failed.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  Let be the stable linear system
+
+       d[x(t)] = Ax(t) + Bu(t)
+       y(t)    = Cx(t) + Du(t),                             (3)
+
+  where d[x(t)] is dx(t)/dt for a continuous-time system and x(t+1)
+  for a discrete-time system. The subroutine AB09IX determines for
+  the given system (3), the matrices of a reduced NR order system
+
+       d[z(t)] = Ar*z(t) + Br*u(t)
+       yr(t)   = Cr*z(t) + Dr*u(t),                         (4)
+
+  by using the square-root or balancing-free square-root
+  Balance & Truncate (B&T) or Singular Perturbation Approximation
+  (SPA) model reduction methods.
+
+  The projection matrices TI and T are determined using the
+  Cholesky factors S and R of a controllability Grammian P and an
+  observability Grammian Q.
+  The Hankel singular values HSV(1), ...., HSV(N) are computed as
+  singular values of the product R*S.
+
+  If JOB = 'B', the square-root Balance & Truncate technique
+  of [1] is used.
+
+  If JOB = 'F', the balancing-free square-root version of the
+  Balance & Truncate technique [2] is used.
+
+  If JOB = 'S', the square-root version of the Singular Perturbation
+  Approximation method [3,4] is used.
+
+  If JOB = 'P', the balancing-free square-root version of the
+  Singular Perturbation Approximation method [3,4] is used.
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Tombs M.S. and Postlethwaite I.
+      Truncated balanced realization of stable, non-minimal
+      state-space systems.
+      Int. J. Control, Vol. 46, pp. 1319-1330, 1987.
+
+  [2] Varga A.
+      Efficient minimal realization procedure based on balancing.
+      Proc. of IMACS/IFAC Symp. MCTS, Lille, France, May 1991,
+      A. El Moudni, P. Borne, S. G. Tzafestas (Eds.),
+      Vol. 2, pp. 42-46.
+
+  [3] Liu Y. and Anderson B.D.O.
+      Singular Perturbation Approximation of balanced systems.
+      Int. J. Control, Vol. 50, pp. 1379-1405, 1989.
+
+  [4] Varga A.
+      Balancing-free square-root algorithm for computing singular
+      perturbation approximations.
+      Proc. 30-th CDC, Brighton, Dec. 11-13, 1991,
+      Vol. 2, pp. 1062-1065.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  The implemented method relies on accuracy enhancing square-root
+  or balancing-free square-root methods.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

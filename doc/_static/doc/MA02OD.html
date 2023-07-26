@@ -1,0 +1,105 @@
+<HTML>
+<HEAD><TITLE>MA02OD - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MA02OD">MA02OD</A></H2>
+<H3>
+Compute the number of zero rows (and zero columns) of a real (skew-)Hamiltonian matrix
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To compute the number of zero rows (and zero columns) of a real
+  (skew-)Hamiltonian matrix,
+
+        (  A    D   )
+    H = (           ).
+        (  E  +/-A' )
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      INTEGER FUNCTION MA02OD( SKEW, M, A, LDA, DE, LDDE )
+C     .. Scalar Arguments ..
+      CHARACTER          SKEW
+      INTEGER            LDA, LDDE, M
+C     .. Array Arguments ..
+      DOUBLE PRECISION   A( LDA, * ), DE( LDDE, * )
+
+</PRE>
+<B><FONT SIZE="+1">Function Value</FONT></B>
+<PRE>
+  MA02OD  INTEGER
+          The number of zero rows.
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  SKEW    CHARACTER*1
+          Specifies whether the matrix is Hamiltonian or skew-
+          Hamiltonian as follows:
+          = 'H':  The matrix is Hamiltonian;
+          = 'S':  The matrix is skew-Hamiltonian.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  M       (input) INTEGER
+          The order of the matrices A, D, and E.  M &gt;= 0.
+
+  A       (input) DOUBLE PRECISION array, dimension (LDA,M)
+          The leading M-by-M part of this array must contain the
+          matrix A.
+
+  LDA     INTEGER
+          The leading dimension of the array A.  LDA &gt;= max(1,M).
+
+  DE      (input) DOUBLE PRECISION array, dimension (LDDE,M+1)
+          The leading M-by-M lower triangular part of this array
+          must contain the lower triangular part of the (skew-)
+          symmetric matrix E, and the M-by-M upper triangular
+          part of the submatrix in the columns 2 to M+1 of this
+          array must contain the upper triangular part of the
+          (skew-)symmetric matrix D. If S is skew-Hamiltonian, the
+          parts containing the diagonal and the first superdiagonal
+          of this array, which should be zero, are not referenced.
+
+  LDDE    INTEGER
+          The leading dimension of the array DE.  LDDE &gt;= MAX(1,M).
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

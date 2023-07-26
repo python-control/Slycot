@@ -1,0 +1,298 @@
+<HTML>
+<HEAD><TITLE>MB05MD - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MB05MD">MB05MD</A></H2>
+<H3>
+Matrix exponential for a real non-defective matrix
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To compute exp(A*delta) where A is a real N-by-N non-defective
+  matrix with real or complex eigenvalues and delta is a scalar
+  value. The routine also returns the eigenvalues and eigenvectors
+  of A as well as (if all eigenvalues are real) the matrix product
+  exp(Lambda*delta) times the inverse of the eigenvector matrix
+  of A, where Lambda is the diagonal matrix of eigenvalues.
+  Optionally, the routine computes a balancing transformation to
+  improve the conditioning of the eigenvalues and eigenvectors.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MB05MD( BALANC, N, DELTA, A, LDA, V, LDV, Y, LDY, VALR,
+     $                   VALI, IWORK, DWORK, LDWORK, INFO )
+C     .. Scalar Arguments ..
+      CHARACTER         BALANC
+      INTEGER           INFO, LDA, LDV, LDWORK, LDY, N
+      DOUBLE PRECISION  DELTA
+C     .. Array Arguments ..
+      INTEGER           IWORK(*)
+      DOUBLE PRECISION  A(LDA,*), DWORK(*), V(LDV,*), VALI(*), VALR(*),
+     $                  Y(LDY,*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  BALANC  CHARACTER*1
+          Indicates how the input matrix should be diagonally scaled
+          to improve the conditioning of its eigenvalues as follows:
+          = 'N':  Do not diagonally scale;
+          = 'S':  Diagonally scale the matrix, i.e. replace A by
+                  D*A*D**(-1), where D is a diagonal matrix chosen
+                  to make the rows and columns of A more equal in
+                  norm. Do not permute.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The order of the matrix A.  N &gt;= 0.
+
+  DELTA   (input) DOUBLE PRECISION
+          The scalar value delta of the problem.
+
+  A       (input/output) DOUBLE PRECISION array, dimension (LDA,N)
+          On entry, the leading N-by-N part of this array must
+          contain the matrix A of the problem.
+          On exit, the leading N-by-N part of this array contains
+          the solution matrix exp(A*delta).
+
+  LDA     INTEGER
+          The leading dimension of array A.  LDA &gt;= max(1,N).
+
+  V       (output) DOUBLE PRECISION array, dimension (LDV,N)
+          The leading N-by-N part of this array contains the
+          eigenvector matrix for A.
+          If the k-th eigenvalue is real the k-th column of the
+          eigenvector matrix holds the eigenvector corresponding
+          to the k-th eigenvalue.
+          Otherwise, the k-th and (k+1)-th eigenvalues form a
+          complex conjugate pair and the k-th and (k+1)-th columns
+          of the eigenvector matrix hold the real and imaginary
+          parts of the eigenvectors corresponding to these
+          eigenvalues as follows.
+          If p and q denote the k-th and (k+1)-th columns of the
+          eigenvector matrix, respectively, then the eigenvector
+          corresponding to the complex eigenvalue with positive
+          (negative) imaginary value is given by
+                                    2
+          p + q*j (p - q*j), where j  = -1.
+
+  LDV     INTEGER
+          The leading dimension of array V.  LDV &gt;= max(1,N).
+
+  Y       (output) DOUBLE PRECISION array, dimension (LDY,N)
+          The leading N-by-N part of this array contains an
+          intermediate result for computing the matrix exponential.
+          Specifically, exp(A*delta) is obtained as the product V*Y,
+          where V is the matrix stored in the leading N-by-N part of
+          the array V. If all eigenvalues of A are real, then the
+          leading N-by-N part of this array contains the matrix
+          product exp(Lambda*delta) times the inverse of the (right)
+          eigenvector matrix of A, where Lambda is the diagonal
+          matrix of eigenvalues.
+
+  LDY     INTEGER
+          The leading dimension of array Y.  LDY &gt;= max(1,N).
+
+  VALR    (output) DOUBLE PRECISION array, dimension (N)
+  VALI    (output) DOUBLE PRECISION array, dimension (N)
+          These arrays contain the real and imaginary parts,
+          respectively, of the eigenvalues of the matrix A. The
+          eigenvalues are unordered except that complex conjugate
+          pairs of values appear consecutively with the eigenvalue
+          having positive imaginary part first.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  IWORK   INTEGER array, dimension (N)
+
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+          On exit, if INFO = 0, DWORK(1) returns the optimal value
+          of LDWORK, and if N &gt; 0, DWORK(2) returns the reciprocal
+          condition number of the triangular matrix used to obtain
+          the inverse of the eigenvector matrix.
+
+  LDWORK  INTEGER
+          The length of the array DWORK.  LDWORK &gt;= max(1,4*N).
+          For good performance, LDWORK must generally be larger.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value;
+          = i:  if INFO = i, the QR algorithm failed to compute all
+                the eigenvalues; no eigenvectors have been computed;
+                elements i+1:N of VALR and VALI contain eigenvalues
+                which have converged;
+          = N+1:  if the inverse of the eigenvector matrix could not
+                be formed due to an attempt to divide by zero, i.e.,
+                the eigenvector matrix is singular;
+          = N+2:  if the matrix A is defective, possibly due to
+                rounding errors.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  This routine is an implementation of "Method 15" of the set of
+  methods described in reference [1], which uses an eigenvalue/
+  eigenvector decomposition technique. A modification of LAPACK
+  Library routine DGEEV is used for obtaining the right eigenvector
+  matrix. A condition estimate is then employed to determine if the
+  matrix A is near defective and hence the exponential solution is
+  inaccurate. In this case the routine returns with the Error
+  Indicator (INFO) set to N+2, and SLICOT Library routines MB05ND or
+  MB05OD are the preferred alternative routines to be used.
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Moler, C.B. and Van Loan, C.F.
+      Nineteen dubious ways to compute the exponential of a matrix.
+      SIAM Review, 20, pp. 801-836, 1978.
+
+  [2] Anderson, E., Bai, Z., Bischof, C., Demmel, J., Dongarra, J.,
+      Du Croz, J., Greenbaum, A., Hammarling, S., McKenney, A.,
+      Ostrouchov, S., and Sorensen, D.
+      LAPACK Users' Guide: Second Edition.
+      SIAM, Philadelphia, 1995.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>                            3
+  The algorithm requires 0(N ) operations.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+*     MB05MD EXAMPLE PROGRAM TEXT
+*
+*     .. Parameters ..
+      INTEGER          NIN, NOUT
+      PARAMETER        ( NIN = 5, NOUT = 6 )
+      INTEGER          NMAX
+      PARAMETER        ( NMAX = 20 )
+      INTEGER          LDA, LDV, LDY
+      PARAMETER        ( LDA = NMAX, LDV = NMAX, LDY = NMAX )
+      INTEGER          LDWORK
+      PARAMETER        ( LDWORK = 4*NMAX )
+*     .. Local Scalars ..
+      DOUBLE PRECISION DELTA
+      INTEGER          I, INFO, J, N
+      CHARACTER*1      BALANC
+*     .. Local Arrays ..
+      DOUBLE PRECISION A(LDA,NMAX), DWORK(LDWORK), V(LDV,NMAX),
+     $                 VALI(NMAX), VALR(NMAX), Y(LDY,NMAX)
+      INTEGER          IWORK(NMAX)
+*     .. External Subroutines ..
+      EXTERNAL         MB05MD
+*     .. Executable Statements ..
+*
+      WRITE ( NOUT, FMT = 99999 )
+*     Skip the heading in the data file and read the data.
+      READ ( NIN, FMT = '()' )
+      BALANC = 'N'
+      READ ( NIN, FMT = * ) N, DELTA
+      IF ( N.LE.0 .OR. N.GT.NMAX ) THEN
+         WRITE ( NOUT, FMT = 99992 ) N
+      ELSE
+         READ ( NIN, FMT = * ) ( ( A(I,J), J = 1,N ), I = 1,N )
+*        Find the exponential of the real non-defective matrix A*DELTA.
+         CALL MB05MD( BALANC, N, DELTA, A, LDA, V, LDV, Y, LDY, VALR,
+     $                VALI, IWORK, DWORK, LDWORK, INFO )
+*
+         IF ( INFO.NE.0 ) THEN
+            WRITE ( NOUT, FMT = 99998 ) INFO
+         ELSE
+            WRITE ( NOUT, FMT = 99997 )
+            DO 20 I = 1, N
+               WRITE ( NOUT, FMT = 99996 ) ( A(I,J), J = 1,N )
+   20       CONTINUE
+            WRITE ( NOUT, FMT = 99995 ) ( VALR(I), VALI(I), I = 1,N )
+            WRITE ( NOUT, FMT = 99994 )
+            DO 40 I = 1, N
+               WRITE ( NOUT, FMT = 99996 ) ( V(I,J), J = 1,N )
+   40       CONTINUE
+            WRITE ( NOUT, FMT = 99993 )
+            DO 60 I = 1, N
+               WRITE ( NOUT, FMT = 99996 ) ( Y(I,J), J = 1,N )
+   60       CONTINUE
+         END IF
+      END IF
+      STOP
+*
+99999 FORMAT (' MB05MD EXAMPLE PROGRAM RESULTS',/1X)
+99998 FORMAT (' INFO on exit from MB05MD = ',I2)
+99997 FORMAT (' The solution matrix exp(A*DELTA) is ')
+99996 FORMAT (20(1X,F8.4))
+99995 FORMAT (/' The eigenvalues of A are ',/20(2F5.1,'*j  '))
+99994 FORMAT (/' The eigenvector matrix for A is ')
+99993 FORMAT (/' The inverse eigenvector matrix for A (premultiplied by'
+     $        ,' exp(Lambda*DELTA)) is ')
+99992 FORMAT (/' N is out of range.',/' N = ',I5)
+      END
+</PRE>
+<B>Program Data</B>
+<PRE>
+ MB05MD EXAMPLE PROGRAM DATA
+   4     1.0
+   0.5   0.0   2.3  -2.6
+   0.0   0.5  -1.4  -0.7
+   2.3  -1.4   0.5   0.0
+  -2.6  -0.7   0.0   0.5
+</PRE>
+<B>Program Results</B>
+<PRE>
+ MB05MD EXAMPLE PROGRAM RESULTS
+
+ The solution matrix exp(A*DELTA) is 
+  26.8551  -3.2824  18.7409 -19.4430
+  -3.2824   4.3474  -5.1848   0.2700
+  18.7409  -5.1848  15.6012 -11.7228
+ -19.4430   0.2700 -11.7228  15.6012
+
+ The eigenvalues of A are 
+ -3.0  0.0*j    4.0  0.0*j   -1.0  0.0*j    2.0  0.0*j  
+
+ The eigenvector matrix for A is 
+  -0.7000   0.7000   0.1000  -0.1000
+   0.1000  -0.1000   0.7000  -0.7000
+   0.5000   0.5000   0.5000   0.5000
+  -0.5000  -0.5000   0.5000   0.5000
+
+ The inverse eigenvector matrix for A (premultiplied by exp(Lambda*DELTA)) is 
+  -0.0349   0.0050   0.0249  -0.0249
+  38.2187  -5.4598  27.2991 -27.2991
+   0.0368   0.2575   0.1839   0.1839
+  -0.7389  -5.1723   3.6945   3.6945
+</PRE>
+
+<HR>
+<p>
+<A HREF=..\libindex.html><B>Return to index</B></A></BODY>
+</HTML>

@@ -1,0 +1,144 @@
+<HTML>
+<HEAD><TITLE>MD03BX - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MD03BX">MD03BX</A></H2>
+<H3>
+QR factorization with column pivoting for a standard nonlinear least squares problem
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To compute the QR factorization with column pivoting of an
+  m-by-n matrix J (m &gt;= n), that is, J*P = Q*R, where Q is a matrix
+  with orthogonal columns, P a permutation matrix, and R an upper
+  trapezoidal matrix with diagonal elements of nonincreasing
+  magnitude, and to apply the transformation Q' on the error
+  vector e (in-situ). The 1-norm of the scaled gradient is also
+  returned. The matrix J could be the Jacobian of a nonlinear least
+  squares problem.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MD03BX( M, N, FNORM, J, LDJ, E, JNORMS, GNORM, IPVT,
+     $                   DWORK, LDWORK, INFO )
+C     .. Scalar Arguments ..
+      INTEGER           INFO, LDJ, LDWORK, M, N
+      DOUBLE PRECISION  FNORM, GNORM
+C     .. Array Arguments ..
+      INTEGER           IPVT(*)
+      DOUBLE PRECISION  DWORK(*), E(*), J(*), JNORMS(*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  M       (input) INTEGER
+          The number of rows of the Jacobian matrix J.  M &gt;= 0.
+
+  N       (input) INTEGER
+          The number of columns of the Jacobian matrix J.
+          M &gt;= N &gt;= 0.
+
+  FNORM   (input) DOUBLE PRECISION
+          The Euclidean norm of the vector e.  FNORM &gt;= 0.
+
+  J       (input/output) DOUBLE PRECISION array, dimension (LDJ, N)
+          On entry, the leading M-by-N part of this array must
+          contain the Jacobian matrix J.
+          On exit, the leading N-by-N upper triangular part of this
+          array contains the upper triangular factor R of the
+          Jacobian matrix. Note that for efficiency of the later
+          calculations, the matrix R is delivered with the leading
+          dimension MAX(1,N), possibly much smaller than the value
+          of LDJ on entry.
+
+  LDJ     (input/output) INTEGER
+          The leading dimension of array J.
+          On entry, LDJ &gt;= MAX(1,M).
+          On exit,  LDJ &gt;= MAX(1,N).
+
+  E       (input/output) DOUBLE PRECISION array, dimension (M)
+          On entry, this array must contain the error vector e.
+          On exit, this array contains the updated vector Q'*e.
+
+  JNORMS  (output) DOUBLE PRECISION array, dimension (N)
+          This array contains the Euclidean norms of the columns of
+          the Jacobian matrix, considered in the initial order.
+
+  GNORM   (output) DOUBLE PRECISION
+          If FNORM &gt; 0, the 1-norm of the scaled vector
+          J'*Q'*e/FNORM, with each element i further divided by
+          JNORMS(i) (if JNORMS(i) is nonzero).
+          If FNORM = 0, the returned value of GNORM is 0.
+
+  IPVT    (output) INTEGER array, dimension (N)
+          This array defines the permutation matrix P such that
+          J*P = Q*R. Column j of P is column IPVT(j) of the identity
+          matrix.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+          On exit, if INFO = 0, DWORK(1) returns the optimal value
+          of LDWORK.
+
+  LDWORK  INTEGER
+          The length of the array DWORK.
+          LDWORK &gt;= 1,      if N = 0 or M = 1;
+          LDWORK &gt;= 4*N+1,  if N &gt; 1.
+          For optimum performance LDWORK should be larger.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  The algorithm uses QR factorization with column pivoting of the
+  matrix J, J*P = Q*R, and applies the orthogonal matrix Q' to the
+  vector e.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

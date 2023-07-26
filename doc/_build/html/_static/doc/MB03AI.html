@@ -1,0 +1,141 @@
+<HTML>
+<HEAD><TITLE>MB03AI - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MB03AI">MB03AI</A></H2>
+<H3>
+Reducing the first column of a real Wilkinson shift polynomial for a product of matrices to the first unit vector (variant with evaluation, Hessenberg factor is the last one)
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To compute two Givens rotations (C1,S1) and (C2,S2)
+  such that the orthogonal matrix
+
+            [ Q  0 ]        [  C1  S1  0 ]   [ 1  0   0  ]
+        Z = [      ],  Q := [ -S1  C1  0 ] * [ 0  C2  S2 ],
+            [ 0  I ]        [  0   0   1 ]   [ 0 -S2  C2 ]
+
+  makes the first column of the real Wilkinson double shift
+  polynomial of the product of matrices in periodic upper Hessenberg
+  form, stored in the array A, parallel to the first unit vector.
+  Only the rotation defined by C1 and S1 is used for the real
+  Wilkinson single shift polynomial (see SLICOT Library routines
+  MB03BE or MB03BF). All factors whose exponents differ from that of 
+  the Hessenberg factor are assumed nonsingular. The matrix product
+  is evaluated.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MB03AI( SHFT, K, N, AMAP, S, SINV, A, LDA1, LDA2, C1,
+     $                   S1, C2, S2, DWORK )
+C     .. Scalar Arguments ..
+      CHARACTER         SHFT
+      INTEGER           K, LDA1, LDA2, N, SINV
+      DOUBLE PRECISION  C1, C2, S1, S2
+C     .. Array Arguments ..
+      INTEGER           AMAP(*), S(*)
+      DOUBLE PRECISION  A(LDA1,LDA2,*), DWORK(*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  SHFT    CHARACTER*1
+          Specifies the number of shifts employed by the shift
+          polynomial, as follows:
+          = 'D':  two shifts (assumes N &gt; 2);
+          = 'S':  one real shift.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  K       (input)  INTEGER
+          The number of factors.  K &gt;= 1.
+
+  N       (input)  INTEGER
+          The order of the factors.  N &gt;= 2.
+
+  AMAP    (input)  INTEGER array, dimension (K)
+          The map for accessing the factors, i.e., if AMAP(I) = J,
+          then the factor A_I is stored at the J-th position in A.
+          AMAP(K) is the pointer to the Hessenberg matrix.
+
+  S       (input)  INTEGER array, dimension (K)
+          The signature array. Each entry of S must be 1 or -1.
+
+  SINV    (input)  INTEGER
+          Signature multiplier. Entries of S are virtually
+          multiplied by SINV.
+
+  A       (input)  DOUBLE PRECISION array, dimension (LDA1,LDA2,K)
+          The leading N-by-N-by-K part of this array must contain
+          the product (implicitly represented by its K factors)
+          in periodic upper Hessenberg form.
+
+  LDA1    INTEGER
+          The first leading dimension of the array A.  LDA1 &gt;= N.
+
+  LDA2    INTEGER
+          The second leading dimension of the array A.  LDA2 &gt;= N.
+
+  C1      (output)  DOUBLE PRECISION
+  S1      (output)  DOUBLE PRECISION
+          On exit, C1 and S1 contain the parameters for the first
+          Givens rotation.
+
+  C2      (output)  DOUBLE PRECISION
+  S2      (output)  DOUBLE PRECISION
+          On exit, if SHFT = 'D', C2 and S2 contain the parameters
+          for the second Givens rotation. Otherwise, C2 = 1, S2 = 0.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  DWORK   DOUBLE PRECISION array, dimension (N*(N+2))
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  The necessary elements of the real Wilkinson double shift
+  polynomial are computed, and suitable Givens rotations are 
+  found. For numerical reasons, this routine should be called
+  when convergence difficulties are encountered for small order
+  matrices and small K, e.g., N, K &lt;= 6. 
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

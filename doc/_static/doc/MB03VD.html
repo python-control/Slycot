@@ -1,0 +1,372 @@
+<HTML>
+<HEAD><TITLE>MB03VD - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MB03VD">MB03VD</A></H2>
+<H3>
+Periodic Hessenberg form of a product of p matrices using orthogonal similarity transformations
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To reduce a product of p real general matrices A = A_1*A_2*...*A_p
+  to upper Hessenberg form, H = H_1*H_2*...*H_p, where H_1 is
+  upper Hessenberg, and H_2, ..., H_p are upper triangular, by using
+  orthogonal similarity transformations on A,
+
+          Q_1' * A_1 * Q_2 = H_1,
+          Q_2' * A_2 * Q_3 = H_2,
+                 ...
+          Q_p' * A_p * Q_1 = H_p.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MB03VD( N, P, ILO, IHI, A, LDA1, LDA2, TAU, LDTAU,
+     $                   DWORK, INFO )
+C     .. Scalar Arguments ..
+      INTEGER           IHI, ILO, INFO, LDA1, LDA2, LDTAU, N, P
+C     .. Array Arguments ..
+      DOUBLE PRECISION  A( LDA1, LDA2, * ), DWORK( * ), TAU( LDTAU, * )
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The order of the square matrices A_1, A_2, ..., A_p.
+          N &gt;= 0.
+
+  P       (input) INTEGER
+          The number of matrices in the product A_1*A_2*...*A_p.
+          P &gt;= 1.
+
+  ILO     (input) INTEGER
+  IHI     (input) INTEGER
+          It is assumed that all matrices A_j, j = 2, ..., p, are
+          already upper triangular in rows and columns 1:ILO-1 and
+          IHI+1:N, and A_1 is upper Hessenberg in rows and columns
+          1:ILO-1 and IHI+1:N, with A_1(ILO,ILO-1) = 0 (unless
+          ILO = 1), and A_1(IHI+1,IHI) = 0 (unless IHI = N).
+          If this is not the case, ILO and IHI should be set to 1
+          and N, respectively.
+          1 &lt;= ILO &lt;= max(1,N); min(ILO,N) &lt;= IHI &lt;= N.
+
+  A       (input/output) DOUBLE PRECISION array, dimension
+          (LDA1,LDA2,P)
+          On entry, the leading N-by-N-by-P part of this array must
+          contain the matrices of factors to be reduced;
+          specifically, A(*,*,j) must contain A_j, j = 1, ..., p.
+          On exit, the leading N-by-N upper triangle and the first
+          subdiagonal of A(*,*,1) contain the upper Hessenberg
+          matrix H_1, and the elements below the first subdiagonal,
+          with the first column of the array TAU represent the
+          orthogonal matrix Q_1 as a product of elementary
+          reflectors. See FURTHER COMMENTS.
+          For j &gt; 1, the leading N-by-N upper triangle of A(*,*,j)
+          contains the upper triangular matrix H_j, and the elements
+          below the diagonal, with the j-th column of the array TAU
+          represent the orthogonal matrix Q_j as a product of
+          elementary reflectors. See FURTHER COMMENTS.
+
+  LDA1    INTEGER
+          The first leading dimension of the array A.
+          LDA1 &gt;= max(1,N).
+
+  LDA2    INTEGER
+          The second leading dimension of the array A.
+          LDA2 &gt;= max(1,N).
+
+  TAU     (output) DOUBLE PRECISION array, dimension (LDTAU,P)
+          The leading N-1 elements in the j-th column contain the
+          scalar factors of the elementary reflectors used to form
+          the matrix Q_j, j = 1, ..., P. See FURTHER COMMENTS.
+
+  LDTAU   INTEGER
+          The leading dimension of the array TAU.
+          LDTAU &gt;= max(1,N-1).
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  DWORK   DOUBLE PRECISION array, dimension (N)
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  The algorithm consists in ihi-ilo major steps. In each such
+  step i, ilo &lt;= i &lt;= ihi-1, the subdiagonal elements in the i-th
+  column of A_j are annihilated using a Householder transformation
+  from the left, which is also applied to A_(j-1) from the right,
+  for j = p:-1:2. Then, the elements below the subdiagonal of the
+  i-th column of A_1 are annihilated, and the Householder
+  transformation is also applied to A_p from the right.
+  See FURTHER COMMENTS.
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Bojanczyk, A.W., Golub, G. and Van Dooren, P.
+      The periodic Schur decomposition: algorithms and applications.
+      Proc. of the SPIE Conference (F.T. Luk, Ed.), 1770, pp. 31-42,
+      1992.
+
+  [2] Sreedhar, J. and Van Dooren, P.
+      Periodic Schur form and some matrix equations.
+      Proc. of the Symposium on the Mathematical Theory of Networks
+      and Systems (MTNS'93), Regensburg, Germany (U. Helmke,
+      R. Mennicken and J. Saurer, Eds.), Vol. 1, pp. 339-362, 1994.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  The algorithm is numerically stable.
+
+</PRE>
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  Each matrix Q_j is represented as a product of (ihi-ilo)
+  elementary reflectors,
+
+     Q_j = H_j(ilo) H_j(ilo+1) . . . H_j(ihi-1).
+
+  Each H_j(i), i = ilo, ..., ihi-1, has the form
+
+     H_j(i) = I - tau_j * v_j * v_j',
+
+  where tau_j is a real scalar, and v_j is a real vector with
+  v_j(1:i) = 0, v_j(i+1) = 1 and v_j(ihi+1:n) = 0; v_j(i+2:ihi)
+  is stored on exit in A_j(i+2:ihi,i), and tau_j in TAU(i,j).
+
+  The contents of A_1 are illustrated by the following example
+  for n = 7, ilo = 2, and ihi = 6:
+
+  on entry                         on exit
+
+  ( a   a   a   a   a   a   a )    ( a   h   h   h   h   h   a )
+  ( 0   a   a   a   a   a   a )    ( 0   h   h   h   h   h   a )
+  ( 0   a   a   a   a   a   a )    ( 0   h   h   h   h   h   h )
+  ( 0   a   a   a   a   a   a )    ( 0   v2  h   h   h   h   h )
+  ( 0   a   a   a   a   a   a )    ( 0   v2  v3  h   h   h   h )
+  ( 0   a   a   a   a   a   a )    ( 0   v2  v3  v4  h   h   h )
+  ( 0   0   0   0   0   0   a )    ( 0   0   0   0   0   0   a )
+
+  where a denotes an element of the original matrix A_1, h denotes
+  a modified element of the upper Hessenberg matrix H_1, and vi
+  denotes an element of the vector defining H_1(i).
+
+  The contents of A_j, j &gt; 1, are illustrated by the following
+  example for n = 7, ilo = 2, and ihi = 6:
+
+  on entry                         on exit
+
+  ( a   a   a   a   a   a   a )    ( a   h   h   h   h   h   a )
+  ( 0   a   a   a   a   a   a )    ( 0   h   h   h   h   h   h )
+  ( 0   a   a   a   a   a   a )    ( 0   v2  h   h   h   h   h )
+  ( 0   a   a   a   a   a   a )    ( 0   v2  v3  h   h   h   h )
+  ( 0   a   a   a   a   a   a )    ( 0   v2  v3  v4  h   h   h )
+  ( 0   a   a   a   a   a   a )    ( 0   v2  v3  v4  v5  h   h )
+  ( 0   0   0   0   0   0   a )    ( 0   0   0   0   0   0   a )
+
+  where a denotes an element of the original matrix A_j, h denotes
+  a modified element of the upper triangular matrix H_j, and vi
+  denotes an element of the vector defining H_j(i). (The element
+  (1,2) in A_p is also unchanged for this example.)
+
+  Note that for P = 1, the LAPACK Library routine DGEHRD could be
+  more efficient on some computer architectures than this routine
+  (a BLAS 2 version).
+
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+*     MB03VD EXAMPLE PROGRAM TEXT
+*
+*     .. Parameters ..
+      INTEGER          NIN, NOUT
+      PARAMETER        ( NIN = 5, NOUT = 6 )
+      INTEGER          NMAX, PMAX
+      PARAMETER        ( NMAX = 20, PMAX = 20 )
+      INTEGER          LDA1, LDA2, LDQ1, LDQ2, LDTAU
+      PARAMETER        ( LDA1 = NMAX, LDA2 = NMAX, LDQ1 = NMAX,
+     $                   LDQ2 = NMAX, LDTAU = NMAX-1 )
+      INTEGER          LDWORK
+      PARAMETER        ( LDWORK = NMAX )
+      DOUBLE PRECISION ZERO, ONE
+      PARAMETER        ( ZERO = 0.0D0, ONE = 1.0D0 )
+*     .. Local Scalars ..
+      DOUBLE PRECISION SSQ
+      INTEGER          I, IHI, ILO, INFO, J, K, KP1, N, P
+*     .. Local Arrays ..
+      DOUBLE PRECISION A(LDA1,LDA2,PMAX), AS(LDA1,LDA2,PMAX),
+     $                 DWORK(LDWORK), Q(LDQ1,LDQ2,PMAX),
+     $                 QTA(LDQ1,NMAX), TAU(LDTAU,PMAX)
+*     .. External Functions ..
+      DOUBLE PRECISION DLANGE, DLAPY2
+      EXTERNAL         DLANGE, DLAPY2
+*     .. External Subroutines ..
+      EXTERNAL         DGEMM, DLACPY, DLASET, MB03VD, MB03VY
+*     .. Intrinsic Functions ..
+      INTRINSIC        MIN
+*     .. Executable Statements ..
+      WRITE (NOUT, FMT = 99999 )
+*     Skip the heading in the data file and read the data.
+      READ ( NIN, FMT = '()' )
+      READ ( NIN, FMT = * ) N, P, ILO, IHI
+      IF ( N.LT.0 .OR. N.GT.MIN( LDA1, LDA2 ) ) THEN
+         WRITE ( NOUT, FMT = 99991 ) N
+      ELSE
+         IF ( P.LE.0 .OR. P.GT.PMAX ) THEN
+            WRITE ( NOUT, FMT = 99990 ) P
+         ELSE
+*           Read matrices A_1, ..., A_p from the input file.
+            DO 10 K = 1, P
+               READ ( NIN, FMT = * )
+     $            ( ( A(I,J,K), J = 1, N ), I = 1, N )
+               CALL DLACPY( 'F', N, N, A(1,1,K), LDA1, AS(1,1,K), LDA1 )
+   10       CONTINUE
+*           Reduce to the periodic Hessenberg form.
+            CALL MB03VD( N, P, ILO, IHI, A, LDA1, LDA2, TAU, LDTAU,
+     $                   DWORK, INFO )
+            IF ( INFO.NE.0 ) THEN
+               WRITE ( NOUT, FMT = 99998 ) INFO
+            ELSE
+               WRITE ( NOUT, FMT = 99996 )
+               DO 30 K = 1, P
+                  CALL DLACPY( 'L', N, N, A(1,1,K), LDA1, Q(1,1,K),
+     $                         LDQ1 )
+                  IF ( N.GT.1 ) THEN
+                     IF ( N.GT.2 .AND. K.EQ.1 ) THEN
+                        CALL DLASET( 'L', N-2, N-2, ZERO, ZERO,
+     $                               A(3,1,K), LDA1 )
+                     ELSE IF ( K.GT.1 ) THEN
+                        CALL DLASET( 'L', N-1, N-1, ZERO, ZERO,
+     $                               A(2,1,K), LDA1 )
+                     END IF
+                  END IF
+                  WRITE ( NOUT, FMT = 99995 ) K
+                  DO 20 I = 1, N
+                     WRITE ( NOUT, FMT = 99994 ) ( A(I,J,K), J = 1, N )
+   20             CONTINUE
+   30          CONTINUE
+*              Accumulate the transformations.
+               CALL MB03VY( N, P, ILO, IHI, Q, LDQ1, LDQ2, TAU, LDTAU,
+     $                      DWORK, LDWORK, INFO )
+               IF ( INFO.NE.0 ) THEN
+                  WRITE ( NOUT, FMT = 99997 ) INFO
+               ELSE
+                  WRITE ( NOUT, FMT = 99993 )
+                  DO 50 K = 1, P
+                     WRITE ( NOUT, FMT = 99995 ) K
+                     DO 40 I = 1, N
+                        WRITE ( NOUT, FMT = 99994 )
+     $                        ( Q(I,J,K), J = 1, N )
+   40                CONTINUE
+   50             CONTINUE
+*                 Compute error.
+                  SSQ = ZERO
+                  DO 60 K = 1, P
+                     KP1 = K+1
+                     IF( KP1.GT.P ) KP1 = 1
+*                    Compute NORM (Z' * A * Z - Aout)
+                     CALL DGEMM( 'T', 'N', N, N, N, ONE, Q(1,1,K), LDQ1,
+     $                           AS(1,1,K), LDA1, ZERO, QTA, LDQ1 )
+                     CALL DGEMM( 'N', 'N', N, N, N, ONE, QTA, LDQ1,
+     $                           Q(1,1,KP1), LDQ1, -ONE, A(1,1,K),
+     $                           LDA1 )
+                     SSQ = DLAPY2( SSQ,
+     $                             DLANGE( 'Frobenius', N, N, A(1,1,K),
+     $                                     LDA1, DWORK ) )
+   60             CONTINUE
+                  WRITE ( NOUT, FMT = 99992 ) SSQ
+               END IF
+            END IF
+         END IF
+      END IF
+      STOP
+99999 FORMAT (' MB03VD EXAMPLE PROGRAM RESULTS', /1X)
+99998 FORMAT (' INFO on exit from MB03VD = ', I2)
+99997 FORMAT (' INFO on exit from MB03VY = ', I2)
+99996 FORMAT (' Reduced matrices')
+99995 FORMAT (/' K = ', I5)
+99994 FORMAT (8F8.4)
+99993 FORMAT (/' Transformation matrices')
+99992 FORMAT (/,' NORM (Q''*A*Q - Aout) = ', 1PD12.5)
+99991 FORMAT (/, ' N is out of range.',/' N = ', I5)
+99990 FORMAT (/, ' P is out of range.',/' P = ', I5)
+      END
+</PRE>
+<B>Program Data</B>
+<PRE>
+MB03VD EXAMPLE PROGRAM DATA
+4 2 1 4
+1.5 -.7 3.5 -.7 
+1.  0.  2.  3. 
+1.5 -.7 2.5 -.3 
+1.  0.  2.  1. 
+1.5 -.7 3.5 -.7 
+1.  0.  2.  3. 
+1.5 -.7 2.5 -.3 
+1.  0.  2.  1. 
+</PRE>
+<B>Program Results</B>
+<PRE>
+ MB03VD EXAMPLE PROGRAM RESULTS
+
+ Reduced matrices
+
+ K =     1
+ -2.3926  2.7042 -0.9598 -1.2335
+  4.1417 -1.7046  1.3001 -1.3120
+  0.0000 -1.6247 -0.2534  1.6453
+  0.0000  0.0000 -0.0169 -0.4451
+
+ K =     2
+ -2.5495  2.3402  4.7021  0.2329
+  0.0000  1.9725 -0.2483 -2.3493
+  0.0000  0.0000 -0.6290 -0.5975
+  0.0000  0.0000  0.0000 -0.4426
+
+ Transformation matrices
+
+ K =     1
+  1.0000  0.0000  0.0000  0.0000
+  0.0000 -0.7103  0.5504 -0.4388
+  0.0000 -0.4735 -0.8349 -0.2807
+  0.0000 -0.5209  0.0084  0.8536
+
+ K =     2
+ -0.5883  0.2947  0.7528 -0.0145
+ -0.3922 -0.8070  0.0009 -0.4415
+ -0.5883  0.4292 -0.6329 -0.2630
+ -0.3922 -0.2788 -0.1809  0.8577
+
+ NORM (Q'*A*Q - Aout) =  2.93760D-15
+</PRE>
+
+<HR>
+<p>
+<A HREF=..\libindex.html><B>Return to index</B></A></BODY>
+</HTML>

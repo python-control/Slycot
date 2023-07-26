@@ -1,0 +1,301 @@
+<HTML>
+<HEAD><TITLE>MB03QD - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MB03QD">MB03QD</A></H2>
+<H3>
+Reordering the diagonal blocks of a principal submatrix of an upper quasi-triangular matrix to have eigenvalues in a specified domain
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To reorder the diagonal blocks of a principal submatrix of an
+  upper quasi-triangular matrix A together with their eigenvalues by
+  constructing an orthogonal similarity transformation UT.
+  After reordering, the leading block of the selected submatrix of A
+  has eigenvalues in a suitably defined domain of interest, usually
+  related to stability/instability in a continuous- or discrete-time
+  sense.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MB03QD( DICO, STDOM, JOBU, N, NLOW, NSUP, ALPHA,
+     $                   A, LDA, U, LDU, NDIM, DWORK, INFO )
+C     .. Scalar Arguments ..
+      CHARACTER        DICO, JOBU, STDOM
+      INTEGER          INFO, LDA, LDU, N, NDIM, NLOW, NSUP
+      DOUBLE PRECISION ALPHA
+C     .. Array Arguments ..
+      DOUBLE PRECISION A(LDA,*), DWORK(*), U(LDU,*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  DICO    CHARACTER*1
+          Specifies the type of the spectrum separation to be
+          performed as follows:
+          = 'C':  continuous-time sense;
+          = 'D':  discrete-time sense.
+
+  STDOM   CHARACTER*1
+          Specifies whether the domain of interest is of stability
+          type (left part of complex plane or inside of a circle)
+          or of instability type (right part of complex plane or
+          outside of a circle) as follows:
+          = 'S':  stability type domain;
+          = 'U':  instability type domain.
+
+  JOBU    CHARACTER*1
+          Indicates how the performed orthogonal transformations UT
+          are accumulated, as follows:
+          = 'I':  U is initialized to the unit matrix and the matrix
+                  UT is returned in U;
+          = 'U':  the given matrix U is updated and the matrix U*UT
+                  is returned in U.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The order of the matrices A and U.  N &gt;= 1.
+
+  NLOW,   (input) INTEGER
+  NSUP    NLOW and NSUP specify the boundary indices for the rows
+          and columns of the principal submatrix of A whose diagonal
+          blocks are to be reordered.  1 &lt;= NLOW &lt;= NSUP &lt;= N.
+
+  ALPHA   (input) DOUBLE PRECISION
+          The boundary of the domain of interest for the eigenvalues
+          of A. If DICO = 'C', ALPHA is the boundary value for the
+          real parts of eigenvalues, while for DICO = 'D',
+          ALPHA &gt;= 0 represents the boundary value for the moduli of
+          eigenvalues.
+
+  A       (input/output) DOUBLE PRECISION array, dimension (LDA,N)
+          On entry, the leading N-by-N part of this array must
+          contain a matrix in a real Schur form whose 1-by-1 and
+          2-by-2 diagonal blocks between positions NLOW and NSUP
+          are to be reordered.
+          On exit, the leading N-by-N part contains the ordered
+          real Schur matrix UT' * A * UT with the elements below the
+          first subdiagonal set to zero.
+          The leading NDIM-by-NDIM part of the principal submatrix
+          D = A(NLOW:NSUP,NLOW:NSUP) has eigenvalues in the domain
+          of interest and the trailing part of this submatrix has
+          eigenvalues outside the domain of interest.
+          The domain of interest for lambda(D), the eigenvalues of
+          D, is defined by the parameters ALPHA, DICO and STDOM as
+          follows:
+            For DICO = 'C':
+               Real(lambda(D)) &lt; ALPHA if STDOM = 'S';
+               Real(lambda(D)) &gt; ALPHA if STDOM = 'U'.
+            For DICO = 'D':
+               Abs(lambda(D)) &lt; ALPHA if STDOM = 'S';
+               Abs(lambda(D)) &gt; ALPHA if STDOM = 'U'.
+
+  LDA     INTEGER
+          The leading dimension of array A.  LDA &gt;= N.
+
+  U       (input/output) DOUBLE PRECISION array, dimension (LDU,N)
+          On entry with JOBU = 'U', the leading N-by-N part of this
+          array must contain a transformation matrix (e.g. from a
+          previous call to this routine).
+          On exit, if JOBU = 'U', the leading N-by-N part of this
+          array contains the product of the input matrix U and the
+          orthogonal matrix UT used to reorder the diagonal blocks
+          of A.
+          On exit, if JOBU = 'I', the leading N-by-N part of this
+          array contains the matrix UT of the performed orthogonal
+          transformations.
+          Array U need not be set on entry if JOBU = 'I'.
+
+  LDU     INTEGER
+          The leading dimension of array U.  LDU &gt;= N.
+
+  NDIM    (output) INTEGER
+          The number of eigenvalues of the selected principal
+          submatrix lying inside the domain of interest.
+          If NLOW = 1, NDIM is also the dimension of the invariant
+          subspace corresponding to the eigenvalues of the leading
+          NDIM-by-NDIM submatrix. In this case, if U is the
+          orthogonal transformation matrix used to compute and
+          reorder the real Schur form of A, its first NDIM columns
+          form an orthonormal basis for the above invariant
+          subspace.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  DWORK   DOUBLE PRECISION array, dimension (N)
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value;
+          = 1:  A(NLOW,NLOW-1) is nonzero, i.e. A(NLOW,NLOW) is not
+                the leading element of a 1-by-1 or 2-by-2 diagonal
+                block of A, or A(NSUP+1,NSUP) is nonzero, i.e.
+                A(NSUP,NSUP) is not the bottom element of a 1-by-1
+                or 2-by-2 diagonal block of A;
+          = 2:  two adjacent blocks are too close to swap (the
+                problem is very ill-conditioned).
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  Given an upper quasi-triangular matrix A with 1-by-1 or 2-by-2
+  diagonal blocks, the routine reorders its diagonal blocks along
+  with its eigenvalues by performing an orthogonal similarity
+  transformation UT' * A * UT. The column transformation UT is also
+  performed on the given (initial) transformation U (resulted from
+  a possible previous step or initialized as the identity matrix).
+  After reordering, the eigenvalues inside the region specified by
+  the parameters ALPHA, DICO and STDOM appear at the top of
+  the selected diagonal block between positions NLOW and NSUP.
+  In other words, lambda(A(NLOW:NSUP,NLOW:NSUP)) are ordered such
+  that lambda(A(NLOW:NLOW+NDIM-1,NLOW:NLOW+NDIM-1)) are inside and
+  lambda(A(NLOW+NDIM:NSUP,NLOW+NDIM:NSUP)) are outside the domain
+  of interest. If NLOW = 1, the first NDIM columns of U*UT span the
+  corresponding invariant subspace of A.
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Stewart, G.W.
+      HQR3 and EXCHQZ: FORTRAN subroutines for calculating and
+      ordering the eigenvalues of a real upper Hessenberg matrix.
+      ACM TOMS, 2, pp. 275-280, 1976.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>                                      3
+  The algorithm requires less than 4*N  operations.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+*     MB03QD EXAMPLE PROGRAM TEXT
+*
+*     .. Parameters ..
+      INTEGER          NIN, NOUT
+      PARAMETER        ( NIN = 5, NOUT = 6 )
+      INTEGER          NMAX
+      PARAMETER        ( NMAX = 10 )
+      INTEGER          LDA, LDU
+      PARAMETER        ( LDA = NMAX, LDU = NMAX )
+      INTEGER          LDWORK
+      PARAMETER        ( LDWORK = 3*NMAX )
+*     .. Local Scalars ..
+      CHARACTER*1      DICO, JOBU, STDOM
+      INTEGER          I, INFO, J, N, NDIM, NLOW, NSUP
+      DOUBLE PRECISION ALPHA
+*     .. Local Arrays ..
+      DOUBLE PRECISION A(LDA,NMAX), DWORK(LDWORK), U(LDU,NMAX),
+     $                 WI(NMAX), WR(NMAX)
+      LOGICAL          BWORK(NMAX)
+*     .. External Functions ..
+      LOGICAL          SELECT
+*     .. External Subroutines ..
+      EXTERNAL         DGEES, MB03QD
+*     .. Executable Statements ..
+*
+      WRITE ( NOUT, FMT = 99999 )
+*     Skip the heading in the data file and read the data.
+      READ ( NIN, FMT = '()' )
+      READ ( NIN, FMT = * ) N, NLOW, NSUP, ALPHA, DICO, STDOM, JOBU
+      IF ( N.LT.0 .OR. N.GT.NMAX ) THEN
+         WRITE ( NOUT, FMT = 99992 ) N
+      ELSE
+         READ ( NIN, FMT = * ) ( ( A(I,J), J = 1,N ), I = 1,N )
+*        Compute Schur form, eigenvalues and Schur vectors.
+         CALL DGEES( 'Vectors', 'Not sorted', SELECT, N, A, LDA, NDIM,
+     $               WR, WI, U, LDU, DWORK, LDWORK, BWORK, INFO )
+         IF ( INFO.NE.0 ) THEN
+            WRITE ( NOUT, FMT = 99998 ) INFO
+         ELSE
+*           Block reordering.
+            CALL MB03QD( DICO, STDOM, JOBU, N, NLOW, NSUP, ALPHA,
+     $                   A, LDA, U, LDU, NDIM, DWORK, INFO )
+            IF ( INFO.NE.0 ) THEN
+               WRITE ( NOUT, FMT = 99997 ) INFO
+            ELSE
+               WRITE ( NOUT, FMT = 99996 ) NDIM
+               WRITE ( NOUT, FMT = 99994 )
+               DO 10 I = 1, N
+                  WRITE ( NOUT, FMT = 99995 ) ( A(I,J), J = 1,N )
+   10          CONTINUE
+               WRITE ( NOUT, FMT = 99993 )
+               DO 20 I = 1, N
+                  WRITE ( NOUT, FMT = 99995 ) ( U(I,J), J = 1,N )
+   20          CONTINUE
+            END IF
+         END IF
+      END IF
+*
+      STOP
+*
+99999 FORMAT (' MB03QD EXAMPLE PROGRAM RESULTS',/1X)
+99998 FORMAT (' INFO on exit from DGEES  = ',I2)
+99997 FORMAT (' INFO on exit from MB03QD = ',I2)
+99996 FORMAT (' The number of eigenvalues in the domain is ',I5)
+99995 FORMAT (8X,20(1X,F8.4))
+99994 FORMAT (/' The ordered Schur form matrix is ')
+99993 FORMAT (/' The transformation matrix is ')
+99992 FORMAT (/' N is out of range.',/' N = ',I5)
+      END
+</PRE>
+<B>Program Data</B>
+<PRE>
+ MB03QD EXAMPLE PROGRAM DATA
+   4     1     4      0.0      C      S      U
+  -1.0  37.0 -12.0 -12.0
+  -1.0 -10.0   0.0   4.0
+   2.0  -4.0   7.0  -6.0
+   2.0   2.0   7.0  -9.0
+</PRE>
+<B>Program Results</B>
+<PRE>
+ MB03QD EXAMPLE PROGRAM RESULTS
+
+ The number of eigenvalues in the domain is     4
+
+ The ordered Schur form matrix is 
+          -3.1300 -26.5066  27.2262 -16.2009
+           0.9070  -3.1300  13.6254   8.9206
+           0.0000   0.0000  -3.3700   0.3419
+           0.0000   0.0000  -1.7879  -3.3700
+
+ The transformation matrix is 
+           0.9611   0.1784   0.2064  -0.0440
+          -0.1468  -0.2704   0.8116  -0.4965
+          -0.2224   0.7675   0.4555   0.3924
+          -0.0733   0.5531  -0.3018  -0.7730
+</PRE>
+
+<HR>
+<p>
+<A HREF=..\libindex.html><B>Return to index</B></A></BODY>
+</HTML>

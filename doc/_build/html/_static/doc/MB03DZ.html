@@ -1,0 +1,121 @@
+<HTML>
+<HEAD><TITLE>MB03DZ - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MB03DZ">MB03DZ</A></H2>
+<H3>
+Exchanging eigenvalues of a complex 2-by-2 upper triangular pencil
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To compute unitary matrices Q1 and Q2 for a complex 2-by-2 regular
+  pencil aA - bB with A, B upper triangular, such that
+  Q2' (aA - bB) Q1 is still upper triangular but the eigenvalues are
+  in reversed order. The matrices Q1 and Q2 are represented by
+
+       (  CO1  SI1  )       (  CO2  SI2  )
+  Q1 = (            ), Q2 = (            ).
+       ( -SI1' CO1  )       ( -SI2' CO2  )
+
+  The notation M' denotes the conjugate transpose of the matrix M.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MB03DZ( A, LDA, B, LDB, CO1, SI1, CO2, SI2 )
+C     .. Scalar Arguments ..
+      INTEGER            LDA, LDB
+      DOUBLE PRECISION   CO1, CO2
+      COMPLEX*16         SI1, SI2
+C     .. Array Arguments ..
+      COMPLEX*16         A( LDA, * ), B( LDB, * )
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  A       (input) COMPLEX*16 array, dimension (LDA, 2)
+          On entry, the leading 2-by-2 upper triangular part of
+          this array must contain the matrix A of the pencil.
+          The (2,1) entry is not referenced.
+
+  LDA     INTEGER
+          The leading dimension of the array A.  LDA &gt;= 2.
+
+  B       (input) COMPLEX*16 array, dimension (LDB, 2)
+          On entry, the leading 2-by-2 upper triangular part of
+          this array must contain the matrix B of the pencil.
+          The (2,1) entry is not referenced.
+
+  LDB     INTEGER
+          The leading dimension of the array B.  LDB &gt;= 2.
+
+  CO1     (output) DOUBLE PRECISION
+          The upper left element of the unitary matrix Q1.
+
+  SI1     (output) COMPLEX*16
+          The upper right element of the unitary matrix Q1.
+
+  CO2     (output) DOUBLE PRECISION
+          The upper left element of the unitary matrix Q2.
+
+  SI2     (output) COMPLEX*16
+          The upper right element of the unitary matrix Q2.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  The algorithm uses unitary transformations as described on page 42
+  in [1].
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Benner, P., Byers, R., Mehrmann, V. and Xu, H.
+      Numerical Computation of Deflating Subspaces of Embedded
+      Hamiltonian Pencils.
+      Tech. Rep. SFB393/99-15, Technical University Chemnitz,
+      Germany, June 1999.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  The algorithm is numerically backward stable.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

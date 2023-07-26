@@ -1,0 +1,567 @@
+<HTML>
+<HEAD><TITLE>MB04XD - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MB04XD">MB04XD</A></H2>
+<H3>
+Basis for left/right singular subspace of a matrix corresponding to its smallest singular values
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To compute a basis for the left and/or right singular subspace of
+  an M-by-N matrix A corresponding to its smallest singular values.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MB04XD( JOBU, JOBV, M, N, RANK, THETA, A, LDA, U, LDU,
+     $                   V, LDV, Q, INUL, TOL, RELTOL, DWORK, LDWORK,
+     $                   IWARN, INFO )
+C     .. Scalar Arguments ..
+      CHARACTER         JOBU, JOBV
+      INTEGER           INFO, IWARN, LDA, LDU, LDV, LDWORK, M, N, RANK
+      DOUBLE PRECISION  RELTOL, THETA, TOL
+C     .. Array Arguments ..
+      LOGICAL           INUL(*)
+      DOUBLE PRECISION  A(LDA,*), DWORK(*), Q(*), U(LDU,*), V(LDV,*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  JOBU    CHARACTER*1
+          Specifies whether to compute the left singular subspace
+          as follows:
+          = 'N':  Do not compute the left singular subspace;
+          = 'A':  Return the (M - RANK) base vectors of the desired
+                  left singular subspace in U;
+          = 'S':  Return the first (min(M,N) - RANK) base vectors
+                  of the desired left singular subspace in U.
+
+  JOBV    CHARACTER*1
+          Specifies whether to compute the right singular subspace
+          as follows:
+          = 'N':  Do not compute the right singular subspace;
+          = 'A':  Return the (N - RANK) base vectors of the desired
+                  right singular subspace in V;
+          = 'S':  Return the first (min(M,N) - RANK) base vectors
+                  of the desired right singular subspace in V.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  M       (input) INTEGER
+          The number of rows in matrix A.  M &gt;= 0.
+
+  N       (input) INTEGER
+          The number of columns in matrix A.  N &gt;= 0.
+
+  RANK    (input/output) INTEGER
+          On entry, if RANK &lt; 0, then the rank of matrix A is
+          computed by the routine as the number of singular values
+          greater than THETA.
+          Otherwise, RANK must specify the rank of matrix A.
+          RANK &lt;= min(M,N).
+          On exit, if RANK &lt; 0 on entry, then RANK contains the
+          computed rank of matrix A. That is, the number of singular
+          values of A greater than THETA.
+          Otherwise, the user-supplied value of RANK may be changed
+          by the routine on exit if the RANK-th and the (RANK+1)-th
+          singular values of A are considered to be equal.
+          See also the description of parameter TOL below.
+
+  THETA   (input/output) DOUBLE PRECISION
+          On entry, if RANK &lt; 0, then THETA must specify an upper
+          bound on the smallest singular values of A corresponding
+          to the singular subspace to be computed.  THETA &gt;= 0.0.
+          Otherwise, THETA must specify an initial estimate (t say)
+          for computing an upper bound on the (min(M,N) - RANK)
+          smallest singular values of A. If THETA &lt; 0.0, then t is
+          computed by the routine.
+          On exit, if RANK &gt;= 0 on entry, then THETA contains the
+          computed upper bound such that precisely RANK singular
+          values of A are greater than THETA + TOL.
+          Otherwise, THETA is unchanged.
+
+  A       (input) DOUBLE PRECISION array, dimension (LDA,N)
+          The leading M-by-N part of this array must contain the
+          matrix A from which the basis of a desired singular
+          subspace is to be computed.
+          NOTE that this array is destroyed.
+
+  LDA     INTEGER
+          The leading dimension of array A.  LDA &gt;= max(1,M).
+
+  U       (output) DOUBLE PRECISION array, dimension (LDU,*)
+          If JOBU = 'A', then the leading M-by-M part of this array
+          contains the (M - RANK) M-dimensional base vectors of the
+          desired left singular subspace of A corresponding to its
+          singular values less than or equal to THETA. These vectors
+          are stored in the i-th column(s) of U for which
+          INUL(i) = .TRUE., where i = 1,2,...,M.
+
+          If JOBU = 'S', then the leading M-by-min(M,N) part of this
+          array contains the first (min(M,N) - RANK) M-dimensional
+          base vectors of the desired left singular subspace of A
+          corresponding to its singular values less than or equal to
+          THETA. These vectors are stored in the i-th column(s) of U
+          for which INUL(i) = .TRUE., where i = 1,2,..., min(M,N).
+
+          Otherwise, U is not referenced (since JOBU = 'N') and can
+          be supplied as a dummy array (i.e. set parameter LDU = 1
+          and declare this array to be U(1,1) in the calling
+          program).
+
+  LDU     INTEGER
+          The leading dimension of array U.
+          LDU &gt;= max(1,M) if JOBU = 'A' or JOBU = 'S',
+          LDU &gt;= 1        if JOBU = 'N'.
+
+  V       (output) DOUBLE PRECISION array, dimension (LDV,*)
+          If JOBV = 'A', then the leading N-by-N part of this array
+          contains the (N - RANK) N-dimensional base vectors of the
+          desired right singular subspace of A corresponding to its
+          singular values less than or equal to THETA. These vectors
+          are stored in the i-th column(s) of V for which
+          INUL(i) = .TRUE., where i = 1,2,...,N.
+
+          If JOBV = 'S', then the leading N-by-min(M,N) part of this
+          array contains the first (min(M,N) - RANK) N-dimensional
+          base vectors of the desired right singular subspace of A
+          corresponding to its singular values less than or equal to
+          THETA. These vectors are stored in the i-th column(s) of V
+          for which INUL(i) = .TRUE., where i = 1,2,...,MIN( M,N).
+
+          Otherwise, V is not referenced (since JOBV = 'N') and can
+          be supplied as a dummy array (i.e. set parameter LDV = 1
+          and declare this array to be V(1,1) in the calling
+          program).
+
+  LDV     INTEGER
+          The leading dimension of array V.
+          LDV &gt;= max(1,N) if JOBV = 'A' or JOBV = 'S',
+          LDV &gt;= 1        if JOBV = 'N'.
+
+  Q       (output) DOUBLE PRECISION array, dimension (2*min(M,N)-1)
+          This array contains the partially diagonalized bidiagonal
+          matrix J computed from A, at the moment that the desired
+          singular subspace has been found. Specifically, the
+          leading p = min(M,N) entries of Q contain the diagonal
+          elements q(1),q(2),...,q(p) and the entries Q(p+1),
+          Q(p+2),...,Q(2*p-1) contain the superdiagonal elements
+          e(1),e(2),...,e(p-1) of J.
+
+  INUL    (output) LOGICAL array, dimension (max(M,N))
+          If JOBU &lt;&gt; 'N' or JOBV &lt;&gt; 'N', then the indices of the
+          elements of this array with value .TRUE. indicate the
+          columns in U and/or V containing the base vectors of the
+          desired left and/or right singular subspace of A. They
+          also equal the indices of the diagonal elements of the
+          bidiagonal submatrices in the array Q, which correspond
+          to the computed singular subspaces.
+
+</PRE>
+<B>Tolerances</B>
+<PRE>
+  TOL     DOUBLE PRECISION
+          This parameter defines the multiplicity of singular values
+          by considering all singular values within an interval of
+          length TOL as coinciding. TOL is used in checking how many
+          singular values are less than or equal to THETA. Also in
+          computing an appropriate upper bound THETA by a bisection
+          method, TOL is used as a stopping criterion defining the
+          minimum (absolute) subinterval width. TOL is also taken
+          as an absolute tolerance for negligible elements in the
+          QR/QL iterations. If the user sets TOL to be less than or
+          equal to 0, then the tolerance is taken as specified in
+          SLICOT Library routine MB04YD document.
+
+  RELTOL  DOUBLE PRECISION
+          This parameter specifies the minimum relative width of an
+          interval. When an interval is narrower than TOL, or than
+          RELTOL times the larger (in magnitude) endpoint, then it
+          is considered to be sufficiently small and bisection has
+          converged. If the user sets RELTOL to be less than
+          BASE * EPS, where BASE is machine radix and EPS is machine
+          precision (see LAPACK Library routine DLAMCH), then the
+          tolerance is taken as BASE * EPS.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+          On exit, if INFO = 0, DWORK(1) returns the optimal value
+          of LDWORK.
+
+  LDWORK  INTEGER
+          The length of the array DWORK.
+          LDWORK = max(1, LDW + max(2*P + max(M,N), LDY)), where
+               P = min(M,N);
+             LDW = max(2*N, N*(N+1)/2), if JOBU &lt;&gt; 'N' and M large
+                                                     enough than N;
+             LDW = 0,                   otherwise;
+             LDY = 8*P - 5, if JOBU &lt;&gt; 'N' or  JOBV &lt;&gt; 'N';
+             LDY = 6*P - 3, if JOBU =  'N' and JOBV =  'N'.
+          For optimum performance LDWORK should be larger.
+
+          If LDWORK = -1, then a workspace query is assumed;
+          the routine only calculates the optimal size of the
+          DWORK array, returns this value as the first entry of
+          the DWORK array, and no error message related to LDWORK
+          is issued by XERBLA.
+
+</PRE>
+<B>Warning Indicator</B>
+<PRE>
+  IWARN   INTEGER
+          = 0:  no warning;
+          = 1:  if the rank of matrix A (as specified by the user)
+                has been lowered because a singular value of
+                multiplicity greater than 1 was found.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value;
+          = 1:  if the maximum number of QR/QL iteration steps
+                (30*MIN(M,N)) has been exceeded.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  The method used is the Partial Singular Value Decomposition (PSVD)
+  approach proposed by Van Huffel, Vandewalle and Haegemans, which
+  is an efficient technique (see [1]) for computing the singular
+  subspace of a matrix corresponding to its smallest singular
+  values. It differs from the classical SVD algorithm [3] at three
+  points, which results in high efficiency. Firstly, the Householder
+  transformations of the bidiagonalization need only to be applied
+  on the base vectors of the desired singular subspaces; secondly,
+  the bidiagonal matrix need only be partially diagonalized; and
+  thirdly, the convergence rate of the iterative diagonalization can
+  be improved by an appropriate choice between QL and QR iterations.
+  (Note, however, that LAPACK Library routine DGESVD, for computing
+  SVD, also uses either QL and QR iterations.) Depending on the gap,
+  the desired numerical accuracy and the dimension of the desired
+  singular subspace, the PSVD can be up to three times faster than
+  the classical SVD algorithm.
+
+  The PSVD algorithm [1-2] for an M-by-N matrix A proceeds as
+  follows:
+
+  Step 1: Bidiagonalization phase
+          -----------------------
+   (a) If M is large enough than N, transform A into upper
+       triangular form R.
+
+   (b) Transform A (or R) into bidiagonal form:
+
+             |q(1) e(1)  0   ...  0   |
+        (0)  | 0   q(2) e(2)      .   |
+       J   = | .                  .   |
+             | .                e(N-1)|
+             | 0            ...  q(N) |
+
+  if M &gt;= N, or
+
+             |q(1)  0    0   ...  0     0   |
+        (0)  |e(1) q(2)  0        .     .   |
+       J   = | .                  .     .   |
+             | .                 q(M-1) .   |
+             | 0             ... e(M-1) q(M)|
+
+  if M &lt; N, using Householder transformations.
+  In the second case, transform the matrix to the upper bidiagonal
+  form by applying Givens rotations.
+
+   (c) If U is requested, initialize U with the identity matrix.
+       If V is requested, initialize V with the identity matrix.
+
+  Step 2: Partial diagonalization phase
+          -----------------------------
+  If the upper bound THETA is not given, then compute THETA such
+  that precisely (min(M,N) - RANK) singular values of the bidiagonal
+  matrix are less than or equal to THETA, using a bisection method
+  [4]. Diagonalize the given bidiagonal matrix J partially, using
+  either QR iterations (if the upper left diagonal element of the
+  considered bidiagonal submatrix is larger than the lower right
+  diagonal element) or QL iterations, such that J is split into
+  unreduced bidiagonal submatrices whose singular values are either
+  all larger than THETA or all less than or equal to THETA.
+  Accumulate the Givens rotations in U and/or V (if desired).
+
+  Step 3: Back transformation phase
+          -------------------------
+   (a) Apply the Householder transformations of Step 1(b) onto the
+       columns of U and/or V associated with the bidiagonal
+       submatrices with all singular values less than or equal to
+       THETA (if U and/or V is desired).
+
+   (b) If M is large enough than N, and U is desired, then apply the
+       Householder transformations of Step 1(a) onto each computed
+       column of U in Step 3(a).
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Van Huffel, S., Vandewalle, J. and Haegemans, A.
+      An efficient and reliable algorithm for computing the singular
+      subspace of a matrix associated with its smallest singular
+      values.
+      J. Comput. and Appl. Math., 19, pp. 313-330, 1987.
+
+  [2] Van Huffel, S.
+      Analysis of the total least squares problem and its use in
+      parameter estimation.
+      Doctoral dissertation, Dept. of Electr. Eng., Katholieke
+      Universiteit Leuven, Belgium, June 1987.
+
+  [3] Chan, T.F.
+      An improved algorithm for computing the singular value
+      decomposition.
+      ACM TOMS, 8, pp. 72-83, 1982.
+
+  [4] Van Huffel, S. and Vandewalle, J.
+      The partial total least squares algorithm.
+      J. Comput. and Appl. Math., 21, pp. 333-341, 1988.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  Using the PSVD a large reduction in computation time can be
+  gained in total least squares applications (cf [2 - 4]), in the
+  computation of the null space of a matrix and in solving
+  (non)homogeneous linear equations.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+*     MB04XD EXAMPLE PROGRAM TEXT
+*
+*     .. Parameters ..
+      DOUBLE PRECISION ZERO
+      PARAMETER        ( ZERO = 0.0D0 )
+      INTEGER          NIN, NOUT
+      PARAMETER        ( NIN = 5, NOUT = 6 )
+      INTEGER          MMAX, NMAX
+      PARAMETER        ( MMAX = 20, NMAX = 20 )
+      INTEGER          LDA, LDU, LDV
+      PARAMETER        ( LDA = MMAX, LDU = MMAX, LDV = NMAX )
+      INTEGER          MAXMN, MNMIN
+      PARAMETER        ( MAXMN = MAX( MMAX, NMAX ),
+     $                   MNMIN = MIN( MMAX, NMAX ) )
+      INTEGER          LENGQ
+      PARAMETER        ( LENGQ = 2*MNMIN-1 )
+      INTEGER          LDWORK
+      PARAMETER        ( LDWORK = MAX( 2*NMAX, NMAX*( NMAX+1 )/2 )
+     $                          + MAX( 2*MNMIN + MAXMN, 8*MNMIN - 5 ) )
+*     .. Local Scalars ..
+      DOUBLE PRECISION RELTOL, THETA, THETA1, TOL
+      INTEGER          I, INFO, IWARN, J, K, LOOP, M, MINMN, N, NCOLU,
+     $                 NCOLV, RANK, RANK1
+      CHARACTER*1      JOBU, JOBV
+      LOGICAL          LJOBUA, LJOBUS, LJOBVA, LJOBVS, WANTU, WANTV
+*     .. Local Arrays ..
+      DOUBLE PRECISION A(LDA,NMAX), DWORK(LDWORK), Q(LENGQ),
+     $                 U(LDU,MMAX), V(LDV,NMAX)
+      LOGICAL          INUL(MAXMN)
+*     .. External Functions ..
+      LOGICAL          LSAME
+      EXTERNAL         LSAME
+*     .. External Subroutines ..
+      EXTERNAL         MB04XD
+*     .. Intrinsic Functions ..
+      INTRINSIC        MAX, MIN
+*     .. Executable Statements ..
+*
+      WRITE ( NOUT, FMT = 99999 )
+*     Skip the heading in the data file and read the data.
+      READ ( NIN, FMT = '()' )
+      READ ( NIN, FMT = * ) M, N, RANK, THETA, TOL, RELTOL, JOBU, JOBV
+      IF ( M.LT.0 .OR. M.GT.MMAX ) THEN
+         WRITE ( NOUT, FMT = 99983 ) M
+      ELSE IF ( N.LT.0 .OR. N.GT.NMAX ) THEN
+         WRITE ( NOUT, FMT = 99982 ) N
+      ELSE IF ( RANK.GT.MNMIN ) THEN
+         WRITE ( NOUT, FMT = 99981 ) RANK
+      ELSE IF ( RANK.LT.0 .AND. THETA.LT.ZERO ) THEN
+         WRITE ( NOUT, FMT = 99980 ) THETA
+      ELSE
+         READ ( NIN, FMT = * ) ( ( A(I,J), J = 1,N ), I = 1,M )
+         RANK1 = RANK
+         THETA1 = THETA
+*        Compute a basis for the left and right singular subspace of A.
+         CALL MB04XD( JOBU, JOBV, M, N, RANK, THETA, A, LDA, U, LDU, V,
+     $                LDV, Q, INUL, TOL, RELTOL, DWORK, LDWORK, IWARN,
+     $                INFO )
+*
+         IF ( INFO.NE.0 ) THEN
+            WRITE ( NOUT, FMT = 99998 ) INFO
+         ELSE
+            IF ( IWARN.NE.0 ) THEN
+               WRITE ( NOUT, FMT = 99997 ) IWARN
+               WRITE ( NOUT, FMT = 99996 ) RANK
+            ELSE
+               IF ( RANK1.LT.0 ) WRITE ( NOUT, FMT = 99996 ) RANK
+            END IF
+            IF ( THETA1.LT.ZERO ) WRITE ( NOUT, FMT = 99995 ) THETA
+            LJOBUA = LSAME( JOBU, 'A' )
+            LJOBUS = LSAME( JOBU, 'S' )
+            LJOBVA = LSAME( JOBV, 'A' )
+            LJOBVS = LSAME( JOBV, 'S' )
+            WANTU = LJOBUA.OR.LJOBUS
+            WANTV = LJOBVA.OR.LJOBVS
+            WRITE ( NOUT, FMT = 99994 )
+            MINMN = MIN( M, N )
+            LOOP = MINMN - 1
+            DO 20 I = 1, LOOP
+               K = I + MINMN
+               WRITE ( NOUT, FMT = 99993 ) I, I, Q(I), I, I + 1, Q(K)
+   20       CONTINUE
+            WRITE ( NOUT, FMT = 99992 ) MINMN, MINMN, Q(MINMN)
+            IF ( WANTU ) THEN
+               NCOLU = M
+               IF ( LJOBUS ) NCOLU = MINMN
+               WRITE ( NOUT, FMT = 99986 )
+               DO 40 I = 1, M
+                  WRITE ( NOUT, FMT = 99985 ) ( U(I,J), J = 1,NCOLU )
+   40          CONTINUE
+               WRITE ( NOUT, FMT = 99991 ) NCOLU
+               WRITE ( NOUT, FMT = 99990 )
+               DO 60 I = 1, NCOLU
+                  WRITE ( NOUT, FMT = 99989 ) I, INUL(I)
+   60          CONTINUE
+            END IF
+            IF ( WANTV ) THEN
+               NCOLV = N
+               IF ( LJOBVS ) NCOLV = MINMN
+               WRITE ( NOUT, FMT = 99984 )
+               DO 80 I = 1, N
+                  WRITE ( NOUT, FMT = 99985 ) ( V(I,J), J = 1,NCOLV )
+   80          CONTINUE
+               WRITE ( NOUT, FMT = 99988 ) NCOLV
+               WRITE ( NOUT, FMT = 99987 )
+               DO 100 J = 1, NCOLV
+                  WRITE ( NOUT, FMT = 99989 ) J, INUL(J)
+  100          CONTINUE
+            END IF
+         END IF
+      END IF
+      STOP
+*
+99999 FORMAT (' MB04XD EXAMPLE PROGRAM RESULTS',/1X)
+99998 FORMAT (' INFO on exit from MB04XD = ',I2)
+99997 FORMAT (' IWARN on exit from MB04XD = ',I2,/)
+99996 FORMAT (' The computed rank of matrix A = ',I3,/)
+99995 FORMAT (' The computed value of THETA = ',F7.4,/)
+99994 FORMAT (' The elements of the partially diagonalized bidiagonal ',
+     $       'matrix are',/)
+99993 FORMAT (2(' (',I1,',',I1,') = ',F7.4,2X))
+99992 FORMAT (' (',I1,',',I1,') = ',F7.4,/)
+99991 FORMAT (/' Left singular subspace corresponds to the i-th column',
+     $       '(s) of U for which ',/' INUL(i) = .TRUE., i = 1,...,',I1,
+     $       /)
+99990 FORMAT ('  i    INUL(i)',/)
+99989 FORMAT (I3,L8)
+99988 FORMAT (/' Right singular subspace corresponds to the j-th colum',
+     $       'n(s) of V for which ',/' INUL(j) = .TRUE., j = 1,...,',I1,
+     $       /)
+99987 FORMAT ('  j    INUL(j)',/)
+99986 FORMAT (' Matrix U',/)
+99985 FORMAT (20(1X,F8.4))
+99984 FORMAT (/' Matrix V',/)
+99983 FORMAT (/' M is out of range.',/' M = ',I5)
+99982 FORMAT (/' N is out of range.',/' N = ',I5)
+99981 FORMAT (/' RANK is out of range.',/' RANK = ',I5)
+99980 FORMAT (/' THETA must be at least zero.',/' THETA = ',F8.4)
+      END
+</PRE>
+<B>Program Data</B>
+<PRE>
+ MB04XD EXAMPLE PROGRAM DATA
+   6     4     -1     0.001     0.0     0.0     A     A
+   0.80010  0.39985  0.60005  0.89999
+   0.29996  0.69990  0.39997  0.82997
+   0.49994  0.60003  0.20012  0.79011
+   0.90013  0.20016  0.79995  0.85002
+   0.39998  0.80006  0.49985  0.99016
+   0.20002  0.90007  0.70009  1.02994
+</PRE>
+<B>Program Results</B>
+<PRE>
+ MB04XD EXAMPLE PROGRAM RESULTS
+
+ The computed rank of matrix A =   3
+
+ The elements of the partially diagonalized bidiagonal matrix are
+
+ (1,1) =  3.2280   (1,2) = -0.0287
+ (2,2) =  0.8714   (2,3) =  0.0168
+ (3,3) =  0.3698   (3,4) =  0.0000
+ (4,4) =  0.0001
+
+ Matrix U
+
+   0.8933   0.4328  -0.1209   0.2499  -0.5812   0.4913
+  -0.4493   0.8555  -0.2572   0.1617  -0.4608  -0.7379
+  -0.0079   0.2841   0.9588  -0.5352   0.1892   0.0525
+   0.0000   0.0000   0.0003  -0.1741   0.3389  -0.3397
+   0.0000   0.0000   0.0000   0.6482   0.5428   0.1284
+   0.0000   0.0000   0.0000  -0.4176  -0.0674   0.2819
+
+ Left singular subspace corresponds to the i-th column(s) of U for which 
+ INUL(i) = .TRUE., i = 1,...,6
+
+  i    INUL(i)
+
+  1       F
+  2       F
+  3       F
+  4       T
+  5       T
+  6       T
+
+ Matrix V
+
+  -0.3967  -0.7096   0.4612  -0.3555
+   0.9150  -0.2557   0.2414  -0.5687
+  -0.0728   0.6526   0.5215  -0.2128
+   0.0000   0.0720   0.6761   0.7106
+
+ Right singular subspace corresponds to the j-th column(s) of V for which 
+ INUL(j) = .TRUE., j = 1,...,4
+
+  j    INUL(j)
+
+  1       F
+  2       F
+  3       F
+  4       T
+</PRE>
+
+<HR>
+<p>
+<A HREF=..\libindex.html><B>Return to index</B></A></BODY>
+</HTML>

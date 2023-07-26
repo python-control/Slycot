@@ -1,0 +1,113 @@
+<HTML>
+<HEAD><TITLE>MB03HZ - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MB03HZ">MB03HZ</A></H2>
+<H3>
+Exchanging eigenvalues of a complex 2-by-2 skew-Hamiltonian/Hamiltonian pencil in structured Schur form
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To compute a unitary matrix Q for a complex regular 2-by-2 
+  skew-Hamiltonian/Hamiltonian pencil aS - bH with
+
+      (  S11  S12  )        (  H11  H12  )
+  S = (            ),   H = (            ),
+      (   0   S11' )        (   0  -H11' )
+
+  such that J Q' J' (aS - bH) Q is upper triangular but the
+  eigenvalues are in reversed order. The matrix Q is represented by
+
+      (  CO  SI  )
+  Q = (          ).
+      ( -SI' CO  )
+
+  The notation M' denotes the conjugate transpose of the matrix M.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MB03HZ( S11, S12, H11, H12, CO, SI )
+C     .. Scalar Arguments ..
+      DOUBLE PRECISION   CO
+      COMPLEX*16         H11, H12, S11, S12, SI
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  S11     (input) COMPLEX*16
+          Upper left element of the skew-Hamiltonian matrix S.
+
+  S12     (input) COMPLEX*16
+          Upper right element of the skew-Hamiltonian matrix S.
+
+  H11     (input) COMPLEX*16
+          Upper left element of the Hamiltonian matrix H.
+
+  H12     (input) COMPLEX*16
+          Upper right element of the Hamiltonian matrix H.
+
+  CO      (output) DOUBLE PRECISION
+          Upper left element of Q.
+
+  SI      (output) COMPLEX*16
+          Upper right element of Q.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  The algorithm uses unitary transformations as described on page 43
+  in [1].
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Benner, P., Byers, R., Mehrmann, V. and Xu, H.
+      Numerical Computation of Deflating Subspaces of Embedded
+      Hamiltonian Pencils.
+      Tech. Rep. SFB393/99-15, Technical University Chemnitz,
+      Germany, June 1999.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  The algorithm is numerically backward stable.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

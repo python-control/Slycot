@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>slycot.ab09nd &mdash; Slycot 0.6 documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+        <script src="../../../_static/sphinx_highlight.js"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <link rel="next" title="slycot.ab13bd" href="slycot.ab13bd.html" />
+    <link rel="prev" title="slycot.ab09md" href="slycot.ab09md.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            Slycot
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../../intro.html">Introduction</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../index.html">Slycot reference</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="../slycot_outer.html">Outer function reference</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="../slycot_outer.html#analysis">Analysis</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="slycot.ab01nd.html">slycot.ab01nd</a></li>
+<li class="toctree-l4"><a class="reference internal" href="slycot.ab04md.html">slycot.ab04md</a></li>
+<li class="toctree-l4"><a class="reference internal" href="slycot.ab05md.html">slycot.ab05md</a></li>
+<li class="toctree-l4"><a class="reference internal" href="slycot.ab05nd.html">slycot.ab05nd</a></li>
+<li class="toctree-l4"><a class="reference internal" href="slycot.ab07nd.html">slycot.ab07nd</a></li>
+<li class="toctree-l4"><a class="reference internal" href="slycot.ab08nd.html">slycot.ab08nd</a></li>
+<li class="toctree-l4"><a class="reference internal" href="slycot.ab08nz.html">slycot.ab08nz</a></li>
+<li class="toctree-l4"><a class="reference internal" href="slycot.ab09ad.html">slycot.ab09ad</a></li>
+<li class="toctree-l4"><a class="reference internal" href="slycot.ab09ax.html">slycot.ab09ax</a></li>
+<li class="toctree-l4"><a class="reference internal" href="slycot.ab09bd.html">slycot.ab09bd</a></li>
+<li class="toctree-l4"><a class="reference internal" href="slycot.ab09md.html">slycot.ab09md</a></li>
+<li class="toctree-l4 current"><a class="current reference internal" href="#">slycot.ab09nd</a></li>
+<li class="toctree-l4"><a class="reference internal" href="slycot.ab13bd.html">slycot.ab13bd</a></li>
+<li class="toctree-l4"><a class="reference internal" href="slycot.ab13dd.html">slycot.ab13dd</a></li>
+<li class="toctree-l4"><a class="reference internal" href="slycot.ab13ed.html">slycot.ab13ed</a></li>
+<li class="toctree-l4"><a class="reference internal" href="slycot.ab13fd.html">slycot.ab13fd</a></li>
+<li class="toctree-l4"><a class="reference internal" href="slycot.ab13md.html">slycot.ab13md</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../slycot_outer.html#mathematical-routines">Mathematical routines</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../slycot_outer.html#synthesis">Synthesis</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../slycot_outer.html#transformation-routines">Transformation Routines</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../slycot_inner.html">Inner function reference</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../dev/index.html">Development</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">Slycot</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Slycot reference</a></li>
+          <li class="breadcrumb-item"><a href="../slycot_outer.html">Outer function reference</a></li>
+      <li class="breadcrumb-item active">slycot.ab09nd</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../../_sources/source/reference/generated/slycot.ab09nd.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <div class="section" id="slycot-ab09nd">
+<h1>slycot.ab09nd<a class="headerlink" href="#slycot-ab09nd" title="Permalink to this heading"></a></h1>
+<dl class="py function">
+<dt class="sig sig-object py" id="slycot.ab09nd">
+<span class="sig-prename descclassname"><span class="pre">slycot.</span></span><span class="sig-name descname"><span class="pre">ab09nd</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dico</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">job</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">equil</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">m</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">A</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">B</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">C</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">D</span></span></em><span class="optional">[</span>, <em class="sig-param"><span class="n"><span class="pre">alpha</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tol1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tol2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ldwork</span></span></em><span class="optional">]</span><span class="sig-paren">)</span><a class="headerlink" href="#slycot.ab09nd" title="Permalink to this definition"></a></dt>
+<dd><p>To compute a reduced order model (Ar,Br,Cr,Dr) for an original
+state-space representation (A,B,C,D) by using either the
+square-root or the balancing-free square-root Singular
+Perturbation Approximation (SPA) model reduction method for the
+alpha-stable part of the system.</p>
+<dl class="simple">
+<dt>Arguments</dt><dd><dl class="simple">
+<dt>Mode Parameters</dt><dd><dl class="simple">
+<dt>dico</dt><dd><p>Specifies the type of the original system as follows:
+= ‘C’:  continuous-time system;
+= ‘D’:  discrete-time system.</p>
+</dd>
+<dt>job</dt><dd><p>Specifies the model reduction approach to be used
+as follows:
+= ‘B’:  use the square-root SPA method;
+= ‘N’:  use the balancing-free square-root SPA method.</p>
+</dd>
+<dt>equil</dt><dd><p>Specifies whether the user wishes to preliminarily
+equilibrate the triplet (A,B,C) as follows:
+= ‘S’:  perform equilibration (scaling);
+= ‘N’:  do not perform equilibration.</p>
+</dd>
+</dl>
+</dd>
+<dt>Required arguments</dt><dd><dl class="simple">
+<dt>n<span class="classifier">input int</span></dt><dd><p>The order of the original state-space representation, i.e.
+the order of the matrix A.  n &gt;= 0.</p>
+</dd>
+<dt>m<span class="classifier">input int</span></dt><dd><p>The number of system inputs.  m &gt;= 0.</p>
+</dd>
+<dt>p<span class="classifier">input int</span></dt><dd><p>The number of system outputs.  p &gt;= 0.</p>
+</dd>
+<dt>A<span class="classifier">input rank-2 array(‘d’) with bounds (n,n)</span></dt><dd><p>On entry, the leading n-by-n part of this array must
+contain the state dynamics matrix A.</p>
+</dd>
+<dt>B<span class="classifier">input rank-2 array(‘d’) with bounds (n,m)</span></dt><dd><p>On entry, the leading n-by-m part of this array must
+contain the original input/state matrix B.</p>
+</dd>
+<dt>C<span class="classifier">input rank-2 array(‘d’) with bounds (p,n)</span></dt><dd><p>On entry, the leading p-by-n part of this array must
+contain the original state/output matrix C.</p>
+</dd>
+<dt>D<span class="classifier">input rank-2 array(‘d’) with bounds (p,m)</span></dt><dd><p>On entry, the leading p-by-m part of this array must
+contain the original input/output matrix D.</p>
+</dd>
+</dl>
+</dd>
+<dt>Optional arguments</dt><dd><dl class="simple">
+<dt>alpha :=None input double precision</dt><dd><p>Specifies the alpha-stability boundary for the eigenvalues
+of the state dynamics matrix A. For a continuous-time
+system (dico = ‘C’), alpha &lt;= 0 is the boundary value for
+the real parts of eigenvalues, while for a discrete-time
+system (dico = ‘D’), 0 &lt;= alpha &lt;= 1 represents the
+boundary value for the moduli of eigenvalues.
+The alpha-stability domain does not include the boundary.</p>
+</dd>
+<dt>nr :=None input int</dt><dd><p>nr is the desired order of
+the resulting reduced order system.  0 &lt;= nr &lt;= n.</p>
+</dd>
+<dt>tol1 :=0 input double precision</dt><dd><p>If ordsel = ‘A’, tol1 contains the tolerance for
+determining the order of reduced system.
+For model reduction, the recommended value is
+tol1 = c*hnorm(As,Bs,Cs), where c is a constant in the
+interval [0.00001,0.001], and hnorm(As,Bs,Cs) is the
+Hankel-norm of the alpha-stable part of the given system
+(computed in hsv(1)).
+If tol1 &lt;= 0 on entry, the used default value is
+tol1 = ns*eps*hnorm(As,Bs,Cs), where NS is the number of
+alpha-stable eigenvalues of A and eps is the machine
+precision (see LAPACK Library Routine DLAMCH).
+This value is appropriate to compute a minimal realization
+of the alpha-stable part.
+If ordsel = ‘F’, the value of tol1 is ignored.</p>
+</dd>
+<dt>tol2 :=0 input double precision</dt><dd><p>The tolerance for determining the order of a minimal
+realization of the alpha-stable part of the given system.
+The recommended value is tol2 = ns*eps*hnorm(As,Bs,Cs).
+This value is used by default if tol2 &lt;= 0 on entry.
+If tol2 &gt; 0, then tol2 &lt;= tol1.</p>
+</dd>
+<dt>ldwork := None input int</dt><dd><p>The length of the array dwork.
+ldwork &gt;= max(1,n*(2*n+max(n,m,p)+5) + n*(n+1)/2).
+For optimum performance ldwork should be larger.</p>
+</dd>
+</dl>
+</dd>
+<dt>Return objects</dt><dd><dl class="simple">
+<dt>nr<span class="classifier">output int</span></dt><dd><p>nr is the order of the resulting reduced order model.
+nr is set as follows:
+if ordsel = ‘F’, nr is equal to min(nr,nmin), where nr
+is the desired order on entry and nmin is the order of a
+minimal realization of the given system; nmin is
+determined as the number of Hankel singular values greater
+than n*eps*hnorm(A,B,C), where eps is the machine
+precision (see LAPACK Library Routine DLAMCH) and
+hnorm(A,B,C) is the Hankel norm of the system (computed
+in hsv(1));
+if ordsel = ‘A’, nr is equal to the number of Hankel
+singular values greater than max(TOL1,n*eps*hnorm(A,B,C)).</p>
+</dd>
+<dt>Ar<span class="classifier">rank-2 array(‘d’) with bounds (nr,nr)</span></dt><dd><p>the leading nr-by-nr part of this array contains the
+state dynamics matrix Ar of the reduced order system.</p>
+</dd>
+<dt>Br<span class="classifier">rank-2 array(‘d’) with bounds (nr,m)</span></dt><dd><p>the leading nr-by-m part of this array contains the
+input/state matrix Br of the reduced order system.</p>
+</dd>
+<dt>Cr<span class="classifier">rank-2 array(‘d’) with bounds (p,nr)</span></dt><dd><p>the leading p-by-nr part of this array contains the
+state/output matrix Cr of the reduced order system.</p>
+</dd>
+<dt>Dr<span class="classifier">rank-2 array(‘d’) with bounds (p,m)</span></dt><dd><p>the leading p-by-m part of this array contains the
+input/output matrix Dr of the reduced order system.</p>
+</dd>
+<dt>ns<span class="classifier">output int</span></dt><dd><p>The dimension of the alpha-stable subsystem.</p>
+</dd>
+<dt>hsv<span class="classifier">output double precision array, dimension (n)</span></dt><dd><p>If info = 0, it contains the Hankel singular values of
+the original system ordered decreasingly. hsv(1) is the
+Hankel norm of the system.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Raises</dt>
+<dd class="field-odd"><p><strong>SlycotArithmeticError</strong> – <dl class="field-list simple">
+<dt class="field-odd">info == 1</dt>
+<dd class="field-odd"><p>The computation of the ordered real Schur form of A failed</p>
+</dd>
+<dt class="field-even">info == 2</dt>
+<dd class="field-even"><p>The separation of the {alpha}-stable/unstable diagonal
+blocks failed because of very close eigenvalues</p>
+</dd>
+<dt class="field-odd">info == 3</dt>
+<dd class="field-odd"><p>The computation of Hankel singular values failed</p>
+</dd>
+</dl>
+</p>
+</dd>
+<dt class="field-even">Warns</dt>
+<dd class="field-even"><p><strong>SlycotResultWarning</strong> –</p>
+<dl class="field-list simple">
+<dt class="field-odd">iwarn == 1</dt>
+<dd class="field-odd"><p>The selected order {nr} is greater
+than <cite>nsmin</cite>, the sum of the order of the
+{alpha}-unstable part and the order of a minimal
+realization of the {alpha}-stable part of the given
+system. The resulting <cite>nr</cite>  is set to <cite>nsmin</cite> = {Nr}</p>
+</dd>
+<dt class="field-even">iwarn == 2</dt>
+<dd class="field-even"><p>The selected order {nr} is less
+than the order of the {alpha}-unstable part of the
+given system. In this case <cite>nr</cite> is set equal to the
+order of the {alpha}-unstable part {Nr}.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="slycot.ab09md.html" class="btn btn-neutral float-left" title="slycot.ab09md" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="slycot.ab13bd.html" class="btn btn-neutral float-right" title="slycot.ab13bd" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Slycot Developers.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,188 @@
+<HTML>
+<HEAD><TITLE>TG01WD - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="TG01WD">TG01WD</A></H2>
+<H3>
+Reduction of the descriptor dynamics matrix pair to generalized real Schur form
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To reduce the pair (A,E) to a real generalized Schur form
+  by using an orthogonal equivalence transformation
+  (A,E) &lt;-- (Q'*A*Z,Q'*E*Z) and to apply the transformation
+  to the matrices B and C: B &lt;-- Q'*B and C &lt;-- C*Z.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE TG01WD( N, M, P, A, LDA, E, LDE, B, LDB, C, LDC,
+     $                   Q, LDQ, Z, LDZ, ALPHAR, ALPHAI, BETA, DWORK,
+     $                   LDWORK, INFO )
+C     .. Scalar Arguments ..
+      INTEGER           INFO, LDA, LDB, LDC, LDE, LDQ, LDWORK, LDZ,
+     $                  M, N, P
+C     .. Array Arguments ..
+      DOUBLE PRECISION  A(LDA,*), ALPHAI(*), ALPHAR(*), B(LDB,*),
+     $                  BETA(*),  C(LDC,*),  DWORK(*),  E(LDE,*),
+     $                  Q(LDQ,*), Z(LDZ,*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The order of the original state-space representation,
+          i.e., the order of the matrices A and E.  N &gt;= 0.
+
+  M       (input) INTEGER
+          The number of system inputs, or of columns of B.  M &gt;= 0.
+
+  P       (input) INTEGER
+          The number of system outputs, or of rows of C.  P &gt;= 0.
+
+  A       (input/output) DOUBLE PRECISION array, dimension (LDA,N)
+          On entry, the leading N-by-N part of this array must
+          contain the original state dynamics matrix A.
+          On exit, the leading N-by-N part of this array contains
+          the matrix Q' * A * Z in an upper quasi-triangular form.
+          The elements below the first subdiagonal are set to zero.
+
+  LDA     INTEGER
+          The leading dimension of array A.  LDA &gt;= MAX(1,N).
+
+  E       (input/output) DOUBLE PRECISION array, dimension (LDE,N)
+          On entry, the leading N-by-N part of this array must
+          contain the original descriptor matrix E.
+          On exit, the leading N-by-N part of this array contains
+          the matrix Q' * E * Z in an upper triangular form.
+          The elements below the diagonal are set to zero.
+
+  LDE     INTEGER
+          The leading dimension of array E.  LDE &gt;= MAX(1,N).
+
+  B       (input/output) DOUBLE PRECISION array, dimension (LDB,M)
+          On entry, the leading N-by-M part of this array must
+          contain the input matrix B.
+          On exit, the leading N-by-M part of this array contains
+          the transformed input matrix Q' * B.
+
+  LDB     INTEGER
+          The leading dimension of array B.  LDB &gt;= MAX(1,N).
+
+  C       (input/output) DOUBLE PRECISION array, dimension (LDC,N)
+          On entry, the leading P-by-N part of this array must
+          contain the output matrix C.
+          On exit, the leading P-by-N part of this array contains
+          the transformed output matrix C * Z.
+
+  LDC     INTEGER
+          The leading dimension of array C.  LDC &gt;= MAX(1,P).
+
+  Q       (output) DOUBLE PRECISION array, dimension (LDQ,N)
+          The leading N-by-N part of this array contains the left
+          orthogonal transformation matrix used to reduce (A,E) to
+          the real generalized Schur form.
+          The columns of Q are the left generalized Schur vectors
+          of the pair (A,E).
+
+  LDQ     INTEGER
+          The leading dimension of array Q.  LDQ &gt;= max(1,N).
+
+  Z       (output) DOUBLE PRECISION array, dimension (LDZ,N)
+          The leading N-by-N part of this array contains the right
+          orthogonal transformation matrix used to reduce (A,E) to
+          the real generalized Schur form.
+          The columns of Z are the right generalized Schur vectors
+          of the pair (A,E).
+
+  LDZ     INTEGER
+          The leading dimension of array Z.  LDZ &gt;= max(1,N).
+
+  ALPHAR  (output) DOUBLE PRECISION array, dimension (N)
+  ALPHAI  (output) DOUBLE PRECISION array, dimension (N)
+  BETA    (output) DOUBLE PRECISION array, dimension (N)
+          On exit, if INFO = 0, (ALPHAR(j) + ALPHAI(j)*i)/BETA(j),
+          j=1,...,N, will be the generalized eigenvalues.
+          ALPHAR(j) + ALPHAI(j)*i, and BETA(j), j=1,...,N, are the
+          diagonals of the complex Schur form that would result if
+          the 2-by-2 diagonal blocks of the real Schur form of
+          (A,E) were further reduced to triangular form using
+          2-by-2 complex unitary transformations.
+          If ALPHAI(j) is zero, then the j-th eigenvalue is real;
+          if positive, then the j-th and (j+1)-st eigenvalues are a
+          complex conjugate pair, with ALPHAI(j+1) negative.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+          On exit, if INFO = 0, DWORK(1) returns the optimal value
+          of LDWORK.
+
+  LDWORK  INTEGER
+          The dimension of working array DWORK.  LDWORK &gt;= 8*N+16.
+          For optimum performance LDWORK should be larger.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value;
+          &gt; 0:  if INFO = i, the QZ algorithm failed to compute
+                the generalized real Schur form; elements i+1:N of
+                ALPHAR, ALPHAI, and BETA should be correct.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  The pair (A,E) is reduced to a real generalized Schur form using
+  an orthogonal equivalence transformation (A,E) &lt;-- (Q'*A*Z,Q'*E*Z)
+  and the transformation is applied to the matrices B and C:
+  B &lt;-- Q'*B and C &lt;-- C*Z.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>                                  3
+  The algorithm requires about 25N  floating point operations.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<p>
+<A HREF=..\libindex.html><B>Return to index</B></A></BODY>
+</HTML>

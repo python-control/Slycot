@@ -1,0 +1,358 @@
+<HTML>
+<HEAD><TITLE>MC03MD - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MC03MD">MC03MD</A></H2>
+<H3>
+Real polynomial matrix operation P(x) = P1(x) P2(x) + alpha P3(x)
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To compute the coefficients of the real polynomial matrix
+
+     P(x) = P1(x) * P2(x) + alpha * P3(x),
+
+  where P1(x), P2(x) and P3(x) are given real polynomial matrices
+  and alpha is a real scalar.
+
+  Each of the polynomial matrices P1(x), P2(x) and P3(x) may be the
+  zero matrix.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MC03MD( RP1, CP1, CP2, DP1, DP2, DP3, ALPHA, P1,
+     $                   LDP11, LDP12, P2, LDP21, LDP22, P3, LDP31,
+     $                   LDP32, DWORK, INFO )
+C     .. Scalar Arguments ..
+      INTEGER           CP1, CP2, DP1, DP2, DP3, INFO, LDP11, LDP12,
+     $                  LDP21, LDP22, LDP31, LDP32, RP1
+      DOUBLE PRECISION  ALPHA
+C     .. Array Arguments ..
+      DOUBLE PRECISION  DWORK(*), P1(LDP11,LDP12,*), P2(LDP21,LDP22,*),
+     $                  P3(LDP31,LDP32,*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  RP1     (input) INTEGER
+          The number of rows of the matrices P1(x) and P3(x).
+          RP1 &gt;= 0.
+
+  CP1     (input) INTEGER
+          The number of columns of matrix P1(x) and the number of
+          rows of matrix P2(x).  CP1 &gt;= 0.
+
+  CP2     (input) INTEGER
+          The number of columns of the matrices P2(x) and P3(x).
+          CP2 &gt;= 0.
+
+  DP1     (input) INTEGER
+          The degree of the polynomial matrix P1(x).  DP1 &gt;= -1.
+
+  DP2     (input) INTEGER
+          The degree of the polynomial matrix P2(x).  DP2 &gt;= -1.
+
+  DP3     (input/output) INTEGER
+          On entry, the degree of the polynomial matrix P3(x).
+          DP3 &gt;= -1.
+          On exit, the degree of the polynomial matrix P(x).
+
+  ALPHA   (input) DOUBLE PRECISION
+          The scalar value alpha of the problem.
+
+  P1      (input) DOUBLE PRECISION array, dimension (LDP11,LDP12,*)
+          If DP1 &gt;= 0, then the leading RP1-by-CP1-by-(DP1+1) part
+          of this array must contain the coefficients of the
+          polynomial matrix P1(x). Specifically, P1(i,j,k) must
+          contain the coefficient of x**(k-1) of the polynomial
+          which is the (i,j)-th element of P1(x), where i = 1,2,...,
+          RP1, j = 1,2,...,CP1 and k = 1,2,...,DP1+1.
+          If DP1 = -1, then P1(x) is taken to be the zero polynomial
+          matrix, P1 is not referenced and can be supplied as a
+          dummy array (i.e. set the parameters LDP11 = LDP12 = 1 and
+          declare this array to be P1(1,1,1) in the calling
+          program).
+
+  LDP11   INTEGER
+          The leading dimension of array P1.
+          LDP11 &gt;= MAX(1,RP1) if DP1 &gt;= 0,
+          LDP11 &gt;= 1          if DP1 = -1.
+
+  LDP12   INTEGER
+          The second dimension of array P1.
+          LDP12 &gt;= MAX(1,CP1) if DP1 &gt;= 0,
+          LDP12 &gt;= 1          if DP1 = -1.
+
+  P2      (input) DOUBLE PRECISION array, dimension (LDP21,LDP22,*)
+          If DP2 &gt;= 0, then the leading CP1-by-CP2-by-(DP2+1) part
+          of this array must contain the coefficients of the
+          polynomial matrix P2(x). Specifically, P2(i,j,k) must
+          contain the coefficient of x**(k-1) of the polynomial
+          which is the (i,j)-th element of P2(x), where i = 1,2,...,
+          CP1, j = 1,2,...,CP2 and k = 1,2,...,DP2+1.
+          If DP2 = -1, then P2(x) is taken to be the zero polynomial
+          matrix, P2 is not referenced and can be supplied as a
+          dummy array (i.e. set the parameters LDP21 = LDP22 = 1 and
+          declare this array to be P2(1,1,1) in the calling
+          program).
+
+  LDP21   INTEGER
+          The leading dimension of array P2.
+          LDP21 &gt;= MAX(1,CP1) if DP2 &gt;= 0,
+          LDP21 &gt;= 1          if DP2 = -1.
+
+  LDP22   INTEGER
+          The second dimension of array P2.
+          LDP22 &gt;= MAX(1,CP2) if DP2 &gt;= 0,
+          LDP22 &gt;= 1          if DP2 = -1.
+
+  P3      (input/output) DOUBLE PRECISION array, dimension
+          (LDP31,LDP32,n), where n = MAX(DP1+DP2,DP3,0)+1.
+          On entry, if DP3 &gt;= 0, then the leading
+          RP1-by-CP2-by-(DP3+1) part of this array must contain the
+          coefficients of the polynomial matrix P3(x). Specifically,
+          P3(i,j,k) must contain the coefficient of x**(k-1) of the
+          polynomial which is the (i,j)-th element of P3(x), where
+          i = 1,2,...,RP1, j = 1,2,...,CP2 and k = 1,2,...,DP3+1.
+          If DP3 = -1, then P3(x) is taken to be the zero polynomial
+          matrix.
+          On exit, if DP3 &gt;= 0 on exit (ALPHA &lt;&gt; 0.0 and DP3 &lt;&gt; -1,
+          on entry, or DP1 &lt;&gt; -1 and DP2 &lt;&gt; -1), then the leading
+          RP1-by-CP2-by-(DP3+1) part of this array contains the
+          coefficients of P(x). Specifically, P3(i,j,k) contains the
+          coefficient of x**(k-1) of the polynomial which is the
+          (i,j)-th element of P(x), where i = 1,2,...,RP1, j = 1,2,
+          ...,CP2 and k = 1,2,...,DP3+1.
+          If DP3 = -1 on exit, then the coefficients of P(x) (the
+          zero polynomial matrix) are not stored in the array.
+
+  LDP31   INTEGER
+          The leading dimension of array P3.  LDP31 &gt;= MAX(1,RP1).
+
+  LDP32   INTEGER
+          The second dimension of array P3.   LDP32 &gt;= MAX(1,CP2).
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  DWORK   DOUBLE PRECISION array, dimension (CP1)
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  Given real polynomial matrices
+
+             DP1            i
+     P1(x) = SUM (A(i+1) * x ),
+             i=0
+
+             DP2            i
+     P2(x) = SUM (B(i+1) * x ),
+             i=0
+
+             DP3            i
+     P3(x) = SUM (C(i+1) * x )
+             i=0
+
+  and a real scalar alpha, the routine computes the coefficients
+  d ,d ,..., of the polynomial matrix
+   1  2
+
+     P(x) = P1(x) * P2(x) + alpha * P3(x)
+
+  from the formula
+
+              s
+     d    =  SUM (A(k+1) * B(i-k+1)) + alpha * C(i+1),
+      i+1    k=r
+
+  where i = 0,1,...,DP1+DP2 and r and s depend on the value of i
+  (e.g. if i &lt;= DP1 and i &lt;= DP2, then r = 0 and s = i).
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  None.
+
+</PRE>
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  Other elementary operations involving polynomial matrices can
+  easily be obtained by calling the appropriate BLAS routine(s).
+
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+*     MC03MD EXAMPLE PROGRAM TEXT
+*
+*     .. Parameters ..
+      INTEGER          NIN, NOUT
+      PARAMETER        ( NIN = 5, NOUT = 6 )
+      INTEGER          CP1MAX, CP2MAX, DP1MAX, DP2MAX, DP3MAX, RP1MAX
+      PARAMETER        ( CP1MAX = 10, CP2MAX = 10, DP1MAX = 10,
+     $                   DP2MAX = 10, DP3MAX = 20, RP1MAX = 10 )
+      INTEGER          LDP11, LDP12, LDP21, LDP22, LDP31, LDP32
+      PARAMETER        ( LDP11 = RP1MAX, LDP12 = CP1MAX,
+     $                   LDP21 = CP1MAX, LDP22 = CP2MAX,
+     $                   LDP31 = RP1MAX, LDP32 = CP2MAX )
+*     .. Local Scalars ..
+      DOUBLE PRECISION ALPHA
+      INTEGER          CP1, CP2, DP1, DP2, DP3, I, INFO, J, K, RP1
+*     .. Local Arrays ..
+      DOUBLE PRECISION DWORK(CP1MAX),
+     $                 P1(LDP11,LDP12,DP1MAX+1),
+     $                 P2(LDP21,LDP22,DP2MAX+1),
+     $                 P3(LDP31,LDP32,DP3MAX+1)
+*     .. External Subroutines ..
+      EXTERNAL         MC03MD
+*     .. Executable Statements ..
+*
+      WRITE ( NOUT, FMT = 99999 )
+*     Skip the heading in the data file and read the data.
+      READ ( NIN, FMT = '()' )
+      READ ( NIN, FMT = * ) RP1, CP1, CP2
+      IF ( RP1.LT.0 .OR. RP1.GT.RP1MAX ) THEN
+         WRITE ( NOUT, FMT = 99995 ) RP1
+      ELSE IF ( CP1.LT.0 .OR. CP1.GT.CP1MAX ) THEN
+         WRITE ( NOUT, FMT = 99994 ) CP1
+      ELSE IF ( CP2.LT.0 .OR. CP2.GT.CP2MAX ) THEN
+         WRITE ( NOUT, FMT = 99993 ) CP2
+      ELSE
+         READ ( NIN, FMT = * ) DP1
+         IF ( DP1.LE.-2 .OR. DP1.GT.DP1MAX ) THEN
+            WRITE ( NOUT, FMT = 99992 ) DP1
+         ELSE
+            DO 40 K = 1, DP1 + 1
+               DO 20 J = 1, CP1
+                  READ ( NIN, FMT = * ) ( P1(I,J,K), I = 1,RP1 )
+   20          CONTINUE
+   40       CONTINUE
+            READ ( NIN, FMT = * ) DP2
+            IF ( DP2.LE.-2 .OR. DP2.GT.DP2MAX ) THEN
+               WRITE ( NOUT, FMT = 99991 ) DP2
+            ELSE
+               DO 80 K = 1, DP2 + 1
+                  DO 60 J = 1, CP2
+                     READ ( NIN, FMT = * ) ( P2(I,J,K), I = 1,CP1 )
+   60             CONTINUE
+   80          CONTINUE
+               READ ( NIN, FMT = * ) DP3
+               IF ( DP3.LE.-2 .OR. DP3.GT.DP3MAX ) THEN
+                  WRITE ( NOUT, FMT = 99990 ) DP3
+               ELSE
+                  DO 120 K = 1, DP3 + 1
+                     DO 100 J = 1, CP2
+                        READ ( NIN, FMT = * ) ( P3(I,J,K), I = 1,RP1 )
+  100                CONTINUE
+  120             CONTINUE
+                  READ ( NIN, FMT = * ) ALPHA
+*                 Compute the coefficients of the polynomial matrix P(x)
+                  CALL MC03MD( RP1, CP1, CP2, DP1, DP2, DP3, ALPHA, P1,
+     $                         LDP11, LDP12, P2, LDP21, LDP22, P3,
+     $                         LDP31, LDP32, DWORK, INFO )
+*
+                  IF ( INFO.NE.0 ) THEN
+                     WRITE ( NOUT, FMT = 99998 ) INFO
+                  ELSE
+                     WRITE ( NOUT, FMT = 99997 ) DP3,
+     $                     ( I-1, I = 1,DP3+1 )
+                     DO 160 I = 1, RP1
+                        DO 140 J = 1, CP2
+                           WRITE ( NOUT, FMT = 99996 ) I, J,
+     $                       ( P3(I,J,K), K = 1,DP3+1 )
+  140                   CONTINUE
+  160                CONTINUE
+                  END IF
+               END IF
+            END IF
+         END IF
+      END IF
+*
+      STOP
+*
+99999 FORMAT (' MC03MD EXAMPLE PROGRAM RESULTS',/1X)
+99998 FORMAT (' INFO on exit from MC03MD = ',I2)
+99997 FORMAT (' The polynomial matrix P(x) (of degree ',I2,') is ',
+     $       //' power of x         ',20I8)
+99996 FORMAT (/' element (',I2,',',I2,') is ',20(1X,F7.2))
+99995 FORMAT (/' RP1 is out of range.',/' RP1 = ',I5)
+99994 FORMAT (/' CP1 is out of range.',/' CP1 = ',I5)
+99993 FORMAT (/' CP2 is out of range.',/' CP2 = ',I5)
+99992 FORMAT (/' DP1 is out of range.',/' DP1 = ',I5)
+99991 FORMAT (/' DP2 is out of range.',/' DP2 = ',I5)
+99990 FORMAT (/' DP3 is out of range.',/' DP3 = ',I5)
+      END
+</PRE>
+<B>Program Data</B>
+<PRE>
+ MC03MD EXAMPLE PROGRAM DATA
+   3     2     2
+   2
+   1.0   0.0   3.0
+   2.0  -1.0   2.0
+  -2.0   4.0   9.0
+   3.0   7.0  -2.0
+   6.0   2.0  -3.0
+   1.0   2.0   4.0
+   1
+   6.0   1.0
+   1.0   7.0
+  -9.0  -6.0
+   7.0   8.0
+   1
+   1.0   1.0   0.0
+   0.0   1.0   1.0
+  -1.0   1.0   1.0
+  -1.0  -1.0   1.0
+   1.0
+</PRE>
+<B>Program Results</B>
+<PRE>
+ MC03MD EXAMPLE PROGRAM RESULTS
+
+ The polynomial matrix P(x) (of degree  3) is 
+
+ power of x                0       1       2       3
+
+ element ( 1, 1) is     9.00  -31.00   37.00  -60.00
+
+ element ( 1, 2) is    15.00   41.00   23.00   50.00
+
+ element ( 2, 1) is     0.00   38.00  -64.00  -30.00
+
+ element ( 2, 2) is    -6.00   44.00  100.00   30.00
+
+ element ( 3, 1) is    20.00   14.00  -83.00    3.00
+
+ element ( 3, 2) is    18.00   33.00   72.00   11.00
+</PRE>
+
+<HR>
+<p>
+<A HREF=..\libindex.html><B>Return to index</B></A></BODY>
+</HTML>

@@ -1,0 +1,190 @@
+<HTML>
+<HEAD><TITLE>MB02QY - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MB02QY">MB02QY</A></H2>
+<H3>
+Minimum-norm solution to a linear least squares problem, given a rank-revealing QR factorization
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To determine the minimum-norm solution to a real linear least
+  squares problem:
+
+      minimize || A * X - B ||,
+
+  using the rank-revealing QR factorization of a real general
+  M-by-N matrix  A,  computed by SLICOT Library routine  MB03OD.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MB02QY( M, N, NRHS, RANK, A, LDA, JPVT, B, LDB, TAU,
+     $                   DWORK, LDWORK, INFO )
+C     .. Scalar Arguments ..
+      INTEGER            INFO, LDA, LDB, LDWORK, M, N, NRHS, RANK
+C     .. Array Arguments ..
+      INTEGER            JPVT( * )
+      DOUBLE PRECISION   A( LDA, * ), B( LDB, * ), DWORK( * ), TAU( * )
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  M       (input) INTEGER
+          The number of rows of the matrices A and B.  M &gt;= 0.
+
+  N       (input) INTEGER
+          The number of columns of the matrix A.  N &gt;= 0.
+
+  NRHS    (input) INTEGER
+          The number of columns of the matrix B.  NRHS &gt;= 0.
+
+  RANK    (input) INTEGER
+          The effective rank of  A,  as returned by SLICOT Library
+          routine  MB03OD.  min(M,N) &gt;= RANK &gt;= 0.
+
+  A       (input/output) DOUBLE PRECISION array, dimension
+          ( LDA, N )
+          On entry, the leading min(M,N)-by-N upper trapezoidal
+          part of this array contains the triangular factor  R,  as
+          returned by SLICOT Library routine  MB03OD.  The strict
+          lower trapezoidal part of  A  is not referenced.
+          On exit, if  RANK &lt; N,  the leading  RANK-by-RANK  upper
+          triangular part of this array contains the upper
+          triangular matrix  R  of the complete orthogonal
+          factorization of  A,  and the submatrix  (1:RANK,RANK+1:N)
+          of this array, with the array  TAU,  represent the
+          orthogonal matrix  Z  (of the complete orthogonal
+          factorization of  A),  as a product of  RANK  elementary
+          reflectors.
+          On exit, if  RANK = N,  this array is unchanged.
+
+  LDA     INTEGER
+          The leading dimension of the array A.  LDA &gt;= max(1,M).
+
+  JPVT    (input) INTEGER array, dimension ( N )
+          The recorded permutations performed by SLICOT Library
+          routine  MB03OD;  if  JPVT(i) = k,  then the i-th column
+          of  A*P  was the k-th column of the original matrix  A.
+
+  B       (input/output) DOUBLE PRECISION array, dimension
+          ( LDB, NRHS )
+          On entry, if  NRHS &gt; 0,  the leading M-by-NRHS part of
+          this array must contain the matrix  B  (corresponding to
+          the transformed matrix  A,  returned by SLICOT Library
+          routine  MB03OD).
+          On exit, if  NRHS &gt; 0,  the leading N-by-NRHS part of this
+          array contains the solution matrix X.
+          If  M &gt;= N  and  RANK = N,  the residual sum-of-squares
+          for the solution in the i-th column is given by the sum
+          of squares of elements  N+1:M  in that column.
+          If  NRHS = 0,  the array  B  is not referenced.
+
+  LDB     INTEGER
+          The leading dimension of the array B.
+          LDB &gt;= max(1,M,N),  if  NRHS &gt; 0.
+          LDB &gt;= 1,           if  NRHS = 0.
+
+  TAU     (output) DOUBLE PRECISION array, dimension ( min(M,N) )
+          The scalar factors of the elementary reflectors.
+          If  RANK = N,  the array  TAU  is not referenced.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  DWORK   DOUBLE PRECISION array, dimension ( LDWORK )
+          On exit, if  INFO = 0,  DWORK(1) returns the optimal value
+          of LDWORK.
+
+  LDWORK  INTEGER
+          The length of the array DWORK.
+          LDWORK &gt;= max( 1, N, NRHS ).
+          For good performance,  LDWORK  should sometimes be larger.
+
+          If LDWORK = -1, then a workspace query is assumed;
+          the routine only calculates the optimal size of the
+          DWORK array, returns this value as the first entry of
+          the DWORK array, and no error message related to LDWORK
+          is issued by XERBLA.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  The routine uses a QR factorization with column pivoting:
+
+     A * P = Q * R = Q * [ R11 R12 ],
+                         [  0  R22 ]
+
+  where  R11  is an upper triangular submatrix of estimated rank
+  RANK,  the effective rank of  A.  The submatrix  R22  can be
+  considered as negligible.
+
+  If  RANK &lt; N,  then  R12  is annihilated by orthogonal
+  transformations from the right, arriving at the complete
+  orthogonal factorization:
+
+     A * P = Q * [ T11 0 ] * Z.
+                 [  0  0 ]
+
+  The minimum-norm solution is then
+
+     X = P * Z' [ inv(T11)*Q1'*B ],
+                [        0       ]
+
+  where Q1 consists of the first  RANK  columns of Q.
+
+  The input data for  MB02QY  are the transformed matrices  Q' * A
+  (returned by SLICOT Library routine  MB03OD)  and  Q' * B.
+  Matrix  Q  is not needed.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  The implemented method is numerically stable.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

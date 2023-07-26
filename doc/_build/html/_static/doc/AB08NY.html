@@ -1,0 +1,244 @@
+<HTML>
+<HEAD><TITLE>AB08NY - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="AB08NY">AB08NY</A></H2>
+<H3>
+Construction of a reduced system (Ar,Br,Cr,Dr), having the same transmission zeros as (A,B,C,D), but with Dr of full row rank
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To extract from the (N+P)-by-(M+N) system pencil
+               ( B  A-lambda*I )
+               ( D      C      )
+  an (NR+PR)-by-(M+NR) "reduced" system pencil,
+               ( Br Ar-lambda*I ),
+               ( Dr     Cr      )
+  having the same transmission zeros, but with Dr of full row rank.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE AB08NY( FIRST, N, M, P, SVLMAX, ABCD, LDABCD, NINFZ,
+     $                   NR, PR, DINFZ, NKRONL, INFZ, KRONL, TOL, IWORK,
+     $                   DWORK, LDWORK, INFO )
+C     .. Scalar Arguments ..
+      LOGICAL           FIRST
+      INTEGER           DINFZ, INFO, LDABCD, LDWORK, M, N, NINFZ,
+     $                  NKRONL, NR, P, PR
+      DOUBLE PRECISION  SVLMAX, TOL
+C     .. Array Arguments ..
+      INTEGER           INFZ(*), IWORK(*), KRONL(*)
+      DOUBLE PRECISION  ABCD(LDABCD,*), DWORK(*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  FIRST   LOGICAL
+          Specifies if AB08NY is called first time, or it is called
+          for an already reduced system, with D of full column rank,
+          with the last M rows in upper triangular form:
+          FIRST = .TRUE.  :  first time called;
+          FIRST = .FALSE. :  not first time called.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The number of rows of the matrix B, the number of columns
+          of the matrix C, and the order of the square matrix A.
+          N &gt;= 0.
+
+  M       (input) INTEGER
+          The number of columns of the matrices B and D.  M &gt;= 0.
+          M &lt;= P, if FIRST = .FALSE.
+
+  P       (input) INTEGER
+          The number of rows of the matrices C and D.  P &gt;= 0.
+
+  SVLMAX  (input) DOUBLE PRECISION
+          An estimate of the largest singular value of the original
+          matrix ABCD (for instance, the Frobenius norm of ABCD).
+          SVLMAX &gt;= 0.
+
+  ABCD    (input/output) DOUBLE PRECISION array, dimension
+          (LDABCD,M+N)
+          On entry, the leading (N+P)-by-(M+N) part of this array
+          must contain the compound matrix
+                   (  B   A  ),
+                   (  D   C  )
+          where A is an N-by-N matrix, B is an N-by-M matrix,
+          C is a P-by-N matrix, and D is a P-by-M matrix.
+          If FIRST = .FALSE., then D must be a full column rank
+          matrix, with the last M rows in an upper triangular form.
+          On exit, the leading (NR+PR)-by-(M+NR) part of this array
+          contains the reduced compound matrix
+                    (  Br  Ar ),
+                    (  Dr  Cr )
+          where Ar is an NR-by-NR matrix, Br is an NR-by-M matrix,
+          Cr is a PR-by-NR matrix, and Dr is a PR-by-M full row rank
+          left upper-trapezoidal matrix, with the first PR columns
+          in an upper triangular form.
+
+  LDABCD  INTEGER
+          The leading dimension of the array ABCD.
+          LDABCD &gt;= MAX(1,N+P).
+
+  NINFZ   (input/output) INTEGER
+          On entry, the currently computed number of infinite zeros.
+          It should be initialized to zero on the first call.
+          NINFZ &gt;= 0.
+          If FIRST = .FALSE., then NINFZ is not modified.
+          On exit, the number of infinite zeros.
+
+  NR      (output) INTEGER
+          The order of the reduced matrix Ar; also, the number of
+          rows of the reduced matrix Br and the number of columns of
+          the reduced matrix Cr.
+          If Dr is invertible, NR is also the number of finite Smith
+          zeros.
+
+  PR      (output) INTEGER
+          The normal rank of the transfer-function matrix of the
+          original system; also, the number of rows of the reduced
+          matrices Cr and Dr.
+
+  DINFZ   (output) INTEGER
+          The maximal multiplicity of infinite zeros.
+          DINFZ = 0 if FIRST = .FALSE. .
+
+  NKRONL  (output) INTEGER
+          The maximal dimension of left elementary Kronecker blocks.
+
+  INFZ    (output) INTEGER array, dimension (N)
+          INFZ(i) contains the number of infinite zeros of degree i,
+          where i = 1,2,...,DINFZ.
+          INFZ is not referenced if FIRST = .FALSE. .
+
+  KRONL   (output) INTEGER array, dimension (N+1)
+          KRONL(i) contains the number of left elementary Kronecker
+          blocks of dimension i-by-(i-1), where i = 1,2,...,NKRONL.
+
+</PRE>
+<B>Tolerances</B>
+<PRE>
+  TOL     DOUBLE PRECISION
+          A tolerance used in rank decisions to determine the
+          effective rank, which is defined as the order of the
+          largest leading (or trailing) triangular submatrix in the
+          QR (or RQ) factorization with column (or row) pivoting
+          whose estimated condition number is less than 1/TOL.
+          NOTE that when SVLMAX &gt; 0, the estimated ranks could be
+          less than those defined above (see SVLMAX).
+          If the user sets TOL to be less than or equal to zero,
+          then the tolerance is taken as (N+P)*(N+M)*EPS, where EPS
+          is the machine precision (see LAPACK Library Routine
+          DLAMCH).  TOL &lt; 1.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  IWORK   INTEGER array, dimension (MAX(M,P))
+
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+          On exit, if INFO = 0, DWORK(1) returns the optimal value
+          of LDWORK.
+
+  LDWORK  INTEGER
+          The length of the array DWORK.
+          LDWORK &gt;= 1, if MIN(P, MAX(N,M)) = 0; otherwise,
+          LDWORK &gt;= MAX( MIN(P,M) + M + MAX(2*M,N) - 1,
+                         MIN(P,N) + MAX(N + MAX( P, M), 3*P - 1 ) ).
+          For optimum performance LDWORK should be larger.
+
+          If LDWORK = -1, then a workspace query is assumed;
+          the routine only calculates the optimal size of the
+          DWORK array, returns this value as the first entry of
+          the DWORK array, and no error message related to LDWORK
+          is issued by XERBLA.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value.
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Svaricek, F.
+      Computation of the Structural Invariants of Linear
+      Multivariable Systems with an Extended Version of the
+      Program ZEROS.
+      System & Control Letters, 6, pp. 261-266, 1985.
+
+  [2] Emami-Naeini, A. and Van Dooren, P.
+      Computation of Zeros of Linear Multivariable Systems.
+      Automatica, 18, pp. 415-430, 1982.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  The algorithm is numerically backward stable and requires
+  0( (P+N)*(M+N)*N )  floating point operations.
+
+</PRE>
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  The number of infinite zeros is computed (if FIRST = .TRUE.) as
+
+                DINFZ
+     NINFZ =     Sum  (INFZ(i)*i .
+                 i=1
+
+  Note that each infinite zero of multiplicity k corresponds to an
+  infinite eigenvalue of multiplicity k+1.
+  The multiplicities of the infinite eigenvalues can be determined
+  from PR, DINFZ and INFZ(i), i = 1, ..., DINFZ, as follows:
+
+                  DINFZ
+  - there are PR - Sum (INFZ(i)) simple infinite eigenvalues;
+                   i=1
+
+  - there are INFZ(i) infinite eigenvalues with multiplicity i+1,
+    for i = 1, ..., DINFZ.
+
+  The left Kronecker indices are:
+
+  [ 0  0 ...  0  | 1  1  ...  1 |  .... | NKRONL  ...  NKRONL ]
+  |&lt;- KRONL(1) -&gt;|&lt;- KRONL(2) -&gt;|       |&lt;-  KRONL(NKRONL)  -&gt;|
+
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

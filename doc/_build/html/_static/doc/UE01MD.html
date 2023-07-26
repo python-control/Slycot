@@ -1,0 +1,104 @@
+<HTML>
+<HEAD><TITLE>UE01MD - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="UE01MD">UE01MD</A></H2>
+<H3>
+Default machine-specific parameters for (skew-)Hamiltonian computation routines
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To provide an extension of the LAPACK routine ILAENV to
+  machine-specific parameters for SLICOT routines.
+
+  The default values in this version aim to give good performance on
+  a wide range of computers. For optimal performance, however, the
+  user is advised to modify this routine. Note that an optimized
+  BLAS is a crucial prerequisite for any speed gains. For further
+  details, see ILAENV.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      INTEGER FUNCTION UE01MD( ISPEC, NAME, OPTS, N1, N2, N3 )
+C     .. Scalar Arguments ..
+      CHARACTER*( * )    NAME, OPTS
+      INTEGER            ISPEC, N1, N2, N3
+
+</PRE>
+<B><FONT SIZE="+1">Function Value</FONT></B>
+<PRE>
+  UE01MD  INTEGER
+          The function value set according to ISPEC.
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  ISPEC   (input) INTEGER
+          Specifies the parameter to be returned as the value of
+          UE01MD, as follows:
+          = 1: the optimal blocksize; if the returned value is 1, an
+               unblocked algorithm will give the best performance;
+          = 2: the minimum block size for which the block routine
+               should be used; if the usable block size is less than
+               this value, an unblocked routine should be used;
+          = 3: the crossover point (in a block routine, for N less
+               than this value, an unblocked routine should be used)
+          = 4: the number of shifts, used in the product eigenvalue
+               routine;
+          = 8: the crossover point for the multishift QR method for
+               product eigenvalue problems.
+
+  NAME    (input) CHARACTER*(*)
+          The name of the calling subroutine, in either upper case
+          or lower case.
+
+  OPTS    (input) CHARACTER*(*)
+          The character options to the subroutine NAME, concatenated
+          into a single character string.
+
+  N1      (input) INTEGER
+  N2      (input) INTEGER
+  N3      (input) INTEGER
+          Problem dimensions for the subroutine NAME; these may not
+          all be required.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<p>
+<A HREF=..\libindex.html><B>Return to index</B></A></BODY>
+</HTML>

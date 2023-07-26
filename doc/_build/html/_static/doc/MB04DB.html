@@ -1,0 +1,147 @@
+<HTML>
+<HEAD><TITLE>MB04DB - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MB04DB">MB04DB</A></H2>
+<H3>
+Inverse of a balancing transformation for a real skew-Hamiltonian/Hamiltonian pencil
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To apply from the left the inverse of a balancing transformation,
+  computed by the SLICOT Library routine MB04DP, to the matrix
+
+            [   V1   ]
+            [        ],
+            [ sgn*V2 ]
+
+  where sgn is either +1 or -1.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MB04DB( JOB, SGN, N, ILO, LSCALE, RSCALE, M, V1, LDV1,
+     $                   V2, LDV2, INFO )
+C     .. Scalar Arguments ..
+      CHARACTER         JOB, SGN
+      INTEGER           ILO, INFO, LDV1, LDV2, M, N
+C     .. Array Arguments ..
+      DOUBLE PRECISION  LSCALE(*), RSCALE(*), V1(LDV1,*), V2(LDV2,*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  JOB     CHARACTER*1
+          Specifies the type of inverse transformation required:
+          = 'N':  do nothing, return immediately;
+          = 'P':  do inverse transformation for permutation only;
+          = 'S':  do inverse transformation for scaling only;
+          = 'B':  do inverse transformations for both permutation
+                  and scaling.
+          JOB must be the same as the argument JOB supplied to
+          MB04DP.
+
+  SGN     CHARACTER*1
+          Specifies the sign to use for V2:
+          = 'P':  sgn = +1;
+          = 'N':  sgn = -1.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The number of rows of the matrices V1 and V2. N &gt;= 0.
+
+  ILO     (input) INTEGER
+          The integer ILO determined by MB04DP.
+          1 &lt;= ILO &lt;= N+1.
+
+  LSCALE  (input) DOUBLE PRECISION array, dimension (N)
+          Details of the permutation and scaling factors applied
+          from the left, as returned by MB04DP.
+
+  RSCALE  (input) DOUBLE PRECISION array, dimension (N)
+          Details of the permutation and scaling factors applied
+          from the right, as returned by MB04DP.
+
+  M       (input) INTEGER
+          The number of columns of the matrices V1 and V2.  M &gt;= 0.
+
+  V1      (input/output) DOUBLE PRECISION array, dimension (LDV1,M)
+          On entry, the leading N-by-M part of this array must
+          contain the matrix V1.
+          On exit, the leading N-by-M part of this array is
+          overwritten by the updated matrix V1 of the transformed
+          matrix.
+
+  LDV1    INTEGER
+          The leading dimension of the array V1. LDV1 &gt;= max(1,N).
+
+  V2      (input/output) DOUBLE PRECISION array, dimension (LDV2,M)
+          On entry, the leading N-by-M part of this array must
+          contain the matrix V2.
+          On exit, the leading N-by-M part of this array is
+          overwritten by the updated matrix V2 of the transformed
+          matrix.
+
+  LDV2    INTEGER
+          The leading dimension of the array V2. LDV2 &gt;= max(1,N).
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value.
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Anderson, E., Bai, Z., Bischof, C., Demmel, J., Dongarra, J.,
+      Du Croz, J., Greenbaum, A., Hammarling, S., McKenney, A.,
+      Ostrouchov, S., and Sorensen, D.
+      LAPACK Users' Guide: Second Edition.
+      SIAM, Philadelphia, 1995.
+
+  [2] Benner, P.
+      Symplectic balancing of Hamiltonian matrices.
+      SIAM J. Sci. Comput., 22 (5), pp. 1885-1904, 2001.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

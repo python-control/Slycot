@@ -1,0 +1,83 @@
+<HTML>
+<HEAD><TITLE>SG03BR - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="SG03BR">SG03BR</A></H2>
+<H3>
+Compute a complex Givens rotation in real arithmetic (SG03BY version - adaptation of LAPACK ZLARTG)
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To compute the parameters for the complex Givens rotation
+
+     (    C      SR+SI*I )   ( XR+XI*I )   ( ZR+ZI*I )
+     (                   ) * (         ) = (         )
+     ( -SR+SI*I     C    )   ( YR+YI*I )   (    0    )
+
+  where C, SR, SI, XR, XI, YR, YI, ZR, ZI are real numbers, I is the
+  imaginary unit, I = SQRT(-1), and C**2 + |SR+SI*I|**2 = 1.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE SG03BR( XR, XI, YR, YI, C, SR, SI, ZR, ZI )
+C     .. Scalar Arguments ..
+      DOUBLE PRECISION  C, SI, SR, XI, XR, YI, YR, ZI, ZR
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  XR, XI, (input) DOUBLE PRECISION
+  YR, YI  (input) DOUBLE PRECISION
+          The given real scalars XR, XI, YR, YI.
+
+  C,      (output) DOUBLE PRECISION
+  SR, SI, (output) DOUBLE PRECISION
+  ZR, ZI  (output) DOUBLE PRECISION
+          The computed real scalars C, SR, SI, ZR, ZI defining the
+          complex Givens rotation and Z = ZR+ZI*I.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  The subroutine avoids unnecessary overflow.
+
+</PRE>
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  In the interest of speed, this routine does not check the input
+  for errors.
+
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

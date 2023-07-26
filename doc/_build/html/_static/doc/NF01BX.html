@@ -1,0 +1,129 @@
+<HTML>
+<HEAD><TITLE>NF01BX - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="NF01BX">NF01BX</A></H2>
+<H3>
+Matrix-vector product x <-- (A' A + c I) x, for a full matrix A
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To compute (J'*J + c*I)*x, where J is an m-by-n real matrix, c is
+  a real scalar, I is the n-by-n identity matrix, and x is a real
+  n-vector.
+
+  NOTE: this routine must have the same arguments as SLICOT Library
+  routine NF01BW.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE NF01BX( N, IPAR, LIPAR, DPAR, LDPAR, J, LDJ, X, INCX,
+     $                   DWORK, LDWORK, INFO )
+C     .. Scalar Arguments ..
+      INTEGER           INCX, INFO, LDJ, LDPAR, LDWORK, LIPAR, N
+C     .. Array Arguments ..
+      INTEGER           IPAR(*)
+      DOUBLE PRECISION  DPAR(*), DWORK(*), J(LDJ,*), X(*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The number of columns of the Jacobian matrix J.  N &gt;= 0.
+
+  IPAR    (input) INTEGER array, dimension (LIPAR)
+          The integer parameters describing the structure of the
+          matrix J, as follows:
+          IPAR(1) must contain the number of rows M of the Jacobian
+                  matrix J.  M &gt;= 0.
+          IPAR is provided for compatibility with SLICOT Library
+          routine MD03AD.
+
+  LIPAR   (input) INTEGER
+          The length of the array IPAR.  LIPAR &gt;= 1.
+
+  DPAR    (input) DOUBLE PRECISION array, dimension (LDPAR)
+          The real parameters needed for solving the problem.
+          The entry DPAR(1) must contain the real scalar c.
+
+  LDPAR   (input) INTEGER
+          The length of the array DPAR.  LDPAR &gt;= 1.
+
+  J       (input) DOUBLE PRECISION array, dimension (LDJ,N)
+          The leading M-by-N part of this array must contain the
+          Jacobian matrix J.
+
+  LDJ     INTEGER
+          The leading dimension of the array J.  LDJ &gt;= MAX(1,M).
+
+  X       (input/output) DOUBLE PRECISION array, dimension
+          (1+(N-1)*abs(INCX))
+          On entry, this incremented array must contain the
+          vector x.
+          On exit, this incremented array contains the value of the
+          matrix-vector product (J'*J + c*I)*x.
+
+  INCX    (input) INTEGER
+          The increment for the elements of X.  INCX &lt;&gt; 0.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+
+  LDWORK  INTEGER
+          The length of the array DWORK.  LDWORK &gt;= M.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  The associativity of matrix multiplications is used; the result
+  is obtained as:  x_out = J'*( J*x ) + c*x.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

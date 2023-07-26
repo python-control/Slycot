@@ -1,0 +1,274 @@
+<HTML>
+<HEAD><TITLE>MB03SD - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MB03SD">MB03SD</A></H2>
+<H3>
+Eigenvalues of a square-reduced Hamiltonian matrix
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To compute the eigenvalues of an N-by-N square-reduced Hamiltonian
+  matrix
+
+             ( A'   G'  )
+      H'  =  (        T ).                                       (1)
+             ( Q'  -A'  )
+
+  Here, A' is an N-by-N matrix, and G' and Q' are symmetric N-by-N
+  matrices.  It is assumed without a check that H' is square-
+  reduced, i.e., that
+
+        2    ( A''   G'' )
+      H'  =  (         T )    with A'' upper Hessenberg.         (2)
+             ( 0    A''  )
+
+                         T                2
+  (Equivalently, Q'A'- A' Q' = 0, A'' = A' + G'Q', and for i &gt; j+1,
+   A''(i,j) = 0.)  Ordinarily, H' is the output from SLICOT Library
+  routine MB04ZD. The eigenvalues of H' are computed as the square
+  roots of the eigenvalues of A''.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MB03SD( JOBSCL, N, A, LDA, QG, LDQG, WR, WI, DWORK,
+     $                   LDWORK, INFO )
+C     .. Scalar Arguments ..
+      INTEGER           INFO, LDA, LDQG, LDWORK, N
+      CHARACTER         JOBSCL
+C     .. Array Arguments ..
+      DOUBLE PRECISION  A(LDA,*), DWORK(*), QG(LDQG,*), WI(*), WR(*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  JOBSCL  CHARACTER*1
+          Specifies whether or not balancing operations should
+          be performed by the LAPACK subroutine DGEBAL on the
+          Hessenberg matrix A'' in (2), as follows:
+          = 'N':  do not use balancing;
+          = 'S':  do scaling in order to equilibrate the rows
+                  and columns of A''.
+          See LAPACK subroutine DGEBAL and Section METHOD below.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The order of the matrices A, G, and Q.  N &gt;= 0.
+
+  A       (input) DOUBLE PRECISION array, dimension (LDA,N)
+          The leading N-by-N part of this array must contain the
+          upper left block A' of the square-reduced Hamiltonian
+          matrix H' in (1), as produced by SLICOT Library routine
+          MB04ZD.
+
+  LDA     INTEGER
+          The leading dimension of the array A.  LDA &gt;= MAX(1,N).
+
+  QG      (input) DOUBLE PRECISION array, dimension (LDQG,N+1)
+          The leading N-by-N lower triangular part of this array
+          must contain the lower triangle of the lower left
+          symmetric block Q' of the square-reduced Hamiltonian
+          matrix H' in (1), and the N-by-N upper triangular part of
+          the submatrix in the columns 2 to N+1 of this array must
+          contain the upper triangle of the upper right symmetric
+          block G' of the square-reduced Hamiltonian matrix H'
+          in (1), as produced by SLICOT Library routine MB04ZD.
+          So, if i &gt;= j, then Q'(i,j) is stored in QG(i,j) and
+          G'(i,j) is stored in QG(j,i+1).
+
+  LDQG    INTEGER
+          The leading dimension of the array QG.  LDQG &gt;= MAX(1,N).
+
+  WR      (output) DOUBLE PRECISION array, dimension (N)
+  WI      (output) DOUBLE PRECISION array, dimension (N)
+          The arrays WR and WI contain the real and imaginary parts,
+          respectively, of the N eigenvalues of H' with non-negative
+          real part.  The remaining N eigenvalues are the negatives
+          of these eigenvalues.
+          Eigenvalues are stored in WR and WI in decreasing order of
+          magnitude of the real parts, i.e., WR(I) &gt;= WR(I+1).
+          (In particular, an eigenvalue closest to the imaginary
+           axis is WR(N)+WI(N)i.)
+          In addition, eigenvalues with zero real part are sorted in
+          decreasing order of magnitude of imaginary parts.  Note
+          that non-real eigenvalues with non-zero real part appear
+          in complex conjugate pairs, but eigenvalues with zero real
+          part do not, in general, appear in complex conjugate
+          pairs.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+          On exit, if INFO = 0, DWORK(1) returns the optimal value
+          of LDWORK.
+
+  LDWORK  INTEGER
+          The dimension of the array DWORK.
+          LDWORK &gt;= MAX(1,N*(N+1)).
+          For good performance, LDWORK should be larger.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, then the i-th argument had an illegal
+                value;
+          &gt; 0:  if INFO =  i, i &lt;= N, then LAPACK subroutine DHSEQR
+                failed to converge while computing the i-th
+                eigenvalue.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  The routine forms the upper Hessenberg matrix A'' in (2) and calls
+  LAPACK subroutines to calculate its eigenvalues.  The eigenvalues
+  of H' are the square roots of the eigenvalues of A''.
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Van Loan, C. F.
+      A Symplectic Method for Approximating All the Eigenvalues of
+      a Hamiltonian Matrix.
+      Linear Algebra and its Applications, 61, pp. 233-251, 1984.
+
+  [2] Byers, R.
+      Hamiltonian and Symplectic Algorithms for the Algebraic
+      Riccati Equation.
+      Ph. D. Thesis, Cornell University, Ithaca, NY, January 1983.
+
+  [3] Benner, P., Byers, R., and Barth, E.
+      Fortran 77 Subroutines for Computing the Eigenvalues of
+      Hamiltonian Matrices. I: The Square-Reduced Method.
+      ACM Trans. Math. Software, 26, 1, pp. 49-77, 2000.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  The algorithm requires (32/3)*N**3 + O(N**2) floating point
+  operations.
+  Eigenvalues computed by this subroutine are exact eigenvalues
+  of a perturbed Hamiltonian matrix  H' + E  where
+
+              || E || &lt;= c sqrt(eps) || H' ||,
+
+  c is a modest constant depending on the dimension N and eps is the
+  machine precision. Moreover, if the norm of H' and an eigenvalue
+  are of roughly the same magnitude, the computed eigenvalue is
+  essentially as accurate as the computed eigenvalue obtained by
+  traditional methods. See [1] or [2].
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+*     MB03SD EXAMPLE PROGRAM TEXT.
+*
+*     .. Parameters ..
+      INTEGER          NIN, NOUT
+      PARAMETER        ( NIN = 5, NOUT = 6 )
+      INTEGER          NMAX
+      PARAMETER        ( NMAX = 20 )
+      INTEGER          LDA, LDQG
+      PARAMETER        ( LDA = NMAX, LDQG = NMAX )
+      INTEGER          LDWORK
+      PARAMETER        ( LDWORK = NMAX*( NMAX+1 ) )
+*     .. Local Scalars ..
+      INTEGER          I, INFO, J, N
+      CHARACTER*1      JOBSCL
+*     .. Local Arrays ..
+      DOUBLE PRECISION A(LDA,NMAX), DWORK(LDWORK), QG(LDQG,NMAX+1),
+     $                 WI(NMAX), WR(NMAX)
+*     .. External Subroutines ..
+      EXTERNAL         MB03SD
+*     .. Executable Statements ..
+*
+      WRITE ( NOUT, FMT = 99999 )
+*     Skip the heading in the data file and read the data.
+*     NOTE: input must define a square-reduced Hamiltonian matrix.
+      READ ( NIN, FMT = '()' )
+      READ ( NIN, FMT = * ) N, JOBSCL
+      IF ( N.LT.0 .OR. N.GT.NMAX ) THEN
+         WRITE ( NOUT, FMT = 99998 ) N
+      ELSE
+         READ ( NIN, FMT = * ) ( ( A(I,J),    J = 1,N ), I = 1,N )
+         READ ( NIN, FMT = * ) ( ( QG(J,I+1), I = J,N ), J = 1,N )
+         READ ( NIN, FMT = * ) ( ( QG(I,J),   I = J,N ), J = 1,N )
+*        Compute the eigenvalues.
+         CALL MB03SD( JOBSCL, N, A, LDA, QG, LDQG, WR, WI, DWORK,
+     $                LDWORK, INFO )
+*
+         IF ( INFO.NE.0 ) THEN
+            WRITE ( NOUT, FMT = 99997 ) INFO
+         ELSE
+*           Show the computed eigenvalues.
+            WRITE ( NOUT, FMT = 99996 )
+            DO 10 I = 1, N
+               WRITE ( NOUT, FMT = 99995 )  WR(I), ' + (',  WI(I), ')i'
+10          CONTINUE
+            DO 20 I = N, 1, -1
+               WRITE ( NOUT, FMT = 99995 ) -WR(I), ' + (', -WI(I), ')i'
+20          CONTINUE
+         END IF
+      END IF
+      STOP
+*
+99999 FORMAT (' MB03SD EXAMPLE PROGRAM RESULTS',/1X)
+99998 FORMAT (/' N is out of range.',/' N = ',I5)
+99997 FORMAT (' INFO on exit from MB03SD = ',I2)
+99996 FORMAT (/' The eigenvalues are ')
+99995 FORMAT (1X,F8.4,A,F8.4,A)
+      END
+</PRE>
+<B>Program Data</B>
+<PRE>
+MB03SD EXAMPLE PROGRAM DATA
+ 3 S
+  2.0  0.0  0.0
+  0.0  1.0  2.0
+  0.0 -1.0  3.0
+  1.0  0.0  0.0  2.0  3.0  4.0
+ -2.0  0.0  0.0  0.0  0.0  0.0
+</PRE>
+<B>Program Results</B>
+<PRE>
+ MB03SD EXAMPLE PROGRAM RESULTS
+
+
+ The eigenvalues are 
+   2.0000 + (  1.0000)i
+   2.0000 + ( -1.0000)i
+   1.4142 + (  0.0000)i
+  -1.4142 + (  0.0000)i
+  -2.0000 + (  1.0000)i
+  -2.0000 + ( -1.0000)i
+</PRE>
+
+<HR>
+<p>
+<A HREF=..\libindex.html><B>Return to index</B></A></BODY>
+</HTML>

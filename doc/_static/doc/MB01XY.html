@@ -1,0 +1,115 @@
+<HTML>
+<HEAD><TITLE>MB01XY - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MB01XY">MB01XY</A></H2>
+<H3>
+Computing U' U or L L', with U and L upper and lower triangular matrices (unblock algorithm)
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To compute the matrix product U' * U or L * L', where U and L are
+  upper and lower triangular matrices, respectively, stored in the
+  corresponding upper or lower triangular part of the array A.
+
+  If UPLO = 'U' then the upper triangle of the result is stored,
+  overwriting the matrix U in A.
+  If UPLO = 'L' then the lower triangle of the result is stored,
+  overwriting the matrix L in A.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MB01XY( UPLO, N, A, LDA, INFO )
+C     .. Scalar Arguments ..
+      CHARACTER          UPLO
+      INTEGER            INFO, LDA, N
+C     .. Array Arguments ..
+      DOUBLE PRECISION   A( LDA, * )
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  UPLO    CHARACTER*1
+          Specifies which triangle (U or L) is given in the array A,
+          as follows:
+          = 'U':  the upper triangular part U is given;
+          = 'L':  the lower triangular part L is given.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The order of the triangular matrices U or L.  N &gt;= 0.
+
+  A       (input/output) DOUBLE PRECISION array, dimension (LDA,N)
+          On entry, if UPLO = 'U', the leading N-by-N upper
+          triangular part of this array must contain the upper
+          triangular matrix U.
+          On entry, if UPLO = 'L', the leading N-by-N lower
+          triangular part of this array must contain the lower
+          triangular matrix L.
+          On exit, if UPLO = 'U', the leading N-by-N upper
+          triangular part of this array contains the upper
+          triangular part of the product U' * U. The strictly lower
+          triangular part is not referenced.
+          On exit, if UPLO = 'L', the leading N-by-N lower
+          triangular part of this array contains the lower
+          triangular part of the product L * L'. The strictly upper
+          triangular part is not referenced.
+
+  LDA     INTEGER
+          The leading dimension of array A.  LDA &gt;= max(1,N).
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  The matrix product U' * U or L * L' is computed using BLAS 2 and
+  BLAS 1 operations (an unblocked algorithm).
+
+</PRE>
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  This routine is a counterpart of LAPACK Library routine DLAUU2,
+  which computes the matrix product U * U' or L' * L.
+
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

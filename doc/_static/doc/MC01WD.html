@@ -1,0 +1,205 @@
+<HTML>
+<HEAD><TITLE>MC01WD - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MC01WD">MC01WD</A></H2>
+<H3>
+Quotient and remainder polynomials for a quadratic denominator polynomial
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To compute, for a given real polynomial P(x) and a quadratic
+  polynomial B(x), the quotient polynomial Q(x) and the linear
+  remainder polynomial R(x) such that
+
+     P(x) = B(x) * Q(x) + R(x),
+
+                              2
+  where B(x) = u1 + u2 * x + x , R(x) = q(1) + q(2) * (u2 + x)
+  and u1, u2, q(1) and q(2) are real scalars.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MC01WD( DP, P, U1, U2, Q, INFO )
+C     .. Scalar Arguments ..
+      INTEGER           DP, INFO
+      DOUBLE PRECISION  U1, U2
+C     .. Array Arguments ..
+      DOUBLE PRECISION  P(*), Q(*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  DP      (input) INTEGER
+          The degree of the polynomial P(x).  DP &gt;= 0.
+
+  P       (input) DOUBLE PRECISION array, dimension (DP+1)
+          This array must contain the coefficients of P(x) in
+          increasing powers of x.
+
+  U1      (input) DOUBLE PRECISION
+          The value of the constant term of the quadratic
+          polynomial B(x).
+
+  U2      (input) DOUBLE PRECISION
+          The value of the coefficient of x of the quadratic
+          polynomial B(x).
+
+  Q       (output) DOUBLE PRECISION array, dimension (DP+1)
+          If DP &gt;= 1 on entry, then elements Q(1) and Q(2) contain
+          the coefficients q(1) and q(2), respectively, of the
+          remainder polynomial R(x), and the next (DP-1) elements
+          of this array contain the coefficients of the quotient
+          polynomial Q(x) in increasing powers of x.
+          If DP = 0 on entry, then element Q(1) contains the
+          coefficient q(1) of the remainder polynomial R(x) = q(1);
+          Q(x) is the zero polynomial.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  Given the real polynomials
+
+             DP           i                           2
+     P(x) = SUM p(i+1) * x  and B(x) = u1 + u2 * x + x
+            i=0
+
+  the routine uses the recurrence relationships
+
+     q(DP+1) = p(DP+1),
+
+     q(DP) = p(DP) - u2 * q(DP+1) and
+
+     q(i)  = p(i) - u2 * q(i+1) - u1 * q(i+2) for i = DP-1, ..., 1
+
+  to determine the coefficients of the quotient polynomial
+
+            DP-2          i
+     Q(x) = SUM q(i+3) * x
+            i=0
+
+  and the remainder polynomial
+
+     R(x) = q(1) + q(2) * (u2 + x).
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  None.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+*     MC01WD EXAMPLE PROGRAM TEXT
+*
+*     .. Parameters ..
+      INTEGER          NIN, NOUT
+      PARAMETER        ( NIN = 5, NOUT = 6 )
+      INTEGER          DPMAX
+      PARAMETER        ( DPMAX = 10 )
+*     .. Local Scalars ..
+      DOUBLE PRECISION U1, U2
+      INTEGER          DP, I, INFO
+*     .. Local Arrays ..
+      DOUBLE PRECISION P(DPMAX+1), Q(DPMAX+1)
+*     .. External Subroutines ..
+      EXTERNAL         MC01WD
+*     .. Executable Statements ..
+*
+      WRITE ( NOUT,FMT = 99999 )
+*     Skip the heading in the data file and read the data.
+      READ ( NIN, FMT = '()' )
+      READ ( NIN, FMT = * ) DP
+      IF ( DP.LE.-1 .OR. DP.GT.DPMAX ) THEN
+         WRITE ( NOUT, FMT = 99994 ) DP
+      ELSE
+         READ ( NIN, FMT = * ) ( P(I), I = 1,DP+1 )
+         READ ( NIN, FMT = * ) U1, U2
+*        Compute Q(x) and R(x) from P(x) = (x**2+U2*x+U1) * Q(x) + R(x).
+         CALL MC01WD( DP, P, U1, U2, Q, INFO )
+*
+         IF ( INFO.NE.0 ) THEN
+            WRITE ( NOUT, FMT = 99998 ) INFO
+         ELSE
+            WRITE ( NOUT, FMT = 99997 )
+            DO 20 I = 0, DP - 2
+               WRITE ( NOUT, FMT = 99996 ) I, Q(I+3)
+   20       CONTINUE
+            WRITE ( NOUT, FMT = 99995 ) Q(1) + Q(2)*U2, Q(2)
+         END IF
+      END IF
+*
+      STOP
+*
+99999 FORMAT (' MC01WD EXAMPLE PROGRAM RESULTS',/1X)
+99998 FORMAT (' INFO on exit from MC01WD = ',I2)
+99997 FORMAT (' The coefficients of the quotient polynomial Q(x) are ',
+     $       //' power of x     coefficient ')
+99996 FORMAT (2X,I5,9X,F9.4)
+99995 FORMAT (/' The coefficients of the remainder polynomial R(x) are '
+     $       ,//' power of x     coefficient ',/'      0         ',F9.4,
+     $       /'      1         ',F9.4)
+99994 FORMAT (/' DP is out of range.',/' DP = ',I5)
+      END
+</PRE>
+<B>Program Data</B>
+<PRE>
+ MC01WD EXAMPLE PROGRAM DATA
+   6
+   0.62  1.10  1.64  1.88  2.12  1.70  1.00
+   0.60  0.80
+</PRE>
+<B>Program Results</B>
+<PRE>
+ MC01WD EXAMPLE PROGRAM RESULTS
+
+ The coefficients of the quotient polynomial Q(x) are 
+
+ power of x     coefficient 
+      0            0.6000
+      1            0.7000
+      2            0.8000
+      3            0.9000
+      4            1.0000
+
+ The coefficients of the remainder polynomial R(x) are 
+
+ power of x     coefficient 
+      0            0.2600
+      1            0.2000
+</PRE>
+
+<HR>
+<p>
+<A HREF=..\libindex.html><B>Return to index</B></A></BODY>
+</HTML>

@@ -1,0 +1,90 @@
+<HTML>
+<HEAD><TITLE>IB01OY - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="IB01OY">IB01OY</A></H2>
+<H3>
+User's confirmation of the system order
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To ask for user's confirmation of the system order found by
+  SLICOT Library routine IB01OD. This routine may be modified,
+  but its interface must be preserved.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE IB01OY( NS, NMAX, N, SV, INFO )
+C     .. Scalar Arguments ..
+      INTEGER            INFO, N, NMAX, NS
+C     .. Array Arguments ..
+      DOUBLE PRECISION   SV( * )
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  NS      (input) INTEGER
+          The number of singular values.  NS &gt; 0.
+
+  NMAX    (input) INTEGER
+          The maximum value of the system order.  0 &lt;= NMAX &lt;= NS.
+
+  N       (input/output) INTEGER
+          On entry, the estimate of the system order computed by
+          IB01OD routine.  0 &lt;= N &lt;= NS.
+          On exit, the user's estimate of the system order, which
+          could be identical with the input value of  N.
+          Note that the output value of  N  should be less than
+          or equal to  NMAX.
+
+  SV      (input) DOUBLE PRECISION array, dimension ( NS )
+          The singular values, in descending order, used for
+          determining the system order.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

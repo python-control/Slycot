@@ -1,0 +1,424 @@
+<HTML>
+<HEAD><TITLE>MC03ND - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MC03ND">MC03ND</A></H2>
+<H3>
+Minimal polynomial basis for the right nullspace of a polynomial matrix
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To compute the coefficients of a minimal polynomial basis
+                                              DK
+      K(s) = K(0) + K(1) * s + ... + K(DK) * s
+
+  for the right nullspace of the MP-by-NP polynomial matrix of
+  degree DP, given by
+                                              DP
+      P(s) = P(0) + P(1) * s + ... + P(DP) * s  ,
+
+  which corresponds to solving the polynomial matrix equation
+  P(s) * K(s) = 0.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MC03ND( MP, NP, DP, P, LDP1, LDP2, DK, GAM, NULLSP,
+     $                   LDNULL, KER, LDKER1, LDKER2, TOL, IWORK, DWORK,
+     $                   LDWORK, INFO )
+C     .. Scalar Arguments ..
+      INTEGER           DK, DP, INFO, LDKER1, LDKER2, LDNULL, LDP1,
+     $                  LDP2, LDWORK, MP, NP
+      DOUBLE PRECISION  TOL
+C     .. Array Arguments ..
+      INTEGER           GAM(*), IWORK(*)
+      DOUBLE PRECISION  DWORK(*), KER(LDKER1,LDKER2,*),
+     $                  NULLSP(LDNULL,*), P(LDP1,LDP2,*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  MP      (input) INTEGER
+          The number of rows of the polynomial matrix P(s).
+          MP &gt;= 0.
+
+  NP      (input) INTEGER
+          The number of columns of the polynomial matrix P(s).
+          NP &gt;= 0.
+
+  DP      (input) INTEGER
+          The degree of the polynomial matrix P(s).  DP &gt;= 1.
+
+  P       (input) DOUBLE PRECISION array, dimension (LDP1,LDP2,DP+1)
+          The leading MP-by-NP-by-(DP+1) part of this array must
+          contain the coefficients of the polynomial matrix P(s).
+          Specifically, P(i,j,k) must contain the (i,j)-th element
+          of P(k-1), which is the cofficient of s**(k-1) of P(s),
+          where i = 1,2,...,MP, j = 1,2,...,NP and k = 1,2,...,DP+1.
+
+  LDP1    INTEGER
+          The leading dimension of array P.  LDP1 &gt;= MAX(1,MP).
+
+  LDP2    INTEGER
+          The second dimension of array P.   LDP2 &gt;= MAX(1,NP).
+
+  DK      (output) INTEGER
+          The degree of the minimal polynomial basis K(s) for the
+          right nullspace of P(s) unless DK = -1, in which case
+          there is no right nullspace.
+
+  GAM     (output) INTEGER array, dimension (DP*MP+1)
+          The leading (DK+1) elements of this array contain
+          information about the ordering of the right nullspace
+          vectors stored in array NULLSP.
+
+  NULLSP  (output) DOUBLE PRECISION array, dimension
+          (LDNULL,(DP*MP+1)*NP)
+          The leading NP-by-SUM(i*GAM(i)) part of this array
+          contains the right nullspace vectors of P(s) in condensed
+          form (as defined in METHOD), where i = 1,2,...,DK+1.
+
+  LDNULL  INTEGER
+          The leading dimension of array NULLSP.
+          LDNULL &gt;= MAX(1,NP).
+
+  KER     (output) DOUBLE PRECISION array, dimension
+          (LDKER1,LDKER2,DP*MP+1)
+          The leading NP-by-nk-by-(DK+1) part of this array contains
+          the coefficients of the minimal polynomial basis K(s),
+          where nk = SUM(GAM(i)) and i = 1,2,...,DK+1. Specifically,
+          KER(i,j,m) contains the (i,j)-th element of K(m-1), which
+          is the coefficient of s**(m-1) of K(s), where i = 1,2,...,
+          NP, j = 1,2,...,nk and m = 1,2,...,DK+1.
+
+  LDKER1  INTEGER
+          The leading dimension of array KER.  LDKER1 &gt;= MAX(1,NP).
+
+  LDKER2  INTEGER
+          The second dimension of array KER.   LDKER2 &gt;= MAX(1,NP).
+
+</PRE>
+<B>Tolerances</B>
+<PRE>
+  TOL     DOUBLE PRECISION
+          A tolerance below which matrix elements are considered
+          to be zero. If the user sets TOL to be less than
+          10 * EPS * MAX( ||A|| , ||E|| ), then the tolerance is
+                               F       F
+          taken as 10 * EPS * MAX( ||A|| , ||E|| ), where EPS is the
+                                        F       F
+          machine precision (see LAPACK Library Routine DLAMCH) and
+          A and E are matrices (as defined in METHOD).
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  IWORK   INTEGER array, dimension (m+2*MAX(n,m+1)+n),
+          where m = DP*MP and n = (DP-1)*MP + NP.
+
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+
+  LDWORK  The length of the array DWORK.
+          LDWORK &gt;= m*n*n + 2*m*n + 2*n*n.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value.
+          &gt; 0:  if incorrect rank decisions were taken during the
+                computations. This failure is not likely to occur.
+                The possible values are:
+                  k, 1 &lt;= k &lt;= DK+1, the k-th diagonal submatrix had
+                        not a full row rank;
+                  DK+2, if incorrect dimensions of a full column
+                        rank submatrix;
+                  DK+3, if incorrect dimensions of a full row rank
+                        submatrix.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  The computation of the right nullspace of the MP-by-NP polynomial
+  matrix P(s) of degree DP given by
+                                               DP-1            DP
+     P(s) = P(0) + P(1) * s + ... + P(DP-1) * s     + P(DP) * s
+
+  is performed via the pencil s*E - A, associated with P(s), where
+
+         | I              |           | 0         -P(DP) |
+         |   .            |           | I .          .   |
+     A = |     .          |  and  E = |   . .        .   |.      (1)
+         |       .        |           |     . 0      .   |
+         |         I      |           |       I 0 -P(2)  |
+         |           P(0) |           |         I -P(1)  |
+
+  The pencil s*E - A is transformed by unitary matrices Q and Z such
+  that
+
+                  | sE(eps)-A(eps) |        X       |      X     |
+                  |----------------|----------------|------------|
+                  |        0       | sE(inf)-A(inf) |      X     |
+     Q'(s*E-A)Z = |=================================|============|.
+                  |                                 |            |
+                  |                0                | sE(r)-A(r) |
+
+  Since s*E(inf)-A(inf) and s*E(r)-A(r) have full column rank, the
+  minimal polynomial basis for the right nullspace of Q'(s*E-A)Z
+  (and consequently the basis for the right nullspace of s*E - A) is
+  completely determined by s*E(eps)-A(eps).
+
+  Let Veps(s) be a minimal polynomial basis for the right nullspace
+  of s*E(eps)-A(eps). Then
+
+                | Veps(s) |
+     V(s) = Z * |---------|
+                |    0    |
+
+  is a minimal polynomial basis for the right nullspace of s*E - A.
+  From the structure of s*E - A it can be shown that if V(s) is
+  partitioned as
+
+            | Vo(s) | (DP-1)*MP
+     V(s) = |------ |
+            | Ve(s) | NP
+
+  then the columns of Ve(s) form a minimal polynomial basis for the
+  right nullspace of P(s).
+
+  The vectors of Ve(s) are computed and stored in array NULLSP in
+  the following condensed form:
+
+     ||      ||      |      ||      |      |      ||      |     |
+     || U1,0 || U2,0 | U2,1 || U3,0 | U3,1 | U3,2 || U4,0 | ... |,
+     ||      ||      |      ||      |      |      ||      |     |
+
+  where Ui,j is an NP-by-GAM(i) matrix which contains the i-th block
+  of columns of K(j), the j-th coefficient of the polynomial matrix
+  representation for the right nullspace
+                                               DK
+     K(s) = K(0) + K(1) * s + . . . + K(DK) * s  .
+
+  The coefficients K(0), K(1), ..., K(DK) are NP-by-nk matrices
+  given by
+
+     K(0)  = | U1,0 | U2,0 | U3,0 | . . .          | U(DK+1,0) |
+
+     K(1)  = |  0   | U2,1 | U3,1 | . . .          | U(DK+1,1) |
+
+     K(2)  = |  0   |  0   | U3,2 | . . .          | U(DK+1,2) |
+
+       .     .     .     .     .     .     .     .     .     .
+
+     K(DK) = |  0   |  0   |  0   | . . .    |  0  | U(DK+1,DK)|.
+
+  Note that the degree of K(s) satisfies the inequality DK &lt;=
+  DP * MIN(MP,NP) and that the dimension of K(s) satisfies the
+  inequality (NP-MP) &lt;= nk &lt;= NP.
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Beelen, Th.G.J.
+      New Algorithms for Computing the Kronecker structure of a
+      Pencil with Applications to Systems and Control Theory.
+      Ph.D.Thesis, Eindhoven University of Technology, 1987.
+
+  [2] Van Den Hurk, G.J.H.H.
+      New Algorithms for Solving Polynomial Matrix Problems.
+      Master's Thesis, Eindhoven University of Technology, 1987.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  The algorithm used by the routine involves the construction of a
+  special block echelon form with pivots considered to be non-zero
+  when they are larger than TOL. These pivots are then inverted in
+  order to construct the columns of the kernel of the polynomial
+  matrix. If TOL is chosen to be too small then these inversions may
+  be sensitive whereas increasing TOL will make the inversions more
+  robust but will affect the block echelon form (and hence the
+  column degrees of the polynomial kernel). Furthermore, if the
+  elements of the computed polynomial kernel are large relative to
+  the polynomial matrix, then the user should consider trying
+  several values of TOL.
+
+</PRE>
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  It also possible to compute a minimal polynomial basis for the
+  right nullspace of a pencil, since a pencil is a polynomial matrix
+  of degree 1. Thus for the pencil (s*E - A), the required input is
+  P(1)  = E and P(0) = -A.
+
+  The routine can also be used to compute a minimal polynomial
+  basis for the left nullspace of a polynomial matrix by simply
+  transposing P(s).
+
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+*     MC03ND EXAMPLE PROGRAM TEXT
+*
+*     .. Parameters ..
+      INTEGER          NIN, NOUT
+      PARAMETER        ( NIN = 5, NOUT = 6 )
+      INTEGER          DPMAX, MPMAX, NPMAX
+*     PARAMETER        ( DPMAX = 5, MPMAX = 5, NPMAX = 5 )
+      PARAMETER        ( DPMAX = 2, MPMAX = 5, NPMAX = 4 )
+      INTEGER          LDP1, LDP2, LDNULL, LDKER1, LDKER2
+      PARAMETER        ( LDP1 = MPMAX, LDP2 = NPMAX, LDNULL = NPMAX,
+     $                   LDKER1 = NPMAX, LDKER2 = NPMAX )
+      INTEGER          M, N
+      PARAMETER        ( M = DPMAX*MPMAX, N = ( DPMAX-1 )*MPMAX+NPMAX )
+      INTEGER          LIWORK, LDWORK
+*     PARAMETER        ( LIWORK = 3*( N+M )+2,
+      PARAMETER        ( LIWORK = M+2*MAX( N,M+1 )+N,
+     $                   LDWORK = M*N**2+2*M*N+2*N**2 )
+*     .. Local Scalars ..
+      DOUBLE PRECISION TOL
+      INTEGER          DK, DP, I, INFO, J, K, M1, MP, NK, NP
+*     .. Local Arrays ..
+      DOUBLE PRECISION DWORK(LDWORK), KER(LDKER1,LDKER2,M+1),
+     $                 NULLSP(LDNULL,(M+1)*NPMAX), P(LDP1,LDP2,DPMAX+1)
+      INTEGER          GAM(M+1), IWORK(LIWORK)
+*     .. External Subroutines ..
+      EXTERNAL         MC03ND
+*     .. Intrinsic Functions ..
+      INTRINSIC        MAX
+*     .. Executable Statements ..
+*
+      WRITE ( NOUT, FMT = 99999 )
+*     Skip the heading in the data file and read the data.
+      READ ( NIN, FMT = '()' )
+      READ ( NIN, FMT = * ) MP, NP, DP, TOL
+      IF ( MP.LT.0 .OR. MP.GT.MPMAX ) THEN
+         WRITE ( NOUT, FMT = 99990 ) MP
+      ELSE IF ( NP.LT.0 .OR. NP.GT.NPMAX ) THEN
+         WRITE ( NOUT, FMT = 99991 ) NP
+      ELSE IF ( DP.LE.0 .OR. DP.GT.DPMAX ) THEN
+         WRITE ( NOUT, FMT = 99992 ) DP
+      ELSE
+         DO 40 K = 1, DP + 1
+            DO 20 I = 1, MP
+               READ ( NIN, FMT = * ) ( P(I,J,K), J = 1,NP )
+   20       CONTINUE
+   40    CONTINUE
+*        Compute a minimal polynomial basis K(s) of the given P(s).
+         CALL MC03ND( MP, NP, DP, P, LDP1, LDP2, DK, GAM, NULLSP,
+     $                LDNULL, KER, LDKER1, LDKER2, TOL, IWORK, DWORK,
+     $                LDWORK, INFO )
+*
+         IF ( INFO.NE.0 ) THEN
+            WRITE ( NOUT, FMT = 99998 ) INFO
+         ELSE IF ( DK.LT.0 ) THEN
+            WRITE ( NOUT, FMT = 99997 )
+         ELSE
+            NK = 0
+            M1 = 0
+            DO 60 I = 1, DK + 1
+               NK = NK + GAM(I)
+               M1 = M1 + GAM(I)*I
+   60       CONTINUE
+            WRITE ( NOUT, FMT = 99996 )
+            DO 80 I = 1, NP
+               WRITE ( NOUT, FMT = 99995 ) ( NULLSP(I,J), J = 1,M1 )
+   80       CONTINUE
+            WRITE ( NOUT, FMT = 99994 ) DK, ( I-1, I = 1,DK+1 )
+            DO 120 I = 1, NP
+               DO 100 J = 1, NK
+                  WRITE ( NOUT, FMT = 99993 )
+     $                  I, J, ( KER(I,J,K), K = 1,DK+1 )
+  100          CONTINUE
+  120       CONTINUE
+         END IF
+      END IF
+      STOP
+*
+99999 FORMAT (' MC03ND EXAMPLE PROGRAM RESULTS',/1X)
+99998 FORMAT (' INFO on exit from MC03ND = ',I2)
+99997 FORMAT (' The polynomial matrix P(s) has no right nullspace')
+99996 FORMAT (' The right nullspace vectors of P(s) are ')
+99995 FORMAT (20(1X,F8.4))
+99994 FORMAT (/' The minimal polynomial basis K(s) (of degree ',I2,') ',
+     $       'for the right nullspace is ',//' power of s         ',
+     $       20I8)
+99993 FORMAT (/' element (',I2,',',I2,') is ',20(1X,F7.2))
+99992 FORMAT (/' DP is out of range.',/' DP = ',I5)
+99991 FORMAT (/' NP is out of range.',/' NP = ',I5)
+99990 FORMAT (/' MP is out of range.',/' MP = ',I5)
+      END
+</PRE>
+<B>Program Data</B>
+<PRE>
+ MC03ND EXAMPLE PROGRAM DATA
+   5     4     2     0.0
+   2.0   2.0   0.0   3.0
+   0.0   4.0   0.0   6.0
+   8.0   8.0   0.0  12.0
+   0.0   0.0   0.0   0.0
+   2.0   2.0   0.0   3.0
+   1.0   0.0   1.0   0.0
+   0.0   0.0   2.0   0.0
+   4.0   0.0   4.0   0.0
+   2.0   2.0   0.0   3.0
+   3.0   2.0   1.0   3.0
+   0.0   0.0   0.0   0.0
+   1.0   0.0   0.0   0.0
+   0.0   0.0   0.0   0.0
+   1.0   0.0   1.0   0.0
+   1.0   0.0   1.0   0.0
+</PRE>
+<B>Program Results</B>
+<PRE>
+ MC03ND EXAMPLE PROGRAM RESULTS
+
+ The right nullspace vectors of P(s) are 
+   0.0000   0.0000   0.0000
+  -0.8321   0.0000   0.1538
+   0.0000  -1.0000   0.0000
+   0.5547   0.0000   0.2308
+
+ The minimal polynomial basis K(s) (of degree  1) for the right nullspace is 
+
+ power of s                0       1
+
+ element ( 1, 1) is     0.00    0.00
+
+ element ( 1, 2) is     0.00    0.00
+
+ element ( 2, 1) is    -0.83    0.00
+
+ element ( 2, 2) is     0.00    0.15
+
+ element ( 3, 1) is     0.00    0.00
+
+ element ( 3, 2) is    -1.00    0.00
+
+ element ( 4, 1) is     0.55    0.00
+
+ element ( 4, 2) is     0.00    0.23
+</PRE>
+
+<HR>
+<p>
+<A HREF=..\libindex.html><B>Return to index</B></A></BODY>
+</HTML>

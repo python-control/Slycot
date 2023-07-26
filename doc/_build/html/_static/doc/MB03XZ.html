@@ -1,0 +1,609 @@
+<HTML>
+<HEAD><TITLE>MB03XZ - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MB03XZ">MB03XZ</A></H2>
+<H3>
+Eigenvalues of a complex Hamiltonian matrix
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To compute the eigenvalues of a Hamiltonian matrix,
+
+                [  A   G  ]         H        H
+          H  =  [       H ],   G = G ,  Q = Q ,                  (1)
+                [  Q  -A  ]
+
+  where A, G and Q are complex n-by-n matrices.
+
+  Due to the structure of H, if lambda is an eigenvalue, then
+  -conjugate(lambda) is also an eigenvalue. This does not mean that
+  purely imaginary eigenvalues are necessarily multiple. The routine
+  computes the eigenvalues of H using an embedding to a real skew-
+  Hamiltonian matrix He,
+
+                 [  Ae   Ge  ]            T            T
+          He  =  [         T ],   Ge = -Ge ,   Qe = -Qe ,        (2)
+                 [  Qe   Ae  ]
+
+  where Ae, Ge, and Qe are real 2*n-by-2*n matrices, defined by
+
+                 [   Im(A)   Re(A)  ]
+          Ae  =  [                  ],
+                 [  -Re(A)   Im(A)  ]
+
+                 [  triu(Im(G))     Re(G)     ]
+     triu(Ge) =  [                            ],
+                 [       0       triu(Im(G))  ]
+
+                 [  tril(Im(Q))       0       ]
+     tril(Qe) =  [                            ], 
+                 [     -Re(Q)    tril(Im(Q))  ]
+
+  and triu and tril denote the upper and lower triangle,
+  respectively. Then, an orthogonal symplectic matrix Ue is used to
+  reduce He to the structured real Schur form
+
+        T          [  Se   De ]            T
+       Ue He Ue =  [        T ],   De = -De ,                    (3)
+                   [  0    Se ]
+
+  where Ue is a 4n-by-4n real symplectic matrix, and Se is upper
+  quasi-triangular (real Schur form).
+
+  Optionally, if JOB = 'S', or JOB = 'G', the matrix i*He is further
+  transformed to the structured complex Schur form
+
+        H            [  Sc  Gc ]           H
+       U (i*He) U =  [       H ],   Gc = Gc ,                    (4)
+                     [  0  -Sc ]
+
+  where U is a 4n-by-4n unitary symplectic matrix, and Sc is upper
+  triangular (Schur form).
+
+  The algorithm is backward stable and preserves the spectrum
+  structure in finite precision arithmetic.
+
+  Optionally, a symplectic balancing transformation to improve the
+  conditioning of eigenvalues is computed (see the SLICOT Library
+  routine MB04DZ). In this case, the matrix He in decompositions (3)
+  and (4) must be replaced by the balanced matrix.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MB03XZ( BALANC, JOB, JOBU, N, A, LDA, QG, LDQG, U1,
+     $                   LDU1, U2, LDU2, WR, WI, ILO, SCALE, DWORK,
+     $                   LDWORK, ZWORK, LZWORK, BWORK, INFO )
+C     .. Scalar Arguments ..
+      CHARACTER          BALANC, JOB, JOBU
+      INTEGER            ILO, INFO, LDA, LDQG, LDU1, LDU2, LDWORK,
+     $                   LZWORK, N
+C     .. Array Arguments ..
+      LOGICAL            BWORK( * )
+      DOUBLE PRECISION   DWORK( * ), SCALE( * ), WI( * ), WR( * )
+      COMPLEX*16         A( LDA, * ), QG( LDQG, * ), U1( LDU1, * ),
+     $                   U2( LDU2, * ), ZWORK( * )
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  BALANC  CHARACTER*1
+          Indicates how H should be diagonally scaled and/or
+          permuted to reduce its norm.
+          = 'N': Do not diagonally scale or permute;
+          = 'P': Perform symplectic permutations to make the matrix
+                 closer to skew-Hamiltonian Schur form. Do not
+                 diagonally scale;
+          = 'S': Diagonally scale the matrix, i.e., replace A, G and
+                 Q by D*A*D**(-1), D*G*D and D**(-1)*Q*D**(-1) where
+                 D is a diagonal matrix chosen to make the rows and
+                 columns of H more equal in norm. Do not permute;
+          = 'B': Both diagonally scale and permute A, G and Q.
+          Permuting does not change the norm of H, but scaling does.
+
+  JOB     CHARACTER*1
+          Indicates whether the user wishes to compute the full
+          decomposition (4) or the eigenvalues only, as follows:
+          = 'E': compute the eigenvalues only;
+          = 'S': compute the matrix Sc of (4);
+          = 'G': compute the matrices Sc and Gc of (4).
+
+  JOBU    CHARACTER*1
+          Indicates whether or not the user wishes to compute the
+          symplectic matrix Ue of (3), if JOB = 'E', or U of (4),
+          if JOB = 'S' or JOB = 'G', as follows:
+          = 'N': the matrix Ue or U is not computed;
+          = 'U': the matrix Ue or U is computed.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The order of the matrix A.  N &gt;= 0.
+
+  A       (input/output) COMPLEX*16 array, dimension (LDA,K)
+          where K = N, if JOB = 'E', and K = 2*N, if JOB &lt;&gt; 'E'.
+          On entry, the leading N-by-N part of this array must
+          contain the matrix A.
+          On exit, if JOB = 'E', the leading N-by-N part of this
+          array is unchanged, if BALANC = 'N', or it contains the
+          balanced (permuted and/or scaled) matrix A, if
+          BALANC &lt;&gt; 'N'.
+          On exit, if JOB = 'S' or JOB = 'G', the leading 2*N-by-2*N
+          upper triangular part of this array contains the matrix Sc
+          (complex Schur form) of decomposition (4).
+
+  LDA     INTEGER
+          The leading dimension of the array A.  LDA &gt;= max(1,K).
+
+  QG      (input/output) COMPLEX*16 array, dimension
+                         (LDQG,min(K+1,2*N))
+          On entry, the leading N-by-N+1 part of this array must
+          contain in columns 1:N the lower triangular part of the
+          matrix Q and in columns 2:N+1 the upper triangular part
+          of the matrix G.
+          On exit, if JOB &lt;&gt; 'G', the leading N-by-N+1 part of this
+          array is unchanged, if BALANC = 'N', or it contains the
+          balanced (permuted and/or scaled) parts of the matrices
+          Q and G (as above), if BALANC &lt;&gt; 'N'.
+          On exit, JOB = 'G', the leading 2*N-by-2*N upper
+          triangular part of this array contains the upper
+          triangular part of the matrix Gc in the decomposition (4).
+
+  LDQG    INTEGER
+          The leading dimension of the array QG.  LDQG &gt;= max(1,K).
+
+  U1      (output) COMPLEX*16 array, dimension (LDU1,2*N)
+          On exit, if JOB = 'S' or JOB = 'G', and JOBU = 'U', the
+          leading 2*N-by-2*N part of this array contains the (1,1)
+          block of the unitary symplectic matrix U of the
+          decomposition (4).
+          If JOB = 'E' or JOBU = 'N', this array is not referenced.
+
+  LDU1    INTEGER
+          The leading dimension of the array U1.  LDU1 &gt;= 1.
+          LDU1 &gt;= 2*N,    if JOBU = 'U'.
+
+  U2      (output) COMPLEX*16 array, dimension (LDU2,2*N)
+          On exit, if JOB = 'S' or JOB = 'G', and JOBU = 'U', the
+          leading 2*N-by-2*N part of this array contains the (1,2)
+          block of the unitary symplectic matrix U of the
+          decomposition (4).
+          If JOB = 'E' or JOBU = 'N', this array is not referenced.
+
+  LDU2    INTEGER
+          The leading dimension of the array U2.  LDU2 &gt;= 1.
+          LDU2 &gt;= 2*N,    if JOBU = 'U'.
+
+  WR      (output) DOUBLE PRECISION array, dimension (2*N)
+  WI      (output) DOUBLE PRECISION array, dimension (2*N)
+          On exit, the leading 2*N elements of WR and WI contain the
+          real and imaginary parts, respectively, of the eigenvalues
+          of the Hamiltonian matrix H.
+
+  ILO     (output) INTEGER
+          ILO is an integer value determined when H was balanced.
+          The balanced A(I,J) = 0 if I &gt; J and J = 1,...,ILO-1.
+          The balanced Q(I,J) = 0 if J = 1,...,ILO-1 or
+          I = 1,...,ILO-1.
+
+  SCALE   (output) DOUBLE PRECISION array, dimension (N)
+          On exit, if BALANC &lt;&gt; 'N', the leading N elements of this
+          array contain details of the permutation and/or scaling
+          factors applied when balancing H, see MB04DZ.
+          This array is not referenced if BALANC = 'N'.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+          On exit, if INFO = 0,  DWORK(1)  returns the optimal
+          value of LDWORK, and   DWORK(2)  returns the 1-norm of the
+          (scaled, if BALANC = 'S' or 'B') Hamiltonian matrix.
+          Moreover, the next locations of this array have the
+          following content:
+          - The leading 2*N-by-2*N upper Hessenberg part in the
+          locations 3:2+4*N*N contains the upper Hessenberg part of
+          the real Schur matrix Se in the decomposition (3);
+          - the leading 2*N-by-2*N upper triangular part in the
+          locations 3+4*N*N+2*N:2+8*N*N+2*N contains the upper
+          triangular part of the skew-symmetric matrix De in the
+          decomposition (3).
+          - If JOBU = 'U', the leading 2*N-by-2*N part in the
+          locations 3+8*N*N+2*N:2+12*N*N+2*N contains the (1,1)
+          block of the orthogonal symplectic matrix Ue of
+          decomposition (3).
+          - the leading 2*N-by-2*N part in the locations
+          3+12*N*N+2*N:2+16*N*N+2*N contains the (2,1) block of the
+          orthogonal symplectic matrix Ue.
+          On exit, if  INFO = -18,  DWORK(1)  returns the minimum
+          value of LDWORK.
+
+  LDWORK  INTEGER
+          The dimension of the array DWORK.
+          LDWORK &gt;= MAX( 12*N**2 + 4*N, 8*N**2 + 12*N ) + 2,
+                                 if JOB = 'E' and JOBU = 'N';
+          LDWORK &gt;= MAX( 2, 12*N**2 + 4*N, 8*N**2 + 12*N ),
+                                 if JOB = 'S' or 'G' and JOBU = 'N';
+          LDWORK &gt;= 20*N**2 + 12*N + 2,
+                                 if JOB = 'E' and JOBU = 'U';
+          LDWORK &gt;= MAX( 2, 20*N**2 + 12*N ),
+                                 if JOB = 'S' or 'G' and JOBU = 'U'.
+          For good performance, LDWORK must generally be larger.
+
+          If LDWORK = -1, then a workspace query is assumed;
+          the routine only calculates the optimal size of the
+          DWORK array, returns this value as the first entry of
+          the DWORK array, and no error message related to LDWORK
+          is issued by XERBLA.
+
+  ZWORK   COMPLEX*16 array, dimension (LZWORK)
+          On exit, if INFO = 0,  ZWORK(1)  returns the optimal
+          value of LZWORK.
+          On exit, if  INFO = -20,  ZWORK(1)  returns the minimum
+          value of LZWORK.
+
+  LZWORK  INTEGER
+          The dimension of the array ZWORK.
+          LZWORK &gt;= 1,                  if JOB = 'E';
+          LZWORK &gt;= MAX( 1, 12*N - 6 ), if JOB = 'S' and JOBU = 'N';
+          LZWORK &gt;= MAX( 1, 12*N - 2 ), if JOB = 'G' or  JOBU = 'U'.
+
+          If LZWORK = -1, then a workspace query is assumed;
+          the routine only calculates the optimal size of the
+          ZWORK array, returns this value as the first entry of
+          the ZWORK array, and no error message related to LZWORK
+          is issued by XERBLA.
+
+  BWORK   LOGICAL array, dimension (LBWORK)
+          LBWORK &gt;= 0,     if JOB = 'E';
+          LBWORK &gt;= 2*N-1, if JOB = 'S' or JOB = 'G'.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO     INTEGER
+           = 0:  successful exit;
+           &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                 value;
+           &gt; 0:  if INFO = i, the QR algorithm failed to compute
+                 all the eigenvalues; elements i+1:2*N of WR and
+                 WI contain eigenvalues which have converged;
+           = 2*N+1:  the QR algorithm failed to compute the
+                 eigenvalues of a 2-by-2 real block.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  First, the extended matrix He in (2) is built. Then, the
+  structured real Schur form in (3) is computed, using the SLICOT
+  Library routine MB03XS. The eigenvalues of Se immediately give
+  the eigenvalues of H. Finally, if required, Se is further
+  transformed by using the complex QR algorithm to triangularize
+  its 2-by-2 blocks, and Ge and U are updated, to obtain (4).
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Benner, P., Mehrmann, V. and Xu, H.
+      A note on the numerical solution of complex Hamiltonian and
+      skew-Hamiltonian eigenvalue problems.
+      Electr. Trans. Num. Anal., 8, pp. 115-126, 1999.
+
+  [2] Van Loan, C.F.
+      A symplectic method for approximating all the eigenvalues of
+      a Hamiltonian matrix.
+      Linear Algebra and its Applications, 61, pp. 233-251, 1984.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+*     MB03XZ EXAMPLE PROGRAM TEXT
+*
+*     .. Parameters ..
+      DOUBLE PRECISION ZER
+      PARAMETER        ( ZER = 0.0D0 )
+      COMPLEX*16       ZERO, ONE
+      PARAMETER        ( ZERO = (0.0D0,0.0D0), ONE = (1.0D0,0.0D0) )
+      INTEGER          NIN, NOUT
+      PARAMETER        ( NIN = 5, NOUT = 6 )
+      INTEGER          NMAX
+      PARAMETER        ( NMAX = 100 )
+      INTEGER          LDA, LDAE, LDAS, LDGE, LDQG, LDQGE, LDQGS, LDRES,
+     $                 LDU1, LDU2, LDWORK, LZWORK
+      PARAMETER        ( LDA   = 2*NMAX, LDAE  = 2*NMAX, LDAS  = NMAX,
+     $                   LDGE  = 2*NMAX, LDQG  = 2*NMAX, LDQGE = 2*NMAX,
+     $                   LDQGS  = NMAX,  LDRES = 2*NMAX, LDU1  = 2*NMAX,
+     $                   LDU2   = 2*NMAX,
+     $                   LDWORK = 20*NMAX*NMAX + 12*NMAX + 2,
+     $                   LZWORK = 12*NMAX - 2 )
+*     .. Local Scalars ..
+      CHARACTER*1      BALANC, JOB, JOBU
+      INTEGER          I, ILO, INFO, J, M, N
+      DOUBLE PRECISION TEMP
+*     .. Local Arrays ..
+      COMPLEX*16       A(LDA, 2*NMAX), AE(LDAE, 2*NMAX), AS(LDAS, NMAX),
+     $                 GE(LDGE, 2*NMAX), QG(LDQG, 2*NMAX+1),
+     $                 QGE(LDQGE, 2*NMAX+1), QGS(LDQGS, NMAX+1),
+     $                 RES(LDRES,2*NMAX), U1(LDU1,2*NMAX),
+     $                 U2(LDU2,  2*NMAX), ZWORK(LZWORK)
+      DOUBLE PRECISION DWORK(LDWORK), SCALE(NMAX), WI(2*NMAX),
+     $                 WR(2*NMAX)
+      LOGICAL          BWORK(2*NMAX)
+*     .. External Functions ..
+      LOGICAL          LSAME
+      DOUBLE PRECISION DLAPY2, MA02JZ, ZLANGE
+      EXTERNAL         DLAPY2, LSAME, MA02JZ, ZLANGE
+*     .. External Subroutines ..
+      EXTERNAL         MA02EZ, MB03XZ, MB04DZ, ZCOPY, ZGEMM, ZLACPY,
+     $                 ZLASET
+*     ..Intrinsic Functions..
+      INTRINSIC        DBLE, DCMPLX, DIMAG
+*     .. Executable Statements ..
+      WRITE ( NOUT, FMT = 99999 )
+*     Skip the heading in the data file and read the data.
+      READ ( NIN, FMT = '()' )
+      READ ( NIN, FMT = * )  N, BALANC, JOB, JOBU
+      IF ( N.LE.0 .OR. N.GT.NMAX ) THEN
+         WRITE ( NOUT, FMT = 99990 ) N
+      ELSE
+         M = 2*N
+         READ ( NIN, FMT = * ) ( ( A(I,J), J = 1,N ), I = 1,N )
+         CALL ZLACPY( 'All', N, N, A, LDA, AS, LDAS )
+         READ ( NIN, FMT = * ) ( ( QG(I,J), J = 1,N+1 ), I = 1,N )
+         CALL ZLACPY( 'All', N, N+1, QG, LDQG, QGS, LDQGS )
+*        Compute the eigenvalues and the transformed Hamiltonian matrix.
+         CALL MB03XZ( BALANC, JOB, JOBU, N, A, LDA, QG, LDQG, U1, LDU1,
+     $                U2, LDU2, WR, WI, ILO, SCALE, DWORK, LDWORK,
+     $                ZWORK, LZWORK, BWORK, INFO )
+         IF ( INFO.NE.0 ) THEN
+            WRITE ( NOUT, FMT = 99998 ) INFO
+         ELSE
+            WRITE ( NOUT, FMT = 99997 )
+            DO 10  I = 1, M
+               WRITE ( NOUT, FMT = 99996 ) I, WR(I), WI(I)
+   10       CONTINUE
+            IF ( LSAME( JOB, 'S' ).OR.LSAME( JOB, 'G' ) ) THEN
+               WRITE ( NOUT, FMT = 99995 )
+               DO 20  I = 1, M
+                  WRITE ( NOUT, FMT = 99992 ) ( A(I,J), J = 1,M )
+   20          CONTINUE
+            END IF
+            IF ( LSAME( JOB, 'G' ) ) THEN
+               WRITE ( NOUT, FMT = 99994 )
+               DO 30  I = 1, M
+                  WRITE ( NOUT, FMT = 99992 ) ( QG(I,J), J = 1,M )
+   30          CONTINUE
+            END IF
+*
+            IF ( LSAME( JOB, 'G' ).AND.LSAME( JOBU, 'U' ) ) THEN
+*              Compute the residual of the formula (4) in MB03XZ.
+               CALL MB04DZ( BALANC, N, AS, LDAS, QGS, LDQGS, I, DWORK,
+     $                      INFO )
+               CALL ZLASET( 'Lower', M-1, M-1, ZERO, ZERO, A(2,1), LDA )
+               CALL MA02EZ( 'Upper', 'Conjugate', 'Not skew', M, QG,
+     $                      LDQG )
+*              Compute Ae, Ge, and Qe.
+               DO 60  J = 1, N
+                  DO 40  I = 1, N
+                     AE(I,J) = DCMPLX( ZER, DIMAG( AS(I,J) ) )
+   40             CONTINUE
+                  DO 50  I = 1, N
+                     AE(I+N,J) = -DCMPLX( ZER, DBLE( AS(I,J) ) )
+   50             CONTINUE
+   60          CONTINUE
+*
+               DO 90  J = 1, N
+                  DO 70  I = 1, N
+                     AE(I,J+N) = -AE(I+N,J)
+   70             CONTINUE
+                  DO 80  I = 1, N
+                     AE(I+N,J+N) = AE(I,J)
+   80             CONTINUE
+   90          CONTINUE
+*
+               DO 120  J = 1, N+1
+                  DO 100  I = 1, N
+                     QGE(I,J) = DCMPLX( ZER, DIMAG( QGS(I,J) ) )
+  100             CONTINUE
+                  DO 110  I = J, N
+                     QGE(I+N,J) = -DCMPLX( ZER, DBLE( QGS(I,J) ) )
+  110             CONTINUE
+  120          CONTINUE
+*
+               DO 150  J = 1, N
+                  DO 130  I = 1, J
+                     QGE(I,J+N+1) = DCMPLX( ZER, DBLE( QGS(I,J+1) ) )
+  130             CONTINUE
+                  DO 140  I = 1, N
+                     QGE(I+N,J+N+1) = QGE(I,J+1)
+  140             CONTINUE
+  150          CONTINUE
+               CALL ZCOPY( N, QGE, 1, QGE(N+1,N+1), 1 )
+               CALL MA02EZ( 'Lower', 'Transpose', 'Not Skew', N,
+     $                      QGE(N+1,1), LDQGE )
+               CALL MA02EZ( 'Upper', 'Transpose', 'Not Skew', N,
+     $                      QGE(1,N+2), LDQGE )
+*
+               CALL ZLACPY( 'Upper', M, M, QGE(1,2), LDQGE, GE, LDGE )
+               CALL MA02EZ( 'Upper', 'Transpose', 'Skew', M, GE, LDGE )
+               CALL MA02EZ( 'Lower', 'Transpose', 'Skew', M, QGE,
+     $                      LDQGE )
+*              Compute the residual of the (1,1) block in (4).
+               CALL ZGEMM( 'No Transpose', 'No Transpose', M, M, M, ONE,
+     $                     AE, LDAE, U1, LDU1, ZERO, RES, LDRES )
+               CALL ZGEMM( 'No Transpose', 'No Transpose', M, M, M,
+     $                     -ONE, GE, LDGE, U2, LDU2, ONE, RES, LDRES )
+               CALL ZGEMM( 'No Transpose', 'No Transpose', M, M, M,
+     $                     -ONE, U1, LDU1, A, LDA, ONE, RES, LDRES )
+               TEMP = ZLANGE( 'Frobenius', M, M, RES, LDRES, DWORK )
+*              Compute the residual of the (1,2) block in (4).
+               CALL ZGEMM( 'No Transpose', 'No Transpose', M, M, M, ONE,
+     $                     AE, LDAE, U2, LDU2, ZERO, RES, LDRES )
+               CALL ZGEMM( 'No Transpose', 'No Transpose', M, M, M, ONE,
+     $                     GE, LDGE, U1, LDU1, ONE, RES, LDRES )
+               CALL ZGEMM( 'No Transpose', 'No Transpose', M, M, M,
+     $                     -ONE, U1, LDU1, QG, LDQG, ONE, RES, LDRES )
+               CALL ZGEMM( 'No Transpose', 'Conj Transpose', M, M, M,
+     $                     ONE, U2, LDU2, A, LDA, ONE, RES, LDRES )
+               TEMP = DLAPY2( TEMP, ZLANGE( 'Frobenius', M, M, RES,
+     $                                      LDRES, DWORK ) )
+*              Compute the residual of the (2,1) block in (4).
+               CALL ZGEMM( 'No Transpose', 'No Transpose', M, M, M, ONE,
+     $                     QGE, LDQGE, U1, LDU1, ZERO, RES, LDRES )
+               CALL ZGEMM( 'Transpose', 'No Transpose', M, M, M,
+     $                     -ONE, AE, LDAE, U2, LDU2, ONE, RES, LDRES )
+               CALL ZGEMM( 'No Transpose', 'No Transpose', M, M, M, ONE,
+     $                     U2, LDU2, A, LDA, ONE, RES, LDRES )
+               TEMP = DLAPY2( TEMP, ZLANGE( 'Frobenius', M, M, RES,
+     $                                      LDRES, DWORK ) )
+*              Compute the residual of the (2,2) block in (4).
+               CALL ZGEMM( 'No Transpose', 'No Transpose', M, M, M, ONE,
+     $                     QGE, LDQGE, U2, LDU2, ZERO, RES, LDRES )
+               CALL ZGEMM( 'Transpose', 'No Transpose', M, M, M, ONE,
+     $                     AE, LDAE, U1, LDU1, ONE, RES, LDRES )
+               CALL ZGEMM( 'No Transpose', 'No Transpose', M, M, M, ONE,
+     $                     U2, LDU2, QG, LDQG, ONE, RES, LDRES )
+               CALL ZGEMM( 'No Transpose', 'Conj Transpose', M, M, M,
+     $                     ONE, U1, LDU1, A, LDA, ONE, RES, LDRES )
+               TEMP = DLAPY2( TEMP, ZLANGE( 'Frobenius', M, M, RES,
+     $                                      LDRES, DWORK ) )
+               WRITE ( NOUT, FMT = 99989 ) TEMP
+            END IF
+*
+            IF ( .NOT.LSAME( JOB, 'E' ).AND.LSAME( JOBU, 'U' ) ) THEN
+               WRITE ( NOUT, FMT = 99993 )
+               DO 160  I = 1, M
+                  WRITE ( NOUT, FMT = 99992 )
+     $               ( U1(I,J), J = 1,M ), ( U2(I,J), J = 1,M )
+  160          CONTINUE
+               DO 170  I = 1, M
+                  WRITE ( NOUT, FMT = 99992 )
+     $               ( -U2(I,J), J = 1,M ), ( U1(I,J), J = 1,M )
+  170          CONTINUE
+               WRITE ( NOUT, FMT = 99988 ) MA02JZ( .FALSE., .FALSE., M,
+     $                 U1, LDU1, U2, LDU2, RES, LDRES )
+            END IF
+            IF ( LSAME( BALANC, 'S' ).OR.LSAME( BALANC, 'B' ) ) THEN
+               WRITE ( NOUT, FMT = 99991 )
+               DO 180  I = 1, N
+                  WRITE ( NOUT, FMT = 99996 ) I, SCALE(I)
+  180          CONTINUE
+            END IF
+         END IF
+      END IF
+*
+99999 FORMAT (' MB03XZ EXAMPLE PROGRAM RESULTS',/1X)
+99998 FORMAT (' INFO on exit from MB03XZ = ',I2)
+99997 FORMAT (' The eigenvalues are',//'   i',6X,
+     $        'WR(i)',6X,'WI(i)',/)
+99996 FORMAT (I4,3X,F8.4,3X,F8.4)
+99995 FORMAT (/' The transformed matrix S is')
+99994 FORMAT (/' The transformed matrix G is')
+99993 FORMAT (/' The unitary symplectic factor U is')
+99992 FORMAT (20(1X,F9.4,SP,F9.4,S,'i '))
+99991 FORMAT (/' The diagonal scaling factors are ',//'   i',6X,
+     $        'SCALE(i)',/)
+99990 FORMAT (/' N is out of range.',/' N = ',I5)
+99989 FORMAT (/' Residual: || i*He*U - U*Hc ||_F = ',G9.2)
+99988 FORMAT (/' Orthogonality of U: || U^H U - I ||_F = ',G9.2)
+      END
+</PRE>
+<B>Program Data</B>
+<PRE>
+MB03XZ EXAMPLE PROGRAM DATA
+	4	N	G	U
+   (0.8147,0.4217)   (0.6323,0.6557)   (0.9575,0.6787)   (0.9571,0.6554)
+   (0.9057,0.9157)   (0.0975,0.0357)   (0.9648,0.7577)   (0.4853,0.1711)
+   (0.1269,0.7922)   (0.2784,0.8491)   (0.1576,0.7431)   (0.8002,0.7060)
+   (0.9133,0.9594)   (0.5468,0.9339)   (0.9705,0.3922)   (0.1418,0.0318)
+    0.2769            0.6948           (0.4387,0.7513)   (0.1869,0.8909)   (0.7094,0.1493)
+   (0.0462,0.1626)    0.3171            0.3816           (0.4898,0.9593)   (0.7547,0.2575)
+   (0.0971,0.1190)   (0.9502,0.5853)    0.7655            0.4456           (0.2760,0.8407)         
+   (0.8235,0.4984)   (0.0344,0.2238)   (0.7952,0.6991)    0.6463            0.6797
+</PRE>
+<B>Program Results</B>
+<PRE>
+ MB03XZ EXAMPLE PROGRAM RESULTS
+
+ The eigenvalues are
+
+   i      WR(i)      WI(i)
+
+   1     3.0844     2.7519
+   2    -3.0844     2.7519
+   3     0.5241    -1.3026
+   4    -0.5241    -1.3026
+   5     0.8824    -0.6918
+   6    -0.8824    -0.6918
+   7     0.4459     0.4748
+   8    -0.4459     0.4748
+
+ The transformed matrix S is
+    3.0844  +2.7519i     0.0618  +0.0000i    -0.1952  +0.1977i     0.0439  +0.0628i     0.0599  -0.0344i    -0.1543  -0.7126i    -0.3906  +0.3615i     0.2877  +0.5766i 
+    0.0000  +0.0000i    -3.0844  +2.7519i    -0.0458  -0.0727i    -0.2607  +0.0867i     0.1505  -0.7137i    -0.0717  +0.0066i    -0.4008  +0.4356i     0.2819  +0.5317i 
+    0.1269  +0.7922i     0.0000  +0.0000i     0.5241  -1.3026i    -0.0175  +0.0350i    -0.0676  +0.1183i     0.3695  -0.0335i    -0.3138  -0.4268i     0.2973  -0.0042i 
+    0.9133  +0.9594i     0.5468  +0.9339i     0.0000  +0.0000i    -0.5241  -1.3026i     0.1453  +0.3375i     0.0590  -0.1483i     0.2795  +0.3002i    -0.4594  -0.0099i 
+    0.0000  +0.0000i     0.0000  +0.0000i     0.0000  +0.0000i     0.0000  +0.0000i     0.8824  -0.6918i    -0.1193  +0.0000i    -0.1672  -0.0189i    -0.1008  -0.2026i 
+    0.0000  +0.0000i     0.0000  +0.0000i     0.0000  +0.0000i     0.0000  +0.0000i     0.0000  +0.0000i    -0.8824  -0.6918i     0.0539  -0.1852i     0.1978  -0.0688i 
+    0.0000  +0.0000i     0.0000  +0.0000i     0.0000  +0.0000i     0.0000  +0.0000i     0.0000  +0.0000i     0.0000  +0.0000i     0.4459  +0.4748i     0.2987  +0.0000i 
+    0.0000  +0.0000i     0.0000  +0.0000i     0.0000  +0.0000i     0.0000  +0.0000i     0.0000  +0.0000i     0.0000  +0.0000i     0.0000  +0.0000i    -0.4459  +0.4748i 
+
+ The transformed matrix G is
+   -0.2169  +0.0000i    -0.0022  +0.0000i    -0.2082  -0.0281i     0.0691  +0.0092i     0.0362  -0.0426i    -0.2374  +0.4904i    -0.2678  -0.5870i    -0.2567  +0.3258i 
+    0.0462  +0.1626i     0.2169  +0.0000i     0.0128  -0.0651i    -0.0654  +0.2006i     0.2348  +0.4861i    -0.0545  -0.0706i     0.1557  +0.4895i     0.3329  -0.4499i 
+    0.0971  +0.1190i     0.9502  +0.5853i     0.1341  +0.0000i    -0.0022  +0.0045i    -0.0232  +0.0320i     0.3395  -0.3847i    -0.0646  -0.2900i    -0.0920  -0.1605i 
+    0.8235  +0.4984i     0.0344  +0.2238i     0.7952  +0.6991i    -0.1341  +0.0000i    -0.1893  +0.4728i     0.0127  -0.0720i    -0.0923  -0.0258i    -0.3361  +0.0706i 
+    0.0000  +0.0000i     0.0000  +0.0000i     0.0000  +0.0000i     0.0000  +0.0000i    -0.5145  +0.0000i     0.0348  +0.0000i    -0.0662  -0.2049i     0.2987  -0.0488i 
+    0.0000  +0.0000i     0.0000  +0.0000i     0.0000  +0.0000i     0.0000  +0.0000i     0.0000  +0.0000i     0.5145  +0.0000i    -0.3004  +0.0327i    -0.0524  -0.2070i 
+    0.0000  +0.0000i     0.0000  +0.0000i     0.0000  +0.0000i     0.0000  +0.0000i     0.0000  +0.0000i     0.0000  +0.0000i     0.0241  +0.0000i     0.0081  +0.0000i 
+    0.0000  +0.0000i     0.0000  +0.0000i     0.0000  +0.0000i     0.0000  +0.0000i     0.0000  +0.0000i     0.0000  +0.0000i     0.0000  +0.0000i    -0.0241  +0.0000i 
+
+ Residual: || i*He*U - U*Hc ||_F = .11E-13
+
+ The unitary symplectic factor U is
+   -0.3728  +0.1313i    -0.3766  -0.1300i     0.1039  +0.2714i     0.1856  +0.2134i     0.4599  -0.0392i     0.4298  +0.0419i     0.1896  +0.1017i     0.2634  -0.0732i     0.0000  +0.0000i     0.0000  +0.0000i     0.0000  +0.0000i     0.0000  +0.0000i     0.0000  +0.0000i     0.0000  +0.0000i     0.0000  +0.0000i     0.0000  +0.0000i 
+   -0.3079  +0.0989i    -0.3110  -0.0979i    -0.0062  +0.0288i     0.0277  +0.0067i    -0.2041  +0.1907i    -0.1908  -0.2040i    -0.1357  -0.0260i    -0.1886  +0.0187i     0.0570  -0.0194i     0.0576  +0.0192i    -0.1622  +0.3576i     0.3834  +0.0034i     0.0436  +0.0676i     0.0408  -0.0723i    -0.2802  +0.1272i    -0.3893  -0.0915i 
+   -0.2929  -0.0333i    -0.2958  +0.0330i     0.1727  -0.3337i    -0.3677  +0.0166i     0.1022  +0.0500i     0.0956  -0.0535i    -0.2588  -0.0951i    -0.3596  +0.0684i     0.0887  -0.0452i     0.0896  +0.0448i     0.0357  +0.0168i    -0.0021  +0.0404i    -0.0614  +0.0720i    -0.0574  -0.0770i     0.2713  -0.1920i     0.3769  +0.1382i 
+   -0.3061  +0.1212i    -0.3092  -0.1200i    -0.1737  -0.1180i    -0.0210  -0.2121i    -0.3424  -0.1782i    -0.3201  +0.1906i     0.1698  +0.1487i     0.2359  -0.1070i     0.1763  -0.0047i     0.1781  +0.0046i     0.1017  -0.2162i    -0.2335  +0.0013i     0.1817  +0.0174i     0.1699  -0.0186i     0.0902  +0.1296i     0.1253  -0.0933i 
+    0.1153  +0.3771i     0.1164  -0.3734i     0.3105  +0.0106i    -0.1350  +0.2928i    -0.0741  +0.3559i    -0.0692  -0.3808i     0.0178  +0.0002i     0.0247  -0.0002i    -0.0148  -0.0576i    -0.0150  +0.0570i     0.0145  -0.2255i    -0.2011  -0.0837i     0.0523  +0.0093i     0.0488  -0.0099i     0.0689  +0.2345i     0.0957  -0.1688i 
+    0.0856  +0.3022i     0.0864  -0.2992i     0.1935  +0.0888i    -0.0133  +0.2179i    -0.1613  -0.2850i    -0.1508  +0.3049i    -0.0548  +0.2795i    -0.0761  -0.2011i    -0.0226  -0.1038i    -0.0228  +0.1027i     0.1693  +0.2699i     0.1539  +0.2735i    -0.1978  -0.0842i    -0.1849  +0.0901i     0.0400  -0.1732i     0.0556  +0.1246i 
+   -0.0241  +0.2666i    -0.0243  -0.2639i    -0.3169  -0.0146i     0.1346  -0.3005i     0.0045  +0.1961i     0.0042  -0.2098i     0.0873  -0.3068i     0.1213  +0.2208i    -0.0669  -0.1453i    -0.0676  +0.1439i     0.1604  +0.0320i    -0.0469  +0.1627i    -0.0078  -0.1319i    -0.0073  +0.1411i    -0.0086  -0.4118i    -0.0120  +0.2963i 
+    0.1102  +0.2727i     0.1113  -0.2699i    -0.2494  -0.0928i     0.0359  -0.2715i     0.1998  -0.2115i     0.1867  +0.2263i    -0.0988  -0.1334i    -0.1373  +0.0960i    -0.0318  -0.2136i    -0.0321  +0.2115i    -0.1467  +0.0498i     0.1110  -0.1148i    -0.0279  +0.2616i    -0.0261  -0.2799i     0.0611  +0.3196i     0.0849  -0.2300i 
+    0.0000  +0.0000i     0.0000  +0.0000i     0.0000  +0.0000i     0.0000  +0.0000i     0.0000  +0.0000i     0.0000  +0.0000i     0.0000  +0.0000i     0.0000  +0.0000i    -0.3728  +0.1313i    -0.3766  -0.1300i     0.1039  +0.2714i     0.1856  +0.2134i     0.4599  -0.0392i     0.4298  +0.0419i     0.1896  +0.1017i     0.2634  -0.0732i 
+   -0.0570  +0.0194i    -0.0576  -0.0192i     0.1622  -0.3576i    -0.3834  -0.0034i    -0.0436  -0.0676i    -0.0408  +0.0723i     0.2802  -0.1272i     0.3893  +0.0915i    -0.3079  +0.0989i    -0.3110  -0.0979i    -0.0062  +0.0288i     0.0277  +0.0067i    -0.2041  +0.1907i    -0.1908  -0.2040i    -0.1357  -0.0260i    -0.1886  +0.0187i 
+   -0.0887  +0.0452i    -0.0896  -0.0448i    -0.0357  -0.0168i     0.0021  -0.0404i     0.0614  -0.0720i     0.0574  +0.0770i    -0.2713  +0.1920i    -0.3769  -0.1382i    -0.2929  -0.0333i    -0.2958  +0.0330i     0.1727  -0.3337i    -0.3677  +0.0166i     0.1022  +0.0500i     0.0956  -0.0535i    -0.2588  -0.0951i    -0.3596  +0.0684i 
+   -0.1763  +0.0047i    -0.1781  -0.0046i    -0.1017  +0.2162i     0.2335  -0.0013i    -0.1817  -0.0174i    -0.1699  +0.0186i    -0.0902  -0.1296i    -0.1253  +0.0933i    -0.3061  +0.1212i    -0.3092  -0.1200i    -0.1737  -0.1180i    -0.0210  -0.2121i    -0.3424  -0.1782i    -0.3201  +0.1906i     0.1698  +0.1487i     0.2359  -0.1070i 
+    0.0148  +0.0576i     0.0150  -0.0570i    -0.0145  +0.2255i     0.2011  +0.0837i    -0.0523  -0.0093i    -0.0488  +0.0099i    -0.0689  -0.2345i    -0.0957  +0.1688i     0.1153  +0.3771i     0.1164  -0.3734i     0.3105  +0.0106i    -0.1350  +0.2928i    -0.0741  +0.3559i    -0.0692  -0.3808i     0.0178  +0.0002i     0.0247  -0.0002i 
+    0.0226  +0.1038i     0.0228  -0.1027i    -0.1693  -0.2699i    -0.1539  -0.2735i     0.1978  +0.0842i     0.1849  -0.0901i    -0.0400  +0.1732i    -0.0556  -0.1246i     0.0856  +0.3022i     0.0864  -0.2992i     0.1935  +0.0888i    -0.0133  +0.2179i    -0.1613  -0.2850i    -0.1508  +0.3049i    -0.0548  +0.2795i    -0.0761  -0.2011i 
+    0.0669  +0.1453i     0.0676  -0.1439i    -0.1604  -0.0320i     0.0469  -0.1627i     0.0078  +0.1319i     0.0073  -0.1411i     0.0086  +0.4118i     0.0120  -0.2963i    -0.0241  +0.2666i    -0.0243  -0.2639i    -0.3169  -0.0146i     0.1346  -0.3005i     0.0045  +0.1961i     0.0042  -0.2098i     0.0873  -0.3068i     0.1213  +0.2208i 
+    0.0318  +0.2136i     0.0321  -0.2115i     0.1467  -0.0498i    -0.1110  +0.1148i     0.0279  -0.2616i     0.0261  +0.2799i    -0.0611  -0.3196i    -0.0849  +0.2300i     0.1102  +0.2727i     0.1113  -0.2699i    -0.2494  -0.0928i     0.0359  -0.2715i     0.1998  -0.2115i     0.1867  +0.2263i    -0.0988  -0.1334i    -0.1373  +0.0960i 
+
+ Orthogonality of U: || U^H U - I ||_F = .39E-14
+</PRE>
+
+<HR>
+<p>
+<A HREF=..\libindex.html><B>Return to index</B></A></BODY>
+</HTML>

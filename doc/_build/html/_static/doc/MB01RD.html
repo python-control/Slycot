@@ -1,0 +1,219 @@
+<HTML>
+<HEAD><TITLE>MB01RD - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MB01RD">MB01RD</A></H2>
+<H3>
+Computation of matrix expression alpha R + beta A X trans(A), R, X symmetric
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To compute the matrix formula
+     _
+     R = alpha*R + beta*op( A )*X*op( A )',
+                                              _
+  where alpha and beta are scalars, R, X, and R are symmetric
+  matrices, A is a general matrix, and op( A ) is one of
+
+     op( A ) = A   or   op( A ) = A'.
+
+  The result is overwritten on R.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MB01RD( UPLO, TRANS, M, N, ALPHA, BETA, R, LDR, A, LDA,
+     $                   X, LDX, DWORK, LDWORK, INFO )
+C     .. Scalar Arguments ..
+      CHARACTER         TRANS, UPLO
+      INTEGER           INFO, LDA, LDR, LDWORK, LDX, M, N
+      DOUBLE PRECISION  ALPHA, BETA
+C     .. Array Arguments ..
+      DOUBLE PRECISION  A(LDA,*), DWORK(*), R(LDR,*), X(LDX,*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  UPLO    CHARACTER*1                                         _
+          Specifies which triangles of the symmetric matrices R, R,
+          and X are given as follows:
+          = 'U':  the upper triangular part is given;
+          = 'L':  the lower triangular part is given.
+
+  TRANS   CHARACTER*1
+          Specifies the form of op( A ) to be used in the matrix
+          multiplication as follows:
+          = 'N':  op( A ) = A;
+          = 'T':  op( A ) = A';
+          = 'C':  op( A ) = A'.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  M       (input) INTEGER           _
+          The order of the matrices R and R and the number of rows
+          of the matrix op( A ).  M &gt;= 0.
+
+  N       (input) INTEGER
+          The order of the matrix X and the number of columns of the
+          the matrix op( A ).  N &gt;= 0.
+
+  ALPHA   (input) DOUBLE PRECISION
+          The scalar alpha. When alpha is zero then R need not be
+          set before entry, except when R is identified with X in
+          the call (which is possible only in this case).
+
+  BETA    (input) DOUBLE PRECISION
+          The scalar beta. When beta is zero then A and X are not
+          referenced.
+
+  R       (input/output) DOUBLE PRECISION array, dimension (LDR,M)
+          On entry with UPLO = 'U', the leading M-by-M upper
+          triangular part of this array must contain the upper
+          triangular part of the symmetric matrix R; the strictly
+          lower triangular part of the array is used as workspace.
+          On entry with UPLO = 'L', the leading M-by-M lower
+          triangular part of this array must contain the lower
+          triangular part of the symmetric matrix R; the strictly
+          upper triangular part of the array is used as workspace.
+          On exit, the leading M-by-M upper triangular part (if
+          UPLO = 'U'), or lower triangular part (if UPLO = 'L'), of
+          this array contains the corresponding triangular part of
+                              _
+          the computed matrix R. If beta &lt;&gt; 0, the remaining
+          strictly triangular part of this array contains the
+          corresponding part of the matrix expression
+          beta*op( A )*T*op( A )', where T is the triangular matrix
+          defined in the Method section.
+
+  LDR     INTEGER
+          The leading dimension of array R.  LDR &gt;= MAX(1,M).
+
+  A       (input) DOUBLE PRECISION array, dimension (LDA,k)
+          where k is N when TRANS = 'N' and is M when TRANS = 'T' or
+          TRANS = 'C'.
+          On entry with TRANS = 'N', the leading M-by-N part of this
+          array must contain the matrix A.
+          On entry with TRANS = 'T' or TRANS = 'C', the leading
+          N-by-M part of this array must contain the matrix A.
+
+  LDA     INTEGER
+          The leading dimension of array A.  LDA &gt;= MAX(1,l),
+          where l is M when TRANS = 'N' and is N when TRANS = 'T' or
+          TRANS = 'C'.
+
+  X       (input/output) DOUBLE PRECISION array, dimension (LDX,N)
+          On entry, if UPLO = 'U', the leading N-by-N upper
+          triangular part of this array must contain the upper
+          triangular part of the symmetric matrix X and the strictly
+          lower triangular part of the array is not referenced.
+          On entry, if UPLO = 'L', the leading N-by-N lower
+          triangular part of this array must contain the lower
+          triangular part of the symmetric matrix X and the strictly
+          upper triangular part of the array is not referenced.
+          On exit, each diagonal element of this array has half its
+          input value, but the other elements are not modified.
+
+  LDX     INTEGER
+          The leading dimension of array X.  LDX &gt;= MAX(1,N).
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+          On exit, if INFO = 0, the leading M-by-N part of this
+          array (with the leading dimension MAX(1,M)) returns the
+          matrix product beta*op( A )*T, where T is the triangular
+          matrix defined in the Method section.
+          This array is not referenced when beta = 0.
+
+  LDWORK  The length of the array DWORK.
+          LDWORK &gt;= MAX(1,M*N), if  beta &lt;&gt; 0;
+          LDWORK &gt;= 1,          if  beta =  0.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -k, the k-th argument had an illegal
+                value.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  The matrix expression is efficiently evaluated taking the symmetry
+  into account. Specifically, let X = T + T', with T an upper or
+  lower triangular matrix, defined by
+
+     T = triu( X ) - (1/2)*diag( X ),  if UPLO = 'U',
+     T = tril( X ) - (1/2)*diag( X ),  if UPLO = 'L',
+
+  where triu, tril, and diag denote the upper triangular part, lower
+  triangular part, and diagonal part of X, respectively. Then,
+
+     op( A )*X*op( A )' = B + B',
+
+  where B := op( A )*T*op( A )'. Matrix B is not symmetric, but it
+  can be written as tri( B ) + stri( B ), where tri denotes the
+  triangular part specified by UPLO, and stri denotes the remaining
+  strictly triangular part. Let R = V + V', with V defined as T
+  above. Then, the required triangular part of the result can be
+  written as
+
+     alpha*V + beta*tri( B )  + beta*(stri( B ))' +
+              alpha*diag( V ) + beta*diag( tri( B ) ).
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  None.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  The algorithm requires approximately
+
+      2             2
+     M x N + 1/2 x N x M
+
+  operations.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<p>
+<A HREF=..\libindex.html><B>Return to index</B></A></BODY>
+</HTML>

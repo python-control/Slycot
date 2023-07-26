@@ -1,0 +1,208 @@
+<HTML>
+<HEAD><TITLE>MB03DD - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MB03DD">MB03DD</A></H2>
+<H3>
+Exchanging eigenvalues of a real 2-by-2, 3-by-3 or 4-by-4 block upper triangular pencil
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To compute orthogonal matrices Q1 and Q2 for a real 2-by-2,
+  3-by-3, or 4-by-4 regular block upper triangular pencil
+
+                 ( A11 A12 )     ( B11 B12 )
+    aA - bB =  a (         ) - b (         ),                    (1)
+                 (  0  A22 )     (  0  B22 )
+
+  such that the pencil a(Q2' A Q1) - b(Q2' B Q1) is still in block
+  upper triangular form, but the eigenvalues in Spec(A11, B11),
+  Spec(A22, B22) are exchanged, where Spec(X,Y) denotes the spectrum
+  of the matrix pencil (X,Y) and the notation M' denotes the
+  transpose of the matrix M.
+
+  Optionally, to upper triangularize the real regular pencil in
+  block lower triangular form
+
+                ( A11  0  )     ( B11  0  )
+    aA - bB = a (         ) - b (         ),                     (2)
+                ( A21 A22 )     ( B21 B22 )
+
+  while keeping the eigenvalues in the same diagonal position.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MB03DD( UPLO, N1, N2, PREC, A, LDA, B, LDB, Q1, LDQ1,
+     $                   Q2, LDQ2, DWORK, LDWORK, INFO )
+C     .. Scalar Arguments ..
+      CHARACTER          UPLO
+      INTEGER            INFO, LDA, LDB, LDQ1, LDQ2, LDWORK, N1, N2
+      DOUBLE PRECISION   PREC
+C     .. Array Arguments ..
+      DOUBLE PRECISION   A( LDA, * ), B( LDB, * ), DWORK( * ),
+     $                   Q1( LDQ1, * ), Q2( LDQ2, * )
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  UPLO    CHARACTER*1
+          Specifies if the pencil is in lower or upper block
+          triangular form on entry, as follows:
+          = 'U': Upper block triangular, eigenvalues are exchanged
+                 on exit;
+          = 'T': Upper block triangular, B triangular, eigenvalues
+                 are exchanged on exit;
+          = 'L': Lower block triangular, eigenvalues are not
+                 exchanged on exit.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N1      (input/output) INTEGER
+          Size of the upper left block, N1 &lt;= 2.
+          If UPLO = 'U' or UPLO = 'T' and INFO = 0, or UPLO = 'L'
+          and INFO &lt;&gt; 0, N1 and N2 are exchanged on exit; otherwise,
+          N1 is unchanged on exit.
+
+  N2      (input/output) INTEGER
+          Size of the lower right block, N2 &lt;= 2.
+          If UPLO = 'U' or UPLO = 'T' and INFO = 0, or UPLO = 'L'
+          and INFO &lt;&gt; 0, N1 and N2 are exchanged on exit; otherwise,
+          N2 is unchanged on exit.
+
+  PREC    (input) DOUBLE PRECISION
+          The machine precision, (relative machine precision)*base.
+          See the LAPACK Library routine DLAMCH.
+
+  A       (input/output) DOUBLE PRECISION array, dimension
+             (LDA, N1+N2)
+          On entry, the leading (N1+N2)-by-(N1+N2) part of this
+          array must contain the matrix A of the pencil aA - bB.
+          On exit, if N1 = N2 = 1, this array is unchanged, if
+          UPLO = 'U' or UPLO = 'T', but, if UPLO = 'L', it contains
+                                       [  0 1 ]
+          the matrix J' A J, where J = [ -1 0 ]; otherwise, this
+          array contains the transformed quasi-triangular matrix in
+          generalized real Schur form.
+
+  LDA     INTEGER
+          The leading dimension of the array A.  LDA &gt;= N1+N2.
+
+  B       (input/output) DOUBLE PRECISION array, dimension
+             (LDB, N1+N2)
+          On entry, the leading (N1+N2)-by-(N1+N2) part of this
+          array must contain the matrix B of the pencil aA - bB.
+          On exit, if N1 = N2 = 1, this array is unchanged, if
+          UPLO = 'U' or UPLO = 'T', but, if UPLO = 'L', it contains
+          the matrix J' B J; otherwise, this array contains the
+          transformed upper triangular matrix in generalized real
+          Schur form.
+
+  LDB     INTEGER
+          The leading dimension of the array B.  LDB &gt;= N1+N2.
+
+  Q1      (output) DOUBLE PRECISION array, dimension (LDQ1, N1+N2)
+          The leading (N1+N2)-by-(N1+N2) part of this array contains
+          the first orthogonal transformation matrix.
+
+  LDQ1    INTEGER
+          The leading dimension of the array Q1.  LDQ1 &gt;= N1+N2.
+
+  Q2      (output) DOUBLE PRECISION array, dimension (LDQ2, N1+N2)
+          The leading (N1+N2)-by-(N1+N2) part of this array contains
+          the second orthogonal transformation matrix.
+
+  LDQ2    INTEGER
+          The leading dimension of the array Q2.  LDQ2 &gt;= N1+N2.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+          If N1+N2 = 2 then DWORK is not referenced.
+
+  LDWORK  INTEGER
+          The dimension of the array DWORK.
+          If N1+N2 = 2, then LDWORK = 0; otherwise,
+          LDWORK &gt;= 16*N1 + 10*N2 + 23, if UPLO = 'U';
+          LDWORK &gt;=  7*N1 +  7*N2 + 16, if UPLO = 'T';
+          LDWORK &gt;= 10*N1 + 16*N2 + 23, if UPLO = 'L'.
+          For good performance LDWORK should be generally larger.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0: succesful exit;
+          = 3: the QZ iteration failed in the LAPACK routine DGGES
+               (if UPLO &lt;&gt; 'T') or DHGEQZ (if UPLO = 'T');
+          = 4: another error occured during execution of DHGEQZ;
+          = 5: reordering of aA - bB in the LAPACK routine DTGSEN
+               failed because the transformed matrix pencil aA - bB
+               would be too far from generalized Schur form;
+               the problem is very ill-conditioned.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  The algorithm uses orthogonal transformations as described in [2]
+  (page 30). The QZ algorithm is used for N1 = 2 or N2 = 2, but it
+  always acts on an upper block triangular pencil.
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Benner, P., Byers, R., Mehrmann, V. and Xu, H.
+      Numerical computation of deflating subspaces of skew-
+      Hamiltonian/Hamiltonian pencils.
+      SIAM J. Matrix Anal. Appl., 24 (1), pp. 165-190, 2002.
+
+  [2] Benner, P., Byers, R., Losse, P., Mehrmann, V. and Xu, H.
+      Numerical Solution of Real Skew-Hamiltonian/Hamiltonian
+      Eigenproblems.
+      Tech. Rep., Technical University Chemnitz, Germany,
+      Nov. 2007.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  The algorithm is numerically backward stable.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

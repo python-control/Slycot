@@ -1,0 +1,203 @@
+<HTML>
+<HEAD><TITLE>DE01PD - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="DE01PD">DE01PD</A></H2>
+<H3>
+Convolution or deconvolution of two real signals using Hartley transform
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To compute the convolution or deconvolution of two real signals
+  A and B using the Hartley transform.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE DE01PD( CONV, WGHT, N, A, B, W, INFO )
+C     .. Scalar Arguments ..
+      CHARACTER         CONV, WGHT
+      INTEGER           INFO, N
+C     .. Array Arguments ..
+      DOUBLE PRECISION  A(*), B(*), W(*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  CONV    CHARACTER*1
+          Indicates whether convolution or deconvolution is to be
+          performed as follows:
+          = 'C':  Convolution;
+          = 'D':  Deconvolution.
+
+  WGHT    CHARACTER*1
+          Indicates whether the precomputed weights are available
+          or not, as follows:
+          = 'A':  available;
+          = 'N':  not available.
+          Note that if N &gt; 1 and WGHT = 'N' on entry, then WGHT is
+          set to 'A' on exit.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The number of samples.  N must be a power of 2.  N &gt;= 0.
+
+  A       (input/output) DOUBLE PRECISION array, dimension (N)
+          On entry, this array must contain the first signal.
+          On exit, this array contains the convolution (if
+          CONV = 'C') or deconvolution (if CONV = 'D') of the two
+          signals.
+
+  B       (input) DOUBLE PRECISION array, dimension (N)
+          On entry, this array must contain the second signal.
+          NOTE that this array is overwritten.
+
+  W       (input/output) DOUBLE PRECISION array,
+                         dimension (N - LOG2(N))
+          On entry with WGHT = 'A', this array must contain the long
+          weight vector computed by a previous call of this routine
+          or of the SLICOT Library routine DG01OD.f, with the same
+          value of N. If WGHT = 'N', the contents of this array on
+          entry is ignored.
+          On exit, this array contains the long weight vector.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  This routine computes the convolution or deconvolution of two
+  real signals A and B using three scrambled Hartley transforms
+  (SLICOT Library routine DG01OD).
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Van Loan, Charles.
+      Computational frameworks for the fast Fourier transform.
+      SIAM, 1992.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  The algorithm requires O(N log(N)) floating point operations.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+*     DE01PD EXAMPLE PROGRAM TEXT
+*
+*     .. Parameters ..
+      INTEGER          NIN, NOUT
+      PARAMETER        ( NIN = 5, NOUT = 6 )
+      INTEGER          NMAX
+      PARAMETER        ( NMAX = 128 )
+*     .. Local Scalars ..
+      INTEGER          I, INFO, N
+      CHARACTER*1      CONV, WGHT
+*     .. Local Arrays ..
+      DOUBLE PRECISION A(NMAX), B(NMAX), W(NMAX)
+*     .. External Functions ..
+      LOGICAL          LSAME
+      EXTERNAL         LSAME
+*     .. External Subroutines ..
+      EXTERNAL         DE01PD
+*     .. Executable Statements ..
+*
+      WRITE ( NOUT, FMT = 99999 )
+*     Skip the heading in the data file and read the data.
+      READ ( NIN, FMT = '()' )
+      READ ( NIN, FMT = * ) N, CONV, WGHT
+      IF ( N.LT.0 .OR. N.GT.NMAX ) THEN
+         WRITE ( NOUT, FMT = 99994 ) N
+      ELSE
+         READ ( NIN, FMT = * ) ( A(I), B(I), I = 1,N )
+*        Perform convolution on A and B.
+         CALL DE01PD( CONV, WGHT, N, A, B, W, INFO )
+*
+         IF ( INFO.NE.0 ) THEN
+            WRITE ( NOUT, FMT = 99998 ) INFO
+         ELSE
+            IF ( LSAME( CONV, 'C' ) ) THEN
+               WRITE ( NOUT, FMT = 99997 )
+            ELSE
+               WRITE ( NOUT, FMT = 99996 )
+            END IF
+            DO 20 I = 1, N
+               WRITE ( NOUT, FMT = 99995 ) I, A(I)
+   20       CONTINUE
+         END IF
+      END IF
+      STOP
+*
+99999 FORMAT (' DE01PD EXAMPLE PROGRAM RESULTS',/1X)
+99998 FORMAT (' INFO on exit from DE01PD = ',I2)
+99997 FORMAT ('   Convolution ',//'   i    A(i)',/)
+99996 FORMAT ('   Deconvolution ',//'   i    A(i)',/)
+99995 FORMAT (I4,1X,F8.4)
+99994 FORMAT (/' N is out of range.',/' N = ',I5)
+      END
+</PRE>
+<B>Program Data</B>
+<PRE>
+ DE01PD EXAMPLE PROGRAM DATA
+   8     C     N
+   0.4862   0.2288
+   0.1948   0.3671
+   0.5788   0.6417
+  -0.5861   0.3875
+   0.8254   0.2380
+   0.1815   0.4682
+   0.2904   0.5312
+  -0.3599   0.6116
+</PRE>
+<B>Program Results</B>
+<PRE>
+ DE01PD EXAMPLE PROGRAM RESULTS
+
+   Convolution 
+
+   i    A(i)
+
+   1   0.5844
+   2   0.5769
+   3   0.6106
+   4   1.0433
+   5   0.6331
+   6   0.4531
+   7   0.7027
+   8   0.9929
+</PRE>
+
+<HR>
+<p>
+<A HREF=..\libindex.html><B>Return to index</B></A></BODY>
+</HTML>

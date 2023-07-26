@@ -1,0 +1,145 @@
+<HTML>
+<HEAD><TITLE>MB01OO - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MB01OO">MB01OO</A></H2>
+<H3>
+Computation of P or P' with P = op(H) X op(E)' with X symmetric, H upper Hessenberg, and E upper triangular
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To compute either P or P', with P defined by the matrix formula
+
+     P = op( H )*X*op( E )',
+
+  where H is an upper Hessenberg matrix, X is a symmetric matrix,
+  E is an upper triangular matrix, and op( M ) is one of
+
+     op( M ) = M   or   op( M ) = M'.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MB01OO( UPLO, TRANS, N, H, LDH, X, LDX, E, LDE, P, LDP,
+     $                   INFO )
+C     .. Scalar Arguments ..
+      INTEGER           INFO, LDE, LDH, LDP, LDX, N
+      CHARACTER         TRANS, UPLO
+C     .. Array Arguments ..
+      DOUBLE PRECISION  E(LDE,*), H(LDH,*), P(LDP,*), X(LDX,*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  UPLO    CHARACTER*1
+          Specifies which triangle of the symmetric matrix X is
+          given as follows:
+          = 'U':  the upper triangular part is given;
+          = 'L':  the lower triangular part is given.
+
+  TRANS   CHARACTER*1
+          Specifies the operation to be performed as follows:
+          = 'N':         compute P  = H*X*E';
+          = 'T' or 'C':  compute P' = E'*X*H.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The order of the matrices H, X, E, and P.  N &gt;= 0.
+
+  H       (input) DOUBLE PRECISION array, dimension (LDH,N)
+          On entry, the leading N-by-N upper Hessenberg part of this
+          array must contain the upper Hessenberg matrix H.
+          The remaining part of this array is not referenced.
+
+  LDH     INTEGER
+          The leading dimension of the array H.  LDH &gt;= MAX(1,N).
+
+  X       (input) DOUBLE PRECISION array, dimension (LDX,N)
+          On entry, if UPLO = 'U', the leading N-by-N upper
+          triangular part of this array must contain the upper
+          triangular part of the symmetric matrix X and the strictly
+          lower triangular part of the array is not referenced.
+          On entry, if UPLO = 'L', the leading N-by-N lower
+          triangular part of this array must contain the lower
+          triangular part of the symmetric matrix X and the strictly
+          upper triangular part of the array is not referenced.
+
+  LDX     INTEGER
+          The leading dimension of the array X.  LDX &gt;= MAX(1,N).
+
+  E       (input) DOUBLE PRECISION array, dimension (LDE,N)
+          On entry, the leading N-by-N upper triangular part of this
+          array must contain the upper triangular matrix E.
+          The remaining part of this array is not referenced.
+
+  LDE     INTEGER
+          The leading dimension of array E.  LDE &gt;= MAX(1,N).
+
+  P       (output) DOUBLE PRECISION array, dimension (LDP,N)
+          On exit, the leading N-by-N part of this array contains
+          the computed matrix P  = H*X*E', if TRANS = 'N', or
+          the computed matrix P' = E'*X*H, if TRANS = 'T'.
+
+  LDP     INTEGER
+          The leading dimension of the array P.  LDP &gt;= MAX(1,N).
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -k, the k-th argument had an illegal
+                value.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  The matrix expression is efficiently evaluated taking the
+  structure into account, and using BLAS and SLICOT routines.
+  Let W = H*X, or W = X*H, computed using SLICOT Library routine
+  MB01OS. The result is then obtained calling BLAS 3 routine DTRMM.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  The algorithm requires approximately N**3 operations.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

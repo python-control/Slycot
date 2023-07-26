@@ -1,0 +1,366 @@
+<HTML>
+<HEAD><TITLE>AB09JW - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="AB09JW">AB09JW</A></H2>
+<H3>
+State-space representation of a projection of a right weighted transfer-function matrix
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To construct a state-space representation (A,BS,CS,DS) of the
+  projection of G*W or G*conj(W) containing the poles of G, from the
+  state-space representations (A,B,C,D) and (AW-lambda*EW,BW,CW,DW),
+  of the transfer-function matrices G and W, respectively.
+  G is assumed to be a stable transfer-function matrix and
+  the state matrix A must be in a real Schur form.
+  When computing the stable projection of G*W, it is assumed
+  that G and W have completely distinct poles.
+  When computing the stable projection of G*conj(W), it is assumed
+  that G and conj(W) have completely distinct poles.
+
+  Note: For a transfer-function matrix G, conj(G) denotes the
+  conjugate of G given by G'(-s) for a continuous-time system or
+  G'(1/z) for a discrete-time system.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE AB09JW( JOB, DICO, JOBEW, STBCHK, N, M, P, NW, MW,
+     $                   A, LDA, B, LDB, C, LDC, D, LDD, AW, LDAW,
+     $                   EW, LDEW, BW, LDBW, CW, LDCW, DW, LDDW, IWORK,
+     $                   DWORK, LDWORK, INFO )
+C     .. Scalar Arguments ..
+      CHARACTER         DICO, JOB, JOBEW, STBCHK
+      INTEGER           INFO, LDA, LDAW, LDB, LDBW, LDC, LDCW,
+     $                  LDD, LDDW, LDEW, LDWORK, M, MW, N, NW, P
+C     .. Array Arguments ..
+      INTEGER           IWORK(*)
+      DOUBLE PRECISION  A(LDA,*), AW(LDAW,*), B(LDB,*), BW(LDBW,*),
+     $                  C(LDC,*), CW(LDCW,*), D(LDD,*), DW(LDDW,*),
+     $                  DWORK(*), EW(LDEW,*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  JOB     CHARACTER*1
+          Specifies the projection to be computed as follows:
+          = 'W':  compute the projection of G*W containing
+                  the poles of G;
+          = 'C':  compute the projection of G*conj(W) containing
+                  the poles of G.
+
+  DICO    CHARACTER*1
+          Specifies the type of the systems as follows:
+          = 'C':  G and W are continuous-time systems;
+          = 'D':  G and W are discrete-time systems.
+
+  JOBEW   CHARACTER*1
+          Specifies whether EW is a general square or an identity
+          matrix as follows:
+          = 'G':  EW is a general square matrix;
+          = 'I':  EW is the identity matrix.
+
+  STBCHK  CHARACTER*1
+          Specifies whether stability/antistability of W is to be
+          checked as follows:
+          = 'C':  check stability if JOB = 'C' or antistability if
+                  JOB = 'W';
+          = 'N':  do not check stability or antistability.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The dimension of the state vector of the system with
+          the transfer-function matrix G.  N &gt;= 0.
+
+  M       (input) INTEGER
+          The dimension of the input vector of the system with
+          the transfer-function matrix G, and also the dimension
+          of the output vector if JOB = 'W', or of the input vector
+          if JOB = 'C', of the system with the transfer-function
+          matrix W.  M &gt;= 0.
+
+  P       (input) INTEGER
+          The dimension of the output vector of the system with the
+          transfer-function matrix G.  P &gt;= 0.
+
+  NW      (input) INTEGER
+          The dimension of the state vector of the system with the
+          transfer-function matrix W.  NW &gt;= 0.
+
+  MW      (input) INTEGER
+          The dimension of the input vector, if JOB = 'W', or of
+          the output vector, if JOB = 'C', of the system with the
+          transfer-function matrix W.  MW &gt;= 0.
+
+  A       (input) DOUBLE PRECISION array, dimension (LDA,N)
+          The leading N-by-N part of this array must contain the
+          state matrix A of the system with the transfer-function
+          matrix G in a real Schur form.
+
+  LDA     INTEGER
+          The leading dimension of the array A.  LDA &gt;= MAX(1,N).
+
+  B       (input/output) DOUBLE PRECISION array,
+          dimension (LDB,MAX(M,MW))
+          On entry, the leading N-by-M part of this array must
+          contain the input matrix B of the system with the
+          transfer-function matrix G.
+          On exit, if INFO = 0, the leading N-by-MW part of this
+          array contains the input matrix BS of the projection of
+          G*W, if JOB = 'W', or of G*conj(W), if JOB = 'C'.
+
+  LDB     INTEGER
+          The leading dimension of the array B.  LDB &gt;= MAX(1,N).
+
+  C       (input) DOUBLE PRECISION array, dimension (LDC,N)
+          The leading P-by-N part of this array must contain
+          the output/state matrix C of the system with the
+          transfer-function matrix G. The matrix CS is equal to C.
+
+  LDC     INTEGER
+          The leading dimension of the array C.  LDC &gt;= MAX(1,P).
+
+  D       (input/output) DOUBLE PRECISION array,
+          dimension (LDB,MAX(M,MW))
+          On entry, the leading P-by-M part of this array must
+          contain the feedthrough matrix D of the system with
+          the transfer-function matrix G.
+          On exit, if INFO = 0, the leading P-by-MW part of
+          this array contains the feedthrough matrix DS of the
+          projection of G*W, if JOB = 'W', or of G*conj(W),
+          if JOB = 'C'.
+
+  LDD     INTEGER
+          The leading dimension of the array D.  LDD &gt;= MAX(1,P).
+
+  AW      (input/output) DOUBLE PRECISION array, dimension (LDAW,NW)
+          On entry, the leading NW-by-NW part of this array must
+          contain the state matrix AW of the system with the
+          transfer-function matrix W.
+          On exit, if INFO = 0, the leading NW-by-NW part of this
+          array contains a condensed matrix as follows:
+          if JOBEW = 'I', it contains the real Schur form of AW;
+          if JOBEW = 'G' and JOB = 'W', it contains a quasi-upper
+          triangular matrix representing the real Schur matrix
+          in the real generalized Schur form of the pair (AW,EW);
+          if JOBEW = 'G', JOB = 'C' and DICO = 'C', it contains a
+          quasi-upper triangular matrix corresponding to the
+          generalized real Schur form of the pair (AW',EW');
+          if JOBEW = 'G', JOB = 'C' and DICO = 'D', it contains an
+          upper triangular matrix corresponding to the generalized
+          real Schur form of the pair (EW',AW').
+
+  LDAW    INTEGER
+          The leading dimension of the array AW.  LDAW &gt;= MAX(1,NW).
+
+  EW      (input/output) DOUBLE PRECISION array, dimension (LDEW,NW)
+          On entry, if JOBEW = 'G', the leading NW-by-NW part of
+          this array must contain the descriptor matrix EW of the
+          system with the transfer-function matrix W.
+          If JOBEW = 'I', EW is assumed to be an identity matrix
+          and is not referenced.
+          On exit, if INFO = 0 and JOBEW = 'G', the leading NW-by-NW
+          part of this array contains a condensed matrix as follows:
+          if JOB = 'W', it contains an upper triangular matrix
+          corresponding to the real generalized Schur form of the
+          pair (AW,EW);
+          if JOB = 'C' and DICO = 'C', it contains an upper
+          triangular matrix corresponding to the generalized real
+          Schur form of the pair (AW',EW');
+          if JOB = 'C' and DICO = 'D', it contains a quasi-upper
+          triangular matrix corresponding to the generalized
+          real Schur form of the pair (EW',AW').
+
+  LDEW    INTEGER
+          The leading dimension of the array EW.
+          LDEW &gt;= MAX(1,NW), if JOBEW = 'G';
+          LDEW &gt;= 1,         if JOBEW = 'I'.
+
+  BW      (input/output) DOUBLE PRECISION array,
+          dimension (LDBW,MBW), where MBW = MW, if JOB = 'W', and
+          MBW = M, if JOB = 'C'.
+          On entry, the leading NW-by-MBW part of this array must
+          contain the input matrix BW of the system with the
+          transfer-function matrix W.
+          On exit, if INFO = 0, the leading NW-by-MBW part of this
+          array contains Q'*BW, where Q is the orthogonal matrix
+          that reduces AW to the real Schur form or the left
+          orthogonal matrix used to reduce the pair (AW,EW),
+          (AW',EW') or (EW',AW') to the generalized real Schur form.
+
+  LDBW    INTEGER
+          The leading dimension of the array BW.  LDBW &gt;= MAX(1,NW).
+
+  CW      (input/output) DOUBLE PRECISION array, dimension (LDCW,NW)
+          On entry, the leading PCW-by-NW part of this array must
+          contain the output matrix CW of the system with the
+          transfer-function matrix W, where PCW = M if JOB = 'W' or
+          PCW = MW if JOB = 'C'.
+          On exit, if INFO = 0, the leading PCW-by-NW part of this
+          array contains CW*Q, where Q is the orthogonal matrix that
+          reduces AW to the real Schur form, or CW*Z, where Z is the
+          right orthogonal matrix used to reduce the pair (AW,EW),
+          (AW',EW') or (EW',AW') to the generalized real Schur form.
+
+  LDCW    INTEGER
+          The leading dimension of the array CW.
+          LDCW &gt;= MAX(1,PCW), where PCW = M if JOB = 'W', or
+          PCW = MW if JOB = 'C'.
+
+  DW      (input) DOUBLE PRECISION array,
+          dimension (LDDW,MBW), where MBW = MW if JOB = 'W', and
+          MBW = M if JOB = 'C'.
+          The leading PCW-by-MBW part of this array must contain
+          the feedthrough matrix DW of the system with the
+          transfer-function matrix W, where PCW = M if JOB = 'W',
+          or PCW = MW if JOB = 'C'.
+
+  LDDW    INTEGER
+          LDDW &gt;= MAX(1,PCW), where PCW = M if JOB = 'W', or
+          PCW = MW if JOB = 'C'.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  IWORK   INTEGER array, dimension (LIWORK)
+          LIWORK =   0,    if JOBEW = 'I';
+          LIWORK = NW+N+6, if JOBEW = 'G'.
+
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+          On exit, if INFO = 0, DWORK(1) returns the optimal value
+          of LDWORK.
+
+  LDWORK  INTEGER
+          The length of the array DWORK.
+          LDWORK &gt;= LW1, if JOBEW = 'I',
+          LDWORK &gt;= LW2, if JOBEW = 'G', where
+            LW1 = MAX( 1, NW*(NW+5), NW*N + MAX( a, N*MW, P*MW ) )
+                  a = 0,    if DICO = 'C' or  JOB = 'W',
+                  a = 2*NW, if DICO = 'D' and JOB = 'C';
+            LW2 = MAX( 2*NW*NW + MAX( 11*NW+16, NW*M, MW*NW ),
+                       NW*N + MAX( NW*N+N*N, MW*N, P*MW ) ).
+          For good performance, LDWORK should be larger.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          =  0:  successful exit;
+          &lt;  0:  if INFO = -i, the i-th argument had an illegal
+                 value;
+          =  1:  the reduction of the pair (AW,EW) to the real
+                 generalized Schur form failed (JOBEW = 'G'),
+                 or the reduction of the matrix AW to the real
+                 Schur form failed (JOBEW = 'I);
+          =  2:  the solution of the Sylvester equation failed
+                 because the matrix A and the pencil AW-lambda*EW
+                 have common eigenvalues (if JOB = 'W'), or the
+                 pencil -AW-lambda*EW and A have common eigenvalues
+                 (if JOB = 'C' and DICO = 'C'), or the pencil
+                 AW-lambda*EW has an eigenvalue which is the
+                 reciprocal of one of eigenvalues of A
+                 (if JOB = 'C' and DICO = 'D');
+          =  3:  the solution of the Sylvester equation failed
+                 because the matrices A and AW have common
+                 eigenvalues (if JOB = 'W'), or the matrices A
+                 and -AW have common eigenvalues (if JOB = 'C' and
+                 DICO = 'C'), or the matrix A has an eigenvalue
+                 which is the reciprocal of one of eigenvalues of AW
+                 (if JOB = 'C' and DICO = 'D');
+          =  4:  JOB = 'W' and the pair (AW,EW) has not completely
+                 unstable generalized eigenvalues, or JOB = 'C' and
+                 the pair (AW,EW) has not completely stable
+                 generalized eigenvalues.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  If JOB = 'W', the matrices of the stable projection of G*W are
+  computed as
+
+    BS = B*DW + Y*BW,  CS = C,  DS = D*DW,
+
+  where Y satisfies the generalized Sylvester equation
+
+    -A*Y*EW + Y*AW + B*CW = 0.
+
+  If JOB = 'C', the matrices of the stable projection of G*conj(W)
+  are computed using the following formulas:
+
+  - for a continuous-time system, the matrices BS, CS and DS of
+    the stable projection are computed as
+
+      BS = B*DW' + Y*CW',  CS = C,  DS = D*DW',
+
+    where Y satisfies the generalized Sylvester equation
+
+      A*Y*EW' + Y*AW' + B*BW' = 0.
+
+  - for a discrete-time system, the matrices BS, CS and DS of
+    the stable projection are computed as
+
+      BS = B*DW' + A*Y*CW',  CS = C,  DS = D*DW' + C*Y*CW',
+
+    where Y satisfies the generalized Sylvester equation
+
+      Y*EW' - A*Y*AW' = B*BW'.
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Varga, A.
+      Efficient and numerically reliable implementation of the
+      frequency-weighted Hankel-norm approximation model reduction
+      approach.
+      Proc. 2001 ECC, Porto, Portugal, 2001.
+
+  [2] Zhou, K.
+      Frequency-weighted H-infinity norm and optimal Hankel norm
+      model reduction.
+      IEEE Trans. Autom. Control, vol. 40, pp. 1687-1699, 1995.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  The implemented methods rely on numerically stable algorithms.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

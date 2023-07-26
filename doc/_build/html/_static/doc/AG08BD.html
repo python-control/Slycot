@@ -1,0 +1,754 @@
+<HTML>
+<HEAD><TITLE>AG08BD - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="AG08BD">AG08BD</A></H2>
+<H3>
+Zeros and Kronecker structure of a descriptor system pencil
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To extract from the system pencil
+
+                    ( A-lambda*E B )
+        S(lambda) = (              )
+                    (      C     D )
+
+  a regular pencil Af-lambda*Ef which has the finite Smith zeros of
+  S(lambda) as generalized eigenvalues. The routine also computes
+  the orders of the infinite Smith zeros and determines the singular
+  and infinite Kronecker structure of system pencil, i.e., the right
+  and left Kronecker indices, and the multiplicities of infinite
+  eigenvalues.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE AG08BD( EQUIL, L, N, M, P, A, LDA, E, LDE, B, LDB,
+     $                   C, LDC, D, LDD, NFZ, NRANK, NIZ, DINFZ, NKROR,
+     $                   NINFE, NKROL, INFZ, KRONR, INFE, KRONL,
+     $                   TOL, IWORK, DWORK, LDWORK, INFO )
+C     .. Scalar Arguments ..
+      CHARACTER         EQUIL
+      INTEGER           DINFZ, INFO, L, LDA, LDB, LDC, LDD, LDE, LDWORK,
+     $                  M, N, NFZ, NINFE, NIZ, NKROL, NKROR, NRANK, P
+      DOUBLE PRECISION  TOL
+C     .. Array Arguments ..
+      INTEGER           INFE(*), INFZ(*), IWORK(*), KRONL(*), KRONR(*)
+      DOUBLE PRECISION  A(LDA,*), B(LDB,*), C(LDC,*), D(LDD,*),
+     $                  DWORK(*), E(LDE,*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  EQUIL   CHARACTER*1
+          Specifies whether the user wishes to balance the system
+          matrix as follows:
+          = 'S':  Perform balancing (scaling);
+          = 'N':  Do not perform balancing.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  L       (input) INTEGER
+          The number of rows of matrices A, B, and E.  L &gt;= 0.
+
+  N       (input) INTEGER
+          The number of columns of matrices A, E, and C.  N &gt;= 0.
+
+  M       (input) INTEGER
+          The number of columns of matrix B.  M &gt;= 0.
+
+  P       (input) INTEGER
+          The number of rows of matrix C.  P &gt;= 0.
+
+  A       (input/output) DOUBLE PRECISION array, dimension (LDA,N)
+          On entry, the leading L-by-N part of this array must
+          contain the state dynamics matrix A of the system.
+          On exit, the leading NFZ-by-NFZ part of this array
+          contains the matrix Af of the reduced pencil.
+
+  LDA     INTEGER
+          The leading dimension of array A.  LDA &gt;= MAX(1,L).
+
+  E       (input/output) DOUBLE PRECISION array, dimension (LDE,N)
+          On entry, the leading L-by-N part of this array must
+          contain the descriptor matrix E of the system.
+          On exit, the leading NFZ-by-NFZ part of this array
+          contains the matrix Ef of the reduced pencil.
+
+  LDE     INTEGER
+          The leading dimension of array E.  LDE &gt;= MAX(1,L).
+
+  B       (input/output) DOUBLE PRECISION array, dimension (LDB,M)
+          On entry, the leading L-by-M part of this array must
+          contain the input/state matrix B of the system.
+          On exit, this matrix does not contain useful information.
+
+  LDB     INTEGER
+          The leading dimension of array B.
+          LDB &gt;= MAX(1,L) if M &gt; 0;
+          LDB &gt;= 1        if M = 0.
+
+  C       (input/output) DOUBLE PRECISION array, dimension (LDC,N)
+          On entry, the leading P-by-N part of this array must
+          contain the state/output matrix C of the system.
+          On exit, this matrix does not contain useful information.
+
+  LDC     INTEGER
+          The leading dimension of array C.  LDC &gt;= MAX(1,P).
+
+  D       (input) DOUBLE PRECISION array, dimension (LDD,M)
+          The leading P-by-M part of this array must contain the
+          direct transmission matrix D of the system.
+
+  LDD     INTEGER
+          The leading dimension of array D.  LDD &gt;= MAX(1,P).
+
+  NFZ     (output) INTEGER
+          The number of finite zeros.
+
+  NRANK   (output) INTEGER
+          The normal rank of the system pencil.
+
+  NIZ     (output) INTEGER
+          The number of infinite zeros.
+
+  DINFZ   (output) INTEGER
+          The maximal multiplicity of infinite Smith zeros.
+
+  NKROR   (output) INTEGER
+          The number of right Kronecker indices.
+
+  NINFE   (output) INTEGER
+          The number of elementary infinite blocks.
+
+  NKROL   (output) INTEGER
+          The number of left Kronecker indices.
+
+  INFZ    (output) INTEGER array, dimension (N+1)
+          The leading DINFZ elements of INFZ contain information
+          on the infinite elementary divisors as follows:
+          the system has INFZ(i) infinite elementary divisors of
+          degree i in the Smith form, where i = 1,2,...,DINFZ.
+
+  KRONR   (output) INTEGER array, dimension (N+M+1)
+          The leading NKROR elements of this array contain the
+          right Kronecker (column) indices.
+
+  INFE    (output) INTEGER array, dimension (1+MIN(L+P,N+M))
+          The leading NINFE elements of INFE contain the
+          multiplicities of infinite eigenvalues.
+
+  KRONL   (output) INTEGER array, dimension (L+P+1)
+          The leading NKROL elements of this array contain the
+          left Kronecker (row) indices.
+
+</PRE>
+<B>Tolerances</B>
+<PRE>
+  TOL     DOUBLE PRECISION
+          A tolerance used in rank decisions to determine the
+          effective rank, which is defined as the order of the
+          largest leading (or trailing) triangular submatrix in the
+          QR (or RQ) factorization with column (or row) pivoting
+          whose estimated condition number is less than 1/TOL.
+          If the user sets TOL &lt;= 0, then default tolerances are
+          used instead, as follows: TOLDEF = L*N*EPS in TG01FD
+          (to determine the rank of E) and TOLDEF = (L+P)*(N+M)*EPS
+          in the rest, where EPS is the machine precision
+          (see LAPACK Library routine DLAMCH).  TOL &lt; 1.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  IWORK   INTEGER array, dimension (N+max(1,M))
+          On output, IWORK(1) contains the normal rank of the
+          transfer function matrix.
+
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+          On exit, if INFO = 0, DWORK(1) returns the optimal value
+          of LDWORK.
+
+  LDWORK  INTEGER
+          The length of the array DWORK.
+          LDWORK &gt;= max( 4*(L+N), LDW ), if EQUIL = 'S',
+          LDWORK &gt;= LDW,                 if EQUIL = 'N', where
+          LDW = max(L+P,M+N)*(M+N) + max(1,5*max(L+P,M+N)).
+          For optimum performance LDWORK should be larger.
+
+          If LDWORK = -1, then a workspace query is assumed;
+          the routine only calculates the optimal size of the
+          DWORK array, returns this value as the first entry of
+          the DWORK array, and no error message related to LDWORK
+          is issued by XERBLA.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  The routine extracts from the system matrix of a descriptor
+  system (A-lambda*E,B,C,D) a regular pencil Af-lambda*Ef which
+  has the finite zeros of the system as generalized eigenvalues.
+  The procedure has the following main computational steps:
+
+     (a) construct the (L+P)-by-(N+M) system pencil
+
+          S(lambda) = ( B  A )-lambda*( 0  E );
+                      ( D  C )        ( 0  0 )
+
+     (b) reduce S(lambda) to S1(lambda) with the same finite
+         zeros and right Kronecker structure but with E
+         upper triangular and nonsingular;
+
+     (c) reduce S1(lambda) to S2(lambda) with the same finite
+         zeros and right Kronecker structure but with D of
+         full row rank;
+
+     (d) reduce S2(lambda) to S3(lambda) with the same finite zeros
+         and with D square invertible;
+
+     (e) perform a unitary transformation on the columns of
+
+         S3(lambda) = (A-lambda*E   B) in order to reduce it to
+                      (     C       D)
+
+         (Af-lambda*Ef   X), with Y and Ef square invertible;
+         (     0         Y)
+
+     (f) compute the right and left Kronecker indices of the system
+         matrix, which together with the multiplicities of the
+         finite and infinite eigenvalues constitute the
+         complete set of structural invariants under strict
+         equivalence transformations of a linear system.
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] P. Misra, P. Van Dooren and A. Varga.
+      Computation of structural invariants of generalized
+      state-space systems.
+      Automatica, 30, pp. 1921-1936, 1994.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  The algorithm is backward stable (see [1]).
+
+</PRE>
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  In order to compute the finite Smith zeros of the system
+  explicitly, a call to this routine may be followed by a
+  call to the LAPACK Library routines DGEGV or DGGEV.
+
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+*     AG08BD EXAMPLE PROGRAM TEXT
+*
+*     .. Parameters ..
+      DOUBLE PRECISION ZERO
+      PARAMETER        ( ZERO = 0.0D0 )
+      INTEGER          NIN, NOUT
+      PARAMETER        ( NIN = 5, NOUT = 6 )
+      INTEGER          LMAX, MMAX, NMAX, PMAX
+      PARAMETER        ( LMAX = 20, MMAX = 20, NMAX = 20, PMAX = 20 )
+      INTEGER          LDA, LDAEMX, LDB, LDC, LDD, LDE, LDQ, LDZ
+      PARAMETER        ( LDA = LMAX, LDB = LMAX, LDC = PMAX,
+     $                   LDD = PMAX, LDE = LMAX, LDQ = 1, LDZ = 1,
+     $                   LDAEMX = MAX( PMAX + LMAX, NMAX + MMAX ) )
+      INTEGER          LDWORK
+      PARAMETER        ( LDWORK = MAX( 4*( LMAX + NMAX ),  8*NMAX,
+     $                                 LDAEMX*LDAEMX +
+     $                                 MAX( 1, 5*LDAEMX ) ) )
+*     .. Local Scalars ..
+      DOUBLE PRECISION TOL
+      INTEGER          DINFZ, I, INFO, J, L, M, N, NFZ, NINFE, NIZ,
+     $                 NKROL, NKROR, NRANK, P
+      CHARACTER*1      EQUIL
+*     .. Local Arrays ..
+      DOUBLE PRECISION A(LDA,NMAX), ALFI(NMAX), ALFR(NMAX),
+     $                 ASAVE(LDA,NMAX), B(LDB,MMAX), BETA(NMAX),
+     $                 BSAVE(LDB,MMAX), C(LDC,NMAX), CSAVE(LDC,NMAX),
+     $                 D(LDD,MMAX), DSAVE(LDD,MMAX), DWORK(LDWORK),
+     $                 E(LDE,NMAX), ESAVE(LDE,NMAX), Q(LDQ,1), Z(LDZ,1)
+      INTEGER          INFE(1+LMAX+PMAX), INFZ(NMAX+1),
+     $                 IWORK(NMAX+MMAX), KRONL(LMAX+PMAX+1),
+     $                 KRONR(NMAX+MMAX+1)
+*     .. External Subroutines ..
+      EXTERNAL         AG08BD, DGEGV, DLACPY
+*     .. Intrinsic Functions ..
+      INTRINSIC        MAX
+*     .. Executable Statements ..
+*
+      WRITE ( NOUT, FMT = 99999 )
+*     Skip the heading in the data file and read the data.
+      READ ( NIN, FMT = '()' )
+      READ ( NIN, FMT = * ) L, N, M, P, TOL, EQUIL
+      IF( ( L.LT.0 .OR. L.GT.LMAX ) .OR. ( N.LT.0 .OR. N.GT.NMAX ) )
+     $   THEN
+         WRITE ( NOUT, FMT = 99972 ) L, N
+      ELSE
+         IF( M.LT.0 .OR. M.GT.MMAX ) THEN
+            WRITE ( NOUT, FMT = 99971 ) M
+         ELSE
+            IF( P.LT.0 .OR. P.GT.PMAX ) THEN
+               WRITE ( NOUT, FMT = 99970 ) P
+            ELSE
+               READ ( NIN, FMT = * ) ( ( A(I,J), J = 1,N ), I = 1,L )
+               READ ( NIN, FMT = * ) ( ( E(I,J), J = 1,N ), I = 1,L )
+               READ ( NIN, FMT = * ) ( ( B(I,J), J = 1,M ), I = 1,L )
+               READ ( NIN, FMT = * ) ( ( C(I,J), J = 1,N ), I = 1,P )
+               READ ( NIN, FMT = * ) ( ( D(I,J), J = 1,M ), I = 1,P )
+               CALL DLACPY( 'F', L, N, A, LDA, ASAVE, LDA )
+               CALL DLACPY( 'F', L, N, E, LDE, ESAVE, LDE )
+               CALL DLACPY( 'F', L, M, B, LDB, BSAVE, LDB )
+               CALL DLACPY( 'F', P, N, C, LDC, CSAVE, LDC )
+               CALL DLACPY( 'F', P, M, D, LDD, DSAVE, LDD )
+*              Compute poles (call the routine with M = 0, P = 0).
+               CALL AG08BD( EQUIL, L, N, 0, 0, A, LDA, E, LDE, B, LDB,
+     $                      C, LDC, D, LDD, NFZ, NRANK, NIZ, DINFZ,
+     $                      NKROR, NINFE, NKROL, INFZ, KRONR, INFE,
+     $                      KRONL, TOL, IWORK, DWORK, LDWORK, INFO )
+*
+               IF( INFO.NE.0 ) THEN
+                  WRITE ( NOUT, FMT = 99998 ) INFO
+               ELSE
+                  WRITE ( NOUT, FMT = 99968 ) NIZ
+                  DO 10 I = 1, DINFZ
+                     WRITE ( NOUT, FMT = 99967 ) INFZ(I), I
+   10             CONTINUE
+                  WRITE ( NOUT, FMT = 99962 ) NINFE
+                  IF( NINFE.GT.0 ) WRITE ( NOUT, FMT = 99958 )
+     $                                      ( INFE(I), I = 1,NINFE )
+                  IF( NFZ.EQ.0 ) THEN
+                     WRITE ( NOUT, FMT = 99965 )
+                  ELSE
+                     WRITE ( NOUT, FMT = 99966 )
+                     WRITE ( NOUT, FMT = 99990 )
+                     DO 20 I = 1, NFZ
+                        WRITE ( NOUT, FMT = 99989 )
+     $                        ( A(I,J), J = 1,NFZ )
+   20                CONTINUE
+                     WRITE ( NOUT, FMT = 99995 )
+                     DO 30 I = 1, NFZ
+                        WRITE ( NOUT, FMT = 99989 )
+     $                        ( E(I,J), J = 1,NFZ )
+   30                CONTINUE
+                     CALL DGEGV( 'No vectors', 'No vectors', NFZ, A,
+     $                           LDA, E, LDE, ALFR, ALFI, BETA, Q,
+     $                           LDQ, Z, LDZ, DWORK, LDWORK, INFO )
+*
+                     IF( INFO.NE.0 ) THEN
+                        WRITE ( NOUT, FMT = 99997 ) INFO
+                     ELSE
+                        WRITE ( NOUT, FMT = 99996 )
+                        DO 40 I = 1, NFZ
+                           IF( ALFI(I).EQ.ZERO ) THEN
+                              WRITE ( NOUT, FMT = 99980 )
+     $                                ALFR(I)/BETA(I)
+                           ELSE
+                              WRITE ( NOUT, FMT = 99979 )
+     $                                ALFR(I)/BETA(I),
+     $                                ALFI(I)/BETA(I)
+                           END IF
+   40                   CONTINUE
+                     END IF
+                  END IF
+               END IF
+               CALL DLACPY( 'F', L, N, ASAVE, LDA, A, LDA )
+               CALL DLACPY( 'F', L, N, ESAVE, LDE, E, LDE )
+*              Check the observability and compute the ordered set of
+*              the observability indices (call the routine with M = 0).
+               CALL AG08BD( EQUIL, L, N, 0, P, A, LDA, E, LDE, B, LDB,
+     $                      C, LDC, D, LDD, NFZ, NRANK, NIZ, DINFZ,
+     $                      NKROR, NINFE, NKROL, INFZ, KRONR, INFE,
+     $                      KRONL, TOL, IWORK, DWORK, LDWORK, INFO )
+*
+               IF( INFO.NE.0 ) THEN
+                  WRITE ( NOUT, FMT = 99998 ) INFO
+               ELSE
+                  WRITE ( NOUT, FMT = 99964 ) NIZ
+                  DO 50 I = 1, DINFZ
+                     WRITE ( NOUT, FMT = 99967 ) INFZ(I), I
+   50             CONTINUE
+                  WRITE ( NOUT, FMT = 99962 ) NINFE
+                  IF( NINFE.GT.0 ) WRITE ( NOUT, FMT = 99960 )
+     $                                     ( INFE(I), I = 1,NINFE )
+                  WRITE ( NOUT, FMT = 99994 ) ( KRONL(I), I = 1,NKROL )
+                  IF( NFZ+NINFE.EQ.0 ) WRITE ( NOUT, FMT = 99993 )
+                  IF( NFZ.EQ.0 ) THEN
+                     WRITE ( NOUT, FMT = 99957 )
+                  ELSE
+                     WRITE ( NOUT, FMT = 99991 )
+                     WRITE ( NOUT, FMT = 99990 )
+                     DO 60 I = 1, NFZ
+                        WRITE ( NOUT, FMT = 99989 )
+     $                        ( A(I,J), J = 1,NFZ )
+   60                CONTINUE
+                     WRITE ( NOUT, FMT = 99995 )
+                     DO 70 I = 1, NFZ
+                        WRITE ( NOUT, FMT = 99989 )
+     $                        ( E(I,J), J = 1,NFZ )
+   70                CONTINUE
+                     CALL DGEGV( 'No vectors', 'No vectors', NFZ, A,
+     $                           LDA, E, LDE, ALFR, ALFI, BETA, Q,
+     $                           LDQ, Z, LDZ, DWORK, LDWORK, INFO )
+*
+                     IF( INFO.NE.0 ) THEN
+                        WRITE ( NOUT, FMT = 99997 ) INFO
+                     ELSE
+                        WRITE ( NOUT, FMT = 99996 )
+                        DO 80 I = 1, NFZ
+                           IF( ALFI(I).EQ.ZERO ) THEN
+                              WRITE ( NOUT, FMT = 99980 )
+     $                                ALFR(I)/BETA(I)
+                           ELSE
+                              WRITE ( NOUT, FMT = 99979 )
+     $                                ALFR(I)/BETA(I),
+     $                                ALFI(I)/BETA(I)
+                           END IF
+   80                   CONTINUE
+                     END IF
+                  END IF
+               END IF
+               CALL DLACPY( 'F', L, N, ASAVE, LDA, A, LDA )
+               CALL DLACPY( 'F', L, N, ESAVE, LDE, E, LDE )
+               CALL DLACPY( 'F', P, N, CSAVE, LDC, C, LDC )
+*              Check the controllability and compute the ordered set of
+*              the controllability indices (call the routine with P = 0)
+               CALL AG08BD( EQUIL, L, N, M, 0, A, LDA, E, LDE, B, LDB,
+     $                      C, LDC, D, LDD, NFZ, NRANK, NIZ, DINFZ,
+     $                      NKROR, NINFE, NKROL, INFZ, KRONR, INFE,
+     $                      KRONL, TOL, IWORK, DWORK, LDWORK, INFO )
+*
+               IF( INFO.NE.0 ) THEN
+                  WRITE ( NOUT, FMT = 99998 ) INFO
+               ELSE
+                  WRITE ( NOUT, FMT = 99963 ) NIZ
+                  DO 90  I = 1, DINFZ
+                     WRITE ( NOUT, FMT = 99967 ) INFZ(I), I
+   90             CONTINUE
+                  WRITE ( NOUT, FMT = 99962 ) NINFE
+                  IF( NINFE.GT.0 ) WRITE ( NOUT, FMT = 99959 )
+     $                                     ( INFE(I), I = 1,NINFE )
+                  WRITE ( NOUT, FMT = 99988 ) ( KRONR(I), I = 1,NKROR )
+                  IF( NFZ+NINFE.EQ.0 ) WRITE ( NOUT, FMT = 99987 )
+                  IF( NFZ.EQ.0 ) THEN
+                     WRITE ( NOUT, FMT = 99956 )
+                  ELSE
+                     WRITE ( NOUT, FMT = 99985 )
+                     WRITE ( NOUT, FMT = 99990 )
+                     DO 100 I = 1, NFZ
+                        WRITE ( NOUT, FMT = 99989 )
+     $                        ( A(I,J), J = 1,NFZ )
+  100                CONTINUE
+                     WRITE ( NOUT, FMT = 99995 )
+                     DO 110 I = 1, NFZ
+                        WRITE ( NOUT, FMT = 99989 )
+     $                        ( E(I,J), J = 1,NFZ )
+  110                CONTINUE
+                     CALL DGEGV( 'No vectors', 'No vectors', NFZ, A,
+     $                           LDA, E, LDE, ALFR, ALFI, BETA, Q,
+     $                           LDQ, Z, LDZ, DWORK, LDWORK, INFO )
+*
+                     IF( INFO.NE.0 ) THEN
+                        WRITE ( NOUT, FMT = 99997 ) INFO
+                     ELSE
+                        WRITE ( NOUT, FMT = 99982 )
+                        DO 120 I = 1, NFZ
+                           IF( ALFI(I).EQ.ZERO ) THEN
+                              WRITE ( NOUT, FMT = 99980 )
+     $                                ALFR(I)/BETA(I)
+                           ELSE
+                              WRITE ( NOUT, FMT = 99979 )
+     $                                ALFR(I)/BETA(I),
+     $                                ALFI(I)/BETA(I)
+                           END IF
+  120                   CONTINUE
+                     END IF
+                  END IF
+               END IF
+               CALL DLACPY( 'F', L, N, ASAVE, LDA, A, LDA )
+               CALL DLACPY( 'F', L, N, ESAVE, LDE, E, LDE )
+               CALL DLACPY( 'F', L, M, BSAVE, LDB, B, LDB )
+               CALL DLACPY( 'F', P, N, CSAVE, LDC, C, LDC )
+               CALL DLACPY( 'F', P, M, DSAVE, LDD, D, LDD )
+*              Compute the structural invariants of the given system.
+               CALL AG08BD( EQUIL, L, N, M, P, A, LDA, E, LDE, B, LDB,
+     $                      C, LDC, D, LDD, NFZ, NRANK, NIZ, DINFZ,
+     $                      NKROR, NINFE, NKROL, INFZ, KRONR, INFE,
+     $                      KRONL, TOL, IWORK, DWORK, LDWORK, INFO )
+*
+               IF( INFO.NE.0 ) THEN
+                  WRITE ( NOUT, FMT = 99998 ) INFO
+               ELSE
+                  IF( L.EQ.N ) THEN
+                     WRITE ( NOUT, FMT = 99969 ) NRANK - N
+                  ELSE
+                     WRITE ( NOUT, FMT = 99955 ) NRANK
+                  END IF
+                  WRITE ( NOUT, FMT = 99984 ) NFZ
+                  IF( NFZ.GT.0 ) THEN
+*                    Compute the finite zeros of the given system.
+*                    Workspace: need 8*NFZ.
+                     WRITE ( NOUT, FMT = 99983 )
+                     WRITE ( NOUT, FMT = 99990 )
+                     DO 130 I = 1, NFZ
+                        WRITE ( NOUT, FMT = 99989 )
+     $                        ( A(I,J), J = 1,NFZ )
+  130                CONTINUE
+                     WRITE ( NOUT, FMT = 99995 )
+                     DO 140 I = 1, NFZ
+                        WRITE ( NOUT, FMT = 99989 )
+     $                        ( E(I,J), J = 1,NFZ )
+  140                CONTINUE
+                     CALL DGEGV( 'No vectors', 'No vectors', NFZ, A,
+     $                           LDA, E, LDE, ALFR, ALFI, BETA, Q,
+     $                           LDQ, Z, LDZ, DWORK, LDWORK, INFO )
+*
+                     IF( INFO.NE.0 ) THEN
+                        WRITE ( NOUT, FMT = 99997 ) INFO
+                     ELSE
+                        WRITE ( NOUT, FMT = 99981 )
+                        DO 150 I = 1, NFZ
+                           IF( ALFI(I).EQ.ZERO ) THEN
+                              WRITE ( NOUT, FMT = 99980 )
+     $                                ALFR(I)/BETA(I)
+                           ELSE
+                              WRITE ( NOUT, FMT = 99979 )
+     $                                ALFR(I)/BETA(I),
+     $                                ALFI(I)/BETA(I)
+                           END IF
+  150                   CONTINUE
+                     END IF
+                  END IF
+                  WRITE ( NOUT, FMT = 99978 ) NIZ
+                  DO 160 I = 1, DINFZ
+                     WRITE ( NOUT, FMT = 99977 ) INFZ(I), I
+  160             CONTINUE
+                  WRITE ( NOUT, FMT = 99962 ) NINFE
+                  IF( NINFE.GT.0 ) WRITE ( NOUT, FMT = 99961 )
+     $                                     ( INFE(I), I = 1,NINFE )
+                  WRITE ( NOUT, FMT = 99976 ) NKROR
+                  IF( NKROR.GT.0 ) WRITE ( NOUT, FMT = 99975 )
+     $                                     ( KRONR(I), I = 1,NKROR )
+                  WRITE ( NOUT, FMT = 99974 ) NKROL
+                  IF( NKROL.GT.0 ) WRITE ( NOUT, FMT = 99973 )
+     $                                     ( KRONL(I), I = 1,NKROL )
+               END IF
+            END IF
+         END IF
+      END IF
+*
+      STOP
+*
+99999 FORMAT (' AG08BD EXAMPLE PROGRAM RESULTS',/1X)
+99998 FORMAT (' INFO on exit from AG08BD = ',I2)
+99997 FORMAT (' INFO on exit from DGEGV = ',I2)
+99996 FORMAT (/'Unobservable finite eigenvalues'/
+     $         ' real  part     imag  part ')
+99995 FORMAT (/' The matrix Ef is ')
+99994 FORMAT (/' The left Kronecker indices of [A-lambda*E;C] are ',
+     $          /(20(I3,2X)))
+99993 FORMAT (/' The system (A-lambda*E,C) is completely observable ')
+99991 FORMAT (/' The finite output decoupling zeros are the eigenvalues'
+     $       ,' of the pair (Af,Ef). ')
+99990 FORMAT (/' The matrix Af is ')
+99989 FORMAT (20(1X,F8.4))
+99988 FORMAT (/' The right Kronecker indices of [A-lambda*E,B] are ',
+     $        /( 20(I3,2X) ) )
+99987 FORMAT (/' The system (A-lambda*E,B) is completely controllable ')
+99985 FORMAT (/' The input decoupling zeros are the eigenvalues of the',
+     $       ' pair (Af,Ef). ')
+99984 FORMAT (/' The number of finite zeros = ',I3)
+99983 FORMAT (/' The finite zeros are the eigenvalues ',
+     $         'of the pair (Af,Ef)')
+99982 FORMAT (/'Uncontrollable finite eigenvalues'/
+     $         ' real  part     imag  part ')
+99981 FORMAT (/'Finite zeros'/' real  part     imag  part ')
+99980 FORMAT (1X,F9.4)
+99979 FORMAT (1X,F9.4,6X,F9.4)
+99978 FORMAT (//' The number of infinite zeros = ',I3)
+99977 FORMAT ( I4,' infinite zero(s) of order ',I3)
+99976 FORMAT (/' The number of right Kronecker indices = ',I3)
+99975 FORMAT (/' Right Kronecker indices of [A-lambda*E,B;C,D]'
+     $         ,' are ', /(20(I3,2X)))
+99974 FORMAT (/' The number of left Kronecker indices = ',I3)
+99973 FORMAT (/' The left Kronecker indices of [A-lambda*E,B;C,D]'
+     $         ,' are ',  /(20(I3,2X)))
+99972 FORMAT (/' L or N is out of range.',/' L = ', I5, '  N = ',I5)
+99971 FORMAT (/' M is out of range.',/' M = ',I5)
+99970 FORMAT (/' P is out of range.',/' P = ',I5)
+99969 FORMAT (/' Normal rank  of transfer function matrix = ',I3)
+99968 FORMAT (//' The number of infinite poles = ',I3)
+99967 FORMAT ( I4,' infinite pole(s) of order ',I3)
+99966 FORMAT (/' The finite poles are the eigenvalues',
+     $       ' of the pair (Af,Ef). ')
+99965 FORMAT (/' The system has no finite poles ')
+99964 FORMAT (//' The number of unobservable infinite poles = ',I3)
+99963 FORMAT (//' The number of uncontrollable infinite poles = ',I3)
+99962 FORMAT (/' The number of infinite Kronecker blocks = ',I3)
+99961 FORMAT (/' Multiplicities of infinite eigenvalues of '
+     $         ,'[A-lambda*E,B;C,D] are ', /(20(I3,2X)))
+99960 FORMAT (/' Multiplicities of infinite eigenvalues of '
+     $         ,'[A-lambda*E;C] are ', /(20(I3,2X)))
+99959 FORMAT (/' Multiplicities of infinite eigenvalues of '
+     $         ,'[A-lambda*E,B] are ', /(20(I3,2X)))
+99958 FORMAT (/' Multiplicities of infinite eigenvalues of A-lambda*E'
+     $         ,' are ', /(20(I3,2X)))
+99957 FORMAT (/' The system (A-lambda*E,C) has no finite output',
+     $         ' decoupling zeros ')
+99956 FORMAT (/' The system (A-lambda*E,B) has no finite input',
+     $         ' decoupling zeros ')
+99955 FORMAT (/' Normal rank  of system pencil = ',I3)
+      END
+</PRE>
+<B>Program Data</B>
+<PRE>
+ AG08BD EXAMPLE PROGRAM DATA
+   9    9    3     3     1.e-7     N
+     1     0     0     0     0     0     0     0     0
+     0     1     0     0     0     0     0     0     0
+     0     0     1     0     0     0     0     0     0
+     0     0     0     1     0     0     0     0     0
+     0     0     0     0     1     0     0     0     0
+     0     0     0     0     0     1     0     0     0
+     0     0     0     0     0     0     1     0     0
+     0     0     0     0     0     0     0     1     0
+     0     0     0     0     0     0     0     0     1
+     0     0     0     0     0     0     0     0     0
+     1     0     0     0     0     0     0     0     0
+     0     1     0     0     0     0     0     0     0
+     0     0     0     0     0     0     0     0     0
+     0     0     0     1     0     0     0     0     0
+     0     0     0     0     1     0     0     0     0
+     0     0     0     0     0     0     0     0     0
+     0     0     0     0     0     0     1     0     0
+     0     0     0     0     0     0     0     1     0
+    -1     0     0
+     0     0     0
+     0     0     0
+     0    -1     0
+     0     0     0
+     0     0     0
+     0     0    -1
+     0     0     0
+     0     0     0
+     0     1     1     0     3     4     0     0     2
+     0     1     0     0     4     0     0     2     0
+     0     0     1     0    -1     4     0    -2     2
+     1     2    -2
+     0    -1    -2
+     0     0     0
+
+</PRE>
+<B>Program Results</B>
+<PRE>
+ AG08BD EXAMPLE PROGRAM RESULTS
+
+
+
+ The number of infinite poles =   6
+   0 infinite pole(s) of order   1
+   3 infinite pole(s) of order   2
+
+ The number of infinite Kronecker blocks =   3
+
+ Multiplicities of infinite eigenvalues of A-lambda*E are 
+  3    3    3
+
+ The system has no finite poles 
+
+
+ The number of unobservable infinite poles =   4
+   0 infinite pole(s) of order   1
+   2 infinite pole(s) of order   2
+
+ The number of infinite Kronecker blocks =   3
+
+ Multiplicities of infinite eigenvalues of [A-lambda*E;C] are 
+  1    3    3
+
+ The left Kronecker indices of [A-lambda*E;C] are 
+  0    1    1
+
+ The system (A-lambda*E,C) has no finite output decoupling zeros 
+
+
+ The number of uncontrollable infinite poles =   0
+
+ The number of infinite Kronecker blocks =   3
+
+ Multiplicities of infinite eigenvalues of [A-lambda*E,B] are 
+  1    1    1
+
+ The right Kronecker indices of [A-lambda*E,B] are 
+  2    2    2
+
+ The system (A-lambda*E,B) has no finite input decoupling zeros 
+
+ Normal rank  of transfer function matrix =   2
+
+ The number of finite zeros =   1
+
+ The finite zeros are the eigenvalues of the pair (Af,Ef)
+
+ The matrix Af is 
+   0.7705
+
+ The matrix Ef is 
+   0.7705
+
+Finite zeros
+ real  part     imag  part 
+    1.0000
+
+
+ The number of infinite zeros =   2
+   0 infinite zero(s) of order   1
+   1 infinite zero(s) of order   2
+
+ The number of infinite Kronecker blocks =   5
+
+ Multiplicities of infinite eigenvalues of [A-lambda*E,B;C,D] are 
+  1    1    1    1    3
+
+ The number of right Kronecker indices =   1
+
+ Right Kronecker indices of [A-lambda*E,B;C,D] are 
+  2
+
+ The number of left Kronecker indices =   1
+
+ The left Kronecker indices of [A-lambda*E,B;C,D] are 
+  1
+</PRE>
+
+<HR>
+<p>
+<A HREF=..\libindex.html><B>Return to index</B></A></BODY>
+</HTML>

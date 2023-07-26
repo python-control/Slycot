@@ -1,0 +1,112 @@
+<HTML>
+<HEAD><TITLE>MA02NZ - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MA02NZ">MA02NZ</A></H2>
+<H3>
+Permute two rows and corresponding columns of a (skew-)symmetric/Hermitian complex matrix
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To permute two specified rows and corresponding columns of a
+  (skew-)symmetric/Hermitian complex matrix.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MA02NZ( UPLO, TRANS, SKEW, N, K, L, A, LDA )
+C     .. Scalar Arguments ..
+      CHARACTER          SKEW, TRANS, UPLO
+      INTEGER            K, L, LDA, N
+C     .. Array Arguments ..
+      COMPLEX*16         A(LDA,*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  UPLO    CHARACTER*1
+          Specifies whether the upper or lower triangular part of
+          the (skew-)symmetric/Hermitian matrix A is to be
+          referenced, as follows:
+          = 'U':  Upper triangular part of A is referenced;
+          = 'L':  Lower triangular part of A is referenced.
+
+  TRANS   CHARACTER*1
+          Specifies whether to use transposition or conjugate
+          transposition as follows:
+          = 'T':  Use transposition;
+          = 'C':  Use conjugate transposition.
+
+  SKEW    CHARACTER*1
+          Specifies whether the matrix is symmetric/Hermitian or
+          skew-symmetric/Hermitian as follows:
+          = 'N':  The matrix is symmetric/Hermitian;
+          = 'S':  The matrix is skew-symmetric/skew-Hermitian.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The order of the matrix A.  N &gt;= 0.
+
+  K       (input) INTEGER
+          The smaller index of the pair of rows and columns to be
+          permuted.  0 &lt;= K &lt;= L. If K = 0, the routine returns.
+
+  L       (input) INTEGER
+          The larger index of the pair of rows and columns to be
+          permuted.  K &lt;= L &lt;= N.
+
+  A       (input/output) COMPLEX*16 array, dimension (LDA,N)
+          On entry, the leading N-by-N upper triangular part
+          (if UPLO = 'U'), or lower triangular part (if UPLO = 'L'),
+          of this array must contain the corresponding upper or
+          lower triangle of the (skew-)symmetric/Hermitian matrix A.
+          On exit, the leading N-by-N upper or lower triangular part
+          of this array (depending on UPLO) contains the
+          corresponding part of the permuted matrix A.
+          Note that a Hermitian matrix has the imaginary parts of
+          the diagonal entries zero. Similarly, a skew-Hermitian
+          matrix has the real parts of the diagonal entries zero.
+          The routine does not check out this conditions.
+
+  LDA     INTEGER
+          The leading dimension of the array A.  LDA &gt;= max(N,1).
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

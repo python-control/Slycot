@@ -1,0 +1,310 @@
+<HTML>
+<HEAD><TITLE>MB03ZA - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MB03ZA">MB03ZA</A></H2>
+<H3>
+Reordering a selected cluster of eigenvalues of a given matrix pair in periodic Schur form
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  1. To compute, for a given matrix pair (A,B) in periodic Schur
+     form, orthogonal matrices Ur and Vr so that
+
+         T           [ A11  A12 ]     T           [ B11  B12 ]
+       Vr * A * Ur = [          ],  Ur * B * Vr = [          ], (1)
+                     [  0   A22 ]                 [  0   B22 ]
+
+     is in periodic Schur form, and the eigenvalues of A11*B11
+     form a selected cluster of eigenvalues.
+
+  2. To compute an orthogonal matrix W so that
+
+                T  [  0  -A11 ]       [  R11   R12 ]
+               W * [          ] * W = [            ],           (2)
+                   [ B11   0  ]       [   0    R22 ]
+
+     where the eigenvalues of R11 and -R22 coincide and have
+     positive real part.
+
+  Optionally, the matrix C is overwritten by Ur'*C*Vr.
+
+  All eigenvalues of A11*B11 must either be complex or real and
+  negative.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MB03ZA( COMPC, COMPU, COMPV, COMPW, WHICH, SELECT, N,
+     $                   A, LDA, B, LDB, C, LDC, U1, LDU1, U2, LDU2, V1,
+     $                   LDV1, V2, LDV2, W, LDW, WR, WI, M, DWORK,
+     $                   LDWORK, INFO )
+C     .. Scalar Arguments ..
+      CHARACTER         COMPC, COMPU, COMPV, COMPW, WHICH
+      INTEGER           INFO, LDA, LDB, LDC, LDU1, LDU2, LDV1, LDV2,
+     $                  LDW, LDWORK, M, N
+C     .. Array Arguments ..
+      LOGICAL           SELECT(*)
+      DOUBLE PRECISION  A(LDA,*), B(LDB,*), C(LDC,*), DWORK(*),
+     $                  U1(LDU1,*), U2(LDU2,*), V1(LDV1,*), V2(LDV2,*),
+     $                  W(LDW,*), WI(*), WR(*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  COMPC   CHARACTER*1
+          = 'U':  update the matrix C;
+          = 'N':  do not update C.
+
+  COMPU   CHARACTER*1
+          = 'U':  update the matrices U1 and U2;
+          = 'N':  do not update U1 and U2.
+          See the description of U1 and U2.
+
+  COMPV   CHARACTER*1
+          = 'U':  update the matrices V1 and V2;
+          = 'N':  do not update V1 and V2.
+          See the description of V1 and V2.
+
+  COMPW   CHARACTER*1
+          Indicates whether or not the user wishes to accumulate
+          the matrix W as follows:
+          = 'N':  the matrix W is not required;
+          = 'I':  W is initialized to the unit matrix and the
+                  orthogonal transformation matrix W is returned;
+          = 'V':  W must contain an orthogonal matrix Q on entry,
+                  and the product Q*W is returned.
+
+  WHICH   CHARACTER*1
+          = 'A':  select all eigenvalues, this effectively means
+                  that Ur and Vr are identity matrices and A11 = A,
+                  B11 = B;
+          = 'S':  select a cluster of eigenvalues specified by
+                  SELECT.
+
+  SELECT  LOGICAL array, dimension (N)
+          If WHICH = 'S', then SELECT specifies the eigenvalues of
+          A*B in the selected cluster. To select a real eigenvalue
+          w(j), SELECT(j) must be set to .TRUE.. To select a complex
+          conjugate pair of eigenvalues w(j) and w(j+1),
+          corresponding to a 2-by-2 diagonal block in A, both
+          SELECT(j) and SELECT(j+1) must be set to .TRUE.; a complex
+          conjugate pair of eigenvalues must be either both included
+          in the cluster or both excluded.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The order of the matrix A. N &gt;= 0.
+
+  A       (input/output) DOUBLE PRECISION array, dimension (LDA,N)
+          On entry, the leading N-by-N part of this array must
+          contain the upper quasi-triangular matrix A of the matrix
+          pair (A,B) in periodic Schur form.
+          On exit, the leading M-by-M part of this array contains
+          the matrix R22 in (2).
+
+  LDA     INTEGER
+          The leading dimension of the array A.  LDA &gt;= MAX(1,N).
+
+  B       (input/output) DOUBLE PRECISION array, dimension (LDB,N)
+          On entry, the leading N-by-N part of this array must
+          contain the upper triangular matrix B of the matrix pair
+          (A,B) in periodic Schur form.
+          On exit, the leading N-by-N part of this array is
+          overwritten.
+
+  LDB     INTEGER
+          The leading dimension of the array B.  LDB &gt;= MAX(1,N).
+
+  C       (input/output) DOUBLE PRECISION array, dimension (LDC,N)
+          On entry, if COMPC = 'U', the leading N-by-N part of this
+          array must contain a general matrix C.
+          On exit, if COMPC = 'U', the leading N-by-N part of this
+          array contains the updated matrix Ur'*C*Vr.
+          If COMPC = 'N' or WHICH = 'A', this array is not
+          referenced.
+
+  LDC     INTEGER
+          The leading dimension of the array C.  LDC &gt;= 1.
+          LDC &gt;= N,  if COMPC = 'U' and WHICH = 'S'.
+
+  U1      (input/output) DOUBLE PRECISION array, dimension (LDU1,N)
+          On entry, if COMPU = 'U' and WHICH = 'S', the leading
+          N-by-N part of this array must contain U1, the (1,1)
+          block of an orthogonal symplectic matrix
+          U = [ U1, U2; -U2, U1 ].
+          On exit, if COMPU = 'U' and WHICH = 'S', the leading
+          N-by-N part of this array contains U1*Ur.
+          If COMPU = 'N' or WHICH = 'A', this array is not
+          referenced.
+
+  LDU1    INTEGER
+          The leading dimension of the array U1.  LDU1 &gt;= 1.
+          LDU1 &gt;= N,  if COMPU = 'U' and WHICH = 'S'.
+
+  U2      (input/output) DOUBLE PRECISION array, dimension (LDU2,N)
+          On entry, if COMPU = 'U' and WHICH = 'S', the leading
+          N-by-N part of this array must contain U2, the (1,2)
+          block of an orthogonal symplectic matrix
+          U = [ U1, U2; -U2, U1 ].
+          On exit, if COMPU = 'U' and WHICH = 'S', the leading
+          N-by-N part of this array contains U2*Ur.
+          If COMPU = 'N' or WHICH = 'A', this array is not
+          referenced.
+
+  LDU2    INTEGER
+          The leading dimension of the array U2.  LDU2 &gt;= 1.
+          LDU2 &gt;= N,  if COMPU = 'U' and WHICH = 'S'.
+
+  V1      (input/output) DOUBLE PRECISION array, dimension (LDV1,N)
+          On entry, if COMPV = 'U' and WHICH = 'S', the leading
+          N-by-N part of this array must contain V1, the (1,1)
+          block of an orthogonal symplectic matrix
+          V = [ V1, V2; -V2, V1 ].
+          On exit, if COMPV = 'U' and WHICH = 'S', the leading
+          N-by-N part of this array contains V1*Vr.
+          If COMPV = 'N' or WHICH = 'A', this array is not
+          referenced.
+
+  LDV1    INTEGER
+          The leading dimension of the array V1.  LDV1 &gt;= 1.
+          LDV1 &gt;= N,  if COMPV = 'U' and WHICH = 'S'.
+
+  V2      (input/output) DOUBLE PRECISION array, dimension (LDV2,N)
+          On entry, if COMPV = 'U' and WHICH = 'S', the leading
+          N-by-N part of this array must contain V2, the (1,2)
+          block of an orthogonal symplectic matrix
+          V = [ V1, V2; -V2, V1 ].
+          On exit, if COMPV = 'U' and WHICH = 'S', the leading
+          N-by-N part of this array contains V2*Vr.
+          If COMPV = 'N' or WHICH = 'A', this array is not
+          referenced.
+
+  LDV2    INTEGER
+          The leading dimension of the array V2.  LDV2 &gt;= 1.
+          LDV2 &gt;= N,  if COMPV = 'U' and WHICH = 'S'.
+
+  W       (input/output) DOUBLE PRECISION array, dimension (LDW,2*M)
+          On entry, if COMPW = 'V', then the leading 2*M-by-2*M part
+          of this array must contain a matrix W.
+          If COMPW = 'I', then W need not be set on entry, W is set
+          to the identity matrix.
+          On exit, if COMPW = 'I' or 'V' the leading 2*M-by-2*M part
+          of this array is post-multiplied by the transformation
+          matrix that produced (2).
+          If COMPW = 'N', this array is not referenced.
+
+  LDW     INTEGER
+          The leading dimension of the array W.  LDW &gt;= 1.
+          LDW &gt;= 2*M,  if COMPW = 'I' or COMPW = 'V'.
+
+  WR      (output) DOUBLE PRECISION array, dimension (M)
+  WI      (output) DOUBLE PRECISION array, dimension (M)
+          The real and imaginary parts, respectively, of the
+          eigenvalues of R11. The eigenvalues are stored in the same
+          order as on the diagonal of R22, with
+          WR(i) = -R22(i,i) and, if R22(i:i+1,i:i+1) is a 2-by-2
+          diagonal block, WI(i) &gt; 0 and WI(i+1) = -WI(i).
+          In exact arithmetic, these eigenvalue are the positive
+          square roots of the selected eigenvalues of the product
+          A*B. However, if an eigenvalue is sufficiently
+          ill-conditioned, then its value may differ significantly.
+
+  M       (output) INTEGER
+          The number of selected eigenvalues.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+          On exit, if  INFO = -28,  DWORK(1)  returns the minimum
+          value of LDWORK.
+
+  LDWORK  INTEGER
+          The length of the array DWORK.
+          LDWORK &gt;= MAX( 1, 4*N, 8*M ).
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value;
+          = 1:  reordering of the product A*B in Step 1 failed
+                because some eigenvalues are too close to separate;
+          = 2:  reordering of some submatrix in Step 2 failed
+                because some eigenvalues are too close to separate;
+          = 3:  the QR algorithm failed to compute the Schur form
+                of some submatrix in Step 2;
+          = 4:  the condition that all eigenvalues of A11*B11 must
+                either be complex or real and negative is
+                numerically violated.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  Step 1 is performed using a reordering technique analogous to the
+  LAPACK routine DTGSEN for reordering matrix pencils [1,2]. Step 2
+  is an implementation of Algorithm 2 in [3]. It requires O(M*N*N)
+  floating point operations.
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Kagstrom, B.
+      A direct method for reordering eigenvalues in the generalized
+      real Schur form of a regular matrix pair (A,B), in M.S. Moonen
+      et al (eds), Linear Algebra for Large Scale and Real-Time
+      Applications, Kluwer Academic Publ., 1993, pp. 195-218.
+
+  [2] Kagstrom, B. and Poromaa P.:
+      Computing eigenspaces with specified eigenvalues of a regular
+      matrix pair (A, B) and condition estimation: Theory,
+      algorithms and software, Numer. Algorithms, 1996, vol. 12,
+      pp. 369-407.
+
+  [3] Benner, P., Mehrmann, V., and Xu, H.
+      A new method for computing the stable invariant subspace of a
+      real Hamiltonian matrix,  J. Comput. Appl. Math., 86,
+      pp. 17-43, 1997.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

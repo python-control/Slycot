@@ -1,0 +1,128 @@
+<HTML>
+<HEAD><TITLE>MB05OY - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MB05OY">MB05OY</A></H2>
+<H3>
+Restoring a matrix after balancing transformations (permutations and scalings)
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To restore a matrix after it has been transformed by applying
+  balancing transformations (permutations and scalings), as
+  determined by LAPACK Library routine DGEBAL.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MB05OY( JOB, N, LOW, IGH, A, LDA, SCALE, INFO )
+C     .. Scalar Arguments ..
+      CHARACTER         JOB
+      INTEGER           IGH, INFO, LDA, LOW, N
+C     .. Array Arguments ..
+      DOUBLE PRECISION  A(LDA,*), SCALE(*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  JOB     CHARACTER*1
+          Specifies the type of backward transformation required,
+          as follows:
+          = 'N', do nothing, return immediately;
+          = 'P', do backward transformation for permutation only;
+          = 'S', do backward transformation for scaling only;
+          = 'B', do backward transformations for both permutation
+                 and scaling.
+          JOB must be the same as the argument JOB supplied
+          to DGEBAL.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The order of the matrix A.  N &gt;= 0.
+
+  LOW     (input) INTEGER
+  IGH     (input) INTEGER
+          The integers LOW and IGH determined by DGEBAL.
+          1 &lt;= LOW &lt;= IGH &lt;= N, if N &gt; 0; LOW=1 and IGH=0, if N=0.
+
+  A       (input/output) DOUBLE PRECISION array, dimension (LDA,N)
+          On entry, the leading N-by-N part of this array must
+          contain the matrix to be back-transformed.
+          On exit, the leading N-by-N part of this array contains
+          the transformed matrix.
+
+  LDA     INTEGER
+          The leading dimension of the array A.  LDA &gt;= max(1,N).
+
+  SCALE   (input) DOUBLE PRECISION array, dimension (N)
+          Details of the permutation and scaling factors, as
+          returned by DGEBAL.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  Let P be a permutation matrix, and D a diagonal matrix of scaling
+  factors, both of order N. The routine computes
+                  -1
+     A &lt;-- P D A D  P'.
+
+  where the permutation and scaling factors are encoded in the
+  array SCALE.
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  None.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>                            2
+  The algorithm requires O(N ) operations.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

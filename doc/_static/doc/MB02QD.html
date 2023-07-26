@@ -1,0 +1,345 @@
+<HTML>
+<HEAD><TITLE>MB02QD - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MB02QD">MB02QD</A></H2>
+<H3>
+Solution of a linear least squares problem corresponding to specified free elements
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To compute a solution, optionally corresponding to specified free
+  elements, to a real linear least squares problem:
+
+      minimize || A * X - B ||
+
+  using a complete orthogonal factorization of the M-by-N matrix A,
+  which may be rank-deficient.
+
+  Several right hand side vectors b and solution vectors x can be
+  handled in a single call; they are stored as the columns of the
+  M-by-NRHS right hand side matrix B and the N-by-NRHS solution
+  matrix X.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MB02QD( JOB, INIPER, M, N, NRHS, RCOND, SVLMAX, A, LDA,
+     $                   B, LDB, Y, JPVT, RANK, SVAL, DWORK, LDWORK,
+     $                   INFO )
+C     .. Scalar Arguments ..
+      CHARACTER          INIPER, JOB
+      INTEGER            INFO, LDA, LDB, LDWORK, M, N, NRHS, RANK
+      DOUBLE PRECISION   RCOND, SVLMAX
+C     .. Array Arguments ..
+      INTEGER            JPVT( * )
+      DOUBLE PRECISION   A( LDA, * ), B( LDB, * ), DWORK( * ),
+     $                   SVAL( 3 ), Y ( * )
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  JOB     CHARACTER*1
+          Specifies whether or not a standard least squares solution
+          must be computed, as follows:
+          = 'L':  Compute a standard least squares solution (Y = 0);
+          = 'F':  Compute a solution with specified free elements
+                  (given in Y).
+
+  INIPER  CHARACTER*1
+          Specifies whether an initial column permutation, defined
+          by JPVT, must be performed, as follows:
+          = 'P':  Perform an initial column permutation;
+          = 'N':  Do not perform an initial column permutation.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  M       (input) INTEGER
+          The number of rows of the matrix A.  M &gt;= 0.
+
+  N       (input) INTEGER
+          The number of columns of the matrix A.  N &gt;= 0.
+
+  NRHS    (input) INTEGER
+          The number of right hand sides, i.e., the number of
+          columns of the matrices B and X.  NRHS &gt;= 0.
+
+  RCOND   (input) DOUBLE PRECISION
+          RCOND is used to determine the effective rank of A, which
+          is defined as the order of the largest leading triangular
+          submatrix R11 in the QR factorization with pivoting of A,
+          whose estimated condition number is less than 1/RCOND.
+          0 &lt;= RCOND &lt;= 1.
+
+  SVLMAX  (input) DOUBLE PRECISION
+          If A is a submatrix of another matrix C, and the rank
+          decision should be related to that matrix, then SVLMAX
+          should be an estimate of the largest singular value of C
+          (for instance, the Frobenius norm of C).  If this is not
+          the case, the input value SVLMAX = 0 should work.
+          SVLMAX &gt;= 0.
+
+  A       (input/output) DOUBLE PRECISION array, dimension (LDA,N)
+          On entry, the leading M-by-N part of this array must
+          contain the given matrix A.
+          On exit, the leading M-by-N part of this array contains
+          details of its complete orthogonal factorization:
+          the leading RANK-by-RANK upper triangular part contains
+          the upper triangular factor T11 (see METHOD);
+          the elements below the diagonal, with the entries 2 to
+          min(M,N)+1 of the array DWORK, represent the orthogonal
+          matrix Q as a product of min(M,N) elementary reflectors
+          (see METHOD);
+          the elements of the subarray A(1:RANK,RANK+1:N), with the
+          next RANK entries of the array DWORK, represent the
+          orthogonal matrix Z as a product of RANK elementary
+          reflectors (see METHOD).
+
+  LDA     INTEGER
+          The leading dimension of the array A.  LDA &gt;= max(1,M).
+
+  B       (input/output) DOUBLE PRECISION array, dimension
+          (LDB,NRHS)
+          On entry, the leading M-by-NRHS part of this array must
+          contain the right hand side matrix B.
+          On exit, the leading N-by-NRHS part of this array contains
+          the solution matrix X.
+          If M &gt;= N and RANK = N, the residual sum-of-squares for
+          the solution in the i-th column is given by the sum of
+          squares of elements N+1:M in that column.
+          If NRHS = 0, this array is not referenced, and the routine
+          returns the effective rank of A, and its QR factorization.
+
+  LDB     INTEGER
+          The leading dimension of the array B.  LDB &gt;= max(1,M,N).
+
+  Y       (input) DOUBLE PRECISION array, dimension ( N*NRHS )
+          If JOB = 'F', the elements Y(1:(N-RANK)*NRHS) are used as
+          free elements in computing the solution (see METHOD).
+          The remaining elements are not referenced.
+          If JOB = 'L', or NRHS = 0, this array is not referenced.
+
+  JPVT    (input/output) INTEGER array, dimension (N)
+          On entry with INIPER = 'P', if JPVT(i) &lt;&gt; 0, the i-th
+          column of A is an initial column, otherwise it is a free
+          column.  Before the QR factorization of A, all initial
+          columns are permuted to the leading positions; only the
+          remaining free columns are moved as a result of column
+          pivoting during the factorization.
+          If INIPER = 'N', JPVT need not be set on entry.
+          On exit, if JPVT(i) = k, then the i-th column of A*P
+          was the k-th column of A.
+
+  RANK    (output) INTEGER
+          The effective rank of A, i.e., the order of the submatrix
+          R11.  This is the same as the order of the submatrix T11
+          in the complete orthogonal factorization of A.
+
+  SVAL    (output) DOUBLE PRECISION array, dimension ( 3 )
+          The estimates of some of the singular values of the
+          triangular factor R11:
+          SVAL(1): largest singular value of  R(1:RANK,1:RANK);
+          SVAL(2): smallest singular value of R(1:RANK,1:RANK);
+          SVAL(3): smallest singular value of R(1:RANK+1,1:RANK+1),
+                   if RANK &lt; MIN( M, N ), or of R(1:RANK,1:RANK),
+                   otherwise.
+          If the triangular factorization is a rank-revealing one
+          (which will be the case if the leading columns were well-
+          conditioned), then SVAL(1) will also be an estimate for
+          the largest singular value of A, and SVAL(2) and SVAL(3)
+          will be estimates for the RANK-th and (RANK+1)-st singular
+          values of A, respectively.
+          By examining these values, one can confirm that the rank
+          is well defined with respect to the chosen value of RCOND.
+          The ratio SVAL(1)/SVAL(2) is an estimate of the condition
+          number of R(1:RANK,1:RANK).
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+          On exit, if INFO = 0, DWORK(1) returns the optimal value
+          of LDWORK, and the entries 2 to min(M,N) + RANK + 1
+          contain the scalar factors of the elementary reflectors
+          used in the complete orthogonal factorization of A.
+          Among the entries 2 to min(M,N) + 1, only the first RANK
+          elements are useful, if INIPER = 'N'.
+
+  LDWORK  INTEGER
+          The length of the array DWORK.
+          LDWORK &gt;= max( min(M,N)+3*N+1, 2*min(M,N)+NRHS )
+          For optimum performance LDWORK should be larger.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  If INIPER = 'P', the routine first computes a QR factorization
+  with column pivoting:
+      A * P = Q * [ R11 R12 ]
+                  [  0  R22 ]
+  with R11 defined as the largest leading submatrix whose estimated
+  condition number is less than 1/RCOND.  The order of R11, RANK,
+  is the effective rank of A.
+  If INIPER = 'N', the effective rank is estimated during a
+  truncated QR factorization (with column pivoting) process, and
+  the submatrix R22 is not upper triangular, but full and of small
+  norm. (See SLICOT Library routines MB03OD or MB03OY, respectively,
+  for further details.)
+
+  Then, R22 is considered to be negligible, and R12 is annihilated
+  by orthogonal transformations from the right, arriving at the
+  complete orthogonal factorization:
+     A * P = Q * [ T11 0 ] * Z
+                 [  0  0 ]
+  The solution is then
+     X = P * Z' [ inv(T11)*Q1'*B ]
+                [        Y       ]
+  where Q1 consists of the first RANK columns of Q, and Y contains
+  free elements (if JOB = 'F'), or is zero (if JOB = 'L').
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  The algorithm is backward stable.
+
+</PRE>
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  Significant gain in efficiency is possible for small-rank problems
+  using truncated QR factorization (option INIPER = 'N').
+
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+*     MB02QD EXAMPLE PROGRAM TEXT
+*
+*     .. Parameters ..
+      INTEGER          NIN, NOUT
+      PARAMETER        ( NIN = 5, NOUT = 6 )
+      INTEGER          NMAX, MMAX, NRHSMX
+      PARAMETER        ( NMAX = 20, MMAX = 20, NRHSMX = 20 )
+      INTEGER          LDA, LDB
+      PARAMETER        ( LDA = MMAX, LDB = MAX( MMAX, NMAX ) )
+      INTEGER          LDWORK
+      PARAMETER        ( LDWORK = MAX(   MIN( MMAX, NMAX) + 3*NMAX + 1,
+     $                                 2*MIN( MMAX, NMAX) + NRHSMX ) )
+*     .. Local Scalars ..
+      DOUBLE PRECISION RCOND, SVLMAX
+      INTEGER          I, INFO, J, M, N, NRHS, RANK
+      CHARACTER*1      INIPER, JOB
+*     .. Local Arrays ..
+      INTEGER          JPVT(NMAX)
+      DOUBLE PRECISION A(LDA,NMAX), B(LDB,NRHSMX), DWORK(LDWORK),
+     $                 SVAL(3), Y(NMAX*NRHSMX)
+*     .. External Functions ..
+      LOGICAL          LSAME
+      EXTERNAL         LSAME
+*     .. External Subroutines ..
+      EXTERNAL         MB02QD
+*     .. Intrinsic Functions ..
+      INTRINSIC        MAX, MIN
+*     .. Executable Statements ..
+*
+      WRITE ( NOUT, FMT = 99999 )
+*     Skip the heading in the data file and read the data.
+      READ ( NIN, FMT = '()' )
+      READ ( NIN, FMT = * ) M, N, NRHS, RCOND, SVLMAX, JOB, INIPER
+      IF ( M.LT.0 .OR. M.GT.MMAX ) THEN
+         WRITE ( NOUT, FMT = 99994 ) M
+      ELSE
+         IF ( N.LT.0 .OR. N.GT.NMAX ) THEN
+            WRITE ( NOUT, FMT = 99993 ) N
+         ELSE
+            IF ( NRHS.LT.0 .OR. NRHS.GT.NRHSMX ) THEN
+               WRITE ( NOUT, FMT = 99992 ) NRHS
+            ELSE
+               READ ( NIN, FMT = * ) ( ( A(I,J), J = 1,N ), I = 1,M )
+               READ ( NIN, FMT = * ) ( ( B(I,J), J = 1,NRHS ), I = 1,M )
+               IF ( LSAME( JOB, 'F' ) )
+     $            READ ( NIN, FMT = * ) ( Y(I),  I = 1,N*NRHS )
+               IF ( LSAME( INIPER, 'P' ) )
+     $            READ ( NIN, FMT = * ) ( JPVT(I),  I = 1,N )
+*              Find the least squares solution.
+               CALL MB02QD( JOB, INIPER, M, N, NRHS, RCOND, SVLMAX, A,
+     $                      LDA, B, LDB, Y, JPVT, RANK, SVAL, DWORK,
+     $                      LDWORK, INFO )
+*
+               IF ( INFO.NE.0 ) THEN
+                  WRITE ( NOUT, FMT = 99998 ) INFO
+               ELSE
+                  WRITE ( NOUT, FMT = 99997 ) RANK, SVAL
+                  WRITE ( NOUT, FMT = 99996 )
+                  DO 10 I = 1, N
+                     WRITE ( NOUT, FMT = 99995 ) ( B(I,J), J = 1,NRHS )
+   10             CONTINUE
+               END IF
+            END IF
+         END IF
+      END IF
+      STOP
+*
+99999 FORMAT (' MB02QD EXAMPLE PROGRAM RESULTS',/1X)
+99998 FORMAT (' INFO on exit from MB02QD =',I2)
+99997 FORMAT (' The effective rank of A =',I2,/
+     $        ' Estimates of the singular values SVAL = '/3(1X,F8.4))
+99996 FORMAT (' The least squares solution is')
+99995 FORMAT (20(1X,F8.4))
+99994 FORMAT (/' M is out of range.',/' M = ',I5)
+99993 FORMAT (/' N is out of range.',/' N = ',I5)
+99992 FORMAT (/' NRHS is out of range.',/' NRHS = ',I5)
+      END
+</PRE>
+<B>Program Data</B>
+<PRE>
+ MB02QD EXAMPLE PROGRAM DATA
+   4   3   2 2.3D-16     0.0     L     N
+   2.0  2.0 -3.0 
+   3.0  3.0 -1.0 
+   4.0  4.0 -5.0 
+  -1.0 -1.0 -2.0 
+   1.0  0.0
+   0.0  0.0
+   0.0  0.0
+   0.0  1.0
+</PRE>
+<B>Program Results</B>
+<PRE>
+ MB02QD EXAMPLE PROGRAM RESULTS
+
+ The effective rank of A = 2
+ Estimates of the singular values SVAL = 
+   7.8659   2.6698   0.0000
+ The least squares solution is
+  -0.0034  -0.1054
+  -0.0034  -0.1054
+  -0.0816  -0.1973
+</PRE>
+
+<HR>
+<p>
+<A HREF=..\libindex.html><B>Return to index</B></A></BODY>
+</HTML>

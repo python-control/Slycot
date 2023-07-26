@@ -1,0 +1,487 @@
+<HTML>
+<HEAD><TITLE>TG01FZ - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="TG01FZ">TG01FZ</A></H2>
+<H3>
+Orthogonal reduction of a descriptor system to a SVD-like coordinate form (complex case)
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To compute for the descriptor system (A-lambda E,B,C)
+  the unitary transformation matrices Q and Z such that the
+  transformed system (Q'*A*Z-lambda Q'*E*Z, Q'*B, C*Z) is
+  in a SVD-like coordinate form with
+
+               ( A11  A12 )             ( Er  0 )
+      Q'*A*Z = (          ) ,  Q'*E*Z = (       ) ,
+               ( A21  A22 )             (  0  0 )
+
+  where Er is an upper triangular invertible matrix, and ' denotes
+  the conjugate transpose. Optionally, the A22 matrix can be further
+  reduced to the form
+
+               ( Ar  X )
+         A22 = (       ) ,
+               (  0  0 )
+
+  with Ar an upper triangular invertible matrix, and X either a full
+  or a zero matrix.
+  The left and/or right unitary transformations performed
+  to reduce E and A22 can be optionally accumulated.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE TG01FZ( COMPQ, COMPZ, JOBA, L, N, M, P, A, LDA, E, LDE,
+     $                   B, LDB, C, LDC, Q, LDQ, Z, LDZ, RANKE, RNKA22,
+     $                   TOL, IWORK, DWORK, ZWORK, LZWORK, INFO )
+C     .. Scalar Arguments ..
+      CHARACTER          COMPQ, COMPZ, JOBA
+      INTEGER            INFO, L, LDA, LDB, LDC, LDE, LDQ, LDZ, LZWORK,
+     $                   M, N, P, RANKE, RNKA22
+      DOUBLE PRECISION   TOL
+C     .. Array Arguments ..
+      INTEGER            IWORK( * )
+      COMPLEX*16         A( LDA, * ), B( LDB, * ), C( LDC, * ),
+     $                   E( LDE, * ), Q( LDQ, * ), Z( LDZ, * ),
+     $                   ZWORK( * )
+      DOUBLE PRECISION   DWORK( * )
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  COMPQ   CHARACTER*1
+          = 'N':  do not compute Q;
+          = 'I':  Q is initialized to the unit matrix, and the
+                  unitary matrix Q is returned;
+          = 'U':  Q must contain a unitary matrix Q1 on entry,
+                  and the product Q1*Q is returned.
+
+  COMPZ   CHARACTER*1
+          = 'N':  do not compute Z;
+          = 'I':  Z is initialized to the unit matrix, and the
+                  unitary matrix Z is returned;
+          = 'U':  Z must contain a unitary matrix Z1 on entry,
+                  and the product Z1*Z is returned.
+
+  JOBA    CHARACTER*1
+          = 'N':  do not reduce A22;
+          = 'R':  reduce A22 to a SVD-like upper triangular form.
+          = 'T':  reduce A22 to an upper trapezoidal form.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  L       (input) INTEGER
+          The number of rows of matrices A, B, and E.  L &gt;= 0.
+
+  N       (input) INTEGER
+          The number of columns of matrices A, E, and C.  N &gt;= 0.
+
+  M       (input) INTEGER
+          The number of columns of matrix B.  M &gt;= 0.
+
+  P       (input) INTEGER
+          The number of rows of matrix C.  P &gt;= 0.
+
+  A       (input/output) COMPLEX*16 array, dimension (LDA,N)
+          On entry, the leading L-by-N part of this array must
+          contain the state dynamics matrix A.
+          On exit, the leading L-by-N part of this array contains
+          the transformed matrix Q'*A*Z. If JOBA = 'T', this matrix
+          is in the form
+
+                        ( A11  *   *  )
+               Q'*A*Z = (  *   Ar  X  ) ,
+                        (  *   0   0  )
+
+          where A11 is a RANKE-by-RANKE matrix and Ar is a
+          RNKA22-by-RNKA22 invertible upper triangular matrix.
+          If JOBA = 'R' then A has the above form with X = 0.
+
+  LDA     INTEGER
+          The leading dimension of array A.  LDA &gt;= MAX(1,L).
+
+  E       (input/output) COMPLEX*16 array, dimension (LDE,N)
+          On entry, the leading L-by-N part of this array must
+          contain the descriptor matrix E.
+          On exit, the leading L-by-N part of this array contains
+          the transformed matrix Q'*E*Z.
+
+                   ( Er  0 )
+          Q'*E*Z = (       ) ,
+                   (  0  0 )
+
+          where Er is a RANKE-by-RANKE upper triangular invertible
+          matrix.
+
+  LDE     INTEGER
+          The leading dimension of array E.  LDE &gt;= MAX(1,L).
+
+  B       (input/output) COMPLEX*16 array, dimension (LDB,M)
+          On entry, the leading L-by-M part of this array must
+          contain the input/state matrix B.
+          On exit, the leading L-by-M part of this array contains
+          the transformed matrix Q'*B.
+
+  LDB     INTEGER
+          The leading dimension of array B.
+          LDB &gt;= MAX(1,L) if M &gt; 0 or LDB &gt;= 1 if M = 0.
+
+  C       (input/output) COMPLEX*16 array, dimension (LDC,N)
+          On entry, the leading P-by-N part of this array must
+          contain the state/output matrix C.
+          On exit, the leading P-by-N part of this array contains
+          the transformed matrix C*Z.
+
+  LDC     INTEGER
+          The leading dimension of array C.  LDC &gt;= MAX(1,P).
+
+  Q       (input/output) COMPLEX*16 array, dimension (LDQ,L)
+          If COMPQ = 'N':  Q is not referenced.
+          If COMPQ = 'I':  on entry, Q need not be set;
+                           on exit, the leading L-by-L part of this
+                           array contains the unitary matrix Q,
+                           where Q' is the product of Householder
+                           transformations which are applied to A,
+                           E, and B on the left.
+          If COMPQ = 'U':  on entry, the leading L-by-L part of this
+                           array must contain a unitary matrix Q1;
+                           on exit, the leading L-by-L part of this
+                           array contains the unitary matrix Q1*Q.
+
+  LDQ     INTEGER
+          The leading dimension of array Q.
+          LDQ &gt;= 1,        if COMPQ = 'N';
+          LDQ &gt;= MAX(1,L), if COMPQ = 'U' or 'I'.
+
+  Z       (input/output) COMPLEX*16 array, dimension (LDZ,N)
+          If COMPZ = 'N':  Z is not referenced.
+          If COMPZ = 'I':  on entry, Z need not be set;
+                           on exit, the leading N-by-N part of this
+                           array contains the unitary matrix Z,
+                           which is the product of Householder
+                           transformations applied to A, E, and C
+                           on the right.
+          If COMPZ = 'U':  on entry, the leading N-by-N part of this
+                           array must contain a unitary matrix Z1;
+                           on exit, the leading N-by-N part of this
+                           array contains the unitary matrix Z1*Z.
+
+  LDZ     INTEGER
+          The leading dimension of array Z.
+          LDZ &gt;= 1,        if COMPZ = 'N';
+          LDZ &gt;= MAX(1,N), if COMPZ = 'U' or 'I'.
+
+  RANKE   (output) INTEGER
+          The estimated rank of matrix E, and thus also the order
+          of the invertible upper triangular submatrix Er.
+
+  RNKA22  (output) INTEGER
+          If JOBA = 'R' or 'T', then RNKA22 is the estimated rank of
+          matrix A22, and thus also the order of the invertible
+          upper triangular submatrix Ar.
+          If JOBA = 'N', then RNKA22 is not referenced.
+
+</PRE>
+<B>Tolerances</B>
+<PRE>
+  TOL     DOUBLE PRECISION
+          The tolerance to be used in determining the rank of E
+          and of A22. If the user sets TOL &gt; 0, then the given
+          value of TOL is used as a lower bound for the
+          reciprocal condition numbers of leading submatrices
+          of R or R22 in the QR decompositions E * P = Q * R of E
+          or A22 * P22 = Q22 * R22 of A22.
+          A submatrix whose estimated condition number is less than
+          1/TOL is considered to be of full rank.  If the user sets
+          TOL &lt;= 0, then an implicitly computed, default tolerance,
+          defined by  TOLDEF = L*N*EPS,  is used instead, where
+          EPS is the machine precision (see LAPACK Library routine
+          DLAMCH). TOL &lt; 1.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  IWORK   INTEGER array, dimension (N)
+
+  DWORK   DOUBLE PRECISION array, dimension (2*N)
+
+  ZWORK   DOUBLE PRECISION array, dimension (LZWORK)
+          On exit, if INFO = 0, ZWORK(1) returns the optimal value
+          of LZWORK.
+
+  LZWORK  INTEGER
+          The length of the array ZWORK.
+          LZWORK &gt;= MAX( 1, N+P, MIN(L,N)+MAX(3*N-1,M,L) ).
+          For optimal performance, LZWORK should be larger.
+
+          If LZWORK = -1, then a workspace query is assumed;
+          the routine only calculates the optimal size of the
+          ZWORK array, returns this value as the first entry of
+          the ZWORK array, and no error message related to LZWORK
+          is issued by XERBLA.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  The routine computes a truncated QR factorization with column
+  pivoting of E, in the form
+
+                    ( E11 E12 )
+        E * P = Q * (         )
+                    (  0  E22 )
+
+  and finds the largest RANKE-by-RANKE leading submatrix E11 whose
+  estimated condition number is less than 1/TOL. RANKE defines thus
+  the rank of matrix E. Further E22, being negligible, is set to
+  zero, and a unitary matrix Y is determined such that
+
+        ( E11 E12 ) = ( Er  0 ) * Y .
+
+  The overal transformation matrix Z results as Z = P * Y' and the
+  resulting transformed matrices Q'*A*Z and Q'*E*Z have the form
+
+                       ( Er  0 )                      ( A11  A12 )
+      E &lt;- Q'* E * Z = (       ) ,  A &lt;- Q' * A * Z = (          ) ,
+                       (  0  0 )                      ( A21  A22 )
+
+  where Er is an upper triangular invertible matrix.
+  If JOBA = 'R' the same reduction is performed on A22 to obtain it
+  in the form
+
+               ( Ar  0 )
+         A22 = (       ) ,
+               (  0  0 )
+
+  with Ar an upper triangular invertible matrix.
+  If JOBA = 'T' then A22 is row compressed using the QR
+  factorization with column pivoting to the form
+
+               ( Ar  X )
+         A22 = (       )
+               (  0  0 )
+
+  with Ar an upper triangular invertible matrix.
+
+  The transformations are also applied to the rest of system
+  matrices
+
+       B &lt;- Q' * B, C &lt;- C * Z.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  The algorithm is numerically backward stable and requires
+  0( L*L*N )  floating point operations.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+*     TG01FZ EXAMPLE PROGRAM TEXT
+*
+*     .. Parameters ..
+      INTEGER          NIN, NOUT
+      PARAMETER        ( NIN = 5, NOUT = 6 )
+      INTEGER          LMAX, NMAX, MMAX, PMAX
+      PARAMETER        ( LMAX = 20, NMAX = 20, MMAX = 20, PMAX = 20 )
+      INTEGER          LDA, LDB, LDC, LDE, LDQ, LDZ
+      PARAMETER        ( LDA = LMAX, LDB = LMAX, LDC = PMAX,
+     $                   LDE = LMAX, LDQ = LMAX, LDZ = NMAX )
+      INTEGER          LDWORK
+      PARAMETER        ( LDWORK = 2*NMAX )
+      INTEGER          LZWORK
+      PARAMETER        ( LZWORK = MAX( 1, NMAX+PMAX,
+     $                   MIN(LMAX,NMAX)+MAX( 3*NMAX-1, MMAX, LMAX ) ) )
+*     .. Local Scalars ..
+      CHARACTER*1      COMPQ, COMPZ, JOBA
+      INTEGER          I, INFO, J, L, M, N, P, RANKE, RNKA22
+      DOUBLE PRECISION TOL
+*     .. Local Arrays ..
+      INTEGER          IWORK(NMAX)
+      COMPLEX*16       A(LDA,NMAX), B(LDB,MMAX), C(LDC,NMAX),
+     $                 E(LDE,NMAX), Q(LDQ,LMAX), Z(LDZ,NMAX),
+     $                 ZWORK(LZWORK)
+      DOUBLE PRECISION DWORK(LDWORK)
+*     .. External Subroutines ..
+      EXTERNAL         TG01FZ
+*     .. Intrinsic Functions ..
+      INTRINSIC        MAX, MIN
+*     .. Executable Statements ..
+*
+      WRITE ( NOUT, FMT = 99999 )
+*     Skip the heading in the data file and read the data.
+      READ ( NIN, FMT = '()' )
+      READ ( NIN, FMT = * ) L, N, M, P, TOL
+      COMPQ = 'I'
+      COMPZ = 'I'
+      JOBA = 'R'
+      IF ( L.LT.0 .OR. L.GT.LMAX ) THEN
+         WRITE ( NOUT, FMT = 99989 ) L
+      ELSE
+         IF ( N.LT.0 .OR. N.GT.NMAX ) THEN
+            WRITE ( NOUT, FMT = 99988 ) N
+         ELSE
+            READ ( NIN, FMT = * ) ( ( A(I,J), J = 1,N ), I = 1,L )
+            READ ( NIN, FMT = * ) ( ( E(I,J), J = 1,N ), I = 1,L )
+            IF ( M.LT.0 .OR. M.GT.MMAX ) THEN
+               WRITE ( NOUT, FMT = 99987 ) M
+            ELSE
+               READ ( NIN, FMT = * ) ( ( B(I,J), J = 1,M ), I = 1,L )
+               IF ( P.LT.0 .OR. P.GT.PMAX ) THEN
+                  WRITE ( NOUT, FMT = 99986 ) P
+               ELSE
+                  READ ( NIN, FMT = * ) ( ( C(I,J), J = 1,N ), I = 1,P )
+*                 Find the transformed descriptor system
+*                 (A-lambda E,B,C).
+                  CALL TG01FZ( COMPQ, COMPZ, JOBA, L, N, M, P, A, LDA,
+     $                         E, LDE, B, LDB, C, LDC, Q, LDQ, Z, LDZ,
+     $                         RANKE, RNKA22, TOL, IWORK, DWORK, ZWORK,
+     $                         LZWORK, INFO )
+*
+                  IF ( INFO.NE.0 ) THEN
+                     WRITE ( NOUT, FMT = 99998 ) INFO
+                  ELSE
+                     WRITE ( NOUT, FMT = 99994 ) RANKE, RNKA22
+                     WRITE ( NOUT, FMT = 99997 )
+                     DO 10 I = 1, L
+                        WRITE ( NOUT, FMT = 99995 ) ( A(I,J), J = 1,N )
+   10                CONTINUE
+                     WRITE ( NOUT, FMT = 99996 )
+                     DO 20 I = 1, L
+                        WRITE ( NOUT, FMT = 99995 ) ( E(I,J), J = 1,N )
+   20                CONTINUE
+                     WRITE ( NOUT, FMT = 99993 )
+                     DO 30 I = 1, L
+                        WRITE ( NOUT, FMT = 99995 ) ( B(I,J), J = 1,M )
+   30                CONTINUE
+                     WRITE ( NOUT, FMT = 99992 )
+                     DO 40 I = 1, P
+                        WRITE ( NOUT, FMT = 99995 ) ( C(I,J), J = 1,N )
+   40                CONTINUE
+                     WRITE ( NOUT, FMT = 99991 )
+                     DO 50 I = 1, L
+                        WRITE ( NOUT, FMT = 99995 ) ( Q(I,J), J = 1,L )
+   50                CONTINUE
+                     WRITE ( NOUT, FMT = 99990 )
+                     DO 60 I = 1, N
+                        WRITE ( NOUT, FMT = 99995 ) ( Z(I,J), J = 1,N )
+   60                CONTINUE
+                  END IF
+               END IF
+            END IF
+         END IF
+      END IF
+      STOP
+*
+99999 FORMAT (' TG01FZ EXAMPLE PROGRAM RESULTS',/1X)
+99998 FORMAT (' INFO on exit from TG01FZ = ',I2)
+99997 FORMAT (/' The transformed state dynamics matrix Q''*A*Z is ')
+99996 FORMAT (/' The transformed descriptor matrix Q''*E*Z is ')
+99995 FORMAT (20(1X,F8.4,SP,F8.4,S,'i '))
+99994 FORMAT (' Rank of matrix E   =', I5/
+     $        ' Rank of matrix A22 =', I5)
+99993 FORMAT (/' The transformed input/state matrix Q''*B is ')
+99992 FORMAT (/' The transformed state/output matrix C*Z is ')
+99991 FORMAT (/' The left transformation matrix Q is ')
+99990 FORMAT (/' The right transformation matrix Z is ')
+99989 FORMAT (/' L is out of range.',/' L = ',I5)
+99988 FORMAT (/' N is out of range.',/' N = ',I5)
+99987 FORMAT (/' M is out of range.',/' M = ',I5)
+99986 FORMAT (/' P is out of range.',/' P = ',I5)
+      END
+</PRE>
+<B>Program Data</B>
+<PRE>
+TG01FZ EXAMPLE PROGRAM DATA
+  4    4     2     2     0.0    
+    (-1,0)     (0,0)     (0,0)     (3,0)
+     (0,0)     (0,0)     (1,0)     (2,0)
+     (1,0)     (1,0)     (0,0)     (4,0)
+     (0,0)     (0,0)     (0,0)     (0,0)
+     (1,0)     (2,0)     (0,0)     (0,0)
+     (0,0)     (1,0)     (0,0)     (1,0)
+     (3,0)     (9,0)     (6,0)     (3,0)
+     (0,0)     (0,0)     (2,0)     (0,0)
+     (1,0)     (0,0)
+     (0,0)     (0,0)
+     (0,0)     (1,0)
+     (1,0)     (1,0)
+    (-1,0)     (0,0)     (1,0)     (0,0)
+     (0,0)     (1,0)    (-1,0)     (1,0)
+</PRE>
+<B>Program Results</B>
+<PRE>
+ TG01FZ EXAMPLE PROGRAM RESULTS
+
+ Rank of matrix E   =    3
+ Rank of matrix A22 =    1
+
+ The transformed state dynamics matrix Q'*A*Z is 
+   2.0278 +0.0000i    0.1078 +0.0000i    3.9062 +0.0000i   -2.1571 +0.0000i 
+  -0.0980 +0.0000i    0.2544 +0.0000i    1.6053 +0.0000i   -0.1269 +0.0000i 
+   0.2713 +0.0000i    0.7760 +0.0000i   -0.3692 +0.0000i   -0.4853 +0.0000i 
+   0.0690 +0.0000i   -0.5669 +0.0000i   -2.1974 +0.0000i    0.3086 +0.0000i 
+
+ The transformed descriptor matrix Q'*E*Z is 
+  10.1587 +0.0000i    5.8230 +0.0000i    1.3021 +0.0000i    0.0000 +0.0000i 
+   0.0000 +0.0000i   -2.4684 +0.0000i   -0.1896 +0.0000i    0.0000 +0.0000i 
+   0.0000 +0.0000i    0.0000 +0.0000i    1.0338 +0.0000i    0.0000 +0.0000i 
+   0.0000 +0.0000i    0.0000 +0.0000i    0.0000 +0.0000i    0.0000 +0.0000i 
+
+ The transformed input/state matrix Q'*B is 
+  -0.2157 +0.0000i   -0.9705 +0.0000i 
+   0.3015 +0.0000i    0.9516 +0.0000i 
+   0.7595 +0.0000i    0.0991 +0.0000i 
+   1.1339 +0.0000i    0.3780 +0.0000i 
+
+ The transformed state/output matrix C*Z is 
+   0.3651 +0.0000i   -1.0000 +0.0000i   -0.4472 +0.0000i   -0.8165 +0.0000i 
+  -1.0954 +0.0000i    1.0000 +0.0000i   -0.8944 +0.0000i    0.0000 +0.0000i 
+
+ The left transformation matrix Q is 
+  -0.2157 +0.0000i   -0.5088 +0.0000i    0.6109 +0.0000i    0.5669 +0.0000i 
+  -0.1078 +0.0000i   -0.2544 +0.0000i   -0.7760 +0.0000i    0.5669 +0.0000i 
+  -0.9705 +0.0000i    0.1413 +0.0000i   -0.0495 +0.0000i   -0.1890 +0.0000i 
+   0.0000 +0.0000i    0.8102 +0.0000i    0.1486 +0.0000i    0.5669 +0.0000i 
+
+ The right transformation matrix Z is 
+  -0.3651 +0.0000i    0.0000 +0.0000i    0.4472 +0.0000i    0.8165 +0.0000i 
+  -0.9129 +0.0000i    0.0000 +0.0000i    0.0000 +0.0000i   -0.4082 +0.0000i 
+   0.0000 +0.0000i   -1.0000 +0.0000i    0.0000 +0.0000i    0.0000 +0.0000i 
+  -0.1826 +0.0000i    0.0000 +0.0000i   -0.8944 +0.0000i    0.4082 +0.0000i 
+</PRE>
+
+<HR>
+<p>
+<A HREF=..\libindex.html><B>Return to index</B></A></BODY>
+</HTML>

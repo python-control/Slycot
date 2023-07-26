@@ -1,0 +1,155 @@
+<HTML>
+<HEAD><TITLE>NF01AD - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="NF01AD">NF01AD</A></H2>
+<H3>
+Computing the output of a Wiener system
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To calculate the output y of the Wiener system
+
+     x(t+1) = A*x(t) + B*u(t)
+     z(t)   = C*x(t) + D*u(t),
+
+     y(t)   = f(z(t),wb(1:L)),
+
+  where t = 1, 2, ..., NSMP, and f is a nonlinear function,
+  evaluated by the SLICOT Library routine NF01AY. The parameter
+  vector X is partitioned as X = ( wb(1), ..., wb(L), theta ),
+  where wb(i), i = 1:L, correspond to the nonlinear part, theta
+  corresponds to the linear part, and the notation is fully
+  described below.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE NF01AD( NSMP, M, L, IPAR, LIPAR, X, LX, U, LDU, Y, LDY,
+     $                   DWORK, LDWORK, INFO )
+C     .. Scalar Arguments ..
+      INTEGER           INFO, L, LDU, LDWORK, LDY, LX, LIPAR, M, NSMP
+C     .. Array Arguments ..
+      INTEGER           IPAR(*)
+      DOUBLE PRECISION  DWORK(*), U(LDU,*), X(*), Y(LDY,*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  NSMP    (input) INTEGER
+          The number of training samples.  NSMP &gt;= 0.
+
+  M       (input) INTEGER
+          The length of each input sample.  M &gt;= 0.
+
+  L       (input) INTEGER
+          The length of each output sample.  L &gt;= 0.
+
+  IPAR    (input) INTEGER array, dimension (LIPAR)
+          The integer parameters needed.
+          IPAR(1)  must contain the order of the linear part,
+                   referred to as N below.  N &gt;= 0.
+          IPAR(2)  must contain the number of neurons for the
+                   nonlinear part, referred to as NN below.
+                   NN &gt;= 0.
+
+  LIPAR   (input) INTEGER
+          The length of IPAR.  LIPAR &gt;= 2.
+
+  X       (input) DOUBLE PRECISION array, dimension (LX)
+          The parameter vector, partitioned as
+          X = (wb(1), ..., wb(L), theta), where the vectors
+          wb(i), of length NN*(L+2)+1, are parameters for the
+          static nonlinearity, which is simulated by the
+          SLICOT Library routine NF01AY. See the documentation of
+          NF01AY for further details. The vector theta, of length
+          N*(M + L + 1) + L*M, represents the matrices A, B, C,
+          D and x(1), and it can be retrieved from these matrices
+          by SLICOT Library routine TB01VD and retranslated by
+          TB01VY.
+
+  LX      (input) INTEGER
+          The length of the array X.
+          LX &gt;= ( NN*(L+2)+1 )*L + N*(M + L + 1) + L*M.
+
+  U       (input) DOUBLE PRECISION array, dimension (LDU, M)
+          The leading NSMP-by-M part of this array must contain the
+          set of input samples,
+          U = ( U(1,1),...,U(1,M); ...; U(NSMP,1),...,U(NSMP,M) ).
+
+  LDU     INTEGER
+          The leading dimension of the array U.  LDU &gt;= MAX(1,NSMP).
+
+  Y       (output) DOUBLE PRECISION array, dimension (LDY, L)
+          The leading NSMP-by-L part of this array contains the
+          simulated output.
+
+  LDY     INTEGER
+          The leading dimension of the array Y.  LDY &gt;= MAX(1,NSMP).
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+
+  LDWORK  INTEGER
+          The length of the array DWORK.
+          LDWORK &gt;= NSMP*L + MAX( 2*NN, (N + L)*(N + M) + 2*N +
+                                  MAX( N*(N + L), N + M + L ) )
+                                                           if M &gt; 0;
+          LDWORK &gt;= NSMP*L + MAX( 2*NN, (N + L)*N + 2*N +
+                                  MAX( N*(N + L), L ) ),   if M = 0.
+          A larger value of LDWORK could improve the efficiency.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value.
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  BLAS routines are used for the matrix-vector multiplications and
+  the routine NF01AY is called for the calculation of the nonlinear
+  function.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

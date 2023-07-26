@@ -1,0 +1,239 @@
+<HTML>
+<HEAD><TITLE>SB10LD - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="SB10LD">SB10LD</A></H2>
+<H3>
+Closed-loop system matrices for a system with robust controller
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To compute the matrices of the closed-loop system
+
+           | AC | BC |
+       G = |----|----|,
+           | CC | DC |
+
+  from the matrices of the open-loop system
+
+            | A | B |
+        P = |---|---|
+            | C | D |
+
+  and the matrices of the controller
+
+           | AK | BK |
+       K = |----|----|.
+           | CK | DK |
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE SB10LD( N, M, NP, NCON, NMEAS, A, LDA, B, LDB, C, LDC,
+     $                   D, LDD, AK, LDAK, BK, LDBK, CK, LDCK, DK, LDDK,
+     $                   AC, LDAC, BC, LDBC, CC, LDCC, DC, LDDC, IWORK,
+     $                   DWORK, LDWORK, INFO )
+C     .. Scalar Arguments ..
+      INTEGER            INFO, LDA, LDAC, LDAK, LDB, LDBC, LDBK, LDC,
+     $                   LDCC, LDCK, LDD, LDDC, LDDK, LDWORK, M, N,
+     $                   NCON, NMEAS, NP
+C     .. Array Arguments ..
+      INTEGER            IWORK( * )
+      DOUBLE PRECISION   A( LDA, * ), AC( LDAC, * ), AK( LDAK, * ),
+     $                   B( LDB, * ), BC( LDBC, * ), BK( LDBK, * ),
+     $                   C( LDC, * ), CC( LDCC, * ), CK( LDCK, * ),
+     $                   D( LDD, * ), DC( LDDC, * ), DK( LDDK, * ),
+     $                   DWORK( * )
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The order of the system.  N &gt;= 0.
+
+  M       (input) INTEGER
+          The column size of the matrix B.  M &gt;= 0.
+
+  NP      (input) INTEGER
+          The row size of the matrix C.  NP &gt;= 0.
+
+  NCON    (input) INTEGER
+          The number of control inputs (M2).  M &gt;= NCON &gt;= 0.
+          NP-NMEAS &gt;= NCON.
+
+  NMEAS   (input) INTEGER
+          The number of measurements (NP2).  NP &gt;= NMEAS &gt;= 0.
+          M-NCON &gt;= NMEAS.
+
+  A       (input) DOUBLE PRECISION array, dimension (LDA,N)
+          The leading N-by-N part of this array must contain the
+          system state matrix A.
+
+  LDA     INTEGER
+          The leading dimension of the array A.  LDA &gt;= max(1,N).
+
+  B       (input) DOUBLE PRECISION array, dimension (LDB,M)
+          The leading N-by-M part of this array must contain the
+          system input matrix B.
+
+  LDB     INTEGER
+          The leading dimension of the array B.  LDB &gt;= max(1,N).
+
+  C       (input) DOUBLE PRECISION array, dimension (LDC,N)
+          The leading NP-by-N part of this array must contain the
+          system output matrix C.
+
+  LDC     INTEGER
+          The leading dimension of the array C.  LDC &gt;= max(1,NP).
+
+  D       (input) DOUBLE PRECISION array, dimension (LDD,M)
+          The leading NP-by-M part of this array must contain the
+          system input/output matrix D.
+
+  LDD     INTEGER
+          The leading dimension of the array D.  LDD &gt;= max(1,NP).
+
+  AK      (input) DOUBLE PRECISION array, dimension (LDAK,N)
+          The leading N-by-N part of this array must contain the
+          controller state matrix AK.
+
+  LDAK    INTEGER
+          The leading dimension of the array AK.  LDAK &gt;= max(1,N).
+
+  BK      (input) DOUBLE PRECISION array, dimension (LDBK,NMEAS)
+          The leading N-by-NMEAS part of this array must contain the
+          controller input matrix BK.
+
+  LDBK    INTEGER
+          The leading dimension of the array BK.  LDBK &gt;= max(1,N).
+
+  CK      (input) DOUBLE PRECISION array, dimension (LDCK,N)
+          The leading NCON-by-N part of this array must contain the
+          controller output matrix CK.
+
+  LDCK    INTEGER
+          The leading dimension of the array CK.
+          LDCK &gt;= max(1,NCON).
+
+  DK      (input) DOUBLE PRECISION array, dimension (LDDK,NMEAS)
+          The leading NCON-by-NMEAS part of this array must contain
+          the controller input/output matrix DK.
+
+  LDDK    INTEGER
+          The leading dimension of the array DK.
+          LDDK &gt;= max(1,NCON).
+
+  AC      (output) DOUBLE PRECISION array, dimension (LDAC,2*N)
+          The leading 2*N-by-2*N part of this array contains the
+          closed-loop system state matrix AC.
+
+  LDAC    INTEGER
+          The leading dimension of the array AC.
+          LDAC &gt;= max(1,2*N).
+
+  BC      (output) DOUBLE PRECISION array, dimension (LDBC,M-NCON)
+          The leading 2*N-by-(M-NCON) part of this array contains
+          the closed-loop system input matrix BC.
+
+  LDBC    INTEGER
+          The leading dimension of the array BC.
+          LDBC &gt;= max(1,2*N).
+
+  CC      (output) DOUBLE PRECISION array, dimension (LDCC,2*N)
+          The leading (NP-NMEAS)-by-2*N part of this array contains
+          the closed-loop system output matrix CC.
+
+  LDCC    INTEGER
+          The leading dimension of the array CC.
+          LDCC &gt;= max(1,NP-NMEAS).
+
+  DC      (output) DOUBLE PRECISION array, dimension (LDDC,M-NCON)
+          The leading (NP-NMEAS)-by-(M-NCON) part of this array
+          contains the closed-loop system input/output matrix DC.
+
+  LDDC    INTEGER
+          The leading dimension of the array DC.
+          LDDC &gt;= max(1,NP-NMEAS).
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  IWORK   INTEGER array, dimension (2*max(NCON,NMEAS))
+
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+          On exit, if INFO = 0, DWORK(1) contains the optimal
+          LDWORK.
+
+  LDWORK  INTEGER
+          The dimension of the array DWORK.
+          LDWORK &gt;= 2*M*M+NP*NP+2*M*N+M*NP+2*N*NP.
+          For good performance, LDWORK must generally be larger.
+
+  Error Indicactor
+
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value;
+          = 1:  if the matrix Inp2 - D22*DK is singular to working
+                precision;
+          = 2:  if the matrix Im2 - DK*D22 is singular to working
+                precision.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  The routine implements the formulas given in [1].
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Balas, G.J., Doyle, J.C., Glover, K., Packard, A., and
+      Smith, R.
+      mu-Analysis and Synthesis Toolbox.
+      The MathWorks Inc., Natick, Mass., 1995.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  The accuracy of the result depends on the condition numbers of the
+  matrices  Inp2 - D22*DK  and  Im2 - DK*D22.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

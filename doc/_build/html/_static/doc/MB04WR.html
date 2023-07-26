@@ -1,0 +1,207 @@
+<HTML>
+<HEAD><TITLE>MB04WR - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MB04WR">MB04WR</A></H2>
+<H3>
+Generating orthogonal symplectic matrices defined as products of symplectic reflectors and Givens rotations
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To generate orthogonal symplectic matrices U or V, defined as
+  products of symplectic reflectors and Givens rotations
+
+  U = diag( HU(1),HU(1) )  GU(1)  diag( FU(1),FU(1) )
+      diag( HU(2),HU(2) )  GU(2)  diag( FU(2),FU(2) )
+                           ....
+      diag( HU(n),HU(n) )  GU(n)  diag( FU(n),FU(n) ),
+
+  V = diag( HV(1),HV(1) )       GV(1)   diag( FV(1),FV(1) )
+      diag( HV(2),HV(2) )       GV(2)   diag( FV(2),FV(2) )
+                                ....
+      diag( HV(n-1),HV(n-1) )  GV(n-1)  diag( FV(n-1),FV(n-1) ),
+
+  as returned by the SLICOT Library routines MB04TS or MB04TB. The
+  matrices U and V are returned in terms of their first N/2 rows:
+
+              [  U1   U2 ]           [  V1   V2 ]
+          U = [          ],      V = [          ].
+              [ -U2   U1 ]           [ -V2   V1 ]
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MB04WR( JOB, TRANS, N, ILO, Q1, LDQ1, Q2, LDQ2, CS,
+     $                   TAU, DWORK, LDWORK, INFO )
+C     .. Scalar Arguments ..
+      CHARACTER         JOB, TRANS
+      INTEGER           ILO, INFO, LDQ1, LDQ2, LDWORK, N
+C     .. Array Arguments ..
+      DOUBLE PRECISION  CS(*), DWORK(*), Q1(LDQ1,*), Q2(LDQ2,*), TAU(*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  JOB     CHARACTER*1
+          Specifies whether the matrix U or the matrix V is
+          required:
+          = 'U':  generate U;
+          = 'V':  generate V.
+
+  TRANS   CHARACTER*1
+          If  JOB = 'U'  then TRANS must have the same value as
+          the argument TRANA in the previous call of MB04TS or
+          MB04TB.
+          If  JOB = 'V'  then TRANS must have the same value as
+          the argument TRANB in the previous call of MB04TS or
+          MB04TB.
+
+  N       (input) INTEGER
+          The order of the matrices Q1 and Q2. N &gt;= 0.
+
+  ILO     (input) INTEGER
+          ILO must have the same value as in the previous call of
+          MB04TS or MB04TB. U and V are equal to the unit matrix
+          except in the submatrices
+          U([ilo:n n+ilo:2*n], [ilo:n n+ilo:2*n]) and
+          V([ilo+1:n n+ilo+1:2*n], [ilo+1:n n+ilo+1:2*n]),
+          respectively.
+          1 &lt;= ILO &lt;= N, if N &gt; 0; ILO = 1, if N = 0.
+
+  Q1      (input/output) DOUBLE PRECISION array, dimension (LDQ1,N)
+          On entry, if  JOB = 'U'  and  TRANS = 'N'  then the
+          leading N-by-N part of this array must contain in its i-th
+          column the vector which defines the elementary reflector
+          FU(i).
+          If  JOB = 'U'  and  TRANS = 'T'  or  TRANS = 'C' then the
+          leading N-by-N part of this array must contain in its i-th
+          row the vector which defines the elementary reflector
+          FU(i).
+          If  JOB = 'V'  and  TRANS = 'N'  then the leading N-by-N
+          part of this array must contain in its i-th row the vector
+          which defines the elementary reflector FV(i).
+          If  JOB = 'V'  and  TRANS = 'T'  or  TRANS = 'C' then the
+          leading N-by-N part of this array must contain in its i-th
+          column the vector which defines the elementary reflector
+          FV(i).
+          On exit, if  JOB = 'U'  and  TRANS = 'N'  then the leading
+          N-by-N part of this array contains the matrix U1.
+          If  JOB = 'U'  and  TRANS = 'T'  or  TRANS = 'C' then the
+          leading N-by-N part of this array contains the matrix
+          U1**T.
+          If  JOB = 'V'  and  TRANS = 'N'  then the leading N-by-N
+          part of this array contains the matrix V1**T.
+          If  JOB = 'V'  and  TRANS = 'T'  or  TRANS = 'C' then the
+          leading N-by-N part of this array contains the matrix V1.
+
+  LDQ1    INTEGER
+          The leading dimension of the array Q1.  LDQ1 &gt;= MAX(1,N).
+
+  Q2      (input/output) DOUBLE PRECISION array, dimension (LDQ2,N)
+          On entry, if  JOB = 'U'  then the leading N-by-N part of
+          this array must contain in its i-th column the vector
+          which defines the elementary reflector HU(i).
+          If  JOB = 'V'  then the leading N-by-N part of this array
+          must contain in its i-th row the vector which defines the
+          elementary reflector HV(i).
+          On exit, if  JOB = 'U'  then the leading N-by-N part of
+          this array contains the matrix U2.
+          If  JOB = 'V'  then the leading N-by-N part of this array
+          contains the matrix V2**T.
+
+  LDQ2    INTEGER
+          The leading dimension of the array Q2.  LDQ2 &gt;= MAX(1,N).
+
+  CS      (input) DOUBLE PRECISION array, dimension (2N)
+          On entry, if  JOB = 'U'  then the first 2N elements of
+          this array must contain the cosines and sines of the
+          symplectic Givens rotations GU(i).
+          If  JOB = 'V'  then the first 2N-2 elements of this array
+          must contain the cosines and sines of the symplectic
+          Givens rotations GV(i).
+
+  TAU     (input) DOUBLE PRECISION array, dimension (N)
+          On entry, if  JOB = 'U'  then the first N elements of
+          this array must contain the scalar factors of the
+          elementary reflectors FU(i).
+          If  JOB = 'V'  then the first N-1 elements of this array
+          must contain the scalar factors of the elementary
+          reflectors FV(i).
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+          On exit, if INFO = 0,  DWORK(1)  returns the optimal
+          value of LDWORK.
+          On exit, if  INFO = -12,  DWORK(1)  returns the minimum
+          value of LDWORK.
+
+  LDWORK  INTEGER
+          The length of the array DWORK.
+          LDWORK &gt;= MAX(1,2*(N-ILO+1)).
+
+          If LDWORK = -1, then a workspace query is assumed;
+          the routine only calculates the optimal size of the
+          DWORK array, returns this value as the first entry of
+          the DWORK array, and no error message related to LDWORK
+          is issued by XERBLA.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value.
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Benner, P., Mehrmann, V., and Xu, H.
+      A numerically stable, structure preserving method for
+      computing the eigenvalues of real Hamiltonian or symplectic
+      pencils. Numer. Math., Vol 78 (3), pp. 329-358, 1998.
+
+  [2] Kressner, D.
+      Block algorithms for orthogonal symplectic factorizations.
+      BIT, 43 (4), pp. 775-790, 2003.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

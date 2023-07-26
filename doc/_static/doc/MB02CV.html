@@ -1,0 +1,272 @@
+<HTML>
+<HEAD><TITLE>MB02CV - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MB02CV">MB02CV</A></H2>
+<H3>
+Applying the MB02CU transformations on other columns / rows of the generator
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To apply the transformations created by the SLICOT Library routine
+  MB02CU on other columns / rows of the generator, contained in the
+  arrays F1, F2 and G.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MB02CV( TYPEG, STRUCG, K, N, P, Q, NB, RNK, A1, LDA1,
+     $                   A2, LDA2, B, LDB, F1, LDF1, F2, LDF2, G, LDG,
+     $                   CS, DWORK, LDWORK, INFO )
+C     .. Scalar Arguments ..
+      CHARACTER          STRUCG, TYPEG
+      INTEGER            INFO, K, LDA1, LDA2, LDB, LDF1, LDF2, LDG,
+     $                   LDWORK, N, NB, P, Q, RNK
+C     .. Array Arguments ..
+      DOUBLE PRECISION   A1(LDA1,*), A2(LDA2,*), B(LDB,*), CS(*),
+     $                   DWORK(*), F1(LDF1,*), F2(LDF2,*), G(LDG,*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  TYPEG   CHARACTER*1
+          Specifies the type of the generator, as follows:
+          = 'D':  generator is column oriented and rank
+                  deficient;
+          = 'C':  generator is column oriented and not rank
+                  deficient;
+          = 'R':  generator is row oriented and not rank
+                  deficient.
+          Note that this parameter must be equivalent with the
+          used TYPEG in the call of MB02CU.
+
+  STRUCG  CHARACTER*1
+          Information about the structure of the generators,
+          as follows:
+          = 'T':  the trailing block of the positive generator
+                  is upper / lower triangular, and the trailing
+                  block of the negative generator is zero;
+          = 'N':  no special structure to mention.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  K       (input)  INTEGER
+          The number of rows in A1 to be processed.  K &gt;= 0.
+
+  N       (input)  INTEGER
+          If TYPEG = 'D'  or  TYPEG = 'C', the number of rows in F1;
+          if TYPEG = 'R', the number of columns in F1.  N &gt;= 0.
+
+  P       (input)  INTEGER
+          The number of columns of the positive generator.  P &gt;= K.
+
+  Q       (input)  INTEGER
+          The number of columns in B.
+          If TYPEG = 'D',        Q &gt;= K;
+          If TYPEG = 'C' or 'R', Q &gt;= 0.
+
+  NB      (input)  INTEGER
+          On entry, if TYPEG = 'C'  or  TYPEG = 'R', NB specifies
+          the block size to be used in the blocked parts of the
+          algorithm. NB must be equivalent with the used block size
+          in the routine MB02CU.
+
+  RNK     (input)  INTEGER
+          If TYPEG = 'D', the number of linearly independent columns
+          in the generator as returned by MB02CU.  0 &lt;= RNK &lt;= K.
+          If TYPEG = 'C' or 'R', the value of this parameter is
+          irrelevant.
+
+  A1      (input)  DOUBLE PRECISION array, dimension
+          (LDA1, K)
+          On entry, if TYPEG = 'D', the leading K-by-K part of this
+          array must contain the matrix A1 as returned by MB02CU.
+          If TYPEG = 'C' or 'R', this array is not referenced.
+
+  LDA1    INTEGER
+          The leading dimension of the array A1.
+          If TYPEG = 'D',                   LDA1 &gt;= MAX(1,K);
+          if TYPEG = 'C'  or  TYPEG = 'R',  LDA1 &gt;= 1.
+
+  A2      (input)  DOUBLE PRECISION array,
+          if TYPEG = 'D'  or  TYPEG = 'C',  dimension (LDA2, P-K);
+          if TYPEG = 'R',                   dimension (LDA2, K).
+          On entry, if TYPEG = 'D'  or  TYPEG = 'C', the leading
+          K-by-(P-K) part of this array must contain the matrix
+          A2 as returned by MB02CU.
+          On entry, if TYPEG = 'R', the leading (P-K)-by-K part of
+          this array must contain the matrix A2 as returned by
+          MB02CU.
+
+  LDA2    INTEGER
+          The leading dimension of the array A2.
+          If P = K,                  LDA2 &gt;= 1;
+          If P &gt; K and (TYPEG = 'D' or TYPEG = 'C'),
+                                     LDA2 &gt;= MAX(1,K);
+          if P &gt; K and TYPEG = 'R',  LDA2 &gt;= P-K.
+
+  B       (input)  DOUBLE PRECISION array,
+          if TYPEG = 'D'  or  TYPEG = 'C',  dimension (LDB, Q);
+          if TYPEG = 'R',                   dimension (LDB, K).
+          On entry, if TYPEG = 'D'  or  TYPEG = 'C', the leading
+          K-by-Q part of this array must contain the matrix B as
+          returned by MB02CU.
+          On entry, if TYPEG = 'R', the leading Q-by-K part of this
+          array must contain the matrix B as returned by MB02CU.
+
+  LDB     INTEGER
+          The leading dimension of the array B.
+          If Q = 0,                  LDB &gt;= 1;
+          If Q &gt; 0 and (TYPEG = 'D' or TYPEG = 'C'),
+                                     LDB &gt;= MAX(1,K);
+          if Q &gt; 0 and TYPEG = 'R',  LDB &gt;= Q.
+
+  F1      (input/output)  DOUBLE PRECISION array,
+          if TYPEG = 'D'  or  TYPEG = 'C',  dimension (LDF1, K);
+          if TYPEG = 'R',                   dimension (LDF1, N).
+          On entry, if TYPEG = 'D'  or  TYPEG = 'C', the leading
+          N-by-K part of this array must contain the first part
+          of the positive generator to be processed.
+          On entry, if TYPEG = 'R', the leading K-by-N part of this
+          array must contain the first part of the positive
+          generator to be processed.
+          On exit, if TYPEG = 'D'  or  TYPEG = 'C', the leading
+          N-by-K part of this array contains the first part of the
+          transformed positive generator.
+          On exit, if TYPEG = 'R', the leading K-by-N part of this
+          array contains the first part of the transformed positive
+          generator.
+
+  LDF1    INTEGER
+          The leading dimension of the array F1.
+          If TYPEG = 'D'  or  TYPEG = 'C',   LDF1 &gt;= MAX(1,N);
+          if TYPEG = 'R',                    LDF1 &gt;= MAX(1,K).
+
+  F2      (input/output)  DOUBLE PRECISION array,
+          if TYPEG = 'D'  or  TYPEG = 'C',  dimension (LDF2, P-K);
+          if TYPEG = 'R',                   dimension (LDF2, N).
+          On entry, if TYPEG = 'D'  or  TYPEG = 'C', the leading
+          N-by-(P-K) part of this array must contain the second part
+          of the positive generator to be processed.
+          On entry, if TYPEG = 'R', the leading (P-K)-by-N part of
+          this array must contain the second part of the positive
+          generator to be processed.
+          On exit, if TYPEG = 'D'  or  TYPEG = 'C', the leading
+          N-by-(P-K) part of this array contains the second part of
+          the transformed positive generator.
+          On exit, if TYPEG = 'R', the leading (P-K)-by-N part of
+          this array contains the second part of the transformed
+          positive generator.
+
+  LDF2    INTEGER
+          The leading dimension of the array F2.
+          If P = K,                  LDF2 &gt;= 1;
+          If P &gt; K and (TYPEG = 'D' or TYPEG = 'C'),
+                                     LDF2 &gt;= MAX(1,N);
+          if P &gt; K and TYPEG = 'R',  LDF2 &gt;= P-K.
+
+  G       (input/output)  DOUBLE PRECISION array,
+          if TYPEG = 'D'  or  TYPEG = 'C',  dimension (LDG, Q);
+          if TYPEG = 'R',                   dimension (LDG, N).
+          On entry, if TYPEG = 'D'  or  TYPEG = 'C', the leading
+          N-by-Q part of this array must contain the negative part
+          of the generator to be processed.
+          On entry, if TYPEG = 'R', the leading Q-by-N part of this
+          array must contain the negative part of the generator to
+          be processed.
+          On exit, if TYPEG = 'D'  or  TYPEG = 'C', the leading
+          N-by-Q part of this array contains the transformed
+          negative generator.
+          On exit, if TYPEG = 'R', the leading Q-by-N part of this
+          array contains the transformed negative generator.
+
+  LDG     INTEGER
+          The leading dimension of the array G.
+          If Q = 0,                  LDG &gt;= 1;
+          If Q &gt; 0 and (TYPEG = 'D' or TYPEG = 'C'),
+                                     LDG &gt;= MAX(1,N);
+          if Q &gt; 0 and TYPEG = 'R',  LDG &gt;= Q.
+
+  CS      (input)  DOUBLE PRECISION array, dimension (x)
+          If TYPEG = 'D' and P = K,                   x = 3*K;
+          If TYPEG = 'D' and P &gt; K,                   x = 5*K;
+          If (TYPEG = 'C' or TYPEG = 'R') and P = K,  x = 4*K;
+          If (TYPEG = 'C' or TYPEG = 'R') and P &gt; K,  x = 6*K.
+          On entry, the first x elements of this array must contain
+          Givens and modified hyperbolic rotation parameters, and
+          scalar factors of the Householder transformations as
+          returned by MB02CU.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+          On exit, if INFO = -23,  DWORK(1) returns the minimum
+          value of LDWORK.
+
+  LDWORK  INTEGER
+          The length of the array DWORK.
+          TYPEG = 'D':               LDWORK &gt;= MAX(1,N);
+          (TYPEG = 'C' or TYPEG = 'R')  and  NB &lt;= 0:
+                                     LDWORK &gt;= MAX(1,N);
+          (TYPEG = 'C' or TYPEG = 'R')  and  NB &gt;= 1:
+                                     LDWORK &gt;= MAX(1,( N + K )*NB).
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  The algorithm requires 0(N*K*( P + Q )) floating point operations.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  The Householder transformations and modified hyperbolic rotations
+  computed by SLICOT Library routine MB02CU are applied to the
+  corresponding parts of the matrices F1, F2 and G.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

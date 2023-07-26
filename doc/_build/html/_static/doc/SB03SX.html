@@ -1,0 +1,198 @@
+<HTML>
+<HEAD><TITLE>SB03SX - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="SB03SX">SB03SX</A></H2>
+<H3>
+Estimating a forward error bound for the solution of a discrete-time Lyapunov equation
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To estimate a forward error bound for the solution X of a real
+  discrete-time Lyapunov matrix equation,
+
+         op(A)'*X*op(A) - X = C,
+
+  where op(A) = A or A' (A**T) and C is symmetric (C = C**T). The
+  matrix A, the right hand side C, and the solution X are N-by-N.
+  An absolute residual matrix, which takes into account the rounding
+  errors in forming it, is given in the array R.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE SB03SX( TRANA, UPLO, LYAPUN, N, XANORM, T, LDT, U, LDU,
+     $                   R, LDR, FERR, IWORK, DWORK, LDWORK, INFO )
+C     .. Scalar Arguments ..
+      CHARACTER          LYAPUN, TRANA, UPLO
+      INTEGER            INFO, LDR, LDT, LDU, LDWORK, N
+      DOUBLE PRECISION   FERR, XANORM
+C     .. Array Arguments ..
+      INTEGER            IWORK( * )
+      DOUBLE PRECISION   DWORK( * ), R( LDR, * ), T( LDT, * ),
+     $                   U( LDU, * )
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  TRANA   CHARACTER*1
+          Specifies the form of op(A) to be used, as follows:
+          = 'N':  op(A) = A    (No transpose);
+          = 'T':  op(A) = A**T (Transpose);
+          = 'C':  op(A) = A**T (Conjugate transpose = Transpose).
+
+  UPLO    CHARACTER*1
+          Specifies which part of the symmetric matrix R is to be
+          used, as follows:
+          = 'U':  Upper triangular part;
+          = 'L':  Lower triangular part.
+
+  LYAPUN  CHARACTER*1
+          Specifies whether or not the original Lyapunov equations
+          should be solved, as follows:
+          = 'O':  Solve the original Lyapunov equations, updating
+                  the right-hand sides and solutions with the
+                  matrix U, e.g., X &lt;-- U'*X*U;
+          = 'R':  Solve reduced Lyapunov equations only, without
+                  updating the right-hand sides and solutions.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The order of the matrices A and R.  N &gt;= 0.
+
+  XANORM  (input) DOUBLE PRECISION
+          The absolute (maximal) norm of the symmetric solution
+          matrix X of the Lyapunov equation.  XANORM &gt;= 0.
+
+  T       (input) DOUBLE PRECISION array, dimension (LDT,N)
+          The leading N-by-N upper Hessenberg part of this array
+          must contain the upper quasi-triangular matrix T in Schur
+          canonical form from a Schur factorization of A.
+
+  LDT     INTEGER
+          The leading dimension of array T.  LDT &gt;= MAX(1,N).
+
+  U       (input) DOUBLE PRECISION array, dimension (LDU,N)
+          The leading N-by-N part of this array must contain the
+          orthogonal matrix U from a real Schur factorization of A.
+          If LYAPUN = 'R', the array U is not referenced.
+
+  LDU     INTEGER
+          The leading dimension of array U.
+          LDU &gt;= 1,        if LYAPUN = 'R';
+          LDU &gt;= MAX(1,N), if LYAPUN = 'O'.
+
+  R       (input/output) DOUBLE PRECISION array, dimension (LDR,N)
+          On entry, if UPLO = 'U', the leading N-by-N upper
+          triangular part of this array must contain the upper
+          triangular part of the absolute residual matrix R, with
+          bounds on rounding errors added.
+          On entry, if UPLO = 'L', the leading N-by-N lower
+          triangular part of this array must contain the lower
+          triangular part of the absolute residual matrix R, with
+          bounds on rounding errors added.
+          On exit, the leading N-by-N part of this array contains
+          the symmetric absolute residual matrix R (with bounds on
+          rounding errors added), fully stored.
+
+  LDR     INTEGER
+          The leading dimension of array R.  LDR &gt;= MAX(1,N).
+
+  FERR    (output) DOUBLE PRECISION
+          An estimated forward error bound for the solution X.
+          If XTRUE is the true solution, FERR bounds the magnitude
+          of the largest entry in (X - XTRUE) divided by the
+          magnitude of the largest entry in X.
+          If N = 0 or XANORM = 0, FERR is set to 0, without any
+          calculations.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  IWORK   INTEGER array, dimension (N*N)
+
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+
+  LDWORK  INTEGER
+          The length of the array DWORK.
+          LDWORK &gt;= 0,            if N = 0;
+          LDWORK &gt;= MAX(3,2*N*N), if N &gt; 0.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value;
+          = N+1:  if T has almost reciprocal eigenvalues; perturbed
+                values were used to solve Lyapunov equations (but
+                the matrix T is unchanged).
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  The forward error bound is estimated using a practical error bound
+  similar to the one proposed in [1], based on the 1-norm estimator
+  in [2].
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Higham, N.J.
+      Perturbation theory and backward error for AX-XB=C.
+      BIT, vol. 33, pp. 124-136, 1993.
+
+  [2] Higham, N.J.
+      FORTRAN codes for estimating the one-norm of a real or
+      complex matrix, with applications to condition estimation.
+      ACM Trans. Math. Softw., 14, pp. 381-396, 1988.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>                            3
+  The algorithm requires 0(N ) operations.
+
+</PRE>
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  The option LYAPUN = 'R' may occasionally produce slightly worse
+  or better estimates, and it is much faster than the option 'O'.
+  The routine can be also used as a final step in estimating a
+  forward error bound for the solution of a discrete-time algebraic
+  matrix Riccati equation.
+
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

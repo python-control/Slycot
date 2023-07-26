@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>slycot.sb10dd &mdash; Slycot 0.6 documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+        <script src="../../../_static/sphinx_highlight.js"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <link rel="next" title="slycot.sb10fd" href="slycot.sb10fd.html" />
+    <link rel="prev" title="slycot.sb10ad" href="slycot.sb10ad.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            Slycot
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../../intro.html">Introduction</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../index.html">Slycot reference</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="../slycot_outer.html">Outer function reference</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="../slycot_outer.html#analysis">Analysis</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../slycot_outer.html#mathematical-routines">Mathematical routines</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="../slycot_outer.html#synthesis">Synthesis</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="slycot.sb01bd.html">slycot.sb01bd</a></li>
+<li class="toctree-l4"><a class="reference internal" href="slycot.sb02md.html">slycot.sb02md</a></li>
+<li class="toctree-l4"><a class="reference internal" href="slycot.sb02mt.html">slycot.sb02mt</a></li>
+<li class="toctree-l4"><a class="reference internal" href="slycot.sb02od.html">slycot.sb02od</a></li>
+<li class="toctree-l4"><a class="reference internal" href="slycot.sb03md.html">slycot.sb03md</a></li>
+<li class="toctree-l4"><a class="reference internal" href="slycot.sb03md57.html">slycot.sb03md57</a></li>
+<li class="toctree-l4"><a class="reference internal" href="slycot.sb03od.html">slycot.sb03od</a></li>
+<li class="toctree-l4"><a class="reference internal" href="slycot.sb04md.html">slycot.sb04md</a></li>
+<li class="toctree-l4"><a class="reference internal" href="slycot.sb04qd.html">slycot.sb04qd</a></li>
+<li class="toctree-l4"><a class="reference internal" href="slycot.sb10ad.html">slycot.sb10ad</a></li>
+<li class="toctree-l4 current"><a class="current reference internal" href="#">slycot.sb10dd</a></li>
+<li class="toctree-l4"><a class="reference internal" href="slycot.sb10fd.html">slycot.sb10fd</a></li>
+<li class="toctree-l4"><a class="reference internal" href="slycot.sb10hd.html">slycot.sb10hd</a></li>
+<li class="toctree-l4"><a class="reference internal" href="slycot.sg02ad.html">slycot.sg02ad</a></li>
+<li class="toctree-l4"><a class="reference internal" href="slycot.sg03ad.html">slycot.sg03ad</a></li>
+<li class="toctree-l4"><a class="reference internal" href="slycot.sg03bd.html">slycot.sg03bd</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../slycot_outer.html#transformation-routines">Transformation Routines</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../slycot_inner.html">Inner function reference</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../dev/index.html">Development</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">Slycot</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Slycot reference</a></li>
+          <li class="breadcrumb-item"><a href="../slycot_outer.html">Outer function reference</a></li>
+      <li class="breadcrumb-item active">slycot.sb10dd</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../../_sources/source/reference/generated/slycot.sb10dd.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <div class="section" id="slycot-sb10dd">
+<h1>slycot.sb10dd<a class="headerlink" href="#slycot-sb10dd" title="Permalink to this heading"></a></h1>
+<dl class="py function">
+<dt class="sig sig-object py" id="slycot.sb10dd">
+<span class="sig-prename descclassname"><span class="pre">slycot.</span></span><span class="sig-name descname"><span class="pre">sb10dd</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">m</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">np</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ncon</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nmeas</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gamma</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">A</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">B</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">C</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">D</span></span></em><span class="optional">[</span>, <em class="sig-param"><span class="n"><span class="pre">tol</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ldwork</span></span></em><span class="optional">]</span><span class="sig-paren">)</span><a class="headerlink" href="#slycot.sb10dd" title="Permalink to this definition"></a></dt>
+<dd><p>To compute the matrices of an H-infinity (sub)optimal n-state
+controller</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>    <span class="o">|</span> <span class="n">AK</span> <span class="o">|</span> <span class="n">BK</span> <span class="o">|</span>
+<span class="n">K</span> <span class="o">=</span> <span class="o">|----|----|</span><span class="p">,</span>
+    <span class="o">|</span> <span class="n">CK</span> <span class="o">|</span> <span class="n">DK</span> <span class="o">|</span>
+</pre></div>
+</div>
+<p>for the discrete-time system</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>    <span class="o">|</span> <span class="n">A</span>  <span class="o">|</span> <span class="n">B1</span>  <span class="n">B2</span>  <span class="o">|</span>   <span class="o">|</span> <span class="n">A</span> <span class="o">|</span> <span class="n">B</span> <span class="o">|</span>
+<span class="n">P</span> <span class="o">=</span> <span class="o">|----|---------|</span> <span class="o">=</span> <span class="o">|---|---|</span>
+    <span class="o">|</span> <span class="n">C1</span> <span class="o">|</span> <span class="n">D11</span> <span class="n">D12</span> <span class="o">|</span>   <span class="o">|</span> <span class="n">C</span> <span class="o">|</span> <span class="n">D</span> <span class="o">|</span>
+    <span class="o">|</span> <span class="n">C2</span> <span class="o">|</span> <span class="n">D21</span> <span class="n">D22</span> <span class="o">|</span>
+</pre></div>
+</div>
+<p>and for a given value of gamma, where B2 has as column size the
+number of control inputs (NCON) and C2 has as row size the number
+of measurements (NMEAS) being provided to the controller.</p>
+<p>It is assumed that</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="n">A1</span><span class="p">)</span> <span class="p">(</span><span class="n">A</span><span class="p">,</span><span class="n">B2</span><span class="p">)</span> <span class="ow">is</span> <span class="n">stabilizable</span> <span class="ow">and</span> <span class="p">(</span><span class="n">C2</span><span class="p">,</span><span class="n">A</span><span class="p">)</span> <span class="ow">is</span> <span class="n">detectable</span><span class="p">,</span>
+
+<span class="p">(</span><span class="n">A2</span><span class="p">)</span> <span class="n">D12</span> <span class="ow">is</span> <span class="n">full</span> <span class="n">column</span> <span class="n">rank</span> <span class="ow">and</span> <span class="n">D21</span> <span class="ow">is</span> <span class="n">full</span> <span class="n">row</span> <span class="n">rank</span><span class="p">,</span>
+
+          <span class="n">j</span><span class="o">*</span><span class="n">Theta</span>
+<span class="p">(</span><span class="n">A3</span><span class="p">)</span> <span class="o">|</span> <span class="n">A</span><span class="o">-</span><span class="n">e</span>       <span class="o">*</span><span class="n">I</span>  <span class="n">B2</span>  <span class="o">|</span> <span class="n">has</span> <span class="n">full</span> <span class="n">column</span> <span class="n">rank</span> <span class="k">for</span> <span class="nb">all</span>
+     <span class="o">|</span>    <span class="n">C1</span>         <span class="n">D12</span> <span class="o">|</span>
+
+     <span class="mi">0</span> <span class="o">&lt;=</span> <span class="n">Theta</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="o">*</span><span class="n">Pi</span> <span class="p">,</span>
+
+          <span class="n">j</span><span class="o">*</span><span class="n">Theta</span>
+<span class="p">(</span><span class="n">A4</span><span class="p">)</span> <span class="o">|</span> <span class="n">A</span><span class="o">-</span><span class="n">e</span>       <span class="o">*</span><span class="n">I</span>  <span class="n">B1</span>  <span class="o">|</span>  <span class="n">has</span> <span class="n">full</span> <span class="n">row</span> <span class="n">rank</span> <span class="k">for</span> <span class="nb">all</span>
+     <span class="o">|</span>    <span class="n">C2</span>         <span class="n">D21</span> <span class="o">|</span>
+
+     <span class="mi">0</span> <span class="o">&lt;=</span> <span class="n">Theta</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="o">*</span><span class="n">Pi</span> <span class="o">.</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>n</strong> (<em>int</em>) – The order of the system. (size of matrix A).</p></li>
+<li><p><strong>m</strong> (<em>int</em>) – The column size of the matrix B.</p></li>
+<li><p><strong>np</strong> (<em>int</em>) – The row size of the matrix C.</p></li>
+<li><p><strong>ncon</strong> (<em>int</em>) – The number of control inputs.  m &gt;= ncon &gt;= 0, np-nmeas &gt;= ncon.</p></li>
+<li><p><strong>nmeas</strong> (<em>int</em>) – The number of measurements.  np &gt;= nmeas &gt;= 0, m-ncon &gt;= nmeas.</p></li>
+<li><p><strong>gamma</strong> (<em>double</em>) – The initial value of gamma on input.  It is assumed that gamma
+is sufficiently large so that the controller is admissible.  gamma &gt;= 0.</p></li>
+<li><p><strong>A</strong> (<em>(</em><em>n</em><em>, </em><em>n</em><em>) </em><em>array_like</em>) – System matrix</p></li>
+<li><p><strong>B</strong> (<em>(</em><em>n</em><em>, </em><em>m</em><em>) </em><em>array_like</em>) – Input matrix</p></li>
+<li><p><strong>C</strong> (<em>(</em><em>np</em><em>, </em><em>n</em><em>) </em><em>array_like</em>) – Output matrix</p></li>
+<li><p><strong>D</strong> (<em>(</em><em>np</em><em>, </em><em>m</em><em>) </em><em>array_like</em>) – Direct feed-through</p></li>
+<li><p><strong>tol</strong> (<em>double</em><em>, </em><em>optional</em>) – Tolerance used in neglecting the small singular values
+in rank determination. If tol &lt;= 0, then a default value
+equal to 1000*eps is used, where eps is the relative
+machine precision.</p></li>
+<li><p><strong>ldwork</strong> (<em>int</em><em>, </em><em>optional</em>) – The dimension of the array dwork.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>gamma_est</strong> (<em>double</em>) – The minimal estimated gamma.</p></li>
+<li><p><strong>Ak</strong> (<em>(n, n) ndarray</em>) – The controller state matrix Ak.</p></li>
+<li><p><strong>Bk</strong> (<em>(n, nmeas) ndarray</em>) – The controller input matrix Bk.</p></li>
+<li><p><strong>Ck</strong> (<em>(ncon, n) ndarray</em>) – The controller output matrix Ck.</p></li>
+<li><p><strong>Dk</strong> (<em>(ncon, nmeas) ndarray</em>) – The controller input/output matrix DK.</p></li>
+<li><p><strong>X</strong> (<em>(n, n) ndarray</em>) – The matrix X, solution of the X-Riccati equation.</p></li>
+<li><p><strong>Z</strong> (<em>(n, n) ndarray</em>) – The matrix Z, solution of the Z-Riccati equation.</p></li>
+<li><p><strong>rcond</strong> (<em>(8) ndarray</em>) – rcond contains estimates of the reciprocal condition
+numbers of the matrices which are to be inverted and
+estimates of the reciprocal condition numbers of the
+Riccati equations which have to be solved during the
+computation of the controller. (See the description of
+the algorithm in [2].)</p>
+<ul>
+<li><p>rcond(1) contains the reciprocal condition number of the
+matrix R3;</p></li>
+<li><p>rcond(2) contains the reciprocal condition number of the
+matrix R1 - R2’<a href="#id1"><span class="problematic" id="id2">*</span></a>inv(R3)*R2;</p></li>
+<li><p>rcond(3) contains the reciprocal condition number of the
+matrix V21;</p></li>
+<li><p>rcond(4) contains the reciprocal condition number of the
+matrix St3;</p></li>
+<li><p>rcond(5) contains the reciprocal condition number of the
+matrix V12;</p></li>
+<li><p>rcond(6) contains the reciprocal condition number of the
+matrix Im2 + dkhat*D22</p></li>
+<li><p>rcond(7) contains the reciprocal condition number of the
+X-Riccati equation;</p></li>
+<li><p>rcond(8) contains the reciprocal condition number of the
+Z-Riccati equation.</p></li>
+</ul>
+</li>
+</ul>
+</p>
+</dd>
+<dt class="field-odd">Raises</dt>
+<dd class="field-odd"><p><strong>SlycotArithmeticError</strong> – <dl class="field-list">
+<dt class="field-odd">info = 1</dt>
+<dd class="field-odd"><p>The matrix</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>     <span class="n">j</span><span class="o">*</span><span class="n">Theta</span>
+<span class="o">|</span> <span class="n">A</span><span class="o">-</span><span class="n">e</span>       <span class="o">*</span><span class="n">I</span>  <span class="n">B2</span>  <span class="o">|</span>
+<span class="o">|</span>      <span class="n">C1</span>       <span class="n">D12</span> <span class="o">|</span>
+</pre></div>
+</div>
+<p>had not full column rank;</p>
+</dd>
+<dt class="field-even">info = 2</dt>
+<dd class="field-even"><p>The matrix</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>     <span class="n">j</span><span class="o">*</span><span class="n">Theta</span>
+<span class="o">|</span> <span class="n">A</span><span class="o">-</span><span class="n">e</span>       <span class="o">*</span><span class="n">I</span>  <span class="n">B1</span>  <span class="o">|</span>
+<span class="o">|</span>      <span class="n">C2</span>       <span class="n">D21</span> <span class="o">|</span>
+</pre></div>
+</div>
+<p>had not full row rank;</p>
+</dd>
+<dt class="field-odd">info = 3</dt>
+<dd class="field-odd"><p>The matrix D12 had not full column rank;</p>
+</dd>
+<dt class="field-even">info = 4</dt>
+<dd class="field-even"><p>The matrix D21 had not full row rank;</p>
+</dd>
+<dt class="field-odd">info = 5</dt>
+<dd class="field-odd"><p>The controller is not admissible (too small value of gamma);</p>
+</dd>
+<dt class="field-even">info = 6</dt>
+<dd class="field-even"><p>The X-Riccati equation was not solved
+successfully (the controller is not admissible or
+there are numerical difficulties);</p>
+</dd>
+<dt class="field-odd">info = 7</dt>
+<dd class="field-odd"><p>The Z-Riccati equation was not solved
+successfully (the controller is not admissible or
+there are numerical difficulties);</p>
+</dd>
+<dt class="field-even">info = 8</dt>
+<dd class="field-even"><p>The matrix Im2 + DKHAT*D22 is singular.</p>
+</dd>
+<dt class="field-odd">info = 9</dt>
+<dd class="field-odd"><p>The singular value decomposition (SVD) algorithm
+did not converge (when computing the SVD of one of
+the matrices</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">|</span><span class="n">A</span>   <span class="n">B2</span> <span class="o">|</span><span class="p">,</span> <span class="o">|</span><span class="n">A</span>   <span class="n">B1</span> <span class="o">|</span><span class="p">,</span> <span class="n">D12</span> <span class="ow">or</span> <span class="n">D21</span><span class="p">)</span><span class="o">.</span>
+<span class="o">|</span><span class="n">C1</span>  <span class="n">D12</span><span class="o">|</span>  <span class="o">|</span><span class="n">C2</span>  <span class="n">D21</span><span class="o">|</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="slycot.sb10ad.html" class="btn btn-neutral float-left" title="slycot.sb10ad" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="slycot.sb10fd.html" class="btn btn-neutral float-right" title="slycot.sb10fd" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Slycot Developers.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

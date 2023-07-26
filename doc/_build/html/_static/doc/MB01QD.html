@@ -1,0 +1,143 @@
+<HTML>
+<HEAD><TITLE>MB01QD - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MB01QD">MB01QD</A></H2>
+<H3>
+Matrix scaling (lower level routine)
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To multiply the M by N real matrix A by the real scalar CTO/CFROM.
+  This is done without over/underflow as long as the final result
+  CTO*A(I,J)/CFROM does not over/underflow. TYPE specifies that
+  A may be full, (block) upper triangular, (block) lower triangular,
+  (block) upper Hessenberg, or banded.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MB01QD( TYPE, M, N, KL, KU, CFROM, CTO, NBL, NROWS, A,
+     $                   LDA, INFO )
+C     .. Scalar Arguments ..
+      CHARACTER          TYPE
+      INTEGER            INFO, KL, KU, LDA, M, N, NBL
+      DOUBLE PRECISION   CFROM, CTO
+C     .. Array Arguments ..
+      INTEGER            NROWS ( * )
+      DOUBLE PRECISION   A( LDA, * )
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  TYPE    CHARACTER*1
+          TYPE indices the storage type of the input matrix.
+          = 'G':  A is a full matrix.
+          = 'L':  A is a (block) lower triangular matrix.
+          = 'U':  A is a (block) upper triangular matrix.
+          = 'H':  A is a (block) upper Hessenberg matrix.
+          = 'B':  A is a symmetric band matrix with lower bandwidth
+                  KL and upper bandwidth KU and with the only the
+                  lower half stored.
+          = 'Q':  A is a symmetric band matrix with lower bandwidth
+                  KL and upper bandwidth KU and with the only the
+                  upper half stored.
+          = 'Z':  A is a band matrix with lower bandwidth KL and
+                  upper bandwidth KU.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  M       (input) INTEGER
+          The number of rows of the matrix A.  M &gt;= 0.
+
+  N       (input) INTEGER
+          The number of columns of the matrix A.  N &gt;= 0.
+
+  KL      (input) INTEGER
+          The lower bandwidth of A.  Referenced only if TYPE = 'B',
+          'Q' or 'Z'.
+
+  KU      (input) INTEGER
+          The upper bandwidth of A.  Referenced only if TYPE = 'B',
+          'Q' or 'Z'.
+
+  CFROM   (input) DOUBLE PRECISION
+  CTO     (input) DOUBLE PRECISION
+          The matrix A is multiplied by CTO/CFROM. A(I,J) is
+          computed without over/underflow if the final result
+          CTO*A(I,J)/CFROM can be represented without over/
+          underflow.  CFROM must be nonzero.
+
+  NBL     (input) INTEGER
+          The number of diagonal blocks of the matrix A, if it has a
+          block structure.  To specify that matrix A has no block
+          structure, set NBL = 0.  NBL &gt;= 0.
+
+  NROWS   (input) INTEGER array, dimension max(1,NBL)
+          NROWS(i) contains the number of rows and columns of the
+          i-th diagonal block of matrix A.  The sum of the values
+          NROWS(i),  for  i = 1: NBL,  should be equal to min(M,N).
+          The array  NROWS  is not referenced if NBL = 0.
+
+  A       (input/output) DOUBLE PRECISION array, dimension (LDA,N)
+          The matrix to be multiplied by CTO/CFROM.  See TYPE for
+          the storage type.
+
+  LDA     (input) INTEGER
+          The leading dimension of the array A.  LDA &gt;= max(1,M).
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          Not used in this implementation.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  Matrix A is multiplied by the real scalar CTO/CFROM, taking into
+  account the specified storage mode of the matrix.
+  MB01QD is a version of the LAPACK routine DLASCL, modified for
+  dealing with block triangular, or block Hessenberg matrices.
+  For efficiency, no tests of the input scalar parameters are
+  performed.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<p>
+<A HREF=..\libindex.html><B>Return to index</B></A></BODY>
+</HTML>

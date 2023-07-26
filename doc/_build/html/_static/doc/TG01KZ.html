@@ -1,0 +1,202 @@
+<HTML>
+<HEAD><TITLE>TG01KZ - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="TG01KZ">TG01KZ</A></H2>
+<H3>
+Unitary equivalence transformation of a complex SISO descriptor system with E upper triangular (TG01OB version with more complex interface)
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To compute for a single-input single-output descriptor system,
+  (A, E, B, C), with E upper triangular, a transformed system,
+  (Q'*A*Z, Q'*E*Z, Q'*B, C*Z), via an orthogonal equivalence
+  transformation, so that Q'*B has only the first element nonzero
+  and Q'*E*Z remains upper triangular.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE TG01KZ( JOBE, COMPC, COMPQ, COMPZ, N, A, LDA, E, LDE,
+     $                   B, C, INCC, Q, LDQ, Z, LDZ, INFO )
+C     .. Scalar Arguments ..
+      CHARACTER         COMPC, COMPQ, COMPZ, JOBE
+      INTEGER           INCC, INFO, LDA, LDE, LDQ, LDZ, N
+C     .. Array Arguments ..
+      COMPLEX*16        A(LDA,*), B(*), C(*), E(LDE,*), Q(LDQ,*),
+     $                  Z(LDZ,*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  JOBE    CHARACTER*1
+          Specifies whether E is an upper triangular or an identity
+          matrix, as follows:
+          = 'U':  The matrix E is an upper triangular matrix;
+          = 'I':  The matrix E is assumed identity and is not given.
+
+  COMPC   CHARACTER*1
+          Indicates whether the user wishes to transform the system
+          output matrix C, as follows:
+          = 'C':  Transform the system output matrix C;
+          = 'N':  Do not transform the system output matrix C.
+
+  COMPQ   CHARACTER*1
+          Indicates whether the user wishes to accumulate in a
+          matrix Q the orthogonal row transformations, as follows:
+          = 'N':  Do not form Q;
+          = 'I':  Q is initialized to the unit matrix and the
+                  orthogonal transformation matrix Q is returned;
+          = 'U':  The given matrix Q is updated by the orthogonal
+                  transformations used.
+
+  COMPZ   CHARACTER*1
+          Indicates whether the user wishes to accumulate in a
+          matrix Z the orthogonal column transformations, as
+          follows:
+          = 'N':  Do not form Z;
+          = 'I':  Z is initialized to the unit matrix and the
+                  orthogonal transformation matrix Z is returned;
+          = 'U':  The given matrix Z is updated by the orthogonal
+                  transformations used.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The dimension of the descriptor state vector; also the
+          order of square matrices A and E, the number of rows of
+          matrix B, and the number of columns of matrix C.  N &gt;= 0.
+
+  A       (input/output) COMPLEX*16 array, dimension (LDA,N)
+          On entry, the leading N-by-N part of this array must
+          contain the original state matrix A.
+          On exit, the leading N-by-N part of this array contains
+          the transformed state matrix Q'*A*Z.
+
+  LDA     INTEGER
+          The leading dimension of the array A.  LDA &gt;= MAX(1,N).
+
+  E       (input/output) COMPLEX*16 array, dimension (LDE,*)
+          On entry, if JOBE = 'U', the leading N-by-N upper
+          triangular part of this array must contain the upper
+          triangular part of the descriptor matrix E. The lower
+          triangular part under the first subdiagonal is not
+          referenced.
+          On exit, if JOBE = 'U', the leading N-by-N upper
+          triangular part of this array contains the upper
+          triangular part of the transformed descriptor matrix,
+          Q'*E*Z.
+          If JOBE = 'I', this array is not referenced.
+
+  LDE     INTEGER
+          The leading dimension of the array E.
+          LDE &gt;= MAX(1,N), if JOBE = 'U';
+          LDE &gt;= 1,        if JOBE = 'I'.
+
+  B       (input/output) COMPLEX*16 array, dimension (N)
+          On entry, the leading N part of this array must contain
+          the original input matrix B.
+          On exit, the leading N part of this array contains the
+          transformed input matrix Q'*B with all elements but the
+          first set to zero.
+
+  C       (input/output) COMPLEX*16 array, dimension
+          ((N-1)*INCC+1)
+          On entry, if COMPC = 'C', the elements 1, INCC+1, ...,
+          (N-1)*INCC+1 of this array must contain the original
+          output vector C.
+          On exit, if COMPC = 'C', the elements 1, INCC+1, ...,
+          (N-1)*INCC+1 of this array contain the transformed output
+          vector C*Z.
+          If COMPC = 'N', this array is not referenced.
+
+  INCC    INTEGER
+          If COMPC = 'C', the increment between successive values
+          of C.  INCC &gt; 0.
+          If COMPC = 'N', INCC is not used.
+
+  Q       (input/output) COMPLEX*16 array, dimension (LDQ,*)
+          On entry, if COMPQ = 'U', the leading N-by-N part of this
+          array must contain the given matrix Q1. Otherwise, this
+          array need not be set on input.
+          On exit, if COMPU &lt;&gt; 'N', the leading N-by-N part of this
+          array contains the orthogonal transformation matrix used
+          (Q1*Q if COMPQ = 'U').
+          If COMPQ = 'N', this array is not referenced.
+
+  LDQ     INTEGER
+          The leading dimension of the array Q.
+          LDQ &gt;= 1,        if COMPQ =  'N';
+          LDQ &gt;= max(1,N), if COMPQ &lt;&gt; 'N'.
+
+  Z       (input/output) COMPLEX*16 array, dimension (LDZ,*)
+          On entry, if COMPZ = 'U', the leading N-by-N part of this
+          array must contain the given matrix Z1. Otherwise, this
+          array need not be set on input.
+          On exit, if COMPZ &lt;&gt; 'N', the leading N-by-N part of this
+          array contains the orthogonal transformation matrix used
+          (Z1*Z if COMPZ = 'U').
+          If COMPZ = 'N', this array is not referenced.
+
+  LDZ     INTEGER
+          The leading dimension of the array Z.
+          LDZ &gt;= 1,        if COMPZ =  'N';
+          LDZ &gt;= max(1,N), if COMPZ &lt;&gt; 'N'.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  Givens rotations are used to annihilate the last N-1 elements of B
+  in reverse order, but preserve the form of E.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  The algorithm is numerically backward stable.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

@@ -1,0 +1,416 @@
+<HTML>
+<HEAD><TITLE>AB09IY - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="AB09IY">AB09IY</A></H2>
+<H3>
+Cholesky factors of the frequency-weighted controllability and observability Grammians
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To compute for given state-space representations
+  (A,B,C,0), (AV,BV,CV,DV), and (AW,BW,CW,DW) of the
+  transfer-function matrices G, V and W, respectively,
+  the Cholesky factors of the frequency-weighted
+  controllability and observability Grammians corresponding
+  to a frequency-weighted model reduction problem.
+  G, V and W must be stable transfer-function matrices with
+  the state matrices A, AV, and AW in real Schur form.
+  It is assumed that the state space realizations (AV,BV,CV,DV)
+  and (AW,BW,CW,DW) are minimal. In case of possible pole-zero
+  cancellations in forming V*G and/or G*W, the parameters for the
+  choice of frequency-weighted Grammians ALPHAO and/or ALPHAC,
+  respectively, must be different from 1.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE AB09IY( DICO, JOBC, JOBO, WEIGHT, N, M, P, NV, PV,
+     $                   NW, MW, ALPHAC, ALPHAO, A, LDA, B, LDB, C, LDC,
+     $                   AV, LDAV, BV, LDBV, CV, LDCV, DV, LDDV,
+     $                   AW, LDAW, BW, LDBW, CW, LDCW, DW, LDDW,
+     $                   SCALEC, SCALEO, S, LDS, R, LDR,
+     $                   DWORK, LDWORK, INFO )
+C     .. Scalar Arguments ..
+      CHARACTER        DICO, JOBC, JOBO, WEIGHT
+      INTEGER          INFO, LDA, LDAV, LDAW, LDB, LDBV, LDBW,
+     $                 LDC, LDCV, LDCW, LDDV, LDDW, LDR, LDS, LDWORK,
+     $                 M, MW, N, NV, NW, P, PV
+      DOUBLE PRECISION ALPHAC, ALPHAO, SCALEC, SCALEO
+C     .. Array Arguments ..
+      DOUBLE PRECISION A(LDA,*), AV(LDAV,*), AW(LDAW,*),
+     $                 B(LDB,*), BV(LDBV,*), BW(LDBW,*),
+     $                 C(LDC,*), CV(LDCV,*), CW(LDCW,*),
+     $                           DV(LDDV,*), DW(LDDW,*),
+     $                 DWORK(*), R(LDR,*),   S(LDS,*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  DICO    CHARACTER*1
+          Specifies the type of the systems as follows:
+          = 'C':  G, V and W are continuous-time systems;
+          = 'D':  G, V and W are discrete-time systems.
+
+  JOBC    CHARACTER*1
+          Specifies the choice of frequency-weighted controllability
+          Grammian as follows:
+          = 'S': choice corresponding to a combination method [4]
+                 of the approaches of Enns [1] and Lin-Chiu [2,3];
+          = 'E': choice corresponding to the stability enhanced
+                 modified combination method of [4].
+
+  JOBO    CHARACTER*1
+          Specifies the choice of frequency-weighted observability
+          Grammian as follows:
+          = 'S': choice corresponding to a combination method [4]
+                 of the approaches of Enns [1] and Lin-Chiu [2,3];
+          = 'E': choice corresponding to the stability enhanced
+                 modified combination method of [4].
+
+  WEIGHT  CHARACTER*1
+          Specifies the type of frequency weighting, as follows:
+          = 'N':  no weightings are used (V = I, W = I);
+          = 'L':  only left weighting V is used (W = I);
+          = 'R':  only right weighting W is used (V = I);
+          = 'B':  both left and right weightings V and W are used.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The order of the state-space representation of G, i.e.,
+          the order of the matrix A.  N &gt;= 0.
+
+  M       (input) INTEGER
+          The number of columns of the matrix B and
+          the number of rows of the matrices CW and DW.  M &gt;= 0.
+          M represents the dimension of the input vector of the
+          system with the transfer-function matrix G and
+          also the dimension of the output vector of the system
+          with the transfer-function matrix W.
+
+  P       (input) INTEGER
+          The number of rows of the matrix C and the
+          number of columns of the matrices BV and DV.  P &gt;= 0.
+          P represents the dimension of the output vector of the
+          system with the transfer-function matrix G and
+          also the dimension of the input vector of the system
+          with the transfer-function matrix V.
+
+  NV      (input) INTEGER
+          The order of the matrix AV. Also the number of rows of
+          the matrix BV and the number of columns of the matrix CV.
+          NV represents the dimension of the state vector of the
+          system with the transfer-function matrix V.  NV &gt;= 0.
+
+  PV      (input) INTEGER
+          The number of rows of the matrices CV and DV.  PV &gt;= 0.
+          PV represents the dimension of the output vector of the
+          system with the transfer-function matrix V.
+
+  NW      (input) INTEGER
+          The order of the matrix AW. Also the number of rows of
+          the matrix BW and the number of columns of the matrix CW.
+          NW represents the dimension of the state vector of the
+          system with the transfer-function matrix W.  NW &gt;= 0.
+
+  MW      (input) INTEGER
+          The number of columns of the matrices BW and DW.  MW &gt;= 0.
+          MW represents the dimension of the input vector of the
+          system with the transfer-function matrix W.
+
+  ALPHAC  (input) DOUBLE PRECISION
+          Combination method parameter for defining the
+          frequency-weighted controllability Grammian (see METHOD);
+          ABS(ALPHAC) &lt;= 1.
+
+  ALPHAO  (input) DOUBLE PRECISION
+          Combination method parameter for defining the
+          frequency-weighted observability Grammian (see METHOD);
+          ABS(ALPHAO) &lt;= 1.
+
+  A       (input) DOUBLE PRECISION array, dimension (LDA,N)
+          The leading N-by-N part of this array must
+          contain the state matrix A (of the system with the
+          transfer-function matrix G) in a real Schur form.
+
+  LDA     INTEGER
+          The leading dimension of array A.  LDA &gt;= MAX(1,N).
+
+  B       (input) DOUBLE PRECISION array, dimension (LDB,M)
+          The leading N-by-M part of this array must contain the
+          input/state matrix B.
+
+  LDB     INTEGER
+          The leading dimension of array B.  LDB &gt;= MAX(1,N).
+
+  C       (input) DOUBLE PRECISION array, dimension (LDC,N)
+          The leading P-by-N part of this array must contain the
+          state/output matrix C.
+
+  LDC     INTEGER
+          The leading dimension of array C.  LDC &gt;= MAX(1,P).
+
+  AV      (input) DOUBLE PRECISION array, dimension (LDAV,NV)
+          If WEIGHT = 'L' or 'B', the leading NV-by-NV part of this
+          array must contain the state matrix AV (of the system with
+          the transfer-function matrix V) in a real Schur form.
+          AV is not referenced if WEIGHT = 'R' or 'N'.
+
+  LDAV    INTEGER
+          The leading dimension of array AV.
+          LDAV &gt;= MAX(1,NV), if WEIGHT = 'L' or 'B';
+          LDAV &gt;= 1,         if WEIGHT = 'R' or 'N'.
+
+  BV      (input) DOUBLE PRECISION array, dimension (LDBV,P)
+          If WEIGHT = 'L' or 'B', the leading NV-by-P part of this
+          array must contain the input matrix BV of the system with
+          the transfer-function matrix V.
+          BV is not referenced if WEIGHT = 'R' or 'N'.
+
+  LDBV    INTEGER
+          The leading dimension of array BV.
+          LDBV &gt;= MAX(1,NV), if WEIGHT = 'L' or 'B';
+          LDBV &gt;= 1,         if WEIGHT = 'R' or 'N'.
+
+  CV      (input) DOUBLE PRECISION array, dimension (LDCV,NV)
+          If WEIGHT = 'L' or 'B', the leading PV-by-NV part of this
+          array must contain the output matrix CV of the system with
+          the transfer-function matrix V.
+          CV is not referenced if WEIGHT = 'R' or 'N'.
+
+  LDCV    INTEGER
+          The leading dimension of array CV.
+          LDCV &gt;= MAX(1,PV), if WEIGHT = 'L' or 'B';
+          LDCV &gt;= 1,         if WEIGHT = 'R' or 'N'.
+
+  DV      (input) DOUBLE PRECISION array, dimension (LDDV,P)
+          If WEIGHT = 'L' or 'B', the leading PV-by-P part of this
+          array must contain the feedthrough matrix DV of the system
+          with the transfer-function matrix V.
+          DV is not referenced if WEIGHT = 'R' or 'N'.
+
+  LDDV    INTEGER
+          The leading dimension of array DV.
+          LDDV &gt;= MAX(1,PV), if WEIGHT = 'L' or 'B';
+          LDDV &gt;= 1,         if WEIGHT = 'R' or 'N'.
+
+  AW      (input) DOUBLE PRECISION array, dimension (LDAW,NW)
+          If WEIGHT = 'R' or 'B', the leading NW-by-NW part of this
+          array must contain the state matrix AW (of the system with
+          the transfer-function matrix W) in a real Schur form.
+          AW is not referenced if WEIGHT = 'L' or 'N'.
+
+  LDAW    INTEGER
+          The leading dimension of array AW.
+          LDAW &gt;= MAX(1,NW), if WEIGHT = 'R' or 'B';
+          LDAW &gt;= 1,         if WEIGHT = 'L' or 'N'.
+
+  BW      (input) DOUBLE PRECISION array, dimension (LDBW,MW)
+          If WEIGHT = 'R' or 'B', the leading NW-by-MW part of this
+          array must contain the input matrix BW of the system with
+          the transfer-function matrix W.
+          BW is not referenced if WEIGHT = 'L' or 'N'.
+
+  LDBW    INTEGER
+          The leading dimension of array BW.
+          LDBW &gt;= MAX(1,NW), if WEIGHT = 'R' or 'B';
+          LDBW &gt;= 1,         if WEIGHT = 'L' or 'N'.
+
+  CW      (input) DOUBLE PRECISION array, dimension (LDCW,NW)
+          If WEIGHT = 'R' or 'B', the leading M-by-NW part of this
+          array must contain the output matrix CW of the system with
+          the transfer-function matrix W.
+          CW is not referenced if WEIGHT = 'L' or 'N'.
+
+  LDCW    INTEGER
+          The leading dimension of array CW.
+          LDCW &gt;= MAX(1,M), if WEIGHT = 'R' or 'B';
+          LDCW &gt;= 1,        if WEIGHT = 'L' or 'N'.
+
+  DW      (input) DOUBLE PRECISION array, dimension (LDDW,MW)
+          If WEIGHT = 'R' or 'B', the leading M-by-MW part of this
+          array must contain the feedthrough matrix DW of the system
+          with the transfer-function matrix W.
+          DW is not referenced if WEIGHT = 'L' or 'N'.
+
+  LDDW    INTEGER
+          The leading dimension of array DW.
+          LDDW &gt;= MAX(1,M), if WEIGHT = 'R' or 'B';
+          LDDW &gt;= 1,        if WEIGHT = 'L' or 'N'.
+
+  SCALEC  (output) DOUBLE PRECISION
+          Scaling factor for the controllability Grammian in (1)
+          or (3). See METHOD.
+
+  SCALEO  (output) DOUBLE PRECISION
+          Scaling factor for the observability Grammian in (2)
+          or (4). See METHOD.
+
+  S       (output) DOUBLE PRECISION array, dimension (LDS,N)
+          The leading N-by-N upper triangular part of this array
+          contains the Cholesky factor S of the frequency-weighted
+          cotrollability Grammian P = S*S'. See METHOD.
+
+  LDS     INTEGER
+          The leading dimension of array S.  LDS &gt;= MAX(1,N).
+
+  R       (output) DOUBLE PRECISION array, dimension (LDR,N)
+          The leading N-by-N upper triangular part of this array
+          contains the Cholesky factor R of the frequency-weighted
+          observability Grammian Q = R'*R. See METHOD.
+
+  LDR     INTEGER
+          The leading dimension of array R.  LDR &gt;= MAX(1,N).
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+          On exit, if INFO = 0, DWORK(1) returns the optimal value
+          of LDWORK.
+
+  LDWORK  INTEGER
+          The length of the array DWORK.
+          LDWORK &gt;= MAX( 1, LLEFT, LRIGHT ),
+          where
+          LLEFT  = (N+NV)*(N+NV+MAX(N+NV,PV)+5)
+                           if WEIGHT = 'L' or 'B' and PV &gt; 0;
+          LLEFT  = N*(P+5) if WEIGHT = 'R' or 'N' or  PV = 0;
+          LRIGHT = (N+NW)*(N+NW+MAX(N+NW,MW)+5)
+                           if WEIGHT = 'R' or 'B' and MW &gt; 0;
+          LRIGHT = N*(M+5) if WEIGHT = 'L' or 'N' or  MW = 0.
+          For optimum performance LDWORK should be larger.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value;
+          = 1:  if the state matrices A and/or AV are not stable or
+                not in a real Schur form;
+          = 2:  if the state matrices A and/or AW are not stable or
+                not in a real Schur form;
+          = 3:  eigenvalues computation failure.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  Let Pi = Si*Si' and Qo = Ro'*Ro be the Cholesky factored
+  controllability and observability Grammians satisfying
+  in the continuous-time case
+
+         Ai*Pi + Pi*Ai' +  scalec^2*Bi*Bi' = 0,       (1)
+
+         Ao'*Qo + Qo*Ao +  scaleo^2*Co'*Co = 0,       (2)
+
+  and in the discrete-time case
+
+         Ai*Pi*Ai' - Pi +  scalec^2*Bi*Bi' = 0,       (3)
+
+         Ao'*Qo*Ao - Qo +  scaleo^2*Co'*Co = 0,       (4)
+
+  where
+
+        Ai = ( A  B*Cw ) ,   Bi = ( B*Dw ) ,
+             ( 0   Aw  )          (  Bw  )
+
+        Ao = (  A   0  ) ,   Co = ( Dv*C  Cv ) .
+             ( Bv*C Av )
+
+  Consider the partitioned Grammians
+
+        Pi = ( P11  P12 )   and    Qo = ( Q11  Q12 ) ,
+             ( P12' P22 )               ( Q12' Q22 )
+
+  where P11 and Q11 are the leading N-by-N parts of Pi and Qo,
+  respectively, and let P0 and Q0 be non-negative definite matrices
+  defined in the combination method [4]
+                                     -1
+         P0 = P11 - ALPHAC**2*P12*P22 *P21 ,
+                                     -1
+         Q0 = Q11 - ALPHAO**2*Q12*Q22 *Q21.
+
+  The frequency-weighted controllability and observability
+  Grammians, P and Q, respectively, are defined as follows:
+  P = P0 if JOBC = 'S' (standard combination method [4]);
+  P = P1 &gt;= P0 if JOBC = 'E', where P1 is the controllability
+  Grammian defined to enforce stability for a modified combination
+  method of [4];
+  Q = Q0 if JOBO = 'S' (standard combination method [4]);
+  Q = Q1 &gt;= Q0 if JOBO = 'E', where Q1 is the observability
+  Grammian defined to enforce stability for a modified combination
+  method of [4].
+
+  If JOBC = JOBO = 'S' and ALPHAC = ALPHAO = 0, the choice of
+  Grammians corresponds to the method of Enns [1], while if
+  ALPHAC = ALPHAO = 1, the choice of Grammians corresponds to the
+  method of Lin and Chiu [2,3].
+
+  The routine computes directly the Cholesky factors S and R
+  such that P = S*S' and Q = R'*R according to formulas
+  developed in [4]. No matrix inversions are involved.
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Enns, D.
+      Model reduction with balanced realizations: An error bound
+      and a frequency weighted generalization.
+      Proc. CDC, Las Vegas, pp. 127-132, 1984.
+
+  [2] Lin, C.-A. and Chiu, T.-Y.
+      Model reduction via frequency-weighted balanced realization.
+      Control Theory and Advanced Technology, vol. 8,
+      pp. 341-351, 1992.
+
+  [3] Sreeram, V., Anderson, B.D.O and Madievski, A.G.
+      New results on frequency weighted balanced reduction
+      technique.
+      Proc. ACC, Seattle, Washington, pp. 4004-4009, 1995.
+
+  [4] Varga, A. and Anderson, B.D.O.
+      Square-root balancing-free methods for the frequency-weighted
+      balancing related model reduction.
+      (report in preparation)
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

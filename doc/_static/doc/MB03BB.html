@@ -1,0 +1,140 @@
+<HTML>
+<HEAD><TITLE>MB03BB - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MB03BB">MB03BB</A></H2>
+<H3>
+Eigenvalues of a 2-by-2 matrix product via a complex single shifted periodic QZ algorithm
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To compute the eigenvalues of a general 2-by-2 matrix product via
+  a complex single shifted periodic QZ algorithm.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MB03BB( BASE, LGBAS, ULP, K, AMAP, S, SINV, A, LDA1,
+     $                   LDA2, ALPHAR, ALPHAI, BETA, SCAL, DWORK, INFO )
+C     .. Scalar Arguments ..
+      INTEGER           INFO, K, LDA1, LDA2, SINV
+      DOUBLE PRECISION  BASE, LGBAS, ULP
+C     .. Array Arguments ..
+      DOUBLE PRECISION  A(LDA1,LDA2,*), ALPHAI(2), ALPHAR(2), BETA(2),
+     $                  DWORK(*)
+      INTEGER           AMAP(*), S(*), SCAL(2)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  BASE    (input)  DOUBLE PRECISION
+          Machine base.
+
+  LGBAS   (input)  DOUBLE PRECISION
+          Logarithm of BASE.
+
+  ULP     (input)  DOUBLE PRECISION
+          Machine precision.
+
+  K       (input)  INTEGER
+          The number of factors.  K &gt;= 1.
+
+  AMAP    (input) INTEGER array, dimension (K)
+          The map for accessing the factors, i.e., if AMAP(I) = J,
+          then the factor A_I is stored at the J-th position in A.
+
+  S       (input)  INTEGER array, dimension (K)
+          The signature array. Each entry of S must be 1 or -1.
+
+  SINV    (input) INTEGER
+          Signature multiplier. Entries of S are virtually
+          multiplied by SINV.
+
+  A       (input)  DOUBLE PRECISION array, dimension (LDA1,LDA2,K)
+          On entry, the leading 2-by-2-by-K part of this array must
+          contain a 2-by-2 product (implicitly represented by its K
+          factors) in upper Hessenberg-triangular form.
+
+  LDA1    INTEGER
+          The first leading dimension of the array A.  LDA1 &gt;= 2.
+
+  LDA2    INTEGER
+          The second leading dimension of the array A.  LDA2 &gt;= 2.
+
+  ALPHAR  (output)  DOUBLE PRECISION array, dimension (2)
+          On exit, this array contains the scaled real part of the
+          two eigenvalues. If BETA(I) &lt;&gt; 0, then the I-th eigenvalue
+          (I = 1 : 2) is given by
+              (ALPHAR(I) + ALPHAI(I)*SQRT(-1) ) * (BASE)**SCAL(I).
+
+  ALPHAI  (output)  DOUBLE PRECISION array, dimension (2)
+          On exit, this array contains the scaled imaginary part of
+          the two eigenvalues. ALPHAI(1) &gt;= 0.
+
+  BETA    (output)  DOUBLE PRECISION array, dimension (2)
+          On exit, this array contains information about infinite
+          eigenvalues. If BETA(I) = 0, then the I-th eigenvalue is
+          infinite. Otherwise, BETA(I) = 1.0.
+
+  SCAL    (output)  INTEGER array, dimension (2)
+          On exit, this array contains the scaling exponents for the
+          two eigenvalues.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  DWORK   DOUBLE PRECISION array, dimension (8*K)
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          = 1:  the periodic QZ algorithm did not converge;
+          = 2:  the computed eigenvalues might be inaccurate.
+                Both values might be taken as warnings, since
+                approximations of eigenvalues are returned.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  A complex single shifted periodic QZ iteration is applied.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

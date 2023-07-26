@@ -1,0 +1,135 @@
+<HTML>
+<HEAD><TITLE>MB01OS - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MB01OS">MB01OS</A></H2>
+<H3>
+Computation of matrix expression P = H X or P = X H, with X symmetric and H upper Hessenberg
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To compute P = H*X or P = X*H, where H is an upper Hessenberg
+  matrix and X is a symmetric matrix.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MB01OS( UPLO, TRANS, N, H, LDH, X, LDX, P, LDP, INFO )
+C     .. Scalar Arguments ..
+      CHARACTER         TRANS, UPLO
+      INTEGER           INFO, LDH, LDP, LDX, N
+C     .. Array Arguments ..
+      DOUBLE PRECISION  H(LDH,*), P(LDP,*), X(LDX,*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  UPLO    CHARACTER*1
+          Specifies which triangle of the symmetric matrix X is
+          given as follows:
+          = 'U':  the upper triangular part is given;
+          = 'L':  the lower triangular part is given.
+
+  TRANS   CHARACTER*1
+          Specifies the operation to be performed as follows:
+          = 'N':         compute P = H*X;
+          = 'T' or 'C':  compute P = X*H.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The order of the matrices H, X, and P.  N &gt;= 0.
+
+  H       (input) DOUBLE PRECISION array, dimension (LDH,N)
+          On entry, the leading N-by-N upper Hessenberg part of this
+          array must contain the upper Hessenberg matrix H.
+          The remaining part of this array is not referenced.
+
+  LDH     INTEGER
+          The leading dimension of the array H.  LDH &gt;= MAX(1,N).
+
+  X       (input) DOUBLE PRECISION array, dimension (LDX,N)
+          On entry, if UPLO = 'U', the leading N-by-N upper
+          triangular part of this array must contain the upper
+          triangular part of the symmetric matrix X and the strictly
+          lower triangular part of the array is not referenced.
+          On entry, if UPLO = 'L', the leading N-by-N lower
+          triangular part of this array must contain the lower
+          triangular part of the symmetric matrix X and the strictly
+          upper triangular part of the array is not referenced.
+
+  LDX     INTEGER
+          The leading dimension of the array X.  LDX &gt;= MAX(1,N).
+
+  P       (output) DOUBLE PRECISION array, dimension (LDP,N)
+          On exit, the leading N-by-N part of this array contains
+          the computed matrix P.
+
+  LDP     INTEGER
+          The leading dimension of the array P.  LDP &gt;= MAX(1,N).
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -k, the k-th argument had an illegal
+                value.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  The matrix expression is efficiently evaluated taking the
+  structure into account, and using inline code and BLAS routines.
+  Let X = U + sL, where U is upper triangular and sL is strictly
+  lower triangular. Then, P = H*X = H*U + H*sL = H*U + H*sU', where
+  sU is the strictly upper triangular part of X.
+  Similarly, P = X*H = L'*H + sL*H, where L is lower triangular, and
+  X = L + sL'. Note that H*U and L'*H are both upper Hessenberg.
+  However, when UPLO = 'L' and TRANS = 'N', or when UPLO = 'U' and
+  TRANS = 'T', then the matrix P is full. The computations are done
+  similarly.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  The algorithm requires approximately N**3/2 operations.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

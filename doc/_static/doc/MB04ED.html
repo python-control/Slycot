@@ -1,0 +1,543 @@
+<HTML>
+<HEAD><TITLE>MB04ED - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MB04ED">MB04ED</A></H2>
+<H3>
+Eigenvalues and orthogonal decomposition of a real skew-Hamiltonian/skew-Hamiltonian pencil in factored form
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To compute the eigenvalues of a real N-by-N skew-Hamiltonian/
+  skew-Hamiltonian pencil aS - bT with
+
+                          (  B  F  )            (  0  I  )
+    S = J Z' J' Z and T = (        ), where J = (        ).      (1)
+                          (  G  B' )            ( -I  0  )
+
+  Optionally, if JOB = 'T', the pencil aS - bT will be transformed
+  to the structured Schur form: an orthogonal transformation matrix
+  Q and an orthogonal symplectic transformation matrix U are
+  computed, such that
+
+             (  Z11  Z12  )
+    U' Z Q = (            ) = Zout, and
+             (   0   Z22  )
+                                                                 (2)
+                  (  Bout  Fout  )
+    J Q' J' T Q = (              ),
+                  (   0    Bout' )
+
+  where Z11 and Z22' are upper triangular and Bout is upper quasi-
+  triangular. The notation M' denotes the transpose of the matrix M.
+  Optionally, if COMPQ = 'I', the orthogonal transformation matrix Q
+  will be computed.
+  Optionally, if COMPU = 'I' or COMPU = 'U', the orthogonal
+  symplectic transformation matrix
+
+        (  U1  U2  )
+    U = (          )
+        ( -U2  U1  )
+
+  will be computed.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MB04ED( JOB, COMPQ, COMPU, N, Z, LDZ, B, LDB, FG, LDFG,
+     $                   Q, LDQ, U1, LDU1, U2, LDU2, ALPHAR, ALPHAI,
+     $                   BETA, IWORK, LIWORK, DWORK, LDWORK, INFO )
+C     .. Scalar Arguments ..
+      CHARACTER          COMPQ, COMPU, JOB
+      INTEGER            INFO, LDB, LDFG, LDQ, LDU1, LDU2, LDWORK, LDZ,
+     $                   LIWORK, N
+C     .. Array Arguments ..
+      INTEGER            IWORK( * )
+      DOUBLE PRECISION   ALPHAI( * ), ALPHAR( * ), B( LDB, * ),
+     $                   BETA( * ), DWORK( * ), FG( LDFG, * ),
+     $                   Q( LDQ, * ), U1( LDU1, * ), U2( LDU2, * ),
+     $                   Z( LDZ, * )
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  JOB     CHARACTER*1
+          Specifies the computation to be performed, as follows:
+          = 'E':  compute the eigenvalues only; Z and T will not
+                  necessarily be put into the forms in (2);
+          = 'T':  put Z and T into the forms in (2), and return the
+                  eigenvalues in ALPHAR, ALPHAI and BETA.
+
+  COMPQ   CHARACTER*1
+          Specifies whether to compute the orthogonal transformation
+          matrix Q as follows:
+          = 'N':  Q is not computed;
+          = 'I':  the array Q is initialized internally to the unit
+                  matrix, and the orthogonal matrix Q is returned.
+
+  COMPU   CHARACTER*1
+          Specifies whether to compute the orthogonal symplectic
+          transformation matrix U as follows:
+          = 'N':  U is not computed;
+          = 'I':  the array U is initialized internally to the unit
+                  matrix, and the orthogonal matrix U is returned;
+          = 'U':  the arrays U1 and U2 contain the corresponding
+                  submatrices of an orthogonal symplectic matrix U0
+                  on entry, and the updated submatrices U1 and U2
+                  of the matrix product U0*U are returned, where U
+                  is the product of the orthogonal symplectic
+                  transformations that are applied to the pencil
+                  aS - bT to reduce Z and T to the forms in (2), for
+                  COMPU = 'I'.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The order of the pencil aS - bT.  N &gt;= 0, even.
+
+  Z       (input/output) DOUBLE PRECISION array, dimension (LDZ, N)
+          On entry, the leading N-by-N part of this array must
+          contain the matrix Z.
+          On exit, if JOB = 'T', the leading N-by-N part of this
+          array contains the matrix Zout; otherwise, it contains the
+          matrix Z just before the application of the periodic QZ
+          algorithm. The entries in the rows N/2+1 to N and the
+          first N/2 columns are unchanged.
+
+  LDZ     INTEGER
+          The leading dimension of the array Z.  LDZ &gt;= MAX(1, N).
+
+  B       (input/output) DOUBLE PRECISION array, dimension
+                         (LDB, N/2)
+          On entry, the leading N/2-by-N/2 part of this array must
+          contain the matrix B.
+          On exit, if JOB = 'T', the leading N/2-by-N/2 part of this
+          array contains the matrix Bout; otherwise, it contains the
+          matrix B just before the application of the periodic QZ
+          algorithm.
+
+  LDB     INTEGER
+          The leading dimension of the array B.  LDB &gt;= MAX(1, N/2).
+
+  FG      (input/output) DOUBLE PRECISION array, dimension
+                         (LDFG, N/2+1)
+          On entry, the leading N/2-by-N/2 strictly lower triangular
+          part of this array must contain the strictly lower
+          triangular part of the skew-symmetric matrix G, and the
+          N/2-by-N/2 strictly upper triangular part of the submatrix
+          in the columns 2 to N/2+1 of this array must contain the
+          strictly upper triangular part of the skew-symmetric
+          matrix F.
+          On exit, if JOB = 'T', the leading N/2-by-N/2 strictly
+          upper triangular part of the submatrix in the columns 2 to
+          N/2+1 of this array contains the strictly upper triangular
+          part of the skew-symmetric matrix Fout.
+          If JOB = 'E', the leading N/2-by-N/2 strictly upper
+          triangular part of the submatrix in the columns 2 to N/2+1
+          of this array contains the strictly upper triangular part
+          of the skew-symmetric matrix F just before the application
+          of the QZ algorithm.
+          The entries on the diagonal and the first superdiagonal of
+          this array are not referenced, but are assumed to be zero.
+          Moreover, the diagonal and the first subdiagonal of this
+          array on exit coincide to the corresponding diagonals of
+          this array on entry.
+
+  LDFG    INTEGER
+          The leading dimension of the array FG.
+          LDFG &gt;= MAX(1, N/2).
+
+  Q       (output) DOUBLE PRECISION array, dimension (LDQ, N)
+          On exit, if COMPQ = 'I', the leading N-by-N part of this
+          array contains the orthogonal transformation matrix Q.
+          On exit, if COMPQ = 'N', the leading N-by-N part of this
+          array contains the orthogonal matrix Q1, such that
+
+                   (  Z11  Z12  )
+            Z*Q1 = (            ),
+                   (   0   Z22  )
+
+          where Z11 and Z22' are upper triangular (the first step
+          of the algorithm).
+
+  LDQ     INTEGER
+          The leading dimension of the array Q.  LDQ &gt;= MAX(1, N).
+
+  U1      (input/output) DOUBLE PRECISION array, dimension
+                         (LDU1, N/2)
+          On entry, if COMPU = 'U', then the leading N/2-by-N/2 part
+          of this array must contain the upper left block of a
+          given matrix U0, and on exit, the leading N/2-by-N/2 part
+          of this array contains the updated upper left block U1 of
+          the product of the input matrix U0 and the transformation
+          matrix U used to transform the matrices Z and T.
+          On exit, if COMPU = 'I', then the leading N/2-by-N/2 part
+          of this array contains the upper left block U1 of the
+          orthogonal symplectic transformation matrix U.
+          If COMPU = 'N' this array is not referenced.
+
+  LDU1    INTEGER
+          The leading dimension of the array U1.
+          LDU1 &gt;= 1,           if COMPU = 'N';
+          LDU1 &gt;= MAX(1, N/2), if COMPU = 'I' or COMPU = 'U'.
+
+  U2      (input/output) DOUBLE PRECISION array, dimension
+                         (LDU2, N/2)
+          On entry, if COMPU = 'U', then the leading N/2-by-N/2 part
+          of this array must contain the upper right block of a
+          given matrix U0, and on exit, the leading N/2-by-N/2 part
+          of this array contains the updated upper right block U2 of
+          the product of the input matrix U0 and the transformation
+          matrix U used to transform the matrices Z and T.
+          On exit, if COMPU = 'I', then the leading N/2-by-N/2 part
+          of this array contains the upper right block U2 of the
+          orthogonal symplectic transformation matrix U.
+          If COMPU = 'N' this array is not referenced.
+
+  LDU2    INTEGER
+          The leading dimension of the array U2.
+          LDU2 &gt;= 1,           if COMPU = 'N';
+          LDU2 &gt;= MAX(1, N/2), if COMPU = 'I' or COMPU = 'U'.
+
+  ALPHAR  (output) DOUBLE PRECISION array, dimension (N/2)
+          The real parts of each scalar alpha defining an eigenvalue
+          of the pencil aS - bT.
+
+  ALPHAI  (output) DOUBLE PRECISION array, dimension (N/2)
+          The imaginary parts of each scalar alpha defining an
+          eigenvalue of the pencil aS - bT.
+          If ALPHAI(j) is zero, then the j-th eigenvalue is real; if
+          positive, then the j-th and (j+1)-st eigenvalues are a
+          complex conjugate pair, with ALPHAI(j+1) = -ALPHAI(j).
+
+  BETA    (output) DOUBLE PRECISION array, dimension (N/2)
+          The scalars beta that define the eigenvalues of the pencil
+          aS - bT.
+          Together, the quantities alpha = (ALPHAR(j),ALPHAI(j)) and
+          beta = BETA(j) represent the j-th eigenvalue of the pencil
+          aS - bT, in the form lambda = alpha/beta. Since lambda may
+          overflow, the ratios should not, in general, be computed.
+          Due to the skew-Hamiltonian/skew-Hamiltonian structure of
+          the pencil, every eigenvalue occurs twice and thus it has
+          only to be saved once in ALPHAR, ALPHAI and BETA.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  IWORK   INTEGER array, dimension (LIWORK)
+          On exit, if INFO = 3, IWORK(1) contains the number of
+          (pairs of) possibly inaccurate eigenvalues, q &lt;= N/2, and
+          IWORK(2), ..., IWORK(q+1) indicate their indices.
+          Specifically, a positive value is an index of a real or
+          purely imaginary eigenvalue, corresponding to a 1-by-1
+          block, while the absolute value of a negative entry in
+          IWORK is an index to the first eigenvalue in a pair of
+          consecutively stored eigenvalues, corresponding to a
+          2-by-2 block. A 2-by-2 block may have two complex, two
+          real, two purely imaginary, or one real and one purely
+          imaginary eigenvalue.
+          For i = q+2, ..., 2*q+1, IWORK(i) contains a pointer to
+          the starting location in DWORK of the i-th triplet of
+          1-by-1 blocks, if IWORK(i-q) &gt; 0, or 2-by-2 blocks,
+          if IWORK(i-q) &lt; 0, defining unreliable eigenvalues.
+          IWORK(2*q+2) contains the number of the 1-by-1 blocks, and
+          IWORK(2*q+3) contains the number of the 2-by-2 blocks,
+          corresponding to unreliable eigenvalues. IWORK(2*q+4)
+          contains the total number t of the 2-by-2 blocks.
+          If INFO = 0, then q = 0, therefore IWORK(1) = 0.
+
+  LIWORK  INTEGER
+          The dimension of the array IWORK.  LIWORK &gt;= N+9.
+
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+          On exit, if INFO = 0 or INFO = 3, DWORK(1) returns the
+          optimal LDWORK, and DWORK(2), ..., DWORK(4) contain the
+          Frobenius norms of the factors of the formal matrix
+          product used by the algorithm. In addition, DWORK(5), ...,
+          DWORK(4+3*s) contain the s triplet values corresponding
+          to the 1-by-1 blocks. Their eigenvalues are real or purely
+          imaginary. Such an eigenvalue is obtained as a1/a2/a3,
+          where a1, ..., a3 are the corresponding triplet values.
+          Moreover, DWORK(5+3*s), ..., DWORK(4+3*s+12*t) contain the
+          t groups of triplet 2-by-2 matrices corresponding to the
+          2-by-2 blocks. Their eigenvalue pairs are either complex,
+          or placed on the real and imaginary axes. Such an
+          eigenvalue pair is the spectrum of the matrix product
+          A1*inv(A2)*inv(A3), where A1, ..., A3 define the
+          corresponding 2-by-2 matrix triplet.
+          On exit, if INFO = -23, DWORK(1) returns the minimum value
+          of LDWORK.
+
+  LDWORK  INTEGER
+          The dimension of the array DWORK.
+          If JOB = 'E' and COMPQ = 'N' and COMPU = 'N',
+                LDWORK &gt;= 3/4*N**2+MAX(3*N, 27);
+          else, LDWORK &gt;= 3/2*N**2+MAX(3*N, 27).
+          For good performance LDWORK should generally be larger.
+
+          If LDWORK = -1, then a workspace query is assumed; the
+          routine only calculates the optimal size of the DWORK
+          array, returns this value as the first entry of the DWORK
+          array, and no error message related to LDWORK is issued by
+          XERBLA.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0: succesful exit;
+          &lt; 0: if INFO = -i, the i-th argument had an illegal value;
+          = 1: problem during computation of the eigenvalues;
+          = 2: periodic QZ algorithm did not converge in the SLICOT
+               Library subroutine MB03BD;
+          = 3: some eigenvalues might be inaccurate, and details can
+               be found in IWORK and DWORK. This is a warning.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  The algorithm uses Givens rotations and Householder reflections to
+  annihilate elements in Z and T such that Z is in a special block
+  triangular form and T is in skew-Hamiltonian Hessenberg form:
+
+      (  Z11  Z12  )      (  B1  F1  )
+  Z = (            ), T = (          ),
+      (   0   Z22  )      (   0  B1' )
+
+  with Z11 and Z22' upper triangular and B1 upper Hessenberg.
+  Subsequently, the periodic QZ algorithm is applied to the pencil
+  aZ22' Z11 - bB1 to determine orthogonal matrices Q1, Q2 and U such
+  that U' Z11 Q1, Q2' Z22' U are upper triangular and Q2' B1 Q1 is
+  upper quasi-triangular. See also page 35 in [1] for more details.
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Benner, P., Byers, R., Mehrmann, V. and Xu, H.
+      Numerical Computation of Deflating Subspaces of Embedded
+      Hamiltonian Pencils.
+      Tech. Rep. SFB393/99-15, Technical University Chemnitz,
+      Germany, June 1999.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>                                                            3
+  The algorithm is numerically backward stable and needs O(N ) real
+  floating point operations.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+*     MB04ED EXAMPLE PROGRAM TEXT
+*
+*     .. Parameters ..
+      INTEGER            NIN, NOUT
+      PARAMETER          ( NIN = 5, NOUT = 6 )
+      INTEGER            NMAX
+      PARAMETER          ( NMAX = 60 )
+      INTEGER            LDB, LDFG, LDQ, LDU1, LDU2, LDWORK, LDZ,
+     $                   LIWORK
+      PARAMETER          ( LDB = NMAX/2, LDFG = NMAX/2,
+     $                     LDQ = NMAX,   LDU1 = NMAX/2, LDU2 = NMAX/2,
+     $                     LDWORK = 3*NMAX**2/2 + MAX( NMAX, 24 ) + 3,
+     $                     LDZ = NMAX, LIWORK = NMAX + 9 )
+*
+*     .. Local Scalars ..
+      CHARACTER          COMPQ, COMPU, JOB
+      INTEGER            I, INFO, J, N
+*
+*     .. Local Arrays ..
+      INTEGER            IWORK( LIWORK )
+      DOUBLE PRECISION   ALPHAI( NMAX/2 ),   ALPHAR( NMAX/2 ),
+     $                   B( LDB, NMAX/2 ),     BETA( NMAX/2 ),
+     $                   DWORK( LDWORK ),  FG( LDFG, NMAX/2+1 ),
+     $                   Q( LDQ, NMAX ),   U1( LDU1, NMAX/2 ),
+     $                   U2( LDU2, NMAX/2 ), Z( LDZ, NMAX )
+*
+*     .. External Functions ..
+      LOGICAL            LSAME
+      EXTERNAL           LSAME
+*
+*     .. External Subroutines ..
+      EXTERNAL           MB04ED
+*
+*     .. Intrinsic Functions ..
+      INTRINSIC          MAX, MOD
+*
+*     .. Executable statements ..
+*
+      WRITE( NOUT, FMT = 99999 )
+*
+*     Skip first line in data file.
+*
+      READ( NIN, FMT = * )
+      READ( NIN, FMT = * ) JOB, COMPQ, COMPU, N
+      READ( NIN, FMT = * ) ( (  Z( I, J ), J = 1, N ),     I = 1, N )
+      READ( NIN, FMT = * ) ( (  B( I, J ), J = 1, N/2 ),   I = 1, N/2 )
+      READ( NIN, FMT = * ) ( ( FG( I, J ), J = 1, N/2+1 ), I = 1, N/2 )
+      IF( LSAME( COMPU, 'U' ) ) THEN
+         READ( NIN, FMT = * ) ( ( U1( I, J ), J = 1, N/2 ), I = 1, N/2 )
+         READ( NIN, FMT = * ) ( ( U2( I, J ), J = 1, N/2 ), I = 1, N/2 )
+      END IF
+      IF( N.LT.0 .OR. N.GT.NMAX .OR. MOD( N, 2 ).NE.0 ) THEN
+         WRITE( NOUT, FMT = 99998 ) N
+      ELSE
+*
+*        Test of MB04ED.
+*
+         CALL MB04ED( JOB, COMPQ, COMPU, N, Z, LDZ, B, LDB, FG, LDFG, Q,
+     $                LDQ, U1, LDU1, U2, LDU2, ALPHAR, ALPHAI, BETA,
+     $                IWORK, LIWORK, DWORK, LDWORK, INFO )
+         IF( INFO.NE.0 ) THEN
+            WRITE( NOUT, FMT = 99997 ) INFO
+         ELSE
+            WRITE( NOUT, FMT = 99996 )
+            DO 10 I = 1, N
+               WRITE( NOUT, FMT = 99995 ) ( Z(I,J), J = 1, N )
+   10       CONTINUE
+            WRITE( NOUT, FMT = 99994 )
+            DO 20 I = 1, N/2
+               WRITE( NOUT, FMT = 99995 ) ( B(I,J), J = 1, N/2 )
+   20       CONTINUE
+            WRITE( NOUT, FMT = 99993 )
+            DO 30 I = 1, N/2
+               WRITE( NOUT, FMT = 99995 ) ( FG(I,J), J = 1, N/2+1 )
+   30       CONTINUE
+            WRITE( NOUT, FMT = 99992 )
+            WRITE( NOUT, FMT = 99995 ) ( ALPHAR(I), I = 1, N/2 )
+            WRITE( NOUT, FMT = 99995 ) ( ALPHAI(I), I = 1, N/2 )
+            WRITE( NOUT, FMT = 99995 ) (   BETA(I), I = 1, N/2 )
+            WRITE( NOUT, FMT = 99991 )
+            DO 40 I = 1, N
+               WRITE( NOUT, FMT = 99995 ) ( Q( I, J ), J = 1, N )
+   40       CONTINUE
+            IF ( .NOT.LSAME( COMPU, 'N' ) ) THEN
+               WRITE( NOUT, FMT = 99990 )
+               DO 50 I = 1, N/2
+                  WRITE( NOUT, FMT = 99995 ) ( U1( I, J ), J = 1, N/2 )
+   50          CONTINUE
+               WRITE( NOUT, FMT = 99989 )
+               DO 60 I = 1, N/2
+                  WRITE( NOUT, FMT = 99995 ) ( U2( I, J ), J = 1, N/2 )
+   60          CONTINUE
+            END IF
+         END IF
+      END IF
+      STOP
+99999 FORMAT ( 'MB04ED EXAMPLE PROGRAM RESULTS', 1X )
+99998 FORMAT ( 'N is out of range.', /, 'N = ', I5 )
+99997 FORMAT ( 'INFO on exit from MB04ED = ', I2 )
+99996 FORMAT (/' The transformed matrix Z is' )
+99995 FORMAT ( 60( 1X, F8.4 ) )
+99994 FORMAT (/' The transformed matrix B is' )
+99993 FORMAT (/' The transformed matrix FG is' )
+99992 FORMAT (/' The real, imaginary, and beta parts of eigenvalues are'
+     $       )
+99991 FORMAT (/' The matrix Q is ' )
+99990 FORMAT (/' The upper left block of the matrix U is ' )
+99989 FORMAT (/' The upper right block of the matrix U is ' )
+      END
+ 
+ 
+</PRE>
+<B>Program Data</B>
+<PRE>
+MB04ED EXAMPLE PROGRAM DATA
+   T   I   I   8
+   0.0949    3.3613   -4.7663   -0.5534    0.6408   -3.2793    3.4253    2.9654
+   0.1138   -1.5903    2.1837   -4.1648   -4.3775   -1.7454    0.1744    2.3262
+   2.7505    4.4048    4.4183    3.0478    2.7728    2.3048   -0.6451   -1.2045
+   3.6091   -4.1716    3.4461    3.6880   -0.0985    3.8458    0.2528   -1.3859
+   0.4352   -3.2829    3.7246    0.4794   -0.3690   -1.5562   -3.4817   -2.2902
+   1.3080   -3.9881   -3.5497    3.5020    2.2582    4.4764   -4.4080   -1.6818
+   1.1308   -1.5087    2.4730    2.1553   -1.7129   -4.8669   -2.4102    4.2274
+   4.7933   -4.3671   -0.0473   -2.0092    1.2439   -4.7385    3.4242   -0.2764
+   2.0936    1.5510    4.5974    2.5127
+   2.5469   -3.3739   -1.5961   -2.4490
+  -2.2397   -3.8100    0.8527    0.0596
+   1.7970   -0.0164   -2.7619    1.9908
+   1.0000    2.0000   -4.0500    1.3353    0.2899
+  -0.4318    2.0000    2.0000   -2.9860   -0.0160
+   1.0241    0.9469    2.0000    2.0000    1.3303
+   0.0946   -0.1272   -4.4003    2.0000    2.0000
+ 
+</PRE>
+<B>Program Results</B>
+<PRE>
+MB04ED EXAMPLE PROGRAM RESULTS
+
+ The transformed matrix Z is
+  -2.5678  -2.9888   0.4304  -2.8719   2.7331   1.3072   1.7565   2.8246
+   0.0000  -3.8520  -6.0992   6.2935  -3.0386  -5.5317  -1.2189   3.9973
+   0.0000   0.0000   4.4560   4.4602   0.6080  -4.4326   3.7959  -0.6297
+   0.0000   0.0000   0.0000   7.0155   1.5557   2.1441   3.6649  -2.3864
+   0.4352  -3.2829   3.7246   0.4794  -5.3205   0.0000   0.0000   0.0000
+   1.3080  -3.9881  -3.5497   3.5020   2.2466   6.9633   0.0000   0.0000
+   1.1308  -1.5087   2.4730   2.1553  -1.7204  -0.8164   8.1468   0.0000
+   4.7933  -4.3671  -0.0473  -2.0092  -3.9547   0.2664   1.0382   5.5977
+
+ The transformed matrix B is
+   3.8629  -1.3266   0.1253   2.1882
+   0.0000   3.7258  -3.5913  -2.4583
+   0.0000  -3.6551  -2.5063  -0.8378
+   0.0000   0.0000   0.0000  -6.7384
+
+ The transformed matrix FG is
+   1.0000   2.0000  -0.7448  -1.2359  -1.3653
+   0.0158   2.0000   2.0000   3.4030   3.2344
+  -1.1665   2.5791   2.0000   2.0000  -0.4096
+   3.3823  -1.2344   3.9016   2.0000   2.0000
+
+ The real, imaginary, and beta parts of eigenvalues are
+   1.1310  -0.0697  -0.0697  -0.6864
+   0.0000   0.6035  -0.6035   0.0000
+   4.0000   4.0000   4.0000   4.0000
+
+ The matrix Q is 
+  -0.6042  -0.4139  -0.4742   0.1400  -0.2947   0.3462  -0.0980   0.0534
+  -0.3706   0.1367   0.4442  -0.1381  -0.1210   0.2913   0.7248  -0.0524
+   0.1325  -0.2735  -0.0515  -0.5084  -0.3163  -0.2855   0.1638   0.6619
+   0.2373   0.5514  -0.4988   0.3373  -0.3852  -0.0007   0.3329   0.1339
+   0.4777  -0.4517   0.2739   0.5172  -0.0775   0.3874   0.1088   0.2395
+  -0.0116  -0.4372  -0.1843   0.2474   0.1236  -0.6052   0.4772  -0.3228
+   0.1237  -0.0310  -0.4300  -0.2090   0.7209   0.3408   0.2898   0.1883
+   0.4245  -0.1871  -0.1803  -0.4655  -0.3304   0.2849   0.0623  -0.5843
+
+ The upper left block of the matrix U is 
+   0.0154  -0.5058  -0.5272   0.6826
+   0.4829  -0.1519  -0.2921  -0.3491
+   0.4981   0.1532   0.1019   0.1810
+  -0.0188   0.6270  -0.5260   0.0587
+
+ The upper right block of the matrix U is 
+   0.0000   0.0000   0.0000   0.0000
+   0.3179  -0.4312  -0.1802  -0.4659
+   0.5644   0.0873   0.4480   0.3979
+  -0.3137  -0.3330   0.3413   0.0239
+</PRE>
+
+<HR>
+<p>
+<A HREF=..\libindex.html><B>Return to index</B></A></BODY>
+</HTML>

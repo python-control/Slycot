@@ -1,0 +1,438 @@
+<HTML>
+<HEAD><TITLE>FSQP - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="FSQP">FSQP</A></H2>
+<H3>
+Minimization of the maximum of a set of smooth objective functions
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To perform the minimization of the maximum of a set of smooth
+  objective functions (possibly a single one or none at all) subject
+  to nonlinear equality and inequality constraints, linear equality
+  and inequality constraints, and simple bounds on the variables.
+  Specifically, the problem to solve is of the form
+
+                           min max{f (x)}
+                                i   i
+
+                                            n
+  where 1 &lt;= i &lt;= NF, and x is a vector in R  subject to the
+  following constraints
+
+   bl &lt;= x &lt;= bu
+
+   g (x)&lt;=0,    j = 1 ... NINEQN
+    j
+   g (x)&lt;=0,    j = NINEQN+1 ... NINEQ
+    j
+   h (x)=0,     j = 1 ... NEQN
+    j
+   h (x)=0,     j = NEQN+1 ... NEQ
+    j
+
+                                  n
+  where bl and bu are vectors in R , and
+
+       n
+  f : R -&gt; R,   j = 1 ... NF,           smooth
+   j    
+       n
+  g : R -&gt; R,   j = 1 ... NINEQN,       nonlinear and smooth 
+   j 
+       n
+  g : R -&gt; R,   j = NINEQN+1 ... NINEQ, linear
+   j 
+       n
+  h : R -&gt; R,   j = 1 ... NEQN,         nonlinear and smooth 
+   j 
+       n
+  h : R -&gt; R,   j = NEQN+1 ... NEQ,     linear
+   j 
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE FSQP( MODE, IPRINT, OBJ, CONSTR, GRADOB, GRADCN,
+     &                 NPARAM, NF, NINEQN, NINEQ, NEQN, NEQ, MITER,
+     &                 UDELTA, BIGBND, BL, BU, X, F, G, TOL1, TOL2,
+     &                 IWORK, LIWORK, DWORK, LDWORK, INFO)
+C     .. Scalar Arguments ..
+      INTEGER           NPARAM, NF, NINEQN, NINEQ, NEQN, NEQ, MODE,
+     &                  IPRINT, MITER, INFO, LIWORK, LDWORK
+      DOUBLE PRECISION  BIGBND, TOL1, TOL2, UDELTA
+C     .. Array Arguments ..
+      INTEGER           IWORK(LIWORK)
+      DOUBLE PRECISION  BL(*), BU(*), X(*), F(*), G(*), DWORK(LDWORK)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  MODE    (input) INTEGER
+          mode = CBA (a 3-digit number) with the following meaning
+          (see [1] for more details):
+
+          A specifies the problem to be solved:
+          A = 0: The problem is that described above.
+          A = 1: In the problem described above, the function to
+                 minimize is replaced by
+                           min max{ABS(f (x))}
+                                i       i
+                 i.e., absolute values of the objective functions
+                 are taken.
+
+          B indicates the method to be used:
+          B = 0: Algorithm FFSQP-AL is selected (see METHOD below).
+          B = 1: Algorithm FFSQP-NL is selected (see METHOD below).
+
+          C indicates the order of evaluation of objective
+          functions and constraints during the line search:
+          C = 1: The function that caused the previous value of t
+                 to be rejected is checked first and all functions
+                 of the same type ("objective" or "constraint") as
+                 the latter will then be checked first (recommended
+                 for most users).
+          C = 2: Constraints will be always checked first at each
+                 trial point during the line search. If it is a
+                 contraint that caused the previous value of t to
+                 be rejected, that constraint will be checked first
+                 (useful when objective functions are not defined or
+                 are difficult to evaluate outside of the feasible
+                 region).
+
+  IPRINT  (input) INTEGER
+          Parameter indicating the desired output (see [1] for a
+          more complete description of the output).
+          IPRINT = 0: No information except for user-input errors
+             is displayed. This value is imposed during phase 1.
+          IPRINT = 1: Objective and constraint values at the
+             initial feasible point are displayed. At the end of
+             execution, status (INFO), iterate, objective values,
+             constraint values, number of evaluations of objectives
+             and nonlinear constraints, norm of the Kuhn-Tucker
+             vector, and sum of feasibility violation are
+             displayed.
+          IPRINT = 2: At the end of each iteration, the same
+             information as with IPRINT = 1 is displayed.
+          IPRINT = 3: At each iteration, the same information as
+             with IPRINT = 2,including detailed information on the
+             search direction computation, on the line search, and
+             on the update, is displayed.
+          IPRINT = 10*N +M: N any positive integer, M=2 or 3.
+             Information corresponding to IPRINT=M is displayed at
+             every (10*N)th iteration and at the last iteration.
+
+</PRE>
+<B>User-supplied Subroutines</B>
+<PRE>
+  OBJ     SUBROUTINE
+          Computes the value of the objective functions. If NF = 0,
+          a (dummy) subroutine must be provided anyway. The 
+          specification of OBJ is
+
+          SUBROUTINE OBJ(NPARAM,J,X,FJ)
+          INTEGER NPARAM, J
+          DOUBLE PRECISION X(NPARAM),FJ
+
+          Arguments:
+          NPARAM (Input) Dimension of X.
+          J (Input) Number of the objective to be computed.
+          X (Input) Current iterate.
+          FJ (Output) Value of the jth objective function at X.
+
+  CONSTR  SUBROUTINE
+          Computes the value of the constraints. If there are no
+          constraints, a (dummy) subroutine must be provided anyway.
+          The specification of CONSTR is as follows.
+
+          SUBROUTINE CONSTR(NPARAM,J,X,GJ)
+          INTEGER NPARAM,J
+          DOUBLE PRECISION X(NPARAM),GJ
+
+          Arguments:
+          NPARAM (Input) Dimension of X.
+          J (Input) Number of the constraint to be computed.
+          X (Input) Current iterate.
+          GJ (Output) Value of the jth constraint at X.
+
+          The order of the constraints must be as follows. First
+          the NINEQN (possibly zero) nonlinear inequality
+          constraints. Then the NINEQ-NINEQN (possibly zero) linear
+          inequality constraints. Finally, the NEQN (possibly zero)
+          nonlinear equality constraints followed by the NEQ-NEQN
+          (possibly zero) linear equality constraints.
+
+  GRADOB  SUBROUTINE
+          Computes the gradients of the objective functions. The
+          user must pass the subroutine name GROBFD, if he/she
+          wishes that FSQP evaluate these gradients automatically,
+          by forward finite differences. The specification of GRADOB
+          is as follows.
+
+          SUBROUTINE GRADOB(NPARAM,J,X,GRADFJ,DUMMY)
+          INTEGER NPARAM,J
+          DOUBLE PRECISION X(NPARAM),GRADFJ(NPARAM)
+          DOUBLE PRECISION DUMMY
+          EXTERNAL DUMMY
+
+          Arguments:
+          NPARAM (Input) Dimension of X.
+          J (Input) Number of objective for which gradient is to be
+                computed.
+          X (Input) Current iterate.
+          GRADFJ (Output) Gradient of the jth objective function at
+                X.
+          DUMMY (Input) Used by GROBFD (internally assigned the 
+                name of the objective function subroutine by FFSQP).
+
+          Note that DUMMY is passed as argument to GRADOB to allow
+          for forward finite difference computation of the gradient.
+
+  GRADCN  SUBROUTINE
+          Computes the gradients of the constraints. The
+          user must pass the subroutine name GRCNFD, if he/she
+          wishes that FSQP evaluate these gradients automatically,
+          by forward finite differences. The specification of GRADCN
+          is as follows
+
+          SUBROUTINE GRADCN (NPARAM,J,X,GRADGJ,DUMMY)
+          INTEGER NPARAM,J
+          DOUBLE PRECISION X(NPARAM),GRADGJ(NPARAM)
+          DOUBLE PRECISION DUMMY
+          EXTERNAL DUMMY
+
+          Arguments:
+          NPARAM (Input) Dimension of X.
+          J (Input) Number of constraint for which gradient is to
+                be computed.
+          X (Input) Current iterate.
+          GRADGJ (Output) Gradient of the jth constraint evaluated
+                at X.
+          DUMMY (Input) Used by GRCNFD (internally assigned the
+                name of the constraint function subroutine by
+                FFSQP).
+
+          Note that DUMMY is passed as argument to GRADCN to allow
+          for forward finite difference computation of the gradients.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  NPARAM  (input) INTEGER
+          Number of free variables, i.e., the dimension of X.
+
+  NF      (input) INTEGER
+          Number of objective functions (possibly zero).
+
+  NINEQN  (input) INTEGER
+          Number (possibly zero) of nonlinear inequality 
+          constraints.
+
+  NINEQ   (input) INTEGER
+          Total number (possibly equal to nineqn) of inequality
+          constraints.
+
+  NEQN    (input) INTEGER
+          Number (possibly zero) of nonlinear equality constraints.
+
+  NEQ     (input) INTEGER
+          Total number (possibly equal to neqn) of equality
+          constraints.
+
+  MITER   (input) INTEGER
+          Maximum number of iterations allowed by the user before
+          termination of execution.
+
+  UDELTA  (input) DOUBLE PRECISION
+          The perturbation size the user suggests to use in 
+          approximating gradients by finite difference. UDELTA 
+          should be set to zero if the user has no idea how to 
+          choose it. See [1] for details.
+
+  BIGBND  (input) DOUBLE PRECISION
+          It plays the role of Infinite Bound (see also BL and BU
+          below). 
+
+  BL      (input) DOUBLE PRECISION array, dimension (NPARAM)
+          Lower bounds for the components of X. To specify a non-
+          existent lower bound for some j, the value used must
+          satisfy BL(j) &lt;= -BIGBND.
+
+  BU      (input) DOUBLE PRECISION array, dimension (NPARAM)
+          Upper bounds for the components of X. To specify a non-
+          existent upper bound for some j, the value used must
+          satisfy BU(j) &gt;= BIGBND.
+
+  X       (input/output) DOUBLE PRECISION array, dimension (NPARAM)
+          On entry, this is the initial guess.
+          On exit, this is the iterate at the end of execution.
+
+  F       (output) DOUBLE PRECISION array, dimension ( MAX(1,NF) )
+          Value of functions f_i, i = 1, ..., NF, at X at the end
+          of execution.
+
+  G       (output) DOUBLE PRECISION array, dimension 
+          ( MAX(1,NINEQ+NEQ) )
+          Value of constraint functions at X at the end of
+          execution.
+
+</PRE>
+<B>Tolerances</B>
+<PRE>
+  TOL1    DOUBLE PRECISION
+          Corresponds to argument EPS in [1].
+          Final norm requirement for the Newton direction (see [1],
+          argument EPS). It must be bigger than the machine 
+          precision epsmac (computed by FSQP). If the user does
+          not have a good feeling of what value should be chosen,
+          a very small number could be provided and IPRINT = 2 be
+          selected so that the user would be able to keep track of
+          the process of optimization and terminate FSQP at
+          appropriate time.
+
+  TOL2    DOUBLE PRECISION
+          Corresponds to argument EPSEQN in [1].
+          Maximum violation of nonlinear equality constraints
+          allowed by the user at an optimal point. It is in effect
+          only if NEQN &gt; 0 and must be bigger than the machine
+          precision epsmac (computed by FSQP).
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  IWORK   INTEGER array, dimension (LIWORK)
+          Corresponds to argument IW in [1].
+
+  LIWORK  INTEGER
+          Corresponds to argument IWSIZE in [1].
+          The length of array IWORK. It must be at least as big as 
+          6*NPARAM + 8*max(1,NINEQ+NEQ) + 7*max(1,NF) + 30. This
+          estimate is usually very conservative and the smallest
+          suitable value will be displayed if the user-supplied
+          value is too small.
+
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+          Corresponds to argument W in [1].
+          On exit, it will contain estimates of Lagrange
+          multipliers at the end of execution. These multipliers
+          will be placed in the first NPARAM + NINEQ + NEQ + NFF
+          entries; where NFF = 0 if (in mode) A = 0 and NF = 1, and
+          NFF = NF otherwise. See [1] for details.
+
+  LDWORK  INTEGER
+          Corresponds to argument NWSIZE in [1].
+          The length of array DWORK. It must be at least as big as
+          4*SQR(NPARAM) + 5*MAX(1,NINEQ+NEQ)*NPARAM + 
+          3*MAX(1,NF)*NPARAM + 26*(NPARAM+MAX(1,NF)) + 
+          45*MAX(1,NINEQ+NEQ) + 100.
+          This estimate is usually very conservative and the 
+          smallest suitable value will be displayed if the user-
+          supplied value is too small.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    (output) INTEGER
+          Corresponds to argument INFORM in [1].
+          INFO = 0: Normal termination of execution.
+          INFO = 1: The user-provided initial guess is infeasible
+             for linear constraints and FFSQP is unable to generate
+             a point satisfying all these constraints.
+          INFO = 2: The user-provided initial guess is infeasible
+             for nonlinear inequality constraints and linear
+             constraints; and FFSQP is unable to generate a point
+             satisfying all these constraints.
+          INFO = 3: The maximum number miter of iterations has
+             been reached before a solution is obtained.
+          INFO = 4: The line search fails to find a new iterate
+             (trial step size being smaller than the machine
+             precision epsmac computed by FFSQP).
+          INFO = 5: Failure of the QP solver in attempting to
+             construct d0. A more robust QP solver may succeed.
+          INFO = 6: Failure of the QP solver in attempting to
+             construct d1 . A more robust QP solver may succeed.
+          INFO = 7: Input data are not consistent (with printout
+             indicating the error).
+          INFO = 8: Two consecutive iterates are numerically
+             equivalent before a stopping criterion is satisfied.
+          INFO = 9: One of the penalty parameters exceeded
+             BIGBND. The algorithm is having trouble satisfying a
+             nonlinear equality constraint.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  If the initial guess provided by the user is infeasible for
+  nonlinear inequality constraints and linear constraints, FFSQP
+  first generates a point satisfying all these constraints by
+  iterating on the problem of minimizing the maximum of these
+  constraints.
+
+  Then, using Mayne-Polak's scheme, nonlinear equality
+  constraints are turned into nonlinear inequality constraints
+  and the original objective function is replaced by a modified
+  objective function.
+
+  After obtaining feasibility, either (i) an Armijo-type line
+  search may be used (algorithm FFSQP-AL), yielding a monotone
+  decrease of the objective function at each iteration; or (ii) a
+  nonmonotone line search may be selected (algorithm FFSQP-NL),
+  forcing a decrease of the objective function within at most four
+  iterations.
+  
+  See [1] for further details.
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] J. L. Zhou, A. L. Tits and C. T. Lawrence
+      User's Guide for FFSQP Version 3.7 : A Fortran Code for
+      Solving Optimization Programs, Possibly Minimax, with General
+      Inequality Constraints and Linear Equality Constraints,
+      Generating Feasible Iterates
+      Institute for Systems Research, University of Maryland,
+      Technical Report SRC-TR-92-107r5, 1997.
+      (Available at http://gachinese.com/aemdesign/FSQPframe.htm)
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<p>
+<!--Click <a href=../../SLICOT/arc/TaskVB.tar.gz><B>here</B></a> to get a compressed (gzip) tar file containing the source code
+of the routine and related files.-->
+</p>
+<A HREF=..\libindex.html><B>Return to index</B></A></BODY>
+</HTML>

@@ -1,0 +1,294 @@
+<HTML>
+<HEAD><TITLE>TF01MD - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="TF01MD">TF01MD</A></H2>
+<H3>
+Output response sequence of a linear time-invariant discrete-time system
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To compute the output sequence of a linear time-invariant
+  open-loop system given by its discrete-time state-space model
+  (A,B,C,D), where A is an N-by-N general matrix.
+
+  The initial state vector x(1) must be supplied by the user.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE TF01MD( N, M, P, NY, A, LDA, B, LDB, C, LDC, D, LDD,
+     $                   U, LDU, X, Y, LDY, DWORK, INFO )
+C     .. Scalar Arguments ..
+      INTEGER           INFO, LDA, LDB, LDC, LDD, LDU, LDY, M, N, NY, P
+C     .. Array Arguments ..
+      DOUBLE PRECISION  A(LDA,*), B(LDB,*), C(LDC,*), D(LDD,*),
+     $                  DWORK(*), U(LDU,*), X(*), Y(LDY,*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The order of the matrix A.  N &gt;= 0.
+
+  M       (input) INTEGER
+          The number of system inputs.  M &gt;= 0.
+
+  P       (input) INTEGER
+          The number of system outputs.  P &gt;= 0.
+
+  NY      (input) INTEGER
+          The number of output vectors y(k) to be computed.
+          NY &gt;= 0.
+
+  A       (input) DOUBLE PRECISION array, dimension (LDA,N)
+          The leading N-by-N part of this array must contain the
+          state matrix A of the system.
+
+  LDA     INTEGER
+          The leading dimension of array A.  LDA &gt;= MAX(1,N).
+
+  B       (input) DOUBLE PRECISION array, dimension (LDB,M)
+          The leading N-by-M part of this array must contain the
+          input matrix B of the system.
+
+  LDB     INTEGER
+          The leading dimension of array B.  LDB &gt;= MAX(1,N).
+
+  C       (input) DOUBLE PRECISION array, dimension (LDC,N)
+          The leading P-by-N part of this array must contain the
+          output matrix C of the system.
+
+  LDC     INTEGER
+          The leading dimension of array C.  LDC &gt;= MAX(1,P).
+
+  D       (input) DOUBLE PRECISION array, dimension (LDD,M)
+          The leading P-by-M part of this array must contain the
+          direct link matrix D of the system.
+
+  LDD     INTEGER
+          The leading dimension of array D.  LDD &gt;= MAX(1,P).
+
+  U       (input) DOUBLE PRECISION array, dimension (LDU,NY)
+          The leading M-by-NY part of this array must contain the
+          input vector sequence u(k), for k = 1,2,...,NY.
+          Specifically, the k-th column of U must contain u(k).
+
+  LDU     INTEGER
+          The leading dimension of array U.  LDU &gt;= MAX(1,M).
+
+  X       (input/output) DOUBLE PRECISION array, dimension (N)
+          On entry, this array must contain the initial state vector
+          x(1) which consists of the N initial states of the system.
+          On exit, this array contains the final state vector
+          x(NY+1) of the N states of the system at instant NY.
+
+  Y       (output) DOUBLE PRECISION array, dimension (LDY,NY)
+          The leading P-by-NY part of this array contains the output
+          vector sequence y(1),y(2),...,y(NY) such that the k-th
+          column of Y contains y(k) (the outputs at instant k),
+          for k = 1,2,...,NY.
+
+  LDY     INTEGER
+          The leading dimension of array Y.  LDY &gt;= MAX(1,P).
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  DWORK   DOUBLE PRECISION array, dimension (N)
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  Given an initial state vector x(1), the output vector sequence
+  y(1), y(2),..., y(NY) is obtained via the formulae
+
+     x(k+1) = A x(k) + B u(k)
+     y(k)   = C x(k) + D u(k),
+
+  where each element y(k) is a vector of length P containing the
+  outputs at instant k and k = 1,2,...,NY.
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Luenberger, D.G.
+      Introduction to Dynamic Systems: Theory, Models and
+      Applications.
+      John Wiley & Sons, New York, 1979.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  The algorithm requires approximately (N + M) x (N + P) x NY
+  multiplications and additions.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+*     TF01MD EXAMPLE PROGRAM TEXT
+*
+*     .. Parameters ..
+      INTEGER          NIN, NOUT
+      PARAMETER        ( NIN = 5, NOUT = 6 )
+      INTEGER          NMAX, MMAX, PMAX, NYMAX
+      PARAMETER        ( NMAX = 20, MMAX = 20, PMAX = 20, NYMAX = 20 )
+      INTEGER          LDA, LDB, LDC, LDD, LDU, LDY
+      PARAMETER        ( LDA = NMAX, LDB = NMAX, LDC = PMAX, LDD = PMAX,
+     $                   LDU = MMAX, LDY = PMAX )
+      INTEGER          LDWORK
+      PARAMETER        ( LDWORK = NMAX )
+*     .. Local Scalars ..
+      INTEGER          I, INFO, J, K, M, N, NY, P
+*     .. Local Arrays ..
+      DOUBLE PRECISION A(LDA,NMAX), B(LDB,MMAX), C(LDC,NMAX),
+     $                 D(LDD,MMAX), DWORK(LDWORK), U(LDU,NYMAX),
+     $                 X(NMAX), Y(LDY,NYMAX)
+*     .. External Subroutines ..
+      EXTERNAL         TF01MD
+*     .. Executable Statements ..
+*
+      WRITE ( NOUT, FMT = 99999 )
+*     Skip the heading in the data file and read the data.
+      READ ( NIN, FMT = '()' )
+      READ ( NIN, FMT = * ) N, M, P, NY
+      IF ( N.LE.0 .OR. N.GT.NMAX ) THEN
+         WRITE ( NOUT, FMT = 99994 ) N
+      ELSE
+         READ ( NIN, FMT = * ) ( ( A(I,J), I = 1,N ), J = 1,N )
+         IF ( M.LE.0 .OR. M.GT.MMAX ) THEN
+            WRITE ( NOUT, FMT = 99993 ) M
+         ELSE
+            READ ( NIN, FMT = * ) ( ( B(I,J), I = 1,N ), J = 1,M )
+            IF ( P.LE.0 .OR. P.GT.PMAX ) THEN
+               WRITE ( NOUT, FMT = 99992 ) P
+            ELSE
+               READ ( NIN, FMT = * ) ( ( C(I,J), I = 1,P ), J = 1,N )
+               READ ( NIN, FMT = * ) ( ( D(I,J), I = 1,P ), J = 1,M )
+               READ ( NIN, FMT = * ) ( X(I), I = 1,N )
+               IF ( NY.LE.0 .OR. NY.GT.NYMAX ) THEN
+                  WRITE ( NOUT, FMT = 99991 ) NY
+               ELSE
+                  READ ( NIN, FMT = * )
+     $                 ( ( U(I,J), I = 1,M ), J = 1,NY )
+*                 Compute y(1),...,y(NY) of the given system.
+                  CALL TF01MD( N, M, P, NY, A, LDA, B, LDB, C, LDC, D,
+     $                         LDD, U, LDU, X, Y, LDY, DWORK, INFO )
+*
+                  IF ( INFO.NE.0 ) THEN
+                     WRITE ( NOUT, FMT = 99998 ) INFO
+                  ELSE
+                     WRITE ( NOUT, FMT = 99997 ) NY
+                     DO 20 K = 1, NY
+                        WRITE ( NOUT, FMT = 99996 ) K, Y(1,K)
+                        WRITE ( NOUT, FMT = 99995 ) ( Y(J,K), J = 2,P )
+   20                CONTINUE
+                  END IF
+               END IF
+            END IF
+         END IF
+      END IF
+      STOP
+*
+99999 FORMAT (' TF01MD EXAMPLE PROGRAM RESULTS',/1X)
+99998 FORMAT (' INFO on exit from TF01MD = ',I2)
+99997 FORMAT (' The output sequence Y(1),...,Y(',I2,') is',/)
+99996 FORMAT (' Y(',I2,') : ',F8.4)
+99995 FORMAT (9X,F8.4,/)
+99994 FORMAT (/' N is out of range.',/' N = ',I5)
+99993 FORMAT (/' M is out of range.',/' M = ',I5)
+99992 FORMAT (/' P is out of range.',/' P = ',I5)
+99991 FORMAT (/' NY is out of range.',/' NY = ',I5)
+      END
+</PRE>
+<B>Program Data</B>
+<PRE>
+ TF01MD EXAMPLE PROGRAM DATA
+   3     2     2     10
+   0.0000 -0.0700  0.0150
+   1.0000  0.8000 -0.1500
+   0.0000  0.0000  0.5000
+   0.0000  2.0000  1.0000
+  -1.0000 -0.1000  1.0000
+   0.0000  1.0000
+   0.0000  0.0000
+   1.0000  0.0000
+   1.0000  0.5000
+   0.0000  0.5000
+   1.0000  1.0000  1.0000
+  -0.6922 -1.4934  0.3081 -2.7726  2.0039
+   0.2614 -0.9160 -0.6030  1.2556  0.2951
+  -1.5734  1.5639 -0.9942  1.8957  0.8988
+   0.4118 -1.4893 -0.9344  1.2506 -0.0701
+</PRE>
+<B>Program Results</B>
+<PRE>
+ TF01MD EXAMPLE PROGRAM RESULTS
+
+ The output sequence Y(1),...,Y(10) is
+
+ Y( 1) :   0.3078
+          -0.0928
+
+ Y( 2) :  -1.5125
+           1.2611
+
+ Y( 3) :  -1.2577
+           3.4002
+
+ Y( 4) :  -0.2947
+          -0.7060
+
+ Y( 5) :  -0.5632
+           5.4532
+
+ Y( 6) :  -1.0846
+           1.1846
+
+ Y( 7) :  -1.2427
+           2.2286
+
+ Y( 8) :   1.8097
+          -1.9534
+
+ Y( 9) :   0.6685
+          -4.4965
+
+ Y(10) :  -0.0896
+           1.1654
+
+</PRE>
+
+<HR>
+<p>
+<A HREF=..\libindex.html><B>Return to index</B></A></BODY>
+</HTML>

@@ -1,0 +1,367 @@
+<HTML>
+<HEAD><TITLE>IB01QD - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="IB01QD">IB01QD</A></H2>
+<H3>
+Estimating initial state and system matrices B and D, given A, C, and input-output trajectories
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To estimate the initial state and the system matrices  B  and  D
+  of a linear time-invariant (LTI) discrete-time system, given the
+  matrix pair  (A,C)  and the input and output trajectories of the
+  system. The model structure is :
+
+        x(k+1) = Ax(k) + Bu(k),   k &gt;= 0,
+        y(k)   = Cx(k) + Du(k),
+
+  where  x(k)  is the  n-dimensional state vector (at time k),
+         u(k)  is the  m-dimensional input vector,
+         y(k)  is the  l-dimensional output vector,
+  and  A, B, C, and D  are real matrices of appropriate dimensions.
+  Matrix  A  is assumed to be in a real Schur form.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE IB01QD( JOBX0, JOB, N, M, L, NSMP, A, LDA, C, LDC, U,
+     $                   LDU, Y, LDY, X0, B, LDB, D, LDD, TOL, IWORK,
+     $                   DWORK, LDWORK, IWARN, INFO )
+C     .. Scalar Arguments ..
+      DOUBLE PRECISION   TOL
+      INTEGER            INFO, IWARN, L, LDA, LDB, LDC, LDD, LDU,
+     $                   LDWORK, LDY, M, N, NSMP
+      CHARACTER          JOB, JOBX0
+C     .. Array Arguments ..
+      DOUBLE PRECISION   A(LDA, *), B(LDB, *), C(LDC, *), D(LDD, *),
+     $                   DWORK(*),  U(LDU, *), X0(*), Y(LDY, *)
+      INTEGER            IWORK(*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  JOBX0   CHARACTER*1
+          Specifies whether or not the initial state should be
+          computed, as follows:
+          = 'X':  compute the initial state x(0);
+          = 'N':  do not compute the initial state (x(0) is known
+                  to be zero).
+
+  JOB     CHARACTER*1
+          Specifies which matrices should be computed, as follows:
+          = 'B':  compute the matrix B only (D is known to be zero);
+          = 'D':  compute the matrices B and D.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The order of the system.  N &gt;= 0.
+
+  M       (input) INTEGER
+          The number of system inputs.  M &gt;= 0.
+
+  L       (input) INTEGER
+          The number of system outputs.  L &gt; 0.
+
+  NSMP    (input) INTEGER
+          The number of rows of matrices  U  and  Y  (number of
+          samples,  t).
+          NSMP &gt;= N*M + a + e,  where
+          a = 0,  if  JOBX0 = 'N';
+          a = N,  if  JOBX0 = 'X';
+          e = 0,  if  JOBX0 = 'X'  and  JOB = 'B';
+          e = 1,  if  JOBX0 = 'N'  and  JOB = 'B';
+          e = M,  if  JOB   = 'D'.
+
+  A       (input) DOUBLE PRECISION array, dimension (LDA,N)
+          The leading N-by-N part of this array must contain the
+          system state matrix  A  in a real Schur form.
+
+  LDA     INTEGER
+          The leading dimension of the array A.  LDA &gt;= MAX(1,N).
+
+  C       (input) DOUBLE PRECISION array, dimension (LDC,N)
+          The leading L-by-N part of this array must contain the
+          system output matrix  C  (corresponding to the real Schur
+          form of  A).
+
+  LDC     INTEGER
+          The leading dimension of the array C.  LDC &gt;= L.
+
+  U       (input/output) DOUBLE PRECISION array, dimension (LDU,M)
+          On entry, the leading NSMP-by-M part of this array must
+          contain the t-by-m input-data sequence matrix  U,
+          U = [u_1 u_2 ... u_m].  Column  j  of  U  contains the
+          NSMP  values of the j-th input component for consecutive
+          time increments.
+          On exit, if  JOB = 'D',  the leading NSMP-by-M part of
+          this array contains details of the QR factorization of
+          the t-by-m matrix  U, possibly computed sequentially
+          (see METHOD).
+          If  JOB = 'B',  this array is unchanged on exit.
+          If M = 0, this array is not referenced.
+
+  LDU     INTEGER
+          The leading dimension of the array U.
+          LDU &gt;= MAX(1,NSMP),  if M &gt; 0;
+          LDU &gt;= 1,            if M = 0.
+
+  Y       (input) DOUBLE PRECISION array, dimension (LDY,L)
+          The leading NSMP-by-L part of this array must contain the
+          t-by-l output-data sequence matrix  Y,
+          Y = [y_1 y_2 ... y_l].  Column  j  of  Y  contains the
+          NSMP  values of the j-th output component for consecutive
+          time increments.
+
+  LDY     INTEGER
+          The leading dimension of the array Y.  LDY &gt;= MAX(1,NSMP).
+
+  X0      (output) DOUBLE PRECISION array, dimension (N)
+          If  JOBX0 = 'X',  the estimated initial state of the
+          system,  x(0).
+          If  JOBX0 = 'N',  x(0)  is set to zero without any
+          calculations.
+
+  B       (output) DOUBLE PRECISION array, dimension (LDB,M)
+          If  N &gt; 0,  M &gt; 0,  and  INFO = 0,  the leading N-by-M
+          part of this array contains the system input matrix  B
+          in the coordinates corresponding to the real Schur form
+          of  A.
+          If  N = 0  or  M = 0,  this array is not referenced.
+
+  LDB     INTEGER
+          The leading dimension of the array B.
+          LDB &gt;= N,  if  N &gt; 0  and  M &gt; 0;
+          LDB &gt;= 1,  if  N = 0  or   M = 0.
+
+  D       (output) DOUBLE PRECISION array, dimension (LDD,M)
+          If  M &gt; 0,  JOB = 'D',  and  INFO = 0,  the leading
+          L-by-M part of this array contains the system input-output
+          matrix  D.
+          If  M = 0  or  JOB = 'B',  this array is not referenced.
+
+  LDD     INTEGER
+          The leading dimension of the array D.
+          LDD &gt;= L,  if  M &gt; 0  and  JOB = 'D';
+          LDD &gt;= 1,  if  M = 0  or   JOB = 'B'.
+
+</PRE>
+<B>Tolerances</B>
+<PRE>
+  TOL     DOUBLE PRECISION
+          The tolerance to be used for estimating the rank of
+          matrices. If the user sets  TOL &gt; 0,  then the given value
+          of  TOL  is used as a lower bound for the reciprocal
+          condition number;  a matrix whose estimated condition
+          number is less than  1/TOL  is considered to be of full
+          rank.  If the user sets  TOL &lt;= 0,  then  EPS  is used
+          instead, where  EPS  is the relative machine precision
+          (see LAPACK Library routine DLAMCH).  TOL &lt;= 1.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  IWORK   INTEGER array, dimension (LIWORK), where
+          LIWORK &gt;= N*M + a,            if  JOB = 'B',
+          LIWORK &gt;= max( N*M + a, M ),  if  JOB = 'D',
+          with  a = 0,  if  JOBX0 = 'N';
+                a = N,  if  JOBX0 = 'X'.
+
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+          On exit, if  INFO = 0,  DWORK(1) returns the optimal value
+          of LDWORK;  DWORK(2)  contains the reciprocal condition
+          number of the triangular factor of the QR factorization of
+          the matrix  W2  (see METHOD); if  M &gt; 0  and  JOB = 'D',
+          DWORK(3)  contains the reciprocal condition number of the
+          triangular factor of the QR factorization of  U.
+          On exit, if  INFO = -23,  DWORK(1)  returns the minimum
+          value of LDWORK.
+
+  LDWORK  INTEGER
+          The length of the array DWORK.
+          LDWORK &gt;= max( LDW1, min( LDW2, LDW3 ) ),  where
+          LDW1 = 2,          if  M = 0  or   JOB = 'B',
+          LDW1 = 3,          if  M &gt; 0  and  JOB = 'D',
+          LDWa = t*L*(r + 1) + max( N + max( d, f ), 6*r ),
+          LDW2 = LDWa,       if  M = 0  or  JOB = 'B',
+          LDW2 = max( LDWa, t*L*(r + 1) + 2*M*M + 6*M ),
+                             if  M &gt; 0  and JOB = 'D',
+          LDWb = (b + r)*(r + 1) +
+                  max( q*(r + 1) + N*N*M + c + max( d, f ), 6*r ),
+          LDW3 = LDWb,       if  M = 0  or  JOB = 'B',
+          LDW3 = max( LDWb, (b + r)*(r + 1) + 2*M*M + 6*M ),
+                             if  M &gt; 0  and JOB = 'D',
+             r = N*M + a,
+             a = 0,                  if  JOBX0 = 'N',
+             a = N,                  if  JOBX0 = 'X';
+             b = 0,                  if  JOB   = 'B',
+             b = L*M,                if  JOB   = 'D';
+             c = 0,                  if  JOBX0 = 'N',
+             c = L*N,                if  JOBX0 = 'X';
+             d = 0,                  if  JOBX0 = 'N',
+             d = 2*N*N + N,          if  JOBX0 = 'X';
+             f = 2*r,                if  JOB   = 'B'   or  M = 0,
+             f = M + max( 2*r, M ),  if  JOB   = 'D'  and  M &gt; 0;
+             q = b + r*L.
+          For good performance,  LDWORK  should be larger.
+          If  LDWORK &gt;= LDW2  or
+              LDWORK &gt;= t*L*(r + 1) + (b + r)*(r + 1) + N*N*M + c +
+                        max( d, f ),
+          then standard QR factorizations of the matrices  U  and/or
+          W2  (see METHOD) are used.
+          Otherwise, the QR factorizations are computed sequentially
+          by performing  NCYCLE  cycles, each cycle (except possibly
+          the last one) processing  s &lt; t  samples, where  s  is
+          chosen from the equation
+            LDWORK = s*L*(r + 1) + (b + r)*(r + 1) + N*N*M + c +
+                     max( d, f ).
+          (s  is at least  N*M+a+e,  the minimum value of  NSMP.)
+          The computational effort may increase and the accuracy may
+          decrease with the decrease of  s.  Recommended value is
+          LDWORK = LDW2,  assuming a large enough cache size, to
+          also accommodate  A,  C,  U,  and  Y.
+
+</PRE>
+<B>Warning Indicator</B>
+<PRE>
+  IWARN   INTEGER
+          = 0:  no warning;
+          = 4:  the least squares problem to be solved has a
+                rank-deficient coefficient matrix.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value;
+          = 2:  the singular value decomposition (SVD) algorithm did
+                not converge.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  An extension and refinement of the method in [1,2] is used.
+  Specifically, denoting
+
+        X = [ vec(D')' vec(B)' x0' ]',
+
+  where  vec(M)  is the vector obtained by stacking the columns of
+  the matrix  M,  then  X  is the least squares solution of the
+  system  S*X = vec(Y),  with the matrix  S = [ diag(U)  W ],
+  defined by
+
+        ( U         |     | ... |     |     | ... |     |         )
+        (   U       |  11 | ... |  n1 |  12 | ... |  nm |         )
+    S = (     :     | y   | ... | y   | y   | ... | y   | P*Gamma ),
+        (       :   |     | ... |     |     | ... |     |         )
+        (         U |     | ... |     |     | ... |     |         )
+                                                                  ij
+  diag(U)  having  L  block rows and columns.  In this formula,  y
+  are the outputs of the system for zero initial state computed
+  using the following model, for j = 1:m, and for i = 1:n,
+         ij          ij                    ij
+        x  (k+1) = Ax  (k) + e_i u_j(k),  x  (0) = 0,
+
+         ij          ij
+        y  (k)   = Cx  (k),
+
+  where  e_i  is the i-th n-dimensional unit vector,  Gamma  is
+  given by
+
+             (     C     )
+             (    C*A    )
+     Gamma = (   C*A^2   ),
+             (     :     )
+             ( C*A^(t-1) )
+
+  and  P  is a permutation matrix that groups together the rows of
+  Gamma  depending on the same row of  C,  namely
+  [ c_j;  c_j*A;  c_j*A^2; ...  c_j*A^(t-1) ],  for j = 1:L.
+  The first block column,  diag(U),  is not explicitly constructed,
+  but its structure is exploited. The last block column is evaluated
+  using powers of A with exponents 2^k. No interchanges are applied.
+  A special QR decomposition of the matrix  S  is computed. Let
+  U = q*[ r' 0 ]'  be the QR decomposition of  U,  if  M &gt; 0,  where
+  r  is  M-by-M.   Then,  diag(q')  is applied to  W  and  vec(Y).
+  The block-rows of  S  and  vec(Y)  are implicitly permuted so that
+  matrix  S  becomes
+
+     ( diag(r)  W1 )
+     (    0     W2 ),
+
+  where  W1  has L*M rows. Then, the QR decomposition of  W2 is
+  computed (sequentially, if  M &gt; 0) and used to obtain  B  and  x0.
+  The intermediate results and the QR decomposition of  U  are
+  needed to find  D.  If a triangular factor is too ill conditioned,
+  then singular value decomposition (SVD) is employed. SVD is not
+  generally needed if the input sequence is sufficiently
+  persistently exciting and  NSMP  is large enough.
+  If the matrix  W  cannot be stored in the workspace (i.e.,
+  LDWORK &lt; LDW2),  the QR decompositions of  W2  and  U  are
+  computed sequentially.
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Verhaegen M., and Varga, A.
+      Some Experience with the MOESP Class of Subspace Model
+      Identification Methods in Identifying the BO105 Helicopter.
+      Report TR R165-94, DLR Oberpfaffenhofen, 1994.
+
+  [2] Sima, V., and Varga, A.
+      RASP-IDENT : Subspace Model Identification Programs.
+      Deutsche Forschungsanstalt fur Luft- und Raumfahrt e. V.,
+      Report TR R888-94, DLR Oberpfaffenhofen, Oct. 1994.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  The implemented method is numerically stable.
+
+</PRE>
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  The algorithm for computing the system matrices  B  and  D  is
+  less efficient than the MOESP or N4SID algorithms implemented in
+  SLICOT Library routine IB01PD, because a large least squares
+  problem has to be solved, but the accuracy is better, as the
+  computed matrices  B  and  D  are fitted to the input and output
+  trajectories. However, if matrix  A  is unstable, the computed
+  matrices  B  and  D  could be inaccurate.
+
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

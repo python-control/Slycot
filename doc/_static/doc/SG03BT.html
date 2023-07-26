@@ -1,0 +1,255 @@
+<HTML>
+<HEAD><TITLE>SG03BT - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="SG03BT">SG03BT</A></H2>
+<H3>
+Solving (for Cholesky factor) stable generalized continuous-time complex Lyapunov equations, with A, E, and B upper triangular
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To compute the Cholesky factor U of the matrix X, X = U**H * U or
+  X = U * U**H, which is the solution of the generalized c-stable
+  continuous-time Lyapunov equation
+
+      H            H                  2    H
+     A  * X * E + E  * X * A = - SCALE  * B  * B,                (1)
+
+  or the conjugate transposed equation
+
+              H            H          2        H
+     A * X * E  + E * X * A  = - SCALE  * B * B ,                (2)
+
+  respectively, where A, E, B, and U are complex N-by-N matrices.
+  The Cholesky factor U of the solution is computed without first
+  finding X. The pencil A - lambda * E must be in complex
+  generalized Schur form (A and E are upper triangular and the
+  diagonal elements of E are non-negative real numbers). Moreover,
+  it must be c-stable, i.e., its eigenvalues must have negative real
+  parts. B must be an upper triangular matrix with real non-negative
+  entries on its main diagonal.
+
+  The resulting matrix U is upper triangular. The entries on its
+  main diagonal are non-negative. SCALE is an output scale factor
+  set to avoid overflow in U.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE SG03BT( TRANS, N, A, LDA, E, LDE, B, LDB, SCALE, DWORK,
+     $                   ZWORK, INFO )
+C     .. Scalar Arguments ..
+      CHARACTER         TRANS
+      DOUBLE PRECISION  SCALE
+      INTEGER           INFO, LDA, LDB, LDE, N
+C     .. Array Arguments ..
+      DOUBLE PRECISION  DWORK(*)
+      COMPLEX*16        A(LDA,*), B(LDB,*), E(LDE,*), ZWORK(*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  TRANS   CHARACTER*1
+          Specifies whether equation (1) or equation (2) is to be
+          solved:
+          = 'N':  Solve equation (1);
+          = 'C':  Solve equation (2).
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The order of the matrices.  N &gt;= 0.
+
+  A       (input/workspace) COMPLEX*16 array, dimension (LDA,N)
+          The leading N-by-N upper triangular part of this array
+          must contain the triangular matrix A. The lower triangular
+          part is used as workspace, but the diagonal is restored.
+
+  LDA     INTEGER
+          The leading dimension of the array A.  LDA &gt;= MAX(1,N).
+
+  E       (input/workspace) COMPLEX*16 array, dimension (LDE,N)
+          The leading N-by-N upper triangular part of this array
+          must contain the triangular matrix E. If TRANS = 'N', the
+          strictly lower triangular part is used as workspace.
+
+  LDE     INTEGER
+          The leading dimension of the array E.  LDE &gt;= MAX(1,N).
+
+  B       (input/output) COMPLEX*16 array, dimension (LDB,N)
+          On entry, the leading N-by-N upper triangular part of this
+          array must contain the matrix B.
+          On exit, the leading N-by-N upper triangular part of this
+          array contains the solution matrix U.
+
+  LDB     INTEGER
+          The leading dimension of the array B.  LDB &gt;= MAX(1,N).
+
+  SCALE   (output) DOUBLE PRECISION
+          The scale factor set to avoid overflow in U.
+          0 &lt; SCALE &lt;= 1.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  DWORK   DOUBLE PRECISION array, dimension MAX(N-1,0)
+
+  ZWORK   COMPLEX*16, dimension MAX(3*N-3,0)
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value;
+          = 3:  the pencil A - lambda * E is not stable, i.e., there
+                is an eigenvalue without a negative real part.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  The method used by the routine is an extension of Hammarling's
+  algorithm [1] to generalized Lyapunov equations. The real case is
+  described in [2].
+
+  We present the method for solving equation (1). Equation (2) can
+  be treated in a similar fashion. For simplicity, assume SCALE = 1.
+
+  Since all matrices A, E, B, and U are upper triangular, we use the
+  following partitioning
+
+            ( A11   A12 )        ( E11   E12 )
+        A = (           ),   E = (           ),
+            (   0   A22 )        (   0   E22 )
+
+            ( B11   B12 )        ( U11   U12 )
+        B = (           ),   U = (           ),                  (3)
+            (   0   B22 )        (   0   U22 )
+
+  where the size of the (1,1)-blocks is 1-by-1.
+
+  We compute U11, U12**H and U22 in three steps.
+
+  Step I:
+
+     From (1) and (3) we get the 1-by-1 equation
+
+           H     H                 H     H                  H
+        A11 * U11 * U11 * E11 + E11 * U11 * U11 * A11 = -B11 * B11.
+
+     For brevity, details are omitted here. The technique for
+     computing U11 is similar to those applied to standard Lyapunov
+     equations in Hammarling's algorithm ([1], section 5).
+
+     Furthermore, the auxiliary scalars M1 and M2 defined as follows
+
+        M1 = A11 / E11 ,   M2 = B11 / E11 / U11 ,
+
+     are computed in a numerically reliable way.
+
+  Step II:
+
+     We solve for U12**H the linear system of equations, with
+     scaling to prevent overflow,
+
+             H           H      H
+        ( A22  + M1 * E22  ) U12  =
+
+                    H              H           H
+        = - M2 * B12  - U11 * ( A12  + M1 * E12  ) .
+
+  Step III:
+
+     One can show that
+
+           H      H                  H      H
+        A22  * U22  * U22 * E22 + E22  * U22  * U22 * A22  =
+
+             H              H
+        - B22  * B22 - y * y                                     (4)
+
+     holds, where y is defined as follows
+
+               H                   H      H      H
+        y = B12  - M2 * ( U11 * E12  + E22  * U12  ).
+
+     If B22_tilde is the square triangular matrix arising from the
+     QR-factorization
+
+            ( B22_tilde )     ( B22  )
+        Q * (           )  =  (      ),
+            (     0     )     ( y**H )
+
+     then
+
+             H              H                H
+        - B22  * B22 - y * y   =  - B22_tilde  * B22_tilde.
+
+     Replacing the right hand side in (4) by the term
+     - B22_tilde**H * B22_tilde leads to a generalized Lyapunov
+     equation like (1), but of dimension N-1.
+
+  The solution U of the equation (1) can be obtained by recursive
+  application of the steps I to III.
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Hammarling, S.J.
+      Numerical solution of the stable, non-negative definite
+      Lyapunov equation.
+      IMA J. Num. Anal., 2, pp. 303-323, 1982.
+
+  [2] Penzl, T.
+      Numerical solution of generalized Lyapunov equations.
+      Advances in Comp. Math., vol. 8, pp. 33-48, 1998.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  The routine requires 2*N**3 flops. Note that we count a single
+  floating point arithmetic operation as one flop.
+
+</PRE>
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  The Lyapunov equation may be very ill-conditioned. In particular,
+  if the pencil A - lambda * E has a pair of almost degenerate
+  eigenvalues, then the Lyapunov equation will be ill-conditioned.
+  Perturbed values were used to solve the equation.
+  A condition estimate can be obtained from the routine SG03AD.
+
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

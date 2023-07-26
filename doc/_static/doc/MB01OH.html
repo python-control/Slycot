@@ -1,0 +1,144 @@
+<HTML>
+<HEAD><TITLE>MB01OH - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MB01OH">MB01OH</A></H2>
+<H3>
+Computation of matrix expression alpha R + beta ( op(H) op(A)' + op(A) op(H)' ) with R symmetric, and A, H upper Hessenberg
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To compute one of the symmetric rank 2k operations
+
+     R := alpha*R + beta*H*A' + beta*A*H',
+
+  or
+
+     R := alpha*R + beta*H'*A + beta*A'*H,
+
+  where alpha and beta are scalars, R, A, and H are N-by-N matrices,
+  with A and H upper Hessenberg.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MB01OH( UPLO, TRANS, N, ALPHA, BETA, R, LDR, H, LDH, A,
+     $                   LDA )
+C     .. Scalar Arguments ..
+      DOUBLE PRECISION  ALPHA, BETA
+      INTEGER           LDA, LDH, LDR, N
+      CHARACTER         TRANS, UPLO
+C     .. Array Arguments ..
+      DOUBLE PRECISION  A(LDA,*), H(LDH,*), R(LDR,*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  UPLO    CHARACTER*1
+          Specifies which triangle of the symmetric matrix R is
+          given as follows:
+          = 'U':  the upper triangular part is given;
+          = 'L':  the lower triangular part is given.
+
+  TRANS   CHARACTER*1
+          Specifies the form of H to be used in the matrix
+          multiplication as follows:
+          = 'N':  R := alpha*R + beta*H*A' + beta*A*H';
+          = 'T':  R := alpha*R + beta*H'*A + beta*A'*H;
+          = 'C':  R := alpha*R + beta*H'*A + beta*A'*H.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The order of the matrices R, A, and H.  N &gt;= 0.
+
+  ALPHA   (input) DOUBLE PRECISION
+          The scalar alpha. When alpha is zero then R need not be
+          set before entry.
+
+  BETA    (input) DOUBLE PRECISION
+          The scalar beta. When beta is zero then A and H are not
+          referenced.
+
+  R       (input/output) DOUBLE PRECISION array, dimension (LDR,N)
+          On entry with UPLO = 'U', the leading N-by-N upper
+          triangular part of this array must contain the upper
+          triangular part of the symmetric matrix R.
+          On entry with UPLO = 'L', the leading N-by-N lower
+          triangular part of this array must contain the lower
+          triangular part of the symmetric matrix R.
+          In both cases, the other strictly triangular part is not
+          referenced.
+          On exit, the leading N-by-N upper triangular part (if
+          UPLO = 'U'), or lower triangular part (if UPLO = 'L'), of
+          this array contains the corresponding triangular part of
+          the computed matrix R.
+
+  LDR     INTEGER
+          The leading dimension of array R.  LDR &gt;= MAX(1,N).
+
+  H       (input) DOUBLE PRECISION array, dimension (LDH,N)
+          On entry, the leading N-by-N upper Hessenberg part of this
+          array must contain the upper Hessenberg matrix H.
+          The remaining part of this array is not referenced.
+
+  LDH     INTEGER
+          The leading dimension of array H.  LDH &gt;= MAX(1,N)
+
+  A       (input) DOUBLE PRECISION array, dimension (LDA,N)
+          On entry, the leading N-by-N upper Hessenberg part of this
+          array must contain the upper Hessenberg matrix A.
+          The remaining part of this array is not referenced.
+
+  LDA     INTEGER
+          The leading dimension of array A.  LDA &gt;= MAX(1,N)
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  A particularization of the algorithm used in the BLAS 3 routine
+  DSYR2K is used.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  The algorithm requires approximately N**3/3 operations.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

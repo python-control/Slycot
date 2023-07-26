@@ -1,0 +1,127 @@
+<HTML>
+<HEAD><TITLE>MB03QY - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MB03QY">MB03QY</A></H2>
+<H3>
+Transformation to the Schur canonical form of a selected 2-by-2 diagonal block of an upper quasi-triangular matrix
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To compute the eigenvalues of a selected 2-by-2 diagonal block
+  of an upper quasi-triangular matrix, to reduce the selected block
+  to the standard form and to split the block in the case of real
+  eigenvalues by constructing an orthogonal transformation UT.
+  This transformation is applied to A (by similarity) and to
+  another matrix U from the right.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MB03QY( N, L, A, LDA, U, LDU, E1, E2, INFO )
+C     .. Scalar Arguments ..
+      INTEGER          INFO, L, LDA, LDU, N
+      DOUBLE PRECISION E1, E2
+C     .. Array Arguments ..
+      DOUBLE PRECISION A(LDA,*), U(LDU,*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The order of the matrices A and UT.  N &gt;= 2.
+
+  L       (input) INTEGER
+          Specifies the position of the block.  1 &lt;= L &lt; N.
+
+  A       (input/output) DOUBLE PRECISION array, dimension (LDA,N)
+          On entry, the leading N-by-N part of this array must
+          contain the upper quasi-triangular matrix A whose
+          selected 2-by-2 diagonal block is to be processed.
+          On exit, the leading N-by-N part of this array contains
+          the upper quasi-triangular matrix A after its selected
+          block has been splitt and/or put in the LAPACK standard
+          form.
+
+  LDA     INTEGER
+          The leading dimension of array A.  LDA &gt;= N.
+
+  U       (input/output) DOUBLE PRECISION array, dimension (LDU,N)
+          On entry, the leading N-by-N part of this array must
+          contain a transformation matrix U.
+          On exit, the leading N-by-N part of this array contains
+          U*UT, where UT is the transformation matrix used to
+          split and/or standardize the selected block.
+
+  LDU     INTEGER
+          The leading dimension of array U.  LDU &gt;= N.
+
+  E1, E2  (output) DOUBLE PRECISION
+          E1 and E2 contain either the real eigenvalues or the real
+          and positive imaginary parts, respectively, of the complex
+          eigenvalues of the selected 2-by-2 diagonal block of A.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  Let A1 = ( A(L,L)    A(L,L+1)   )
+           ( A(L+1,L)  A(L+1,L+1) )
+  be the specified 2-by-2 diagonal block of matrix A.
+  If the eigenvalues of A1 are complex, then they are computed and
+  stored in E1 and E2, where the real part is stored in E1 and the
+  positive imaginary part in E2. The 2-by-2 block is reduced if
+  necessary to the standard form, such that A(L,L) = A(L+1,L+1), and
+  A(L,L+1) and A(L+1,L) have oposite signs. If the eigenvalues are
+  real, the 2-by-2 block is reduced to an upper triangular form such
+  that ABS(A(L,L)) &gt;= ABS(A(L+1,L+1)).
+  In both cases, an orthogonal rotation U1' is constructed such that
+  U1'*A1*U1 has the appropriate form. Let UT be an extension of U1
+  to an N-by-N orthogonal matrix, using identity submatrices. Then A
+  is replaced by UT'*A*UT and the contents of array U is U * UT.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

@@ -1,0 +1,376 @@
+<HTML>
+<HEAD><TITLE>TG01HU - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="TG01HU">TG01HU</A></H2>
+<H3>
+Staircase controllability representation of a multi-input descriptor system
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  Given the descriptor system (A-lambda*E,B,C) with the system
+  matrices A, E and B of the form
+
+         ( A1 X1 )        ( E1 Y1 )        ( B1 B2 )
+     A = (       ) ,  E = (       ) ,  B = (       ) ,
+         ( 0  X2 )        ( 0  Y2 )        ( 0  0  )
+
+  where
+       - B is an L-by-(M1+M2) matrix,
+         with B1 an N1-by-M1 submatrix, B2 an N1-by-M2 submatrix,
+       - A is an L-by-N matrix, with A1 an N1-by-N1 submatrix,
+       - E is an L-by-N matrix, with E1 an N1-by-N1 submatrix
+           with LBE nonzero sub-diagonals,
+  this routine reduces the pair (A1-lambda*E1,[B1 B2]) to the form
+
+  Qc'*[B1 B2 A1-lambda*E1 ]*diag(I,Zc) =
+
+                           ( Bc1 Bc2 Ac-lambda*Ec      *         )
+                           (                                     ) ,
+                           (  0   0       0       Anc-lambda*Enc )
+
+  where:
+  1) the pencil ( Bc1 Bc2 Ac-lambda*Ec ) has full row rank NR for
+     all finite lambda and is in a staircase form with
+
+             [ A11 A12  . . .  A1,p-2 A1,p-1 A1p ]
+             [ A21 A22  . . .  A2,p-2 A2,p-1 A2p ]
+             [ A31 A32  . . .  A3,p-2 A3,p-1 A3p ]
+             [  0  A42  . . .  A4,p-2 A4,p-1 A4p ]
+        Ac = [  .   .   . . .    .      .     .  ],              (1)
+             [  .   .     . .    .      .     .  ]
+             [  .   .       .    .      .     .  ]
+             [  0   0   . . .  Ap,p-2 Ap,p-1 App ]
+
+                  [ A1,-1 A1,0 ]
+                  [  0    A2,0 ]
+                  [  0     0   ]             ( E11  E12 ...  E1p  )
+                  [  0     0   ]             (  0   E22 ...  E2p  )
+      [Bc1 Bc2] = [  .     .   ],       Ec = (   .   .   .    .   ),
+                  [  .     .   ]             (   .   .   .    .   )
+                  [  .     .   ]             (   0   0  ...  Epp  )
+                  [  0     0   ]
+
+      where the block  Ai,i-2 is an rtau(i)-by-rtau(i-2) full row
+      rank matrix (with rtau(-1) = M1, rtau(0) = M2) and Ei,i is an
+      rtau(i)-by-rtau(i) upper triangular matrix.
+
+   2) the pencil Anc-lambda*Enc is regular of order N1-NR with Enc
+      upper triangular; this pencil contains the uncontrollable
+      finite eigenvalues of the pencil (A1-lambda*E1).
+
+  The transformations are applied to the whole matrices A, E, B
+  and C. The left and/or right orthogonal transformations Qc and Zc,
+  performed to reduce the pencil, can be optionally accumulated in
+  the matrices Q and Z, respectively.
+
+  The reduced order descriptor system (Ac-lambda*Ec,Bc,Cc) has no
+  uncontrollable finite eigenvalues and has the same transfer-
+  function matrix as the original system (A-lambda*E,B,C).
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE TG01HU( COMPQ, COMPZ, L, N, M1, M2, P, N1, LBE, A, LDA,
+     $                   E, LDE, B, LDB, C, LDC, Q, LDQ, Z, LDZ, NR,
+     $                   NRBLCK, RTAU, TOL, IWORK, DWORK, LDWORK, INFO )
+C     .. Scalar Arguments ..
+      CHARACTER          COMPQ, COMPZ
+      INTEGER            INFO, L, LBE, LDA, LDB, LDC, LDE, LDQ, LDWORK,
+     $                   LDZ, M1, M2, N, N1, NR, NRBLCK, P
+      DOUBLE PRECISION   TOL
+C     .. Array Arguments ..
+      INTEGER            IWORK( * ), RTAU( * )
+      DOUBLE PRECISION   A( LDA, * ), B( LDB, * ), C( LDC, * ),
+     $                   DWORK( * ),  E( LDE, * ), Q( LDQ, * ),
+     $                   Z( LDZ, * )
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  COMPQ   CHARACTER*1
+          = 'N':  do not compute Q;
+          = 'I':  Q is initialized to the unit matrix, and the
+                  orthogonal matrix Q is returned;
+          = 'U':  Q must contain an orthogonal matrix Q1 on entry,
+                  and the product Q1*Q is returned.
+
+  COMPZ   CHARACTER*1
+          = 'N':  do not compute Z;
+          = 'I':  Z is initialized to the unit matrix, and the
+                  orthogonal matrix Z is returned;
+          = 'U':  Z must contain an orthogonal matrix Z1 on entry,
+                  and the product Z1*Z is returned.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  L       (input) INTEGER
+          The number of descriptor state equations; also the number
+          of rows of the matrices A, E and B.  L &gt;= 0.
+
+  N       (input) INTEGER
+          The dimension of the descriptor state vector; also the
+          number of columns of the matrices A, E and C.  N &gt;= 0.
+
+  M1      (input) INTEGER
+          The number of system inputs in U1, or of columns of B1.
+          M1 &gt;= 0.
+
+  M2      (input) INTEGER
+          The number of system inputs in U2, or of columns of B2.
+          M2 &gt;= 0.
+
+  P       (input) INTEGER
+          The dimension of descriptor system output; also the
+          number of rows of the matrix C.  P &gt;= 0.
+
+  N1      (input) INTEGER
+          The order of the subsystem (A1-lambda*E1,B1,C1) to be
+          reduced.  MIN(L,N) &gt;= N1 &gt;= 0.
+
+  LBE     (input) INTEGER
+          The number of nonzero sub-diagonals of the submatrix E1.
+          MAX(0,N1-1) &gt;= LBE &gt;= 0.
+
+  A       (input/output) DOUBLE PRECISION array, dimension (LDA,N)
+          On entry, the leading L-by-N part of this array must
+          contain the L-by-N state matrix A in the partitioned form
+
+                   ( A1 X1 )
+               A = (       ) ,
+                   ( 0  X2 )
+
+          where A1 is N1-by-N1.
+          On exit, the leading L-by-N part of this array contains
+          the transformed state matrix,
+
+                                       ( Ac  *   * )
+                    Qc'*A*diag(Zc,I) = ( 0  Anc  * ) ,
+                                       ( 0   0   * )
+
+          where Ac is NR-by-NR and Anc is (N1-NR)-by-(N1-NR).
+          The matrix ( Bc Ac ) is in the controllability staircase
+          form (1).
+
+  LDA     INTEGER
+          The leading dimension of the array A.  LDA &gt;= MAX(1,L).
+
+  E       (input/output) DOUBLE PRECISION array, dimension (LDE,N)
+          On entry, the leading L-by-N part of this array must
+          contain the L-by-N descriptor matrix E in the partitioned
+          form
+                   ( E1 Y1 )
+               E = (       ) ,
+                   ( 0  Y2 )
+
+          where E1 is an N1-by-N1 matrix with LBE nonzero
+          sub-diagonals.
+          On exit, the leading L-by-N part of this array contains
+          the transformed descriptor matrix
+
+                                       ( Ec  *   * )
+                    Qc'*E*diag(Zc,I) = ( 0  Enc  * ) ,
+                                       ( 0   0   * )
+
+          where Ec is NR-by-NR and Enc is (N1-NR)-by-(N1-NR).
+          Both Ec and Enc are upper triangular and Enc is
+          nonsingular.
+
+  LDE     INTEGER
+          The leading dimension of the array E.  LDE &gt;= MAX(1,L).
+
+  B       (input/output) DOUBLE PRECISION array, dimension (LDB,M)
+          with M = M1 + M2.
+          On entry, the leading L-by-M part of this array must
+          contain the L-by-M input matrix B in the partitioned form
+
+                   ( Bi )
+               B = (    ) ,
+                   ( 0  )
+
+          where Bi is N1-by-M.
+          On exit, the leading L-by-M part of this array contains
+          the transformed input matrix
+
+                            ( Bc )
+                    Qc'*B = (    ) ,
+                            ( 0  )
+
+          where Bc is NR-by-M.
+          The matrix ( Bc Ac ) is in the controllability staircase
+          form (1).
+
+  LDB     INTEGER
+          The leading dimension of the array B.  LDB &gt;= MAX(1,L).
+
+  C       (input/output) DOUBLE PRECISION array, dimension (LDC,N)
+          On entry, the leading P-by-N part of this array must
+          contain the state/output matrix C.
+          On exit, the leading P-by-N part of this array contains
+          the transformed matrix C*Zc.
+
+  LDC     INTEGER
+          The leading dimension of the array C.  LDC &gt;= MAX(1,P).
+
+  Q       (input/output) DOUBLE PRECISION array, dimension (LDQ,L)
+          If COMPQ = 'N': Q is not referenced.
+          If COMPQ = 'I': on entry, Q need not be set;
+                          on exit, the leading L-by-L part of this
+                          array contains the orthogonal matrix Qc,
+                          where Qc' is the product of the
+                          transformations applied to A, E, and B on
+                          the left.
+          If COMPQ = 'U': on entry, the leading L-by-L part of this
+                          array must contain an orthogonal matrix Q;
+                          on exit, the leading L-by-L part of this
+                          array contains the orthogonal matrix
+                          Q*Qc.
+
+  LDQ     INTEGER
+          The leading dimension of the array Q.
+          LDQ &gt;= 1,        if COMPQ = 'N';
+          LDQ &gt;= MAX(1,L), if COMPQ = 'I' or 'U'.
+
+  Z       (input/output) DOUBLE PRECISION array, dimension (LDZ,N)
+          If COMPZ = 'N': Z is not referenced.
+          If COMPZ = 'I': on entry, Z need not be set;
+                          on exit, the leading N-by-N part of this
+                          array contains the orthogonal matrix Zc,
+                          i.e., the product of the transformations
+                          applied to A, E, and C on the right.
+          If COMPZ = 'U': on entry, the leading N-by-N part of this
+                          array must contain an orthogonal matrix Z;
+                          on exit, the leading N-by-N part of this
+                          array contains the orthogonal matrix
+                          Z*Zc.
+
+  LDZ     INTEGER
+          The leading dimension of the array Z.
+          LDZ &gt;= 1,        if COMPZ = 'N';
+          LDZ &gt;= MAX(1,N), if COMPZ = 'I' or 'U'.
+
+  NR      (output) INTEGER
+          The order of the reduced matrices Ac and Ec, and the
+          number of rows of the reduced matrix Bc; also the order of
+          the controllable part of the pair (B, A-lambda*E).
+
+  NRBLCK  (output) INTEGER
+          The number p, of full row rank blocks Ai,i-2 in the
+          staircase form of the pencil (Bc1 Bc2 Ac-lambda*Ec).
+
+  RTAU    (output) INTEGER array, dimension (2*N1)
+          The leading NRBLCK elements of this array contain the
+          orders of the diagonal blocks of Ac. NRBLCK is always
+          an even number, and the NRBLCK/2 odd and even components
+          of RTAU have decreasing values, respectively.
+          Note that some elements of RTAU can be zero.
+
+</PRE>
+<B>Tolerances</B>
+<PRE>
+  TOL     DOUBLE PRECISION
+          The tolerance to be used in rank determinations when
+          transforming (A-lambda*E, B). If the user sets TOL &gt; 0,
+          then the given value of TOL is used as a lower bound for
+          reciprocal condition numbers in rank determinations; a
+          (sub)matrix whose estimated condition number is less than
+          1/TOL is considered to be of full rank.  If the user sets
+          TOL &lt;= 0, then an implicitly computed, default tolerance,
+          defined by  TOLDEF = L*N*EPS,  is used instead, where
+          EPS is the machine precision (see LAPACK Library routine
+          DLAMCH).  TOL &lt; 1.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  IWORK   INTEGER array, dimension (M)
+
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+          On exit, if INFO = 0, DWORK(1) returns the optimal value
+          of LDWORK.
+
+  LDWORK  INTEGER
+          The length of the array DWORK.
+          LDWORK &gt;= 1, if MIN(N1,M) = 0; otherwise,
+          LDWORK &gt;= MAX(N1+MAX(L,N,M),2*M), if LBE &gt; 0 and N1 &gt; 2;
+          LDWORK &gt;= MAX(1,L,N,2*M),         if LBE = 0 or N1 &lt;= 2.
+          For optimum performance LDWORK should be larger.
+
+          If LDWORK = -1, then a workspace query is assumed;
+          the routine only calculates the optimal size of the
+          DWORK array, returns this value as the first entry of
+          the DWORK array, and no error message related to LDWORK
+          is issued by XERBLA.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  The implemented algorithm [1] represents a specialization of the
+  controllability staircase algorithm of [2] to the special structure
+  of the input matrix B = [B1,B2].
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Varga, A.
+      Reliable algorithms for computing minimal dynamic covers for
+      descriptor systems.
+      Proc. of MTNS'04, Leuven, Belgium, 2004.
+
+  [2] Varga, A.
+      Computation of Irreducible Generalized State-Space
+      Realizations.
+      Kybernetika, vol. 26, pp. 89-106, 1990.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  The algorithm is numerically backward stable and requires
+  0( N*N1**2 )  floating point operations.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

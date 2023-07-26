@@ -1,0 +1,249 @@
+<HTML>
+<HEAD><TITLE>SB03PD - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="SB03PD">SB03PD</A></H2>
+<H3>
+Solution of discrete-time Lyapunov equations and separation estimation
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To solve the real discrete Lyapunov matrix equation
+
+         op(A)'*X*op(A) - X = scale*C
+
+  and/or estimate the quantity, called separation,
+
+      sepd(op(A),op(A)') = min norm(op(A)'*X*op(A) - X)/norm(X)
+
+  where op(A) = A or A' (A**T) and C is symmetric (C = C').
+  (A' denotes the transpose of the matrix A.) A is N-by-N, the right
+  hand side C and the solution X are N-by-N, and scale is an output
+  scale factor, set less than or equal to 1 to avoid overflow in X.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE SB03PD( JOB, FACT, TRANA, N, A, LDA, U, LDU, C, LDC,
+     $                   SCALE, SEPD, FERR, WR, WI, IWORK, DWORK,
+     $                   LDWORK, INFO )
+C     .. Scalar Arguments ..
+      CHARACTER          FACT, JOB, TRANA
+      INTEGER            INFO, LDA, LDC, LDU, LDWORK, N
+      DOUBLE PRECISION   FERR, SCALE, SEPD
+C     .. Array Arguments ..
+      INTEGER            IWORK( * )
+      DOUBLE PRECISION   A( LDA, * ), C( LDC, * ), DWORK( * ),
+     $                   U( LDU, * ), WI( * ), WR( * )
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  JOB     CHARACTER*1
+          Specifies the computation to be performed, as follows:
+          = 'X':  Compute the solution only;
+          = 'S':  Compute the separation only;
+          = 'B':  Compute both the solution and the separation.
+
+  FACT    CHARACTER*1
+          Specifies whether or not the real Schur factorization
+          of the matrix A is supplied on entry, as follows:
+          = 'F':  On entry, A and U contain the factors from the
+                  real Schur factorization of the matrix A;
+          = 'N':  The Schur factorization of A will be computed
+                  and the factors will be stored in A and U.
+
+  TRANA   CHARACTER*1
+          Specifies the form of op(A) to be used, as follows:
+          = 'N':  op(A) = A    (No transpose);
+          = 'T':  op(A) = A**T (Transpose);
+          = 'C':  op(A) = A**T (Conjugate transpose = Transpose).
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The order of the matrices A, X, and C.  N &gt;= 0.
+
+  A       (input/output) DOUBLE PRECISION array, dimension (LDA,N)
+          On entry, the leading N-by-N part of this array must
+          contain the matrix A. If FACT = 'F', then A contains
+          an upper quasi-triangular matrix in Schur canonical form.
+          On exit, if INFO = 0 or INFO = N+1, the leading N-by-N
+          part of this array contains the upper quasi-triangular
+          matrix in Schur canonical form from the Shur factorization
+          of A. The contents of array A is not modified if
+          FACT = 'F'.
+
+  LDA     INTEGER
+          The leading dimension of array A.  LDA &gt;= MAX(1,N).
+
+  U       (input or output) DOUBLE PRECISION array, dimension
+          (LDU,N)
+          If FACT = 'F', then U is an input argument and on entry
+          it must contain the orthogonal matrix U from the real
+          Schur factorization of A.
+          If FACT = 'N', then U is an output argument and on exit,
+          if INFO = 0 or INFO = N+1, it contains the orthogonal
+          N-by-N matrix from the real Schur factorization of A.
+
+  LDU     INTEGER
+          The leading dimension of array U.  LDU &gt;= MAX(1,N).
+
+  C       (input/output) DOUBLE PRECISION array, dimension (LDC,N)
+          On entry with JOB = 'X' or 'B', the leading N-by-N part of
+          this array must contain the symmetric matrix C.
+          On exit with JOB = 'X' or 'B', if INFO = 0 or INFO = N+1,
+          the leading N-by-N part of C has been overwritten by the
+          symmetric solution matrix X.
+          If JOB = 'S', C is not referenced.
+
+  LDC     INTEGER
+          The leading dimension of array C.
+          LDC &gt;= 1,        if JOB = 'S';
+          LDC &gt;= MAX(1,N), otherwise.
+
+  SCALE   (output) DOUBLE PRECISION
+          The scale factor, scale, set less than or equal to 1 to
+          prevent the solution overflowing.
+
+  SEPD    (output) DOUBLE PRECISION
+          If JOB = 'S' or JOB = 'B', and INFO = 0 or INFO = N+1,
+          SEPD contains the estimate in the 1-norm of
+          sepd(op(A),op(A)').
+          If JOB = 'X' or N = 0, SEPD is not referenced.
+
+  FERR    (output) DOUBLE PRECISION
+          If JOB = 'B', and INFO = 0 or INFO = N+1, FERR contains
+          an estimated forward error bound for the solution X.
+          If XTRUE is the true solution, FERR bounds the relative
+          error in the computed solution, measured in the Frobenius
+          norm:  norm(X - XTRUE)/norm(XTRUE).
+          If JOB = 'X' or JOB = 'S', FERR is not referenced.
+
+  WR      (output) DOUBLE PRECISION array, dimension (N)
+  WI      (output) DOUBLE PRECISION array, dimension (N)
+          If FACT = 'N', and INFO = 0 or INFO = N+1, WR and WI
+          contain the real and imaginary parts, respectively, of the
+          eigenvalues of A.
+          If FACT = 'F', WR and WI are not referenced.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  IWORK   INTEGER array, dimension (N*N)
+          This array is not referenced if JOB = 'X'.
+
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+          On exit, if INFO = 0 or INFO = N+1, DWORK(1) returns the
+          optimal value of LDWORK.
+
+  LDWORK  INTEGER
+          The length of the array DWORK.  LDWORK &gt;= 1 and
+          If JOB = 'X' then
+             If FACT = 'F', LDWORK &gt;= MAX(N*N,2*N);
+             If FACT = 'N', LDWORK &gt;= MAX(N*N,3*N).
+          If JOB = 'S' or JOB = 'B' then
+             LDWORK &gt;= 2*N*N + 2*N.
+          For optimum performance LDWORK should be larger.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value;
+          &gt; 0:  if INFO = i, the QR algorithm failed to compute all
+                the eigenvalues (see LAPACK Library routine DGEES);
+                elements i+1:n of WR and WI contain eigenvalues
+                which have converged, and A contains the partially
+                converged Schur form;
+          = N+1:  if matrix A has almost reciprocal eigenvalues;
+                perturbed values were used to solve the equation
+                (but the matrix A is unchanged).
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  After reducing matrix A to real Schur canonical form (if needed),
+  a discrete-time version of the Bartels-Stewart algorithm is used.
+  A set of equivalent linear algebraic systems of equations of order
+  at most four are formed and solved using Gaussian elimination with
+  complete pivoting.
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Barraud, A.Y.                   T
+      A numerical algorithm to solve A XA - X = Q.
+      IEEE Trans. Auto. Contr., AC-22, pp. 883-885, 1977.
+
+  [2] Bartels, R.H. and Stewart, G.W.  T
+      Solution of the matrix equation A X + XB = C.
+      Comm. A.C.M., 15, pp. 820-826, 1972.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>                            3
+  The algorithm requires 0(N ) operations.
+
+</PRE>
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  SEPD is defined as
+
+         sepd( op(A), op(A)' ) = sigma_min( T )
+
+  where sigma_min(T) is the smallest singular value of the
+  N*N-by-N*N matrix
+
+     T = kprod( op(A)', op(A)' ) - I(N**2).
+
+  I(N**2) is an N*N-by-N*N identity matrix, and kprod denotes the
+  Kronecker product. The program estimates sigma_min(T) by the
+  reciprocal of an estimate of the 1-norm of inverse(T). The true
+  reciprocal 1-norm of inverse(T) cannot differ from sigma_min(T) by
+  more than a factor of N.
+
+  When SEPD is small, small changes in A, C can cause large changes
+  in the solution of the equation. An approximate bound on the
+  maximum relative error in the computed solution is
+
+                         EPS * norm(A)**2 / SEPD
+
+  where EPS is the machine precision.
+
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<p>
+<A HREF=..\libindex.html><B>Return to index</B></A></BODY>
+</HTML>

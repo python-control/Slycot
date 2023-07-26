@@ -1,0 +1,115 @@
+<HTML>
+<HEAD><TITLE>MA02GD - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MA02GD">MA02GD</A></H2>
+<H3>
+Column interchanges in a matrix
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To perform a series of column interchanges on the matrix A.
+  One column interchange is initiated for each of columns K1 through
+  K2 of A. This is useful for solving linear systems X*A = B, when
+  the matrix A has already been factored by LAPACK Library routine
+  DGETRF.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MA02GD( N, A, LDA, K1, K2, IPIV, INCX )
+C     .. Scalar Arguments ..
+      INTEGER            INCX, K1, K2, LDA, N
+C     .. Array Arguments ..
+      INTEGER            IPIV( * )
+      DOUBLE PRECISION   A( LDA, * )
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The number of rows of the matrix A.  N &gt;= 0.
+
+  A       (input/output) DOUBLE PRECISION array, dimension (LDA,*)
+          On entry, the leading N-by-M part of this array must
+          contain the matrix A to which the column interchanges will
+          be applied, where M is the largest element of IPIV(K), for
+          K = K1, ..., K2.
+          On exit, the leading N-by-M part of this array contains
+          the permuted matrix.
+
+  LDA     INTEGER
+          The leading dimension of the array A.  LDA &gt;= MAX(1,N).
+
+  K1      (input) INTEGER
+          The first element of IPIV for which a column interchange
+          will be done.
+
+  K2      (input) INTEGER
+          The last element of IPIV for which a column interchange
+          will be done.
+
+  IPIV    (input) INTEGER array, dimension (K1+(K2-K1)*abs(INCX))
+          The vector of interchanging (pivot) indices.  Only the
+          elements in positions K1 through K2 of IPIV are accessed.
+          IPIV(K) = L implies columns K and L are to be
+          interchanged.
+
+  INCX    (input) INTEGER
+          The increment between successive values of IPIV.
+          If INCX is negative, the interchanges are applied in
+          reverse order.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  The columns IPIV(K) and K are swapped for K = K1, ..., K2, for
+  INCX = 1 (and similarly, for INCX &lt;&gt; 1).
+
+</PRE>
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  This routine is the column-oriented counterpart of the LAPACK
+  Library routine DLASWP. The LAPACK Library routine DLAPMT cannot
+  be used in this context. To solve the system X*A = B, where A and
+  B are N-by-N and M-by-N, respectively, the following statements
+  can be used:
+
+      CALL DGETRF( N, N, A, LDA, IPIV, INFO )
+      CALL DTRSM( 'R', 'U', 'N', 'N', M, N, ONE, A, LDA, B, LDB )
+      CALL DTRSM( 'R', 'L', 'N', 'U', M, N, ONE, A, LDA, B, LDB )
+      CALL MA02GD( M, B, LDB, 1, N, IPIV, -1 )
+
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

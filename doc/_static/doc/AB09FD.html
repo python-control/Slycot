@@ -1,0 +1,488 @@
+<HTML>
+<HEAD><TITLE>AB09FD - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="AB09FD">AB09FD</A></H2>
+<H3>
+Balance & Truncate model reduction for unstable systems in conjunction with coprime factorization
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To compute a reduced order model (Ar,Br,Cr) for an original
+  state-space representation (A,B,C) by using either the square-root
+  or the balancing-free square-root Balance & Truncate (B & T)
+  model reduction method in conjunction with stable coprime
+  factorization techniques.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE AB09FD( DICO, JOBCF, FACT, JOBMR, EQUIL, ORDSEL, N, M,
+     $                   P, NR, ALPHA, A, LDA, B, LDB, C, LDC, NQ, HSV,
+     $                   TOL1, TOL2, IWORK, DWORK, LDWORK, IWARN, INFO )
+C     .. Scalar Arguments ..
+      CHARACTER         DICO, EQUIL, FACT, JOBCF, JOBMR, ORDSEL
+      INTEGER           INFO, IWARN, LDA, LDB, LDC, LDWORK, M, N, NQ,
+     $                  NR, P
+      DOUBLE PRECISION  ALPHA, TOL1, TOL2
+C     .. Array Arguments ..
+      INTEGER           IWORK(*)
+      DOUBLE PRECISION  A(LDA,*), B(LDB,*), C(LDC,*), DWORK(*), HSV(*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  DICO    CHARACTER*1
+          Specifies the type of the original system as follows:
+          = 'C':  continuous-time system;
+          = 'D':  discrete-time system.
+
+  JOBCF   CHARACTER*1
+          Specifies whether left or right coprime factorization is
+          to be used as follows:
+          = 'L':  use left coprime factorization;
+          = 'R':  use right coprime factorization.
+
+  FACT    CHARACTER*1
+          Specifies the type of coprime factorization to be computed
+          as follows:
+          = 'S':  compute a coprime factorization with prescribed
+                  stability degree ALPHA;
+          = 'I':  compute a coprime factorization with inner
+                  denominator.
+
+  JOBMR   CHARACTER*1
+          Specifies the model reduction approach to be used
+          as follows:
+          = 'B':  use the square-root Balance & Truncate method;
+          = 'N':  use the balancing-free square-root
+                  Balance & Truncate method.
+
+  EQUIL   CHARACTER*1
+          Specifies whether the user wishes to preliminarily
+          equilibrate the triplet (A,B,C) as follows:
+          = 'S':  perform equilibration (scaling);
+          = 'N':  do not perform equilibration.
+
+  ORDSEL  CHARACTER*1
+          Specifies the order selection method as follows:
+          = 'F':  the resulting order NR is fixed;
+          = 'A':  the resulting order NR is automatically determined
+                  on basis of the given tolerance TOL1.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The order of the original state-space representation, i.e.
+          the order of the matrix A.  N &gt;= 0.
+
+  M       (input) INTEGER
+          The number of system inputs.  M &gt;= 0.
+
+  P       (input) INTEGER
+          The number of system outputs.  P &gt;= 0.
+
+  NR      (input/output) INTEGER
+          On entry with ORDSEL = 'F', NR is the desired order of the
+          resulting reduced order system.  0 &lt;= NR &lt;= N.
+          On exit, if INFO = 0, NR is the order of the resulting
+          reduced order model. NR is set as follows:
+          if ORDSEL = 'F', NR is equal to MIN(NR,NQ,NMIN), where NR
+          is the desired order on entry, NQ is the order of the
+          computed coprime factorization of the given system, and
+          NMIN is the order of a minimal realization of the extended
+          system (see METHOD); NMIN is determined as the number of
+          Hankel singular values greater than NQ*EPS*HNORM(Ge),
+          where EPS is the machine precision (see LAPACK Library
+          Routine DLAMCH) and HNORM(Ge) is the Hankel norm of the
+          extended system (computed in HSV(1));
+          if ORDSEL = 'A', NR is equal to the number of Hankel
+          singular values greater than MAX(TOL1,NQ*EPS*HNORM(Ge)).
+
+  ALPHA   (input) DOUBLE PRECISION
+          If FACT = 'S', the desired stability degree for the
+          factors of the coprime factorization (see SLICOT Library
+          routines SB08ED/SB08FD).
+          ALPHA &lt; 0 for a continuous-time system (DICO = 'C'), and
+          0 &lt;= ALPHA &lt; 1 for a discrete-time system (DICO = 'D').
+          If FACT = 'I', ALPHA is not used.
+
+  A       (input/output) DOUBLE PRECISION array, dimension (LDA,N)
+          On entry, the leading N-by-N part of this array must
+          contain the original state dynamics matrix A.
+          On exit, if INFO = 0, the leading NR-by-NR part of this
+          array contains the state dynamics matrix Ar of the reduced
+          order system.
+
+  LDA     INTEGER
+          The leading dimension of array A.  LDA &gt;= MAX(1,N).
+
+  B       (input/output) DOUBLE PRECISION array, dimension (LDB,M)
+          On entry, the leading N-by-M part of this array must
+          contain the original input/state matrix B.
+          On exit, if INFO = 0, the leading NR-by-M part of this
+          array contains the input/state matrix Br of the reduced
+          order system.
+
+  LDB     INTEGER
+          The leading dimension of array B.  LDB &gt;= MAX(1,N).
+
+  C       (input/output) DOUBLE PRECISION array, dimension (LDC,N)
+          On entry, the leading P-by-N part of this array must
+          contain the original state/output matrix C.
+          On exit, if INFO = 0, the leading P-by-NR part of this
+          array contains the state/output matrix Cr of the reduced
+          order system.
+
+  LDC     INTEGER
+          The leading dimension of array C.  LDC &gt;= MAX(1,P).
+
+  NQ      (output) INTEGER
+          The order of the computed extended system Ge (see METHOD).
+
+  HSV     (output) DOUBLE PRECISION array, dimension (N)
+          If INFO = 0, it contains the NQ Hankel singular values of
+          the extended system Ge ordered decreasingly (see METHOD).
+
+</PRE>
+<B>Tolerances</B>
+<PRE>
+  TOL1    DOUBLE PRECISION
+          If ORDSEL = 'A', TOL1 contains the tolerance for
+          determining the order of reduced extended system.
+          For model reduction, the recommended value is
+          TOL1 = c*HNORM(Ge), where c is a constant in the
+          interval [0.00001,0.001], and HNORM(Ge) is the
+          Hankel-norm of the extended system (computed in HSV(1)).
+          The value TOL1 = NQ*EPS*HNORM(Ge) is used by default if
+          TOL1 &lt;= 0 on entry, where EPS is the machine precision
+          (see LAPACK Library Routine DLAMCH).
+          If ORDSEL = 'F', the value of TOL1 is ignored.
+
+  TOL2    DOUBLE PRECISION
+          The absolute tolerance level below which the elements of
+          B or C are considered zero (used for controllability or
+          observability tests).
+          If the user sets TOL2 &lt;= 0, then an implicitly computed,
+          default tolerance TOLDEF is used:
+          TOLDEF = N*EPS*NORM(C'), if JOBCF = 'L', or
+          TOLDEF = N*EPS*NORM(B),  if JOBCF = 'R',
+          where EPS is the machine precision, and NORM(.) denotes
+          the 1-norm of a matrix.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  IWORK   INTEGER array, dimension (LIWORK)
+          LIWORK = PM,        if JOBMR = 'B',
+          LIWORK = MAX(N,PM), if JOBMR = 'N', where
+          PM = P, if JOBCF = 'L',
+          PM = M, if JOBCF = 'R'.
+
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+          On exit, if INFO = 0, DWORK(1) returns the optimal value
+          of LDWORK.
+
+  LDWORK  INTEGER
+          The length of the array DWORK.
+          LDWORK &gt;= MAX(1,LW1) if JOBCF = 'L' and FACT = 'S',
+          LDWORK &gt;= MAX(1,LW2) if JOBCF = 'L' and FACT = 'I',
+          LDWORK &gt;= MAX(1,LW3) if JOBCF = 'R' and FACT = 'S',
+          LDWORK &gt;= MAX(1,LW4) if JOBCF = 'R' and FACT = 'I', where
+          LW1 = N*(2*MAX(M,P) + P) + MAX(M,P)*(MAX(M,P) + P) +
+                MAX( N*P+MAX(N*(N+5), 5*P, 4*M), LWR ),
+          LW2 = N*(2*MAX(M,P) + P) + MAX(M,P)*(MAX(M,P) + P) +
+                MAX( N*P+MAX(N*(N+5), P*(P+2), 4*P, 4*M), LWR ),
+          LW3 = (N+M)*(M+P) + MAX( 5*M, 4*P, LWR ),
+          LW4 = (N+M)*(M+P) + MAX( M*(M+2), 4*M, 4*P, LWR ), and
+          LWR = 2*N*N + N*(MAX(N,M+P)+5) + N*(N+1)/2.
+          For optimum performance LDWORK should be larger.
+
+</PRE>
+<B>Warning Indicator</B>
+<PRE>
+  IWARN   INTEGER
+          = 0:  no warning;
+          = 10*K+I:
+            I = 1:  with ORDSEL = 'F', the selected order NR is
+                    greater than the order of the computed coprime
+                    factorization of the given system. In this case,
+                    the resulting NR is set automatically to a value
+                    corresponding to the order of a minimal
+                    realization of the system;
+            K &gt; 0:  K violations of the numerical stability
+                    condition occured when computing the coprime
+                    factorization using pole assignment (see SLICOT
+                    Library routines SB08CD/SB08ED, SB08DD/SB08FD).
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value;
+          = 1:  the reduction of A to a real Schur form failed;
+          = 2:  a failure was detected during the ordering of the
+                real Schur form of A, or in the iterative process
+                for reordering the eigenvalues of Z'*(A + H*C)*Z
+                (or Z'*(A + B*F)*Z) along the diagonal; see SLICOT
+                Library routines SB08CD/SB08ED (or SB08DD/SB08FD);
+          = 3:  the matrix A has an observable or controllable
+                eigenvalue on the imaginary axis if DICO = 'C' or
+                on the unit circle if DICO = 'D';
+          = 4:  the computation of Hankel singular values failed.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  Let be the linear system
+
+       d[x(t)] = Ax(t) + Bu(t)
+       y(t)    = Cx(t)                               (1)
+
+  where d[x(t)] is dx(t)/dt for a continuous-time system and x(t+1)
+  for a discrete-time system, and let G be the corresponding
+  transfer-function matrix. The subroutine AB09FD determines
+  the matrices of a reduced order system
+
+       d[z(t)] = Ar*z(t) + Br*u(t)
+       yr(t)   = Cr*z(t)                             (2)
+
+  with the transfer-function matrix Gr, by using the
+  balanced-truncation model reduction method in conjunction with
+  a left coprime factorization (LCF) or a right coprime
+  factorization (RCF) technique:
+
+  1. Compute the appropriate stable coprime factorization of G:
+                  -1                   -1
+             G = R  *Q (LCF) or G = Q*R   (RCF).
+
+  2. Perform the model reduction algorithm on the extended system
+                                        ( Q )
+             Ge = ( Q R ) (LCF) or Ge = ( R )  (RCF)
+
+     to obtain a reduced extended system with reduced factors
+                                            ( Qr )
+             Ger = ( Qr Rr ) (LCF) or Ger = ( Rr )  (RCF).
+
+  3. Recover the reduced system from the reduced factors as
+                    -1                       -1
+             Gr = Rr  *Qr (LCF) or Gr = Qr*Rr   (RCF).
+
+  The approximation error for the extended system satisfies
+
+     HSV(NR) &lt;= INFNORM(Ge-Ger) &lt;= 2*[HSV(NR+1) + ... + HSV(NQ)],
+
+  where INFNORM(G) is the infinity-norm of G.
+
+  If JOBMR = 'B', the square-root Balance & Truncate method of [1]
+  is used for model reduction.
+  If JOBMR = 'N', the balancing-free square-root version of the
+  Balance & Truncate method [2] is used for model reduction.
+
+  If FACT = 'S', the stable coprime factorization with prescribed
+  stability degree ALPHA is computed by using the algorithm of [3].
+  If FACT = 'I', the stable coprime factorization with inner
+  denominator is computed by using the algorithm of [4].
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Tombs M.S. and Postlethwaite I.
+      Truncated balanced realization of stable, non-minimal
+      state-space systems.
+      Int. J. Control, Vol. 46, pp. 1319-1330, 1987.
+
+  [2] Varga A.
+      Efficient minimal realization procedure based on balancing.
+      Proc. of IMACS/IFAC Symp. MCTS, Lille, France, May 1991,
+      A. El Moudui, P. Borne, S. G. Tzafestas (Eds.), Vol. 2,
+      pp. 42-46, 1991.
+
+  [3] Varga A.
+      Coprime factors model reduction method based on square-root
+      balancing-free techniques.
+      System Analysis, Modelling and Simulation, Vol. 11,
+      pp. 303-311, 1993.
+
+  [4] Varga A.
+      A Schur method for computing coprime factorizations with
+      inner denominators and applications in model reduction.
+      Proc. ACC'93, San Francisco, CA, pp. 2130-2131, 1993.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  The implemented methods rely on accuracy enhancing square-root or
+  balancing-free square-root techniques.
+                                      3
+  The algorithms require less than 30N  floating point operations.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+*     AB09FD EXAMPLE PROGRAM TEXT
+*
+*     .. Parameters ..
+      INTEGER          NIN, NOUT
+      PARAMETER        ( NIN = 5, NOUT = 6 )
+      INTEGER          NMAX, MMAX, PMAX
+      PARAMETER        ( NMAX = 20, MMAX = 20, PMAX = 20 )
+      INTEGER          LDA, LDB, LDC
+      PARAMETER        ( LDA = NMAX, LDB = NMAX, LDC = PMAX )
+      INTEGER          LIWORK
+      PARAMETER        ( LIWORK = MAX( NMAX, MMAX, PMAX ) )
+*     The formula below uses that NMAX = MMAX = PMAX.
+      INTEGER          LDWORK
+      PARAMETER        ( LDWORK = 10*NMAX*NMAX + 5*NMAX )
+*     .. Local Scalars ..
+      DOUBLE PRECISION ALPHA, TOL1, TOL2
+      INTEGER          I, INFO, IWARN, J, M, N, NQ, NR, P
+      CHARACTER*1      DICO, EQUIL, FACT, JOBCF, JOBMR, ORDSEL
+*     .. Local Arrays ..
+      DOUBLE PRECISION A(LDA,NMAX), B(LDB,MMAX), C(LDC,NMAX),
+     $                 DWORK(LDWORK), HSV(NMAX)
+      INTEGER          IWORK(LIWORK)
+*     .. External Subroutines ..
+      EXTERNAL         AB09FD
+*     .. Intrinsic Functions ..
+      INTRINSIC        MAX
+*     .. Executable Statements ..
+*
+      WRITE ( NOUT, FMT = 99999 )
+*     Skip the heading in the data file and read the data.
+      READ ( NIN, FMT = '()' )
+      READ ( NIN, FMT = * ) N, M, P, NR, ALPHA, TOL1, TOL2,
+     $                      DICO, JOBCF, FACT, JOBMR, EQUIL, ORDSEL
+      IF ( N.LT.0 .OR. N.GT.NMAX ) THEN
+         WRITE ( NOUT, FMT = 99990 ) N
+      ELSE
+         READ ( NIN, FMT = * ) ( ( A(I,J), J = 1, N ), I = 1, N )
+         IF ( M.LT.0 .OR. M.GT.MMAX ) THEN
+            WRITE ( NOUT, FMT = 99989 ) M
+         ELSE
+            READ ( NIN, FMT = * ) ( ( B(I,J), J = 1,M ), I = 1, N )
+            IF ( P.LT.0 .OR. P.GT.PMAX ) THEN
+               WRITE ( NOUT, FMT = 99988 ) P
+            ELSE
+               READ ( NIN, FMT = * ) ( ( C(I,J), J = 1, N ), I = 1, P )
+*              Find a reduced ssr for (A,B,C).
+               CALL AB09FD( DICO, JOBCF, FACT, JOBMR, EQUIL, ORDSEL,
+     $                      N, M, P, NR, ALPHA, A, LDA, B, LDB, C, LDC,
+     $                      NQ, HSV, TOL1, TOL2, IWORK, DWORK, LDWORK,
+     $                      IWARN, INFO )
+*
+               IF ( INFO.NE.0 ) THEN
+                  WRITE ( NOUT, FMT = 99998 ) INFO
+               ELSE
+                  WRITE ( NOUT, FMT = 99997 ) NR
+                  WRITE ( NOUT, FMT = 99987 )
+                  WRITE ( NOUT, FMT = 99995 ) ( HSV(J), J = 1, NQ )
+                  IF( NR.GT.0 ) WRITE ( NOUT, FMT = 99996 )
+                  DO 20 I = 1, NR
+                     WRITE ( NOUT, FMT = 99995 ) ( A(I,J), J = 1, NR )
+   20             CONTINUE
+                  IF( NR.GT.0 ) WRITE ( NOUT, FMT = 99993 )
+                  DO 40 I = 1, NR
+                     WRITE ( NOUT, FMT = 99995 ) ( B(I,J), J = 1, M )
+   40             CONTINUE
+                  IF( NR.GT.0 ) WRITE ( NOUT, FMT = 99992 )
+                  DO 60 I = 1, P
+                     WRITE ( NOUT, FMT = 99995 ) ( C(I,J), J = 1, NR )
+   60             CONTINUE
+               END IF
+            END IF
+         END IF
+      END IF
+      STOP
+*
+99999 FORMAT (' AB09FD EXAMPLE PROGRAM RESULTS',/1X)
+99998 FORMAT (' INFO on exit from AB09FD = ',I2)
+99997 FORMAT (' The order of reduced model = ',I2)
+99996 FORMAT (/' The reduced state dynamics matrix Ar is ')
+99995 FORMAT (20(1X,F8.4))
+99993 FORMAT (/' The reduced input/state matrix Br is ')
+99992 FORMAT (/' The reduced state/output matrix Cr is ')
+99990 FORMAT (/' N is out of range.',/' N = ',I5)
+99989 FORMAT (/' M is out of range.',/' M = ',I5)
+99988 FORMAT (/' P is out of range.',/' P = ',I5)
+99987 FORMAT (/' The Hankel singular values of coprime factors are')
+      END
+</PRE>
+<B>Program Data</B>
+<PRE>
+ AB08FD EXAMPLE PROGRAM DATA (Continuous system)
+  7  2  3  0 -1.e-1  .1 1.E-10 C L I B S A
+ -0.04165  0.0000  4.9200   0.4920  0.0000   0.0000  0.0000
+ -5.2100  -12.500  0.0000   0.0000  0.0000   0.0000  0.0000
+  0.0000   3.3300 -3.3300   0.0000  0.0000   0.0000  0.0000
+  0.5450   0.0000  0.0000   0.0000  0.0545   0.0000  0.0000
+  0.0000   0.0000  0.0000  -0.49200 0.004165 0.0000  4.9200
+  0.0000   0.0000  0.0000   0.0000  0.5210  -12.500  0.0000
+  0.0000   0.0000  0.0000   0.0000  0.0000   3.3300 -3.3300
+  0.0000   0.0000
+  12.500   0.0000
+  0.0000   0.0000
+  0.0000   0.0000
+  0.0000   0.0000
+  0.0000   12.500
+  0.0000   0.0000
+  1.0000   0.0000  0.0000   0.0000  0.0000  0.0000  0.0000
+  0.0000   0.0000  0.0000   1.0000  0.0000  0.0000  0.0000
+  0.0000   0.0000  0.0000   0.0000  1.0000  0.0000  0.0000
+</PRE>
+<B>Program Results</B>
+<PRE>
+ AB09FD EXAMPLE PROGRAM RESULTS
+
+ The order of reduced model =  5
+
+ The Hankel singular values of coprime factors are
+  13.6047   9.4106   1.7684   0.7456   0.6891   0.0241   0.0230
+
+ The reduced state dynamics matrix Ar is 
+   0.0520  -0.1491   0.0037  -0.0232   0.0168
+   0.2340   0.2618   0.0010  -0.0153  -0.0318
+   0.1197   0.0075  -0.5752   2.0119  -0.7779
+   0.1571  -0.2019  -2.1282  -2.1192  -0.3618
+   0.0368  -0.4810   0.8395  -0.2790  -2.8796
+
+ The reduced input/state matrix Br is 
+   1.0454   0.5860
+  -0.0489  -1.9194
+  -1.4282   0.0541
+  -1.6144  -0.7533
+   0.5916  -1.9242
+
+ The reduced state/output matrix Cr is 
+   0.4368   0.1122  -1.2917   1.5888  -0.6354
+   1.1170   0.3963   0.6115   0.1249  -0.0859
+   0.0756  -1.8904   0.0144   0.7964   1.9085
+</PRE>
+
+<HR>
+<p>
+<A HREF=..\libindex.html><B>Return to index</B></A></BODY>
+</HTML>

@@ -1,0 +1,465 @@
+<HTML>
+<HEAD><TITLE>TG01JD - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="TG01JD">TG01JD</A></H2>
+<H3>
+Irreducible descriptor representation
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To find a reduced (controllable, observable, or irreducible)
+  descriptor representation (Ar-lambda*Er,Br,Cr) for an original
+  descriptor representation (A-lambda*E,B,C).
+  The pencil Ar-lambda*Er is in an upper block Hessenberg form, with
+  either Ar or Er upper triangular.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE TG01JD( JOB, SYSTYP, EQUIL, N, M, P, A, LDA, E, LDE,
+     $                   B, LDB, C, LDC, NR, INFRED, TOL, IWORK, DWORK,
+     $                   LDWORK, INFO )
+C     .. Scalar Arguments ..
+      CHARACTER         EQUIL, JOB, SYSTYP
+      INTEGER           INFO, LDA, LDB, LDC, LDE, LDWORK, M, N, NR, P
+      DOUBLE PRECISION  TOL
+C     .. Array Arguments ..
+      INTEGER           INFRED(*), IWORK(*)
+      DOUBLE PRECISION  A(LDA,*), B(LDB,*), C(LDC,*), DWORK(*), E(LDE,*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  JOB     CHARACTER*1
+          Indicates whether the user wishes to remove the
+          uncontrollable and/or unobservable parts as follows:
+          = 'I':  Remove both the uncontrollable and unobservable
+                  parts to get an irreducible descriptor
+                  representation;
+          = 'C':  Remove the uncontrollable part only to get a
+                  controllable descriptor representation;
+          = 'O':  Remove the unobservable part only to get an
+                  observable descriptor representation.
+
+  SYSTYP  CHARACTER*1
+          Indicates the type of descriptor system algorithm
+          to be applied according to the assumed
+          transfer-function matrix as follows:
+          = 'R':  Rational transfer-function matrix;
+          = 'S':  Proper (standard) transfer-function matrix;
+          = 'P':  Polynomial transfer-function matrix.
+
+  EQUIL   CHARACTER*1
+          Specifies whether the user wishes to preliminarily scale
+          the system (A-lambda*E,B,C) as follows:
+          = 'S':  Perform scaling;
+          = 'N':  Do not perform scaling.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The dimension of the descriptor state vector; also the
+          order of square matrices A and E, the number of rows of
+          matrix B, and the number of columns of matrix C.  N &gt;= 0.
+
+  M       (input) INTEGER
+          The dimension of descriptor system input vector; also the
+          number of columns of matrix B.  M &gt;= 0.
+
+  P       (input) INTEGER
+          The dimension of descriptor system output vector; also the
+          number of rows of matrix C.  P &gt;= 0.
+
+  A       (input/output) DOUBLE PRECISION array, dimension (LDA,N)
+          On entry, the leading N-by-N part of this array must
+          contain the original state matrix A.
+          On exit, the leading NR-by-NR part of this array contains
+          the reduced order state matrix Ar of an irreducible,
+          controllable, or observable realization for the original
+          system, depending on the value of JOB, JOB = 'I',
+          JOB = 'C', or JOB = 'O', respectively.
+          The matrix Ar is upper triangular if SYSTYP = 'R' or 'P'.
+          If SYSTYP = 'S' and JOB = 'C', the matrix [Br Ar]
+          is in a controllable staircase form (see TG01HD).
+          If SYSTYP = 'S' and JOB = 'I' or 'O', the matrix ( Ar )
+                                                           ( Cr )
+          is in an observable staircase form (see TG01HD).
+          The block structure of staircase forms is contained
+          in the leading INFRED(7) elements of IWORK.
+
+  LDA     INTEGER
+          The leading dimension of array A.  LDA &gt;= MAX(1,N).
+
+  E       (input/output) DOUBLE PRECISION array, dimension (LDE,N)
+          On entry, the leading N-by-N part of this array must
+          contain the original descriptor matrix E.
+          On exit, the leading NR-by-NR part of this array contains
+          the reduced order descriptor matrix Er of an irreducible,
+          controllable, or observable realization for the original
+          system, depending on the value of JOB, JOB = 'I',
+          JOB = 'C', or JOB = 'O', respectively.
+          The resulting Er has INFRED(6) nonzero sub-diagonals.
+          If at least for one k = 1,...,4, INFRED(k) &gt;= 0, then the
+          resulting Er is structured being either upper triangular
+          or block Hessenberg, in accordance to the last
+          performed order reduction phase (see METHOD).
+          The block structure of staircase forms is contained
+          in the leading INFRED(7) elements of IWORK.
+
+  LDE     INTEGER
+          The leading dimension of array E.  LDE &gt;= MAX(1,N).
+
+  B       (input/output) DOUBLE PRECISION array, dimension (LDB,M),
+          if JOB = 'C', or (LDB,MAX(M,P)), otherwise.
+          On entry, the leading N-by-M part of this array must
+          contain the original input matrix B; if JOB = 'I',
+          or JOB = 'O', the remainder of the leading N-by-MAX(M,P)
+          part is used as internal workspace.
+          On exit, the leading NR-by-M part of this array contains
+          the reduced input matrix Br of an irreducible,
+          controllable, or observable realization for the original
+          system, depending on the value of JOB, JOB = 'I',
+          JOB = 'C', or JOB = 'O', respectively.
+          If JOB = 'C', only the first IWORK(1) rows of B are
+          nonzero.
+
+  LDB     INTEGER
+          The leading dimension of array B.  LDB &gt;= MAX(1,N).
+
+  C       (input/output) DOUBLE PRECISION array, dimension (LDC,N)
+          On entry, the leading P-by-N part of this array must
+          contain the original output matrix C; if JOB = 'I',
+          or JOB = 'O', the remainder of the leading MAX(M,P)-by-N
+          part is used as internal workspace.
+          On exit, the leading P-by-NR part of this array contains
+          the transformed state/output matrix Cr of an irreducible,
+          controllable, or observable realization for the original
+          system, depending on the value of JOB, JOB = 'I',
+          JOB = 'C', or JOB = 'O', respectively.
+          If JOB = 'I', or JOB = 'O', only the last IWORK(1) columns
+          (in the first NR columns) of C are nonzero.
+
+  LDC     INTEGER
+          The leading dimension of array C.
+          LDC &gt;= MAX(1,M,P) if N &gt; 0.
+          LDC &gt;= 1          if N = 0.
+
+  NR      (output) INTEGER
+          The order of the reduced descriptor representation
+          (Ar-lambda*Er,Br,Cr) of an irreducible, controllable,
+          or observable realization for the original system,
+          depending on JOB = 'I', JOB = 'C', or JOB = 'O',
+          respectively.
+
+  INFRED  (output) INTEGER array, dimension 7
+          This array contains information on performed reduction
+          and on structure of resulting system matrices as follows:
+          INFRED(k) &gt;= 0 (k = 1, 2, 3, or 4) if Phase k of reduction
+                         (see METHOD) has been performed. In this
+                         case, INFRED(k) is the achieved order
+                         reduction in Phase k.
+          INFRED(k) &lt; 0  (k = 1, 2, 3, or 4) if Phase k was not
+                         performed.
+          INFRED(5)  -   the number of nonzero sub-diagonals of A.
+          INFRED(6)  -   the number of nonzero sub-diagonals of E.
+          INFRED(7)  -   the number of blocks in the resulting
+                         staircase form at last performed reduction
+                         phase. The block dimensions are contained
+                         in the first INFRED(7) elements of IWORK.
+
+</PRE>
+<B>Tolerances</B>
+<PRE>
+  TOL     DOUBLE PRECISION
+          The tolerance to be used in rank determinations when
+          transforming (A-lambda*E,B,C). If the user sets TOL &gt; 0,
+          then the given value of TOL is used as a lower bound for
+          reciprocal condition numbers in rank determinations; a
+          (sub)matrix whose estimated condition number is less than
+          1/TOL is considered to be of full rank.  If the user sets
+          TOL &lt;= 0, then an implicitly computed, default tolerance,
+          defined by  TOLDEF = N*N*EPS,  is used instead, where
+          EPS is the machine precision (see LAPACK Library routine
+          DLAMCH).  TOL &lt; 1.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  IWORK   INTEGER array, dimension ((c*N+MAX(M,P)), where
+          c = 2, if JOB = 'I' or SYSTYP = 'R', and c = 1, otherwise.
+          On exit, if INFO = 0, the leading INFRED(7) elements of
+          IWORK contain the orders of the diagonal blocks of
+          Ar-lambda*Er.
+
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+
+  LDWORK  INTEGER
+          The length of the array DWORK.
+          LDWORK &gt;= MAX(8*N,2*M,2*P), if EQUIL = 'S';
+          LDWORK &gt;= MAX(N,2*M,2*P),   if EQUIL = 'N'.
+          If LDWORK &gt;= 2*N*N+N*M+N*P+MAX(N,2*M,2*P) then more
+          accurate results are to be expected by performing only
+          those reductions phases (see METHOD), where effective
+          order reduction occurs. This is achieved by saving the
+          system matrices before each phase and restoring them if no
+          order reduction took place.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  The subroutine is based on the reduction algorithms of [1].
+  The order reduction is performed in 4 phases:
+  Phase 1: Eliminate all finite uncontrollable eigenvalues.
+           The resulting matrix ( Br Ar ) is in a controllable
+           staircase form (see SLICOT Library routine TG01HD), and
+           Er is upper triangular.
+           This phase is performed if JOB = 'I' or 'C' and
+           SYSTYP = 'R' or 'S'.
+  Phase 2: Eliminate all infinite and finite nonzero uncontrollable
+           eigenvalues. The resulting matrix ( Br Er ) is in a
+           controllable staircase form (see TG01HD), and Ar is
+           upper triangular.
+           This phase is performed if JOB = 'I' or 'C' and
+           SYSTYP = 'R' or 'P'.
+  Phase 3: Eliminate all finite unobservable eigenvalues.
+           The resulting matrix ( Ar ) is in an observable
+                                ( Cr )
+           staircase form (see SLICOT Library routine TG01ID), and
+           Er is upper triangular.
+           This phase is performed if JOB = 'I' or 'O' and
+           SYSTYP = 'R' or 'S'.
+  Phase 4: Eliminate all infinite and finite nonzero unobservable
+           eigenvalues. The resulting matrix ( Er ) is in an
+                                             ( Cr )
+           observable staircase form (see TG01ID), and Ar is
+           upper triangular.
+           This phase is performed if JOB = 'I' or 'O' and
+           SYSTYP = 'R' or 'P'.
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] A. Varga
+      Computation of Irreducible Generalized State-Space
+      Realizations.
+      Kybernetika, vol. 26, pp. 89-106, 1990.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  The algorithm is numerically backward stable and requires
+  0( N**3 )  floating point operations.
+
+</PRE>
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  If the pencil (A-lambda*E) has no zero eigenvalues, then an
+  irreducible realization can be computed skipping Phases 1 and 3
+  by using the setting: JOB = 'I' and SYSTYP = 'P'.
+
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+*     TG01JD EXAMPLE PROGRAM TEXT
+*
+*     .. Parameters ..
+      INTEGER          NIN, NOUT
+      PARAMETER        ( NIN = 5, NOUT = 6 )
+      INTEGER          NMAX, MMAX, PMAX
+      PARAMETER        ( NMAX = 20, MMAX = 20, PMAX = 20 )
+      INTEGER          LDA, LDB, LDC, LDE
+      PARAMETER        ( LDA = NMAX, LDB = NMAX, LDC = PMAX,
+     $                   LDE = NMAX )
+      INTEGER          LDWORK, LIWORK
+      PARAMETER        ( LDWORK = MAX( 8*NMAX,2*MMAX,2*PMAX ),
+     $                   LIWORK = 2*NMAX + MAX( MMAX, PMAX ) )
+*     .. Local Scalars ..
+      CHARACTER        EQUIL, JOB, SYSTYP
+      INTEGER          I, INFO, J, M, N, NR, P
+      DOUBLE PRECISION TOL
+*     .. Local Arrays ..
+      INTEGER          INFRED(7), IWORK(LIWORK)
+      DOUBLE PRECISION A(LDA,NMAX), B(LDB,MMAX), C(LDC,NMAX),
+     $                 DWORK(LDWORK), E(LDE,NMAX)
+*     .. External Subroutines ..
+      EXTERNAL         TG01JD
+*     .. Intrinsic Functions ..
+      INTRINSIC        MAX
+*     .. Executable Statements ..
+*
+      WRITE ( NOUT, FMT = 99999 )
+*     Skip the heading in the data file and read the data.
+      READ ( NIN, FMT = '()' )
+      READ ( NIN, FMT = * ) N, M, P, TOL, JOB, SYSTYP, EQUIL
+      IF ( N.LT.0 .OR. N.GT.NMAX ) THEN
+         WRITE ( NOUT, FMT = 99988 ) N
+      ELSE
+         READ ( NIN, FMT = * ) ( ( A(I,J), J = 1,N ), I = 1,N )
+         READ ( NIN, FMT = * ) ( ( E(I,J), J = 1,N ), I = 1,N )
+         IF ( M.LT.0 .OR. M.GT.MMAX ) THEN
+            WRITE ( NOUT, FMT = 99987 ) M
+         ELSE
+            READ ( NIN, FMT = * ) ( ( B(I,J), J = 1,M ), I = 1,N )
+            IF ( P.LT.0 .OR. P.GT.PMAX ) THEN
+               WRITE ( NOUT, FMT = 99986 ) P
+            ELSE
+               READ ( NIN, FMT = * ) ( ( C(I,J), J = 1,N ), I = 1,P )
+*              Find the irreducible descriptor system (Ar-lambda Er,Br,Cr).
+               CALL TG01JD( JOB, SYSTYP, EQUIL, N, M, P, A, LDA, E, LDE,
+     $                      B, LDB, C, LDC, NR, INFRED, TOL, IWORK,
+     $                      DWORK, LDWORK, INFO )
+*
+               IF ( INFO.NE.0 ) THEN
+                  WRITE ( NOUT, FMT = 99998 ) INFO
+               ELSE
+                  WRITE ( NOUT, FMT = 99994 ) NR
+                  WRITE ( NOUT, FMT = 99991 )
+                  DO 10 I = 1, 4
+                     IF( INFRED(I).GE.0 )
+     $                  WRITE ( NOUT, FMT = 99990 ) I, INFRED(I)
+   10             CONTINUE
+                  WRITE ( NOUT, FMT = 99997 )
+                  DO 20 I = 1, NR
+                     WRITE ( NOUT, FMT = 99995 ) ( A(I,J), J = 1,NR )
+   20             CONTINUE
+                  WRITE ( NOUT, FMT = 99996 )
+                  DO 30 I = 1, NR
+                     WRITE ( NOUT, FMT = 99995 ) ( E(I,J), J = 1,NR )
+   30             CONTINUE
+                  WRITE ( NOUT, FMT = 99993 )
+                  DO 40 I = 1, NR
+                     WRITE ( NOUT, FMT = 99995 ) ( B(I,J), J = 1,M )
+   40             CONTINUE
+                  WRITE ( NOUT, FMT = 99992 )
+                  DO 50 I = 1, P
+                     WRITE ( NOUT, FMT = 99995 ) ( C(I,J), J = 1,NR )
+   50             CONTINUE
+               END IF
+            END IF
+         END IF
+      END IF
+      STOP
+*
+99999 FORMAT (' TG01JD EXAMPLE PROGRAM RESULTS',/1X)
+99998 FORMAT (' INFO on exit from TG01JD = ',I2)
+99997 FORMAT (/' The reduced state dynamics matrix Ar is ')
+99996 FORMAT (/' The reduced descriptor matrix Er is ')
+99995 FORMAT (20(1X,F8.4))
+99994 FORMAT (' Order of reduced system =', I5 )
+99993 FORMAT (/' The reduced input/state matrix Br is ')
+99992 FORMAT (/' The reduced state/output matrix Cr is ')
+99991 FORMAT (/' Achieved order reductions in different phases')
+99990 FORMAT (' Phase',I2,':', I3, ' elliminated eigenvalue(s)' )
+99988 FORMAT (/' N is out of range.',/' N = ',I5)
+99987 FORMAT (/' M is out of range.',/' M = ',I5)
+99986 FORMAT (/' P is out of range.',/' P = ',I5)
+      END
+</PRE>
+<B>Program Data</B>
+<PRE>
+TG01JD EXAMPLE PROGRAM DATA
+  9    2    2     0.0    I  R  N 
+    -2    -3     0     0     0     0     0     0     0
+     1     0     0     0     0     0     0     0     0
+     0     0    -2    -3     0     0     0     0     0
+     0     0     1     0     0     0     0     0     0
+     0     0     0     0     1     0     0     0     0
+     0     0     0     0     0     1     0     0     0
+     0     0     0     0     0     0     1     0     0
+     0     0     0     0     0     0     0     1     0
+     0     0     0     0     0     0     0     0     1
+     1     0     0     0     0     0     0     0     0
+     0     1     0     0     0     0     0     0     0
+     0     0     1     0     0     0     0     0     0
+     0     0     0     1     0     0     0     0     0
+     0     0     0     0     0     0     0     0     0
+     0     0     0     0     1     0     0     0     0
+     0     0     0     0     0     0     0     0     0
+     0     0     0     0     0     0     1     0     0
+     0     0     0     0     0     0     0     1     0
+     1     0
+     0     0
+     0     1
+     0     0
+    -1     0
+     0     0
+     0    -1
+     0     0
+     0     0
+     1     0     1    -3     0     1     0     2     0
+     0     1     1     3     0     1     0     0     1
+
+</PRE>
+<B>Program Results</B>
+<PRE>
+ TG01JD EXAMPLE PROGRAM RESULTS
+
+ Order of reduced system =    7
+
+ Achieved order reductions in different phases
+ Phase 1:  0 elliminated eigenvalue(s)
+ Phase 2:  0 elliminated eigenvalue(s)
+ Phase 3:  2 elliminated eigenvalue(s)
+ Phase 4:  0 elliminated eigenvalue(s)
+
+ The reduced state dynamics matrix Ar is 
+   1.0000  -0.0393  -0.0980  -0.1066   0.0781  -0.2330   0.0777
+   0.0000   1.0312   0.2717   0.2609  -0.1533   0.6758  -0.3553
+   0.0000   0.0000   1.3887   0.6699  -0.4281   1.6389  -0.7615
+   0.0000   0.0000   0.0000  -1.2147   0.2423  -0.9792   0.4788
+   0.0000   0.0000   0.0000   0.0000  -1.0545   0.5035  -0.2788
+   0.0000   0.0000   0.0000   0.0000   0.0000   1.6355  -0.4323
+   0.0000   0.0000   0.0000   0.0000   0.0000   0.0000   1.0000
+
+ The reduced descriptor matrix Er is 
+   0.4100   0.2590   0.5080  -0.3109   0.0705   0.1429  -0.1477
+  -0.7629  -0.3464   0.0992  -0.3007   0.0619   0.2483  -0.0152
+   0.1120  -0.2124  -0.4184  -0.1288   0.0569  -0.4213  -0.6182
+   0.0000   0.1122  -0.0039   0.2771  -0.0758   0.0975   0.3923
+   0.0000   0.0000   0.3708  -0.4290   0.1006   0.1402  -0.2699
+   0.0000   0.0000   0.0000   0.0000   0.9458  -0.2211   0.2378
+   0.0000   0.0000   0.0000   0.5711   0.2648   0.5948  -0.5000
+
+ The reduced input/state matrix Br is 
+  -0.5597   0.2363
+  -0.4843  -0.0498
+  -0.4727  -0.1491
+   0.1802   1.1574
+   0.5995   0.1556
+  -0.1729  -0.3999
+   0.0000   0.2500
+
+ The reduced state/output matrix Cr is 
+   0.0000   0.0000   0.0000   0.0000   0.0000   0.0000   4.0000
+   0.0000   0.0000   0.0000   0.0000   0.0000   3.1524  -1.7500
+</PRE>
+
+<HR>
+<p>
+<A HREF=..\libindex.html><B>Return to index</B></A></BODY>
+</HTML>

@@ -1,0 +1,210 @@
+<HTML>
+<HEAD><TITLE>SB03SY - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="SB03SY">SB03SY</A></H2>
+<H3>
+Estimating separation between op(A) and op(A)' and 1-norm of Theta operator for a discrete-time Lyapunov equation
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To estimate the "separation" between the matrices op(A) and
+  op(A)',
+
+  sepd(op(A),op(A)') = min norm(op(A)'*X*op(A) - X)/norm(X)
+                     = 1 / norm(inv(Omega))
+
+  and/or the 1-norm of Theta, where op(A) = A or A' (A**T), and
+  Omega and Theta are linear operators associated to the real
+  discrete-time Lyapunov matrix equation
+
+         op(A)'*X*op(A) - X = C,
+
+  defined by
+
+  Omega(W) = op(A)'*W*op(A) - W,
+  Theta(W) = inv(Omega(op(W)'*X*op(A) + op(A)'*X*op(W))).
+
+  The 1-norm condition estimators are used.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE SB03SY( JOB, TRANA, LYAPUN, N, T, LDT, U, LDU, XA,
+     $                   LDXA, SEPD, THNORM, IWORK, DWORK, LDWORK,
+     $                   INFO )
+C     .. Scalar Arguments ..
+      CHARACTER          JOB, LYAPUN, TRANA
+      INTEGER            INFO, LDT, LDU, LDWORK, LDXA, N
+      DOUBLE PRECISION   SEPD, THNORM
+C     .. Array Arguments ..
+      INTEGER            IWORK( * )
+      DOUBLE PRECISION   DWORK( * ), T( LDT, * ), U( LDU, * ),
+     $                   XA( LDXA, * )
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  JOB     CHARACTER*1
+          Specifies the computation to be performed, as follows:
+          = 'S':  Compute the separation only;
+          = 'T':  Compute the norm of Theta only;
+          = 'B':  Compute both the separation and the norm of Theta.
+
+  TRANA   CHARACTER*1
+          Specifies the form of op(A) to be used, as follows:
+          = 'N':  op(A) = A    (No transpose);
+          = 'T':  op(A) = A**T (Transpose);
+          = 'C':  op(A) = A**T (Conjugate transpose = Transpose).
+
+  LYAPUN  CHARACTER*1
+          Specifies whether or not the original Lyapunov equations
+          should be solved, as follows:
+          = 'O':  Solve the original Lyapunov equations, updating
+                  the right-hand sides and solutions with the
+                  matrix U, e.g., X &lt;-- U'*X*U;
+          = 'R':  Solve reduced Lyapunov equations only, without
+                  updating the right-hand sides and solutions.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The order of the matrices A and X.  N &gt;= 0.
+
+  T       (input) DOUBLE PRECISION array, dimension (LDT,N)
+          The leading N-by-N upper Hessenberg part of this array
+          must contain the upper quasi-triangular matrix T in Schur
+          canonical form from a Schur factorization of A.
+
+  LDT     INTEGER
+          The leading dimension of array T.  LDT &gt;= MAX(1,N).
+
+  U       (input) DOUBLE PRECISION array, dimension (LDU,N)
+          The leading N-by-N part of this array must contain the
+          orthogonal matrix U from a real Schur factorization of A.
+          If LYAPUN = 'R', the array U is not referenced.
+
+  LDU     INTEGER
+          The leading dimension of array U.
+          LDU &gt;= 1,        if LYAPUN = 'R';
+          LDU &gt;= MAX(1,N), if LYAPUN = 'O'.
+
+  XA      (input) DOUBLE PRECISION array, dimension (LDXA,N)
+          The leading N-by-N part of this array must contain the
+          matrix product X*op(A), if LYAPUN = 'O', or U'*X*U*op(T),
+          if LYAPUN = 'R', in the Lyapunov equation.
+          If JOB = 'S', the array XA is not referenced.
+
+  LDXA    INTEGER
+          The leading dimension of array XA.
+          LDXA &gt;= 1,        if JOB = 'S';
+          LDXA &gt;= MAX(1,N), if JOB = 'T' or 'B'.
+
+  SEPD    (output) DOUBLE PRECISION
+          If JOB = 'S' or JOB = 'B', and INFO &gt;= 0, SEPD contains
+          the estimated quantity sepd(op(A),op(A)').
+          If JOB = 'T' or N = 0, SEPD is not referenced.
+
+  THNORM  (output) DOUBLE PRECISION
+          If JOB = 'T' or JOB = 'B', and INFO &gt;= 0, THNORM contains
+          the estimated 1-norm of operator Theta.
+          If JOB = 'S' or N = 0, THNORM is not referenced.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  IWORK   INTEGER array, dimension (N*N)
+
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+
+  LDWORK  INTEGER
+          The length of the array DWORK.
+          LDWORK &gt;= 0,            if N = 0;
+          LDWORK &gt;= MAX(3,2*N*N), if N &gt; 0.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value;
+          = N+1:  if T has (almost) reciprocal eigenvalues;
+                perturbed values were used to solve Lyapunov
+                equations (but the matrix T is unchanged).
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  SEPD is defined as
+
+         sepd( op(A), op(A)' ) = sigma_min( K )
+
+  where sigma_min(K) is the smallest singular value of the
+  N*N-by-N*N matrix
+
+     K = kprod( op(A)', op(A)' ) - I(N**2).
+
+  I(N**2) is an N*N-by-N*N identity matrix, and kprod denotes the
+  Kronecker product. The routine estimates sigma_min(K) by the
+  reciprocal of an estimate of the 1-norm of inverse(K), computed as
+  suggested in [1]. This involves the solution of several discrete-
+  time Lyapunov equations, either direct or transposed. The true
+  reciprocal 1-norm of inverse(K) cannot differ from sigma_min(K) by
+  more than a factor of N.
+  The 1-norm of Theta is estimated similarly.
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Higham, N.J.
+      FORTRAN codes for estimating the one-norm of a real or
+      complex matrix, with applications to condition estimation.
+      ACM Trans. Math. Softw., 14, pp. 381-396, 1988.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>                            3
+  The algorithm requires 0(N ) operations.
+
+</PRE>
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  When SEPD is zero, the routine returns immediately, with THNORM
+  (if requested) not set. In this case, the equation is singular.
+  The option LYAPUN = 'R' may occasionally produce slightly worse
+  or better estimates, and it is much faster than the option 'O'.
+
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

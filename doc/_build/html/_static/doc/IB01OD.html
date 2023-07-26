@@ -1,0 +1,133 @@
+<HTML>
+<HEAD><TITLE>IB01OD - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="IB01OD">IB01OD</A></H2>
+<H3>
+Estimating the system order
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To estimate the system order, based on the singular values of the
+  relevant part of the triangular factor of the concatenated block
+  Hankel matrices.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE IB01OD( CTRL, NOBR, L, SV, N, TOL, IWARN, INFO )
+C     .. Scalar Arguments ..
+      DOUBLE PRECISION   TOL
+      INTEGER            INFO, IWARN, L, N, NOBR
+      CHARACTER          CTRL
+C     .. Array Arguments ..
+      DOUBLE PRECISION   SV(*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  CTRL    CHARACTER*1
+          Specifies whether or not the user's confirmation of the
+          system order estimate is desired, as follows:
+          = 'C':  user's confirmation;
+          = 'N':  no confirmation.
+          If  CTRL = 'C',  a reverse communication routine,  IB01OY,
+          is called, and, after inspecting the singular values and
+          system order estimate,  n,  the user may accept  n  or set
+          a new value.
+          IB01OY  is not called by the routine if CTRL = 'N'.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  NOBR    (input) INTEGER
+          The number of block rows,  s,  in the processed input and
+          output block Hankel matrices.  NOBR &gt; 0.
+
+  L       (input) INTEGER
+          The number of system outputs.  L &gt; 0.
+
+  SV      (input) DOUBLE PRECISION array, dimension ( L*NOBR )
+          The singular values of the relevant part of the triangular
+          factor from the QR factorization of the concatenated block
+          Hankel matrices.
+
+  N       (output) INTEGER
+          The estimated order of the system.
+
+</PRE>
+<B>Tolerances</B>
+<PRE>
+  TOL     DOUBLE PRECISION
+          Absolute tolerance used for determining an estimate of
+          the system order. If  TOL &gt;= 0,  the estimate is
+          indicated by the index of the last singular value greater
+          than or equal to  TOL.  (Singular values less than  TOL
+          are considered as zero.) When  TOL = 0,  an internally
+          computed default value,  TOL = NOBR*EPS*SV(1),  is used,
+          where  SV(1)  is the maximal singular value, and  EPS  is
+          the relative machine precision (see LAPACK Library routine
+          DLAMCH). When  TOL &lt; 0,  the estimate is indicated by the
+          index of the singular value that has the largest
+          logarithmic gap to its successor.
+
+</PRE>
+<B>Warning Indicator</B>
+<PRE>
+  IWARN   INTEGER
+          = 0:  no warning;
+          = 3:  all singular values were exactly zero, hence  N = 0.
+                (Both input and output were identically zero.)
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  The singular values are compared to the given, or default TOL, and
+  the estimated order  n  is returned, possibly after user's
+  confirmation.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

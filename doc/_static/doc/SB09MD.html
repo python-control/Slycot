@@ -1,0 +1,257 @@
+<HTML>
+<HEAD><TITLE>SB09MD - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="SB09MD">SB09MD</A></H2>
+<H3>
+Evaluation of closeness of two multivariable sequences
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To compare two multivariable sequences M1(k) and M2(k) for
+  k = 1,2,...,N, and evaluate their closeness. Each of the
+  parameters M1(k) and M2(k) is an NC by NB matrix.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE SB09MD( N, NC, NB, H1, LDH1, H2, LDH2, SS, LDSS, SE,
+     $                   LDSE, PRE, LDPRE, TOL, INFO )
+C     .. Scalar Arguments ..
+      INTEGER           INFO, LDH1, LDH2, LDPRE, LDSE, LDSS, N, NB, NC
+      DOUBLE PRECISION  TOL
+C     .. Array Arguments ..
+      DOUBLE PRECISION  H1(LDH1,*), H2(LDH2,*), PRE(LDPRE,*),
+     $                  SE(LDSE,*), SS(LDSS,*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The number of parameters.  N &gt;= 0.
+
+  NC      (input) INTEGER
+          The number of rows in M1(k) and M2(k).  NC &gt;= 0.
+
+  NB      (input) INTEGER
+          The number of columns in M1(k) and M2(k).  NB &gt;= 0.
+
+  H1      (input) DOUBLE PRECISION array, dimension (LDH1,N*NB)
+          The leading NC-by-N*NB part of this array must contain
+          the multivariable sequence M1(k), where k = 1,2,...,N.
+          Each parameter M1(k) is an NC-by-NB matrix, whose
+          (i,j)-th element must be stored in H1(i,(k-1)*NB+j) for
+          i = 1,2,...,NC and j = 1,2,...,NB.
+
+  LDH1    INTEGER
+          The leading dimension of array H1.  LDH1 &gt;= MAX(1,NC).
+
+  H2      (input) DOUBLE PRECISION array, dimension (LDH2,N*NB)
+          The leading NC-by-N*NB part of this array must contain
+          the multivariable sequence M2(k), where k = 1,2,...,N.
+          Each parameter M2(k) is an NC-by-NB matrix, whose
+          (i,j)-th element must be stored in H2(i,(k-1)*NB+j) for
+          i = 1,2,...,NC and j = 1,2,...,NB.
+
+  LDH2    INTEGER
+          The leading dimension of array H2.  LDH2 &gt;= MAX(1,NC).
+
+  SS      (output) DOUBLE PRECISION array, dimension (LDSS,NB)
+          The leading NC-by-NB part of this array contains the
+          matrix SS.
+
+  LDSS    INTEGER
+          The leading dimension of array SS.  LDSS &gt;= MAX(1,NC).
+
+  SE      (output) DOUBLE PRECISION array, dimension (LDSE,NB)
+          The leading NC-by-NB part of this array contains the
+          quadratic error matrix SE.
+
+  LDSE    INTEGER
+          The leading dimension of array SE.  LDSE &gt;= MAX(1,NC).
+
+  PRE     (output) DOUBLE PRECISION array, dimension (LDPRE,NB)
+          The leading NC-by-NB part of this array contains the
+          percentage relative error matrix PRE.
+
+  LDPRE   INTEGER
+          The leading dimension of array PRE.  LDPRE &gt;= MAX(1,NC).
+
+</PRE>
+<B>Tolerances</B>
+<PRE>
+  TOL     DOUBLE PRECISION
+          The tolerance to be used in the computation of the error
+          matrices SE and PRE. If the user sets TOL to be less than
+          EPS then the tolerance is taken as EPS, where EPS is the
+          machine precision (see LAPACK Library routine DLAMCH).
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  The (i,j)-th element of the matrix SS is defined by:
+                     N          2
+            SS    = SUM  M1  (k) .                            (1)
+              ij    k=1    ij
+
+  The (i,j)-th element of the quadratic error matrix SE is defined
+  by:
+                     N                      2
+            SE    = SUM  (M1  (k) - M2  (k)) .                (2)
+              ij    k=1     ij        ij
+
+  The (i,j)-th element of the percentage relative error matrix PRE
+  is defined by:
+
+            PRE   = 100 x SQRT( SE  / SS  ).                  (3)
+               ij                 ij    ij
+
+  The following precautions are taken by the routine to guard
+  against underflow and overflow:
+
+  (i) if ABS( M1  (k) ) &gt; 1/TOL or ABS( M1  (k) - M2  (k) ) &gt; 1/TOL,
+                ij                        ij        ij
+
+      then SE   and SS   are set to 1/TOL and PRE   is set to 1; and
+             ij       ij                         ij
+
+  (ii) if ABS( SS  ) &lt;= TOL, then PRE   is set to 100.
+                 ij                  ij
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  The algorithm requires approximately
+     2xNBxNCx(N+1) multiplications/divisions,
+     4xNBxNCxN     additions/subtractions and
+       NBxNC       square roots.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+*     SB09MD EXAMPLE PROGRAM TEXT
+*
+*     .. Parameters ..
+      INTEGER          NIN, NOUT
+      PARAMETER        ( NIN = 5, NOUT = 6 )
+      INTEGER          NMAX, NCMAX, NBMAX
+      PARAMETER        ( NMAX = 20, NCMAX = 20, NBMAX = 20 )
+      INTEGER          LDH1, LDH2, LDSS, LDSE, LDPRE
+      PARAMETER        ( LDH1 = NCMAX, LDH2 = NCMAX, LDSS = NCMAX,
+     $                   LDSE = NCMAX, LDPRE = NCMAX )
+*     .. Local Scalars ..
+      DOUBLE PRECISION TOL
+      INTEGER          I, INFO, J, N, NB, NC
+*     .. Local Arrays ..
+      DOUBLE PRECISION H1(LDH1,NMAX*NBMAX), H2(LDH2,NMAX*NBMAX),
+     $                 PRE(LDPRE,NBMAX), SE(LDSE,NBMAX), SS(LDSS,NBMAX)
+*     .. External Subroutines ..
+      EXTERNAL         SB09MD
+*     .. Executable Statements ..
+*
+      WRITE ( NOUT, FMT = 99999 )
+*     Skip the heading in the data file and read the data.
+      READ ( NIN, FMT = '()' )
+      READ ( NIN, FMT = * ) N, NC, NB, TOL
+      IF ( N.LT.0 .OR. N.GT.NMAX ) THEN
+         WRITE ( NOUT, FMT = 99993 ) N
+      ELSE IF ( NB.LT.0 .OR. NB.GT.NBMAX ) THEN
+         WRITE ( NOUT, FMT = 99992 ) NB
+      ELSE IF ( NC.LT.0 .OR. NC.GT.NCMAX ) THEN
+         WRITE ( NOUT, FMT = 99991 ) NC
+      ELSE
+         READ ( NIN, FMT = * ) ( ( H1(I,J), I = 1,NC ), J = 1,N*NB )
+         READ ( NIN, FMT = * ) ( ( H2(I,J), I = 1,NC ), J = 1,N*NB )
+*        Compare the given sequences and evaluate their closeness.
+         CALL SB09MD( N, NC, NB, H1, LDH1, H2, LDH2, SS, LDSS, SE, LDSE,
+     $                PRE, LDPRE, TOL, INFO )
+*
+         IF ( INFO.NE.0 ) THEN
+            WRITE ( NOUT, FMT = 99998 ) INFO
+         ELSE
+            WRITE ( NOUT, FMT = 99997 )
+            DO 20 I = 1, NC
+               WRITE ( NOUT, FMT = 99996 ) ( SS(I,J), J = 1,NB )
+   20       CONTINUE
+            WRITE ( NOUT, FMT = 99995 )
+            DO 40 I = 1, NC
+               WRITE ( NOUT, FMT = 99996 ) ( SE(I,J), J = 1,NB )
+   40       CONTINUE
+            WRITE ( NOUT, FMT = 99994 )
+            DO 60 I = 1, NC
+               WRITE ( NOUT, FMT = 99996 ) ( PRE(I,J), J = 1,NB )
+   60       CONTINUE
+         END IF
+      END IF
+      STOP
+*
+99999 FORMAT (' SB09MD EXAMPLE PROGRAM RESULTS',/1X)
+99998 FORMAT (' INFO on exit from SB09MD = ',I2)
+99997 FORMAT (' The sum-of-squares matrix SS is ')
+99996 FORMAT (20(1X,F8.4))
+99995 FORMAT (/' The quadratic error matrix SE is ')
+99994 FORMAT (/' The percentage relative error matrix PRE is ')
+99993 FORMAT (/' N is out of range.',/' N = ',I5)
+99992 FORMAT (/' NB is out of range.',/' NB = ',I5)
+99991 FORMAT (/' NC is out of range.',/' NC = ',I5)
+      END
+</PRE>
+<B>Program Data</B>
+<PRE>
+ SB09MD EXAMPLE PROGRAM DATA
+   2     2     2     0.0
+   1.3373  0.1205  0.6618 -0.3372
+  -0.4062  1.6120  0.9299  0.7429
+   1.1480 -0.1837  0.8843 -0.4947
+  -0.4616  1.4674  0.6028  0.9524
+</PRE>
+<B>Program Results</B>
+<PRE>
+ SB09MD EXAMPLE PROGRAM RESULTS
+
+ The sum-of-squares matrix SS is 
+   1.9534   1.3027
+   2.6131   0.6656
+
+ The quadratic error matrix SE is 
+   0.0389   0.1565
+   0.1134   0.0687
+
+ The percentage relative error matrix PRE is 
+  14.1125  34.6607
+  20.8363  32.1262
+</PRE>
+
+<HR>
+<p>
+<A HREF=..\libindex.html><B>Return to index</B></A></BODY>
+</HTML>

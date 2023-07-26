@@ -1,0 +1,355 @@
+<HTML>
+<HEAD><TITLE>MB04ZD - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MB04ZD">MB04ZD</A></H2>
+<H3>
+Transforming a Hamiltonian matrix into a square-reduced Hamiltonian matrix
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To transform a Hamiltonian matrix
+
+            ( A   G  )
+        H = (      T )                                           (1)
+            ( Q  -A  )
+
+  into a square-reduced Hamiltonian matrix
+
+             ( A'  G'  )
+        H' = (       T )                                         (2)
+             ( Q' -A'  )
+                                                              T
+  by an orthogonal symplectic similarity transformation H' = U H U,
+  where
+            (  U1   U2 )
+        U = (          ).                                        (3)
+            ( -U2   U1 )
+                                                           T
+  The square-reduced Hamiltonian matrix satisfies Q'A' - A' Q' = 0,
+  and
+
+        2       T     2     ( A''   G''  )
+      H'  :=  (U  H U)   =  (          T ).
+                            ( 0     A''  )
+
+  In addition, A'' is upper Hessenberg and G'' is skew symmetric.
+  The square roots of the eigenvalues of A'' = A'*A' + G'*Q' are the
+  eigenvalues of H.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MB04ZD( COMPU, N, A, LDA, QG, LDQG, U, LDU, DWORK, INFO
+     $                 )
+C     .. Scalar Arguments ..
+      INTEGER           INFO, LDA, LDQG, LDU, N
+      CHARACTER         COMPU
+C     .. Array Arguments ..
+      DOUBLE PRECISION  A(LDA,*), DWORK(*), QG(LDQG,*), U(LDU,*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  COMPU   CHARACTER*1
+          Indicates whether the orthogonal symplectic similarity
+          transformation matrix U in (3) is returned or
+          accumulated into an orthogonal symplectic matrix, or if
+          the transformation matrix is not required, as follows:
+          = 'N':         U is not required;
+          = 'I' or 'F':  on entry, U need not be set;
+                         on exit, U contains the orthogonal
+                         symplectic matrix U from (3);
+          = 'V' or 'A':  the orthogonal symplectic similarity
+                         transformations are accumulated into U;
+                         on input, U must contain an orthogonal
+                         symplectic matrix S;
+                         on exit, U contains S*U with U from (3).
+          See the description of U below for details.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The order of the matrices A, G, and Q.  N &gt;= 0.
+
+  A       (input/output) DOUBLE PRECISION array, dimension (LDA,N)
+          On input, the leading N-by-N part of this array must
+          contain the upper left block A of the Hamiltonian matrix H
+          in (1).
+          On output, the leading N-by-N part of this array contains
+          the upper left block A' of the square-reduced Hamiltonian
+          matrix H' in (2).
+
+  LDA     INTEGER
+          The leading dimension of the array A.  LDA &gt;= MAX(1,N).
+
+  QG      (input/output) DOUBLE PRECISION array, dimension
+          (LDQG,N+1)
+          On input, the leading N-by-N lower triangular part of this
+          array must contain the lower triangle of the lower left
+          symmetric block Q of the Hamiltonian matrix H in (1), and
+          the N-by-N upper triangular part of the submatrix in the
+          columns 2 to N+1 of this array must contain the upper
+          triangle of the upper right symmetric block G of H in (1).
+          So, if i &gt;= j, then Q(i,j) = Q(j,i) is stored in QG(i,j)
+          and G(i,j) = G(j,i) is stored in QG(j,i+1).
+          On output, the leading N-by-N lower triangular part of
+          this array contains the lower triangle of the lower left
+          symmetric block Q', and the N-by-N upper triangular part
+          of the submatrix in the columns 2 to N+1 of this array
+          contains the upper triangle of the upper right symmetric
+          block G' of the square-reduced Hamiltonian matrix H'
+          in (2).
+
+  LDQG    INTEGER
+          The leading dimension of the array QG.  LDQG &gt;= MAX(1,N).
+
+  U       (input/output) DOUBLE PRECISION array, dimension (LDU,2*N)
+          If COMPU = 'N', then this array is not referenced.
+          If COMPU = 'I' or 'F', then the input contents of this
+          array are not specified.  On output, the leading
+          N-by-(2*N) part of this array contains the first N rows
+          of the orthogonal symplectic matrix U in (3).
+          If COMPU = 'V' or 'A', then, on input, the leading
+          N-by-(2*N) part of this array must contain the first N
+          rows of an orthogonal symplectic matrix S. On output, the
+          leading N-by-(2*N) part of this array contains the first N
+          rows of the product S*U where U is the orthogonal
+          symplectic matrix from (3).
+          The storage scheme implied by (3) is used for orthogonal
+          symplectic matrices, i.e., only the first N rows are
+          stored, as they contain all relevant information.
+
+  LDU     INTEGER
+          The leading dimension of the array U.
+          LDU &gt;= MAX(1,N), if COMPU &lt;&gt; 'N';
+          LDU &gt;= 1,        if COMPU =  'N'.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  DWORK   DOUBLE PRECISION array, dimension (2*N)
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, then the i-th argument had an illegal
+                value.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  The Hamiltonian matrix H is transformed into a square-reduced
+  Hamiltonian matrix H' using the implicit version of Van Loan's
+  method as proposed in [1,2,3].
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Van Loan, C. F.
+      A Symplectic Method for Approximating All the Eigenvalues of
+      a Hamiltonian Matrix.
+      Linear Algebra and its Applications, 61, pp. 233-251, 1984.
+
+  [2] Byers, R.
+      Hamiltonian and Symplectic Algorithms for the Algebraic
+      Riccati Equation.
+      Ph. D. Thesis, Cornell University, Ithaca, NY, January 1983.
+
+  [3] Benner, P., Byers, R., and Barth, E.
+      Fortran 77 Subroutines for Computing the Eigenvalues of
+      Hamiltonian Matrices. I: The Square-Reduced Method.
+      ACM Trans. Math. Software, 26, 1, pp. 49-77, 2000.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  This algorithm requires approximately 20*N**3 flops for
+  transforming H into square-reduced form. If the transformations
+  are required, this adds another 8*N**3 flops. The method is
+  strongly backward stable in the sense that if H' and U are the
+  computed square-reduced Hamiltonian and computed orthogonal
+  symplectic similarity transformation, then there is an orthogonal
+  symplectic matrix T and a Hamiltonian matrix M such that
+
+               H T  =  T M
+
+     || T - U ||   &lt;=  c1 * eps
+
+     || H' - M ||  &lt;=  c2 * eps * || H ||
+
+  where c1, c2 are modest constants depending on the dimension N and
+  eps is the machine precision.
+
+  Eigenvalues computed by explicitly forming the upper Hessenberg
+  matrix  A'' = A'A' + G'Q', with A', G', and Q' as in (2), and
+  applying the Hessenberg QR iteration to A'' are exactly
+  eigenvalues of a perturbed Hamiltonian matrix H + E,  where
+
+     || E ||  &lt;=  c3 * sqrt(eps) * || H ||,
+
+  and c3 is a modest constant depending on the dimension N and eps
+  is the machine precision.  Moreover, if the norm of H and an
+  eigenvalue lambda are of roughly the same magnitude, the computed
+  eigenvalue is essentially as accurate as the computed eigenvalue
+  from traditional methods.  See [1] or [2].
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+*     MB04ZD EXAMPLE PROGRAM TEXT.
+*
+*     .. Parameters ..
+      INTEGER          NIN, NOUT
+      PARAMETER        ( NIN = 5, NOUT = 6 )
+      INTEGER          NMAX
+      PARAMETER        ( NMAX = 20 )
+      INTEGER          LDA, LDQG, LDU
+      PARAMETER        ( LDA = NMAX, LDQG = NMAX, LDU = NMAX )
+      INTEGER          LDWORK
+      PARAMETER        ( LDWORK = ( NMAX+NMAX )*( NMAX+NMAX+1 ) )
+      DOUBLE PRECISION ZERO, ONE
+      PARAMETER        ( ZERO = 0.0D0, ONE = 1.0D0 )
+*     .. Local Scalars ..
+      INTEGER          I, INFO, IJ, J, JI, N, POS, WPOS
+      CHARACTER*1      COMPU
+*     .. Local Arrays ..
+      DOUBLE PRECISION A(LDA,NMAX), DWORK(LDWORK), QG(LDQG,NMAX+1),
+     $                 U(LDU,NMAX)
+*     .. External Subroutines ..
+      EXTERNAL         DCOPY, DGEMM, DSYMV, MB04ZD
+*     .. Executable Statements ..
+*
+      WRITE ( NOUT, FMT = 99999 )
+*     Skip the heading in the data file and read the data.
+      READ ( NIN, FMT = '()' )
+      READ ( NIN, FMT = * ) N, COMPU
+      IF ( N.LT.0 .OR. N.GT.NMAX ) THEN
+         WRITE ( NOUT, FMT = 99998 ) N
+      ELSE
+         READ ( NIN, FMT = * ) ( ( A(I,J),    J = 1,N ), I = 1,N )
+         READ ( NIN, FMT = * ) ( ( QG(J,I+1), I = J,N ), J = 1,N )
+         READ ( NIN, FMT = * ) ( ( QG(I,J),   I = J,N ), J = 1,N )
+*        Square-reduce by symplectic orthogonal similarity.
+         CALL MB04ZD( COMPU, N, A, LDA, QG, LDQG, U, LDU, DWORK, INFO )
+         IF ( INFO.NE.0 ) THEN
+            WRITE ( NOUT, FMT = 99997 ) INFO
+         ELSE
+*           Show the square-reduced Hamiltonian.
+            WRITE ( NOUT, FMT = 99996 )
+            DO 10 I = 1, N
+               WRITE ( NOUT, FMT = 99994 )  ( A(I,J),    J = 1,N ),
+     $            ( QG(J,I+1), J = 1,I-1 ), ( QG(I,J+1), J = I,N )
+10          CONTINUE
+            DO 20 I = 1, N
+               WRITE ( NOUT, FMT = 99994 ) ( QG(I,J), J = 1,I-1 ),
+     $               ( QG(J,I), J = I,N ), ( -A(J,I), J = 1,N )
+20          CONTINUE
+*           Show the square of H.
+            WRITE ( NOUT, FMT = 99995 )
+            WPOS = ( NMAX+NMAX )*( NMAX+NMAX )
+*                                                    T
+*           Compute N11 = A*A + G*Q and set N22 = N11 .
+            CALL DGEMM( 'N', 'N', N, N, N, ONE, A, LDA, A, LDA, ZERO,
+     $                  DWORK, N+N )
+            DO 30 I = 1, N
+               CALL DCOPY( N-I+1, QG(I,I), 1, DWORK(WPOS+I), 1 )
+               CALL DCOPY( I-1, QG(I,1), LDQG, DWORK(WPOS+1), 1 )
+               CALL DSYMV( 'U', N, ONE, QG(1,2), LDQG, DWORK(WPOS+1), 1,
+     $                     ONE, DWORK((I-1)*(N+N)+1), 1 )
+               POS = N*( N+N ) + N + I
+               CALL DCOPY( N, DWORK((I-1)*(N+N)+1), 1, DWORK(POS), N+N )
+30          CONTINUE
+            DO 40 I = 1, N
+               CALL DSYMV( 'U', N, -ONE, QG(1,2), LDQG, A(I,1), LDA,
+     $                     ZERO, DWORK((N+I-1)*(N+N)+1), 1 )
+               CALL DSYMV( 'L', N, ONE, QG, LDQG, A(1,I), 1, ZERO,
+     $                     DWORK((I-1)*(N+N)+N+1), 1 )
+40          CONTINUE
+            DO 60 J = 1, N
+               DO 50 I = J, N
+                  IJ = ( N+J-1 )*( N+N ) + I
+                  JI = ( N+I-1 )*( N+N ) + J
+                  DWORK(IJ) =  DWORK(IJ) - DWORK(JI)
+                  DWORK(JI) = -DWORK(IJ)
+                  IJ = N + I + ( J-1 )*( N+N )
+                  JI = N + J + ( I-1 )*( N+N )
+                  DWORK(IJ) =  DWORK(IJ) - DWORK(JI)
+                  DWORK(JI) = -DWORK(IJ)
+50             CONTINUE
+60          CONTINUE
+            DO 70 I = 1, N+N
+               WRITE ( NOUT, FMT = 99994 )
+     $               ( DWORK(I+(J-1)*(N+N) ), J = 1,N+N )
+70          CONTINUE
+         ENDIF
+      END IF
+      STOP
+*
+99999 FORMAT (' MB04ZD EXAMPLE PROGRAM RESULTS',/1X)
+99998 FORMAT (/' N is out of range.',/' N = ',I5)
+99997 FORMAT (' INFO on exit from MB04ZD = ',I2)
+99996 FORMAT (/' The square-reduced Hamiltonian is ')
+99995 FORMAT (/' The square of the square-reduced Hamiltonian is ')
+99994 FORMAT (1X,8(F10.4))
+      END
+</PRE>
+<B>Program Data</B>
+<PRE>
+MB04ZD EXAMPLE PROGRAM DATA
+3 N
+1.0 2.0 3.0 
+4.0 5.0 6.0
+7.0 8.0 9.0
+1.0 1.0 1.0 2.0 2.0 3.0
+7.0 6.0 5.0 8.0 4.0 9.0
+</PRE>
+<B>Program Results</B>
+<PRE>
+ MB04ZD EXAMPLE PROGRAM RESULTS
+
+
+ The square-reduced Hamiltonian is 
+     1.0000    3.3485    0.3436    1.0000    1.9126   -0.1072
+     6.7566   11.0750   -0.3014    1.9126    8.4479   -1.0790
+     2.3478    1.6899   -2.3868   -0.1072   -1.0790   -2.9871
+     7.0000    8.6275   -0.6352   -1.0000   -6.7566   -2.3478
+     8.6275   16.2238   -0.1403   -3.3485  -11.0750   -1.6899
+    -0.6352   -0.1403    1.2371   -0.3436    0.3014    2.3868
+
+ The square of the square-reduced Hamiltonian is 
+    48.0000   80.6858   -2.5217    0.0000    1.8590  -10.5824
+   167.8362  298.4815   -4.0310   -1.8590    0.0000  -33.1160
+     0.0000    4.5325    2.5185   10.5824   33.1160    0.0000
+     0.0000    0.0000    0.0000   48.0000  167.8362    0.0000
+     0.0000    0.0000    0.0000   80.6858  298.4815    4.5325
+     0.0000    0.0000    0.0000   -2.5217   -4.0310    2.5185
+</PRE>
+
+<HR>
+<p>
+<A HREF=..\libindex.html><B>Return to index</B></A></BODY>
+</HTML>

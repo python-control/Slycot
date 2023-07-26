@@ -1,0 +1,115 @@
+<HTML>
+<HEAD><TITLE>MC01PY - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MC01PY">MC01PY</A></H2>
+<H3>
+Coefficients of a real polynomial, stored in decreasing order, given its zeros
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To compute the coefficients of a real polynomial P(x) from its
+  zeros. The coefficients are stored in decreasing order of the
+  powers of x.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MC01PY( K, REZ, IMZ, P, DWORK, INFO )
+C     .. Scalar Arguments ..
+      INTEGER           INFO, K
+C     .. Array Arguments ..
+      DOUBLE PRECISION  DWORK(*), IMZ(*), P(*), REZ(*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  K       (input) INTEGER
+          The number of zeros (and hence the degree) of P(x).
+          K &gt;= 0.
+
+  REZ     (input) DOUBLE PRECISION array, dimension (K)
+  IMZ     (input) DOUBLE PRECISION array, dimension (K)
+          The real and imaginary parts of the i-th zero of P(x)
+          must be stored in REZ(i) and IMZ(i), respectively, where
+          i = 1, 2, ..., K. The zeros may be supplied in any order,
+          except that complex conjugate zeros must appear
+          consecutively.
+
+  P       (output) DOUBLE PRECISION array, dimension (K+1)
+          This array contains the coefficients of P(x) in decreasing
+          powers of x.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  DWORK   DOUBLE PRECISION array, dimension (K)
+          If K = 0, this array is not referenced.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value;
+          &gt; 0:  if INFO = i, (REZ(i),IMZ(i)) is a complex zero but
+                (REZ(i-1),IMZ(i-1)) is not its conjugate.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  The routine computes the coefficients of the real K-th degree
+  polynomial P(x) as
+
+     P(x) = (x - r(1)) * (x - r(2)) * ... * (x - r(K))
+
+  where r(i) = (REZ(i),IMZ(i)).
+
+  Note that REZ(i) = REZ(j) and IMZ(i) = -IMZ(j) if r(i) and r(j)
+  form a complex conjugate pair (where i &lt;&gt; j), and that IMZ(i) = 0
+  if r(i) is real.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  None.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

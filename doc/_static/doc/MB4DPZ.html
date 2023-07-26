@@ -1,0 +1,437 @@
+<HTML>
+<HEAD><TITLE>MB4DPZ - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MB4DPZ">MB4DPZ</A></H2>
+<H3>
+Balancing a complex skew-Hamiltonian/Hamiltonian pencil, exploiting the structure 
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To balance the 2*N-by-2*N complex skew-Hamiltonian/Hamiltonian
+  pencil aS - bH, with
+
+        (  A  D  )         (  C  V  )
+    S = (        ) and H = (        ),  A, C N-by-N,             (1)
+        (  E  A' )         (  W -C' )
+
+  where D and E are skew-Hermitian, V and W are Hermitian matrices,
+  and ' denotes conjugate transpose. This involves, first, permuting
+  aS - bH by a symplectic equivalence transformation to isolate
+  eigenvalues in the first 1:ILO-1 elements on the diagonal of A
+  and C; and second, applying a diagonal equivalence transformation
+  to make the pairs of rows and columns ILO:N and N+ILO:2*N as close
+  in 1-norm as possible. Both steps are optional. Balancing may
+  reduce the 1-norms of the matrices S and H.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MB4DPZ( JOB, N, THRESH, A, LDA, DE, LDDE, C, LDC, VW,
+     $                   LDVW, ILO, LSCALE, RSCALE, DWORK, IWARN, INFO )
+C     .. Scalar Arguments ..
+      CHARACTER          JOB
+      INTEGER            ILO, INFO, IWARN, LDA, LDC, LDDE, LDVW, N
+      DOUBLE PRECISION   THRESH
+C     .. Array Arguments ..
+      DOUBLE PRECISION   DWORK(*), LSCALE(*), RSCALE(*)
+      COMPLEX*16         A(LDA,*), C(LDC,*), DE(LDDE,*), VW(LDVW,*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  JOB     CHARACTER*1
+          Specifies the operations to be performed on S and H:
+          = 'N':  none:  simply set ILO = 1, LSCALE(I) = 1.0 and
+                  RSCALE(I) = 1.0 for i = 1,...,N.
+          = 'P':  permute only;
+          = 'S':  scale only;
+          = 'B':  both permute and scale.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The order of matrices A, D, E, C, V, and W.  N &gt;= 0.
+
+  THRESH  (input) DOUBLE PRECISION
+          If JOB = 'S' or JOB = 'B', and THRESH &gt;= 0, threshold
+          value for magnitude of the elements to be considered in
+          the scaling process: elements with magnitude less than or
+          equal to THRESH*MXNORM are ignored for scaling, where
+          MXNORM is the maximum of the 1-norms of the original
+          submatrices S(s,s) and H(s,s), with s = [ILO:N,N+ILO:2*N].
+          If THRESH &lt; 0, the subroutine finds the scaling factors
+          for which some conditions, detailed below, are fulfilled.
+          A sequence of increasing strictly positive threshold
+          values is used.
+          If THRESH = -1, the condition is that
+             max( norm(H(s,s),1)/norm(S(s,s),1),
+                  norm(S(s,s),1)/norm(H(s,s),1) )                (1)
+          has the smallest value, for the threshold values used,
+          where S(s,s) and H(s,s) are the scaled submatrices.
+          If THRESH = -2, the norm ratio reduction (1) is tried, but
+          the subroutine may return IWARN = 1 and reset the scaling
+          factors to 1, if this seems suitable. See the description
+          of the argument IWARN and FURTHER COMMENTS.
+          If THRESH = -3, the condition is that
+             norm(H(s,s),1)*norm(S(s,s),1)                       (2)
+          has the smallest value for the scaled submatrices.
+          If THRESH = -4, the norm reduction in (2) is tried, but
+          the subroutine may return IWARN = 1 and reset the scaling
+          factors to 1, as for THRESH = -2 above.
+          If THRESH = -VALUE, with VALUE &gt;= 10, the condition
+          numbers of the left and right scaling transformations will
+          be bounded by VALUE, i.e., the ratios between the largest
+          and smallest entries in [LSCALE(ILO:N); RSCALE(ILO:N)]
+          will be at most VALUE. VALUE should be a power of 10.
+          If JOB = 'N' or JOB = 'P', the value of THRESH is
+          irrelevant.
+
+  A       (input/output) COMPLEX*16 array, dimension (LDA,N)
+          On entry, the leading N-by-N part of this array must
+          contain the matrix A.
+          On exit, the leading N-by-N part of this array contains
+          the matrix A of the balanced skew-Hamiltonian matrix S.
+          In particular, the strictly lower triangular part of the
+          first ILO-1 columns of A is zero.
+
+  LDA     INTEGER
+          The leading dimension of the array A.  LDA &gt;= MAX(1,N).
+
+  DE      (input/output) COMPLEX*16 array, dimension (LDDE, N+1)
+          On entry, the leading N-by-N lower triangular part of
+          this array must contain the lower triangular part of the
+          skew-Hermitian matrix E, and the N-by-N upper triangular
+          part of the submatrix in the columns 2 to N+1 of this
+          array must contain the upper triangular part of the
+          skew-Hermitian matrix D. The real parts of the entries on
+          the diagonal and the first superdiagonal of this array
+          should be zero.
+          On exit, the leading N-by-N lower triangular part of this
+          array contains the lower triangular part of the balanced
+          matrix E, and the N-by-N upper triangular part of the 
+          submatrix in the columns 2 to N+1 of this array contains
+          the upper triangular part of the balanced matrix D.
+          In particular, the lower triangular part of the first
+          ILO-1 columns of DE is zero.
+
+  LDDE    INTEGER
+          The leading dimension of the array DE.  LDDE &gt;= MAX(1, N).
+
+  C       (input/output) COMPLEX*16 array, dimension (LDC, N)
+          On entry, the leading N-by-N part of this array must
+          contain the matrix C.
+          On exit, the leading N-by-N part of this array contains
+          the matrix C of the balanced Hamiltonian matrix H.
+          In particular, the strictly lower triangular part of the
+          first ILO-1 columns of C is zero.
+
+  LDC     INTEGER
+          The leading dimension of the array C.  LDC &gt;= MAX(1, N).
+
+  VW      (input/output) COMPLEX*16 array, dimension (LDVW, N+1)
+          On entry, the leading N-by-N lower triangular part of
+          this array must contain the lower triangular part of the
+          Hermitian matrix W, and the N-by-N upper triangular
+          part of the submatrix in the columns 2 to N+1 of this
+          array must contain the upper triangular part of the
+          Hermitian matrix V. The imaginary parts of the entries on
+          the diagonal and the first superdiagonal of this array
+          should be zero.
+          On exit, the leading N-by-N lower triangular part of this
+          array contains the lower triangular part of the balanced
+          matrix W, and the N-by-N upper triangular part of the
+          submatrix in the columns 2 to N+1 of this array contains
+          the upper triangular part of the balanced matrix V. In
+          particular, the lower triangular part of the first ILO-1
+          columns of VW is zero.
+
+  LDVW    INTEGER
+          The leading dimension of the array VW.  LDVW &gt;= MAX(1, N).
+
+  ILO     (output) INTEGER
+          ILO-1 is the number of deflated eigenvalues in the
+          balanced skew-Hamiltonian/Hamiltonian matrix pencil.
+          ILO is set to 1 if JOB = 'N' or JOB = 'S'.
+
+  LSCALE  (output) DOUBLE PRECISION array, dimension (N)
+          Details of the permutations of S and H and scaling applied
+          to A, D, C, and V from the left. For j = 1,...,ILO-1 let
+          P(j) = LSCALE(j). If P(j) &lt;= N, then rows and columns P(j)
+          and P(j)+N are interchanged with rows and columns j and
+          j+N, respectively. If P(j) &gt; N, then row and column P(j)-N
+          are interchanged with row and column j+N by a generalized
+          symplectic permutation. For j = ILO,...,N the j-th element
+          of LSCALE contains the factor of the scaling applied to
+          row j of the matrices A, D, C, and V.
+
+  RSCALE  (output) DOUBLE PRECISION array, dimension (N)
+          Details of the permutations of S and H and scaling applied
+          to A, E, C, and W from the right. For j = 1,...,ILO-1 let
+          P(j) = RSCALE(j). If P(j) &lt;= N, then rows and columns P(j)
+          and P(j)+N are interchanged with rows and columns j and
+          j+N, respectively. If P(j) &gt; N, then row and column P(j)-N
+          are interchanged with row and column j+N by a generalized
+          symplectic permutation. For j = ILO,...,N the j-th element
+          of RSCALE contains the factor of the scaling applied to
+          column j of the matrices A, E, C, and W.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK) where
+          LDWORK = 0,   if  JOB = 'N' or JOB = 'P', or N = 0;
+          LDWORK = 6*N, if (JOB = 'S' or JOB = 'B') and THRESH &gt;= 0;
+          LDWORK = 8*N, if (JOB = 'S' or JOB = 'B') and THRESH &lt;  0.
+          On exit, if JOB = 'S' or JOB = 'B', DWORK(1) and DWORK(2)
+          contain the initial 1-norms of S(s,s) and H(s,s), and
+          DWORK(3) and DWORK(4) contain their final 1-norms,
+          respectively. Moreover, DWORK(5) contains the THRESH value
+          used (irrelevant if IWARN = 1 or ILO = N).
+
+</PRE>
+<B>Warning Indicator</B>
+<PRE>
+  IWARN   INTEGER
+          = 0:  no warning;
+          = 1:  scaling has been requested, for THRESH = -2 or
+                THRESH = -4, but it most probably would not improve
+                the accuracy of the computed solution for a related
+                eigenproblem (since maximum norm increased
+                significantly compared to the original pencil
+                matrices and (very) high and/or small scaling
+                factors occurred). The returned scaling factors have
+                been reset to 1, but information about permutations,
+                if requested, has been preserved.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit.
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  Balancing consists of applying a (symplectic) equivalence
+  transformation to isolate eigenvalues and/or to make the 1-norms
+  of each pair of rows and columns indexed by s of S and H nearly
+  equal. If THRESH &lt; 0, a search is performed to find those scaling
+  factors giving the smallest norm ratio or product defined above
+  (see the description of the parameter THRESH).
+
+  Assuming JOB = 'S', let Dl and Dr be diagonal matrices containing
+  the vectors LSCALE and RSCALE, respectively. The returned matrices
+  are obtained using the equivalence transformation
+
+    ( Dl  0 ) ( A  D  ) ( Dr  0 )   ( Dl  0 ) ( C  V  ) ( Dr  0 )
+    (       ) (       ) (       ),  (       ) (       ) (       ).
+    ( 0  Dr ) ( E  A' ) ( 0  Dl )   ( 0  Dr ) ( W -C' ) ( 0  Dl )
+
+  For THRESH = 0, the routine returns essentially the same results
+  as the LAPACK subroutine ZGGBAL [1]. Setting THRESH &lt; 0, usually
+  gives better results than ZGGBAL for badly scaled matrix pencils.
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Anderson, E., Bai, Z., Bischof, C., Demmel, J., Dongarra, J.,
+      Du Croz, J., Greenbaum, A., Hammarling, S., McKenney, A.,
+      Ostrouchov, S., and Sorensen, D.
+      LAPACK Users' Guide: Second Edition.
+      SIAM, Philadelphia, 1995.
+
+  [2] Benner, P.
+      Symplectic balancing of Hamiltonian matrices.
+      SIAM J. Sci. Comput., 22 (5), pp. 1885-1904, 2001.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  The transformations used preserve the skew-Hamiltonian/Hamiltonian
+  structure and do not introduce significant rounding errors.
+  No rounding errors appear if JOB = 'P'. If T is the global
+  transformation matrix applied to the right, then J'*T*J is the
+  global transformation matrix applied to the left, where
+  J = [ 0 I; -I 0 ], with blocks of order N.
+
+</PRE>
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  If THRESH = -2, the increase of the maximum norm of the scaled
+  submatrices, compared to the maximum norm of the initial
+  submatrices, is bounded by MXGAIN = 100.
+  If THRESH = -2, or THRESH = -4, the maximum condition number of
+  the scaling transformations is bounded by MXCOND = 1/SQRT(EPS),
+  where EPS is the machine precision (see LAPACK Library routine
+  DLAMCH).
+
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+*     MB4DPZ EXAMPLE PROGRAM TEXT
+*
+*     .. Parameters ..
+      INTEGER          NIN, NOUT
+      PARAMETER        ( NIN = 5, NOUT = 6 )
+      INTEGER          NMAX
+      PARAMETER        ( NMAX = 10 )
+      INTEGER          LDA, LDC, LDDE, LDVW
+      PARAMETER        ( LDA  = NMAX, LDC = NMAX, LDDE = NMAX,
+     $                   LDVW = NMAX )
+*     .. Local Scalars ..
+      CHARACTER*1      JOB
+      INTEGER          I, ILO, INFO, IWARN, J, N
+      DOUBLE PRECISION THRESH
+*     .. Local Arrays ..
+      COMPLEX*16       A(LDA, NMAX ), C( LDC, NMAX ), DE(LDDE, NMAX),
+     $                 VW(LDVW, NMAX)
+      DOUBLE PRECISION DWORK(8*NMAX), LSCALE(NMAX), RSCALE(NMAX)
+*     .. External Functions ..
+      LOGICAL          LSAME
+      EXTERNAL         LSAME
+*     .. External Subroutines ..
+      EXTERNAL         MB4DPZ
+*     .. Executable Statements ..
+      WRITE ( NOUT, FMT = 99999 )
+*     Skip the heading in the data file and read the data.
+      READ ( NIN, FMT = '()' )
+      READ ( NIN, FMT = * )  N, JOB, THRESH
+      IF( N.LE.0 .OR. N.GT.NMAX ) THEN
+         WRITE ( NOUT, FMT = 99985 ) N
+      ELSE
+         READ ( NIN, FMT = * ) ( ( A(I,J),  J = 1,N ),   I = 1,N )
+         READ ( NIN, FMT = * ) ( ( DE(I,J), J = 1,N+1 ), I = 1,N )
+         READ ( NIN, FMT = * ) ( ( C(I,J),  J = 1,N ),   I = 1,N )
+         READ ( NIN, FMT = * ) ( ( VW(I,J), J = 1,N+1 ), I = 1,N )
+         CALL MB4DPZ( JOB, N, THRESH, A, LDA, DE, LDDE, C, LDC, VW,
+     $                LDVW, ILO, LSCALE, RSCALE, DWORK, IWARN, INFO )
+         IF ( INFO.NE.0 ) THEN
+            WRITE ( NOUT, FMT = 99998 ) INFO
+         ELSE
+            WRITE ( NOUT, FMT = 99997 )
+            DO 10  I = 1, N
+               WRITE ( NOUT, FMT = 99993 ) ( A(I,J), J = 1,N )
+10          CONTINUE
+            WRITE ( NOUT, FMT = 99996 )
+            DO 20  I = 1, N
+               WRITE ( NOUT, FMT = 99993 ) ( DE(I,J), J = 1,N+1 )
+20          CONTINUE
+            WRITE ( NOUT, FMT = 99995 )
+            DO 30  I = 1, N
+               WRITE ( NOUT, FMT = 99993 ) ( C(I,J), J = 1,N )
+30          CONTINUE
+            WRITE ( NOUT, FMT = 99994 )
+            DO 40  I = 1, N
+               WRITE ( NOUT, FMT = 99993 ) ( VW(I,J), J = 1,N+1 )
+40          CONTINUE
+            WRITE ( NOUT, FMT = 99992 )  ILO
+            WRITE ( NOUT, FMT = 99991 )
+            WRITE ( NOUT, FMT = 99984 ) ( LSCALE(I), I = 1,N )
+            WRITE ( NOUT, FMT = 99990 )
+            WRITE ( NOUT, FMT = 99984 ) ( RSCALE(I), I = 1,N )
+            IF ( LSAME( JOB, 'S' ) .OR. LSAME( JOB, 'B' ) ) THEN
+               IF ( .NOT.( THRESH.EQ.-2 .OR. THRESH.EQ.-4 ) ) THEN
+                  WRITE ( NOUT, FMT = 99989 )
+                  WRITE ( NOUT, FMT = 99984 ) ( DWORK(I), I = 1,2 )
+                  WRITE ( NOUT, FMT = 99988 )
+                  WRITE ( NOUT, FMT = 99984 ) ( DWORK(I), I = 3,4 )
+                  WRITE ( NOUT, FMT = 99987 )
+                  WRITE ( NOUT, FMT = 99984 ) ( DWORK(5) )
+               ELSE
+                  WRITE ( NOUT, FMT = 99986 ) IWARN
+               END IF
+            END IF
+         END IF
+      END IF
+*
+99999 FORMAT (' MB4DPZ EXAMPLE PROGRAM RESULTS',/1X)
+99998 FORMAT (' INFO on exit from MB4DPZ = ',I2)
+99997 FORMAT (' The balanced matrix A is ')
+99996 FORMAT (/' The balanced matrix DE is ')
+99995 FORMAT (' The balanced matrix C is ')
+99994 FORMAT (/' The balanced matrix VW is ')
+99993 FORMAT (20( 1X, G11.4, SP, F9.3, S, 'i ') )
+99992 FORMAT (/' ILO = ',I4)
+99991 FORMAT (/' The permutations and left scaling factors are ')
+99990 FORMAT (/' The permutations and right scaling factors are ')
+99989 FORMAT (/' The initial 1-norms of the (sub)matrices are ')
+99988 FORMAT (/' The final 1-norms of the (sub)matrices are ')
+99987 FORMAT (/' The threshold value finally used is ')
+99986 FORMAT (/' IWARN on exit from MB4DPZ = ',I2)
+99985 FORMAT (/' N is out of range.',/' N = ',I5)
+99984 FORMAT (20(1X,G11.4))
+      END
+</PRE>
+<B>Program Data</B>
+<PRE>
+MB4DPZ EXAMPLE PROGRAM DATA
+       2       B      -3
+   (1,0.5)         0
+         0   (1,0.5)
+         0         0         0
+         0         0         0
+   (1,0.5)         0
+         0   (-2,-1)
+         1   -1.e-12         0
+  (-1,0.5)        -1         0
+</PRE>
+<B>Program Results</B>
+<PRE>
+ MB4DPZ EXAMPLE PROGRAM RESULTS
+
+ The balanced matrix A is 
+   1.000       -0.500i    0.000        0.000i 
+   0.000        0.000i    1.000       +0.500i 
+
+ The balanced matrix DE is 
+   0.000        0.000i    0.000       +0.000i    0.000       +0.000i 
+   0.000       +0.000i    0.000       +0.000i    0.000       +0.000i 
+ The balanced matrix C is 
+   2.000       -1.000i    1.000       -0.500i 
+   0.000        0.000i    1.000       +0.500i 
+
+ The balanced matrix VW is 
+   0.000        0.000i    1.000       +0.000i    0.000        0.000i 
+   0.000        0.000i    1.000       +0.000i  -0.1000E-11   +0.000i 
+
+ ILO =    2
+
+ The permutations and left scaling factors are 
+   4.000       1.000    
+
+ The permutations and right scaling factors are 
+   4.000       1.000    
+
+ The initial 1-norms of the (sub)matrices are 
+   1.118       2.118    
+
+ The final 1-norms of the (sub)matrices are 
+   1.118       2.118    
+
+ The threshold value finally used is 
+  -3.000    
+</PRE>
+
+<HR>
+<p>
+<A HREF=..\libindex.html><B>Return to index</B></A></BODY>
+</HTML>

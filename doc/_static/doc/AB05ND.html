@@ -1,0 +1,445 @@
+<HTML>
+<HEAD><TITLE>AB05ND - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="AB05ND">AB05ND</A></H2>
+<H3>
+Feedback inter-connection of two systems in state-space form
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To obtain the state-space model (A,B,C,D) for the feedback
+  inter-connection of two systems, each given in state-space form.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE AB05ND( OVER, N1, M1, P1, N2, ALPHA, A1, LDA1, B1,
+     $                   LDB1, C1, LDC1, D1, LDD1, A2, LDA2, B2, LDB2,
+     $                   C2, LDC2, D2, LDD2, N, A, LDA, B, LDB, C, LDC,
+     $                   D, LDD, IWORK, DWORK, LDWORK, INFO )
+C     .. Scalar Arguments ..
+      CHARACTER         OVER
+      INTEGER           INFO, LDA, LDA1, LDA2, LDB, LDB1, LDB2, LDC,
+     $                  LDC1, LDC2, LDD, LDD1, LDD2, LDWORK, M1, N, N1,
+     $                  N2, P1
+      DOUBLE PRECISION  ALPHA
+C     .. Array Arguments ..
+      INTEGER           IWORK(*)
+      DOUBLE PRECISION  A(LDA,*), A1(LDA1,*), A2(LDA2,*), B(LDB,*),
+     $                  B1(LDB1,*), B2(LDB2,*), C(LDC,*), C1(LDC1,*),
+     $                  C2(LDC2,*), D(LDD,*), D1(LDD1,*), D2(LDD2,*),
+     $                  DWORK(*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  OVER    CHARACTER*1
+          Indicates whether the user wishes to overlap pairs of
+          arrays, as follows:
+          = 'N':  Do not overlap;
+          = 'O':  Overlap pairs of arrays: A1 and A, B1 and B,
+                  C1 and C, and D1 and D, i.e. the same name is
+                  effectively used for each pair (for all pairs)
+                  in the routine call.  In this case, setting
+                  LDA1 = LDA, LDB1 = LDB, LDC1 = LDC, and LDD1 = LDD
+                  will give maximum efficiency.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N1      (input) INTEGER
+          The number of state variables in the first system, i.e.
+          the order of the matrix A1.  N1 &gt;= 0.
+
+  M1      (input) INTEGER
+          The number of input variables for the first system and the
+          number of output variables from the second system.
+          M1 &gt;= 0.
+
+  P1      (input) INTEGER
+          The number of output variables from the first system and
+          the number of input variables for the second system.
+          P1 &gt;= 0.
+
+  N2      (input) INTEGER
+          The number of state variables in the second system, i.e.
+          the order of the matrix A2.  N2 &gt;= 0.
+
+  ALPHA   (input) DOUBLE PRECISION
+          A coefficient multiplying the transfer-function matrix
+          (or the output equation) of the second system.
+          ALPHA = +1 corresponds to positive feedback, and
+          ALPHA = -1 corresponds to negative feedback.
+
+  A1      (input) DOUBLE PRECISION array, dimension (LDA1,N1)
+          The leading N1-by-N1 part of this array must contain the
+          state transition matrix A1 for the first system.
+
+  LDA1    INTEGER
+          The leading dimension of array A1.  LDA1 &gt;= MAX(1,N1).
+
+  B1      (input) DOUBLE PRECISION array, dimension (LDB1,M1)
+          The leading N1-by-M1 part of this array must contain the
+          input/state matrix B1 for the first system.
+
+  LDB1    INTEGER
+          The leading dimension of array B1.  LDB1 &gt;= MAX(1,N1).
+
+  C1      (input) DOUBLE PRECISION array, dimension (LDC1,N1)
+          The leading P1-by-N1 part of this array must contain the
+          state/output matrix C1 for the first system.
+
+  LDC1    INTEGER
+          The leading dimension of array C1.
+          LDC1 &gt;= MAX(1,P1) if N1 &gt; 0.
+          LDC1 &gt;= 1 if N1 = 0.
+
+  D1      (input) DOUBLE PRECISION array, dimension (LDD1,M1)
+          The leading P1-by-M1 part of this array must contain the
+          input/output matrix D1 for the first system.
+
+  LDD1    INTEGER
+          The leading dimension of array D1.  LDD1 &gt;= MAX(1,P1).
+
+  A2      (input) DOUBLE PRECISION array, dimension (LDA2,N2)
+          The leading N2-by-N2 part of this array must contain the
+          state transition matrix A2 for the second system.
+
+  LDA2    INTEGER
+          The leading dimension of array A2.  LDA2 &gt;= MAX(1,N2).
+
+  B2      (input) DOUBLE PRECISION array, dimension (LDB2,P1)
+          The leading N2-by-P1 part of this array must contain the
+          input/state matrix B2 for the second system.
+
+  LDB2    INTEGER
+          The leading dimension of array B2.  LDB2 &gt;= MAX(1,N2).
+
+  C2      (input) DOUBLE PRECISION array, dimension (LDC2,N2)
+          The leading M1-by-N2 part of this array must contain the
+          state/output matrix C2 for the second system.
+
+  LDC2    INTEGER
+          The leading dimension of array C2.
+          LDC2 &gt;= MAX(1,M1) if N2 &gt; 0.
+          LDC2 &gt;= 1 if N2 = 0.
+
+  D2      (input) DOUBLE PRECISION array, dimension (LDD2,P1)
+          The leading M1-by-P1 part of this array must contain the
+          input/output matrix D2 for the second system.
+
+  LDD2    INTEGER
+          The leading dimension of array D2.  LDD2 &gt;= MAX(1,M1).
+
+  N       (output) INTEGER
+          The number of state variables (N1 + N2) in the connected
+          system, i.e. the order of the matrix A, the number of rows
+          of B and the number of columns of C.
+
+  A       (output) DOUBLE PRECISION array, dimension (LDA,N1+N2)
+          The leading N-by-N part of this array contains the state
+          transition matrix A for the connected system.
+          The array A can overlap A1 if OVER = 'O'.
+
+  LDA     INTEGER
+          The leading dimension of array A.  LDA &gt;= MAX(1,N1+N2).
+
+  B       (output) DOUBLE PRECISION array, dimension (LDB,M1)
+          The leading N-by-M1 part of this array contains the
+          input/state matrix B for the connected system.
+          The array B can overlap B1 if OVER = 'O'.
+
+  LDB     INTEGER
+          The leading dimension of array B.  LDB &gt;= MAX(1,N1+N2).
+
+  C       (output) DOUBLE PRECISION array, dimension (LDC,N1+N2)
+          The leading P1-by-N part of this array contains the
+          state/output matrix C for the connected system.
+          The array C can overlap C1 if OVER = 'O'.
+
+  LDC     INTEGER
+          The leading dimension of array C.
+          LDC &gt;= MAX(1,P1) if N1+N2 &gt; 0.
+          LDC &gt;= 1 if N1+N2 = 0.
+
+  D       (output) DOUBLE PRECISION array, dimension (LDD,M1)
+          The leading P1-by-M1 part of this array contains the
+          input/output matrix D for the connected system.
+          The array D can overlap D1 if OVER = 'O'.
+
+  LDD     INTEGER
+          The leading dimension of array D.  LDD &gt;= MAX(1,P1).
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  IWORK   INTEGER array, dimension (P1)
+
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+
+  LDWORK  INTEGER
+          The length of the array DWORK.             If OVER = 'N',
+          LDWORK &gt;= MAX(1, P1*P1, M1*M1, N1*P1), and if OVER = 'O',
+          LDWORK &gt;= MAX(1, N1*P1 + MAX( P1*P1, M1*M1, N1*P1) ),
+                                                     if M1 &lt;= N*N2;
+          LDWORK &gt;= MAX(1, N1*P1 + MAX( P1*P1, M1*(M1+1), N1*P1) ),
+                                                     if M1 &gt;  N*N2.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value.
+          &gt; 0:  if INFO = i, 1 &lt;= i &lt;= P1, the system is not
+                completely controllable. That is, the matrix
+                (I + ALPHA*D1*D2) is exactly singular (the element
+                U(i,i) of the upper triangular factor of LU
+                factorization is exactly zero), possibly due to
+                rounding errors.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  After feedback inter-connection of the two systems,
+
+  X1'     = A1*X1 + B1*U1
+  Y1      = C1*X1 + D1*U1
+
+  X2'     = A2*X2 + B2*U2
+  Y2      = C2*X2 + D2*U2
+
+  (where  '  denotes differentiation with respect to time)
+
+  the following state-space model will be obtained:
+
+  X'      = A*X  +  B*U
+  Y       = C*X  +  D*U
+
+  where       U = U1 + alpha*Y2,    X  =  ( X1 ),
+              Y = Y1 = U2,                ( X2 )
+
+  matrix  A  has the form
+
+  ( A1  -  alpha*B1*E12*D2*C1       -  alpha*B1*E12*C2    ),
+  (        B2*E21*C1            A2  -  alpha*B2*E21*D1*C2 )
+
+  matrix  B  has the form
+
+  (  B1*E12    ),
+  (  B2*E21*D1 )
+
+  matrix  C  has the form
+
+  (  E21*C1     -  alpha*E21*D1*C2 ),
+
+  matrix D  has the form
+
+  (  E21*D1 ),
+
+  E21  =  ( I + alpha*D1*D2 )-INVERSE and
+  E12  =  ( I + alpha*D2*D1 )-INVERSE = I - alpha*D2*E21*D1.
+
+  Taking N1 = 0 and/or N2 = 0 on the routine call will solve the
+  constant plant and/or constant feedback cases.
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  None
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  None
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+*     AB05ND EXAMPLE PROGRAM TEXT
+*
+*     .. Parameters ..
+      INTEGER          NIN, NOUT
+      PARAMETER        ( NIN = 5, NOUT = 6 )
+      INTEGER          N1MAX, N2MAX, NMAX, M1MAX, P1MAX
+      PARAMETER        ( N1MAX = 20, N2MAX = 20, NMAX = N1MAX+N2MAX,
+     $                   M1MAX = 20, P1MAX = 20 )
+      INTEGER          LDA, LDA1, LDA2, LDB, LDB1, LDB2, LDC, LDC1,
+     $                 LDC2, LDD, LDD1, LDD2
+      PARAMETER        ( LDA = NMAX, LDA1 = N1MAX, LDA2 = N2MAX,
+     $                   LDB = NMAX, LDB1 = N1MAX, LDB2 = N2MAX,
+     $                   LDC = P1MAX, LDC1 = P1MAX, LDC2 = M1MAX,
+     $                   LDD = P1MAX, LDD1 = P1MAX, LDD2 = M1MAX )
+      INTEGER          LDWORK
+      PARAMETER        ( LDWORK = P1MAX*P1MAX )
+      DOUBLE PRECISION ONE
+      PARAMETER        ( ONE=1.0D0 )
+*     .. Local Scalars ..
+      CHARACTER*1      OVER
+      INTEGER          I, INFO, J, M1, N, N1, N2, P1
+      DOUBLE PRECISION ALPHA
+*     .. Local Arrays ..
+      INTEGER          IWORK(P1MAX)
+      DOUBLE PRECISION A(LDA,NMAX), A1(LDA1,N1MAX), A2(LDA2,N2MAX),
+     $                 B(LDB,M1MAX), B1(LDB1,M1MAX), B2(LDB2,P1MAX),
+     $                 C(LDC,NMAX), C1(LDC1,N1MAX), C2(LDC2,N2MAX),
+     $                 D(LDD,M1MAX), D1(LDD1,M1MAX), D2(LDD2,P1MAX),
+     $                 DWORK(LDWORK)
+*     .. External Subroutines ..
+      EXTERNAL         AB05ND
+*     .. Executable Statements ..
+*
+      OVER = 'N'
+      ALPHA = ONE
+      WRITE ( NOUT, FMT = 99999 )
+*     Skip the heading in the data file and read the data.
+      READ ( NIN, FMT = '()' )
+      READ ( NIN, FMT = * ) N1, M1, P1, N2
+      IF ( N1.LE.0 .OR. N1.GT.N1MAX ) THEN
+         WRITE ( NOUT, FMT = 99992 ) N1
+      ELSE
+         READ ( NIN, FMT = * ) ( ( A1(I,J), J = 1,N1 ), I = 1,N1 )
+         IF ( M1.LE.0 .OR. M1.GT.M1MAX ) THEN
+            WRITE ( NOUT, FMT = 99991 ) M1
+         ELSE
+            READ ( NIN, FMT = * ) ( ( B1(I,J), I = 1,N1 ), J = 1,M1 )
+            IF ( P1.LE.0 .OR. P1.GT.P1MAX ) THEN
+               WRITE ( NOUT, FMT = 99990 ) P1
+            ELSE
+               READ ( NIN, FMT = * ) ( ( C1(I,J), J = 1,N1 ), I = 1,P1 )
+               READ ( NIN, FMT = * ) ( ( D1(I,J), J = 1,M1 ), I = 1,P1 )
+               IF ( N2.LE.0 .OR. N2.GT.N2MAX ) THEN
+                  WRITE ( NOUT, FMT = 99989 ) N2
+               ELSE
+                  READ ( NIN, FMT = * )
+     $                 ( ( A2(I,J), J = 1,N2 ), I = 1,N2 )
+                  READ ( NIN, FMT = * )
+     $                 ( ( B2(I,J), I = 1,N2 ), J = 1,P1 )
+                  READ ( NIN, FMT = * )
+     $                 ( ( C2(I,J), J = 1,N2 ), I = 1,M1 )
+                  READ ( NIN, FMT = * )
+     $                 ( ( D2(I,J), J = 1,P1 ), I = 1,M1 )
+*                 Find the state-space model (A,B,C,D).
+                  CALL AB05ND( OVER, N1, M1, P1, N2, ALPHA, A1, LDA1,
+     $                         B1, LDB1, C1, LDC1, D1, LDD1, A2, LDA2,
+     $                         B2, LDB2, C2, LDC2, D2, LDD2, N, A, LDA,
+     $                         B, LDB, C, LDC, D, LDD, IWORK, DWORK,
+     $                         LDWORK, INFO )
+*
+                  IF ( INFO.NE.0 ) THEN
+                     WRITE ( NOUT, FMT = 99998 ) INFO
+                  ELSE
+                     WRITE ( NOUT, FMT = 99997 )
+                     DO 20 I = 1, N
+                        WRITE ( NOUT, FMT = 99996 ) ( A(I,J), J = 1,N )
+   20                CONTINUE
+                     WRITE ( NOUT, FMT = 99995 )
+                     DO 40 I = 1, N
+                        WRITE ( NOUT, FMT = 99996 ) ( B(I,J), J = 1,M1 )
+   40                CONTINUE
+                     WRITE ( NOUT, FMT = 99994 )
+                     DO 60 I = 1, P1
+                        WRITE ( NOUT, FMT = 99996 ) ( C(I,J), J = 1,N )
+   60                CONTINUE
+                     WRITE ( NOUT, FMT = 99993 )
+                     DO 80 I = 1, P1
+                        WRITE ( NOUT, FMT = 99996 ) ( D(I,J), J = 1,M1 )
+   80                CONTINUE
+                  END IF
+               END IF
+            END IF
+         END IF
+      END IF
+      STOP
+*
+99999 FORMAT (' AB05ND EXAMPLE PROGRAM RESULTS',/1X)
+99998 FORMAT (' INFO on exit from AB05ND = ',I2)
+99997 FORMAT (' The state transition matrix of the connected system is')
+99996 FORMAT (20(1X,F8.4))
+99995 FORMAT (/' The input/state matrix of the connected system is ')
+99994 FORMAT (/' The state/output matrix of the connected system is ')
+99993 FORMAT (/' The input/output matrix of the connected system is ')
+99992 FORMAT (/' N1 is out of range.',/' N1 = ',I5)
+99991 FORMAT (/' M1 is out of range.',/' M1 = ',I5)
+99990 FORMAT (/' P1 is out of range.',/' P1 = ',I5)
+99989 FORMAT (/' N2 is out of range.',/' N2 = ',I5)
+      END
+</PRE>
+<B>Program Data</B>
+<PRE>
+ AB05ND EXAMPLE PROGRAM DATA
+   3     2     2     3
+   1.0   0.0  -1.0
+   0.0  -1.0   1.0
+   1.0   1.0   2.0
+   1.0   1.0   0.0
+   2.0   0.0   1.0
+   3.0  -2.0   1.0
+   0.0   1.0   0.0
+   1.0   0.0
+   0.0   1.0
+  -3.0   0.0   0.0
+   1.0   0.0   1.0
+   0.0  -1.0   2.0
+   0.0  -1.0   0.0
+   1.0   0.0   2.0
+   1.0   1.0   0.0
+   1.0   1.0  -1.0
+   1.0   1.0
+   0.0   1.0
+</PRE>
+<B>Program Results</B>
+<PRE>
+ AB05ND EXAMPLE PROGRAM RESULTS
+
+ The state transition matrix of the connected system is
+  -0.5000  -0.2500  -1.5000  -1.2500  -1.2500   0.7500
+  -1.5000  -0.2500   0.5000  -0.2500  -0.2500  -0.2500
+   1.0000   0.5000   2.0000  -0.5000  -0.5000   0.5000
+   0.0000   0.5000   0.0000  -3.5000  -0.5000   0.5000
+  -1.5000   1.2500  -0.5000   1.2500   0.2500   1.2500
+   0.0000   1.0000   0.0000  -1.0000  -2.0000   3.0000
+
+ The input/state matrix of the connected system is 
+   0.5000   0.7500
+   0.5000  -0.2500
+   0.0000   0.5000
+   0.0000   0.5000
+  -0.5000   0.2500
+   0.0000   1.0000
+
+ The state/output matrix of the connected system is 
+   1.5000  -1.2500   0.5000  -0.2500  -0.2500  -0.2500
+   0.0000   0.5000   0.0000  -0.5000  -0.5000   0.5000
+
+ The input/output matrix of the connected system is 
+   0.5000  -0.2500
+   0.0000   0.5000
+</PRE>
+
+<HR>
+<p>
+<A HREF=..\libindex.html><B>Return to index</B></A></BODY>
+</HTML>

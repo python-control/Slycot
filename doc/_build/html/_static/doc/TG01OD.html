@@ -1,0 +1,181 @@
+<HTML>
+<HEAD><TITLE>TG01OD - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="TG01OD">TG01OD</A></H2>
+<H3>
+Reducing a SISO descriptor system with E nonsingular so that the obtained feedthrough term has a sufficiently large magnitude
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To compute for a single-input single-output descriptor system,
+  given by the system matrix
+
+     [ D     C    ]
+     [ B  A - s*E ],
+
+  with E nonsingular, a reduced system matrix,
+
+     [ d     c    ]
+     [ b  a - s*e ],
+
+  such that d has a "sufficiently" large magnitude.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE TG01OD( JOBE, N, DCBA, LDDCBA, E, LDE, NZ, G, TOL,
+     $                   DWORK, LDWORK, INFO )
+C     .. Scalar Arguments ..
+      CHARACTER         JOBE
+      INTEGER           INFO, LDDCBA, LDWORK, LDE, N, NZ
+      DOUBLE PRECISION  G, TOL
+C     .. Array Arguments ..
+      DOUBLE PRECISION  DCBA(LDDCBA,*), DWORK(*), E(LDE,*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  JOBE    CHARACTER*1
+          Specifies whether E is a general or an identity matrix,
+          as follows:
+          = 'G':  The matrix E is a general matrix;
+          = 'I':  The matrix E is assumed identity and is not given.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The dimension of the descriptor state vector; also the
+          order of square matrices A and E, the number of rows of
+          matrix B, and the number of columns of matrix C.  N &gt;= 0.
+
+  DCBA    (input/output) DOUBLE PRECISION array, dimension
+          (LDDCBA,N+1)
+          On entry, the leading (N+1)-by-(N+1) part of this array
+          must contain the original system matrices A, B, C, and D,
+          stored as follows
+
+             [ D  C ]
+             [ B  A ].
+
+          On exit, the leading (NZ+1)-by-(NZ+1) part of this array
+          contains the reduced system matrices a, b, c, and d.
+
+  LDDCBA  INTEGER
+          The leading dimension of the array DCBA.  LDDCBA &gt;= N+1.
+
+  E       (input/output) DOUBLE PRECISION array, dimension (LDE,*)
+          On entry, if JOBE = 'G', the leading N-by-N part of this
+          array must contain the nonsingular descriptor matrix E.
+          On exit, if JOBE = 'G', the leading NZ-by-NZ part of this
+          array contains the reduced descriptor matrix e.
+          If JOBE = 'I', this array is not referenced.
+
+  LDE     INTEGER
+          The leading dimension of the array E.
+          LDE &gt;= MAX(1,N), if JOBE = 'G';
+          LDE &gt;= 1,        if JOBE = 'I'.
+
+  NZ      (output) INTEGER
+          The order of the reduced system.
+
+  G       (output) DOUBLE PRECISION
+          The gain of the reduced system.
+
+</PRE>
+<B>Tolerances</B>
+<PRE>
+  TOL     DOUBLE PRECISION
+          The tolerance to be used in determining if the transformed
+          d has a "sufficiently" large magnitude. If the user sets
+          TOL &gt; 0, then the given value of TOL is used. If the user
+          sets TOL &lt;= 0, then an implicitly computed, default
+          tolerance, defined by TOLDEF = EPS**(3/4), is used
+          instead, where EPS is the machine precision (see LAPACK
+          Library routine DLAMCH).
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+          On exit, if INFO = 0, DWORK(1) returns the optimal value
+          of LDWORK.
+          On exit, if INFO = -11, DWORK(1) returns the minimum value
+          of LDWORK.
+
+  LDWORK  INTEGER
+          The length of the array DWORK.
+          LDWORK &gt;= 2*N+1,  if JOBE = 'G';
+          LDWORK &gt;=   N+1,  if JOBE = 'I'.
+          For good performance when JOBE = 'G', LDWORK should be
+          larger. Specifically,
+             LDWORK &gt;= MAX( N*NB(DGEQRF), (N+1)*NB(DORMQR) ),
+          where NB(X) is the optimal block sizes for the LAPACK
+          Library routine X.
+
+          If LDWORK = -1, then a workspace query is assumed;
+          the routine only calculates the optimal size of the
+          DWORK array, returns this value as the first entry of
+          the DWORK array, and no error message related to LDWORK
+          is issued by XERBLA.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  Householder transformations and Givens rotations are used to
+  process the matrices. If E is a general matrix, it is first
+  triangularized using the QR decomposition, and the triangular form
+  is preserved during the remaining computations.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  The algorithm is numerically backward stable.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<p>
+<A HREF=..\libindex.html><B>Return to index</B></A></BODY>
+</HTML>

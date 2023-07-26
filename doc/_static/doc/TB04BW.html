@@ -1,0 +1,159 @@
+<HTML>
+<HEAD><TITLE>TB04BW - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="TB04BW">TB04BW</A></H2>
+<H3>
+Sum of a rational matrix and a real matrix
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To compute the sum of an P-by-M rational matrix G and a real
+  P-by-M matrix D.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE TB04BW( ORDER, P, M, MD, IGN, LDIGN, IGD, LDIGD, GN,
+     $                   GD, D, LDD, INFO )
+C     .. Scalar Arguments ..
+      CHARACTER          ORDER
+      INTEGER            INFO, LDD, LDIGD, LDIGN, M, MD, P
+C     .. Array Arguments ..
+      DOUBLE PRECISION   D(LDD,*), GD(*), GN(*)
+      INTEGER            IGD(LDIGD,*), IGN(LDIGN,*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  ORDER   CHARACTER*1
+          Specifies the order in which the polynomial coefficients
+          of the rational matrix are stored, as follows:
+          = 'I':  Increasing order of powers of the indeterminate;
+          = 'D':  Decreasing order of powers of the indeterminate.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  P       (input) INTEGER
+          The number of the system outputs.  P &gt;= 0.
+
+  M       (input) INTEGER
+          The number of the system inputs.  M &gt;= 0.
+
+  MD      (input) INTEGER
+          The maximum degree of the polynomials in G, plus 1, i.e.,
+          MD = MAX(IGN(I,J),IGD(I,J)) + 1.
+               I,J
+
+  IGN     (input/output) INTEGER array, dimension (LDIGN,M)
+          On entry, the leading P-by-M part of this array must
+          contain the degrees of the numerator polynomials in G:
+          the (i,j) element of IGN must contain the degree of the
+          numerator polynomial of the polynomial ratio G(i,j).
+          On exit, the leading P-by-M part of this array contains
+          the degrees of the numerator polynomials in G + D.
+
+  LDIGN   INTEGER
+          The leading dimension of array IGN.  LDIGN &gt;= max(1,P).
+
+  IGD     (input) INTEGER array, dimension (LDIGD,M)
+          The leading P-by-M part of this array must contain the
+          degrees of the denominator polynomials in G (and G + D):
+          the (i,j) element of IGD contains the degree of the
+          denominator polynomial of the polynomial ratio G(i,j).
+
+  LDIGD   INTEGER
+          The leading dimension of array IGD.  LDIGD &gt;= max(1,P).
+
+  GN      (input/output) DOUBLE PRECISION array, dimension (P*M*MD)
+          On entry, this array must contain the coefficients of the
+          numerator polynomials, Num(i,j), of the rational matrix G.
+          The polynomials are stored in a column-wise order, i.e.,
+          Num(1,1), Num(2,1), ..., Num(P,1), Num(1,2), Num(2,2),
+          ..., Num(P,2), ..., Num(1,M), Num(2,M), ..., Num(P,M);
+          MD memory locations are reserved for each polynomial,
+          hence, the (i,j) polynomial is stored starting from the
+          location ((j-1)*P+i-1)*MD+1. The coefficients appear in
+          increasing or decreasing order of the powers of the
+          indeterminate, according to ORDER.
+          On exit, this array contains the coefficients of the
+          numerator polynomials of the rational matrix G + D,
+          stored similarly.
+
+  GD      (input) DOUBLE PRECISION array, dimension (P*M*MD)
+          This array must contain the coefficients of the
+          denominator polynomials, Den(i,j), of the rational
+          matrix G. The polynomials are stored as for the
+          numerator polynomials.
+
+  D       (input) DOUBLE PRECISION array, dimension (LDD,M)
+          The leading P-by-M part of this array must contain the
+          matrix D.
+
+  LDD     INTEGER
+          The leading dimension of array D.  LDD &gt;= max(1,P).
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  The (i,j) entry of the real matrix D is added to the (i,j) entry
+  of the matrix G, g(i,j), which is a ratio of two polynomials,
+  for i = 1 : P, and for j = 1 : M. If g(i,j) = 0, it is assumed
+  that its denominator is 1.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  The algorithm is numerically stable.
+
+</PRE>
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  Often, the rational matrix G is found from a state-space
+  representation (A,B,C), and D corresponds to the direct
+  feedthrough matrix of the system. The sum G + D gives the
+  transfer function matrix of the system (A,B,C,D).
+  For maximum efficiency of index calculations, GN and GD are
+  implemented as one-dimensional arrays.
+
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

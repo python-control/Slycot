@@ -1,0 +1,210 @@
+<HTML>
+<HEAD><TITLE>MB03OY - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MB03OY">MB03OY</A></H2>
+<H3>
+Matrix rank determination by incremental condition estimation, during the pivoted QR factorization process
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To compute a rank-revealing QR factorization of a real general
+  M-by-N matrix  A,  which may be rank-deficient, and estimate its
+  effective rank using incremental condition estimation.
+
+  The routine uses a truncated QR factorization with column pivoting
+                                [ R11 R12 ]
+     A * P = Q * R,  where  R = [         ],
+                                [  0  R22 ]
+  with R11 defined as the largest leading upper triangular submatrix
+  whose estimated condition number is less than 1/RCOND.  The order
+  of R11, RANK, is the effective rank of A.  Condition estimation is
+  performed during the QR factorization process.  Matrix R22 is full
+  (but of small norm), or empty.
+
+  MB03OY  does not perform any scaling of the matrix A.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MB03OY( M, N, A, LDA, RCOND, SVLMAX, RANK, SVAL, JPVT,
+     $                   TAU, DWORK, INFO )
+C     .. Scalar Arguments ..
+      INTEGER            INFO, LDA, M, N, RANK
+      DOUBLE PRECISION   RCOND, SVLMAX
+C     .. Array Arguments ..
+      INTEGER            JPVT( * )
+      DOUBLE PRECISION   A( LDA, * ), DWORK( * ), SVAL( 3 ), TAU( * )
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  M       (input) INTEGER
+          The number of rows of the matrix A.  M &gt;= 0.
+
+  N       (input) INTEGER
+          The number of columns of the matrix A.  N &gt;= 0.
+
+  A       (input/output) DOUBLE PRECISION array, dimension
+          ( LDA, N )
+          On entry, the leading M-by-N part of this array must
+          contain the given matrix A.
+          On exit, the leading RANK-by-RANK upper triangular part
+          of A contains the triangular factor R11, and the elements
+          below the diagonal in the first  RANK  columns, with the
+          array TAU, represent the orthogonal matrix Q as a product
+          of  RANK  elementary reflectors.
+          The remaining  N-RANK  columns contain the result of the
+          QR factorization process used.
+
+  LDA     INTEGER
+          The leading dimension of the array A.  LDA &gt;= max(1,M).
+
+  RCOND   (input) DOUBLE PRECISION
+          RCOND is used to determine the effective rank of A, which
+          is defined as the order of the largest leading triangular
+          submatrix R11 in the QR factorization with pivoting of A,
+          whose estimated condition number is less than 1/RCOND.
+          0 &lt;= RCOND &lt;= 1.
+          NOTE that when SVLMAX &gt; 0, the estimated rank could be
+          less than that defined above (see SVLMAX).
+
+  SVLMAX  (input) DOUBLE PRECISION
+          If A is a submatrix of another matrix B, and the rank
+          decision should be related to that matrix, then SVLMAX
+          should be an estimate of the largest singular value of B
+          (for instance, the Frobenius norm of B).  If this is not
+          the case, the input value SVLMAX = 0 should work.
+          SVLMAX &gt;= 0.
+
+  RANK    (output) INTEGER
+          The effective (estimated) rank of A, i.e., the order of
+          the submatrix R11.
+
+  SVAL    (output) DOUBLE PRECISION array, dimension ( 3 )
+          The estimates of some of the singular values of the
+          triangular factor R:
+          SVAL(1): largest singular value of R(1:RANK,1:RANK);
+          SVAL(2): smallest singular value of R(1:RANK,1:RANK);
+          SVAL(3): smallest singular value of R(1:RANK+1,1:RANK+1),
+                   if RANK &lt; MIN( M, N ), or of R(1:RANK,1:RANK),
+                   otherwise.
+          If the triangular factorization is a rank-revealing one
+          (which will be the case if the leading columns were well-
+          conditioned), then SVAL(1) will also be an estimate for
+          the largest singular value of A, and SVAL(2) and SVAL(3)
+          will be estimates for the RANK-th and (RANK+1)-st singular
+          values of A, respectively.
+          By examining these values, one can confirm that the rank
+          is well defined with respect to the chosen value of RCOND.
+          The ratio SVAL(1)/SVAL(2) is an estimate of the condition
+          number of R(1:RANK,1:RANK).
+
+  JPVT    (output) INTEGER array, dimension ( N )
+          If JPVT(i) = k, then the i-th column of A*P was the k-th
+          column of A.
+
+  TAU     (output) DOUBLE PRECISION array, dimension ( MIN( M, N ) )
+          The leading  RANK  elements of TAU contain the scalar
+          factors of the elementary reflectors.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  DWORK   DOUBLE PRECISION array, dimension ( 3*N-1 )
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  The routine computes a truncated QR factorization with column
+  pivoting of A,  A * P = Q * R,  with  R  defined above, and,
+  during this process, finds the largest leading submatrix whose
+  estimated condition number is less than 1/RCOND, taking the
+  possible positive value of SVLMAX into account.  This is performed
+  using the LAPACK incremental condition estimation scheme and a
+  slightly modified rank decision test.  The factorization process
+  stops when  RANK  has been determined.
+
+  The matrix Q is represented as a product of elementary reflectors
+
+     Q = H(1) H(2) . . . H(k), where k = rank &lt;= min(m,n).
+
+  Each H(i) has the form
+
+     H = I - tau * v * v'
+
+  where tau is a real scalar, and v is a real vector with
+  v(1:i-1) = 0 and v(i) = 1; v(i+1:m) is stored on exit in
+  A(i+1:m,i), and tau in TAU(i).
+
+  The matrix P is represented in jpvt as follows: If
+     jpvt(j) = i
+  then the jth column of P is the ith canonical unit vector.
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Bischof, C.H. and P. Tang.
+      Generalizing Incremental Condition Estimation.
+      LAPACK Working Notes 32, Mathematics and Computer Science
+      Division, Argonne National Laboratory, UT, CS-91-132,
+      May 1991.
+
+  [2] Bischof, C.H. and P. Tang.
+      Robust Incremental Condition Estimation.
+      LAPACK Working Notes 33, Mathematics and Computer Science
+      Division, Argonne National Laboratory, UT, CS-91-133,
+      May 1991.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  The algorithm is backward stable.
+
+</PRE>
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  For a matrix with a small norm, the rank is set to zero if the
+  largest column Euclidean norm is smaller than or equal to RCOND.
+
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

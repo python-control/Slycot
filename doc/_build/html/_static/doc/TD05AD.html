@@ -1,0 +1,207 @@
+<HTML>
+<HEAD><TITLE>TD05AD - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="TD05AD">TD05AD</A></H2>
+<H3>
+Evaluation of a transfer function G(jW) for a specified frequency
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  Given a complex valued rational function of frequency (transfer
+  function) G(jW) this routine will calculate its complex value or
+  its magnitude and phase for a specified frequency value.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE TD05AD( UNITF, OUTPUT, NP1, MP1, W, A, B, VALR, VALI,
+     $                   INFO )
+C     .. Scalar Arguments ..
+      CHARACTER         OUTPUT, UNITF
+      INTEGER           INFO, MP1, NP1
+      DOUBLE PRECISION  VALI, VALR, W
+C     .. Array Arguments ..
+      DOUBLE PRECISION  A(*), B(*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  UNITF   CHARACTER*1
+          Indicates the choice of frequency unit as follows:
+          = 'R':  Input frequency W in radians/second;
+          = 'H':  Input frequency W in hertz.
+
+  OUTPUT  CHARACTER*1
+          Indicates the choice of co-ordinates for output as folows:
+          = 'C':  Cartesian co-ordinates (output real and imaginary
+                  parts of G(jW));
+          = 'P':  Polar co-ordinates (output magnitude and phase
+                  of G(jW)).
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  NP1     (input) INTEGER
+          The order of the denominator + 1, i.e. N + 1.  NP1 &gt;= 1.
+
+  MP1     (input) INTEGER
+          The order of the numerator + 1, i.e. M + 1.  MP1 &gt;= 1.
+
+  W       (input) DOUBLE PRECISION
+          The frequency value W for which the transfer function is
+          to be evaluated.
+
+  A       (input) DOUBLE PRECISION array, dimension (NP1)
+          This array must contain the vector of denominator
+          coefficients in ascending order of powers. That is, A(i)
+          must contain the coefficient of (jW)**(i-1) for i = 1,
+          2,...,NP1.
+
+  B       (input) DOUBLE PRECISION array, dimension (MP1)
+          This array must contain the vector of numerator
+          coefficients in ascending order of powers. That is, B(i)
+          must contain the coefficient of (jW)**(i-1) for i = 1,
+          2,...,MP1.
+
+  VALR    (output) DOUBLE PRECISION
+          If OUTPUT = 'C', VALR contains the real part of G(jW).
+          If OUTPUT = 'P', VALR contains the magnitude of G(jW)
+                           in dBs.
+
+  VALI    (output) DOUBLE PRECISION
+          If OUTPUT = 'C', VALI contains the imaginary part of
+                           G(jW).
+          If OUTPUT = 'P', VALI contains the phase of G(jW) in
+                           degrees.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value;
+          = 1:  if the frequency value W is a pole of G(jW), or all
+                the coefficients of the A polynomial are zero.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  By substituting the values of A, B and W in the following
+  formula:
+
+         B(1)+B(2)*(jW)+B(3)*(jW)**2+...+B(MP1)*(jW)**(MP1-1)
+  G(jW) = ---------------------------------------------------.
+         A(1)+A(2)*(jW)+A(3)*(jW)**2+...+A(NP1)*(jW)**(NP1-1)
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  None.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  The algorithm requires 0(N+M) operations.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+*     TD05AD EXAMPLE PROGRAM TEXT.
+*
+*     .. Parameters ..
+      INTEGER          NIN, NOUT
+      PARAMETER        ( NIN = 5, NOUT = 6 )
+      INTEGER          NP1MAX, MP1MAX
+      PARAMETER        ( NP1MAX = 20, MP1MAX = 20 )
+*     .. Local Scalars ..
+      DOUBLE PRECISION VALI, VALR, W
+      INTEGER          I, INFO, MP1, NP1
+      CHARACTER*1      UNITF, OUTPUT
+*     .. Local Arrays ..
+      DOUBLE PRECISION A(NP1MAX), B(MP1MAX)
+*     .. External Functions ..
+      LOGICAL          LSAME
+      EXTERNAL         LSAME
+*     .. External Subroutines ..
+      EXTERNAL         TD05AD
+*     .. Executable Statements ..
+*
+      WRITE ( NOUT, FMT = 99999 )
+*     Skip the heading in the data file and read the data.
+      READ ( NIN, FMT = '()' )
+      READ ( NIN, FMT = * ) NP1, MP1, W, UNITF, OUTPUT
+      IF ( NP1.LE.0 .OR. NP1.GT.NP1MAX ) THEN
+         WRITE ( NOUT, FMT = 99995 ) NP1
+      ELSE
+         READ ( NIN, FMT = * ) ( A(I), I = 1,NP1 )
+         IF ( MP1.LE.0 .OR. MP1.GT.MP1MAX ) THEN
+            WRITE ( NOUT, FMT = 99994 ) MP1
+         ELSE
+            READ ( NIN, FMT = * ) ( B(I), I = 1,MP1 )
+*           Find the real and imaginary parts of G(jW), where
+*           W = 1.0 radian.
+            CALL TD05AD( UNITF, OUTPUT, NP1, MP1, W, A, B, VALR, VALI,
+     $                   INFO )
+*
+            IF ( INFO.NE.0 ) THEN
+               WRITE ( NOUT, FMT = 99998 ) INFO
+            ELSE
+               IF ( LSAME( OUTPUT, 'C' ) ) THEN
+                  WRITE ( NOUT, FMT = 99997 ) VALR, VALI
+               ELSE
+                  WRITE ( NOUT, FMT = 99996 ) VALR, VALI
+               END IF
+            END IF
+         END IF
+      END IF
+      STOP
+*
+99999 FORMAT (' TD05AD EXAMPLE PROGRAM RESULTS',/1X)
+99998 FORMAT (' INFO on exit from TD05AD = ',I2)
+99997 FORMAT (' Complex value of G(jW) = ',F8.4,1X,F8.4,'*j')
+99996 FORMAT (' Magnitude of G(jW) = ',F8.4,' dBs, Phase of G(jW) = ',
+     $       F8.4,' degrees ')
+99995 FORMAT (/' NP1 is out of range.',/' NP1 = ',I5)
+99994 FORMAT (/' MP1 is out of range.',/' MP1 = ',I5)
+      END
+</PRE>
+<B>Program Data</B>
+<PRE>
+ TD05AD EXAMPLE PROGRAM DATA
+   6     4     1.0     R     C
+   1.0   1.0   0.0   0.0   2.0   1.0
+   6.0   2.0   3.0   1.0
+</PRE>
+<B>Program Results</B>
+<PRE>
+ TD05AD EXAMPLE PROGRAM RESULTS
+
+ Complex value of G(jW) =   0.8462  -0.2308*j
+</PRE>
+
+<HR>
+<p>
+<A HREF=..\libindex.html><B>Return to index</B></A></BODY>
+</HTML>

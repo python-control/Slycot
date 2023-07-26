@@ -1,0 +1,261 @@
+<HTML>
+<HEAD><TITLE>MB03ND - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MB03ND">MB03ND</A></H2>
+<H3>
+Number of singular values of a bidiagonal matrix less than a bound
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To find the number of singular values of the bidiagonal matrix
+
+           |q(1) e(1)  .    ...    0   |
+           | 0   q(2) e(2)         .   |
+       J = | .                     .   |
+           | .                   e(N-1)|
+           | 0   ...     ...   0  q(N) |
+
+  which are less than or equal to a given bound THETA.
+
+  This routine is intended to be called only by other SLICOT
+  routines.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      INTEGER FUNCTION MB03ND( N, THETA, Q2, E2, PIVMIN, INFO )
+C     .. Scalar Arguments ..
+      INTEGER           INFO, N
+      DOUBLE PRECISION  PIVMIN, THETA
+C     .. Array Arguments ..
+      DOUBLE PRECISION  E2(*), Q2(*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The order of the bidiagonal matrix J.  N &gt;= 0.
+
+  THETA   (input) DOUBLE PRECISION
+          Given bound.
+          Note: If THETA &lt; 0.0 on entry, then MB03ND is set to 0
+                as the singular values of J are non-negative.
+
+  Q2      (input) DOUBLE PRECISION array, dimension (N)
+          This array must contain the squares of the diagonal
+          elements q(1),q(2),...,q(N) of the bidiagonal matrix J.
+          That is, Q2(i) = J(i,i)**2 for i = 1,2,...,N.
+
+  E2      (input) DOUBLE PRECISION array, dimension (N-1)
+          This array must contain the squares of the superdiagonal
+          elements e(1),e(2),...,e(N-1) of the bidiagonal matrix J.
+          That is, E2(k) = J(k,k+1)**2 for k = 1,2,...,N-1.
+
+  PIVMIN  (input) DOUBLE PRECISION
+          The minimum absolute value of a "pivot" in the Sturm
+          sequence loop.
+          PIVMIN &gt;= max( max( |q(i)|, |e(k)| )**2*sf_min, sf_min ),
+          where i = 1,2,...,N, k = 1,2,...,N-1, and sf_min is at
+          least the smallest number that can divide one without
+          overflow (see LAPACK Library routine DLAMCH).
+          Note that this condition is not checked by the routine.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  The computation of the number of singular values s(i) of J which
+  are less than or equal to THETA is based on applying Sylvester's
+  Law of Inertia, or equivalently, Sturm sequences [1,p.52] to the
+  unreduced symmetric tridiagonal matrices associated with J as
+  follows. Let T be the following 2N-by-2N symmetric matrix
+  associated with J:
+
+            | 0   J'|
+       T =  |       |.
+            | J   0 |
+
+  (The eigenvalues of T are given by s(1),s(2),...,s(N),-s(1),-s(2),
+  ...,-s(N)). Then, by permuting the rows and columns of T into the
+  order 1, N+1, 2, N+2, ..., N, 2N it follows that T is orthogonally
+  similar to the tridiagonal matrix T" with zeros on its diagonal
+  and q(1), e(1), q(2), e(2), ..., e(N-1), q(N) on its offdiagonals
+  [3,4]. If q(1),q(2),...,q(N) and e(1),e(2),...,e(N-1) are nonzero,
+  Sylvester's Law of Inertia may be applied directly to T".
+  Otherwise, T" is block diagonal and each diagonal block (which is
+  then unreduced) must be analysed separately by applying
+  Sylvester's Law of Inertia.
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Parlett, B.N.
+      The Symmetric Eigenvalue Problem.
+      Prentice Hall, Englewood Cliffs, New Jersey, 1980.
+
+  [2] Demmel, J. and Kahan, W.
+      Computing Small Singular Values of Bidiagonal Matrices with
+      Guaranteed High Relative Accuracy.
+      Technical Report, Courant Inst., New York, March 1988.
+
+  [3] Van Huffel, S. and Vandewalle, J.
+      The Partial Total Least-Squares Algorithm.
+      J. Comput. and Appl. Math., 21, pp. 333-341, 1988.
+
+  [4] Golub, G.H. and Kahan, W.
+      Calculating the Singular Values and Pseudo-inverse of a
+      Matrix.
+      SIAM J. Numer. Anal., Ser. B, 2, pp. 205-224, 1965.
+
+  [5] Demmel, J.W., Dhillon, I. and Ren, H.
+      On the Correctness of Parallel Bisection in Floating Point.
+      Computer Science Division Technical Report UCB//CSD-94-805,
+      University of California, Berkeley, CA 94720, March 1994.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  The singular values s(i) could also be obtained with the use of
+  the symmetric tridiagonal matrix T = J'J, whose eigenvalues are
+  the squared singular values of J [4,p.213]. However, the method
+  actually used by the routine is more accurate and equally
+  efficient (see [2]).
+
+  To avoid overflow, matrix J should be scaled so that its largest
+  element is no greater than  overflow**(1/2) * underflow**(1/4)
+  in absolute value (and not much smaller than that, for maximal
+  accuracy).
+
+  With respect to accuracy the following condition holds (see [2]):
+
+  If the established value is denoted by p, then at least p
+  singular values of J are less than or equal to
+  THETA/(1 - (3 x N - 1.5) x EPS) and no more than p singular values
+  are less than or equal to
+  THETA x (1 - (6 x N-2) x EPS)/(1 - (3 x N - 1.5) x EPS).
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+*     MB03ND EXAMPLE PROGRAM TEXT
+*
+*     .. Parameters ..
+      INTEGER          NIN, NOUT
+      PARAMETER        ( NIN = 5, NOUT = 6 )
+      INTEGER          NMAX
+      PARAMETER        ( NMAX = 20 )
+*     .. Local Scalars ..
+      DOUBLE PRECISION PIVMIN, SAFMIN, THETA
+      INTEGER          I, INFO, N, NUMSV
+*     .. Local Arrays ..
+      DOUBLE PRECISION E(NMAX-1), E2(NMAX-1), Q(NMAX), Q2(NMAX)
+*     .. External Functions ..
+      DOUBLE PRECISION DLAMCH
+      EXTERNAL         DLAMCH
+*     .. External Functions ..
+      INTEGER          MB03ND
+      EXTERNAL         MB03ND
+*     .. Intrinsic Functions ..
+      INTRINSIC        MAX
+*     .. Executable Statements ..
+*
+      WRITE ( NOUT, FMT = 99999 )
+*     Skip the heading in the data file and read the data.
+      READ ( NIN, FMT = '()' )
+      READ ( NIN, FMT = * ) N, THETA
+      IF ( N.LT.0 .OR. N.GT.NMAX ) THEN
+         WRITE ( NOUT, FMT = 99993 ) N
+      ELSE
+         READ ( NIN, FMT = * ) ( Q(I), I = 1,N )
+         READ ( NIN, FMT = * ) ( E(I), I = 1,N-1 )
+*        Print out the bidiagonal matrix J.
+         WRITE ( NOUT, FMT = 99997 )
+         DO 20 I = 1, N - 1
+            WRITE ( NOUT, FMT = 99996 ) I, I, Q(I), I, (I+1), E(I)
+   20    CONTINUE
+         WRITE ( NOUT, FMT = 99995 ) N, N, Q(N)
+*        Compute Q**2, E**2, and PIVMIN.
+         Q2(N) = Q(N)**2
+         PIVMIN = Q2(N)
+         DO 40 I = 1, N - 1
+            Q2(I) = Q(I)**2
+            E2(I) = E(I)**2
+            PIVMIN = MAX( PIVMIN, Q2(I), E2(I) )
+   40    CONTINUE
+         SAFMIN = DLAMCH( 'Safe minimum' )
+         PIVMIN = MAX( PIVMIN*SAFMIN, SAFMIN )
+*        Compute the number of singular values of J < =  THETA.
+         NUMSV = MB03ND( N, THETA, Q2, E2, PIVMIN, INFO )
+*
+         IF ( INFO.NE.0 ) THEN
+            WRITE ( NOUT, FMT = 99998 ) INFO
+         ELSE
+            WRITE ( NOUT, FMT = 99994 ) NUMSV, THETA
+         END IF
+      END IF
+      STOP
+*
+99999 FORMAT (' MB03ND EXAMPLE PROGRAM RESULTS',/1X)
+99998 FORMAT (' INFO on exit from MB03ND = ',I2)
+99997 FORMAT (' The Bidiagonal Matrix J is',/)
+99996 FORMAT (2(' (',I1,',',I1,') = ',F7.4,2X))
+99995 FORMAT (' (',I1,',',I1,') = ',F7.4)
+99994 FORMAT (/' J has ',I2,' singular values < =  ',F7.4)
+99993 FORMAT (/' N is out of range.',/' N = ',I5)
+      END
+</PRE>
+<B>Program Data</B>
+<PRE>
+ MB03ND EXAMPLE PROGRAM DATA
+   5     5.0     0.0     0.0
+   1.0  2.0  3.0  4.0  5.0
+   2.0  3.0  4.0  5.0
+</PRE>
+<B>Program Results</B>
+<PRE>
+ MB03ND EXAMPLE PROGRAM RESULTS
+
+ The Bidiagonal Matrix J is
+
+ (1,1) =  1.0000   (1,2) =  2.0000
+ (2,2) =  2.0000   (2,3) =  3.0000
+ (3,3) =  3.0000   (3,4) =  4.0000
+ (4,4) =  4.0000   (4,5) =  5.0000
+ (5,5) =  5.0000
+
+ J has  3 singular values < =   5.0000
+</PRE>
+
+<HR>
+<p>
+<A HREF=..\libindex.html><B>Return to index</B></A></BODY>
+</HTML>

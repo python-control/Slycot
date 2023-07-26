@@ -1,0 +1,225 @@
+<HTML>
+<HEAD><TITLE>MB03XS - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MB03XS">MB03XS</A></H2>
+<H3>
+Eigenvalues and real skew-Hamiltonian Schur form of a skew-Hamiltonian matrix
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To compute the eigenvalues and real skew-Hamiltonian Schur form of
+  a skew-Hamiltonian matrix,
+
+                [  A   G  ]
+          W  =  [       T ],
+                [  Q   A  ]
+
+  where A is an N-by-N matrix and G, Q are N-by-N skew-symmetric
+  matrices. Specifically, an orthogonal symplectic matrix U is
+  computed so that
+
+            T       [  Aout  Gout  ]
+           U W U =  [            T ] ,
+                    [    0   Aout  ]
+
+  where Aout is in Schur canonical form (as returned by the LAPACK
+  routine DHSEQR). That is, Aout is block upper triangular with
+  1-by-1 and 2-by-2 diagonal blocks; each 2-by-2 diagonal block has
+  its diagonal elements equal and its off-diagonal elements of
+  opposite sign.
+
+  Optionally, the matrix U is returned in terms of its first N/2
+  rows
+
+                   [  U1   U2 ]
+               U = [          ].
+                   [ -U2   U1 ]
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MB03XS( JOBU, N, A, LDA, QG, LDQG, U1, LDU1, U2, LDU2,
+     $                   WR, WI, DWORK, LDWORK, INFO )
+C     .. Scalar Arguments ..
+      CHARACTER         JOBU
+      INTEGER           INFO, LDA, LDQG, LDU1, LDU2, LDWORK, N
+C     .. Array Arguments ..
+      DOUBLE PRECISION  A(LDA,*), DWORK(*), QG(LDQG,*), U1(LDU1,*),
+     $                  U2(LDU2,*), WI(*), WR(*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  JOBU    CHARACTER*1
+          Specifies whether matrix U is computed or not, as follows:
+          = 'N': transformation matrix U is not computed;
+          = 'U': transformation matrix U is computed.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The order of the matrix A.  N &gt;= 0.
+
+  A       (input/output) DOUBLE PRECISION array, dimension (LDA,N)
+          On entry, the leading N-by-N part of this array must
+          contain the matrix A.
+          On exit, the leading N-by-N part of this array contains
+          the matrix Aout in Schur canonical form.
+
+  LDA     INTEGER
+          The leading dimension of the array A.  LDA &gt;= MAX(1,N).
+
+  QG      (input/output) DOUBLE PRECISION array, dimension
+                         (LDQG,N+1)
+          On entry, the leading N-by-N+1 part of this array must
+          contain in columns 1:N the strictly lower triangular part
+          of the matrix Q and in columns 2:N+1 the strictly upper
+          triangular part of the matrix G.
+          On exit, the leading N-by-N+1 part of this array contains
+          in columns 2:N+1 the strictly upper triangular part of the
+          skew-symmetric matrix Gout. The part which contained the
+          matrix Q is set to zero.
+          Note that the parts containing the diagonal and the first
+          superdiagonal of this array are not overwritten by zeros
+          only if JOBU = 'U' or LDWORK &gt;= 2*N*N - N.
+
+  LDQG    INTEGER
+          The leading dimension of the array QG.  LDQG &gt;= MAX(1,N).
+
+  U1      (output) DOUBLE PRECISION array, dimension (LDU1,N)
+          On exit, if JOBU = 'U', the leading N-by-N part of this
+          array contains the matrix U1.
+          If JOBU = 'N', this array is not referenced.
+
+  LDU1    INTEGER
+          The leading dimension of the array U1.
+          LDU1 &gt;= MAX(1,N),  if JOBU = 'U';
+          LDU1 &gt;= 1,         if JOBU = 'N'.
+
+  U2      (output) DOUBLE PRECISION array, dimension (LDU2,N)
+          On exit, if JOBU = 'U', the leading N-by-N part of this
+          array contains the matrix U2.
+          If JOBU = 'N', this array is not referenced.
+
+  LDU2    INTEGER
+          The leading dimension of the array U2.
+          LDU2 &gt;= MAX(1,N),  if JOBU = 'U';
+          LDU2 &gt;= 1,         if JOBU = 'N'.
+
+  WR      (output) DOUBLE PRECISION array, dimension (N)
+  WI      (output) DOUBLE PRECISION array, dimension (N)
+          The real and imaginary parts, respectively, of the
+          eigenvalues of Aout, which are half of the eigenvalues
+          of W. The eigenvalues are stored in the same order as on
+          the diagonal of Aout, with WR(i) = Aout(i,i) and, if
+          Aout(i:i+1,i:i+1) is a 2-by-2 diagonal block, WI(i) &gt; 0
+          and WI(i+1) = -WI(i).
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+          On exit, if INFO = 0,  DWORK(1)  returns the optimal value
+          of LDWORK.
+          On exit, if  INFO = -14,  DWORK(1)  returns the minimum
+          value of LDWORK.
+
+  LDWORK  INTEGER
+          The length of the array DWORK.
+          LDWORK &gt;= MAX(1,(N+5)*N),      if JOBU = 'U';
+          LDWORK &gt;= MAX(1,5*N,(N+1)*N),  if JOBU = 'N'.
+
+          If LDWORK = -1, then a workspace query is assumed;
+          the routine only calculates the optimal size of the
+          DWORK array, returns this value as the first entry of
+          the DWORK array, and no error message related to LDWORK
+          is issued by XERBLA.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value;
+          &gt; 0:  if INFO = i, DHSEQR failed to compute all of the
+                eigenvalues.  Elements 1:ILO-1 and i+1:N of WR
+                and WI contain those eigenvalues which have been
+                successfully computed. The matrix A (and QG) has
+                been partially reduced; namely, A is upper
+                Hessenberg in the rows and columns ILO through i.
+                (See DHSEQR for details.)
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  First, using the SLICOT Library routine MB04RB, an orthogonal
+  symplectic matrix UP is computed so that
+
+             T      [  AP  GP  ]
+         UP W UP =  [        T ]
+                    [  0   AP  ]
+
+  is in Paige/Van Loan form. Next, the LAPACK routine DHSEQR is
+  applied to the matrix AP to compute an orthogonal matrix V so
+  that Aout = V'*AP*V is in Schur canonical form.
+  Finally, the transformations
+
+                    [ V  0 ]
+          U =  UP * [      ],     Gout = V'*G*V,
+                    [ 0  V ]
+
+  using the SLICOT Library routine MB01LD for the latter, are
+  performed.
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Van Loan, C.F.
+      A symplectic method for approximating all the eigenvalues of
+      a Hamiltonian matrix.
+      Linear Algebra and its Applications, 61, pp. 233-251, 1984.
+
+  [2] Kressner, D.
+      Block algorithms for orthogonal symplectic factorizations.
+      BIT, 43 (4), pp. 775-790, 2003.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

@@ -1,0 +1,396 @@
+<HTML>
+<HEAD><TITLE>MB03BZ - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MB03BZ">MB03BZ</A></H2>
+<H3>
+Finding eigenvalues of a complex generalized matrix product in Hessenberg-triangular form
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To find the eigenvalues of the complex generalized matrix product
+
+               S(1)           S(2)                 S(K)
+       A(:,:,1)     * A(:,:,2)     * ... * A(:,:,K)    ,  S(1) = 1,
+
+  where A(:,:,1) is upper Hessenberg and A(:,:,i) is upper
+  triangular, i = 2, ..., K, using a single-shift version of the
+  periodic QZ method. In addition, A may be reduced to periodic
+  Schur form by unitary transformations: all factors A(:,:,i) become
+  upper triangular.
+
+  If COMPQ = 'V' or COMPQ = 'I', then the unitary factors are
+  computed and stored in the array Q so that for S(I) = 1,
+
+                      H
+          Q(:,:,I)(in)   A(:,:,I)(in)   Q(:,:,MOD(I,K)+1)(in)
+                       H                                        (1)
+      =   Q(:,:,I)(out)  A(:,:,I)(out)  Q(:,:,MOD(I,K)+1)(out),
+
+  and for S(I) = -1,
+
+                               H
+          Q(:,:,MOD(I,K)+1)(in)   A(:,:,I)(in)   Q(:,:,I)(in)
+                                H                               (2)
+      =   Q(:,:,MOD(I,K)+1)(out)  A(:,:,I)(out)  Q(:,:,I)(out).
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MB03BZ( JOB, COMPQ, K, N, ILO, IHI, S, A, LDA1, LDA2,
+     $                   Q, LDQ1, LDQ2, ALPHA, BETA, SCAL, DWORK,
+     $                   LDWORK, ZWORK, LZWORK, INFO )
+C     .. Scalar Arguments ..
+      CHARACTER         COMPQ, JOB
+      INTEGER           IHI, ILO, INFO, K, LDA1, LDA2, LDQ1, LDQ2,
+     $                  LDWORK, LZWORK, N
+C     .. Array Arguments ..
+      INTEGER           S(*), SCAL(*)
+      DOUBLE PRECISION  DWORK(*)
+      COMPLEX*16        A(LDA1, LDA2, *), ALPHA(*), BETA(*),
+     $                  Q(LDQ1, LDQ2, *), ZWORK(*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  JOB     CHARACTER*1
+          Specifies the computation to be performed, as follows:
+          = 'E': compute the eigenvalues only; A will not
+                 necessarily be put into periodic Schur form;
+          = 'S': put A into periodic Schur form, and return the
+                 eigenvalues in ALPHA, BETA, and SCAL.
+
+  COMPQ   CHARACTER*1
+          Specifies whether or not the unitary transformations
+          should be accumulated in the array Q, as follows:
+          = 'N': do not modify Q;
+          = 'V': modify the array Q by the unitary transformations
+                 that are applied to the matrices in the array A to
+                 reduce them to periodic Schur form;
+          = 'I': like COMPQ = 'V', except that each matrix in the
+                 array Q will be first initialized to the identity
+                 matrix.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  K       (input)  INTEGER
+          The number of factors.  K &gt;= 1.
+
+  N       (input)  INTEGER
+          The order of each factor in the array A.  N &gt;= 0.
+
+  ILO     (input)  INTEGER
+  IHI     (input)  INTEGER
+          It is assumed that each factor in A is already upper
+          triangular in rows and columns 1:ILO-1 and IHI+1:N.
+          1 &lt;= ILO &lt;= IHI &lt;= N, if N &gt; 0;
+          ILO = 1 and IHI  = 0, if N = 0.
+
+  S       (input)  INTEGER array, dimension (K)
+          The leading K elements of this array must contain the
+          signatures of the factors. Each entry in S must be either
+          1 or -1. By definition, S(1) must be set to 1.
+
+  A       (input/output) COMPLEX*16 array, dimension (LDA1,LDA2,K)
+          On entry, the leading N-by-N-by-K part of this array
+          must contain the factors in upper Hessenberg-triangular
+          form, that is, A(:,:,1) is upper Hessenberg and the other
+          factors are upper triangular.
+          On exit, if JOB = 'S' and INFO = 0, the leading
+          N-by-N-by-K part of this array contains the factors of
+          A in periodic Schur form. All factors are reduced to
+          upper triangular form and, moreover, A(:,:,2), ...,
+          A(:,:,K) are normalized so that their diagonals contain
+          nonnegative real numbers.
+          On exit, if JOB = 'E', then the leading N-by-N-by-K part
+          of this array contains meaningless elements.
+
+  LDA1    INTEGER
+          The first leading dimension of the array A.
+          LDA1 &gt;= MAX(1,N).
+
+  LDA2    INTEGER
+          The second leading dimension of the array A.
+          LDA2 &gt;= MAX(1,N).
+
+  Q       (input/output) COMPLEX*16 array, dimension (LDQ1,LDQ2,K)
+          On entry, if COMPQ = 'V', the leading N-by-N-by-K part
+          of this array must contain the initial unitary factors
+          as described in (1) and (2).
+          On exit, if COMPQ = 'V' or COMPQ = 'I', the leading
+          N-by-N-by-K part of this array contains the modified
+          unitary factors as described in (1) and (2).
+          This array is not referenced if COMPQ = 'N'.
+
+  LDQ1    INTEGER
+          The first leading dimension of the array Q.  LDQ1 &gt;= 1,
+          and, if COMPQ &lt;&gt; 'N', LDQ1 &gt;= MAX(1,N).
+
+  LDQ2    INTEGER
+          The second leading dimension of the array Q.  LDQ2 &gt;= 1,
+          and, if COMPQ &lt;&gt; 'N', LDQ2 &gt;= MAX(1,N).
+
+  ALPHA   (output) COMPLEX*16 array, dimension (N)
+          On exit, if INFO = 0, the leading N elements of this
+          array contain the scaled eigenvalues of the matrix
+          product A. The i-th eigenvalue of A is given by
+
+          ALPHA(I) / BETA(I) * BASE**(SCAL(I)),
+
+          where ABS(ALPHA(I)) = 0.0 or 1.0 &lt;= ABS(ALPHA(I)) &lt; BASE,
+          and BASE is the machine base (normally 2.0).
+
+  BETA    (output) COMPLEX*16 array, dimension (N)
+          On exit, if INFO = 0, the leading N elements of this
+          array contain indicators for infinite eigenvalues. That
+          is, if BETA(I) = 0.0, then the i-th eigenvalue is
+          infinite. Otherwise BETA(I) is set to 1.0.
+
+  SCAL    (output) INTEGER array, dimension (N)
+          On exit, if INFO = 0, the leading N elements of this
+          array contain the scaling parameters for the eigenvalues
+          of A.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+          On exit, if INFO = 0, DWORK(1) returns the minimal value
+          of LDWORK.
+
+  LDWORK  INTEGER
+          The length of the array DWORK.  LDWORK &gt;= MAX(1,N).
+
+  ZWORK   COMPLEX*16 array, dimension (LZWORK)
+          On exit, if INFO = 0, ZWORK(1) returns the minimal value
+          of LZWORK.
+
+  LZWORK  INTEGER
+          The length of the array ZWORK.  LZWORK &gt;= MAX(1,N).
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0      :  succesful exit;
+          &lt; 0      :  if INFO = -i, the i-th argument had an illegal
+                      value;
+          = 1,..,N :  the periodic QZ iteration did not converge.
+                      A is not in periodic Schur form, but
+                      ALPHA(I), BETA(I), and SCAL(I), for
+                      I = INFO+1,...,N should be correct.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  A slightly modified version of the periodic QZ algorithm is
+  used. For more details, see [2].
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Bojanczyk, A., Golub, G. H. and Van Dooren, P.
+      The periodic Schur decomposition: algorithms and applications.
+      In F.T. Luk (editor), Advanced Signal Processing Algorithms,
+      Architectures, and Implementations III, Proc. SPIE Conference,
+      vol. 1770, pp. 31-42, 1992.
+
+  [2] Kressner, D.
+      An efficient and reliable implementation of the periodic QZ
+      algorithm. IFAC Workshop on Periodic Control Systems (PSYCO
+      2001), Como (Italy), August 27-28 2001. Periodic Control
+      Systems 2001 (IFAC Proceedings Volumes), Pergamon.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  The implemented method is numerically backward stable.
+                              3
+  The algorithm requires 0(K N ) floating point operations.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+*     MB03BZ EXAMPLE PROGRAM TEXT
+*
+*     .. Parameters ..
+      INTEGER            NIN, NOUT
+      PARAMETER          ( NIN = 5, NOUT = 6 )
+      INTEGER            KMAX, NMAX
+      PARAMETER          ( KMAX = 6, NMAX = 50 )
+      INTEGER            LDA1, LDA2, LDQ1, LDQ2, LDWORK, LZWORK
+      PARAMETER          ( LDA1 = NMAX, LDA2 = NMAX, LDQ1 = NMAX,
+     $                     LDQ2 = NMAX, LDWORK = NMAX, LZWORK = NMAX )
+*
+*     .. Local Scalars ..
+      CHARACTER          COMPQ, JOB
+      INTEGER            I, IHI, ILO, INFO, J, K, L, N
+*
+*     .. Local Arrays ..
+      COMPLEX*16         A( LDA1, LDA2, KMAX ), ALPHA( NMAX ),
+     $                   BETA( NMAX ), Q( LDQ1, LDQ2, KMAX ),
+     $                   ZWORK( LZWORK )
+      DOUBLE PRECISION   DWORK( LDWORK)
+      INTEGER            S( KMAX ), SCAL( NMAX )
+*     .. External Functions ..
+      LOGICAL            LSAME
+      EXTERNAL           LSAME
+*
+*     .. External Subroutines ..
+      EXTERNAL           MB03BZ
+*
+*     .. Executable Statements ..
+*
+      WRITE( NOUT, FMT = 99999 )
+*     Skip the heading in the data file and read in the data.
+      READ( NIN, FMT = * )
+      READ( NIN, FMT = * ) JOB, COMPQ, K, N, ILO, IHI
+      IF( N.LT.0 .OR. N.GT.NMAX ) THEN
+         WRITE( NOUT, FMT = 99998 ) N
+      ELSE
+         READ( NIN, FMT = * ) ( S( I ), I = 1, K )
+         READ( NIN, FMT = * ) ( ( ( A( I, J, L ), J = 1, N ),
+     $                                I = 1, N ), L = 1, K )
+         IF( LSAME( COMPQ, 'V' ) )
+     $      READ( NIN, FMT = * ) ( ( ( Q( I, J, L ), J = 1, N ),
+     $                                   I = 1, N ), L = 1, K )
+*        Compute the eigenvalues and the transformed matrices, if
+*        required.
+         CALL MB03BZ( JOB, COMPQ, K, N, ILO, IHI, S, A, LDA1, LDA2,
+     $                Q, LDQ1, LDQ2, ALPHA, BETA, SCAL, DWORK, LDWORK,
+     $                ZWORK, LZWORK, INFO )
+*
+         IF( INFO.NE.0 ) THEN
+            WRITE( NOUT, FMT = 99997 ) INFO
+         ELSE
+            IF( LSAME( JOB, 'S' ) ) THEN
+               WRITE( NOUT, FMT = 99996 )
+               DO 20 L = 1, K
+                  WRITE( NOUT, FMT = 99995 ) L
+                  DO 10 I = 1, N
+                     WRITE( NOUT, FMT = 99994 ) ( A( I, J, L ), J = 1, N
+     $                                          )
+   10             CONTINUE
+   20          CONTINUE
+            END IF
+            IF( .NOT.LSAME( COMPQ, 'N' ) ) THEN
+               WRITE( NOUT, FMT = 99993 )
+               DO 40 L = 1, K
+                  WRITE( NOUT, FMT = 99995 ) L
+                  DO 30 I = 1, N
+                     WRITE( NOUT, FMT = 99994 ) ( Q( I, J, L ), J = 1, N
+     $                                          )
+   30             CONTINUE
+   40          CONTINUE
+            END IF
+            WRITE( NOUT, FMT = 99992 )
+            WRITE( NOUT, FMT = 99994 ) ( ALPHA( I ), I = 1, N )
+            WRITE( NOUT, FMT = 99991 )
+            WRITE( NOUT, FMT = 99994 ) (  BETA( I ), I = 1, N )
+            WRITE( NOUT, FMT = 99990 )
+            WRITE( NOUT, FMT = 99989 ) (  SCAL( I ), I = 1, N )
+         END IF
+      END IF
+      STOP
+*
+99999 FORMAT( 'MB03BZ EXAMPLE PROGRAM RESULTS', 1X )
+99998 FORMAT( 'N is out of range.', /, 'N = ', I5 )
+99997 FORMAT( 'INFO on exit from MB03BZ = ', I2 )
+99996 FORMAT(/'The matrix A on exit is ' )
+99995 FORMAT( 'The factor ', I2, ' is ' )
+99994 FORMAT( 50( 1X, F9.4, SP, F9.4, S, 'i ') )
+99993 FORMAT(/'The matrix Q on exit is ' )
+99992 FORMAT(/'The vector ALPHA is ' )
+99991 FORMAT( 'The vector BETA is ' )
+99990 FORMAT( 'The vector SCAL is ' )
+99989 FORMAT( 50( 1X, I8 ) )
+      END
+</PRE>
+<B>Program Data</B>
+<PRE>
+MB03BZ EXAMPLE PROGRAM DATA
+	S	I	3	4	1	4
+	1	-1	1
+   (0.8637,0.9326)   (0.8819,0.4850)   (0.5920,0.8826)   (0.8991,0.9040)
+   (0.6994,0.8588)   (0.9527,0.2672)   (0.5087,0.0621)   (0.9653,0.5715)
+        0            (0.1561,0.1898)   (0.9514,0.9266)   (0.6582,0.3102)
+        0                  0           (0.8649,0.1265)   (0.1701,0.0013)
+   (0.5113,0.7375)   (0.6869,0.7692)   (0.7812,0.1467)   (0.7216,0.9498)
+        0            (0.1319,0.9137)   (0.5879,0.0201)   (0.9834,0.0549)
+        0                  0           (0.7711,0.2422)   (0.9468,0.3280)
+        0                  0                  0          (0.2219,0.3971)
+   (0.0158,0.4042)   (0.0082,0.2033)   (0.1028,0.9913)   (0.6954,0.1987)
+        0            (0.5066,0.4587)   (0.1060,0.6949)   (0.5402,0.0970)
+        0                  0           (0.4494,0.3700)   (0.8492,0.4882)
+        0                  0                  0          (0.2110,0.5824)
+</PRE>
+<B>Program Results</B>
+<PRE>
+MB03BZ EXAMPLE PROGRAM RESULTS
+
+The matrix A on exit is 
+The factor  1 is 
+    0.6053  +1.0311i    -1.7227  -0.5753i     1.2428  -1.2632i     0.9445  -0.4317i 
+    0.0000  +0.0000i    -0.2596  +1.0235i     0.4673  -0.2403i    -0.5579  -1.1564i 
+    0.0000  +0.0000i     0.0000  +0.0000i    -0.3336  -0.3367i     0.0687  +0.0261i 
+    0.0000  +0.0000i     0.0000  +0.0000i     0.0000  +0.0000i    -0.2014  +0.0057i 
+The factor  2 is 
+    1.1118  +0.0000i    -1.4173  +1.1607i     0.3271  -0.5800i     0.5291  -0.6341i 
+    0.0000  +0.0000i     0.9051  +0.0000i     0.1710  +0.1014i    -0.2696  -0.3549i 
+    0.0000  +0.0000i     0.0000  +0.0000i     0.3599  +0.0000i     0.0231  -0.5865i 
+    0.0000  +0.0000i     0.0000  +0.0000i     0.0000  +0.0000i     0.8410  +0.0000i 
+The factor  3 is 
+    1.1554  +0.0000i    -0.7577  +0.0825i     0.1284  -0.0063i     1.1175  -0.0778i 
+    0.0000  +0.0000i     0.5216  +0.0000i    -0.5761  +0.2972i    -0.3534  -0.3595i 
+    0.0000  +0.0000i     0.0000  +0.0000i     0.2750  +0.0000i     0.2587  -0.1664i 
+    0.0000  +0.0000i     0.0000  +0.0000i     0.0000  +0.0000i     0.6015  +0.0000i 
+
+The matrix Q on exit is 
+The factor  1 is 
+    0.6033  -0.4021i     0.3478  -0.1834i    -0.0029  -0.4458i    -0.3157  +0.1462i 
+    0.1519  -0.3002i     0.6010  +0.1411i     0.0134  +0.5692i     0.4223  -0.0574i 
+    0.1002  -0.5387i    -0.4199  +0.3933i     0.1148  +0.2694i    -0.3713  -0.3810i 
+   -0.0599  -0.2395i    -0.0968  +0.3521i     0.2342  -0.5801i     0.6247  -0.1555i 
+The factor  2 is 
+    0.3325  +0.6289i     0.0930  +0.3421i    -0.1849  -0.1715i    -0.5470  -0.0734i 
+    0.3247  -0.4396i     0.1766  -0.1691i     0.2307  -0.3746i    -0.2617  -0.6160i 
+    0.2180  -0.2074i    -0.3853  +0.1978i    -0.6852  +0.2781i     0.1492  -0.3909i 
+   -0.0268  -0.3223i    -0.0623  +0.7893i     0.0957  -0.4323i     0.1716  +0.2072i 
+The factor  3 is 
+    0.6791  +0.1138i     0.0183  +0.2703i     0.3289  -0.2770i    -0.2355  -0.4605i 
+    0.5111  -0.1775i     0.3990  +0.1941i    -0.0851  +0.4779i     0.4563  +0.2580i 
+    0.2687  -0.3788i    -0.7974  -0.0691i    -0.2836  +0.1192i     0.1765  -0.1340i 
+    0.1098  -0.0739i    -0.2845  -0.0903i     0.6651  +0.2062i    -0.2810  +0.5741i 
+
+The vector ALPHA is 
+    0.6290  +1.0715i    -0.2992  +1.1797i    -1.0195  -1.0290i    -1.1523  +0.0326i 
+The vector BETA is 
+    1.0000  +0.0000i     1.0000  +0.0000i     1.0000  +0.0000i     1.0000  +0.0000i 
+The vector SCAL is 
+        0       -1       -2       -3
+</PRE>
+
+<HR>
+<A HREF=support.html><B>Return to Supporting Routines index</B></A></BODY>
+</HTML>

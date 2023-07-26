@@ -1,0 +1,524 @@
+<HTML>
+<HEAD><TITLE>MB03XD - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MB03XD">MB03XD</A></H2>
+<H3>
+Computing the eigenvalues of a Hamiltonian matrix
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To compute the eigenvalues of a Hamiltonian matrix,
+
+                [  A   G  ]         T        T
+          H  =  [       T ],   G = G,   Q = Q,                  (1)
+                [  Q  -A  ]
+
+  where A, G and Q are real n-by-n matrices.
+
+  Due to the structure of H all eigenvalues appear in pairs
+  (lambda,-lambda). This routine computes the eigenvalues of H
+  using an algorithm based on the symplectic URV and the periodic
+  Schur decompositions as described in [1],
+
+        T       [  T   G  ]
+       U H V =  [       T ],                                    (2)
+                [  0   S  ]
+
+  where U and V are 2n-by-2n orthogonal symplectic matrices,
+  S is in real Schur form and T is upper triangular.
+
+  The algorithm is backward stable and preserves the eigenvalue
+  pairings in finite precision arithmetic.
+
+  Optionally, a symplectic balancing transformation to improve the
+  conditioning of eigenvalues is computed (see MB04DD). In this
+  case, the matrix H in decomposition (2) must be replaced by the
+  balanced matrix.
+
+  The SLICOT Library routine MB03ZD can be used to compute invariant
+  subspaces of H from the output of this routine.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MB03XD( BALANC, JOB, JOBU, JOBV, N, A, LDA, QG, LDQG,
+     $                   T, LDT, U1, LDU1, U2, LDU2, V1, LDV1, V2, LDV2,
+     $                   WR, WI, ILO, SCALE, DWORK, LDWORK, INFO )
+C     .. Scalar Arguments ..
+      CHARACTER          BALANC, JOB, JOBU, JOBV
+      INTEGER            ILO, INFO, LDA, LDQG, LDT, LDU1, LDU2, LDV1,
+     $                   LDV2, LDWORK, N
+C     .. Array Arguments ..
+      DOUBLE PRECISION   A(LDA,*), DWORK(*), QG(LDQG,*), SCALE(*),
+     $                   T(LDT,*), U1(LDU1,*), U2(LDU2,*), V1(LDV1,*),
+     $                   V2(LDV2,*), WI(*), WR(*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  BALANC  CHARACTER*1
+          Indicates how H should be diagonally scaled and/or
+          permuted to reduce its norm.
+          = 'N': Do not diagonally scale or permute;
+          = 'P': Perform symplectic permutations to make the matrix
+                 closer to Hamiltonian Schur form. Do not diagonally
+                 scale;
+          = 'S': Diagonally scale the matrix, i.e., replace A, G and
+                 Q by D*A*D**(-1), D*G*D and D**(-1)*Q*D**(-1) where
+                 D is a diagonal matrix chosen to make the rows and
+                 columns of H more equal in norm. Do not permute;
+          = 'B': Both diagonally scale and permute A, G and Q.
+          Permuting does not change the norm of H, but scaling does.
+
+  JOB     CHARACTER*1
+          Indicates whether the user wishes to compute the full
+          decomposition (2) or the eigenvalues only, as follows:
+          = 'E': compute the eigenvalues only;
+          = 'S': compute matrices T and S of (2);
+          = 'G': compute matrices T, S and G of (2).
+
+  JOBU    CHARACTER*1
+          Indicates whether or not the user wishes to compute the
+          orthogonal symplectic matrix U of (2) as follows:
+          = 'N': the matrix U is not computed;
+          = 'U': the matrix U is computed.
+
+  JOBV    CHARACTER*1
+          Indicates whether or not the user wishes to compute the
+          orthogonal symplectic matrix V of (2) as follows:
+          = 'N': the matrix V is not computed;
+          = 'V': the matrix V is computed.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The order of the matrix A. N &gt;= 0.
+
+  A       (input/output) DOUBLE PRECISION array, dimension (LDA,N)
+          On entry, the leading N-by-N part of this array must
+          contain the matrix A.
+          On exit, this array is overwritten. If JOB = 'S' or
+          JOB = 'G', the leading N-by-N part of this array contains
+          the matrix S in real Schur form of decomposition (2).
+
+  LDA     INTEGER
+          The leading dimension of the array A.  LDA &gt;= max(1,N).
+
+  QG      (input/output) DOUBLE PRECISION array, dimension
+                         (LDQG,N+1)
+          On entry, the leading N-by-N+1 part of this array must
+          contain in columns 1:N the lower triangular part of the
+          matrix Q and in columns 2:N+1 the upper triangular part
+          of the matrix G.
+          On exit, this array is overwritten. If JOB = 'G', the
+          leading N-by-N+1 part of this array contains in columns
+          2:N+1 the matrix G of decomposition (2).
+
+  LDQG    INTEGER
+          The leading dimension of the array QG.  LDQG &gt;= max(1,N).
+
+  T       (output) DOUBLE PRECISION array, dimension (LDT,N)
+          On exit, if JOB = 'S' or JOB = 'G', the leading N-by-N
+          part of this array contains the upper triangular matrix T
+          of the decomposition (2). Otherwise, this array is used as
+          workspace.
+
+  LDT     INTEGER
+          The leading dimension of the array T.  LDT &gt;= MAX(1,N).
+
+  U1      (output) DOUBLE PRECISION array, dimension (LDU1,N)
+          On exit, if JOBU = 'U', the leading N-by-N part of this
+          array contains the (1,1) block of the orthogonal
+          symplectic matrix U of decomposition (2).
+
+  LDU1    INTEGER
+          The leading dimension of the array U1.  LDU1 &gt;= 1.
+          LDU1 &gt;= N,    if JOBU = 'U'.
+
+  U2      (output) DOUBLE PRECISION array, dimension (LDU2,N)
+          On exit, if JOBU = 'U', the leading N-by-N part of this
+          array contains the (2,1) block of the orthogonal
+          symplectic matrix U of decomposition (2).
+
+  LDU2    INTEGER
+          The leading dimension of the array U2.  LDU2 &gt;= 1.
+          LDU2 &gt;= N,    if JOBU = 'U'.
+
+  V1      (output) DOUBLE PRECISION array, dimension (LDV1,N)
+          On exit, if JOBV = 'V', the leading N-by-N part of this
+          array contains the (1,1) block of the orthogonal
+          symplectic matrix V of decomposition (2).
+
+  LDV1    INTEGER
+          The leading dimension of the array V1.  LDV1 &gt;= 1.
+          LDV1 &gt;= N,    if JOBV = 'V'.
+
+  V2      (output) DOUBLE PRECISION array, dimension (LDV2,N)
+          On exit, if JOBV = 'V', the leading N-by-N part of this
+          array contains the (2,1) block of the orthogonal
+          symplectic matrix V of decomposition (2).
+
+  LDV2    INTEGER
+          The leading dimension of the array V2.  LDV2 &gt;= 1.
+          LDV2 &gt;= N,    if JOBV = 'V'.
+
+  WR      (output) DOUBLE PRECISION array, dimension (N)
+  WI      (output) DOUBLE PRECISION array, dimension (N)
+          On exit, the leading N elements of WR and WI contain the
+          real and imaginary parts, respectively, of N eigenvalues
+          that have nonnegative imaginary part. Their complex
+          conjugate eigenvalues are not stored. If imaginary parts
+          are zero (i.e., for real eigenvalues), only positive
+          eigenvalues are stored.
+
+  ILO     (output) INTEGER
+          ILO is an integer value determined when H was balanced.
+          The balanced A(i,j) = 0 if I &gt; J and J = 1,...,ILO-1.
+          The balanced Q(i,j) = 0 if J = 1,...,ILO-1 or
+          I = 1,...,ILO-1.
+
+  SCALE   (output) DOUBLE PRECISION array, dimension (N)
+          On exit, if BALANC &lt;&gt; 'N', the leading N elements of this
+          array contain details of the permutation and/or scaling
+          factors applied when balancing H, see MB04DD.
+          This array is not referenced if BALANC = 'N'.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+          On exit, if INFO = 0,  DWORK(1)  returns the optimal
+          value of LDWORK, and   DWORK(2)  returns the 1-norm of the
+          scaled (if BALANC = 'S' or 'B') Hamiltonian matrix.
+          On exit, if  INFO = -25,  DWORK(1)  returns the minimum
+          value of LDWORK.
+
+  LDWORK  (input) INTEGER
+          The dimension of the array DWORK. LDWORK &gt;= max( 2, 8*N ).
+          Moreover:
+          If JOB = 'E' or 'S' and JOBU = 'N' and JOBV = 'N',
+             LDWORK &gt;= 7*N+N*N.
+          If JOB = 'G' and JOBU = 'N' and JOBV = 'N',
+             LDWORK &gt;= max( 7*N+N*N, 2*N+3*N*N ).
+          If JOB = 'G' and JOBU = 'U' and JOBV = 'N',
+             LDWORK &gt;= 7*N+2*N*N.
+          If JOB = 'G' and JOBU = 'N' and JOBV = 'V',
+             LDWORK &gt;= 7*N+2*N*N.
+          If JOB = 'G' and JOBU = 'U' and JOBV = 'V',
+             LDWORK &gt;= 7*N+N*N.
+          For good performance, LDWORK must generally be larger.
+
+          If LDWORK = -1, then a workspace query is assumed;
+          the routine only calculates the optimal size of the
+          DWORK array, returns this value as the first entry of
+          the DWORK array, and no error message related to LDWORK
+          is issued by XERBLA.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO     (output) INTEGER
+           = 0:  successful exit;
+           &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                 value;
+           &gt; 0:  if INFO = i, the periodic QR algorithm failed to
+                 compute all the eigenvalues, elements i+1:N of WR
+                 and WI contain eigenvalues which have converged.
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Benner, P., Mehrmann, V., and Xu, H.
+      A numerically stable, structure preserving method for
+      computing the eigenvalues of real Hamiltonian or symplectic
+      pencils.
+      Numer. Math., Vol. 78(3), pp. 329-358, 1998.
+
+  [2] Benner, P., Mehrmann, V., and Xu, H.
+      A new method for computing the stable invariant subspace of a
+      real Hamiltonian matrix,  J. Comput. Appl. Math., vol. 86,
+      pp. 17-43, 1997.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+*     MB03XD EXAMPLE PROGRAM TEXT
+*
+*     .. Parameters ..
+      DOUBLE PRECISION ZERO, ONE
+      PARAMETER        ( ZERO = 0.0D0, ONE = 1.0D0 )
+      INTEGER          NIN, NOUT
+      PARAMETER        ( NIN = 5, NOUT = 6 )
+      INTEGER          NMAX
+      PARAMETER        ( NMAX = 100 )
+      INTEGER          LDA, LDQG, LDRES, LDT, LDU1, LDU2, LDV1, LDV2,
+     $                 LDWORK
+      PARAMETER        ( LDA = NMAX, LDQG = NMAX, LDRES = NMAX,
+     $                   LDT = NMAX, LDU1 = NMAX, LDU2 = NMAX,
+     $                   LDV1 = NMAX, LDV2 = NMAX,
+     $                   LDWORK = 3*NMAX*NMAX + 7*NMAX )
+*     .. Local Scalars ..
+      CHARACTER*1      BALANC, JOB, JOBU, JOBV
+      INTEGER          I, ILO, INFO, J, N
+      DOUBLE PRECISION TEMP
+*     .. Local Arrays ..
+      DOUBLE PRECISION A(LDA, NMAX), DWORK(LDWORK), QG(LDQG, NMAX+1),
+     $                 RES(LDRES,3*NMAX+1), SCALE(NMAX), T(LDT,NMAX),
+     $                 U1(LDU1,NMAX), U2(LDU2, NMAX), V1(LDV1,NMAX),
+     $                 V2(LDV2, NMAX), WI(NMAX), WR(NMAX)
+*     .. External Functions ..
+      LOGICAL          LSAME
+      DOUBLE PRECISION DLANGE, DLAPY2, MA02JD
+      EXTERNAL         DLANGE, DLAPY2, LSAME, MA02JD
+*     .. External Subroutines ..
+      EXTERNAL         DGEMM, DLACPY, MB03XD, MB04DD
+*     .. Executable Statements ..
+      WRITE ( NOUT, FMT = 99999 )
+*     Skip the heading in the data file and read the data.
+      READ ( NIN, FMT = '()' )
+      READ ( NIN, FMT = * )  N, BALANC, JOB, JOBU, JOBV
+      IF ( N.LE.0 .OR. N.GT.NMAX ) THEN
+         WRITE ( NOUT, FMT = 99988 ) N
+      ELSE
+         READ ( NIN, FMT = * ) ( ( A(I,J), J = 1,N ), I = 1,N )
+         CALL DLACPY( 'All', N, N, A, LDA, RES(1,N+1), LDRES )
+         READ ( NIN, FMT = * ) ( ( QG(I,J), J = 1,N+1 ), I = 1,N )
+         CALL DLACPY( 'All', N, N+1, QG, LDQG, RES(1,2*N+1), LDRES )
+         INFO = 0
+         CALL MB03XD( BALANC, JOB, JOBU, JOBV, N, A, LDA, QG, LDQG,
+     $                T, LDT, U1, LDU1, U2, LDU2, V1, LDV1, V2, LDV2,
+     $                WR, WI, ILO, SCALE, DWORK, LDWORK, INFO )
+         IF ( INFO.NE.0 ) THEN
+            WRITE ( NOUT, FMT = 99998 ) INFO
+         ELSE
+            WRITE ( NOUT, FMT = 99997 )
+            DO 20  I = 1, N
+               WRITE ( NOUT, FMT = 99996 ) I, WR(I), WI(I)
+20          CONTINUE
+            IF ( LSAME( JOB, 'S' ).OR.LSAME( JOB, 'G' ) ) THEN
+               WRITE ( NOUT, FMT = 99995 )
+               DO 30  I = 1, N
+                  WRITE ( NOUT, FMT = 99990 ) ( A(I,J), J = 1,N )
+30             CONTINUE
+               WRITE ( NOUT, FMT = 99994 )
+               DO 40  I = 1, N
+                  WRITE ( NOUT, FMT = 99990 ) ( T(I,J), J = 1,N )
+40             CONTINUE
+            END IF
+            IF ( LSAME( JOB, 'G' ) ) THEN
+               WRITE ( NOUT, FMT = 99993 )
+               DO 50  I = 1, N
+                  WRITE ( NOUT, FMT = 99990 ) ( QG(I,J+1), J = 1,N )
+50             CONTINUE
+            END IF
+C
+            IF ( LSAME( JOB, 'G' ).AND.LSAME( JOBU, 'U' ).AND.
+     $           LSAME( JOBV, 'V' ) ) THEN
+               CALL MB04DD( BALANC, N, RES(1,N+1), LDRES, RES(1,2*N+1),
+     $                      LDRES, I, DWORK, INFO )
+               CALL DGEMM( 'No Transpose', 'No Transpose', N, N, N, ONE,
+     $                     RES(1,N+1), LDRES, V1, LDV1, ZERO, RES,
+     $                     LDRES )
+               CALL DSYMM ( 'Left', 'Upper', N, N, -ONE, RES(1,2*N+2),
+     $                      LDRES, V2, LDV2, ONE, RES, LDRES )
+               CALL DGEMM( 'No Transpose', 'No Transpose', N, N, N,
+     $                     -ONE, U1, LDU1, T, LDT, ONE, RES, LDRES )
+               TEMP = DLANGE( 'Frobenius', N, N, RES, LDRES, DWORK )
+               CALL DGEMM( 'No Transpose', 'No Transpose', N, N, N, ONE,
+     $                     RES(1,N+1), LDRES, V2, LDV2, ZERO, RES,
+     $                     LDRES )
+               CALL DSYMM( 'Left', 'Upper', N, N, ONE, RES(1,2*N+2),
+     $                     LDRES, V1, LDV1, ONE, RES, LDRES )
+               CALL DGEMM( 'No Transpose', 'No Transpose', N, N, N,
+     $                     -ONE, U1, LDU1, QG(1,2), LDQG, ONE, RES,
+     $                     LDRES )
+               CALL DGEMM( 'No Transpose', 'Transpose', N, N, N,
+     $                     -ONE, U2, LDU2, A, LDA, ONE, RES, LDRES )
+               TEMP = DLAPY2( TEMP, DLANGE( 'Frobenius', N, N, RES,
+     $                                      LDRES, DWORK ) )
+               CALL DSYMM( 'Left', 'Lower', N, N, ONE, RES(1,2*N+1),
+     $                     LDRES, V1, LDV1, ZERO, RES, LDRES )
+               CALL DGEMM( 'Transpose', 'No Transpose', N, N, N, ONE,
+     $                     RES(1,N+1), LDRES, V2, LDV2, ONE, RES,
+     $                     LDRES )
+               CALL DGEMM( 'No Transpose', 'No Transpose', N, N, N, ONE,
+     $                     U2, LDU2, T, LDT, ONE, RES, LDRES )
+               TEMP = DLAPY2( TEMP, DLANGE( 'Frobenius', N, N, RES,
+     $                                      LDRES, DWORK ) )
+
+
+               CALL DSYMM( 'Left', 'Lower', N, N, ONE, RES(1,2*N+1),
+     $                     LDRES, V2, LDV2, ZERO, RES, LDRES )
+               CALL DGEMM( 'Transpose', 'No Transpose', N, N, N, -ONE,
+     $                     RES(1,N+1), LDRES, V1, LDV1, ONE, RES,
+     $                     LDRES )
+               CALL DGEMM( 'No Transpose', 'No Transpose', N, N, N, ONE,
+     $                     U2, LDU2, QG(1,2), LDQG, ONE, RES, LDRES )
+               CALL DGEMM( 'No Transpose', 'Transpose', N, N, N,
+     $                     -ONE, U1, LDU1, A, LDA, ONE, RES, LDRES )
+               TEMP = DLAPY2( TEMP, DLANGE( 'Frobenius', N, N, RES,
+     $                                      LDRES, DWORK ) )
+               WRITE ( NOUT, FMT = 99987 ) TEMP
+            END IF
+C
+            IF ( LSAME( JOBU, 'U' ) ) THEN
+               WRITE ( NOUT, FMT = 99992 )
+               DO 60  I = 1, N
+                  WRITE ( NOUT, FMT = 99990 )
+     $               ( U1(I,J), J = 1,N ), ( U2(I,J), J = 1,N )
+60             CONTINUE
+               DO 70  I = 1, N
+                  WRITE ( NOUT, FMT = 99990 )
+     $               ( -U2(I,J), J = 1,N ), ( U1(I,J), J = 1,N )
+70             CONTINUE
+               WRITE ( NOUT, FMT = 99986 ) MA02JD( .FALSE., .FALSE., N,
+     $                 U1, LDU1, U2, LDU2, RES, LDRES )
+            END IF
+            IF ( LSAME( JOBV, 'V' ) ) THEN
+               WRITE ( NOUT, FMT = 99991 )
+               DO 80  I = 1, N
+                  WRITE ( NOUT, FMT = 99990 )
+     $               ( V1(I,J), J = 1,N ), ( V2(I,J), J = 1,N )
+80             CONTINUE
+               DO 90  I = 1, N
+                  WRITE ( NOUT, FMT = 99990 )
+     $               ( -V2(I,J), J = 1,N ), ( V1(I,J), J = 1,N )
+90             CONTINUE
+               WRITE ( NOUT, FMT = 99985 ) MA02JD( .FALSE., .FALSE., N,
+     $                 V1, LDV1, V2, LDV2, RES, LDRES )
+            END IF
+            IF ( LSAME( BALANC, 'S' ).OR.LSAME( BALANC, 'B' ) ) THEN
+               WRITE ( NOUT, FMT = 99989 )
+               DO 100  I = 1, N
+                  WRITE ( NOUT, FMT = 99996 ) I, SCALE(I)
+100            CONTINUE
+            END IF
+         END IF
+      END IF
+*
+99999 FORMAT (' MB03XD EXAMPLE PROGRAM RESULTS',/1X)
+99998 FORMAT (' INFO on exit from MB03XD = ',I2)
+99997 FORMAT (' The eigenvalues are',//'   i',6X,
+     $        'WR(i)',6X,'WI(i)',/)
+99996 FORMAT (I4,3X,F8.4,3X,F8.4)
+99995 FORMAT (/' The matrix S of the reduced matrix is')
+99994 FORMAT (/' The matrix T of the reduced matrix is')
+99993 FORMAT (/' The matrix G of the reduced matrix is')
+99992 FORMAT (/' The orthogonal symplectic factor U is')
+99991 FORMAT (/' The orthogonal symplectic factor V is')
+99990 FORMAT (20(1X,F19.16))
+99989 FORMAT (/' The diagonal scaling factors are ',//'   i',6X,
+     $        'SCALE(i)',/)
+99988 FORMAT (/' N is out of range.',/' N = ',I5)
+99987 FORMAT (/' Residual: || H*V - U*R ||_F = ',G7.2)
+99986 FORMAT (/' Orthogonality of U: || U^T U - I ||_F = ',G7.2)
+99985 FORMAT (/' Orthogonality of V: || V^T V - I ||_F = ',G7.2)
+      END
+</PRE>
+<B>Program Data</B>
+<PRE>
+MB03XD EXAMPLE PROGRAM DATA
+	5	N	G	U	V
+  3.7588548168313685e-001  9.1995720669587144e-001  1.9389317998466821e-001  5.4878212553858818e-001  6.2731478808399666e-001
+  9.8764628987858052e-003  8.4472150190817474e-001  9.0481233416635698e-001  9.3158335257969060e-001  6.9908013774533750e-001
+  4.1985780631021896e-001  3.6775288246828447e-001  5.6920574967174709e-001  3.3519743020639464e-001  3.9718395379261456e-001
+  7.5366962581358721e-001  6.2080133182114383e-001  6.3178992922175603e-001  6.5553105501201447e-001  4.1362889533818031e-001
+  7.9387177473231862e-001  7.3127726446634478e-001  2.3441295540825388e-001  3.9190420688900335e-001  6.5521294635567051e-001
+  1.8015558545989005e-001  4.1879254941592853e-001  2.7203760737317784e-001  2.8147214090719214e-001  1.7731904815580199e-001  3.4718672159409536e-001
+  2.7989257702981651e-001  3.5042861661866559e-001  2.5565572408444881e-001  4.3977750345993827e-001  2.8855026075967616e-001  2.1496327083014577e-001
+  1.7341073886969158e-001  3.9913855375815932e-001  4.0151317011596516e-001  4.0331887464437133e-001  2.6723538667317948e-001  3.7110275606849241e-001
+  3.7832182695699140e-001  3.3812641389556752e-001  8.4360396433341395e-002  4.3672540277019672e-001  7.0022228267365608e-002  3.8210230186291916e-001
+  1.9548216143135175e-001  2.9055490787446736e-001  4.7670819669167425e-001  1.4636498713707141e-001  2.7670398401519275e-001  2.9431082727794898e-002
+</PRE>
+<B>Program Results</B>
+<PRE>
+ MB03XD EXAMPLE PROGRAM RESULTS
+
+ The eigenvalues are
+
+   i      WR(i)      WI(i)
+
+   1     3.1941     0.0000
+   2     0.1350     0.3179
+   3    -0.1350     0.3179
+   4     0.0595     0.2793
+   5    -0.0595     0.2793
+
+ The matrix S of the reduced matrix is
+ -3.1844761777714723  0.1612357243439330 -0.0628592203751083  0.2449004200921966  0.1974400149992633
+  0.0000000000000000 -0.1510667773167795  0.4260444411622876 -0.1775026035208666  0.3447278421198404
+  0.0000000000000000 -0.1386140422054281 -0.3006779624777419  0.2944143257134117  0.3456440339120381
+  0.0000000000000000  0.0000000000000000  0.0000000000000000 -0.2710128384740589  0.0933189808067083
+  0.0000000000000000  0.0000000000000000  0.0000000000000000  0.4844146572359630  0.2004347508746724
+
+ The matrix T of the reduced matrix is
+  3.2038208121776366  0.1805955192510636  0.2466389119377562 -0.2539149302433404 -0.0359238844381174
+  0.0000000000000000 -0.7196686433290822  0.0000000000000000  0.2428659121580382 -0.0594190100670709
+  0.0000000000000000  0.0000000000000000 -0.1891741194498124 -0.3309578443491325 -0.0303520731950498
+  0.0000000000000000  0.0000000000000000  0.0000000000000000 -0.4361574461961496  0.0000000000000000
+  0.0000000000000000  0.0000000000000000  0.0000000000000000  0.0000000000000000  0.1530894573304220
+
+ The matrix G of the reduced matrix is
+ -0.0370982242678458  0.0917788436945730 -0.0560402416315236  0.1345152517579191  0.0256668227276665
+  0.0652183678916926 -0.0700457231988328  0.0350041175858816 -0.2233868768749277 -0.1171980260782820
+ -0.0626428681377074  0.2327575351902838 -0.1251515732208133 -0.0177816046663209  0.3696921118421109
+  0.0746042309265569 -0.0828007611045243  0.0217427473546003 -0.1157775118548850 -0.3161183681200607
+  0.1374372236164838  0.1002727885506978  0.4021556774753987 -0.0431072263235625  0.1067394572547804
+
+ Residual: || H*V - U*R ||_F = .38E-14
+
+ The orthogonal symplectic factor U is
+  0.3806883009357249 -0.0347810363019666 -0.5014665065895627  0.5389691288472425  0.2685446895251499 -0.1795922007470744  0.1908329820840935  0.0868799433942041  0.3114741142062469 -0.2579907627915116
+  0.4642712665555327 -0.5942766860716397  0.4781179763952658  0.2334370556238072  0.0166790369048881 -0.2447897730222852 -0.1028403314750053 -0.1157840914576285 -0.1873268885694422  0.1700708002861556
+  0.2772789197782788 -0.0130145392695854 -0.2123817030594153 -0.2550292626960007 -0.5049268366774478 -0.2243335325285329  0.3180998613802498  0.3315380214794935  0.1977859924739816  0.5072476567310036
+  0.4209268575081797  0.1499593172661210 -0.1925590746592206 -0.5472292877802408  0.4543329704184014 -0.2128397588651423 -0.2740560593051884  0.1941418870268831 -0.3096684962457407 -0.0581576193198820
+  0.3969669479129447  0.6321903535930841  0.3329156356041941  0.0163533225344391 -0.2638879466190056 -0.2002027567371933 -0.0040094115506845 -0.3979373387545256  0.1520881534833996 -0.2010804514091296
+  0.1795922007470744 -0.1908329820840935 -0.0868799433942041 -0.3114741142062469  0.2579907627915116  0.3806883009357249 -0.0347810363019666 -0.5014665065895627  0.5389691288472425  0.2685446895251499
+  0.2447897730222852  0.1028403314750053  0.1157840914576285  0.1873268885694422 -0.1700708002861556  0.4642712665555327 -0.5942766860716397  0.4781179763952658  0.2334370556238072  0.0166790369048881
+  0.2243335325285329 -0.3180998613802498 -0.3315380214794935 -0.1977859924739816 -0.5072476567310036  0.2772789197782788 -0.0130145392695854 -0.2123817030594153 -0.2550292626960007 -0.5049268366774478
+  0.2128397588651423  0.2740560593051884 -0.1941418870268831  0.3096684962457407  0.0581576193198820  0.4209268575081797  0.1499593172661210 -0.1925590746592206 -0.5472292877802408  0.4543329704184014
+  0.2002027567371933  0.0040094115506845  0.3979373387545256 -0.1520881534833996  0.2010804514091296  0.3969669479129447  0.6321903535930841  0.3329156356041941  0.0163533225344391 -0.2638879466190056
+
+ Orthogonality of U: || U^T U - I ||_F = .28E-14
+
+ The orthogonal symplectic factor V is
+  0.4447147692018332 -0.6830166755147445 -0.0002576861753461  0.5781954611783305 -0.0375091627893695  0.0000000000000000  0.0000000000000000  0.0000000000000000  0.0000000000000000  0.0000000000000000
+  0.5121756358795815  0.0297197140254867  0.4332229148788674 -0.3240527006890555  0.5330850295256576  0.0299719306696789 -0.2322624725320732 -0.0280846899680330 -0.3044255686880015 -0.1077641482535463
+  0.3664711365265602  0.3288511296455134  0.0588396016404466  0.1134221597062252  0.1047567336850027 -0.0069083614679702  0.3351358347080169 -0.4922707032978909  0.4293545450291777  0.4372821269061838
+  0.4535357098437908  0.1062866148880810 -0.3964092656837799 -0.2211800890450648  0.0350667323996154  0.0167847133528844  0.2843629278945263  0.5958979805231206  0.3097336757510830 -0.2086733033047175
+  0.4450432900616098  0.2950206358263727 -0.1617837757183794 -0.0376369332204945 -0.6746752660482708  0.0248567764822071 -0.2810759958040465 -0.1653113624869875 -0.3528780198620394 -0.0254898556119200
+  0.0000000000000000  0.0000000000000000  0.0000000000000000  0.0000000000000000  0.0000000000000000  0.4447147692018332 -0.6830166755147445 -0.0002576861753461  0.5781954611783305 -0.0375091627893695
+ -0.0299719306696789  0.2322624725320732  0.0280846899680330  0.3044255686880015  0.1077641482535463  0.5121756358795815  0.0297197140254867  0.4332229148788674 -0.3240527006890555  0.5330850295256576
+  0.0069083614679702 -0.3351358347080169  0.4922707032978909 -0.4293545450291777 -0.4372821269061838  0.3664711365265602  0.3288511296455134  0.0588396016404466  0.1134221597062252  0.1047567336850027
+ -0.0167847133528844 -0.2843629278945263 -0.5958979805231206 -0.3097336757510830  0.2086733033047175  0.4535357098437908  0.1062866148880810 -0.3964092656837799 -0.2211800890450648  0.0350667323996154
+ -0.0248567764822071  0.2810759958040465  0.1653113624869875  0.3528780198620394  0.0254898556119200  0.4450432900616098  0.2950206358263727 -0.1617837757183794 -0.0376369332204945 -0.6746752660482708
+
+ Orthogonality of V: || V^T V - I ||_F = .25E-14
+</PRE>
+
+<HR>
+<p>
+<A HREF=..\libindex.html><B>Return to index</B></A></BODY>
+</HTML>

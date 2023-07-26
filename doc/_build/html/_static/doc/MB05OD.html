@@ -1,0 +1,249 @@
+<HTML>
+<HEAD><TITLE>MB05OD - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MB05OD">MB05OD</A></H2>
+<H3>
+Matrix exponential for a real matrix, with accuracy estimate
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To compute exp(A*delta) where A is a real N-by-N matrix and delta
+  is a scalar value. The routine also returns the minimal number of
+  accurate digits in the 1-norm of exp(A*delta) and the number of
+  accurate digits in the 1-norm of exp(A*delta) at 95% confidence
+  level.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MB05OD( BALANC, N, NDIAG, DELTA, A, LDA, MDIG, IDIG,
+     $                   IWORK, DWORK, LDWORK, IWARN, INFO )
+C     .. Scalar Arguments ..
+      CHARACTER         BALANC
+      INTEGER           IDIG, INFO, IWARN, LDA, LDWORK, MDIG, N,
+     $                  NDIAG
+      DOUBLE PRECISION  DELTA
+C     .. Array Arguments ..
+      INTEGER           IWORK(*)
+      DOUBLE PRECISION  A(LDA,*), DWORK(*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  BALANC  CHARACTER*1
+          Specifies whether or not a balancing transformation (done
+          by SLICOT Library routine MB04MD) is required, as follows:
+          = 'N', do not use balancing;
+          = 'S', use balancing (scaling).
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The order of the matrix A.  N &gt;= 0.
+
+  NDIAG   (input) INTEGER
+          The specified order of the diagonal Pade approximant.
+          In the absence of further information NDIAG should
+          be set to 9.  NDIAG should not exceed 15.  NDIAG &gt;= 1.
+
+  DELTA   (input) DOUBLE PRECISION
+          The scalar value delta of the problem.
+
+  A       (input/output) DOUBLE PRECISION array, dimension (LDA,N)
+          On input, the leading N-by-N part of this array must
+          contain the matrix A of the problem. (This is not needed
+          if DELTA = 0.)
+          On exit, if INFO = 0, the leading N-by-N part of this
+          array contains the solution matrix exp(A*delta).
+
+  LDA     INTEGER
+          The leading dimension of array A.  LDA &gt;= MAX(1,N).
+
+  MDIG    (output) INTEGER
+          The minimal number of accurate digits in the 1-norm of
+          exp(A*delta).
+
+  IDIG    (output) INTEGER
+          The number of accurate digits in the 1-norm of
+          exp(A*delta) at 95% confidence level.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  IWORK   INTEGER array, dimension (N)
+
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+
+  LDWORK  INTEGER
+          The length of the array DWORK.
+          LDWORK &gt;= N*(2*N+NDIAG+1)+NDIAG, if N &gt;  1.
+          LDWORK &gt;= 1,                     if N &lt;= 1.
+
+</PRE>
+<B>Warning Indicator</B>
+<PRE>
+  IWARN   INTEGER
+          = 0:  no warning;
+          = 1:  if MDIG = 0 and IDIG &gt; 0, warning for possible
+                inaccuracy (the exponential has been computed);
+          = 2:  if MDIG = 0 and IDIG = 0, warning for severe
+                inaccuracy (the exponential has been computed);
+          = 3:  if balancing has been requested, but it failed to
+                reduce the matrix norm and was not actually used.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value;
+          = 1:  if the norm of matrix A*delta (after a possible
+                balancing) is too large to obtain an accurate
+                result;
+          = 2:  if the coefficient matrix (the denominator of the
+                Pade approximant) is exactly singular; try a
+                different value of NDIAG;
+          = 3:  if the solution exponential would overflow, possibly
+                due to a too large value DELTA; the calculations
+                stopped prematurely. This error is not likely to
+                appear.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  The exponential of the matrix A is evaluated from a diagonal Pade
+  approximant. This routine is a modification of the subroutine
+  PADE, described in reference [1]. The routine implements an
+  algorithm which exploits the identity
+
+      (exp[(2**-m)*A]) ** (2**m) = exp(A),
+
+  where m is an integer determined by the algorithm, to improve the
+  accuracy for matrices with large norms.
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Ward, R.C.
+      Numerical computation of the matrix exponential with accuracy
+      estimate.
+      SIAM J. Numer. Anal., 14, pp. 600-610, 1977.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>                            3
+  The algorithm requires 0(N ) operations.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+*     MB05OD EXAMPLE PROGRAM TEXT
+*
+*     .. Parameters ..
+      INTEGER          NIN, NOUT
+      PARAMETER        ( NIN = 5, NOUT = 6 )
+      INTEGER          NMAX
+      PARAMETER        ( NMAX = 20 )
+      INTEGER          LDA
+      PARAMETER        ( LDA = NMAX )
+      INTEGER          NDIAG
+      PARAMETER        ( NDIAG = 9 )
+      INTEGER          LDWORK
+      PARAMETER        ( LDWORK = NMAX*( 2*NMAX+NDIAG+1 )+NDIAG )
+*     .. Local Scalars ..
+      DOUBLE PRECISION DELTA
+      INTEGER          I, IDIG, INFO, IWARN, J, MDIG, N
+      CHARACTER*1      BALANC
+*     .. Local Arrays ..
+      DOUBLE PRECISION A(LDA,NMAX), DWORK(LDWORK)
+      INTEGER          IWORK(NMAX)
+*     .. External Subroutines ..
+      EXTERNAL         MB05OD
+*     .. Executable Statements ..
+*
+      WRITE ( NOUT, FMT = 99999 )
+*     Skip the heading in the data file and read the data.
+      READ ( NIN, FMT = '()' )
+      READ ( NIN, FMT = * ) N, DELTA, BALANC
+      IF ( N.LE.0 .OR. N.GT.NMAX ) THEN
+         WRITE ( NOUT, FMT = 99994 ) N
+      ELSE
+         READ ( NIN, FMT = * ) ( ( A(I,J), J = 1,N ), I = 1,N )
+*        Find the exponential of the real defective matrix A*DELTA.
+         CALL MB05OD( BALANC, N, NDIAG, DELTA, A, LDA, MDIG, IDIG,
+     $                IWORK, DWORK, LDWORK, IWARN, INFO )
+*
+         IF ( INFO.NE.0 ) THEN
+            WRITE ( NOUT, FMT = 99998 ) INFO
+         ELSE
+            IF ( IWARN.NE.0 )
+     $         WRITE ( NOUT, FMT = 99993 ) IWARN
+            WRITE ( NOUT, FMT = 99997 )
+            DO 20 I = 1, N
+               WRITE ( NOUT, FMT = 99996 ) ( A(I,J), J = 1,N )
+   20       CONTINUE
+            WRITE ( NOUT, FMT = 99995 ) MDIG, IDIG
+         END IF
+      END IF
+      STOP
+*
+99999 FORMAT (' MB05OD EXAMPLE PROGRAM RESULTS',/1X)
+99998 FORMAT (' INFO on exit from MB05OD = ',I2)
+99997 FORMAT (' The solution matrix E = exp(A*DELTA) is ')
+99996 FORMAT (20(1X,F8.4))
+99995 FORMAT (/' Minimal number of accurate digits in the norm of E =',
+     $       I4,/' Number of accurate digits in the norm of E',/'     ',
+     $       '            at 95 per cent confidence interval =',I4)
+99994 FORMAT (/' N is out of range.',/' N = ',I5)
+99993 FORMAT (' IWARN on exit from MB05OD = ',I2)
+      END
+</PRE>
+<B>Program Data</B>
+<PRE>
+ MB05OD EXAMPLE PROGRAM DATA
+   3     1.0     S
+   2.0   1.0   1.0
+   0.0   3.0   2.0
+   1.0   0.0   4.0
+</PRE>
+<B>Program Results</B>
+<PRE>
+ MB05OD EXAMPLE PROGRAM RESULTS
+
+ The solution matrix E = exp(A*DELTA) is 
+  22.5984  17.2073  53.8144
+  24.4047  27.6033  83.2241
+  29.4097  12.2024  81.4177
+
+ Minimal number of accurate digits in the norm of E =  12
+ Number of accurate digits in the norm of E
+                 at 95 per cent confidence interval =  15
+</PRE>
+
+<HR>
+<p>
+<A HREF=..\libindex.html><B>Return to index</B></A></BODY>
+</HTML>

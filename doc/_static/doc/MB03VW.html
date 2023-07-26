@@ -1,0 +1,233 @@
+<HTML>
+<HEAD><TITLE>MB03VW - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MB03VW">MB03VW</A></H2>
+<H3>
+Periodic Hessenberg form of a formal product of p matrices using orthogonal similarity transformations
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To reduce the generalized matrix product
+
+               S(1)           S(2)                 S(K)
+       A(:,:,1)     * A(:,:,2)     * ... * A(:,:,K)
+
+  to upper Hessenberg-triangular form, where A is N-by-N-by-K and S
+  is the signature array with values 1 or -1. The H-th matrix of A
+  is reduced to upper Hessenberg form while the other matrices are
+  triangularized. Unblocked version.
+
+  If COMPQ = 'U' or COMPZ = 'I', then the orthogonal factors are
+  computed and stored in the array Q so that for S(I) = 1,
+                                                           T
+        Q(:,:,I)(in)   A(:,:,I)(in)   Q(:,:,MOD(I,K)+1)(in)
+                                                            T    (1)
+     =  Q(:,:,I)(out)  A(:,:,I)(out)  Q(:,:,MOD(I,K)+1)(out) ,
+
+  and for S(I) = -1,
+                                                           T
+        Q(:,:,MOD(I,K)+1)(in)   A(:,:,I)(in)   Q(:,:,I)(in)
+                                                            T    (2)
+     =  Q(:,:,MOD(I,K)+1)(out)  A(:,:,I)(out)  Q(:,:,I)(out) .
+
+  A partial generation of the orthogonal factors can be realized via
+  the array QIND.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MB03VW( COMPQ, QIND, TRIU, N, K, H, ILO, IHI, S, A,
+     $                   LDA1, LDA2, Q, LDQ1, LDQ2, IWORK, LIWORK,
+     $                   DWORK, LDWORK, INFO )
+C     .. Scalar Arguments ..
+      CHARACTER         COMPQ, TRIU
+      INTEGER           H, IHI, ILO, INFO, K, LDA1, LDA2, LDQ1, LDQ2,
+     $                  LDWORK, LIWORK, N
+C     .. Array Arguments ..
+      INTEGER           IWORK(*), QIND(*), S(*)
+      DOUBLE PRECISION  A(LDA1,LDA2,*), DWORK(LDWORK), Q(LDQ1,LDQ2,*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  COMPQ   CHARACTER*1
+          Specifies whether or not the orthogonal transformations
+          should be accumulated in the array Q, as follows:
+          = 'N': do not modify Q;
+          = 'U': modify (update) the array Q by the orthogonal
+                 transformations that are applied to the matrices in
+                 the array A to reduce them to periodic Hessenberg-
+                 triangular form;
+          = 'I': like COMPQ = 'U', except that each matrix in the
+                 array Q will be first initialized to the identity
+                 matrix;
+          = 'P': use the parameters as encoded in QIND.
+
+  QIND    INTEGER array, dimension (K)
+          If COMPQ = 'P', then this array describes the generation
+          of the orthogonal factors as follows:
+             If QIND(I) &gt; 0, then the array Q(:,:,QIND(I)) is
+          modified by the transformations corresponding to the
+          i-th orthogonal factor in (1) and (2).
+             If QIND(I) &lt; 0, then the array Q(:,:,-QIND(I)) is
+          initialized to the identity and modified by the
+          transformations corresponding to the i-th orthogonal
+          factor in (1) and (2).
+             If QIND(I) = 0, then the transformations corresponding
+          to the i-th orthogonal factor in (1), (2) are not applied.
+
+  TRIU    CHARACTER*1
+          Indicates how many matrices are reduced to upper
+          triangular form in the first stage of the algorithm,
+          as follows
+          = 'N':  only matrices with negative signature;
+          = 'A':  all possible N - 1 matrices.
+          The first choice minimizes the computational costs of the
+          algorithm, whereas the second is more cache efficient and
+          therefore faster on modern architectures.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input)  INTEGER
+          The order of each factor in the array A.  N &gt;= 0.
+
+  K       (input) INTEGER
+          The number of factors.  K &gt;= 0.
+
+  H       (input/output) INTEGER
+          On entry, if H is in the interval [1,K] then the H-th
+          factor of A will be transformed to upper Hessenberg form.
+          Otherwise the most efficient H is chosen.
+          On exit, H indicates the factor of A which is in upper
+          Hessenberg form.
+
+  ILO     (input)  INTEGER
+  IHI     (input)  INTEGER
+          It is assumed that each factor in A is already upper
+          triangular in rows and columns 1:ILO-1 and IHI+1:N.
+          1 &lt;= ILO &lt;= IHI &lt;= N, if N &gt; 0;
+          ILO = 1 and IHI  = 0, if N = 0.
+          If ILO = IHI, all factors are upper triangular.
+
+  S       (input)  INTEGER array, dimension (K)
+          The leading K elements of this array must contain the
+          signatures of the factors. Each entry in S must be either
+          1 or -1.
+
+  A       (input/output) DOUBLE PRECISION array, dimension
+                         (LDA1,LDA2,K)
+          On entry, the leading N-by-N-by-K part of this array must
+          contain the factors of the general product to be reduced.
+          On exit, A(:,:,H) is overwritten by an upper Hessenberg
+          matrix and each A(:,:,I), for I not equal to H, is
+          overwritten by an upper triangular matrix.
+
+  LDA1    INTEGER
+          The first leading dimension of the array A.
+          LDA1 &gt;= MAX(1,N).
+
+  LDA2    INTEGER
+          The second leading dimension of the array A.
+          LDA2 &gt;= MAX(1,N).
+
+  Q       (input/output) DOUBLE PRECISION array, dimension
+                         (LDQ1,LDQ2,K)
+          On entry, if COMPQ = 'U', the leading N-by-N-by-K part
+          of this array must contain the initial orthogonal factors
+          as described in (1) and (2).
+          On entry, if COMPQ = 'P', only parts of the leading
+          N-by-N-by-K part of this array must contain some
+          orthogonal factors as described by the parameters QIND.
+          If COMPQ = 'I', this array should not be set on entry.
+          On exit, if COMPQ = 'U' or COMPQ = 'I', the leading
+          N-by-N-by-K part of this array contains the modified
+          orthogonal factors as described in (1) and (2).
+          On exit, if COMPQ = 'P', only parts of the leading
+          N-by-N-by-K part contain some modified orthogonal factors
+          as described by the parameters QIND.
+          This array is not referenced if COMPQ = 'N'.
+
+  LDQ1    INTEGER
+          The first leading dimension of the array Q.  LDQ1 &gt;= 1,
+          and, if COMPQ &lt;&gt; 'N', LDQ1 &gt;= MAX(1,N).
+
+  LDQ2    INTEGER
+          The second leading dimension of the array Q.  LDQ2 &gt;= 1,
+          and, if COMPQ &lt;&gt; 'N', LDQ2 &gt;= MAX(1,N).
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  IWORK   INTEGER array, dimension (LIWORK)
+          On exit, if  INFO = -17,  IWORK(1)  returns the needed
+          value of LIWORK.
+
+  LIWORK  INTEGER
+          The length of the array IWORK.  LIWORK &gt;= MAX(1,3*K).
+
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+          On exit, if INFO = 0, DWORK(1) returns the optimal value
+          of LDWORK.
+          On exit, if  INFO = -19,  DWORK(1)  returns the minimum
+          value of LIWORK.
+
+  LDWORK  INTEGER
+          The length of the array DWORK. 
+          LDWORK &gt;= 1, if MIN(N,K) = 0, or N = 1 or ILO = IHI;
+          LDWORK &gt;= M+MAX(IHI,N-ILO+1)), otherwise, where
+                    M = IHI-ILO+1.
+          For optimum performance LDWORK should be larger.
+
+          If LDWORK = -1  a workspace query is assumed; the
+          routine only calculates the optimal size of the DWORK
+          array, returns this value as the first entry of the DWORK
+          array, and no error message is issued by XERBLA.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+  None
+</PRE>
+<B>Program Data</B>
+<PRE>
+  None
+</PRE>
+<B>Program Results</B>
+<PRE>
+  None
+</PRE>
+
+<HR>
+<p>
+<A HREF=..\libindex.html><B>Return to index</B></A></BODY>
+</HTML>

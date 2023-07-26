@@ -1,0 +1,328 @@
+<HTML>
+<HEAD><TITLE>TC05AD - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="TC05AD">TC05AD</A></H2>
+<H3>
+Frequency response of a left/right polynomial matrix representation
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To evaluate the transfer matrix T(s) of a left polynomial matrix
+  representation [T(s) = inv(P(s))*Q(s)] or a right polynomial
+  matrix representation [T(s) = Q(s)*inv(P(s))] at any specified
+  complex frequency s = SVAL.
+
+  This routine will calculate the standard frequency response
+  matrix at frequency omega if SVAL is supplied as (0.0,omega).
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE TC05AD( LERI, M, P, SVAL, INDEX, PCOEFF, LDPCO1,
+     $                   LDPCO2, QCOEFF, LDQCO1, LDQCO2, RCOND, CFREQR,
+     $                   LDCFRE, IWORK, DWORK, ZWORK, INFO )
+C     .. Scalar Arguments ..
+      CHARACTER         LERI
+      INTEGER           INFO, LDCFRE, LDPCO1, LDPCO2, LDQCO1, LDQCO2, M,
+     $                  P
+      DOUBLE PRECISION  RCOND
+      COMPLEX*16        SVAL
+C     .. Array Arguments ..
+      INTEGER           INDEX(*), IWORK(*)
+      DOUBLE PRECISION  DWORK(*), PCOEFF(LDPCO1,LDPCO2,*),
+     $                  QCOEFF(LDQCO1,LDQCO2,*)
+      COMPLEX*16        CFREQR(LDCFRE,*), ZWORK(*)
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  LERI    CHARACTER*1
+          Indicates whether a left polynomial matrix representation
+          or a right polynomial matrix representation is to be used
+          to evaluate the transfer matrix as follows:
+          = 'L':  A left matrix fraction is input;
+          = 'R':  A right matrix fraction is input.
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  M       (input) INTEGER
+          The number of system inputs.  M &gt;= 0.
+
+  P       (input) INTEGER
+          The number of system outputs.  P &gt;= 0.
+
+  SVAL    (input) COMPLEX*16
+          The frequency at which the transfer matrix or the
+          frequency respose matrix is to be evaluated.
+          For a standard frequency response set the real part
+          of SVAL to zero.
+
+  INDEX   (input) INTEGER array, dimension (MAX(M,P))
+          If LERI = 'L', INDEX(I), I = 1,2,...,P, must contain the
+          maximum degree of the polynomials in the I-th row of the
+          denominator matrix P(s) of the given left polynomial
+          matrix representation.
+          If LERI = 'R', INDEX(I), I = 1,2,...,M, must contain the
+          maximum degree of the polynomials in the I-th column of
+          the denominator matrix P(s) of the given right polynomial
+          matrix representation.
+
+  PCOEFF  (input) DOUBLE PRECISION array, dimension
+          (LDPCO1,LDPCO2,kpcoef), where kpcoef = MAX(INDEX(I)) + 1.
+          If LERI = 'L' then porm = P, otherwise porm = M.
+          The leading porm-by-porm-by-kpcoef part of this array must
+          contain the coefficients of the denominator matrix P(s).
+          PCOEFF(I,J,K) is the coefficient in s**(INDEX(iorj)-K+1)
+          of polynomial (I,J) of P(s), where K = 1,2,...,kpcoef; if
+          LERI = 'L' then iorj = I, otherwise iorj = J.
+          Thus for LERI = 'L', P(s) =
+          diag(s**INDEX(I))*(PCOEFF(.,.,1)+PCOEFF(.,.,2)/s+...).
+          If LERI = 'R', PCOEFF is modified by the routine but
+          restored on exit.
+
+  LDPCO1  INTEGER
+          The leading dimension of array PCOEFF.
+          LDPCO1 &gt;= MAX(1,P) if LERI = 'L',
+          LDPCO1 &gt;= MAX(1,M) if LERI = 'R'.
+
+  LDPCO2  INTEGER
+          The second dimension of array PCOEFF.
+          LDPCO2 &gt;= MAX(1,P) if LERI = 'L',
+          LDPCO2 &gt;= MAX(1,M) if LERI = 'R'.
+
+  QCOEFF  (input) DOUBLE PRECISION array, dimension
+          (LDQCO1,LDQCO2,kpcoef)
+          If LERI = 'L' then porp = M, otherwise porp = P.
+          The leading porm-by-porp-by-kpcoef part of this array must
+          contain the coefficients of the numerator matrix Q(s).
+          QCOEFF(I,J,K) is defined as for PCOEFF(I,J,K).
+          If LERI = 'R', QCOEFF is modified by the routine but
+          restored on exit.
+
+  LDQCO1  INTEGER
+          The leading dimension of array QCOEFF.
+          LDQCO1 &gt;= MAX(1,P)   if LERI = 'L',
+          LDQCO1 &gt;= MAX(1,M,P) if LERI = 'R'.
+
+  LDQCO2  INTEGER
+          The second dimension of array QCOEFF.
+          LDQCO2 &gt;= MAX(1,M)   if LERI = 'L',
+          LDQCO2 &gt;= MAX(1,M,P) if LERI = 'R'.
+
+  RCOND   (output) DOUBLE PRECISION
+          The estimated reciprocal of the condition number of the
+          denominator matrix P(SVAL).
+          If RCOND is nearly zero, SVAL is approximately a system
+          pole.
+
+  CFREQR  (output) COMPLEX*16 array, dimension (LDCFRE,MAX(M,P))
+          The leading porm-by-porp part of this array contains the
+          frequency response matrix T(SVAL).
+
+  LDCFRE  INTEGER
+          The leading dimension of array CFREQR.
+          LDCFRE &gt;= MAX(1,P)   if LERI = 'L',
+          LDCFRE &gt;= MAX(1,M,P) if LERI = 'R'.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  IWORK   INTEGER array, dimension (liwork)
+          where liwork = P, if LERI = 'L',
+                liwork = M, if LERI = 'R'.
+
+  DWORK   DOUBLE PRECISION array, dimension (ldwork)
+          where ldwork = 2*P, if LERI = 'L',
+                ldwork = 2*M, if LERI = 'R'.
+
+  ZWORK   COMPLEX*16 array, dimension (lzwork),
+          where lzwork = P*(P+2), if LERI = 'L',
+                lzwork = M*(M+2), if LERI = 'R'.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          &lt; 0:  if INFO = -i, the i-th argument had an illegal
+                value;
+          = 1:  if P(SVAL) is exactly or nearly singular;
+                no frequency response is calculated.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  The method for a left matrix fraction will be described here;
+  right matrix fractions are dealt with by obtaining the dual left
+  fraction and calculating its frequency response (see SLICOT
+  Library routine TC01OD). The first step is to calculate the
+  complex value P(SVAL) of the denominator matrix P(s) at the
+  desired frequency SVAL. If P(SVAL) is approximately singular,
+  SVAL is approximately a pole of this system and so the frequency
+  response matrix T(SVAL) is not calculated; in this case, the
+  routine returns with the Error Indicator (INFO) set to 1.
+  Otherwise, the complex value Q(SVAL) of the numerator matrix Q(s)
+  at frequency SVAL is calculated in a similar way to P(SVAL), and
+  the desired response matrix T(SVAL) = inv(P(SVAL))*Q(SVAL) is
+  found by solving the corresponding system of complex linear
+  equations.
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  None
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>                            3
+  The algorithm requires 0(N ) operations.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+*     TC05AD EXAMPLE PROGRAM TEXT.
+*
+*     .. Parameters ..
+      INTEGER          NIN, NOUT
+      PARAMETER        ( NIN = 5, NOUT = 6 )
+      INTEGER          MMAX, PMAX, KPCMAX
+      PARAMETER        ( MMAX = 20, PMAX = 20, KPCMAX = 20 )
+      INTEGER          MAXMP
+      PARAMETER        ( MAXMP = MAX( MMAX, PMAX ) )
+      INTEGER          LDCFRE, LDPCO1, LDPCO2, LDQCO1, LDQCO2
+      PARAMETER        ( LDCFRE = MAXMP, LDPCO1 = MAXMP,
+     $                   LDPCO2 = MAXMP, LDQCO1 = MAXMP,
+     $                   LDQCO2 = MAXMP )
+      INTEGER          LDWORK
+      PARAMETER        ( LDWORK = 2*MAXMP )
+      INTEGER          LZWORK
+      PARAMETER        ( LZWORK = ( MAXMP )*( MAXMP+2 ) )
+*     .. Local Scalars ..
+      COMPLEX*16       SVAL
+      DOUBLE PRECISION RCOND
+      INTEGER          I, INFO, J, K, KPCOEF, M, P, PORM, PORP
+      CHARACTER*1      LERI
+      LOGICAL          LLERI
+*     .. Local Arrays ..
+      COMPLEX*16       CFREQR(LDCFRE,MAXMP), ZWORK(LZWORK)
+      DOUBLE PRECISION DWORK(LDWORK), PCOEFF(LDPCO1,LDPCO2,KPCMAX),
+     $                 QCOEFF(LDQCO1,LDQCO2,KPCMAX)
+      INTEGER          INDEX(MAXMP), IWORK(MAXMP)
+*     .. External Functions ..
+      LOGICAL          LSAME
+      EXTERNAL         LSAME
+*     .. External Subroutines ..
+      EXTERNAL         TC05AD
+*     .. Intrinsic Functions ..
+      INTRINSIC        MAX
+*     .. Executable Statements ..
+*
+      WRITE ( NOUT, FMT = 99999 )
+*     Skip the heading in the data file and read the data.
+      READ ( NIN, FMT = '()' )
+      READ ( NIN, FMT = * ) M, P, SVAL, LERI
+      LLERI = LSAME( LERI, 'L' )
+      IF ( M.LE.0 .OR. M.GT.MMAX ) THEN
+         WRITE ( NOUT, FMT = 99995 ) M
+      ELSE IF ( P.LE.0 .OR. P.GT.PMAX ) THEN
+         WRITE ( NOUT, FMT = 99994 ) P
+      ELSE
+         PORM = P
+         IF ( .NOT.LLERI ) PORM = M
+         READ ( NIN, FMT = * ) ( INDEX(I), I = 1,PORM )
+         PORP = M
+         IF ( .NOT.LLERI ) PORP = P
+         KPCOEF = 0
+         DO 20 I = 1, PORM
+            KPCOEF = MAX( KPCOEF, INDEX(I) )
+   20    CONTINUE
+         KPCOEF = KPCOEF + 1
+         IF ( KPCOEF.LE.0 .OR. KPCOEF.GT.KPCMAX ) THEN
+            WRITE ( NOUT, FMT = 99993 ) KPCOEF
+         ELSE
+            READ ( NIN, FMT = * )
+     $         ( ( ( PCOEFF(I,J,K), K = 1,KPCOEF ), J = 1,PORM ),
+     $                              I = 1,PORM )
+            READ ( NIN, FMT = * )
+     $         ( ( ( QCOEFF(I,J,K), K = 1,KPCOEF ), J = 1,PORP ),
+     $                              I = 1,PORM )
+*           Find the standard frequency response matrix of left pmr
+*           at 0.5*j.
+            CALL TC05AD( LERI, M, P, SVAL, INDEX, PCOEFF, LDPCO1,
+     $                   LDPCO2, QCOEFF, LDQCO1, LDQCO2, RCOND, CFREQR,
+     $                   LDCFRE, IWORK, DWORK, ZWORK, INFO )
+*
+            IF ( INFO.NE.0 ) THEN
+               WRITE ( NOUT, FMT = 99998 ) INFO
+            ELSE
+               WRITE ( NOUT, FMT = 99997 ) RCOND
+               DO 40 I = 1, PORM
+                  WRITE ( NOUT, FMT = 99996 )
+     $                  ( CFREQR(I,J), J = 1,PORP )
+   40          CONTINUE
+            END IF
+         END IF
+      END IF
+      STOP
+*
+99999 FORMAT (' TC05AD EXAMPLE PROGRAM RESULTS',/1X)
+99998 FORMAT (' INFO on exit from TC05AD = ',I2)
+99997 FORMAT (' RCOND = ',F4.2,//' The frequency response matrix T(SVA',
+     $       'L) is ')
+99996 FORMAT (20(' (',F5.2,',',F5.2,') ',:))
+99995 FORMAT (/' M is out of range.',/' M = ',I5)
+99994 FORMAT (/' P is out of range.',/' P = ',I5)
+99993 FORMAT (/' KPCOEF is out of range.',/' KPCOEF = ',I5)
+      END
+</PRE>
+<B>Program Data</B>
+<PRE>
+ TC05AD EXAMPLE PROGRAM DATA
+   2     2     (0.0,0.5)     L
+   2     2
+   2.0   3.0   1.0
+   4.0  -1.0  -1.0
+   5.0   7.0  -6.0
+   3.0   2.0   2.0
+   6.0  -1.0   5.0
+   1.0   7.0   5.0
+   1.0   1.0   1.0
+   4.0   1.0  -1.0
+</PRE>
+<B>Program Results</B>
+<PRE>
+ TC05AD EXAMPLE PROGRAM RESULTS
+
+ RCOND = 0.19
+
+ The frequency response matrix T(SVAL) is 
+ (-0.25,-0.33)  ( 0.26,-0.45) 
+ (-1.48, 0.35)  (-2.25,-1.11) 
+</PRE>
+
+<HR>
+<p>
+<A HREF=..\libindex.html><B>Return to index</B></A></BODY>
+</HTML>

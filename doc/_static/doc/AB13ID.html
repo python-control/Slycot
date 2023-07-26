@@ -1,0 +1,602 @@
+<HTML>
+<HEAD><TITLE>AB13ID - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="AB13ID">AB13ID</A></H2>
+<H3>
+Testing properness of the transfer function matrix of a descriptor system
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To check whether the transfer function
+
+                                  -1
+    G(lambda) := C*( lambda*E - A ) *B
+
+  of a given linear time-invariant descriptor system with
+  generalized state space realization (lambda*E-A,B,C) is proper.
+  Optionally, if JOBEIG = 'A', the system (lambda*E-A,B,C) is
+  reduced to an equivalent one (lambda*Er-Ar,Br,Cr) with only
+  controllable and observable eigenvalues in order to use it for a
+  subsequent L_inf-norm computation; if JOBEIG = 'I', the system is
+  reduced to an equivalent one (lambda*Er-Ar,Br,Cr) without
+  uncontrollable and unobservable infinite eigenvalues. In this
+  case, intended mainly for checking the properness, the returned
+  system is not fully reduced, unless UPDATE = 'U'.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      LOGICAL FUNCTION AB13ID( JOBSYS, JOBEIG, EQUIL, CKSING, RESTOR,
+     $                         UPDATE, N, M, P, A, LDA, E, LDE, B, LDB,
+     $                         C, LDC, NR, RANKE, TOL, IWORK, DWORK,
+     $                         LDWORK, IWARN, INFO )
+C     .. Scalar Arguments ..
+      CHARACTER          CKSING, EQUIL, JOBEIG, JOBSYS, RESTOR, UPDATE
+      INTEGER            INFO, IWARN, LDA, LDB, LDC, LDE, LDWORK, M, N,
+     $                   NR, P, RANKE
+C     .. Array Arguments ..
+      INTEGER            IWORK( * )
+      DOUBLE PRECISION   A( LDA, * ), B( LDB, * ), C( LDC, * ),
+     $                   DWORK( * ), E( LDE, * ), TOL( * )
+
+</PRE>
+<B><FONT SIZE="+1">Function Value</FONT></B>
+<PRE>
+  AB13ID  LOGICAL
+          Indicates whether the transfer function is proper.
+          If AB13ID = .TRUE., the transfer function is proper;
+          otherwise, it is improper.
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+<B>Mode Parameters</B>
+<PRE>
+  JOBSYS  CHARACTER*1
+          Indicates whether the system (lambda*E-A,B,C) is already
+          in the reduced form which is obtained as stated in
+          JOBEIG, as follows.
+          = 'R': The system is not in a reduced form, the reduction
+                 step is performed;
+          = 'N': The system is in a reduced form; the reduction step
+                 is omitted.
+
+  JOBEIG  CHARACTER*1
+          Indicates which kind of eigenvalues of the matrix pencil
+          lambda*E-A should be removed if JOBSYS = 'R', as follows:
+          = 'A': All uncontrollable and unobservable eigenvalues
+                 are removed; the reduced system is returned in
+                 the arrays A, E, B, C;
+          = 'I': Only all uncontrollable and unobservable infinite
+                 eigenvalues are removed; the returned system is not
+                 fully reduced if UPDATE = 'N'.
+
+  EQUIL   CHARACTER*1
+          Specifies whether the user wishes to preliminarily scale
+          the system (lambda*E-A,B,C) as follows:
+          = 'S': Perform scaling;
+          = 'N': Do not perform scaling.
+
+  CKSING  CHARACTER*1
+          Specifies whether the user wishes to check if the pencil
+          (lambda*E-A) is singular as follows:
+          = 'C':  Check singularity;
+          = 'N':  Do not check singularity.
+          If the pencil is singular, the reduced system computed for
+          CKSING = 'N' may have completely different eigenvalues
+          than the given system.
+          The test is performed only if JOBSYS = 'R'.
+
+  RESTOR  CHARACTER*1
+          Specifies whether the user wishes to save the system
+          matrices before each reduction phase (if JOBSYS = 'R') and
+          restore them if no order reduction took place as follows:
+          = 'R':  Save and restore;
+          = 'N':  Do not save the matrices.
+          This option is ineffective if JOBSYS = 'N'.
+
+  UPDATE  CHARACTER*1
+          Specifies whether the user wishes to update the matrices
+          A, B, and C if JOBEIG = 'I' as follows:
+          = 'U':  Update the matrices A, B and C;
+          = 'N':  Do not update the matrices A, B and C when
+                  performing URV decomposition of the matrix E
+                  (see METHOD).
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  N       (input) INTEGER
+          The dimension of the descriptor state vector; also the
+          order of square matrices A and E, the number of rows of
+          matrix B, and the number of columns of matrix C.  N &gt;= 0.
+
+  M       (input) INTEGER
+          The dimension of the descriptor system input vector; also
+          the number of columns of matrix B.  M &gt;= 0.
+
+  P       (input) INTEGER
+          The dimension of the descriptor system output vector; also
+          the number of rows of matrix C.  P &gt;= 0.
+
+  A       (input/output) DOUBLE PRECISION array, dimension (LDA,N)
+          On entry, the leading N-by-N part of this array must
+          contain the state matrix A.
+          On exit, if JOBSYS = 'R' and JOBEIG = 'A', the leading
+          NR-by-NR part of this array contains the reduced order
+          state matrix Ar of a fully controllable and observable
+          realization for the original system. If JOBSYS = 'R' and
+          JOBEIG = 'I', the leading NR-by-NR part of this array
+          contains the reduced order state matrix Ar of a
+          transformed system without uncontrollable and unobservable
+          infinite poles. In this case, the matrix Ar does not
+          correspond to the returned matrix Er (obtained after a
+          URV decomposition), unless UPDATE = 'U' or RANKE &lt; NR.
+          On exit, if JOBSYS = 'N' and (JOBEIG = 'A' or UPDATE = 'U'
+          or RANKE &lt; N), the leading N-by-N part of this array
+          contains the transformed matrix A corresponding to the
+          URV decomposition of E (see (2) in METHOD), and if
+          JOBEIG = 'I' and UPDATE = 'N', the submatrix A22 in (2) is
+          further transformed to estimate its rank.
+
+  LDA     INTEGER
+          The leading dimension of the array A.  LDA &gt;= MAX(1,N).
+
+  E       (input/output) DOUBLE PRECISION array, dimension (LDE,N)
+          On entry, the leading N-by-N part of this array must
+          contain the descriptor matrix E.
+          On exit, if JOBSYS = 'R' and JOBEIG = 'A', the leading
+          NR-by-NR part of this array contains the reduced order
+          descriptor matrix Er of a completely controllable and
+          observable realization for the original system. The
+          reduced matrix Er is in upper triangular form.
+          If JOBSYS = 'R' and JOBEIG = 'I', the leading NR-by-NR
+          part of this array contains the reduced order descriptor
+          matrix Er of a transformed system without uncontrollable
+          and unobservable infinite poles. The reduced matrix Er is
+          upper triangular. In both cases, or if JOBSYS = 'N', the
+          matrix Er results from a URV decomposition of the matrix E
+          (see METHOD).
+
+  LDE     INTEGER
+          The leading dimension of the array E.  LDE &gt;= MAX(1,N).
+
+  B       (input/output) DOUBLE PRECISION array, dimension
+          (LDB,MAX(M,P))
+          On entry, the leading N-by-M part of this array must
+          contain the input matrix B; the remainder of the leading
+          N-by-MAX(M,P) part is used as internal workspace.
+          On exit, if JOBSYS = 'R' and JOBEIG = 'A', the leading
+          NR-by-M part of this array contains the reduced input
+          matrix Br of a completely controllable and observable
+          realization for the original system. If JOBSYS = 'R' and
+          JOBEIG = 'I', the leading NR-by-M part of this array
+          contains the transformed input matrix Br obtained after
+          removing the uncontrollable and unobservable infinite
+          poles; the transformations for the URV decomposition of
+          the matrix E are not applied if UPDATE = 'N'.
+          On exit, if JOBSYS = 'N' and (JOBEIG = 'A' or
+          UPDATE = 'U'), the leading N-by-M part of this array
+          contains the transformed matrix B corresponding to the
+          URV decomposition of E, but if JOBEIG = 'I', EQUIL = 'N'
+          and UPDATE = 'N', the array B is unchanged on exit.
+
+  LDB     INTEGER
+          The leading dimension of the array B.  LDB &gt;= MAX(1,N).
+
+  C       (input/output) DOUBLE PRECISION array, dimension (LDC,N)
+          On entry, the leading P-by-N part of this array must
+          contain the output matrix C; the remainder of the leading
+          MAX(M,P)-by-N part is used as internal workspace.
+          On exit, if JOBSYS = 'R' and JOBEIG = 'A', the leading
+          P-by-NR part of this array contains the transformed output
+          matrix Cr of a completely controllable and observable
+          realization for the original system. If JOBSYS = 'R' and
+          JOBEIG = 'I', the leading P-by-NR part of this array
+          contains the transformed output matrix Cr obtained after
+          removing the uncontrollable and unobservable infinite
+          poles; the transformations for the URV decomposition of
+          the matrix E are not applied if UPDATE = 'N'.
+          On exit, if JOBSYS = 'N' and (JOBEIG = 'A' or
+          UPDATE = 'U'), the leading P-by-N part of this array
+          contains the transformed matrix C corresponding to the
+          URV decomposition of E, but if JOBEIG = 'I', EQUIL = 'N'
+          and UPDATE = 'N', the array C is unchanged on exit.
+
+  LDC     INTEGER
+          The leading dimension of the array C.
+          LDC &gt;= MAX(1,M,P) if N &gt; 0;
+          LDC &gt;= 1          if N = 0.
+
+  NR      (output) INTEGER
+          The order of the reduced generalized state space
+          representation (lambda*Er-Ar,Br,Cr) as stated in JOBEIG.
+          If JOBEIG = 'A', NR denotes the order of a reduced system
+          without any uncontrollable or unobservable eigenvalues; if
+          JOBEIG = 'I', NR denotes the order of the reduced system
+          without any uncontrollable or unobservable infinite
+          eigenvalues. If JOBSYS = 'N', then NR = N.
+
+  RANKE   (output) INTEGER
+          The effective (estimated) rank of the reduced matrix Er.
+
+</PRE>
+<B>Tolerances</B>
+<PRE>
+  TOL     DOUBLE PRECISION array, dimension 3
+          TOL(1) is the tolerance to be used in rank determinations
+          when transforming (lambda*E-A,B,C). If the user sets
+          TOL(1) &gt; 0, then the given value of TOL(1) is used as a
+          lower bound for reciprocal condition numbers in rank
+          determinations; a (sub)matrix whose estimated condition
+          number is less than 1/TOL(1) is considered to be of full
+          rank.  If the user sets TOL(1) &lt;= 0, then an implicitly
+          computed, default tolerance, defined by TOLDEF1 = N*N*EPS,
+          is used instead, where EPS is the machine precision (see
+          LAPACK Library routine DLAMCH).  TOL(1) &lt; 1.
+          TOL(2) is the tolerance to be used for checking pencil
+          singularity when CKSING = 'C', or singularity of the
+          matrices A and E when CKSING = 'N'. If the user sets
+          TOL(2) &gt; 0, then the given value of TOL(2) is used.
+          If the user sets TOL(2) &lt;= 0, then an implicitly
+          computed, default tolerance, defined by  TOLDEF2 = 10*EPS,
+          is used instead.  TOL(2) &lt; 1.
+          TOL(3) is the threshold value for magnitude of the matrix
+          elements, if EQUIL = 'S': elements with magnitude less
+          than or equal to TOL(3) are ignored for scaling. If the
+          user sets TOL(3) &gt;= 0, then the given value of TOL(3) is
+          used. If the user sets TOL(3) &lt; 0, then an implicitly
+          computed, default threshold, defined by  THRESH = c*EPS,
+          where c = MAX(norm_1(A,E,B,C)) is used instead.
+          TOL(3) = 0 is not always a good choice.  TOL(3) &lt; 1.
+          TOL(3) is not used if EQUIL = 'N'.
+
+</PRE>
+<B>Workspace</B>
+<PRE>
+  IWORK   INTEGER array, dimension (LIWORK)
+          If JOBSYS = 'R',  LIWORK &gt;= 2*N+MAX(M,P)+7;
+          If JOBSYS = 'N',  LIWORK &gt;= N.
+          If JOBSYS = 'R', the first 7 elements of IWORK contain
+          information on performed reduction and on structure of
+          resulting system matrices after removing the specified
+          eigenvalues (see the description of the parameter INFRED
+          of the SLICOT Library routine TG01JY).
+
+  DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+          On exit, if  INFO = 0,  DWORK(1) returns the optimal value
+          of LDWORK.
+
+  LDWORK  INTEGER
+          The length of the array DWORK.
+          If JOBSYS = 'R', and EQUIL = 'S',
+             LDWORK &gt;= MAX(w+4*N+4,8*N,x,y),
+          where w = N*N,                  if JOBEIG = 'A',
+                w = 0,                    if JOBEIG = 'I',
+                x = MAX(2*(z+MAX(M,P)+N-1),N*N+4*N), if RESTOR = 'R'
+                x = MAX(  2*(MAX(M,P)+N-1),N*N+4*N), if RESTOR = 'N'
+                y = 2*N*N+10*N+MAX(N,23), if CKSING = 'C',
+                y = 0,                    if CKSING = 'N',
+                z = 2*N*N+N*M+N*P;
+          if JOBSYS = 'R', and EQUIL = 'N',
+             LDWORK &gt;= MAX(w+4*N+4,x,y);
+          if JOBSYS = 'N', and JOBEIG = 'A'  or UPDATE = 'U',
+                           and EQUIL  = 'S',
+             LDWORK &gt;= MAX(N*N+4*N+4,8*N,N+M,N+P);
+          if JOBSYS = 'N', and JOBEIG = 'A'  or UPDATE = 'U',
+                           and EQUIL  = 'N',
+             LDWORK &gt;= MAX(N*N+4*N+4,N+M,N+P);
+          if JOBSYS = 'N', and JOBEIG = 'I' and UPDATE = 'N',
+                           and EQUIL  = 'S',
+             LDWORK &gt;= MAX(4*N+4,8*N);
+          if JOBSYS = 'N', and JOBEIG = 'I' and UPDATE = 'N',
+                           and EQUIL  = 'N',
+             LDWORK &gt;= 4*N+4.
+          If JOBSYS = 'R' and ( RESTOR = 'R' or
+          LDWORK &gt;= MAX(1,2*N*N+N*M+N*P+2*(MAX(M,P)+N-1) ),
+          then more accurate results are to be expected by
+          considering only those reduction phases in the SLICOT
+          Library routine TG01JY, where effective order reduction
+          occurs. This is achieved by saving the system matrices
+          before each phase (after orthogonally triangularizing the
+          matrix A or the matrix E, if RESTOR = 'N') and restoring
+          them if no order reduction took place. However, higher
+          global accuracy is not guaranteed.
+          For good performance, LDWORK should be generally larger.
+
+          If LDWORK = -1, then a workspace query is assumed;
+          the routine only calculates the optimal size of the
+          DWORK array, returns this value as the first entry of
+          the DWORK array, and no error message related to LDWORK
+          is issued by XERBLA. The optimal workspace includes the
+          extra space for improving the accuracy.
+
+  Error/Warning Indicator
+
+  IWARN   INTEGER
+          = 0: When determining the rank of a matrix, the distance
+               between the tolerance TOL(1) and the estimated
+               singular values is sufficiently large. The rank can
+               be safely determined;
+          = 1: When determining the rank of a matrix, there exist
+               estimated singular values which are very close to the
+               tolerance TOL(1). The computed rank is possibly
+               incorrect.
+
+  INFO    INTEGER
+          = 0: succesful exit;
+          &lt; 0: if INFO = -i, the i-th argument had an illegal value;
+          = 1: the given pencil A - lambda*E is numerically
+               singular and the reduced system is not computed.
+               However, the system is considered improper, and
+               AB13ID is set to .FALSE.
+               This error can be returned only if CKSING = 'C'.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  If JOBSYS = 'R', the routine first removes uncontrollable and
+  unobservable infinite eigenvalues of the pencil lambda*E-A. If, in
+  addition, JOBEIG = 'A', uncontrollable and unobservable zero
+  eigenvalues are also removed. Then, or if JOBSYS = 'N', a
+  URV decomposition of the matrix E is performed, i.e., orthogonal
+  matrices U and V are computed, such that
+
+            ( T  0 )
+    U*E*V = (      ) with a full-rank matrix T.                  (1)
+            ( 0  0 )
+
+  Then the matrix A (or a copy of A if JOBEIG = 'A' or UPDATE = 'U')
+  is updated and partioned as in (1), i.e.,
+
+            ( A11  A12 )
+    U*A*V = (          ) ,                                       (2)
+            ( A21  A22 )
+
+  and the rank of A22 is computed. If A22 is invertible, the
+  transfer function is proper, otherwise it is improper. If
+  required (i.e., JOBEIG = 'A' or UPDATE = 'U'), the matrices B and
+  C are updated as well in order to obtain an equivalent reduced
+  system with the same transfer function. See also Chapter 3 in [1],
+  [2] for more details.
+
+</PRE>
+<A name="References"><B><FONT SIZE="+1">References</FONT></B></A>
+<PRE>
+  [1] Voigt, M.
+      L_inf-Norm Computation for Descriptor Systems.
+      Diploma Thesis, Chemnitz University of Technology, Department
+      of Mathematics, Germany, July 2010.
+
+  [2] Benner, P., Sima, V., Voigt, M.
+      L_infinity-norm computation for continuous-time descriptor
+      systems using structured matrix pencils.
+      IEEE Trans. Automat. Contr., vol. 57, pp. 233-238, 2012.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  The algorithm requires O(N**3) floating point operations. During
+  the algorithm it is necessary to determine the rank of certain
+  matrices. Therefore it is crucial to use an appropriate tolerance
+  TOL(1) to make correct rank decisions.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+*     AB13ID EXAMPLE PROGRAM TEXT
+*
+*     .. Parameters ..
+      INTEGER          NIN, NOUT
+      PARAMETER        ( NIN = 5, NOUT = 6 )
+      INTEGER          NMAX, MMAX, PMAX
+      PARAMETER        ( NMAX = 20, MMAX = 20, PMAX = 20 )
+      INTEGER          LDA, LDB, LDC, LDE
+      PARAMETER        ( LDA = NMAX, LDB = NMAX,
+     $                   LDC = MAX( MMAX, PMAX ), LDE = NMAX )
+      INTEGER          LDWORK, LIWORK
+      PARAMETER        ( LDWORK = 2*NMAX*NMAX + 
+     $                            MAX( 2*( NMAX*( NMAX + MMAX + PMAX ) +
+     $                                 MAX( MMAX, PMAX ) + NMAX - 1 ),
+     $                                 10*NMAX + MAX( NMAX, 23 ) ),
+     $                   LIWORK = 2*NMAX + MAX( MMAX, PMAX ) + 7 )
+*     .. Local Scalars ..
+      LOGICAL          LISPRP
+      CHARACTER        CKSING, EQUIL, JOBEIG, JOBSYS, RESTOR, UPDATE
+      INTEGER          I, INFO, IWARN, J, M, N, NO, NR, P, RANKE
+*     .. Local Arrays ..
+      INTEGER          IWORK(LIWORK)
+      DOUBLE PRECISION A(LDA,NMAX), B(LDB,MAX(MMAX,PMAX)), C(LDC,NMAX),
+     $                 DWORK(LDWORK), E(LDE,NMAX), TOL(3)
+
+*     .. External Functions ..
+      LOGICAL          AB13ID, LSAME
+      EXTERNAL         AB13ID, LSAME
+*     .. Intrinsic Functions ..
+      INTRINSIC        MAX
+*     .. Executable Statements ..
+*
+      WRITE ( NOUT, FMT = 99999 )
+*     Skip the heading in the data file and read the data.
+      READ ( NIN, FMT = '()' )
+      READ ( NIN, FMT = * ) N, M, P, TOL(1), TOL(2), TOL(3), JOBSYS,
+     $                      JOBEIG, EQUIL, CKSING, RESTOR, UPDATE
+      IF ( N.LT.0 .OR. N.GT.NMAX ) THEN
+         WRITE ( NOUT, FMT = 99988 ) N
+      ELSE
+         READ ( NIN, FMT = * ) ( ( A(I,J), J = 1,N ), I = 1,N )
+         READ ( NIN, FMT = * ) ( ( E(I,J), J = 1,N ), I = 1,N )
+         IF ( M.LT.0 .OR. M.GT.MMAX ) THEN
+            WRITE ( NOUT, FMT = 99987 ) M
+         ELSE
+            READ ( NIN, FMT = * ) ( ( B(I,J), J = 1,M ), I = 1,N )
+            IF ( P.LT.0 .OR. P.GT.PMAX ) THEN
+               WRITE ( NOUT, FMT = 99986 ) P
+            ELSE
+               READ ( NIN, FMT = * ) ( ( C(I,J), J = 1,N ), I = 1,P )
+*              Check whether the transfer function of the descriptor
+*              system is proper.
+               LISPRP = AB13ID( JOBSYS, JOBEIG, EQUIL, CKSING, RESTOR,
+     $                          UPDATE, N, M, P, A, LDA, E, LDE, B, LDB,
+     $                          C, LDC, NR, RANKE, TOL, IWORK, DWORK,
+     $                          LDWORK, IWARN, INFO )
+*
+               IF ( INFO.NE.0 ) THEN
+                  WRITE ( NOUT, FMT = 99998 ) INFO
+               ELSE
+                  IF ( LISPRP ) THEN
+                     WRITE ( NOUT, FMT = 99991 )
+                  ELSE
+                     WRITE ( NOUT, FMT = 99990 )
+                  END IF
+                  WRITE ( NOUT, FMT = 99994 ) NR
+                  WRITE ( NOUT, FMT = 99989 ) RANKE
+                  IF ( LSAME( JOBSYS, 'N' ).AND.( LSAME( JOBEIG, 'A' )
+     $             .OR.LSAME( UPDATE, 'U' ) ) ) THEN
+                     NO = N
+                  ELSE
+                     NO = NR
+                  END IF
+                  WRITE ( NOUT, FMT = 99997 )
+                  DO 10 I = 1, NO
+                     WRITE ( NOUT, FMT = 99995 ) ( A(I,J), J = 1,NO )
+   10             CONTINUE
+                  WRITE ( NOUT, FMT = 99996 )
+                  DO 20 I = 1, NR
+                     WRITE ( NOUT, FMT = 99995 ) ( E(I,J), J = 1,NR )
+   20             CONTINUE
+                  IF ( LSAME( JOBSYS, 'N' ).AND.LSAME( JOBEIG, 'I' )
+     $                                     .AND.LSAME( EQUIL,  'S' )
+     $                                     .AND.LSAME( UPDATE, 'N' ) )
+     $               NO = N
+                  WRITE ( NOUT, FMT = 99993 )
+                  DO 30 I = 1, NR
+                     WRITE ( NOUT, FMT = 99995 ) ( B(I,J), J = 1,M )
+   30             CONTINUE
+                  WRITE ( NOUT, FMT = 99992 )
+                  DO 40 I = 1, P
+                     WRITE ( NOUT, FMT = 99995 ) ( C(I,J), J = 1,NR )
+   40             CONTINUE
+                  IF ( IWARN.NE.0 )
+     $               WRITE ( NOUT, FMT = 99998 ) IWARN
+               END IF
+            END IF
+         END IF
+      END IF
+      STOP
+*
+99999 FORMAT (' AB13ID EXAMPLE PROGRAM RESULTS',/1X)
+99998 FORMAT (' INFO on exit from AB13ID = ',I2)
+99997 FORMAT (/' The reduced state dynamics matrix Ar is ')
+99996 FORMAT (/' The reduced descriptor matrix Er is ')
+99995 FORMAT (20(1X,F8.4))
+99994 FORMAT (/' Order of reduced system =', I5 )
+99993 FORMAT (/' The reduced input/state matrix Br is ')
+99992 FORMAT (/' The reduced state/output matrix Cr is ')
+99991 FORMAT ( ' The system is proper')
+99990 FORMAT ( ' The system is improper')
+99989 FORMAT (' Rank of matrix E =', I5 )
+99988 FORMAT (/' N is out of range.',/' N = ',I5)
+99987 FORMAT (/' M is out of range.',/' M = ',I5)
+99986 FORMAT (/' P is out of range.',/' P = ',I5)
+      END
+</PRE>
+<B>Program Data</B>
+<PRE>
+AB13ID EXAMPLE PROGRAM DATA
+  9    2    2     0.0    0.0    0.0    R  I  N  N  N  U
+    -2    -3     0     0     0     0     0     0     0
+     1     0     0     0     0     0     0     0     0
+     0     0    -2    -3     0     0     0     0     0
+     0     0     1     0     0     0     0     0     0
+     0     0     0     0     1     0     0     0     0
+     0     0     0     0     0     1     0     0     0
+     0     0     0     0     0     0     1     0     0
+     0     0     0     0     0     0     0     1     0
+     0     0     0     0     0     0     0     0     1
+     1     0     0     0     0     0     0     0     0
+     0     1     0     0     0     0     0     0     0
+     0     0     1     0     0     0     0     0     0
+     0     0     0     1     0     0     0     0     0
+     0     0     0     0     0     0     0     0     0
+     0     0     0     0     1     0     0     0     0
+     0     0     0     0     0     0     0     0     0
+     0     0     0     0     0     0     1     0     0
+     0     0     0     0     0     0     0     1     0
+     1     0
+     0     0
+     0     1
+     0     0
+    -1     0
+     0     0
+     0    -1
+     0     0
+     0     0
+     1     0     1    -3     0     1     0     2     0
+     0     1     1     3     0     1     0     0     1
+
+</PRE>
+<B>Program Results</B>
+<PRE>
+ AB13ID EXAMPLE PROGRAM RESULTS
+
+ The system is improper
+
+ Order of reduced system =    7
+ Rank of matrix E =    5
+
+ The reduced state dynamics matrix Ar is 
+   0.2202   0.4554  -0.6171  -0.3695  -1.3751   0.8121   0.1953
+   0.6175   0.1352  -0.8444  -0.0262  -1.3999  -0.4013   0.3339
+  -0.6362  -1.1518   0.6708  -0.2221   0.8680  -0.0430   0.1827
+   0.1430  -0.0480  -0.3290  -0.1625  -0.6986   0.0008  -0.9031
+   0.0986  -0.8665   0.4541   0.6647   1.4067   0.4214  -0.0381
+  -0.6979  -0.0079  -0.1915   0.6588  -0.2054   0.0000   0.0000
+  -0.1861  -0.0021  -0.8313  -0.3063   0.4248   0.0000   0.0000
+
+ The reduced descriptor matrix Er is 
+  -1.0000   0.0000   0.0000   0.0000   0.0000   0.0000   0.0000
+   0.0000   1.0000   0.0000   0.0000   0.0000   0.0000   0.0000
+   0.0000   0.0000  -1.0000   0.0000   0.0000   0.0000   0.0000
+   0.0000   0.0000   0.0000  -1.0000   0.0000   0.0000   0.0000
+   0.0000   0.0000   0.0000   0.0000  -1.0000   0.0000   0.0000
+   0.0000   0.0000   0.0000   0.0000   0.0000   0.0000   0.0000
+   0.0000   0.0000   0.0000   0.0000   0.0000   0.0000   0.0000
+
+ The reduced input/state matrix Br is 
+  -0.2140  -0.3805
+  -0.2558  -0.2539
+   0.1844   0.4001
+  -0.1115  -0.1176
+   0.1879   0.5325
+  -0.9954  -0.0961
+   0.0961  -0.9954
+
+ The reduced state/output matrix Cr is 
+   0.0439  -3.8727   0.0000   0.0000   0.0000   0.6508   0.7593
+   0.1184   2.0671  -0.8971  -0.8236  -2.2869   1.4100   0.1085
+</PRE>
+
+<HR>
+<p>
+<A HREF=..\libindex.html><B>Return to index</B></A></BODY>
+</HTML>

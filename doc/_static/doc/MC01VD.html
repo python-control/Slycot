@@ -1,0 +1,168 @@
+<HTML>
+<HEAD><TITLE>MC01VD - SLICOT Library Routine Documentation</TITLE>
+</HEAD>
+<BODY>
+
+<H2><A Name="MC01VD">MC01VD</A></H2>
+<H3>
+Roots of a quadratic equation with real coefficients
+</H3>
+<A HREF ="#Specification"><B>[Specification]</B></A>
+<A HREF ="#Arguments"><B>[Arguments]</B></A>
+<A HREF ="#Method"><B>[Method]</B></A>
+<A HREF ="#References"><B>[References]</B></A>
+<A HREF ="#Comments"><B>[Comments]</B></A>
+<A HREF ="#Example"><B>[Example]</B></A>
+
+<P>
+<B><FONT SIZE="+1">Purpose</FONT></B>
+<PRE>
+  To compute the roots of a quadratic equation with real
+  coefficients.
+
+</PRE>
+<A name="Specification"><B><FONT SIZE="+1">Specification</FONT></B></A>
+<PRE>
+      SUBROUTINE MC01VD( A, B, C, Z1RE, Z1IM, Z2RE, Z2IM, INFO )
+C     .. Scalar Arguments ..
+      INTEGER           INFO
+      DOUBLE PRECISION  A, B, C, Z1IM, Z1RE, Z2IM, Z2RE
+
+</PRE>
+<A name="Arguments"><B><FONT SIZE="+1">Arguments</FONT></B></A>
+<P>
+
+</PRE>
+<B>Input/Output Parameters</B>
+<PRE>
+  A       (input) DOUBLE PRECISION
+          The value of the coefficient of the quadratic term.
+
+  B       (input) DOUBLE PRECISION
+          The value of the coefficient of the linear term.
+
+  C       (input) DOUBLE PRECISION
+          The value of the coefficient of the constant term.
+
+  Z1RE    (output) DOUBLE PRECISION
+  Z1IM    (output) DOUBLE PRECISION
+          The real and imaginary parts, respectively, of the largest
+          root in magnitude.
+
+  Z2RE    (output) DOUBLE PRECISION
+  Z2IM    (output) DOUBLE PRECISION
+          The real and imaginary parts, respectively, of the
+          smallest root in magnitude.
+
+</PRE>
+<B>Error Indicator</B>
+<PRE>
+  INFO    INTEGER
+          = 0:  successful exit;
+          = 1:  if on entry, either A = B = 0.0 or A = 0.0 and the
+                root -C/B overflows; in this case Z1RE, Z1IM, Z2RE
+                and Z2IM are unassigned;
+          = 2:  if on entry, A = 0.0; in this case Z1RE contains
+                BIG and Z1IM contains zero, where BIG is a
+                representable number near the overflow threshold
+                of the machine (see LAPACK Library Routine DLAMCH);
+          = 3:  if on entry, either C = 0.0 and the root -B/A
+                overflows or A, B and C are non-zero and the largest
+                real root in magnitude cannot be computed without
+                overflow; in this case Z1RE contains BIG and Z1IM
+                contains zero;
+          = 4:  if the roots cannot be computed without overflow; in
+                this case Z1RE, Z1IM, Z2RE and Z2IM are unassigned.
+
+</PRE>
+<A name="Method"><B><FONT SIZE="+1">Method</FONT></B></A>
+<PRE>
+  The routine computes the roots (r1 and r2) of the real quadratic
+  equation
+          2
+     a * x  + b * x + c = 0
+
+  as
+          - b - SIGN(b) * SQRT(b * b - 4 * a * c)             c
+     r1 = ---------------------------------------  and r2 = ------
+                           2 * a                            a * r1
+
+  unless a = 0, in which case
+
+          -c
+     r1 = --.
+           b
+
+  Precautions are taken to avoid overflow and underflow wherever
+  possible.
+
+</PRE>
+<A name="Numerical Aspects"><B><FONT SIZE="+1">Numerical Aspects</FONT></B></A>
+<PRE>
+  The algorithm is numerically stable.
+
+</PRE>
+
+<A name="Comments"><B><FONT SIZE="+1">Further Comments</FONT></B></A>
+<PRE>
+  None
+</PRE>
+
+<A name="Example"><B><FONT SIZE="+1">Example</FONT></B></A>
+<P>
+<B>Program Text</B>
+<PRE>
+*     MC01VD EXAMPLE PROGRAM TEXT
+*
+*     .. Parameters ..
+      INTEGER          NIN, NOUT
+      PARAMETER        ( NIN = 5, NOUT = 6 )
+*     .. Local Scalars ..
+      DOUBLE PRECISION A, B, C, Z1IM, Z1RE, Z2IM, Z2RE
+      INTEGER          INFO
+*     .. External Subroutines ..
+      EXTERNAL         MC01VD
+*     .. Executable Statements ..
+*
+      WRITE ( NOUT, FMT = 99999 )
+*     Skip the heading in the data file and read the data.
+      READ ( NIN, FMT = '()' )
+      READ ( NIN, FMT = * ) A, B, C
+*     Solve the quadratic equation A*x**2 + B*x + C = 0.
+      CALL MC01VD( A, B, C, Z1RE, Z1IM, Z2RE, Z2IM, INFO )
+*
+      IF ( INFO.NE.0 ) THEN
+         WRITE ( NOUT, FMT = 99998 ) INFO
+      ELSE
+         WRITE ( NOUT, FMT = 99997 )
+         WRITE ( NOUT, FMT = 99996 ) Z1RE, Z1IM, Z2RE, Z2IM
+      END IF
+*
+      STOP
+*
+99999 FORMAT (' MC01VD EXAMPLE PROGRAM RESULTS',/1X)
+99998 FORMAT (' INFO on exit from MC01VD = ',I2)
+99997 FORMAT (' The roots of the quadratic equation are ')
+99996 FORMAT (/' x = ',F8.4,2X,SP,F8.4,'*j',SS,/' x = ',F8.4,2X,SP,F8.4,
+     $       '*j')
+      END
+</PRE>
+<B>Program Data</B>
+<PRE>
+ MC01VD EXAMPLE PROGRAM DATA
+   0.5  -1.0  2.0
+</PRE>
+<B>Program Results</B>
+<PRE>
+ MC01VD EXAMPLE PROGRAM RESULTS
+
+ The roots of the quadratic equation are 
+
+ x =   1.0000   +1.7321*j
+ x =   1.0000   -1.7321*j
+</PRE>
+
+<HR>
+<p>
+<A HREF=..\libindex.html><B>Return to index</B></A></BODY>
+</HTML>
