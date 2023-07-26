@@ -31,6 +31,7 @@ notably including solvers for Riccati, Lyapunov, and Sylvester equations.
    intro
    source/reference/index
    source/dev/index
+   source/examples/index
 
 Indices and tables
 ==================
