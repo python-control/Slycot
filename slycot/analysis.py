@@ -139,19 +139,75 @@ def ab01nd(n, m, A, B, jobz='N', tol=0, ldwork=None):
         Z = None
     return Ac, Bc, ncont, indcon, nblk, Z, tau
 
-def ab04md(type_bn, n, m, p, A, B, C, D, alpha=1.0, beta=1.0, ldwork=None):
-    """ a,b,c,d = ab04md()
+def ab04md(type_t, n, m, p, A, B, C, D, alpha=1.0, beta=1.0, ldwork=None):
+    """ At,Bt,Ct,Dt = ab04md(type_bn, n, m, p, A, B, C, D, [alpha, beta,ldwork])
+
+    Parameters
+    ----------
+    type_t : {'D','C'}
+            Indicates the type of the original system and the
+            transformation to be performed as follows:
+            = 'D':  discrete-time   -> continuous-time;
+            = 'C':  continuous-time -> discrete-time.
+    n : input int
+        The order of the matrix A, the number of rows of matrix B and
+        the number of columns of matrix C. It represents the dimension of
+        the state vector.  n > 0.        
+    m : input int
+        The number of columns of matrix B. It represents the dimension of
+        the input vector.  m > 0.
+    p : input int
+        The number of rows of matrix C. It represents the dimension of
+        the output vector.  p > 0.
+    A : input rank-2 array('d') with bounds (n,n)
+        The leading n-by-n part of this array must contain the system state
+        matrix A.
+    B : input rank-2 array('d') with bounds (n,m)
+        The leading n-by-m part of this array must contain the system input
+        matrix B.
+    C : input rank-2 array('d') with bounds (p,n)
+        The leading p-by-n part of this array must contain the system output
+        matrix C.
+    D : input rank-2 array('d') with bounds (p,m)
+        The leading p-by-m part of this array must contain the system direct
+        transmission matrix D.
+    alpha : double
+        Parameter specifying the bilinear transformation.
+        Recommended values for stable systems: alpha = 1, alpha != 0,
+    beta : double
+        Parameter specifying the bilinear transformation.
+        Recommended values for stable systems: beta = 1, beta != 0,
+    ldwork : int
+        The length of the cache array.
+        ldwork >= max(1, n)
+    Returns
+    -------
+    At : output rank-2 array('d') with bounds (n,n)
+        The state matrix At of the transformed system.
+    Bt : output rank-2 array('d') with bounds (n,m)
+        The input matrix Bt of the transformed system.
+    Ct : output rank-2 array('d') with bounds (p,n)
+        The output matrix Ct of the transformed system.
+    Dt : output rank-2 array('d') with bounds (p,m)
+        The transmission matrix Dt of the transformed system.
+    Raises
+    ------
+    SlycotArithmeticError
+        :info == 1: 
+            If the matrix (ALPHA*I + A) is exactly singular
+        :info == 2: 
+            If the matrix  (BETA*I - A) is exactly singular.
     """
 
     hidden = ' (hidden by the wrapper)'  
-    arg_list = ['type_bn', 'n', 'm', 'p', 'alpha', 'beta', 
+    arg_list = ['type_t', 'n', 'm', 'p', 'alpha', 'beta', 
                 'A', 'LDA'+hidden, 'B', 'LDB'+hidden, 'C', 'LDC'+hidden, 'D', 'LDD'+hidden,
                 'IWORK'+hidden, 'DWORK'+hidden, 'ldwork', 'info'+hidden]
 
     if ldwork is None:
-        ldwork = max(n, 3*m)
+        ldwork = max(1, n)
 
-    out = _wrapper.ab04md(type_bn, n, m, p, alpha, beta, A, B, C, D, ldwork=ldwork)
+    out = _wrapper.ab04md(type_t, n, m, p, alpha, beta, A, B, C, D, ldwork=ldwork)
     info=out[-1]
     raise_if_slycot_error(info, arg_list)
 

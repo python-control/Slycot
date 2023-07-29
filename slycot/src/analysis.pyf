@@ -19,8 +19,8 @@ subroutine ab01nd(jobz,n,m,a,lda,b,ldb,ncont,indcon,nblk,z,ldz,tau,tol,iwork,dwo
     integer :: ldwork = max(n,3*m)
     integer intent(out) :: info
 end subroutine ab01nd
-subroutine ab04md(type_bn,n,m,p,alpha,beta,a,lda,b,ldb,c,ldc,d,ldd,iwork,dwork,ldwork,info) ! in AB04MD.f
-    character :: type_bn
+subroutine ab04md(type_t,n,m,p,alpha,beta,a,lda,b,ldb,c,ldc,d,ldd,iwork,dwork,ldwork,info) ! in AB04MD.f
+    character :: type_t
     integer check(n>=0) :: n
     integer check(m>=0) :: m
     integer check(p>=0) :: p
