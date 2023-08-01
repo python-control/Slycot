@@ -1,4 +1,25 @@
 !    -*- f90 -*-
+subroutine sb10yd(discfl,flag,lendat,rfrdat,ifrdat,omega,n,a,lda,b,c,d,tol,iwork,dwork,ldwork,zwork,lzwork,info) ! in SB10YD.f
+    integer intent(in) :: discfl
+    integer intent(in) :: flag
+    integer intent(in) :: lendat
+    double precision intent(in), dimension(lendat), depend(lendat) :: rfrdat
+    double precision intent(in), dimension(lendat), depend(lendat) :: ifrdat
+    double precision intent(in), dimension(lendat), depend(lendat) :: omega
+    integer intent(in,out,copy), :: n
+    double precision intent(out), dimension(lda,n) :: a
+    integer, intent(hide) :: lda=max(n,1)
+    double precision intent(out), dimension(n,1) :: b
+    double precision intent(out), dimension(1,n) :: c
+    double precision intent(out), dimension(1,1) :: d
+    double precision :: tol
+    integer intent(hide, cache), dimension(max(2,2*n+1)), depend(n) :: iwork
+    double precision intent(hide, cache), dimension(ldwork), depend(ldwork) :: dwork
+    integer intent(in) :: ldwork
+    complex*16 intent(hide, cache), dimension(lzwork), depend(lzwork) :: zwork
+    integer intent(in):: lzwork
+    integer intent(out):: info
+end subroutine sb10yd
 subroutine sb01bd(dico,n,m,np,alpha,a,lda,b,ldb,wr,wi,nfp,nap,nup,f,ldf,z,ldz,tol,dwork,ldwork,iwarn,info) ! in SB01BD.f
     character :: dico
     integer required,check(n>=0) :: n

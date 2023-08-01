@@ -25,6 +25,101 @@ import numpy as _np
 from . import _wrapper
 from .exceptions import raise_if_slycot_error, SlycotParameterError
 
+def sb10yd(discfl,flag,lendat,rfrdat,ifrdat,omega,n,tol,ldwork=None):
+    """ A,B,C,D = sb10yd(discfl,flag,lendat,rfrdat,ifrdat,omega,n,tol,[ldwork,lzwork])
+
+    To fit frequency response data with a stable, minimum phase SISO system
+
+    Parameters
+    ----------
+    discfl       : int
+        Indicatres the type of the system, as follows:
+        = 0: continuous-time system;
+        = 1: discrete-time system.
+    flag         : int
+        If flag = 0, then the system zeros and poles are not constrained.
+        If flag = 1, then the system zeros and poles will have negative
+        real parts in the continuous-time case, or moduli less than 1 in
+        the discrete-time case. Consequently, flag must be equal to 1 in
+        mu-synthesis routines.
+    lendat       : int
+        The length of the vectors rfrdat, ifrdat and omega.
+        length >= 2.
+    rfrdat       : double precision array, dimension (lendat)
+        The real part of the frequency data to be fitted.
+    ifrdat       : double precision array, dimension (lendat)
+        The imaginary part of the frequency data to be fitted.
+    omega        : double precision array, dimension (lendat)
+        The frequencies corresponding to rfrdat and ifrdat.
+        These value must be nonnegative and monotonically increasing.
+        Additionally, for discrete-time systems they must be between 0 and PI.
+    n            : integer
+        On entry, the desired order of the system to be fitted.
+        n <= lendat-1.
+    tol          : int, optional
+        The length of the cache array.
+        ldwork >= max( 1, 2*n*n + 2*n + n*MAX( 5, n + m + np ) ).
+        For good performance, ldwork must generally be larger.
+
+    Returns
+    -------
+    A            : (n, n) double precision array
+        The leading n-by-n part of this array contains the
+        matrix A.
+    B            : (n) double precision array
+        The computed vector B.
+    C            : (n) double precision array
+        The computed vector C.
+    D            : (1) double precision array
+        The computed scalar D.
+
+    Raises
+    ------
+    SlycotArithmeticError
+        :info == 0:  successful exit;
+        :info < 0:   if infor = -i, the i-th argument had an illegal value
+        :info = 1:   if the discret --> continous transformation cannot be made;
+        :info = 2:   if the system poles cannot be found;
+        :info = 3:   if the inverse system cannot be found, i.e., D is (close to) zero;
+        :info = 4:   if the system zeros cannot be found;
+        :info = 5:   if the state-space representation of the new transfer function T(s) cannot found;
+        :info = 6:   if the continous --> discrete transformation cannot be made.
+            The iteration for computing singular value
+            decomposition did not converge.
+    """
+
+    hidden = ' (hidden by the wrapper)'
+    arg_list = ['discfl', 'flag', 'lendat', 'rfrdat', 'ifrdat', 'omega', 
+                'n', 'A', 'lda' + hidden, 'B', 'C', 'D', 
+                'TOL', 'IWORK' + hidden, 'DWORK' + hidden, 'LDWORK',
+                'ZWORK' + hidden, 'LZWORK', 'INFO' + hidden]
+
+    if ldwork is None:
+        lw1 = 2*lendat + 4*2048
+        lw2 =   lendat + 6*2048
+        mn  = min(2*lendat,2*n+1)
+        if n > 0:
+            lw3 = 2*lendat*(2*n+1) + max(2*lendat,2*n+1) + max(mn+6*n+4,2*mn+1)
+        elif n == 0:
+            lw3 = 4*lendat + 5
+        if flag == 1:
+            lw4 = max(n*n+5*n,6*n+1+min(1,n))
+        elif flag == 0:
+            lw4 = 0
+        ldwork = max(2, lw1, lw2, lw3, lw4)
+    if n > 0:
+        lzwork = lendat*(2*n+3)
+    elif n == 0:
+        lzwork = lendat
+
+    out = _wrapper.sb10yd(
+        discfl, flag, lendat, rfrdat, ifrdat, omega,
+        n,
+        tol,ldwork,lzwork)
+
+    raise_if_slycot_error(out[-1], arg_list, sb10yd.__doc__,  locals())
+
+    return out[:-1]
 
 def sb01bd(n,m,np,alpha,A,B,w,dico,tol=0.0,ldwork=None):
     """ A_z,w,nfp,nap,nup,F,Z = sb01bd(n,m,np,alpha,A,B,w,dico,[tol,ldwork])
