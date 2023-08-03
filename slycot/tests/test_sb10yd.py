@@ -3,12 +3,10 @@ from slycot import synthesis
 import numpy as np
 from scipy import signal
 
-from numpy.testing import assert_almost_equal, assert_equal
-
 class test_sb10yd(unittest.TestCase):
 
     def test_sb10yd_exec(self):
-        """Test execution. 
+        """A simple execution test.
         """
 
         A = np.array([[0.0, 1.0], [-0.5, -0.1]])
@@ -25,10 +23,13 @@ class test_sb10yd(unittest.TestCase):
         imag_H_resp = np.imag(H)
 
         n = 2
+        dico = 0 # 0 for continuous time
+        flag = 0 # 0 for no constraints on the poles
         n_id, *_ = synthesis.sb10yd(
-            0, 0, len(omega), 
+            dico, flag, len(omega), 
             real_H_resp, imag_H_resp, omega, n, tol=0)
 
+        # Because flag = 0, we expect n == n_id
         np.testing.assert_equal(n, n_id)
 
     def test_sb10yd_allclose(self):
@@ -49,15 +50,23 @@ class test_sb10yd(unittest.TestCase):
         imag_H_resp = np.imag(H)
 
         n = 2
+        dico = 0 # 0 for continuous time
+        flag = 0 # 0 for no constraints on the poles
         n_id, A_id, B_id, C_id, D_id = synthesis.sb10yd(
-            0, 0, len(omega), 
+            dico, flag, len(omega), 
             real_H_resp, imag_H_resp, omega, n, tol=0)
         
         sys_tf_id = signal.ss2tf(A_id,B_id,C_id,D_id)
         num_id, den_id = sys_tf_id
         w_id, H_id = signal.freqs(num_id.squeeze(), den_id, worN=omega)
 
-        np.testing.assert_allclose(abs(H),abs(H_id),rtol=0.3,atol=0)
+        #print(np.max(abs(H)-abs(H_id)), np.max(abs(H_id)-abs(H)))
+        #print(np.max(abs(H_id)/abs(H)))
+
+        # Compare given and identified frequency response up to some toleration.
+        # absolute(a-b) <= atol + rtol*abolute(b), element-wise true
+        # absolute(a-b) or absolute(b-a) <= atol, for rtol=0 element-wise true
+        np.testing.assert_allclose(abs(H_id),abs(H),rtol=0,atol=0.1)
 
 if __name__ == "__main__":
     unittest.main()
