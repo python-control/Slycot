@@ -53,7 +53,10 @@ else:
 
     # Nonlinear Systems (0/16 wrapped)
 
+<<<<<<< HEAD
     # Synthesis routines ((16+1)/131 wrapped), sb03md57 is not part of slicot
+=======
+>>>>>>> 32e468f (Fix import order in __init__.py)
     from .synthesis import (sb01bd,
                             sb02md, sb02mt, sb02od, 
                             sb03md, sb03md57, sb03od,
