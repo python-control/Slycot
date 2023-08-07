@@ -159,16 +159,16 @@ def ab04md(type_t, n, m, p, A, B, C, D, alpha=1.0, beta=1.0, ldwork=None):
     p : int
         The number of rows of matrix C. It represents the dimension of
         the output vector.  p > 0.
-    A : input rank-2 array('d') with bounds (n,n)
+    A : (n,n) ndarray
         The leading n-by-n part of this array must contain the system state
         matrix A.
-    B : input rank-2 array('d') with bounds (n,m)
+    B : (n,m) ndarray
         The leading n-by-m part of this array must contain the system input
         matrix B.
-    C : input rank-2 array('d') with bounds (p,n)
+    C : (p,n) ndarray
         The leading p-by-n part of this array must contain the system output
         matrix C.
-    D : input rank-2 array('d') with bounds (p,m)
+    D : (p,m) ndarray
         The leading p-by-m part of this array must contain the system direct
         transmission matrix D.
     alpha : double
@@ -182,13 +182,13 @@ def ab04md(type_t, n, m, p, A, B, C, D, alpha=1.0, beta=1.0, ldwork=None):
         ldwork >= max(1, n)
     Returns
     -------
-    At : output rank-2 array('d') with bounds (n,n)
+    At : (n,n) ndarray
         The state matrix At of the transformed system.
-    Bt : output rank-2 array('d') with bounds (n,m)
+    Bt : (n,m) ndarray
         The input matrix Bt of the transformed system.
-    Ct : output rank-2 array('d') with bounds (p,n)
+    Ct : (p,n) ndarray
         The output matrix Ct of the transformed system.
-    Dt : output rank-2 array('d') with bounds (p,m)
+    Dt : (p,m) ndarray
         The transmission matrix Dt of the transformed system.
     Raises
     ------
