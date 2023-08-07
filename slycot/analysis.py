@@ -153,10 +153,10 @@ def ab04md(type_t, n, m, p, A, B, C, D, alpha=1.0, beta=1.0, ldwork=None):
         The order of the matrix A, the number of rows of matrix B and
         the number of columns of matrix C. It represents the dimension of
         the state vector.  n > 0.        
-    m : input int
+    m : int
         The number of columns of matrix B. It represents the dimension of
         the input vector.  m > 0.
-    p : input int
+    p : int
         The number of rows of matrix C. It represents the dimension of
         the output vector.  p > 0.
     A : input rank-2 array('d') with bounds (n,n)
