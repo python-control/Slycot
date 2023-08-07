@@ -149,7 +149,7 @@ def ab04md(type_t, n, m, p, A, B, C, D, alpha=1.0, beta=1.0, ldwork=None):
             transformation to be performed as follows:
             = 'D':  discrete-time   -> continuous-time;
             = 'C':  continuous-time -> discrete-time.
-    n : input int
+    n : int
         The order of the matrix A, the number of rows of matrix B and
         the number of columns of matrix C. It represents the dimension of
         the state vector.  n > 0.        
