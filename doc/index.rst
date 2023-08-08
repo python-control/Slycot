@@ -6,22 +6,24 @@
 Slycot
 ======
 
-Python wrapper for selected SLICOT routines, 
+Python wrapper for selected `SLICOT <https://github.com/SLICOT/SLICOT-Reference>`_ routines, 
 notably including solvers for Riccati, Lyapunov, and Sylvester equations.
 
-.. rubric:: Features
+.. rubric:: Chapters
 
-- Analysis Routines
-- Benchmark
-- Adaptive Control
-- Data Analysis
-- Filtering
-- Identification
-- Mathematical Routines
-- Nonlinear Systems
-- Synthesis Routines
-- Transformation Routines
-- Utility Routines
+The Slycot library is organised by chapters. Each chapter can be identified by a single letter. The following chapters are included:
+
+- ``A`` : Analysis Routines
+- ``B`` : Benchmark
+- ``C`` : Adaptive Control
+- ``D`` : Data Analysis
+- ``F`` : Filtering
+- ``I`` : Identification
+- ``M`` : Mathematical Routines
+- ``N`` : Nonlinear Systems
+- ``S`` : Synthesis Routines
+- ``T`` : Transformation Routines
+- ``U`` : Utility Routines
 
 .. rubric:: Documentation
 

@@ -53,7 +53,14 @@ To install in your home directory, use::
 Getting started
 ===============
 
-There are two different ways to use the package.  For the default interface
-described in :ref:`function-ref`, simply import the control package as follows::
+There are two different ways to use the package. For the default interface
+described in :ref:`function-ref`, simply import the slycot package as follows::
 
     >>> import slycot
+
+.. warning::
+  In general, the second way is not recommended.
+
+  To access the f2py interface described in :ref:`inner_function-ref`, simply import the slycot package as follows::
+
+    >>> import slycot._wrapper
