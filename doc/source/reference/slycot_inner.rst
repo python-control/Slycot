@@ -16,7 +16,6 @@ Analysis
    :toctree: generated/
 
     _wrapper.ab01nd
-    _wrapper.ab04md
     _wrapper.ab05md
     _wrapper.ab05nd
     _wrapper.ab07nd

@@ -5,7 +5,6 @@ Development
 .. toctree::
    :maxdepth: 1
 
-   basic
-   f2py
+   contributing
    inspect_slycot
    slicot_slycot

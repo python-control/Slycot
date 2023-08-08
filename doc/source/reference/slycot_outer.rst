@@ -16,7 +16,6 @@ Analysis
    :toctree: generated/
 
     ab01nd
-    ab04md
     ab05md
     ab05nd
     ab07nd
