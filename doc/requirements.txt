@@ -1,6 +1,7 @@
 sphinx>=3.4
 numpy
 scipy
+pandas
 matplotlib
 matplotlib_venn
 sphinx_rtd_theme

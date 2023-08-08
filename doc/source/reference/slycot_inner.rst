@@ -1,8 +1,8 @@
 .. _inner_function-ref:
 
-******************
+************************
 Inner function reference
-******************
+************************
 
 .. automodule:: slycot
    :no-members:
@@ -54,10 +54,7 @@ Synthesis
 
     _wrapper.sb01bd
     _wrapper.sb02md
-    _wrapper.sb02mt
-    _wrapper.sb02od
     _wrapper.sb03md
-    _wrapper.sb03md57
     _wrapper.sb03od
     _wrapper.sb04md
     _wrapper.sb04qd
@@ -65,7 +62,6 @@ Synthesis
     _wrapper.sb10dd
     _wrapper.sb10fd
     _wrapper.sb10hd
-    _wrapper.sg02ad
     _wrapper.sg03ad
     _wrapper.sg03bd
 
@@ -76,12 +72,6 @@ Transformation Routines
    :toctree: generated/
 
     _wrapper.tb01id
-    _wrapper.tb03ad
-    _wrapper.tb04ad
-    _wrapper.tb05ad
-    _wrapper.tc04ad
-    _wrapper.tc01od
     _wrapper.tf01md
     _wrapper.tf01rd
-    _wrapper.td04ad
     _wrapper.tb01pd
