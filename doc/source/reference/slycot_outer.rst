@@ -1,8 +1,8 @@
 .. _function-ref:
 
-******************
+************************
 Outer function reference
-******************
+************************
 
 .. automodule:: slycot
    :no-members:
@@ -31,8 +31,6 @@ Analysis
     ab13ed
     ab13fd
     ab13md
-
-    
 
 Mathematical routines
 =====================
