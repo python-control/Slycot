@@ -1,6 +1,6 @@
-******************
+****************
 Slycot reference
-******************
+****************
 
 For most users only the :ref:`function-ref` is important.
 
@@ -12,6 +12,6 @@ For most users only the :ref:`function-ref` is important.
 
 For advanced users and developer also the :ref:`inner_function-ref` and the
 
-`SLICOT-Reference <../../_static/libindex.html>`_ (non-generated HTML file)
+`SLICOT-Reference <https://www.slicot.org/objects/software/shared/libindex.html>`_
 
 can be important.
