@@ -1702,7 +1702,10 @@ def sb10jd(n,m,np,A,B,C,D,E,ldwork=None):
 def sb10yd(discfl,flag,lendat,rfrdat,ifrdat,omega,n,tol,ldwork=None):
     """ A,B,C,D = sb10yd(discfl,flag,lendat,rfrdat,ifrdat,omega,n,tol,[ldwork])
 
-    To fit frequency response data with a stable, minimum phase SISO system
+    To fit a supplied frequency response data with a stable, minimum
+    phase SISO (single-input single-output) system represented by its
+    matrices A, B, C, D. It handles both discrete- and continuous-time
+    cases.
 
     ::
 
@@ -1805,7 +1808,7 @@ def sb10yd(discfl,flag,lendat,rfrdat,ifrdat,omega,n,tol,ldwork=None):
         n,
         tol,ldwork,lzwork)
 
-    raise_if_slycot_error(out[-1], arg_list, sb10yd.__doc__,  locals())
+    raise_if_slycot_error(out[-1], arg_list, sb10yd.__doc__)
 
     return out[:-1]
 
