@@ -7,4 +7,4 @@ Development
 
    contributing
    inspect_slycot
-   slicot_slycot
+   inspect_slicot_slycot
