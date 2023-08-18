@@ -3,8 +3,6 @@ from slycot import synthesis
 import numpy as np
 from scipy import signal
 
-import matplotlib.pyplot as plt
-
 class test_sb10yd(unittest.TestCase):
 
     def test_sb10yd_cont_exec(self):
@@ -92,7 +90,7 @@ class test_sb10yd(unittest.TestCase):
         imag_H_resp = np.imag(H)
 
         n = 2
-        dico = 1 # 0 for continuous time
+        dico = 1 # 0 for discrete time
         flag = 0 # 0 for no constraints on the poles
         n_id, *_ = synthesis.sb10yd(
             dico, flag, len(omega), 
@@ -135,10 +133,6 @@ class test_sb10yd(unittest.TestCase):
 
         #print(np.max(abs(H)-abs(H_id)), np.max(abs(H_id)-abs(H)))
         #print(np.max(abs(H_id)/abs(H)))
-
-        #plt.loglog(omega, abs(H))
-        #plt.loglog(omega, abs(H_id))
-        #plt.show(block=True) 
 
         # Compare given and identified frequency response up to some toleration.
         # absolute(a-b) <= atol + rtol*abolute(b), element-wise true
