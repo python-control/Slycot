@@ -14,16 +14,16 @@ else:
 
     # The Slycot library is organised by 11-chapters. Each chapter can be identified by a single letter.
     # The following chapters are included:
-    # A : Analysis Routines
+    # A : Analysis Routines (included)
     # B : Benchmark
     # C : Adaptive Control
     # D : Data Analysis
     # F : Filtering
     # I : Identification
-    # M : Mathematical Routines
+    # M : Mathematical Routines (included)
     # N : Nonlinear Systems
-    # S : Synthesis Routines
-    # T : Transformation Routines
+    # S : Synthesis Routines (included)
+    # T : Transformation Routines (included)
     # U : Utility Routines
 
 
@@ -46,9 +46,9 @@ else:
     # Identification routines (0/15 wrapped)
 
     # Mathematical routines (7/281 wrapped)
-    from .math import (mc01td, 
-                       mb03rd, mb03vd, mb03vy, mb03wd,
-                       mb05md, mb05nd)
+    from .math import (mb03rd, mb03vd, mb03vy, mb03wd,
+                       mb05md, mb05nd,
+                       mc01td)
 
     # Nonlinear Systems (0/16 wrapped)
 
@@ -61,7 +61,6 @@ else:
                             sg02ad,
                             sg03ad, sg03bd)
                             
-
     # Transformation routines (10/77 wrapped)
     from .transform import (tb01id, tb01pd,
                             tb03ad,
