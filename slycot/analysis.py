@@ -140,7 +140,7 @@ def ab01nd(n, m, A, B, jobz='N', tol=0, ldwork=None):
     return Ac, Bc, ncont, indcon, nblk, Z, tau
 
 def ab04md(type_t, n, m, p, A, B, C, D, alpha=1.0, beta=1.0, ldwork=None):
-    """ At,Bt,Ct,Dt = ab04md(type_bn, n, m, p, A, B, C, D, [alpha, beta,ldwork])
+    """ At,Bt,Ct,Dt = ab04md(type_t, n, m, p, A, B, C, D, [alpha, beta,ldwork])
 
     Parameters
     ----------
@@ -159,27 +159,29 @@ def ab04md(type_t, n, m, p, A, B, C, D, alpha=1.0, beta=1.0, ldwork=None):
     p : int
         The number of rows of matrix C. It represents the dimension of
         the output vector.  p > 0.
-    A : (n,n) ndarray
+    A : (n,n) array_like
         The leading n-by-n part of this array must contain the system state
         matrix A.
-    B : (n,m) ndarray
+    B : (n,m) array_like
         The leading n-by-m part of this array must contain the system input
         matrix B.
-    C : (p,n) ndarray
+    C : (p,n) array_like
         The leading p-by-n part of this array must contain the system output
         matrix C.
-    D : (p,m) ndarray
+    D : (p,m) array_like
         The leading p-by-m part of this array must contain the system direct
         transmission matrix D.
-    alpha : double
+    alpha : double, optional
         Parameter specifying the bilinear transformation.
         Recommended values for stable systems: alpha = 1, alpha != 0,
-    beta : double
+        Default is 1.0.
+    beta : double, optional
         Parameter specifying the bilinear transformation.
         Recommended values for stable systems: beta = 1, beta != 0,
-    ldwork : int
+        Default is 1.0.
+    ldwork : int, optional
         The length of the cache array.
-        ldwork >= max(1, n)
+        ldwork >= max(1, n), default is max(1, n)
     Returns
     -------
     At : (n,n) ndarray
