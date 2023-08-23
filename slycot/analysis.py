@@ -67,15 +67,14 @@ def ab01nd(n, m, A, B, jobz='N', tol=0, ldwork=None):
         the order of the matrix A.  ``n > 0``.
     m : int
         The number of system inputs, or of columns of B.  ``m > 0``.
-    A : (n,n) array_like
+    A : (n, n) array_like
         The original state dynamics matrix A.
-    B : (n,m) array_like
+    B : (n, m) array_like
         The input matrix B.
     jobz : {'N', 'F', 'I'}, optional
         Indicates whether the user wishes to accumulate in a matrix Z
         the orthogonal similarity transformations for reducing the system,
         as follows:
-
         := 'N':  Do not form Z and do not store the orthogonal transformations;
                  (default)
         := 'F':  Do not form Z, but store the orthogonal transformations in
@@ -92,12 +91,12 @@ def ab01nd(n, m, A, B, jobz='N', tol=0, ldwork=None):
 
     Returns
     -------
-    Ac : (n,n) ndarray
+    Ac : (n, n) ndarray
         The leading ncont-by-ncont part contains the upper block
         Hessenberg state dynamics matrix Acont in Ac, given by Z'*A*Z,
         of a controllable realization for the original system. The
         elements below the first block-subdiagonal are set to zero.
-    Bc : (n,m) ndarray
+    Bc : (n, m) ndarray
         The leading ncont-by-m part of this array contains the transformed
         input matrix Bcont in Bc, given by ``Z'*B``, with all elements but the
         first block set to zero.
@@ -106,10 +105,10 @@ def ab01nd(n, m, A, B, jobz='N', tol=0, ldwork=None):
     indcon : int
         The controllability index of the controllable part of the system
         representation.
-    nblk : (n,) int ndarray
+    nblk : (n, ) int ndarray
         The leading indcon elements of this array contain the the orders of
         the diagonal blocks of Acont.
-    Z : (n,n) ndarray
+    Z : (n, n) ndarray
         - If jobz = 'I', then the leading N-by-N part of this array contains
           the matrix of accumulated orthogonal similarity transformations
           which reduces the given system to orthogonal canonical form.
@@ -159,23 +158,23 @@ def ab04md(type_t, n, m, p, A, B, C, D, alpha=1.0, beta=1.0, ldwork=None):
     p : int
         The number of rows of matrix C. It represents the dimension of
         the output vector.  p > 0.
-    A : (n,n) array_like
+    A : (n, n) array_like
         The leading n-by-n part of this array must contain the system state
         matrix A.
-    B : (n,m) array_like
+    B : (n, m) array_like
         The leading n-by-m part of this array must contain the system input
         matrix B.
-    C : (p,n) array_like
+    C : (p, n) array_like
         The leading p-by-n part of this array must contain the system output
         matrix C.
-    D : (p,m) array_like
+    D : (p, m) array_like
         The leading p-by-m part of this array must contain the system direct
         transmission matrix D.
-    alpha : double, optional
+    alpha : float, optional
         Parameter specifying the bilinear transformation.
         Recommended values for stable systems: alpha = 1, alpha != 0,
         Default is 1.0.
-    beta : double, optional
+    beta : float, optional
         Parameter specifying the bilinear transformation.
         Recommended values for stable systems: beta = 1, beta != 0,
         Default is 1.0.
@@ -184,13 +183,13 @@ def ab04md(type_t, n, m, p, A, B, C, D, alpha=1.0, beta=1.0, ldwork=None):
         ldwork >= max(1, n), default is max(1, n)
     Returns
     -------
-    At : (n,n) ndarray
+    At : (n, n) ndarray
         The state matrix At of the transformed system.
-    Bt : (n,m) ndarray
+    Bt : (n, m) ndarray
         The input matrix Bt of the transformed system.
-    Ct : (p,n) ndarray
+    Ct : (p, n) ndarray
         The output matrix Ct of the transformed system.
-    Dt : (p,m) ndarray
+    Dt : (p, m) ndarray
         The transmission matrix Dt of the transformed system.
     Raises
     ------
@@ -221,72 +220,76 @@ def ab05md(n1,m1,p1,n2,p2,A1,B1,C1,D1,A2,B2,C2,D2,uplo='U'):
     To obtain the state-space model (A,B,C,D) for the cascaded
     inter-connection of two systems, each given in state-space form.
 
-    Required arguments:
-        n1 : input int
-            The number of state variables in the first system, i.e. the order
-            of the matrix A1.  n1 > 0.
-        m1 : input int
-            The number of input variables for the first system. m1 > 0.
-        p1 : input int
-            The number of output variables from the first system and the number
-            of input variables for the second system. p1 > 0.
-        n2 : input int
-            The number of state variables in the second system, i.e. the order
-            of the matrix A2.  n2 > 0.
-        p2 : input int
-            The number of output variables from the second system. p2 > 0.
-        A1 : input rank-2 array('d') with bounds (n1,n1)
-            The leading n1-by-n1 part of this array must contain the state
-            transition matrix A1 for the first system.
-        B1 : input rank-2 array('d') with bounds (n1,m1)
-            The leading n1-by-m1 part of this array must contain the input/state
-            matrix B1 for the first system.
-        C1 : input rank-2 array('d') with bounds (p1,n1)
-            The leading p1-by-n1 part of this array must contain the state/output
-            matrix C1 for the first system.
-        D1 : input rank-2 array('d') with bounds (p1,m1)
-            The leading p1-by-m1 part of this array must contain the input/output
-            matrix D1 for the first system.
-        A2 : input rank-2 array('d') with bounds (n2,n2)
-            The leading n2-by-n2 part of this array must contain the state
-            transition matrix A2 for the second system.
-        B2 : input rank-2 array('d') with bounds (n2,p1)
-            The leading n2-by-p1 part of this array must contain the input/state
-            matrix B2 for the second system.
-        C2 : input rank-2 array('d') with bounds (p2,n2)
-            The leading p2-by-n2 part of this array must contain the state/output
-            matrix C2 for the second system.
-        D2 : input rank-2 array('d') with bounds (p2,p1)
-            The leading p2-by-p1 part of this array must contain the input/output
-            matrix D2 for the second system.
-    Optional arguments:
-        uplo := 'U' input string(len=1)
-            Indicates whether the user wishes to obtain the matrix A in
-            the upper or lower block diagonal form, as follows:
-                = 'U':  Obtain A in the upper block diagonal form;
-                = 'L':  Obtain A in the lower block diagonal form.
-    Return objects:
-        n : int
-            The number of state variables (n1 + n2) in the resulting system,
-            i.e. the order of the matrix A, the number of rows of B and
-            the number of columns of C.
-        A : rank-2 array('d') with bounds (n1+n2,n1+n2)
-            The leading N-by-N part of this array contains the state transition
-            matrix A for the cascaded system.
-        B : rank-2 array('d') with bounds (n1+n2,m1)
-            The leading n-by-m1 part of this array contains the input/state
-            matrix B for the cascaded system.
-        C : rank-2 array('d') with bounds (p2,n1+n2)
-            The leading p2-by-n part of this array contains the state/output
-            matrix C for the cascaded system.
-        D : rank-2 array('d') with bounds (p2,m1)
-            The leading p2-by-m1 part of this array contains the input/output
-            matrix D for the cascaded system.
+    Parameters
+    ----------
+    n1 : int
+        The number of state variables in the first system, i.e. the order
+        of the matrix A1.  n1 > 0.
+    m1 : int
+        The number of input variables for the first system. m1 > 0.
+    p1 : int
+        The number of output variables from the first system and the number
+        of input variables for the second system. p1 > 0.
+    n2 : int
+        The number of state variables in the second system, i.e. the order
+        of the matrix A2.  n2 > 0.
+    p2 : int
+        The number of output variables from the second system. p2 > 0.
+    A1 : (n1, n1) array_like
+        The leading n1-by-n1 part of this array must contain the state
+        transition matrix A1 for the first system.
+    B1 : (n1, m1) array_like
+        The leading n1-by-m1 part of this array must contain the input/state
+        matrix B1 for the first system.
+    C1 : (p1, n1) array_like
+        The leading p1-by-n1 part of this array must contain the state/output
+        matrix C1 for the first system.
+    D1 : (p1, m1) array_like
+        The leading p1-by-m1 part of this array must contain the input/output
+        matrix D1 for the first system.
+    A2 : (n2, n2) array_like
+        The leading n2-by-n2 part of this array must contain the state
+        transition matrix A2 for the second system.
+    B2 : (n2, p1) array_like
+        The leading n2-by-p1 part of this array must contain the input/state
+        matrix B2 for the second system.
+    C2 : (p2, n2) array_like
+        The leading p2-by-n2 part of this array must contain the state/output
+        matrix C2 for the second system.
+    D2 : (p2, p1) array_like
+        The leading p2-by-p1 part of this array must contain the input/output
+        matrix D2 for the second system.
+    uplo :  {'U', 'L'}, optional
+        Indicates whether the user wishes to obtain the matrix A in
+        the upper or lower block diagonal form, as follows:
+            = 'U':  Obtain A in the upper block diagonal form;
+            = 'L':  Obtain A in the lower block diagonal form.
+        Default is `U`.
 
-    Notes:
-        The implemented methods rely on accuracy enhancing square-root or
-        balancing-free square-root techniques.
-        The algorithms require less than 30N^3  floating point operations.
+    Returns
+    -------
+    n : int
+        The number of state variables (n1 + n2) in the resulting system,
+        i.e. the order of the matrix A, the number of rows of B and
+        the number of columns of C.
+    A : (n1+n2, n1+n2) ndarray
+        The leading N-by-N part of this array contains the state transition
+        matrix A for the cascaded system.
+    B : (n1+n2, m1) ndarray
+        The leading n-by-m1 part of this array contains the input/state
+        matrix B for the cascaded system.
+    C : (p2, n1+n2) ndarray
+        The leading p2-by-n part of this array contains the state/output
+        matrix C for the cascaded system.
+    D : (p2, m1) ndarray
+        The leading p2-by-m1 part of this array contains the input/output
+        matrix D for the cascaded system.
+
+    Notes
+    -----
+    The implemented methods rely on accuracy enhancing square-root or
+    balancing-free square-root techniques.
+    The algorithms require less than 30N^3  floating point operations.
     """
     hidden = ' (hidden by the wrapper)'
     arg_list = ['uplo', 'OVER'+hidden, 'n1', 'm1', 'p1', 'n2', 'p2', 'A1',
@@ -305,68 +308,72 @@ def ab05nd(n1,m1,p1,n2,A1,B1,C1,D1,A2,B2,C2,D2,alpha=1.0,ldwork=None):
     To obtain the state-space model (A,B,C,D) for the feedback inter-connection
     of two systems, each given in state-space form.
 
-    Required arguments:
-        n1 : input int
-            The number of state variables in the first system, i.e. the order
-            of the matrix A1.  n1 > 0.
-        m1 : input int
-            The number of input variables for the first system and the number
-            of output variables from the second system. m1 > 0.
-        p1 : input int
-            The number of output variables from the first system and the number
-            of input variables for the second system. p1 > 0.
-        n2 : input int
-            The number of state variables in the second system, i.e. the order
-            of the matrix A2.  n2 > 0.
-        A1 : input rank-2 array('d') with bounds (n1,n1)
-            The leading n1-by-n1 part of this array must contain the state
-            transition matrix A1 for the first system.
-        B1 : input rank-2 array('d') with bounds (n1,m1)
-            The leading n1-by-m1 part of this array must contain the input/state
-            matrix B1 for the first system.
-        C1 : input rank-2 array('d') with bounds (p1,n1)
-            The leading p1-by-n1 part of this array must contain the state/output
-            matrix C1 for the first system.
-        D1 : input rank-2 array('d') with bounds (p1,m1)
-            The leading p1-by-m1 part of this array must contain the input/output
-            matrix D1 for the first system.
-        A2 : input rank-2 array('d') with bounds (n2,n2)
-            The leading n2-by-n2 part of this array must contain the state
-            transition matrix A2 for the second system.
-        B2 : input rank-2 array('d') with bounds (n2,p1)
-            The leading n2-by-p1 part of this array must contain the input/state
-            matrix B2 for the second system.
-        C2 : input rank-2 array('d') with bounds (m1,n2)
-            The leading m1-by-n2 part of this array must contain the state/output
-            matrix C2 for the second system.
-        D2 : input rank-2 array('d') with bounds (m1,p1)
-            The leading m1-by-p1 part of this array must contain the input/output
-            matrix D2 for the second system.
-    Optional arguments:
-        alpha := 1.0 input float
-            A coefficient multiplying the transfer-function matrix (or the
-            output equation) of the second system. i.e alpha = +1 corresponds
-            to positive feedback, and alpha = -1 corresponds to negative
-            feedback.
-        ldwork := max(p1*p1,m1*m1,n1*p1) input int
-            The length of the cache array. ldwork >= max(p1*p1,m1*m1,n1*p1).
-    Return objects:
-        n : int
-            The number of state variables (n1 + n2) in the connected system, i.e.
-            the order of the matrix A, the number of rows of B and the number of
-            columns of C.
-        A : rank-2 array('d') with bounds (n1+n2,n1+n2)
-            The leading n-by-n part of this array contains the state transition
-            matrix A for the connected system.
-        B : rank-2 array('d') with bounds (n1+n2,m1)
-            The leading n-by-m1 part of this array contains the input/state
-            matrix B for the connected system.
-        C : rank-3 array('d') with bounds (p1,n1,n2)
-            The leading p1-by-n part of this array contains the state/output
-            matrix C for the connected system.
-        D : rank-2 array('d') with bounds (p1,m1)
-            The leading p1-by-m1 part of this array contains the input/output
-            matrix D for the connected system.
+    Parameters
+    ----------
+    n1 : int
+        The number of state variables in the first system, i.e. the order
+        of the matrix A1.  n1 > 0.
+    m1 : int
+        The number of input variables for the first system and the number
+        of output variables from the second system. m1 > 0.
+    p1 : int
+        The number of output variables from the first system and the number
+        of input variables for the second system. p1 > 0.
+    n2 : int
+        The number of state variables in the second system, i.e. the order
+        of the matrix A2.  n2 > 0.
+    A1 : (n1, n1) array_like
+        The leading n1-by-n1 part of this array must contain the state
+        transition matrix A1 for the first system.
+    B1 : (n1, m1) array_like
+        The leading n1-by-m1 part of this array must contain the input/state
+        matrix B1 for the first system.
+    C1 : (p1, n1) array_like
+        The leading p1-by-n1 part of this array must contain the state/output
+        matrix C1 for the first system.
+    D1 : (p1, m1) array_like
+        The leading p1-by-m1 part of this array must contain the input/output
+        matrix D1 for the first system.
+    A2 : (n2, n2) array_like
+        The leading n2-by-n2 part of this array must contain the state
+        transition matrix A2 for the second system.
+    B2 : (n2, p1) array_like
+        The leading n2-by-p1 part of this array must contain the input/state
+        matrix B2 for the second system.
+    C2 : (m1, n2) array_like
+        The leading m1-by-n2 part of this array must contain the state/output
+        matrix C2 for the second system.
+    D2 : (m1, p1) array_like
+        The leading m1-by-p1 part of this array must contain the input/output
+        matrix D2 for the second system.
+    alpha : float, optional
+        A coefficient multiplying the transfer-function matrix (or the
+        output equation) of the second system. i.e alpha = +1 corresponds
+        to positive feedback, and alpha = -1 corresponds to negative
+        feedback.
+        Default is `1.0`.
+    ldwork : int, optional
+        The length of the cache array. ldwork >= max(p1*p1,m1*m1,n1*p1).
+        Default is max(p1*p1,m1*m1,n1*p1).
+
+    Returns
+    -------
+    n : int
+        The number of state variables (n1 + n2) in the connected system, i.e.
+        the order of the matrix A, the number of rows of B and the number of
+        columns of C.
+    A : (n1+n2, n1+n2) ndarray
+        The leading n-by-n part of this array contains the state transition
+        matrix A for the connected system.
+    B : (n1+n2, m1) ndarray
+        The leading n-by-m1 part of this array contains the input/state
+        matrix B for the connected system.
+    C : (p1, n1, n2) ndarray
+        The leading p1-by-n part of this array contains the state/output
+        matrix C for the connected system.
+    D : (p1, m1) ndarray
+        The leading p1-by-m1 part of this array contains the input/output
+        matrix D for the connected system.
 
     Raises
     ------
@@ -392,47 +399,49 @@ def ab05nd(n1,m1,p1,n2,A1,B1,C1,D1,A2,B2,C2,D2,alpha=1.0,ldwork=None):
     return out[:-1]
 
 def ab07nd(n,m,A,B,C,D,ldwork=None):
-    """ A_i,B_i,C_i,D_i,rcond = ab07nd(n,m,A,B,C,D,[ldwork])
+    """ Ai,Bi,Ci,Di,rcond = ab07nd(n,m,A,B,C,D,[ldwork])
 
-    To compute the inverse (A_i,B_i,C_i,D_i) of a given system (A,B,C,D).
+    To compute the inverse (Ai,Bi,Ci,Di) of a given system (A,B,C,D).
 
-    Required arguments:
-        n : input int
-            The order of the state matrix A.  n >= 0.
-        m : input int
-            The number of system inputs and outputs.  m >= 0.
-        A : input rank-2 array('d') with bounds (n,n)
-            The leading n-by-n part of this array must contain the state matrix
-            A of the original system.
-        B : input rank-2 array('d') with bounds (n,m)
-            The leading n-by-m part of this array must contain the input matrix
-            B of the original system.
-        C : input rank-2 array('d') with bounds (m,n)
-            The leading m-by-n part of this array must contain the output matrix
-            C of the original system.
-        D : input rank-2 array('d') with bounds (m,m)
-            The leading m-by-m part of this array must contain the feedthrough
-            matrix D of the original system.
-    Optional arguments:
-        ldwork := None input int
-            The length of the cache array. The default value is max(1,4*m),
-            for better performance should be larger.
-    Return objects:
-        A_i : rank-2 array('d') with bounds (n,n)
-            The leading n-by-n part of this array contains the state matrix A_i
-            of the inverse system.
-        B_i : rank-2 array('d') with bounds (n,m)
-            The leading n-by-m part of this array contains the input matrix B_i
-            of the inverse system.
-        C_i : rank-2 array('d') with bounds (m,n)
-            The leading m-by-n part of this array contains the output matrix C_i
-            of the inverse system.
-        D_i : rank-2 array('d') with bounds (m,m)
-            The leading m-by-m part of this array contains the feedthrough
-            matrix D_i of the inverse system.
-        rcond : float
-            The estimated reciprocal condition number of the feedthrough matrix
-            D of the original system.
+    Parameters
+    ----------
+    n : int
+        The order of the state matrix A. n >= 0.
+    m : int
+        The number of system inputs and outputs. m >= 0.
+    A : (n, n) array_like
+        The leading n-by-n part of this array must contain the state matrix
+        A of the original system.
+    B : (n, m) array_like
+        The leading n-by-m part of this array must contain the input matrix
+        B of the original system.
+    C : (m, n) array_like
+        The leading m-by-n part of this array must contain the output matrix
+        C of the original system.
+    D : (m, m) array_like
+        The leading m-by-m part of this array must contain the feedthrough
+        matrix D of the original system.
+    ldwork : int, optional
+        The length of the cache array. The default value is max(1,4*m),
+        for better performance should be larger.
+
+    Returns
+    -------
+    Ai : (n, n) ndarray
+        The leading n-by-n part of this array contains the state matrix Ai
+        of the inverse system.
+    Bi : (n, m) ndarray
+        The leading n-by-m part of this array contains the input matrix Bi
+        of the inverse system.
+    Ci : (m, n) ndarray
+        The leading m-by-n part of this array contains the output matrix Ci
+        of the inverse system.
+    Di : (m, m) ndarray
+        The leading m-by-m part of this array contains the feedthrough
+        matrix Di of the inverse system.
+    rcond : float
+        The estimated reciprocal condition number of the feedthrough matrix
+        D of the original system.
 
     Warns
     -----
@@ -467,68 +476,73 @@ def ab08nd(n,m,p,A,B,C,D,equil='N',tol=0,ldwork=None):
     The routine also computes the orders of the infinite zeros and the
     right and left Kronecker indices of the system (A,B,C,D).
 
-    Required arguments:
-        n : input int
-            The number of state variables.  n >= 0.
-        m : input int
-            The number of system inputs.  m >= 0.
-        p : input int
-            The number of system outputs.  p >= 0.
-        A : input rank-2 array('d') with bounds (n,n)
-            The leading n-by-n part of this array must contain the state
-            dynamics matrix A of the system.
-        B : input rank-2 array('d') with bounds (n,m)
-            The leading n-by-m part of this array must contain the input/state
-            matrix B of the system.
-        C : input rank-2 array('d') with bounds (p,n)
-            The leading p-by-n part of this array must contain the state/output
-            matrix C of the system.
-        D : input rank-2 array('d') with bounds (p,m)
-            The leading p-by-m part of this array must contain the direct
-            transmission matrix D of the system.
-    Optional arguments:
-        equil := 'N' input string(len=1)
-            Specifies whether the user wishes to balance the compound matrix
-            as follows:
-            = 'S':  Perform balancing (scaling);
-            = 'N':  Do not perform balancing.
-        tol := 0.0 input float
-            A tolerance used in rank decisions to determine the effective rank,
-            which is defined as the order of the largest leading (or trailing)
-            triangular submatrix in the QR (or RQ) factorization with column
-            (or row) pivoting whose estimated condition number is less than 1/tol.
-        ldwork := None input int
-            The length of the cache array. The default value is n + 3*max(m,p),
-            for better performance should be larger.
-    Return objects:
-        nu : int
-            The number of (finite) invariant zeros.
-        rank : int
-            The normal rank of the transfer function matrix.
-        dinfz : int
-            The maximum degree of infinite elementary divisors.
-        nkror : int
-            The number of right Kronecker indices.
-        nkrol : int
-            The number of left Kronecker indices.
-        infz : rank-1 array('i') with bounds (n)
-            The leading dinfz elements of infz contain information on the
-            infinite elementary divisors as follows: the system has infz(i)
-            infinite elementary divisors of degree i, where i = 1,2,...,dinfz.
-        kronr : rank-1 array('i') with bounds (max(n,m)+1)
-            the leading nkror elements of this array contain the right kronecker
-            (column) indices.
-        kronl : rank-1 array('i') with bounds (max(n,p)+1)
-            the leading nkrol elements of this array contain the left kronecker
-            (row) indices.
-        Af : rank-2 array('d') with bounds (max(1,n+m),n+min(p,m))
-            the leading nu-by-nu part of this array contains the coefficient
-            matrix Af of the reduced pencil. the remainder of the leading
-            (n+m)-by-(n+min(p,m)) part is used as internal workspace.
-        Bf : rank-2 array('d') with bounds (max(1,n+p),n+m)
-            The leading nu-by-nu part of this array contains the coefficient
-            matrix Bf of the reduced pencil. the remainder of the leading
-            (n+p)-by-(n+m) part is used as internal workspace.
+    Parameters
+    ----------
+    n : int
+        The number of state variables. n >= 0.
+    m : int
+        The number of system inputs. m >= 0.
+    p : int
+        The number of system outputs. p >= 0.
+    A : (n, n) array_like
+        The leading n-by-n part of this array must contain the state
+        dynamics matrix A of the system.
+    B : (n, m) array_like
+        The leading n-by-m part of this array must contain the input/state
+        matrix B of the system.
+    C : (p, n) array_like
+        The leading p-by-n part of this array must contain the state/output
+        matrix C of the system.
+    D : (p, m) array_like
+        The leading p-by-m part of this array must contain the direct
+        transmission matrix D of the system.
+    equil : {'S', 'N'}, optional
+        Specifies whether the user wishes to balance the compound matrix
+        as follows:
+        = 'S':  Perform balancing (scaling);
+        = 'N':  Do not perform balancing.
+        Default is `N`.
+    tol : float, optional
+        A tolerance used in rank decisions to determine the effective rank,
+        which is defined as the order of the largest leading (or trailing)
+        triangular submatrix in the QR (or RQ) factorization with column
+        (or row) pivoting whose estimated condition number is less than 1/tol.
+        Default is `0.0`.
+    ldwork : int, optional
+        The length of the cache array. The default value is n + 3*max(m,p),
+        for better performance should be larger.
+        Default is None.
+
+    Returns
+    -------
+    nu : int
+        The number of (finite) invariant zeros.
+    rank : int
+        The normal rank of the transfer function matrix.
+    dinfz : int
+        The maximum degree of infinite elementary divisors.
+    nkror : int
+        The number of right Kronecker indices.
+    nkrol : int
+        The number of left Kronecker indices.
+    infz : (n, ) ndarray
+        The leading dinfz elements of infz contain information on the
+        infinite elementary divisors as follows: the system has infz(i)
+        infinite elementary divisors of degree i, where i = 1,2,...,dinfz.
+    kronr :(max(n,m)+1, ) ndarray
+        the leading nkror elements of this array contain the right kronecker
+        (column) indices.
+    kronl : (max(n,p)+1, ) ndarray
+        the leading nkrol elements of this array contain the left kronecker
+        (row) indices.
+    Af : (max(1,n+m), n+min(p,m)) ndarray
+        the leading nu-by-nu part of this array contains the coefficient
+        matrix Af of the reduced pencil. the remainder of the leading
+        (n+m)-by-(n+min(p,m)) part is used as internal workspace.
+    Bf : (max(1,n+p), n+m) ndarray
+        The leading nu-by-nu part of this array contains the coefficient
+        matrix Bf of the reduced pencil. the remainder of the leading
+        (n+p)-by-(n+m) part is used as internal workspace.
     """
     hidden = ' (hidden by the wrapper)'
     arg_list = ['equil', 'n', 'm', 'p', 'A', 'LDA'+hidden, 'B', 'LDB'+hidden,
@@ -551,82 +565,87 @@ def ab08nz(n, m, p, A, B, C, D, equil='N', tol=0., lzwork=None):
     The routine also computes the orders of the infinite zeros and the
     right and left Kronecker indices of the system (A,B,C,D).
 
-    Required arguments:
-        n : input int
-            The number of state variables.  n >= 0.
-        m : input int
-            The number of system inputs.  m >= 0.
-        p : input int
-            The number of system outputs.  p >= 0.
-        A : input rank-2 array('d') with bounds (n,n)
-            The leading n-by-n part of this array must contain the state
-            dynamics matrix A of the system.
-        B : input rank-2 array('d') with bounds (n,m)
-            The leading n-by-m part of this array must contain the input/state
-            matrix B of the system.
-        C : input rank-2 array('d') with bounds (p,n)
-            The leading p-by-n part of this array must contain the state/output
-            matrix C of the system.
-        D : input rank-2 array('d') with bounds (p,m)
-            The leading p-by-m part of this array must contain the direct
-            transmission matrix D of the system.
-    Optional arguments:
-        equil := 'N' input string(len=1)
-            Specifies whether the user wishes to balance the compound matrix
-            as follows:
-            = 'S':  Perform balancing (scaling);
-            = 'N':  Do not perform balancing.
-        tol := 0.0 input float
-            A tolerance used in rank decisions to determine the effective rank,
-            which is defined as the order of the largest leading (or trailing)
-            triangular submatrix in the QR (or RQ) factorization with column
-            (or row) pivoting whose estimated condition number is less than 1/tol.
-            If tol is set to less than SQRT((N+P)*(N+M))*EPS
-            then the tolerance is taken as SQRT((N+P)*(N+M))*EPS,
-            where EPS is the machine precision (see LAPACK Library
-            Routine DLAMCH).
-        lzwork := None input int
-            The length of the internal cache array ZWORK. The default value is
-            calculated to
-               MAX( 1,
-                    MIN(P,M) + MAX(3*M-1,N),
-                    MIN(P,N) + MAX(3*P-1,N+P,N+M),
-                    MIN(M,N) + MAX(3*M-1,N+M) )
-            For optimum performance lzwork should be larger.
-            If lzwork = -1, then a workspace query is assumed;
-            the routine only calculates the optimal size of the
-            ZWORK array, and returns this value in lzwork_opt
-    Return objects:
-        nu : int
-            The number of (finite) invariant zeros.
-        rank : int
-            The normal rank of the transfer function matrix.
-        dinfz : int
-            The maximum degree of infinite elementary divisors.
-        nkror : int
-            The number of right Kronecker indices.
-        nkrol : int
-            The number of left Kronecker indices.
-        infz : rank-1 array('i') with bounds (n)
-            The leading dinfz elements of infz contain information on the
-            infinite elementary divisors as follows: the system has infz(i)
-            infinite elementary divisors of degree i, where i = 1,2,...,dinfz.
-        kronr : rank-1 array('i') with bounds (max(n,m)+1)
-            the leading nkror elements of this array contain the right kronecker
-            (column) indices.
-        kronl : rank-1 array('i') with bounds (max(n,p)+1)
-            the leading nkrol elements of this array contain the left kronecker
-            (row) indices.
-        Af : rank-2 array('d') with bounds (max(1,n+m),n+min(p,m))
-            the leading nu-by-nu part of this array contains the coefficient
-            matrix Af of the reduced pencil. the remainder of the leading
-            (n+m)-by-(n+min(p,m)) part is used as internal workspace.
-        Bf : rank-2 array('d') with bounds (max(1,n+p),n+m)
-            The leading nu-by-nu part of this array contains the coefficient
-            matrix Bf of the reduced pencil. the remainder of the leading
-            (n+p)-by-(n+m) part is used as internal workspace.
-        lzwork_opt : int
-            The optimal value of lzwork.
+    Parameters
+    ----------
+    n : int
+        The number of state variables. n >= 0.
+    m : int
+        The number of system inputs. m >= 0.
+    p : int
+        The number of system outputs. p >= 0.
+    A : (n, n) array_like
+        The leading n-by-n part of this array must contain the state
+        dynamics matrix A of the system.
+    B : (n, m) array_like
+        The leading n-by-m part of this array must contain the input/state
+        matrix B of the system.
+    C : (p, n) array_like
+        The leading p-by-n part of this array must contain the state/output
+        matrix C of the system.
+    D : (p, m) array_like
+        The leading p-by-m part of this array must contain the direct
+        transmission matrix D of the system.
+    equil : {'S', 'N'}, optional
+        Specifies whether the user wishes to balance the compound matrix
+        as follows:
+        = 'S':  Perform balancing (scaling);
+        = 'N':  Do not perform balancing.
+        Default is `N`.
+    tol : float, optional
+        A tolerance used in rank decisions to determine the effective rank,
+        which is defined as the order of the largest leading (or trailing)
+        triangular submatrix in the QR (or RQ) factorization with column
+        (or row) pivoting whose estimated condition number is less than 1/tol.
+        If tol is set to less than SQRT((N+P)*(N+M))*EPS
+        then the tolerance is taken as SQRT((N+P)*(N+M))*EPS,
+        where EPS is the machine precision (see LAPACK Library
+        Routine DLAMCH).
+        Default is 0.0.
+    lzwork : int, optional
+        The length of the internal cache array ZWORK. The default value is
+        calculated to
+            MAX( 1,
+                MIN(P,M) + MAX(3*M-1,N),
+                MIN(P,N) + MAX(3*P-1,N+P,N+M),
+                MIN(M,N) + MAX(3*M-1,N+M) )
+        For optimum performance lzwork should be larger.
+        If lzwork = -1, then a workspace query is assumed;
+        the routine only calculates the optimal size of the
+        ZWORK array, and returns this value in lzwork_opt
+        Default is None.
+
+    Returns
+    -------
+    nu : int
+        The number of (finite) invariant zeros.
+    rank : int
+        The normal rank of the transfer function matrix.
+    dinfz : int
+        The maximum degree of infinite elementary divisors.
+    nkror : int
+        The number of right Kronecker indices.
+    nkrol : int
+        The number of left Kronecker indices.
+    infz : (n, ) ndarray
+        The leading dinfz elements of infz contain information on the
+        infinite elementary divisors as follows: the system has infz(i)
+        infinite elementary divisors of degree i, where i = 1,2,...,dinfz.
+    kronr : (max(n,m)+1, ) ndarray
+        the leading nkror elements of this array contain the right kronecker
+        (column) indices.
+    kronl : (max(n,p)+1, ) ndarray
+        the leading nkrol elements of this array contain the left kronecker
+        (row) indices.
+    Af : (max(1,n+m), n+min(p,m)) ndarray
+        the leading nu-by-nu part of this array contains the coefficient
+        matrix Af of the reduced pencil. the remainder of the leading
+        (n+m)-by-(n+min(p,m)) part is used as internal workspace.
+    Bf : (max(1,n+p), n+m) ndarray
+        The leading nu-by-nu part of this array contains the coefficient
+        matrix Bf of the reduced pencil. the remainder of the leading
+        (n+p)-by-(n+m) part is used as internal workspace.
+    lzwork_opt : int
+        The optimal value of lzwork.
     """
     hidden = ' (hidden by the wrapper)'
     arg_list = ['equil', 'n', 'm', 'p',
@@ -657,77 +676,79 @@ def ab09ad(dico,job,equil,n,m,p,A,B,C,nr=None,tol=0,ldwork=None):
     (A, B, C) by using either the square-root or the balancing-free square-
     root Balance & truncate (B & T) model reduction method.
 
-    Required arguments:
-        dico : {'D', 'C'} input string(len=1)
-            Indicate whether the system is discrete `D` or continuous `C`
-        job : {'B', 'N'} input string(len=1)
-            Balance `B` or not `N`
-        equil : {'S', 'N'} input string(len=1)
-            Scale `S` or not `N`
-        n : input int
-            The number of state variables.  n >= 0.
-        m : input int
-            The number of system inputs.  m >= 0.
-        p : input int
-            The number of system outputs.  p >= 0.
-        A : input rank-2 array('d') with bounds (n,n)
-            The leading n-by-n part of this array must contain the state
-            dynamics matrix A of the system.
-        B : input rank-2 array('d') with bounds (n,m)
-            The leading n-by-m part of this array must contain the input/state
-            matrix B of the system.
-        C : input rank-2 array('d') with bounds (p,n)
-            The leading p-by-n part of this array must contain the
-            state/output matrix C of the system.
+    Parameters
+    ----------
+    dico : {'D', 'C'}
+        Indicate whether the system is discrete `D` or continuous `C`
+    job : {'B', 'N'}
+        Balance `B` or not `N`
+    equil : {'S', 'N'}
+        Scale `S` or not `N`
+    n : int
+        The number of state variables. n >= 0.
+    m : int
+        The number of system inputs. m >= 0.
+    p : int
+        The number of system outputs. p >= 0.
+    A : (n, n) array_like
+        The leading n-by-n part of this array must contain the state
+        dynamics matrix A of the system.
+    B : (n, m) array_like
+        The leading n-by-m part of this array must contain the input/state
+        matrix B of the system.
+    C : (p, n) array_like
+        The leading p-by-n part of this array must contain the
+        state/output matrix C of the system.
+    nr : int, optional
+        `nr` is the desired order of the resulting reduced order
+        system.  ``0 <= nr <= n``. Automatically determined by `tol` if
+        ``nr is None`` and returned. See return object `nr`.
+        Default is None.
+    tol : float, optional
+        If ``nr is None``, `tol`contains the tolerance for determining the
+        order of the reduced system. For model reduction, th recommended
+        value is ``tol = c * HNORM(A, B, C)``, where `c` is a constan in the
+        interval ``[0.00001, 0.001]`` and ``HNORM(A, B, C)`` is the
+        Hankel-Norm of the given sysstem (computed in ``HSV(1)``). For
+        computing a minimal realization, the recommended value is
+        ``tol = n * eps * HNORM(A, B, C)``, where `eps` is the machine
+        precision (see LAPACK Library Routine `DLAMCH`). This value is
+        used by default if ``tol <= 0`` on entry. If `nr` is specified,
+        the value of `tol` is ignored. Default is `0.0`.
+    ldwork : int, optional
+        The length of the cache array. The default value is
+        ``n*(2*n+max(n,m,p)+5) + n*(n+1)/2 ~= 3.5*n**2 + 5*n``,
+        a larger value should lead to better performance.
+        Default is None.
 
-    Optional arguments:
-        nr := None input int
-            `nr` is the desired order of the resulting reduced order
-            system.  ``0 <= nr <= n``. Automatically determined by `tol` if
-            ``nr is None`` and returned. See return object `nr`.
-        tol := 0 input double precision
-            If ``nr is None``, `tol`contains the tolerance for determining the
-            order of the reduced system. For model reduction, th recommended
-            value is ``tol = c * HNORM(A, B, C)``, where `c` is a constan in the
-            interval ``[0.00001, 0.001]`` and ``HNORM(A, B, C)`` is the
-            Hankel-Norm of the given sysstem (computed in ``HSV(1)``). For
-            computing a minimal realization, the recommended value is
-            ``tol = n * eps * HNORM(A, B, C)``, where `eps` is the machine
-            precision (see LAPACK Library Routine `DLAMCH`). This value is
-            used by default if ``tol <= 0`` on entry. If `nr` is specified,
-            the value of `tol` is ignored.
-        ldwork := None input int
-            The length of the cache array. The default value is
-            ``n*(2*n+max(n,m,p)+5) + n*(n+1)/2 ~= 3.5*n**2 + 5*n``,
-            a larger value should lead to better performance.
-
-    Return objects :
-        nr : output int
-            `nr` is the order of the resulting reduced order model.
-            `nr` is set as follows:
-            If on input ``nr is not None``, `nr` is equal to ``MIN(nr,NMIN)``,
-            where `nr` is the desired order on entry and `NMIN` is the order
-            of a minimal realization of the given system; `NMIN` is
-            determined as the number of Hankel singular values greater
-            than ``n*eps*HNORM(A,B,C)``, where `eps` is the machine
-            precision (see LAPACK Library Routine DLAMCH) and
-            ``HNORM(A,B,C)`` is the Hankel norm of the system (computed
-            in ``HSV(1)``);
-            If on input ``nr is None``, `nr` is equal to the number of Hankel
-            singular values greater than ``MAX(tol,n*eps*HNORM(A,B,C))``.
-        Ar : rank-2 array('d') with bounds ``(nr,nr)``
-            This array contains the state dynamics matrix `Ar` of the reduced
-            order system.
-        Br : rank-2 array('d') with bounds ``(nr,m)``
-            Tthis array contains the input/state matrix `Br` of the reduced
-            order system.
-        Cr : rank-2 array('d') with bounds ``(p,nr)``
-            This array contains the state/output matrix `Cr` of the reduced
-            order system.
-        hsv : output double precision array, dimension ``(n)``
-            If ``INFO = 0``, it contains the Hankel singular values of
-            the original system ordered decreasingly. ``HSV(1)`` is the
-            Hankel norm of the system.
+    Returns
+    -------
+    nr : int
+        `nr` is the order of the resulting reduced order model.
+        `nr` is set as follows:
+        If on input ``nr is not None``, `nr` is equal to ``MIN(nr,NMIN)``,
+        where `nr` is the desired order on entry and `NMIN` is the order
+        of a minimal realization of the given system; `NMIN` is
+        determined as the number of Hankel singular values greater
+        than ``n*eps*HNORM(A,B,C)``, where `eps` is the machine
+        precision (see LAPACK Library Routine DLAMCH) and
+        ``HNORM(A,B,C)`` is the Hankel norm of the system (computed
+        in ``HSV(1)``);
+        If on input ``nr is None``, `nr` is equal to the number of Hankel
+        singular values greater than ``MAX(tol,n*eps*HNORM(A,B,C))``.
+    Ar : (nr, nr) ndarray
+        This array contains the state dynamics matrix `Ar` of the reduced
+        order system.
+    Br : (nr, m) ndarray
+        This array contains the input/state matrix `Br` of the reduced
+        order system.
+    Cr : (p, nr) ndarray
+        This array contains the state/output matrix `Cr` of the reduced
+        order system.
+    hsv : (n, ) ndarray
+        If ``INFO = 0``, it contains the Hankel singular values of
+        the original system ordered decreasingly. ``HSV(1)`` is the
+        Hankel norm of the system.
 
     Raises
     ------
@@ -783,81 +804,83 @@ def ab09ax(dico,job,n,m,p,A,B,C,nr=None,tol=0.0,ldwork=None):
 
         ``Ar = TI * A * T ,  Br = TI * B ,  Cr = C * T`` .
 
-    Required arguments :
-        dico : {'D', 'C'} input string(len=1)
-            Indicate whether the system is discrete `D` or continuous `C`
-        job : {'B', 'N'} input string(len=1)
-            Balance `B` or not `N`
-        n : input int
-            The number of state variables.  n >= 0.
-        m : input int
-            The number of system inputs.  m >= 0.
-        p : input int
-            The number of system outputs.  p >= 0.
-        A : input rank-2 array('d') with bounds (n,n)
-            The leading n-by-n part of this array must contain the state
-            dynamics matrix A of the system *in real Schur form.*
-        B : input rank-2 array('d') with bounds (n,m)
-            The leading n-by-m part of this array must contain the input/state
-            matrix B of the system.
-        C : input rank-2 array('d') with bounds (p,n)
-            The leading p-by-n part of this array must contain the
-            state/output matrix C of the system.
+    Parameters
+    ----------
+    dico : {'D', 'C'}
+        Indicate whether the system is discrete `D` or continuous `C`
+    job : {'B', 'N'}
+        Balance `B` or not `N`
+    n : int
+        The number of state variables. n >= 0.
+    m : int
+        The number of system inputs. m >= 0.
+    p : int
+        The number of system outputs. p >= 0.
+    A : (n, n) array_like
+        The leading n-by-n part of this array must contain the state
+        dynamics matrix A of the system *in real Schur form.*
+    B : (n, m) array_like
+        The leading n-by-m part of this array must contain the input/state
+        matrix B of the system.
+    C : (p, n) array_like
+        The leading p-by-n part of this array must contain the
+        state/output matrix C of the system.
+    nr : int, optional
+        `nr` is the desired order of the resulting reduced order
+        system.  ``0 <= nr <= n``. Automatically determined by `tol` if
+        ``nr is None`` and returned. See return object `nr`.
+        Default is None.
+    tol : float, optional
+        If ``nr is None``, `tol`contains the tolerance for determining the
+        order of the reduced system. For model reduction, the recommended
+        value is ``tol = c * HNORM(A, B, C)``, where `c` is a constant in
+        the interval ``[0.00001, 0.001]`` and ``HNORM(A, B, C)`` is
+        the Hankel-Norm of the given sysstem (computed in ``HSV(1)``). For
+        computing a minimal realization, the recommended value is
+        ``tol = n * eps * HNORM(A, B, C)``, where `eps` is the machine
+        precision (see LAPACK Library Routine `DLAMCH`). This value is
+        used by default if ``tol <= 0`` on entry. If `nr` is specified,
+        the value of `tol` is ignored. Default is `0.0`.
+    ldwork : int, optional
+        The length of the cache array. The default value is
+        ``n*(2*n+max(n,m,p)+5) + n*(n+1)/2 ~= 3.5*n**2 + 5*n``,
+        a larger value should lead to better performance.
+        Default is None.
 
-    Optional arguments:
-        nr := None input int
-            `nr` is the desired order of the resulting reduced order
-            system.  ``0 <= nr <= n``. Automatically determined by `tol` if
-            ``nr is None`` and returned. See return object `nr`.
-        tol := 0 input double precision
-            If ``nr is None``, `tol`contains the tolerance for determining the
-            order of the reduced system. For model reduction, the recommended
-            value is ``tol = c * HNORM(A, B, C)``, where `c` is a constant in
-            the interval ``[0.00001, 0.001]`` and ``HNORM(A, B, C)`` is
-            the Hankel-Norm of the given sysstem (computed in ``HSV(1)``). For
-            computing a minimal realization, the recommended value is
-            ``tol = n * eps * HNORM(A, B, C)``, where `eps` is the machine
-            precision (see LAPACK Library Routine `DLAMCH`). This value is
-            used by default if ``tol <= 0`` on entry. If `nr` is specified,
-            the value of `tol` is ignored.
-        ldwork := None input int
-            The length of the cache array. The default value is
-            ``n*(2*n+max(n,m,p)+5) + n*(n+1)/2 ~= 3.5*n**2 + 5*n``,
-            a larger value should lead to better performance.
-
-    Return objects :
-        nr : output int
-            `nr` is the order of the resulting reduced order model.
-            `nr` is set as follows:
-            If on input ``nr is not None``, `nr` is equal to ``MIN(nr,NMIN)``,
-            where `nr` is the desired order on entry and `NMIN` is the order
-            of a minimal realization of the given system; `NMIN` is
-            determined as the number of Hankel singular values greater
-            than ``n*eps*HNORM(A,B,C)``, where `eps` is the machine
-            precision (see LAPACK Library Routine DLAMCH) and
-            ``HNORM(A,B,C)`` is the Hankel norm of the system (computed
-            in ``HSV(1)``);
-            If on input ``nr is None``, `nr` is equal to the number of Hankel
-            singular values greater than ``MAX(tol,n*eps*HNORM(A,B,C))``.
-        Ar : rank-2 array('d') with bounds ``(nr,nr)``
-            This array contains the state dynamics matrix `Ar` of the reduced
-            order system.
-        Br : rank-2 array('d') with bounds ``(nr,m)``
-            Tthis array contains the input/state matrix `Br` of the reduced
-            order system.
-        Cr : rank-2 array('d') with bounds ``(p,nr)``
-            This array contains the state/output matrix `Cr` of the reduced
-            order system.
-        hsv : output double precision array, dimension ``(n)``
-            If ``INFO = 0``, it contains the Hankel singular values of
-            the original system ordered decreasingly. ``HSV(1)`` is the
-            Hankel norm of the system.
-        T : rank-2 array('d') with bounds ``(n,nr)``
-            This array contains the right truncation matrix `T` of the reduced
-            order system.
-        Ti : rank-2 array('d') with bounds ``(nr,n)``
-            This array contains the left truncation matrix `Ti` of the reduced
-            order system.
+    Returns
+    -------
+    nr : int
+        `nr` is the order of the resulting reduced order model.
+        `nr` is set as follows:
+        If on input ``nr is not None``, `nr` is equal to ``MIN(nr,NMIN)``,
+        where `nr` is the desired order on entry and `NMIN` is the order
+        of a minimal realization of the given system; `NMIN` is
+        determined as the number of Hankel singular values greater
+        than ``n*eps*HNORM(A,B,C)``, where `eps` is the machine
+        precision (see LAPACK Library Routine DLAMCH) and
+        ``HNORM(A,B,C)`` is the Hankel norm of the system (computed
+        in ``HSV(1)``);
+        If on input ``nr is None``, `nr` is equal to the number of Hankel
+        singular values greater than ``MAX(tol,n*eps*HNORM(A,B,C))``.
+    Ar : (nr, nr) ndarray
+        This array contains the state dynamics matrix `Ar` of the reduced
+        order system.
+    Br : (nr, m) ndarray
+        Tthis array contains the input/state matrix `Br` of the reduced
+        order system.
+    Cr : (p, nr) ndarray
+        This array contains the state/output matrix `Cr` of the reduced
+        order system.
+    hsv : (n, ) ndarray
+        If ``INFO = 0``, it contains the Hankel singular values of
+        the original system ordered decreasingly. ``HSV(1)`` is the
+        Hankel norm of the system.
+    T : (n, nr) ndarray
+        This array contains the right truncation matrix `T` of the reduced
+        order system.
+    Ti : (nr, n) ndarray
+        This array contains the left truncation matrix `Ti` of the reduced
+        order system.
 
     Raises
     ------
@@ -905,100 +928,101 @@ def ab09bd(dico,job,equil,n,m,p,A,B,C,D,nr=None,tol1=0,tol2=0,ldwork=None):
     Perturbation Approximation (SPA) model reduction method.
     Must supply either nr or tolerance values.
 
-    Arguments
-        Mode Parameters
-            dico
-                Specifies the type of the original system as follows:
-                = 'C':  continuous-time system;
-                = 'D':  discrete-time system.
-            job
-                Specifies the model reduction approach to be used
-                as follows:
-                = 'B':  use the square-root SPA method;
-                = 'N':  use the balancing-free square-root SPA method.
-            equil
-                Specifies whether the user wishes to preliminarily
-                equilibrate the triplet (A,B,C) as follows:
-                = 'S':  perform equilibration (scaling);
-                = 'N':  do not perform equilibration.
+    Parameters
+    ----------
+    dico : {'C', 'D'}
+        Specifies the type of the original system as follows:
+        = 'C':  continuous-time system;
+        = 'D':  discrete-time system.
+    job : {'B', 'N'}
+        Specifies the model reduction approach to be used
+        as follows:
+        = 'B':  use the square-root SPA method;
+        = 'N':  use the balancing-free square-root SPA method.
+    equil : {'S', 'N'}
+        Specifies whether the user wishes to preliminarily
+        equilibrate the triplet (A,B,C) as follows:
+        = 'S':  perform equilibration (scaling);
+        = 'N':  do not perform equilibration.
+    n : int
+        The order of the original state-space representation, i.e.
+        the order of the matrix A. n >= 0.
+    m : int
+        The number of system inputs. m >= 0.
+    p : int
+        The number of system outputs. p >= 0.
+    A : (n, n) array_like
+        On entry, the leading n-by-n part of this array must
+        contain the state dynamics matrix A.
+    B : (n, m) array_like
+        On entry, the leading n-by-m part of this array must
+        contain the original input/state matrix B.
+    C : (p, n) array_like
+        On entry, the leading p-by-n part of this array must
+        contain the original state/output matrix C.
+    D : (p, m) array_like
+        On entry, the leading p-by-m part of this array must
+        contain the original input/output matrix D.
+    nr : int, optional
+        nr is the desired order of
+        the resulting reduced order system.  0 <= nr <= n.
+        Default is None.
+    tol1 : float, optional
+        If ordsel = 'A', tol1 contains the tolerance for
+        determining the order of reduced system.
+        For model reduction, the recommended value is
+        tol1 = c*hnorm(A,B,C), where c is a constant in the
+        interval [0.00001,0.001], and hnorm(A,B,C) is the
+        Hankel-norm of the given system (computed in hsv(1)).
+        For computing a minimal realization, the recommended
+        value is tol1 = n*eps*hnorm(A,B,C), where eps is the
+        machine precision (see LAPACK Library Routine DLAMCH).
+        This value is used by default if tol1 <= 0 on entry.
+        If ordsel = 'F', the value of tol1 is ignored.
+        Default is `0.0`.
+    tol2 : float, optional
+        The tolerance for determining the order of a minimal
+        realization of the given system. The recommended value is
+        tol2 = n*eps*hnorm(A,B,C). This value is used by default
+        if tol2 <= 0 on entry.
+        If tol2 > 0, then tol2 <= tol1.
+        Default is `0.0`.
+    ldwork : int, optional
+        The length of the cache array. The default value is n + 3*max(m,p),
+        for better performance should be larger.
+        Default is None.
 
-        Required arguments
-            n : input int
-                The order of the original state-space representation, i.e.
-                the order of the matrix A.  n >= 0.
-            m : input int
-                The number of system inputs.  m >= 0.
-            p : input int
-                The number of system outputs.  p >= 0.
-            A : input rank-2 array('d') with bounds (n,n)
-                On entry, the leading n-by-n part of this array must
-                contain the state dynamics matrix A.
-            B : input rank-2 array('d') with bounds (n,m)
-                On entry, the leading n-by-m part of this array must
-                contain the original input/state matrix B.
-            C : input rank-2 array('d') with bounds (p,n)
-                On entry, the leading p-by-n part of this array must
-                contain the original state/output matrix C.
-            D : input rank-2 array('d') with bounds (p,m)
-                On entry, the leading p-by-m part of this array must
-                contain the original input/output matrix D.
-
-        Optional arguments :
-            nr :=None input int
-                nr is the desired order of
-                the resulting reduced order system.  0 <= nr <= n.
-            tol1 :=0 input double precision
-                If ordsel = 'A', tol1 contains the tolerance for
-                determining the order of reduced system.
-                For model reduction, the recommended value is
-                tol1 = c*hnorm(A,B,C), where c is a constant in the
-                interval [0.00001,0.001], and hnorm(A,B,C) is the
-                Hankel-norm of the given system (computed in hsv(1)).
-                For computing a minimal realization, the recommended
-                value is tol1 = n*eps*hnorm(A,B,C), where eps is the
-                machine precision (see LAPACK Library Routine DLAMCH).
-                This value is used by default if tol1 <= 0 on entry.
-                If ordsel = 'F', the value of tol1 is ignored.
-            tol2 :=0 input double precision
-                The tolerance for determining the order of a minimal
-                realization of the given system. The recommended value is
-                tol2 = n*eps*hnorm(A,B,C). This value is used by default
-                if tol2 <= 0 on entry.
-                If tol2 > 0, then tol2 <= tol1.
-            ldwork := None input int
-                The length of the cache array. The default value is n + 3*max(m,p),
-                for better performance should be larger.
-
-        Return objects
-            nr : output int
-                nr is the order of the resulting reduced order model.
-                nr is set as follows:
-                if ordsel = 'F', nr is equal to min(nr,nmin), where nr
-                is the desired order on entry and nmin is the order of a
-                minimal realization of the given system; nmin is
-                determined as the number of Hankel singular values greater
-                than n*eps*hnorm(A,B,C), where eps is the machine
-                precision (see LAPACK Library Routine DLAMCH) and
-                hnorm(A,B,C) is the Hankel norm of the system (computed
-                in hsv(1));
-                if ordsel = 'A', nr is equal to the number of Hankel
-                singular values greater than max(tol1,n*eps*hnorm(A,B,C)).
-            Ar : rank-2 array('d') with bounds (nr,nr)
-                the leading nr-by-nr part of this array contains the
-                state dynamics matrix Ar of the reduced order system.
-            Br : rank-2 array('d') with bounds (nr,m)
-                the leading nr-by-m part of this array contains the
-                input/state matrix Br of the reduced order system.
-            Cr : rank-2 array('d') with bounds (p,nr)
-                the leading p-by-nr part of this array contains the
-                state/output matrix Cr of the reduced order system.
-            Dr : rank-2 array('d') with bounds (p,m)
-                the leading p-by-m part of this array contains the
-                input/output matrix Dr of the reduced order system.
-            hsv : output double precision array, dimension (n)
-                If info = 0, it contains the Hankel singular values of
-                the original system ordered decreasingly. hsv(1) is the
-                Hankel norm of the system.
+    Returns
+    -------
+    nr : int
+        nr is the order of the resulting reduced order model.
+        nr is set as follows:
+        if ordsel = 'F', nr is equal to min(nr,nmin), where nr
+        is the desired order on entry and nmin is the order of a
+        minimal realization of the given system; nmin is
+        determined as the number of Hankel singular values greater
+        than n*eps*hnorm(A,B,C), where eps is the machine
+        precision (see LAPACK Library Routine DLAMCH) and
+        hnorm(A,B,C) is the Hankel norm of the system (computed
+        in hsv(1));
+        if ordsel = 'A', nr is equal to the number of Hankel
+        singular values greater than max(tol1,n*eps*hnorm(A,B,C)).
+    Ar : (nr, nr) ndarray
+        the leading nr-by-nr part of this array contains the
+        state dynamics matrix Ar of the reduced order system.
+    Br : (nr, m) ndarray
+        the leading nr-by-m part of this array contains the
+        input/state matrix Br of the reduced order system.
+    Cr : (p, nr) ndarray
+        the leading p-by-nr part of this array contains the
+        state/output matrix Cr of the reduced order system.
+    Dr : (p, m) ndarray
+        the leading p-by-m part of this array contains the
+        input/output matrix Dr of the reduced order system.
+    hsv : (n, ) ndarray
+        If info = 0, it contains the Hankel singular values of
+        the original system ordered decreasingly. hsv(1) is the
+        Hankel norm of the system.
 
     Raises
     ------
@@ -1049,119 +1073,120 @@ def ab09md(dico,job,equil,n,m,p,A,B,C,alpha=None,nr=None,tol=0,ldwork=None):
     or the balancing-free square-root Balance & Truncate (B & T)
     model reduction method for the ALPHA-stable part of the system.
 
-    Arguments
-        Mode Parameters
-            dico
-                Specifies the type of the original system as follows:
-                = 'C':  continuous-time system;
-                = 'D':  discrete-time system.
-            job
-                Specifies the model reduction approach to be used
-                as follows:
-                = 'B':  use the square-root Balance & Truncate method;
-                = 'N':  use the balancing-free square-root
-                        Balance & Truncate method.
-            equil
-                Specifies whether the user wishes to preliminarily
-                equilibrate the triplet (A,B,C) as follows:
-                = 'S':  perform equilibration (scaling);
-                = 'N':  do not perform equilibration.
+    Parameters
+    ----------
+    dico : {'C', 'D'}
+        Specifies the type of the original system as follows:
+        = 'C':  continuous-time system;
+        = 'D':  discrete-time system.
+    job : {'B', 'N'}
+        Specifies the model reduction approach to be used
+        as follows:
+        = 'B':  use the square-root Balance & Truncate method;
+        = 'N':  use the balancing-free square-root
+                Balance & Truncate method.
+    equil : {'S', 'N'}
+        Specifies whether the user wishes to preliminarily
+        equilibrate the triplet (A,B,C) as follows:
+        = 'S':  perform equilibration (scaling);
+        = 'N':  do not perform equilibration.
+    n : int
+        The order of the original state-space representation, i.e.
+        the order of the matrix A. n >= 0.
+    m : int
+        The number of system inputs. m >= 0.
+    p : int
+        The number of system outputs. p >= 0.
+    A : (n, n) array_like
+        On entry, the leading N-by-N part of this array must
+        contain the state dynamics matrix A.
+    B : (n, m) array_like
+        On entry, the leading N-by-M part of this array must
+        contain the original input/state matrix B.
+    C : (p, n) array_like
+        On entry, the leading P-by-N part of this array must
+        contain the original state/output matrix C.
+    alpha : float, optional
+        Specifies the alpha-stability boundary for the eigenvalues
+        of the state dynamics matrix A. For a continuous-time
+        system (dico = 'C'), alpha <= 0 is the boundary value for
+        the real parts of eigenvalues, while for a discrete-time
+        system (dico = 'D'), 0 <= alpha <= 1 represents the
+        boundary value for the moduli of eigenvalues.
+        The alpha-stability domain does not include the boundary.
+        Default is None.
+    nr : int, optional
+        On entry with ordsel = 'F', nr is the desired order of the
+        resulting reduced order system.  0 <= nr <= n.
+        Default is None.
+    tol : float, optional
+        If ordsel = 'A', tol contains the tolerance for
+        determining the order of reduced system.
+        For model reduction, the recommended value is
+        tol = c*hnorm(As,Bs,Cs), where c is a constant in the
+        interval [0.00001,0.001], and hnorm(As,Bs,Cs) is the
+        Hankel-norm of the alpha-stable part of the given system
+        (computed in hsv(1)).
+        If tol <= 0 on entry, the used default value is
+        tol = ns*eps*hnorm(As,Bs,Cs), where ns is the number of
+        alpha-stable eigenvalues of A and eps is the machine
+        precision (see LAPACK Library Routine DLAMCH).
+        This value is appropriate to compute a minimal realization
+        of the alpha-stable part.
+        If ordsel = 'F', the value of tol is ignored.
+        Default is `0.0`.
+    ldwork : int, optional
+        The length of the array dwork.
+        ldwork >= max(1,n*(2*n+max(n,m,p)+5) + n*(n+1)/2).
+        For optimum performance ldwork should be larger.
+        Default is None.
 
-        Required arguments
-            n : input int
-                The order of the original state-space representation, i.e.
-                the order of the matrix A.  n >= 0.
-            m : input int
-                The number of system inputs.  m >= 0.
-            p : input int
-                The number of system outputs.  p >= 0.
-            A : input rank-2 array('d'), dimension (n,n)
-                On entry, the leading N-by-N part of this array must
-                contain the state dynamics matrix A.
-            B : input rank-2 array('d'), dimension (n,m)
-                On entry, the leading N-by-M part of this array must
-                contain the original input/state matrix B.
-            C : input rank-2 array('d'), dimension (p,n)
-                On entry, the leading P-by-N part of this array must
-                contain the original state/output matrix C.
-
-         Optional arguments
-            alpha :=None input double precision
-                Specifies the alpha-stability boundary for the eigenvalues
-                of the state dynamics matrix A. For a continuous-time
-                system (dico = 'C'), alpha <= 0 is the boundary value for
-                the real parts of eigenvalues, while for a discrete-time
-                system (dico = 'D'), 0 <= alpha <= 1 represents the
-                boundary value for the moduli of eigenvalues.
-                The alpha-stability domain does not include the boundary.
-            nr := None input int
-                On entry with ordsel = 'F', nr is the desired order of the
-                resulting reduced order system.  0 <= nr <= n.
-            tol :=0 input double precision
-                If ordsel = 'A', tol contains the tolerance for
-                determining the order of reduced system.
-                For model reduction, the recommended value is
-                tol = c*hnorm(As,Bs,Cs), where c is a constant in the
-                interval [0.00001,0.001], and hnorm(As,Bs,Cs) is the
-                Hankel-norm of the alpha-stable part of the given system
-                (computed in hsv(1)).
-                If tol <= 0 on entry, the used default value is
-                tol = ns*eps*hnorm(As,Bs,Cs), where ns is the number of
-                alpha-stable eigenvalues of A and eps is the machine
-                precision (see LAPACK Library Routine DLAMCH).
-                This value is appropriate to compute a minimal realization
-                of the alpha-stable part.
-                If ordsel = 'F', the value of tol is ignored.
-            ldwork :=None input int
-                The length of the array dwork.
-                ldwork >= max(1,n*(2*n+max(n,m,p)+5) + n*(n+1)/2).
-                For optimum performance ldwork should be larger.
-
-         Return objects
-            nr : output int
-                On exit, if info = 0, nr is the order of the resulting
-                reduced order model. For a system with nu alpha-unstable
-                eigenvalues and ns alpha-stable eigenvalues (nu+ns = n),
-                nr is set as follows: if ordsel = 'F', nr is equal to
-                nu+min(max(0,nr-nu),nmin), where nr is the desired order
-                on entry, and nmin is the order of a minimal realization
-                of the alpha-stable part of the given system; nmin is
-                determined as the number of Hankel singular values greater
-                than ns*eps*hnorm(As,Bs,Cs), where eps is the machine
-                precision (see LAPACK Library Routine DLAMCH) and
-                hnorm(As,Bs,Cs) is the Hankel norm of the alpha-stable
-                part of the given system (computed in hsv(1));
-                if ordsel = 'A', nr is the sum of nu and the number of
-                Hankel singular values greater than
-                max(tol,ns*eps*hnorm(As,Bs,Cs)).
-            Ar : rank-2 array('d') with bounds (nr,nr)
-                On exit, if info = 0, the leading nr-by-nr part of this
-                array contains the state dynamics matrix Ar of the reduced
-                order system.
-                The resulting A has a block-diagonal form with two blocks.
-                For a system with nu alpha-unstable eigenvalues and
-                ns alpha-stable eigenvalues (nu+ns = n), the leading
-                nu-by-nu block contains the unreduced part of A
-                corresponding to alpha-unstable eigenvalues in an
-                upper real Schur form.
-                The trailing (nr+ns-n)-by-(nr+ns-n) block contains
-                the reduced part of A corresponding to alpha-stable
-                eigenvalues.
-            Br : rank-2 array('d') with bounds (nr,m)
-                On exit, if info = 0, the leading nr-by-m part of this
-                array contains the input/state matrix Br of the reduced
-                order system.
-            Cr : rank-2 array('d') with bounds (p,nr)
-                On exit, if info = 0, the leading p-by-nr part of this
-                array contains the state/output matrix Cr of the reduced
-                order system.
-            ns : output int
-                The dimension of the alpha-stable subsystem.
-            hsv : output double precision array, dimension (n)
-                If info = 0, the leading ns elements of hsv contain the
-                Hankel singular values of the alpha-stable part of the
-                original system ordered decreasingly.
-                hsv(1) is the Hankel norm of the alpha-stable subsystem.
+    Returns
+    -------
+    nr : int
+        On exit, if info = 0, nr is the order of the resulting
+        reduced order model. For a system with nu alpha-unstable
+        eigenvalues and ns alpha-stable eigenvalues (nu+ns = n),
+        nr is set as follows: if ordsel = 'F', nr is equal to
+        nu+min(max(0,nr-nu),nmin), where nr is the desired order
+        on entry, and nmin is the order of a minimal realization
+        of the alpha-stable part of the given system; nmin is
+        determined as the number of Hankel singular values greater
+        than ns*eps*hnorm(As,Bs,Cs), where eps is the machine
+        precision (see LAPACK Library Routine DLAMCH) and
+        hnorm(As,Bs,Cs) is the Hankel norm of the alpha-stable
+        part of the given system (computed in hsv(1));
+        if ordsel = 'A', nr is the sum of nu and the number of
+        Hankel singular values greater than
+        max(tol,ns*eps*hnorm(As,Bs,Cs)).
+    Ar : (nr, nr) array_like
+        On exit, if info = 0, the leading nr-by-nr part of this
+        array contains the state dynamics matrix Ar of the reduced
+        order system.
+        The resulting A has a block-diagonal form with two blocks.
+        For a system with nu alpha-unstable eigenvalues and
+        ns alpha-stable eigenvalues (nu+ns = n), the leading
+        nu-by-nu block contains the unreduced part of A
+        corresponding to alpha-unstable eigenvalues in an
+        upper real Schur form.
+        The trailing (nr+ns-n)-by-(nr+ns-n) block contains
+        the reduced part of A corresponding to alpha-stable
+        eigenvalues.
+    Br : (nr, m) array_like
+        On exit, if info = 0, the leading nr-by-m part of this
+        array contains the input/state matrix Br of the reduced
+        order system.
+    Cr : (p, nr) array_like
+        On exit, if info = 0, the leading p-by-nr part of this
+        array contains the state/output matrix Cr of the reduced
+        order system.
+    ns : int
+        The dimension of the alpha-stable subsystem.
+    hsv : (n, ) array_like
+        If info = 0, the leading ns elements of hsv contain the
+        Hankel singular values of the alpha-stable part of the
+        original system ordered decreasingly.
+        hsv(1) is the Hankel norm of the alpha-stable subsystem.
 
     Raises
     ------
@@ -1218,115 +1243,116 @@ def ab09nd(dico,job,equil,n,m,p,A,B,C,D,alpha=None,nr=None,tol1=0,tol2=0,ldwork=
     Perturbation Approximation (SPA) model reduction method for the
     alpha-stable part of the system.
 
-    Arguments
-        Mode Parameters
-            dico
-                Specifies the type of the original system as follows:
-                = 'C':  continuous-time system;
-                = 'D':  discrete-time system.
-            job
-                Specifies the model reduction approach to be used
-                as follows:
-                = 'B':  use the square-root SPA method;
-                = 'N':  use the balancing-free square-root SPA method.
-            equil
-                Specifies whether the user wishes to preliminarily
-                equilibrate the triplet (A,B,C) as follows:
-                = 'S':  perform equilibration (scaling);
-                = 'N':  do not perform equilibration.
+    Parameters
+    ----------
+    dico : {'C', 'D'}
+        Specifies the type of the original system as follows:
+        = 'C':  continuous-time system;
+        = 'D':  discrete-time system.
+    job : {'B', 'N'}
+        Specifies the model reduction approach to be used
+        as follows:
+        = 'B':  use the square-root SPA method;
+        = 'N':  use the balancing-free square-root SPA method.
+    equil : {'S', 'N'}
+        Specifies whether the user wishes to preliminarily
+        equilibrate the triplet (A,B,C) as follows:
+        = 'S':  perform equilibration (scaling);
+        = 'N':  do not perform equilibration.
+    n : int
+        The order of the original state-space representation, i.e.
+        the order of the matrix A. n >= 0.
+    m : int
+        The number of system inputs. m >= 0.
+    p : int
+        The number of system outputs. p >= 0.
+    A : (n, n) array_like
+        On entry, the leading n-by-n part of this array must
+        contain the state dynamics matrix A.
+    B : (n, m) array_like
+        On entry, the leading n-by-m part of this array must
+        contain the original input/state matrix B.
+    C : (p, n) array_like
+        On entry, the leading p-by-n part of this array must
+        contain the original state/output matrix C.
+    D : (p, m) array_like
+        On entry, the leading p-by-m part of this array must
+        contain the original input/output matrix D.
+    alpha : float, optional
+        Specifies the alpha-stability boundary for the eigenvalues
+        of the state dynamics matrix A. For a continuous-time
+        system (dico = 'C'), alpha <= 0 is the boundary value for
+        the real parts of eigenvalues, while for a discrete-time
+        system (dico = 'D'), 0 <= alpha <= 1 represents the
+        boundary value for the moduli of eigenvalues.
+        The alpha-stability domain does not include the boundary.
+        Default is None.
+    nr : int, optional
+        nr is the desired order of
+        the resulting reduced order system.  0 <= nr <= n.
+        Default is None.
+    tol1 : float, optional
+        If ordsel = 'A', tol1 contains the tolerance for
+        determining the order of reduced system.
+        For model reduction, the recommended value is
+        tol1 = c*hnorm(As,Bs,Cs), where c is a constant in the
+        interval [0.00001,0.001], and hnorm(As,Bs,Cs) is the
+        Hankel-norm of the alpha-stable part of the given system
+        (computed in hsv(1)).
+        If tol1 <= 0 on entry, the used default value is
+        tol1 = ns*eps*hnorm(As,Bs,Cs), where NS is the number of
+        alpha-stable eigenvalues of A and eps is the machine
+        precision (see LAPACK Library Routine DLAMCH).
+        This value is appropriate to compute a minimal realization
+        of the alpha-stable part.
+        If ordsel = 'F', the value of tol1 is ignored.
+        Default is `0.0`.
+    tol2 : float, optional
+        The tolerance for determining the order of a minimal
+        realization of the alpha-stable part of the given system.
+        The recommended value is tol2 = ns*eps*hnorm(As,Bs,Cs).
+        This value is used by default if tol2 <= 0 on entry.
+        If tol2 > 0, then tol2 <= tol1.
+        Default is `0.0`.
+    ldwork : int, optional
+        The length of the array dwork.
+        ldwork >= max(1,n*(2*n+max(n,m,p)+5) + n*(n+1)/2).
+        For optimum performance ldwork should be larger.
+        Default is None.
 
-        Required arguments
-            n : input int
-                The order of the original state-space representation, i.e.
-                the order of the matrix A.  n >= 0.
-            m : input int
-                The number of system inputs.  m >= 0.
-            p : input int
-                The number of system outputs.  p >= 0.
-            A : input rank-2 array('d') with bounds (n,n)
-                On entry, the leading n-by-n part of this array must
-                contain the state dynamics matrix A.
-            B : input rank-2 array('d') with bounds (n,m)
-                On entry, the leading n-by-m part of this array must
-                contain the original input/state matrix B.
-            C : input rank-2 array('d') with bounds (p,n)
-                On entry, the leading p-by-n part of this array must
-                contain the original state/output matrix C.
-            D : input rank-2 array('d') with bounds (p,m)
-                On entry, the leading p-by-m part of this array must
-                contain the original input/output matrix D.
-
-        Optional arguments
-            alpha :=None input double precision
-                Specifies the alpha-stability boundary for the eigenvalues
-                of the state dynamics matrix A. For a continuous-time
-                system (dico = 'C'), alpha <= 0 is the boundary value for
-                the real parts of eigenvalues, while for a discrete-time
-                system (dico = 'D'), 0 <= alpha <= 1 represents the
-                boundary value for the moduli of eigenvalues.
-                The alpha-stability domain does not include the boundary.
-            nr :=None input int
-                nr is the desired order of
-                the resulting reduced order system.  0 <= nr <= n.
-            tol1 :=0 input double precision
-                If ordsel = 'A', tol1 contains the tolerance for
-                determining the order of reduced system.
-                For model reduction, the recommended value is
-                tol1 = c*hnorm(As,Bs,Cs), where c is a constant in the
-                interval [0.00001,0.001], and hnorm(As,Bs,Cs) is the
-                Hankel-norm of the alpha-stable part of the given system
-                (computed in hsv(1)).
-                If tol1 <= 0 on entry, the used default value is
-                tol1 = ns*eps*hnorm(As,Bs,Cs), where NS is the number of
-                alpha-stable eigenvalues of A and eps is the machine
-                precision (see LAPACK Library Routine DLAMCH).
-                This value is appropriate to compute a minimal realization
-                of the alpha-stable part.
-                If ordsel = 'F', the value of tol1 is ignored.
-            tol2 :=0 input double precision
-                The tolerance for determining the order of a minimal
-                realization of the alpha-stable part of the given system.
-                The recommended value is tol2 = ns*eps*hnorm(As,Bs,Cs).
-                This value is used by default if tol2 <= 0 on entry.
-                If tol2 > 0, then tol2 <= tol1.
-            ldwork := None input int
-                The length of the array dwork.
-                ldwork >= max(1,n*(2*n+max(n,m,p)+5) + n*(n+1)/2).
-                For optimum performance ldwork should be larger.
-
-        Return objects
-            nr : output int
-                nr is the order of the resulting reduced order model.
-                nr is set as follows:
-                if ordsel = 'F', nr is equal to min(nr,nmin), where nr
-                is the desired order on entry and nmin is the order of a
-                minimal realization of the given system; nmin is
-                determined as the number of Hankel singular values greater
-                than n*eps*hnorm(A,B,C), where eps is the machine
-                precision (see LAPACK Library Routine DLAMCH) and
-                hnorm(A,B,C) is the Hankel norm of the system (computed
-                in hsv(1));
-                if ordsel = 'A', nr is equal to the number of Hankel
-                singular values greater than max(TOL1,n*eps*hnorm(A,B,C)).
-            Ar : rank-2 array('d') with bounds (nr,nr)
-                the leading nr-by-nr part of this array contains the
-                state dynamics matrix Ar of the reduced order system.
-            Br : rank-2 array('d') with bounds (nr,m)
-                the leading nr-by-m part of this array contains the
-                input/state matrix Br of the reduced order system.
-            Cr : rank-2 array('d') with bounds (p,nr)
-                the leading p-by-nr part of this array contains the
-                state/output matrix Cr of the reduced order system.
-            Dr : rank-2 array('d') with bounds (p,m)
-                the leading p-by-m part of this array contains the
-                input/output matrix Dr of the reduced order system.
-            ns : output int
-                The dimension of the alpha-stable subsystem.
-            hsv : output double precision array, dimension (n)
-                If info = 0, it contains the Hankel singular values of
-                the original system ordered decreasingly. hsv(1) is the
-                Hankel norm of the system.
-
+    Returns
+    -------
+    nr : int
+        nr is the order of the resulting reduced order model.
+        nr is set as follows:
+        if ordsel = 'F', nr is equal to min(nr,nmin), where nr
+        is the desired order on entry and nmin is the order of a
+        minimal realization of the given system; nmin is
+        determined as the number of Hankel singular values greater
+        than n*eps*hnorm(A,B,C), where eps is the machine
+        precision (see LAPACK Library Routine DLAMCH) and
+        hnorm(A,B,C) is the Hankel norm of the system (computed
+        in hsv(1));
+        if ordsel = 'A', nr is equal to the number of Hankel
+        singular values greater than max(TOL1,n*eps*hnorm(A,B,C)).
+    Ar : (nr, nr) ndarray
+        the leading nr-by-nr part of this array contains the
+        state dynamics matrix Ar of the reduced order system.
+    Br : (nr, m) ndarray
+        the leading nr-by-m part of this array contains the
+        input/state matrix Br of the reduced order system.
+    Cr : (p, nr) ndarray
+        the leading p-by-nr part of this array contains the
+        state/output matrix Cr of the reduced order system.
+    Dr : (p, m) ndarray
+        the leading p-by-m part of this array contains the
+        input/output matrix Dr of the reduced order system.
+    ns : int
+        The dimension of the alpha-stable subsystem.
+    hsv : (n, ) ndarray
+        If info = 0, it contains the Hankel singular values of
+        the original system ordered decreasingly. hsv(1) is the
+        Hankel norm of the system.
 
     Raises
     ------
@@ -1391,21 +1417,21 @@ def ab13bd(dico, jobn, n, m, p, A, B, C, D, tol = 0.0):
     jobn : {'H', 'L'}
         H2-norm 'H' or L2-norm 'L' to be computed.
     n : int
-        The number of state variables.  n >= 0.
+        The number of state variables. n >= 0.
     m : int
-        The number of system inputs.  m >= 0.
+        The number of system inputs. m >= 0.
     p : int
-        The number of system outputs.  p >= 0.
-    A : (n,n) ndarray
+        The number of system outputs. p >= 0.
+    A : (n, n) ndarray
         The leading n-by-n part of this array must contain the state
         dynamics matrix A of the system.
-    B : (n,m) ndarray
+    B : (n, m) ndarray
         The leading n-by-m part of this array must contain the input/state
         matrix B of the system.
-    C : (p,n) ndarray
+    C : (p, n) ndarray
         The leading p-by-n part of this array must contain the state/output
         matrix C of the system.
-    D : (p,m) ndarray
+    D : (p, m) ndarray
         The leading p-by-m part of this array must contain the direct
         transmission matrix D of the system.
     tol : float, optional
@@ -1478,65 +1504,66 @@ def ab13dd(dico, jobe, equil, jobd, n, m, p, A, E, B, C, D, tol = 1e-10):
     imaginary axis, or the unit circle, respectively. It is assumed
     that the matrix E is nonsingular.
 
-    Required arguments:
-        dico : {'D', 'C'} input string(len=1)
-               Indicate whether the system is discrete 'D' or continuous 'C'.
-        jobe : {'G', 'I'} input string(len=1)
-               Specifies whether E is a general square or an identity
-               matrix, as follows:
-               = 'G':  E is a general square matrix;
-               = 'I':  E is the identity matrix.
-        equil : {'S', 'N'} input string(len=1)
-                Specifies whether the user wishes to preliminarily
-                equilibrate the system (A,E,B,C) or (A,B,C), as follows:
-                = 'S':  perform equilibration (scaling);
-                = 'N':  do not perform equilibration.
-        jobd : {'D', 'Z'} input string(len=1)
-               Specifies whether or not a non-zero matrix D appears in
-               the given state space model:
-               = 'D':  D is present;
-               = 'Z':  D is assumed a zero matrix.
-        n : input int
-            The number of state variables.  n >= 0.
-        m : input int
-            The number of system inputs.  m >= 0.
-        p : input int
-            The number of system outputs.  p >= 0.
-        A : input rank-2 array('d') with bounds (n,n)
-            The leading n-by-n part of this array must contain the state
-            dynamics matrix A of the system.
-        E : input rank-2 array('d') with bounds (n,n)
-            If jobe = 'G', the leading N-by-N part of this array must
-            contain the descriptor matrix E of the system.
-            If jobe = 'I', then E is assumed to be the identity
-            matrix and is not referenced.
-        B : input rank-2 array('d') with bounds (n,m)
-            The leading n-by-m part of this array must contain the input/state
-            matrix B of the system.
-        C : input rank-2 array('d') with bounds (p,n)
-            The leading p-by-n part of this array must contain the state/output
-            matrix C of the system.
-        D : input rank-2 array('d') with bounds (p,m)
-            The leading p-by-m part of this array must contain the direct
-            transmission matrix D of the system.
+    Parameters
+    ----------
+    dico : {'D', 'C'}
+            Indicate whether the system is discrete 'D' or continuous 'C'.
+    jobe : {'G', 'I'}
+            Specifies whether E is a general square or an identity
+            matrix, as follows:
+            = 'G':  E is a general square matrix;
+            = 'I':  E is the identity matrix.
+    equil : {'S', 'N'}
+            Specifies whether the user wishes to preliminarily
+            equilibrate the system (A,E,B,C) or (A,B,C), as follows:
+            = 'S':  perform equilibration (scaling);
+            = 'N':  do not perform equilibration.
+    jobd : {'D', 'Z'}
+            Specifies whether or not a non-zero matrix D appears in
+            the given state space model:
+            = 'D':  D is present;
+            = 'Z':  D is assumed a zero matrix.
+    n : int
+        The number of state variables. n >= 0.
+    m : int
+        The number of system inputs. m >= 0.
+    p : int
+        The number of system outputs. p >= 0.
+    A : (n, n) array_like
+        The leading n-by-n part of this array must contain the state
+        dynamics matrix A of the system.
+    E : (n, n) array_like
+        If jobe = 'G', the leading N-by-N part of this array must
+        contain the descriptor matrix E of the system.
+        If jobe = 'I', then E is assumed to be the identity
+        matrix and is not referenced.
+    B : (n, m) array_like
+        The leading n-by-m part of this array must contain the input/state
+        matrix B of the system.
+    C : (p, n) array_like
+        The leading p-by-n part of this array must contain the state/output
+        matrix C of the system.
+    D : (p, m) array_like
+        The leading p-by-m part of this array must contain the direct
+        transmission matrix D of the system.
+    tol : float
+        Tolerance used to set the accuracy in determining the norm.
+        0 <= tol < 1. Default tol=1e-10.
 
-    Optional arguments:
-        tol : Tolerance used to set the accuracy in determining the
-              norm.  0 <= tol < 1.
+    Returns
+    -------
+    gpeak : float
+            The L-infinity norm of the system, i.e., the peak gain
+            of the frequency response (as measured by the largest
+            singular value in the MIMO case).
+    fpeak : float
+            The frequency where the gain of the frequency response
+            achieves its peak value gpeak, i.e.,
 
-    Return objects:
-        gpeak : float
-                The L-infinity norm of the system, i.e., the peak gain
-                of the frequency response (as measured by the largest
-                singular value in the MIMO case).
-        fpeak : float
-                The frequency where the gain of the frequency response
-                achieves its peak value gpeak, i.e.,
+                || G ( j*fpeak ) || = gpeak ,  if dico = 'C', or
 
-                  || G ( j*fpeak ) || = gpeak ,  if dico = 'C', or
-
-                          j*fpeak
-                  || G ( e       ) || = gpeak ,  if dico = 'D'.
+                        j*fpeak
+                || G ( e       ) || = gpeak ,  if dico = 'D'.
 
     Raises
     ------
@@ -1606,9 +1633,9 @@ def ab13ed(n, A, tol = 9.0):
     ----------
     n : int
         The order of the matrix A.  ``n >= 0.``
-    A : (n,n) array_like
+    A : (n, n) array_like
         The leading n-by-n part of this array must contain the matrix A.
-    tol : float optional
+    tol : float, optional
         Specifies the accuracy with which low and high approximate
         beta(A). If the user sets tol to be less than sqrt(eps),
         where eps is the machine precision (see LAPACK Library
@@ -1649,41 +1676,27 @@ def ab13fd(n, A, tol = 0.0):
     smallest singular value of (A - jwI), taken over all real w.
     The value of w corresponding to the minimum is also computed.
 
-    Required arguments:
-        n : input int
-            The order of the matrix A.  n >= 0.
-        A : input rank-2 array('d') with bounds (n,n)
-            The leading n-by-n part of this array must contain the matrix A.
+    Parameters
+    ----------
+    n : int
+        The order of the matrix A.  n >= 0.
+    A : (n, n), array_like
+        The leading n-by-n part of this array must contain the matrix A.
+    tol : float, optional
+        Specifies the accuracy with which beta(A) is to be
+        calculated. (See the Numerical Aspects section below.)
+        If the user sets tol to be less than eps, where eps is the
+        machine precision (see LAPACK Library Routine DLAMCH),
+        then the tolerance is taken to be eps.
 
-    Optional arguments:
-        tol : Specifies the accuracy with which beta(A) is to be
-              calculated. (See the Numerical Aspects section below.)
-              If the user sets tol to be less than eps, where eps is the
-              machine precision (see LAPACK Library Routine DLAMCH),
-              then the tolerance is taken to be eps.
-
-    Return objects:
-        beta : float
-               The computed value of beta(A), which actually is an upper
-               bound.
-        omega : float
-                The value of w such that the smallest singular value of
-                (A - jwI) equals beta(A).
-
-    Numerical Aspects:
-        In the presence of rounding errors, the computed function value
-        beta satisfies
-              beta(A) <= beta + epsilon,
-              beta/(1+tol) - delta <= max(beta(A), sqrt(2*n*eps)*norm(A)),
-        where norm(A) is the Frobenius norm of A,
-              epsilon = p(n) * eps * norm(A),
-        and
-              delta   = p(n) * sqrt(eps) * norm(A),
-        and p(n) is a low degree polynomial. It is recommended to choose
-        tol greater than sqrt(eps). Although rounding errors can cause
-        AB13FD to fail for smaller values of tol, nevertheless, it usually
-        succeeds. Regardless of success or failure, the first inequality
-        holds.
+    Returns
+    -------
+    beta : float
+            The computed value of beta(A), which actually is an upper
+            bound.
+    omega : float
+            The value of w such that the smallest singular value of
+            (A - jwI) equals beta(A).
 
     Raises
     ------
@@ -1697,6 +1710,22 @@ def ab13fd(n, A, tol = 0.0):
         :info = 1:
             Failed to compute beta(A) within the specified tolerance.
             Nevertheless, the returned value is an upper bound on beta(A);
+
+    Notes
+    -----
+    In the presence of rounding errors, the computed function value
+    beta satisfies
+            beta(A) <= beta + epsilon,
+            beta/(1+tol) - delta <= max(beta(A), sqrt(2*n*eps)*norm(A)),
+    where norm(A) is the Frobenius norm of A,
+            epsilon = p(n) * eps * norm(A),
+    and
+            delta   = p(n) * sqrt(eps) * norm(A),
+    and p(n) is a low degree polynomial. It is recommended to choose
+    tol greater than sqrt(eps). Although rounding errors can cause
+    AB13FD to fail for smaller values of tol, nevertheless, it usually
+    succeeds. Regardless of success or failure, the first inequality
+    holds.
     """
     hidden = ' (hidden by the wrapper)'
     arg_list = ['n', 'A', 'lda' + hidden, 'beta' + hidden, 'omega' + hidden, 'tol',
@@ -1715,40 +1744,34 @@ def ab13md(Z, nblock, itype, x=None):
 
     Parameters
     ----------
-    Z : (n,n) complex array
-      Matrix to find structured singular value upper bound of
-
-    nblock : (m,) integer array
-      The size of the block diagonals of the uncertainty structure;
-      i.e., nblock(i)=p means that the ith block is pxp.
-
-    itype : (m,) integer array
-      The type of each block diagonal uncertainty defined in nblock.
-      itype(i)==1 means that the ith block is real, while itype(i)==2
-      means the the ith block is complex.  Real blocks must be 1x1,
-      i.e., if itype(i)==1, nblock(i) must be 1.
-
-    x : (q,) real array or None
-      If not None, must be the output of a previous call to ab13md.
-      The previous call must have been with the same values of n,
-      nblock, and itype; and the previous call's Z should be "close"
-      to the current call's Z.
-
-      q is determined by the block structure; see SLICOT AB13MD for
-      details.
+    Z : (n, n) array_like
+        Matrix to find structured singular value upper bound of
+    nblock : (m, ) array_like
+        The size of the block diagonals of the uncertainty structure;
+        i.e., nblock(i)=p means that the ith block is pxp.
+    itype : (m, ) array_like
+        The type of each block diagonal uncertainty defined in nblock.
+        itype(i)==1 means that the ith block is real, while itype(i)==2
+        means the the ith block is complex.  Real blocks must be 1x1,
+        i.e., if itype(i)==1, nblock(i) must be 1.
+    x : (q, ) array_like, optional
+        If not None, must be the output of a previous call to ab13md.
+        The previous call must have been with the same values of n,
+        nblock, and itype; and the previous call's Z should be "close"
+        to the current call's Z.
+        q is determined by the block structure; see SLICOT AB13MD for
+        details. Default is None.
 
     Returns
     -------
     mubound : non-negative real scalar
-      Upper bound on structure singular value for given arguments
-
-    d, g : (n,) real arrays
-      Real arrays such that if D=np.diag(g), G=np.diag(G), and ZH = Z.T.conj(), then
-        ZH @ D**2 @ Z + 1j * (G@Z - ZH@G) - mu**2 * D**2
-      will be negative semi-definite.
-
-    xout : (q,) real array
-      For use as ``x`` argument in subsequent call to ``ab13md``.
+        Upper bound on structure singular value for given arguments
+    d, g : (n, ) ndarray
+        Real arrays such that if D=np.diag(g), G=np.diag(G), and ZH = Z.T.conj(), then
+          ZH @ D**2 @ Z + 1j * (G@Z - ZH@G) - mu**2 * D**2
+        will be negative semi-definite.
+    xout : (q, ) ndarray
+        For use as ``x`` argument in subsequent call to ``ab13md``.
 
     For scalar Z and real uncertainty (ntype=1, itype=1), returns 0
     instead of abs(Z).
@@ -1831,75 +1854,75 @@ def ag08bd(l,n,m,p,A,E,B,C,D,equil='N',tol=0.0,ldwork=None):
     and left Kronecker indices, and the multiplicities of infinite
     eigenvalues.
 
-    Required arguments:
-        l : input int
-            The number of rows of matrices A, B, and E.  l >= 0.
-        n : input int
-            The number of columns of matrices A, E, and C.  n >= 0.
-        m : input int
-            The number of columns of matrix B.  m >= 0.
-        p : input int
-            The number of rows of matrix C.  p >= 0.
-        A : rank-2 array('d') with bounds (l,n)
-            The leading l-by-n part of this array must
-            contain the state dynamics matrix A of the system.
-        E : rank-2 array('d') with bounds (l,n)
-            The leading l-by-n part of this array must
-            contain the descriptor matrix E of the system.
-        B : rank-2 array('d') with bounds (l,m)
-            The leading l-by-m part of this array must
-            contain the input/state matrix B of the system.
-        C : rank-2 array('d') with bounds (p,n)
-            The leading p-by-n part of this array must
-            contain the state/output matrix C of the system.
-        D : rank-2 array('d') with bounds (p,m)
-            The leading p-by-m part of this array must contain the
-            direct transmission matrix D of the system.
-    Optional arguments:
-        equil := 'N' input string(len=1)
-            Specifies whether the user wishes to balance the system
-            matrix as follows:
-            = 'S':  Perform balancing (scaling);
-            = 'N':  Do not perform balancing.
-        tol := 0 input float
-            A tolerance used in rank decisions to determine the
-            effective rank, which is defined as the order of the
-            largest leading (or trailing) triangular submatrix in the
-            QR (or RQ) factorization with column (or row) pivoting
-            whose estimated condition number is less than 1/TOL.
-            If the user sets TOL <= 0, then default tolerances are
-            used instead, as follows: TOLDEF = L*N*EPS in TG01FD
-            (to determine the rank of E) and TOLDEF = (L+P)*(N+M)*EPS
-            in the rest, where EPS is the machine precision
-            (see LAPACK Library routine DLAMCH).  TOL < 1.
-        ldwork : input int
-            The length of the cache array.
-            ldwork >= max( 4*(l,n), ldw ), if equil = 'S',
-            ldwork >= ldw,                 if equil = 'N', where
-            ldw = max(l+p,m+n)*(m+n) + max(1,5*max(l+p,m+n)).
-            For optimum performance ldwork should be larger.
-    Return objects:
-        Af : rank-2 array('d')
-            the leading NFZ-by-NFZ part of this array
-            contains the matrix Af of the reduced pencil.
-        Ef : rank-2 array('d')
-            the leading NFZ-by-NFZ part of this array
-            contains the matrix Ef of the reduced pencil.
-        nrank : output int
-            The normal rank of the system pencil.
-        niz : output int
-            The number of infinite zeros.
-        infz : rank-1 array('i')
-            The leading DINFZ elements of infz contain information
-            on the infinite elementary divisors as follows:
-            the system has infz(i) infinite elementary divisors of
-            degree i in the Smith form, where i = 1,2,...,DINFZ.
-        kronr : rank-1 array('i')
-            The leading NKROR elements of this array contain the
-            right Kronecker (column) indices.
-        infe : rank-1 array('i')
-            The leading NINFE elements of infe contain the
-            multiplicities of infinite eigenvalues.
+    Parameters
+    ----------
+    l : int
+        The number of rows of matrices A, B, and E.  l >= 0.
+    n : int
+        The number of columns of matrices A, E, and C.  n >= 0.
+    m : int
+        The number of columns of matrix B.  m >= 0.
+    p : int
+        The number of rows of matrix C.  p >= 0.
+    A : (l, n) array_like
+        The leading l-by-n part of this array must
+        contain the state dynamics matrix A of the system.
+    E : (l, n) array_like
+        The leading l-by-n part of this array must
+        contain the descriptor matrix E of the system.
+    B : (l, m) array_like
+        The leading l-by-m part of this array must
+        contain the input/state matrix B of the system.
+    C : (p, n) array_like
+        The leading p-by-n part of this array must
+        contain the state/output matrix C of the system.
+    D : (p, m) array_like
+        The leading p-by-m part of this array must contain the
+        direct transmission matrix D of the system.
+    equil : {'S', 'N'}, optional
+        Specifies whether the user wishes to balance the system
+        matrix as follows:
+        = 'S':  Perform balancing (scaling);
+        = 'N':  Do not perform balancing.
+        Default is `N`
+    tol : float, optional
+        A tolerance used in rank decisions to determine the
+        effective rank, which is defined as the order of the
+        largest leading (or trailing) triangular submatrix in the
+        QR (or RQ) factorization with column (or row) pivoting
+        whose estimated condition number is less than 1/TOL.
+        If the user sets TOL <= 0, then default tolerances are
+        used instead, as follows: TOLDEF = L*N*EPS in TG01FD
+        (to determine the rank of E) and TOLDEF = (L+P)*(N+M)*EPS
+        in the rest, where EPS is the machine precision
+        (see LAPACK Library routine DLAMCH).  TOL < 1.
+        Default is 0.
+    ldwork : int, optional
+        The length of the cache array.
+        ldwork >= max( 4*(l,n), ldw ), if equil = 'S',
+        ldwork >= ldw,                 if equil = 'N', where
+        ldw = max(l+p,m+n)*(m+n) + max(1,5*max(l+p,m+n)).
+        For optimum performance ldwork should be larger.
+        Default is None.
+
+    Returns
+    -------
+    Af : (nfz, nfz) ndarray
+        the leading NFZ-by-NFZ part of this array
+        contains the matrix Af of the reduced pencil.
+    Ef : (nfz, nfz) ndarray
+        the leading NFZ-by-NFZ part of this array
+        contains the matrix Ef of the reduced pencil.
+    nrank : int
+        The normal rank of the system pencil.
+    niz : int
+        The number of infinite zeros.
+    infz : (n+1, ) ndarray
+        Contains information on the infinite elementary divisors.
+    kronr : (n+m+1, ) ndarray
+        Contains the right Kronecker (column) indices.
+    infe : (1+min(l+p,n+m), ) ndarray
+        Contains the multiplicities of infinite eigenvalues.
     """
     hidden = ' (hidden by the wrapper)'
     arg_list = ['equil', 'l', 'n', 'm', 'p',
