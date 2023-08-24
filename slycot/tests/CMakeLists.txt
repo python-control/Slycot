@@ -2,6 +2,7 @@ set(PYSOURCE
 
   __init__.py
   test_ab01.py
+  test_ab04md.py
   test_ab08n.py
   test_ag08bd.py
   test_examples.py

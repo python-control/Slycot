@@ -139,6 +139,81 @@ def ab01nd(n, m, A, B, jobz='N', tol=0, ldwork=None):
         Z = None
     return Ac, Bc, ncont, indcon, nblk, Z, tau
 
+def ab04md(type_t, n, m, p, A, B, C, D, alpha=1.0, beta=1.0, ldwork=None):
+    """ At,Bt,Ct,Dt = ab04md(type_t, n, m, p, A, B, C, D, [alpha, beta,ldwork])
+
+    Parameters
+    ----------
+    type_t : {'D','C'}
+            Indicates the type of the original system and the
+            transformation to be performed as follows:
+            = 'D':  discrete-time   -> continuous-time;
+            = 'C':  continuous-time -> discrete-time.
+    n : int
+        The order of the matrix A, the number of rows of matrix B and
+        the number of columns of matrix C. It represents the dimension of
+        the state vector.  n > 0.        
+    m : int
+        The number of columns of matrix B. It represents the dimension of
+        the input vector.  m > 0.
+    p : int
+        The number of rows of matrix C. It represents the dimension of
+        the output vector.  p > 0.
+    A : (n,n) array_like
+        The leading n-by-n part of this array must contain the system state
+        matrix A.
+    B : (n,m) array_like
+        The leading n-by-m part of this array must contain the system input
+        matrix B.
+    C : (p,n) array_like
+        The leading p-by-n part of this array must contain the system output
+        matrix C.
+    D : (p,m) array_like
+        The leading p-by-m part of this array must contain the system direct
+        transmission matrix D.
+    alpha : double, optional
+        Parameter specifying the bilinear transformation.
+        Recommended values for stable systems: alpha = 1, alpha != 0,
+        Default is 1.0.
+    beta : double, optional
+        Parameter specifying the bilinear transformation.
+        Recommended values for stable systems: beta = 1, beta != 0,
+        Default is 1.0.
+    ldwork : int, optional
+        The length of the cache array.
+        ldwork >= max(1, n), default is max(1, n)
+    Returns
+    -------
+    At : (n,n) ndarray
+        The state matrix At of the transformed system.
+    Bt : (n,m) ndarray
+        The input matrix Bt of the transformed system.
+    Ct : (p,n) ndarray
+        The output matrix Ct of the transformed system.
+    Dt : (p,m) ndarray
+        The transmission matrix Dt of the transformed system.
+    Raises
+    ------
+    SlycotArithmeticError
+        :info == 1: 
+            If the matrix (ALPHA*I + A) is exactly singular
+        :info == 2: 
+            If the matrix  (BETA*I - A) is exactly singular.
+    """
+
+    hidden = ' (hidden by the wrapper)'  
+    arg_list = ['type_t', 'n', 'm', 'p', 'alpha', 'beta', 
+                'A', 'LDA'+hidden, 'B', 'LDB'+hidden, 'C', 'LDC'+hidden, 'D', 'LDD'+hidden,
+                'IWORK'+hidden, 'DWORK'+hidden, 'ldwork', 'info'+hidden]
+
+    if ldwork is None:
+        ldwork = max(1, n)
+
+    out = _wrapper.ab04md(type_t, n, m, p, alpha, beta, A, B, C, D, ldwork=ldwork)
+    info=out[-1]
+    raise_if_slycot_error(info, arg_list)
+
+    return out[:-1]
 
 def ab05md(n1,m1,p1,n2,p2,A1,B1,C1,D1,A2,B2,C2,D2,uplo='U'):
     """ n,a,b,c,d = ab05md(n1,m1,p1,n2,p2,a1,b1,c1,d1,a2,b2,c2,d2,[uplo])
