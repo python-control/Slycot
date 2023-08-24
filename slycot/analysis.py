@@ -1378,13 +1378,14 @@ def ab13bd(dico, jobn, n, m, p, A, B, C, D, tol = 0.0):
             denominator of `G` (see the SLICOT subroutine SB08DD).
     """
 
-    out = _wrapper.ab13bd(dico, jobn, n, m, p, A, B, C, D, tol)
-
     hidden = ' (hidden by the wrapper)'
     arg_list = ('dico', 'jobn', 'n', 'm', 'p',
                 'A', 'lda' + hidden, 'B', 'ldb' + hidden, 'C', 'ldc' + hidden,
                 'D', 'ldd' + hidden, 'nq' + hidden,'tol', 'dwork' + hidden,
                 'ldwork' + hidden, 'iwarn', 'info')
+    
+    out = _wrapper.ab13bd(dico, jobn, n, m, p, A, B, C, D, tol)
+
     raise_if_slycot_error(out[-2:], arg_list, ab13bd.__doc__, locals())
     return out[0]
 
