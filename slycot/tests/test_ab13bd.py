@@ -1,7 +1,6 @@
 # ===================================================
 # ab08n* tests
 
-import unittest
 from slycot import analysis
 import numpy as np
 
@@ -9,7 +8,7 @@ from scipy import linalg
 from scipy import signal
 from numpy.testing import assert_equal, assert_allclose, assert_array_equal
 
-class test_ab13bd(unittest.TestCase):
+class Test_ab13bd:
     """ Test regular pencil construction ab08nX with input parameters
     according to example in documentation """
 
@@ -118,6 +117,3 @@ class test_ab13bd(unittest.TestCase):
         print(h2norm, h2norm_Lo)
         assert_allclose(h2norm_Lo, h2norm, atol=1e-5)
 
-
-if __name__ == "__main__":
-    unittest.main()
