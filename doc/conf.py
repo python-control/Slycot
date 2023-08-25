@@ -13,7 +13,17 @@ sys.path.insert(0, os.path.abspath('../slycot'))
 project = 'Slycot'
 copyright = '2023, Slycot Developers'
 author = 'Slycot Developers'
-release = '0.6'
+
+# Version information - read from the source code
+import re
+
+# Get the version number for this commmit (including alpha/beta/rc tags)
+release = re.sub('^v', '', os.popen('git describe').read().strip())
+
+# The short X.Y.Z version
+version = re.sub(r'(\d+\.\d+\.\d+(.post\d+)?)(.*)', r'\1', release)
+
+print("version %s, release %s" % (version, release))
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
