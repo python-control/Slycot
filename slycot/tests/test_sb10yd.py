@@ -1,9 +1,8 @@
-import unittest
 from slycot import synthesis
 import numpy as np
 from scipy import signal
 
-class test_sb10yd(unittest.TestCase):
+class Test_sb10yd():
 
     def test_sb10yd_cont_exec(self):
         """A simple execution test.
@@ -138,6 +137,3 @@ class test_sb10yd(unittest.TestCase):
         # absolute(a-b) <= atol + rtol*abolute(b), element-wise true
         # absolute(a-b) or absolute(b-a) <= atol, for rtol=0 element-wise true
         np.testing.assert_allclose(abs(H_id),abs(H),rtol=0,atol=1.0)
-
-if __name__ == "__main__":
-    unittest.main()
