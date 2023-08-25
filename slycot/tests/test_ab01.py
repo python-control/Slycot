@@ -6,7 +6,6 @@ Test ab01 wrappers
 
 from numpy import array
 from numpy.testing import assert_allclose, assert_equal
-
 from scipy.linalg.lapack import dorgqr
 
 from slycot.analysis import ab01nd

@@ -1,11 +1,10 @@
 # ===================================================
 # tg01ad tests
 
-import unittest
-from slycot import transform
 import numpy as np
+from numpy.testing import assert_almost_equal, assert_equal, assert_raises
 
-from numpy.testing import assert_raises, assert_almost_equal, assert_equal
+from slycot import transform
 
 # test1 input parameters
 
@@ -66,20 +65,15 @@ test1_lscale_desired = \
 test1_rscale_desired = \
     np.array([  0.1,    0.1,    1.0,     10.0  ])
 
-class test_tg01ad(unittest.TestCase):
-    """ test1: Verify tg01ad with input parameters according to example in documentation """
 
-    def test1_tg01ad(self):
+def test1_tg01ad():
+    """Verify tg01ad with input parameters according to example in documentation."""
 
-        A,E,B,C,lscale,rscale = transform.tg01ad(l=test1_l,n=test1_n,m=test1_m,p=test1_p,A=test1_A,E=test1_E,B=test1_B,C=test1_C,job=test1_job, thresh=test1_thresh)
+    A,E,B,C,lscale,rscale = transform.tg01ad(l=test1_l,n=test1_n,m=test1_m,p=test1_p,A=test1_A,E=test1_E,B=test1_B,C=test1_C,job=test1_job, thresh=test1_thresh)
 
-        assert_almost_equal(A, test1_A_desired)
-        assert_almost_equal(E, test1_E_desired)
-        assert_almost_equal(B, test1_B_desired)
-        assert_almost_equal(C, test1_C_desired)
-        assert_almost_equal(lscale, test1_lscale_desired)
-        assert_almost_equal(rscale, test1_rscale_desired)
-
-
-if __name__ == "__main__":
-    unittest.main()
+    assert_almost_equal(A, test1_A_desired)
+    assert_almost_equal(E, test1_E_desired)
+    assert_almost_equal(B, test1_B_desired)
+    assert_almost_equal(C, test1_C_desired)
+    assert_almost_equal(lscale, test1_lscale_desired)
+    assert_almost_equal(rscale, test1_rscale_desired)

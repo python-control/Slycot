@@ -3,9 +3,11 @@
 # repagh <rene.vanpaassen@gmail.com, May 2020
 
 import pytest
-from .test_exceptions import assert_docstring_parse
+
 from slycot import transform as tf
 from slycot.exceptions import SlycotArithmeticError
+
+from .test_exceptions import assert_docstring_parse
 
 
 @pytest.mark.parametrize(

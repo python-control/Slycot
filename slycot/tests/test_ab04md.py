@@ -1,10 +1,10 @@
-from slycot import analysis
 import numpy as np
-
 from numpy.testing import assert_allclose
 
+from slycot import analysis
 
-class test_ab04md:
+
+class Test_ab04md:
     """Test ab04md.
 
     Example data taken from

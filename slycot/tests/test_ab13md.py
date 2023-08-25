@@ -1,7 +1,6 @@
 import numpy as np
-from numpy.testing import assert_allclose, assert_array_less
-
 import pytest
+from numpy.testing import assert_allclose, assert_array_less
 
 from slycot import ab13md
 

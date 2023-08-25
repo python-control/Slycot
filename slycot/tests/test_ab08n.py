@@ -1,15 +1,14 @@
 # ===================================================
 # ab08n* tests
 
-import unittest
-from slycot import analysis
 import numpy as np
-
+from numpy.testing import assert_allclose, assert_equal
 from scipy.linalg import eig
-from numpy.testing import assert_equal, assert_allclose
+
+from slycot import analysis
 
 
-class test_ab08nX(unittest.TestCase):
+class Test_ab08nX:
     """ Test regular pencil construction ab08nX with input parameters
     according to example in documentation """
 
@@ -77,7 +76,3 @@ class test_ab08nX(unittest.TestCase):
         Ac, Bc, Cc, Dc = [M.astype(np.complex128) for M in [self.A, self.B,
                                                             self.C, self.D]]
         self.ab08nX(analysis.ab08nz, Ac, Bc, Cc, Dc)
-
-
-if __name__ == "__main__":
-    unittest.main()

@@ -2,8 +2,9 @@
 # test_mc.py - test suite for polynomial and rational function manipulation
 # bnavigator <code@bnavigator.de>, Aug 2019
 
-import pytest
 import re
+
+import pytest
 
 from slycot import mc01td
 from slycot.exceptions import SlycotResultWarning
