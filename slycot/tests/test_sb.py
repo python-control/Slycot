@@ -1,14 +1,14 @@
 # ===================================================
 # sb* synthesis tests
 
-from slycot import synthesis
-from slycot.exceptions import raise_if_slycot_error, \
-                              SlycotParameterError, SlycotArithmeticError, \
-                              SlycotResultWarning
-
+import pytest
 from numpy import array, eye, zeros
 from numpy.testing import assert_allclose, assert_raises
-import pytest
+
+from slycot import synthesis
+from slycot.exceptions import (SlycotArithmeticError, SlycotParameterError,
+                               SlycotResultWarning, raise_if_slycot_error)
+
 from .test_exceptions import assert_docstring_parse
 
 

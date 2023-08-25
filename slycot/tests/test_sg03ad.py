@@ -2,10 +2,10 @@
 # test_sg03ad.py - test suite for stability margin commands
 # RvP, 15 Jun 2017
 
-from slycot import synthesis
 import numpy as np
-
 from numpy.testing import assert_almost_equal
+
+from slycot import synthesis
 
 # test cases from
 # Penzl T., Numerical Solution of Generalized Lyapunov Equations

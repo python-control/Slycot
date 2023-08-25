@@ -1,7 +1,7 @@
-from slycot import analysis
 import numpy as np
-
 from numpy.testing import assert_allclose
+
+from slycot import analysis
 
 
 class Test_ab04md:

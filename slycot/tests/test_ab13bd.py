@@ -1,12 +1,12 @@
 # ===================================================
 # ab08n* tests
 
-from slycot import analysis
 import numpy as np
+from numpy.testing import assert_allclose, assert_array_equal, assert_equal
+from scipy import linalg, signal
 
-from scipy import linalg
-from scipy import signal
-from numpy.testing import assert_equal, assert_allclose, assert_array_equal
+from slycot import analysis
+
 
 class Test_ab13bd:
     """ Test regular pencil construction ab08nX with input parameters

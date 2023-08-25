@@ -6,6 +6,7 @@ test_examples.py
 """
 
 from inspect import getmembers, isfunction
+
 import pytest
 
 from slycot import examples

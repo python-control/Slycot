@@ -24,9 +24,9 @@ import sys
 
 import pytest
 
-from slycot.exceptions import raise_if_slycot_error, \
-                              SlycotError, SlycotWarning, SlycotParameterError
 from slycot import _wrapper
+from slycot.exceptions import (SlycotError, SlycotParameterError,
+                               SlycotWarning, raise_if_slycot_error)
 
 
 def assert_docstring_parse(docstring, exception_class, erange, checkvars={}):

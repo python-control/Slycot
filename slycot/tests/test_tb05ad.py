@@ -3,10 +3,10 @@
 
 import sys
 
-import pytest
 import numpy as np
-from scipy.linalg import matrix_balance, eig
+import pytest
 from numpy.testing import assert_almost_equal
+from scipy.linalg import eig, matrix_balance
 
 from slycot import transform
 from slycot.exceptions import SlycotArithmeticError, SlycotParameterError

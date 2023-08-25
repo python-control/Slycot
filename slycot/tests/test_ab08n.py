@@ -1,11 +1,11 @@
 # ===================================================
 # ab08n* tests
 
-from slycot import analysis
 import numpy as np
-
+from numpy.testing import assert_allclose, assert_equal
 from scipy.linalg import eig
-from numpy.testing import assert_equal, assert_allclose
+
+from slycot import analysis
 
 
 class Test_ab08nX:

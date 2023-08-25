@@ -2,10 +2,11 @@
 # test_sg02ad.py - test suite for ricatti equation solving
 # RvP, 19 Jun 2017
 
-from slycot import synthesis
 import numpy as np
-
 from numpy.testing import assert_almost_equal
+
+from slycot import synthesis
+
 
 def test_sg02ad_case1():
     n = 3

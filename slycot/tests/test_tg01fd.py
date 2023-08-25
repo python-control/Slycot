@@ -1,10 +1,10 @@
 # ===================================================
 # tg01fd tests
 
-from slycot import transform
 import numpy as np
+from numpy.testing import assert_almost_equal, assert_equal, assert_raises
 
-from numpy.testing import assert_raises, assert_almost_equal, assert_equal
+from slycot import transform
 
 # test1 input parameters
 test1_l = 4
