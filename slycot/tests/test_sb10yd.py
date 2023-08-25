@@ -4,8 +4,32 @@ from scipy import signal
 
 class Test_sb10yd():
 
+    # TODO: There are might be better systems/filters to do these tests.
+
+    def test_sb10yd_cont_exec_case_n0(self):
+        """A simple execution test. Case n=0.
+        """
+
+        sys_tf = signal.TransferFunction(1,1)
+        num, den = sys_tf.num, sys_tf.den
+
+        omega, H = signal.freqs(num, den)
+
+        real_H_resp = np.real(H)
+        imag_H_resp = np.imag(H)
+
+        n = 0
+        dico = 0 # 0 for continuous time
+        flag = 0 # 0 for no constraints on the poles
+        n_id, *_ = synthesis.sb10yd(
+            dico, flag, len(omega), 
+            real_H_resp, imag_H_resp, omega, n, tol=0)
+
+        # Because flag = 0, we expect n == n_id
+        np.testing.assert_equal(n, n_id)
+
     def test_sb10yd_cont_exec(self):
-        """A simple execution test.
+        """A simple execution test. Case n=2.
         """
 
         A = np.array([[0.0, 1.0], [-0.5, -0.1]])
@@ -32,7 +56,7 @@ class Test_sb10yd():
         np.testing.assert_equal(n, n_id)
 
     def test_sb10yd_cont_allclose(self):
-        """Compare given and identified frequency response.
+        """Compare given and identified frequency response. Case n=2.
         """
 
         A = np.array([[0.0, 1.0], [-0.5, -0.1]])
@@ -67,8 +91,30 @@ class Test_sb10yd():
         # absolute(a-b) or absolute(b-a) <= atol, for rtol=0 element-wise true
         np.testing.assert_allclose(abs(H_id),abs(H),rtol=0,atol=0.1)
 
+    def test_sb10yd_disc_exec_case_n0(self):
+        """A simple execution test. Case n=0.
+        """
+
+        sys_tf = signal.TransferFunction(1,1,dt=0.1)
+        num, den = sys_tf.num, sys_tf.den
+
+        omega, H = signal.freqz(num.squeeze(), den)
+
+        real_H_resp = np.real(H)
+        imag_H_resp = np.imag(H)
+
+        n = 0
+        dico = 1 # 0 for discrete time
+        flag = 0 # 0 for no constraints on the poles
+        n_id, *_ = synthesis.sb10yd(
+            dico, flag, len(omega), 
+            real_H_resp, imag_H_resp, omega, n, tol=0)
+
+        # Because flag = 0, we expect n == n_id
+        np.testing.assert_equal(n, n_id)
+
     def test_sb10yd_disc_exec(self):
-        """A simple execution test.
+        """A simple execution test. Case n=2.
         """
 
         A = np.array([[0.0, 1.0], [-0.5, -0.1]])
@@ -99,7 +145,7 @@ class Test_sb10yd():
         np.testing.assert_equal(n, n_id)
 
     def test_sb10yd_disc_allclose(self):
-        """Compare given and identified frequency response.
+        """Compare given and identified frequency response. Case n=2.
         """
 
         A = np.array([[0.0, 1.0], [-0.5, -0.1]])
