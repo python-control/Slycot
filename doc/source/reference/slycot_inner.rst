@@ -73,6 +73,7 @@ Synthesis
    _wrapper.sb10fd
    _wrapper.sb10hd
    _wrapper.sb10jd
+   _wrapper.sb10yd
    _wrapper.sg02ad_bb
    _wrapper.sg02ad_bc
    _wrapper.sg02ad_bd
