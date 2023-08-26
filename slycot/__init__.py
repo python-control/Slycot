@@ -53,12 +53,12 @@ else:
 
     # Nonlinear Systems (0/16 wrapped)
 
-    # Synthesis routines ((15+1)/131 wrapped), sb03md57 is not part of slicot
+    # Synthesis routines ((16+1)/131 wrapped), sb03md57 is not part of slicot
     from .synthesis import (sb01bd,
                             sb02md, sb02mt, sb02od, 
                             sb03md, sb03md57, sb03od,
                             sb04md, sb04qd,
-                            sb10ad, sb10dd, sb10fd, sb10hd,
+                            sb10ad, sb10dd, sb10fd, sb10hd, sb10yd,
                             sg02ad,
                             sg03ad, sg03bd)
                             
