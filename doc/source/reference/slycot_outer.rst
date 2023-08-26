@@ -32,6 +32,7 @@ Analysis
    ab13ed
    ab13fd
    ab13md
+   ag08bd
 
 Mathematical routines
 =====================
@@ -66,6 +67,7 @@ Synthesis
    sb10dd
    sb10fd
    sb10hd
+   sb10yd
    sg02ad
    sg03ad
    sg03bd
