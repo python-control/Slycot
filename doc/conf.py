@@ -10,6 +10,9 @@ import os
 import sys
 sys.path.insert(0, os.path.abspath('../slycot'))
 
+import subprocess
+subprocess.run(["python", "check_names.py"])
+
 project = 'Slycot'
 copyright = '2023, Slycot Developers'
 author = 'Slycot Developers'
@@ -24,6 +27,7 @@ release = re.sub('^v', '', os.popen('git describe').read().strip())
 version = re.sub(r'(\d+\.\d+\.\d+(.post\d+)?)(.*)', r'\1', release)
 
 print("version %s, release %s" % (version, release))
+
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
