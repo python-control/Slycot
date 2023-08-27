@@ -43,60 +43,152 @@ def tb01id(n,m,p,maxred,a,b,c,job='A'):
 
            S = A,    S = ( A  B )    or    S = ( A )
                                                ( C )
-
-    Required arguments:
-        n : input int
-            The order of the matrix A, the number of rows of matrix B and
-            the number of columns of matrix C. It represents the dimension of
-            the state vector.  n > 0.
-        m : input int
-            The number of columns of matrix B. It represents the dimension of
-            the input vector.  m > 0.
-        p : input int
-            The number of rows of matrix C. It represents the dimension of
-            the output vector.  p > 0.
-        maxred : input float
-            The maximum allowed reduction in the 1-norm of S  (in an iteration)
-            if zero rows or columns are encountered.
-            If maxred > 0.0, maxred must be larger than one (to enable the norm
-            reduction).
-            If maxred <= 0.0, then the value 10.0 for maxred is used.
-        A : input rank-2 array('d') with bounds (n,n)
-            The leading n-by-n part of this array must contain the system state
-            matrix A.
-        B : input rank-2 array('d') with bounds (n,m)
-            The leading n-by-m part of this array must contain the system input
-            matrix B.
-        C : input rank-2 array('d') with bounds (p,n)
-            The leading p-by-n part of this array must contain the system output
-            matrix C.
-    Optional arguments:
-        job := 'A' input string(len=1)
-            Indicates which matrices are involved in balancing, as follows:
-            = 'A':  All matrices are involved in balancing;
-            = 'B':  B and A matrices are involved in balancing;
-            = 'C':  C and A matrices are involved in balancing;
-            = 'N':  B and C matrices are not involved in balancing.
-    Return objects:
-        s_norm : float
-            The 1-norm of the given matrix S is non-zero, the ratio between
-            the 1-norm of the given matrix and the 1-norm of the balanced matrix.
-        A : rank-2 array('d') with bounds (n,n)
-            The leading n-by-n part of this array contains the balanced matrix
-            inv(D)*A*D.
-        B : rank-2 array('d') with bounds (n,m)
-            The leading n-by-m part of this array contains the balanced matrix
-            inv(D)*B.
-        C : rank-2 array('d') with bounds (p,n)
-            The leading p-by-n part of this array contains the balanced matrix C*D.
-        scale : rank-1 array('d') with bounds (n)
-            The scaling factors applied to S.  If D(j) is the scaling factor
-            applied to row and column j, then scale(j) = D(j), for j = 1,...,n.
+    Parameters
+    ----------
+    n : int
+        The order of the matrix A, the number of rows of matrix B and
+        the number of columns of matrix C. It represents the dimension of
+        the state vector.  n > 0.
+    m : int
+        The number of columns of matrix B. It represents the dimension of
+        the input vector.  m > 0.
+    p : int
+        The number of rows of matrix C. It represents the dimension of
+        the output vector.  p > 0.
+    maxred : float
+        The maximum allowed reduction in the 1-norm of S  (in an iteration)
+        if zero rows or columns are encountered.
+        If maxred > 0.0, maxred must be larger than one (to enable the norm
+        reduction).
+        If maxred <= 0.0, then the value 10.0 for maxred is used.
+    A : (n, n) array_like
+        The leading n-by-n part of this array must contain the system state
+        matrix A.
+    B : (n, m) array_like
+        The leading n-by-m part of this array must contain the system input
+        matrix B.
+    C : (p, n) array_like
+        The leading p-by-n part of this array must contain the system output
+        matrix C.
+    job := {'A', 'B', 'C', 'N'}, optional
+        Indicates which matrices are involved in balancing, as follows:
+        = 'A':  All matrices are involved in balancing;
+        = 'B':  B and A matrices are involved in balancing;
+        = 'C':  C and A matrices are involved in balancing;
+        = 'N':  B and C matrices are not involved in balancing.
+    Returns
+    -------
+    s_norm : float
+        The 1-norm of the given matrix S is non-zero, the ratio between
+        the 1-norm of the given matrix and the 1-norm of the balanced matrix.
+    A : (n, n) ndarray
+        The leading n-by-n part of this array contains the balanced matrix
+        inv(D)*A*D.
+    B : (n, m) ndarray
+        The leading n-by-m part of this array contains the balanced matrix
+        inv(D)*B.
+    C : (p ,n) ndarray
+        The leading p-by-n part of this array contains the balanced matrix C*D.
+    scale : rank-1 array('d') with bounds (n)
+        The scaling factors applied to S.  If D(j) is the scaling factor
+        applied to row and column j, then scale(j) = D(j), for j = 1,...,n.
     """
     hidden = ' (hidden by the wrapper)'
     arg_list = ['job', 'N', 'M', 'P', 'maxred', 'A', 'LDA'+hidden, 'B',
         'LDB'+hidden, 'C', 'LDC'+hidden, 'scale', 'INFO'+hidden]
     out = _wrapper.tb01id(n,m,p,maxred,a,b,c,job=job)
+    raise_if_slycot_error(out[-1], arg_list)
+    return out[:-1]
+
+def tb01pd(n, m, p, A, B, C, job='M', equil='S', tol=1e-8, ldwork=None):
+    """Ar, Br, Cr, nr = tb01pd(n,m,p,A,B,C,[job,equil,tol,ldwork])
+
+    To find a reduced (controllable, observable, or minimal) state-
+    space representation (Ar,Br,Cr) for any original state-space
+    representation (A,B,C). The matrix Ar is in upper block
+    Hessenberg form.
+
+    Parameters
+    ----------
+    n : int
+        Order of the State-space representation.
+    m : int
+        Number of inputs.
+    p : int
+        Number of outputs.
+    A : (n, n) array_like
+        State dynamics matrix.
+    B : (n, max(m,p)) array_like
+        The leading n-by-m part of this array must contain the original
+        input/state matrix B; the remainder of the leading n-by-max(m,p)
+        part is used as internal workspace.
+    C : (p, n) array_like
+        The leading p-by-n part of this array must contain the original
+        state/output matrix C; the remainder of the leading max(1,m,p)-by-n
+        part is used as internal workspace.
+    job : {'M', 'C', 'O'}, optional
+        Indicates whether the user wishes to remove the
+        uncontrollable and/or unobservable parts as follows:
+        = 'M':  Remove both the uncontrollable and unobservable
+                parts to get a minimal state-space representation;
+        = 'C':  Remove the uncontrollable part only to get a
+                controllable state-space representation;
+        = 'O':  Remove the unobservable part only to get an
+                observable state-space representation.
+        Default is 'M'.
+    equil : {'S', 'N'}, optional
+        Specifies whether the user wishes to preliminarily balance
+        the triplet (A,B,C) as follows:
+        = 'S':  Perform balancing (scaling);
+        = 'N':  Do not perform balancing.
+    tol : float, optional
+        The tolerance to be used in rank determination when
+        transforming (A, B, C). If the user sets tol > 0, then
+        the given value of tol is used as a lower bound for the
+        reciprocal condition number.
+        Default is `1e-8`.
+    ldwork : int, optional
+        The length of the cache array.
+        ldwork >= max( 1, n + max(n, 3*m, 3*p))
+        Default is None.
+
+    Returns
+    -------
+    Ar : (nr, nr) ndarray
+        Contains the upper block Hessenberg state dynamics matrix
+        Ar of a minimal, controllable, or observable realization
+        for the original system, depending on the value of JOB,
+        JOB = 'M', JOB = 'C', or JOB = 'O', respectively.
+    Br : (nr, m) ndarray
+        Contains the transformed input/state matrix Br of a
+        minimal, controllable, or observable realization for the
+        original system, depending on the value of JOB, JOB = 'M',
+        JOB = 'C', or JOB = 'O', respectively.  If JOB = 'C', only
+        the first IWORK(1) rows of B are nonzero.
+    Cr : (p, nr) ndarray
+        Contains the transformed state/output matrix Cr of a
+        minimal, C controllable, or observable realization for the
+        original C system, depending on the value of JOB, JOB =
+        'M', C JOB = 'C', or JOB = 'O', respectively.  C If JOB =
+        'M', or JOB = 'O', only the last IWORK(1) columns C (in
+        the first NR columns) of C are nonzero.
+    nr : int
+        The order of the reduced state-space representation
+        (Ar,Br,Cr) of a minimal, controllable, or observable
+        realization for the original system, depending on
+        JOB = 'M', JOB = 'C', or JOB = 'O'.
+    """
+    hidden = ' (hidden by the wrapper)'
+    arg_list = ['job', 'equil', 'n','m','p','A','lda'+hidden,'B','ldb'+hidden,
+                'C','ldc'+hidden,'nr','tol','iwork'+hidden,'dwork'+hidden,
+                'ldwork','info'+hidden]
+    if ldwork is None:
+        ldwork = max(1, n+max(n,3*m,3*p))
+    elif ldwork < max(1, n+max(n,3*m,3*p)):
+        raise SlycotParameterError("ldwork is too small", -15)
+    out = _wrapper.tb01pd(n=n,m=m,p=p,a=A,b=B,c=C,
+                          job=job,equil=equil,tol=tol,ldwork=ldwork)
+
     raise_if_slycot_error(out[-1], arg_list)
     return out[:-1]
 
@@ -116,90 +208,98 @@ def tb03ad(n,m,p,A,B,C,D,leri,equil='N',tol=0.0,ldwork=None):
     Additionally a minimal realization (A_min,B_min,C_min) of the original
     system (A,B,C) is returned.
 
-    Required arguments:
-        n : input int
-            The order of the state-space representation, i.e. the order of
-            the original state dynamics matrix A.  n > 0.
-        m : input int
-            The number of system inputs.  m > 0.
-        p : input int
-            The number of system outputs.  p > 0.
-        A : input rank-2 array('d') with bounds (n,n)
-            The leading n-by-n part of this array must contain the original
-            state dynamics matrix A.
-        B : input rank-2 array('d') with bounds (n,max(m,p))
-            The leading n-by-m part of this array must contain the original
-            input/state matrix B; the remainder of the leading n-by-max(m,p)
-            part is used as internal workspace.
-        C : input rank-2 array('d') with bounds (max(m,p),n)
-            The leading p-by-n part of this array must contain the original
-            state/output matrix C; the remainder of the leading max(m,p)-by-n
-            part is used as internal workspace.
-        D : input rank-2 array('d') with bounds (max(m,p),max(m,p))
-            The leading p-by-m part of this array must contain the original
-            direct transmission matrix D; the remainder of the leading
-            max(m,p)-by-max(m,p) part is used as internal workspace.
-        leri : input string(len=1)
-            Indicates whether the left polynomial matrix representation or
-            the right polynomial matrix representation is required.
-    Optional arguments:
-        equil := 'N' input string(len=1)
-            Specifies whether the user wishes to balance the triplet (A,B,C),
-            before computing a minimal state-space representation, as follows:
-            = 'S':  Perform balancing (scaling);
-            = 'N':  Do not perform balancing.
-        tol := 0.0 input float
-            The tolerance to be used in rank determination when transforming
-            (A, B). If tol <= 0 a default value is used.
-        ldwork := max(2*n+3*max(m,p), p*(p+2)) input int
-            The length of the cache array.
-            ldwork >= max( n + max(n, 3*m, 3*p), pm*(pm + 2))
-            where pm = p, if leri = 'L';
-                  pm = m, if leri = 'R'.
-            For optimum performance it should be larger.
-    Return objects:
-        A_min : rank-2 array('d') with bounds (n,n)
-            The leading nr-by-nr part of this array contains the upper block
-            Hessenberg state dynamics matrix A_min of a minimal realization for
-            the original system.
-        B_min : rank-2 array('d') with bounds (n,max(m,p))
-            The leading nr-by-m part of this array contains the transformed
-            input/state matrix B_min.
-        C_min : rank-2 array('d') with bounds (max(m,p),n)
-            The leading p-by-nr part of this array contains the transformed
-            state/output matrix C_min.
-        nr : int
-            The order of the minimal state-space representation
-            (A_min,B_min,C_min).
-        index : rank-1 array('i') with bounds either (p) or (m)
-            If leri = 'L', index(i), i = 1,2,...,p, contains the maximum degree
-            of the polynomials in the i-th row of the denominator matrix P(s)
-            of the left polynomial matrix representation. These elements are
-            ordered so that index(1) >= index(2) >= ... >= index(p).
-            If leri = 'R', index(i), i = 1,2,...,m, contains the maximum degree
-            of the polynomials in the i-th column of the denominator matrix P(s)
-            of the right polynomial matrix representation. These elements are
-            ordered so that index(1) >= index(2) >= ... >= index(m).
-        pcoeff : rank-3 array('d') with bounds either (p,p,n+1) or (m,m,n+1)
-            If leri = 'L' then porm = p, otherwise porm = m.
-            The leading porm-by-porm-by-kpcoef part of this array contains
-            the coefficients of the denominator matrix P(s), where
-            kpcoef = max(index) + 1.
-            pcoeff(i,j,k) is the coefficient in s**(index(iorj)-k+1) of
-            polynomial (i,j) of P(s), where k = 1,2,...,kpcoef; if leri = 'L'
-            then iorj = I, otherwise iorj = J. Thus for leri = 'L',
-            P(s) = diag(s**index)*(pcoeff(.,.,1)+pcoeff(.,.,2)/s+...).
-        qcoeff : rank-3 array('d') with bounds (p,m,n + 1) or (max(m,p),max(m,p))
-            If leri = 'L' then porp = m, otherwise porp = p.
-            If leri = 'L', the leading porm-by-porp-by-kpcoef part of this array
-            contains the coefficients of the numerator matrix Q(s).
-            If leri = 'R', the leading porp-by-porm-by-kpcoef part of this array
-            contains the coefficients of the numerator matrix Q(s).
-            qcoeff(i,j,k) is defined as for pcoeff(i,j,k).
-        vcoeff : rank-3 array('d') with bounds (p,n,n+1) or (m,n,n+1)
-            The leading porm-by-nr-by-kpcoef part of this array contains
-            the coefficients of the intermediate matrix V(s).
-            vcoeff(i,j,k) is defined as for pcoeff(i,j,k).
+    Parameters
+    ----------
+    n : int
+        The order of the state-space representation, i.e. the order of
+        the original state dynamics matrix A. n > 0.
+    m : int
+        The number of system inputs. m > 0.
+    p : int
+        The number of system outputs. p > 0.
+    A : (n, n) array_like
+        The leading n-by-n part of this array must contain the original
+        state dynamics matrix A.
+    B : (n, max(m,p)) array_like
+        The leading n-by-m part of this array must contain the original
+        input/state matrix B; the remainder of the leading n-by-max(m,p)
+        part is used as internal workspace.
+    C : (max(m,p), n)
+        The leading p-by-n part of this array must contain the original
+        state/output matrix C; the remainder of the leading max(m,p)-by-n
+        part is used as internal workspace.
+    D : (max(m,p), max(m,p)) array_like
+        The leading p-by-m part of this array must contain the original
+        direct transmission matrix D; the remainder of the leading
+        max(m,p)-by-max(m,p) part is used as internal workspace.
+    leri : {'L', 'R'}
+        Indicates whether the left polynomial matrix representation or
+        the right polynomial matrix representation is required.
+        = 'L':  A left matrix fraction is required;
+        = 'R':  A right matrix fraction is required.
+    equil : {'S', 'N'}, optional
+        Specifies whether the user wishes to balance the triplet (A,B,C),
+        before computing a minimal state-space representation, as follows:
+        = 'S':  Perform balancing (scaling);
+        = 'N':  Do not perform balancing.
+        Default is `N`.
+    tol : float, optional
+        The tolerance to be used in rank determination when transforming
+        (A, B). If tol <= 0 a default value is used.
+        Default is `0.0`.
+    ldwork : int, optional
+        The length of the cache array.
+        ldwork >= max( n + max(n, 3*m, 3*p), pm*(pm + 2))
+        where pm = p, if leri = 'L';
+                pm = m, if leri = 'R'.
+        For optimum performance it should be larger.
+        Default is None.
+
+    Returns
+    -------
+    A_min : (n, n) ndarray
+        The leading nr-by-nr part of this array contains the upper block
+        Hessenberg state dynamics matrix A_min of a minimal realization for
+        the original system.
+    B_min : (n, max(m,p)) ndarray
+        The leading nr-by-m part of this array contains the transformed
+        input/state matrix B_min.
+    C_min : (max(m,p), n) ndarray
+        The leading p-by-nr part of this array contains the transformed
+        state/output matrix C_min.
+    nr : int
+        The order of the minimal state-space representation
+        (A_min,B_min,C_min).
+    index : (p, ) or (m, ) ndarray
+        If leri = 'L', index(i), i = 1,2,...,p, contains the maximum degree
+        of the polynomials in the i-th row of the denominator matrix P(s)
+        of the left polynomial matrix representation. These elements are
+        ordered so that index(1) >= index(2) >= ... >= index(p).
+        If leri = 'R', index(i), i = 1,2,...,m, contains the maximum degree
+        of the polynomials in the i-th column of the denominator matrix P(s)
+        of the right polynomial matrix representation. These elements are
+        ordered so that index(1) >= index(2) >= ... >= index(m).
+    pcoeff : (p, p, n+1) or (m, m, n+1) ndarray
+        If leri = 'L' then porm = p, otherwise porm = m.
+        The leading porm-by-porm-by-kpcoef part of this array contains
+        the coefficients of the denominator matrix P(s), where
+        kpcoef = max(index) + 1.
+        pcoeff(i,j,k) is the coefficient in s**(index(iorj)-k+1) of
+        polynomial (i,j) of P(s), where k = 1,2,...,kpcoef; if leri = 'L'
+        then iorj = I, otherwise iorj = J. Thus for leri = 'L',
+        P(s) = diag(s**index)*(pcoeff(.,.,1)+pcoeff(.,.,2)/s+...).
+    qcoeff : (p, m, n+1) or (max(m,p), max(m,p), n+1) ndarray
+        If leri = 'L' then porp = m, otherwise porp = p.
+        If leri = 'L', the leading porm-by-porp-by-kpcoef part of this array
+        contains the coefficients of the numerator matrix Q(s).
+        If leri = 'R', the leading porp-by-porm-by-kpcoef part of this array
+        contains the coefficients of the numerator matrix Q(s).
+        qcoeff(i,j,k) is defined as for pcoeff(i,j,k).
+    vcoeff : (p, n, n+1) or (m, n, n+1) ndarray
+        The leading porm-by-nr-by-kpcoef part of this array contains
+        the coefficients of the intermediate matrix V(s).
+        vcoeff(i,j,k) is defined as for pcoeff(i,j,k).
+
     Raises
     ------
     SlycotArithmeticError
@@ -209,7 +309,6 @@ def tb03ad(n,m,p,A,B,C,D,leri,equil='N',tol=0.0,ldwork=None):
         :info == 2:
             A singular matrix was encountered during the
             computation of P(s).
-
     """
     hidden = ' (hidden by the wrapper)'
     arg_list = ['leri', 'equil', 'n', 'm', 'P', 'A', 'LDA'+hidden, 'B',
@@ -233,58 +332,54 @@ def tb03ad(n,m,p,A,B,C,D,leri,equil='N',tol=0.0,ldwork=None):
 def tb04ad(n,m,p,A,B,C,D,tol1=0.0,tol2=0.0,ldwork=None):
     """ Ar,Br,Cr,nr,denom_degs,denom_coeffs,num_coeffs = tb04ad(n,m,p,A,B,C,D,[tol1,tol2,ldwork])
 
-    Convert a state-space system to a tranfer function or matrix of transfer functions.
+    Convert a state-space system to a transfer function or matrix of transfer functions.
     The transfer function is given as rows over common denominators.
 
-    Required arguments
-    ------------------
+    Parameters
+    ----------
+    n : int
+        state dimension
+    m : int
+        input dimension
+    p : int
+        output dimension
+    A :  (n, n) array_like
+        state dynamics matrix.
+    B : (n, m) array_like
+        input matrix
+    C : (p, n) array_like
+        output matrix
+    D : (p, m) array_like
+        direct transmission matrix
+    tol1 : float, optional
+        tolerance in determining the transfer function coefficients,
+        when set to 0, a default value is used
+        Default is `0.0`.
+    tol2 : float, optional
+        tolerance in separating out a controllable/observable subsystem
+        of (A,B,C), when set to 0, a default value is used
+        Default is `0.0`.
+    ldwork : int, optional
+        The length of the cache array. The default values is
+        max(1,n*(n+1)+max(n*m+2*n+max(n,p),max(3*m,p)))
+        Default is None.
 
-        n : integer
-            state dimension
-        m : integer
-            input dimension
-        p : integer
-            output dimension
-        A :  rank-2 array, shape(n,n)
-            state dynamics matrix.
-        B : rank-2 array, shape (n,m)
-            input matrix
-        C : rank-2 array, shape (p,n)
-            output matri
-        D : rank-2 array, shape (p,m)
-            direct transmission matrix
-
-     Optional arguments
-     ------------------
-
-        tol1 = 0.0: double
-            tolerance in determining the transfer function coefficients,
-            when set to 0, a default value is used
-        tol2 = 0.0: double
-            tolerance in separating out a controllable/observable subsystem
-            of (A,B,C), when set to 0, a default value is used
-        ldwork : int
-            The length of the cache array. The default values is
-            max(1,n*(n+1)+max(n*m+2*n+max(n,p),max(3*m,p)))
-
-     Returns
-     -------
-
-        nr : int
-            state dimension of the controllable subsystem
-        Ar :  rank-2 array, shape(nr,nr)
-            state dynamics matrix of the controllable subsystem
-        Br : rank-2 array, shape (nr,m)
-            input matrix of the controllable subsystem
-        Cr : rank-2 array, shape (p,nr)
-            output matri of the controllable subsystem
-        index : rank-1 array, shape (p)
-            array of orders of the denominator polynomials
-        dcoeff : rank-2 array, shape (p,max(index)+1)
-            array of denominator coefficients
-        ucoeff : rank-3 array, shape (p,m,max(index)+1)
-            array of numerator coefficients
-
+    Returns
+    -------
+    nr : int
+        state dimension of the controllable subsystem
+    Ar : (nr, nr) ndarray
+        state dynamics matrix of the controllable subsystem
+    Br : (nr, m) ndarray
+        input matrix of the controllable subsystem
+    Cr : (p, nr) ndarray
+        output matrix of the controllable subsystem
+    index : (p, ) ndarray
+        array of orders of the denominator polynomials
+    dcoeff : (p, max(index)+1) ndarray
+        array of denominator coefficients
+    ucoeff : (p, m, max(index)+1) ndarray
+        array of numerator coefficients
     """
     hidden = ' (hidden by the wrapper)'
     arg_list = ['rowcol','n','m','p','A','lda'+hidden,'B','ldb'+hidden,'C','ldc'+hidden,'D', 'ldd'+hidden,
@@ -340,7 +435,7 @@ def tb05ad(n, m, p, jomega, A, B, C, job='NG'):
     m : int
         The number of inputs, i.e. the number of columns in the
         matrix B.
-    p :  int
+    p : int
         The number of outputs, i.e. the number of rows in the
         matrix C.
     jomega : complex float
@@ -349,14 +444,14 @@ def tb05ad(n, m, p, jomega, A, B, C, job='NG'):
         systems, this is j*omega, where omega is the frequency to
         be evaluated. For discrete time systems,
         freq = exp(j*omega*Ts)
-    A : (n,n) ndarray
+    A : (n, n) ndarray
         On entry, this array must contain the state transition
         matrix A.
-    B : (n,m) ndarray
+    B : (n, m) ndarray
         On entry, this array must contain the input/state matrix B.
-    C : (p,n) ndarray
+    C : (p, n) ndarray
         On entry, of this array must contain the state/output matrix C.
-    job : {'AG', 'NG', 'NH'}
+    job : {'AG', 'NG', 'NH'}, optional
         If job = 'AG' (i.e., 'all', 'general matrix'), the A matrix is
         first balanced. The balancing transformation
         is then appropriately applied to matrices B and C. The A matrix
@@ -377,72 +472,61 @@ def tb05ad(n, m, p, jomega, A, B, C, job='NG'):
 
     Returns
     -------
-    if job = 'AG':
-    --------------
-      At:  The A matrix which has been both balanced and
-           transformed to upper Hessenberg form. The balancing
-           transforms A according to
-                      A1 =   P^-1 * A * P.
-           The transformation to upper Hessenberg form then yields
-                      At = Q^T * (P^-1 * A * P ) * Q.
-           Note that the lower triangle of At is in general not zero.
-           Rather, it contains information on the orthogonal matrix Q
-           used to transform A1 to Hessenberg form. See docs for lappack
-           DGEHRD():
-           http://www.netlib.org/lapack/explore-3.1.1-html/dgehrd.f.html
-           However, it does not apparently contain information on P, the
-           matrix used in the balancing procedure.
+    if job = 'AG'
+    -------------
+    At : The A matrix which has been both balanced and
+        transformed to upper Hessenberg form. The balancing
+        transforms A according to
+                    A1 =   P^-1 * A * P.
+        The transformation to upper Hessenberg form then yields
+                    At = Q^T * (P^-1 * A * P ) * Q.
+        Note that the lower triangle of At is in general not zero.
+        Rather, it contains information on the orthogonal matrix Q
+        used to transform A1 to Hessenberg form. See docs for lappack
+        DGEHRD():
+        http://www.netlib.org/lapack/explore-3.1.1-html/dgehrd.f.html
+        However, it does not apparently contain information on P, the
+        matrix used in the balancing procedure.
+    Bt : The matrix B transformed according to
+                    Bt = Q^T * P^-1 * B.
+    Ct : The matrix C transformed according to
+                    Ct = C * P * Q
+    rcond : RCOND contains an estimate of the reciprocal of the
+            condition number of matrix H with respect to inversion, where
+                    H = (j*freq * I - A)
+    g_jw : complex p-by-m array, which contains the frequency response
+         matrix G(freq).
+    ev : Eigenvalues of the matrix A.
+    hinvb : complex n-by-m array, which  contains the product
+             -1
+            H  B.
 
-      Bt:  The matrix B transformed according to
-                      Bt = Q^T * P^-1 * B.
-
-      Ct:  The matrix C transformed according to
-                      Ct = C * P * Q
-
-      rcond: RCOND contains an estimate of the reciprocal of the
-             condition number of matrix H with respect to inversion, where
-                     H = (j*freq * I - A)
-
-      g_jw: complex p-by-m array, which contains the frequency response
-            matrix G(freq).
-
-      ev:   Eigenvalues of the matrix A.
-
-      hinvb : complex n-by-m array, which  contains the product
-               -1
-              H  B.
-
-    if job = 'NG':
-    --------------
-      At:    The matrix A transformed to upper Hessenberg form according
-             to
-                      At = Q^T  * A  * Q.
-             The lower triangle is not zero. It containts info on the
-             orthoganal transformation. See docs for linpack DGEHRD()
-             http://www.netlib.org/lapack/explore-3.1.1-html/dgehrd.f.html
-
-      Bt:    The matrix B transformed according to
-                      Bt = Q^T * B.
-
-      Ct:    The matrix C transformed according to
-                      Ct = C * Q
-      g_jw:  complex array with dim p-by-m which contains the frequency
-             response matrix G(freq).
-
-      hinvb : complex array with dimension p-by-m.
-              This array contains the
-                      -1
-             product H  B.
-
+    if job = 'NG'
+    -------------
+    At : The matrix A transformed to upper Hessenberg form according
+         to
+                At = Q^T  * A  * Q.
+        The lower triangle is not zero. It containts info on the
+        orthoganal transformation. See docs for linpack DGEHRD()
+        http://www.netlib.org/lapack/explore-3.1.1-html/dgehrd.f.html
+    Bt : The matrix B transformed according to
+                Bt = Q^T * B.
+    Ct : The matrix C transformed according to
+                Ct = C * Q
+    g_jw : complex array with dim p-by-m which contains the frequency
+         response matrix G(freq).
+    hinvb : complex array with dimension p-by-m.
+          This array contains the
+                   -1
+          product H  B.
     if job = 'NH'
-    --------------
-      g_jw:  complex p-by-m array which contains the frequency
-             response matrix G(freq).
+    -------------
+    g_jw : complex p-by-m array which contains the frequency
+         response matrix G(freq).
 
-      hinvb : complex p-by-m array which contains the
-                      -1
-             product H  B.
-
+    hinvb : complex p-by-m array which contains the
+                   -1
+          product H  B.
 
     Raises
     ------
@@ -644,65 +728,70 @@ def tc04ad(m,p,index,pcoeff,qcoeff,leri,ldwork=None):
 
     respectively.
 
-    Required arguments:
-        m : input int
-            The number of system inputs.  m > 0.
-        p := len(index) input int
-            The number of system outputs.  p > 0.
-        index : input rank-1 array('i') with bounds (p) or (m)
-            If leri = 'L', index(i), i = 1,2,...,p, must contain the maximum
-            degree of the polynomials in the I-th row of the denominator matrix
-            P(s) of the given left polynomial matrix representation.
-            If leri = 'R', index(i), i = 1,2,...,m, must contain the maximum
-            degree of the polynomials in the I-th column of the denominator
-            matrix P(s) of the given right polynomial matrix representation.
-        pcoeff : input rank-3 array('d') with bounds (p,p,*) or (m,m,*)
-            If leri = 'L' then porm = p, otherwise porm = m. The leading
-            porm-by-porm-by-kpcoef part of this array must contain
-            the coefficients of the denominator matrix P(s). pcoeff(i,j,k) is
-            the coefficient in s**(index(iorj)-K+1) of polynomial (I,J) of P(s),
-            where k = 1,2,...,kpcoef and kpcoef = max(index) + 1; if leri = 'L'
-            then iorj = i, otherwise iorj = j. Thus for leri = 'L',
-            P(s) = diag(s**index)*(pcoeff(.,.,1)+pcoeff(.,.,2)/s+...).
-            If leri = 'R', pcoeff is modified by the routine but restored on exit.
-        qcoeff : input rank-3 array('d') with bounds (p,m,*) or (max(m,p),max(m,p),*)
-            If leri = 'L' then porp = m, otherwise porp = p. The leading
-            porm-by-porp-by-kpcoef part of this array must contain
-            the coefficients of the numerator matrix Q(s).
-            qcoeff(i,j,k) is defined as for pcoeff(i,j,k).
-            If leri = 'R', qcoeff is modified by the routine but restored on exit.
-        leri : input string(len=1)
-            Indicates whether a left polynomial matrix representation or a right
-            polynomial matrix representation is input as follows:
-            = 'L':  A left matrix fraction is input;
-            = 'R':  A right matrix fraction is input.
-    Optional arguments:
-        ldwork := max(m,p)*(max(m,p)+4) input int
-            The length of the cache array. ldwork >= max(m,p)*(max(m,p)+4)
-            For optimum performance it should be larger.
-    Return objects:
-        n : int
-            The order of the resulting state-space representation.
-            That is, n = sum(index).
-        rcond : float
-            The estimated reciprocal of the condition number of the leading row
-            (if leri = 'L') or the leading column (if leri = 'R') coefficient
-            matrix of P(s).
-            If rcond is nearly zero, P(s) is nearly row or column non-proper.
-        A : rank-2 array('d') with bounds (n,n)
-            The leading n-by-n part of this array contains the state dynamics matrix A.
-        B : rank-2 array('d') with bounds (n,max(m,p))
-            The leading n-by-n part of this array contains the input/state matrix B;
-            the remainder of the leading n-by-max(m,p) part is used as internal
-            workspace.
-        C : rank-2 array('d') with bounds (max(m,p),n)
-            The leading p-by-n part of this array contains the state/output matrix C;
-            the remainder of the leading max(m,p)-by-n part is used as internal
-            workspace.
-        D : rank-2 array('d') with bounds (max(m,p),max(m,p))
-            The leading p-by-m part of this array contains the direct transmission
-            matrix D; the remainder of the leading max(m,p)-by-max(m,p) part is
-            used as internal workspace.
+    Parameters
+    ----------
+    m : int
+        The number of system inputs. m > 0.
+    p : int
+        The number of system outputs. p > 0.
+        lend(index)
+    index : (p) or (m) array_like
+        If leri = 'L', index(i), i = 1,2,...,p, must contain the maximum
+        degree of the polynomials in the I-th row of the denominator matrix
+        P(s) of the given left polynomial matrix representation.
+        If leri = 'R', index(i), i = 1,2,...,m, must contain the maximum
+        degree of the polynomials in the I-th column of the denominator
+        matrix P(s) of the given right polynomial matrix representation.
+    pcoeff : (p,p,*) or (m,m,*) array_like
+        If leri = 'L' then porm = p, otherwise porm = m. The leading
+        porm-by-porm-by-kpcoef part of this array must contain
+        the coefficients of the denominator matrix P(s). pcoeff(i,j,k) is
+        the coefficient in s**(index(iorj)-K+1) of polynomial (I,J) of P(s),
+        where k = 1,2,...,kpcoef and kpcoef = max(index) + 1; if leri = 'L'
+        then iorj = i, otherwise iorj = j. Thus for leri = 'L',
+        P(s) = diag(s**index)*(pcoeff(.,.,1)+pcoeff(.,.,2)/s+...).
+        If leri = 'R', pcoeff is modified by the routine but restored on exit.
+    qcoeff : (p, m, *) or (max(m,p), max(m,p), *) array_like
+        If leri = 'L' then porp = m, otherwise porp = p. The leading
+        porm-by-porp-by-kpcoef part of this array must contain
+        the coefficients of the numerator matrix Q(s).
+        qcoeff(i,j,k) is defined as for pcoeff(i,j,k).
+        If leri = 'R', qcoeff is modified by the routine but restored on exit.
+    leri : {'L', 'R'}
+        Indicates whether a left polynomial matrix representation or a right
+        polynomial matrix representation is input as follows:
+        = 'L':  A left matrix fraction is input;
+        = 'R':  A right matrix fraction is input.
+    ldwork : int, optional
+        The length of the cache array. ldwork >= max(m,p)*(max(m,p)+4)
+        For optimum performance it should be larger.
+        Default is None.
+
+    Returns
+    -------
+    n : int
+        The order of the resulting state-space representation.
+        That is, n = sum(index).
+    rcond : float
+        The estimated reciprocal of the condition number of the leading row
+        (if leri = 'L') or the leading column (if leri = 'R') coefficient
+        matrix of P(s).
+        If rcond is nearly zero, P(s) is nearly row or column non-proper.
+    A : (n, n) ndarray
+        The leading n-by-n part of this array contains the state dynamics matrix A.
+    B : rank-2 array('d') with bounds (n,max(m,p))
+        The leading n-by-n part of this array contains the input/state matrix B;
+        the remainder of the leading n-by-max(m,p) part is used as internal
+        workspace.
+    C : (max(m,p), n) ndarray
+        The leading p-by-n part of this array contains the state/output matrix C;
+        the remainder of the leading max(m,p)-by-n part is used as internal
+        workspace.
+    D : (max(m,p), max(m,p)) ndarray
+        The leading p-by-m part of this array contains the direct transmission
+        matrix D; the remainder of the leading max(m,p)-by-max(m,p) part is
+        used as internal workspace.
+    
     Raises
     ------
     SlycotArithmeticError
@@ -730,7 +819,6 @@ def tc04ad(m,p,index,pcoeff,qcoeff,leri,ldwork=None):
     raise_if_slycot_error(out[-1], arg_list, tc04ad.__doc__, locals())
     return out[:-1]
 
-
 def tc01od(m,p,indlin,pcoeff,qcoeff,leri):
     """ pcoeff,qcoeff = tc01od_l(m,p,indlim,pcoeff,qcoeff,leri)
 
@@ -739,39 +827,41 @@ def tc01od(m,p,indlin,pcoeff,qcoeff,leri):
     polynomial matrix representations are of the form Q(s)*inv(P(s)) and
     inv(P(s))*Q(s) respectively.
 
-    Required arguments:
-        m : input int
-            The number of system inputs.  m > 0.
-        p : input int
-            The number of system outputs.  p > 0.
-        indlim : input int
-            The highest value of k for which pcoeff(.,.,k) and qcoeff(.,.,k)
-            are to be transposed.
-            k = kpcoef + 1, where kpcoef is the maximum degree of the polynomials
-            in P(s).  indlim > 0.
-        pcoeff : input rank-3 array('d') with bounds (p,p,indlim) or (m,m,indlim)
-            If leri = 'L' then porm = p, otherwise porm = m.
-            On entry, the leading porm-by-porm-by-indlim part of this array
-            must contain the coefficients of the denominator matrix P(s).
-            pcoeff(i,j,k) is the coefficient in s**(indlim-k) of polynomial
-            (i,j) of P(s), where k = 1,2,...,indlim.
-        qcoeff : input rank-3 array('d') with bounds (max(m,p),max(m,p),indlim)
-            On entry, the leading p-by-m-by-indlim part of this array must
-            contain the coefficients of the numerator matrix Q(s).
-            qcoeff(i,j,k) is the coefficient in s**(indlim-k) of polynomial
-            (i,j) of Q(s), where k = 1,2,...,indlim.
-        leri : input string(len=1)
-    Return objects:
-        pcoeff : rank-3 array('d') with bounds (p,p,indlim)
-            On exit, the leading porm-by-porm-by-indlim part of this array
-            contains the coefficients of the denominator matrix P'(s) of
-            the dual system.
-        qcoeff : rank-3 array('d') with bounds (max(m,p),max(m,p),indlim)
-            On exit, the leading m-by-p-by-indlim part of the array contains
-            the coefficients of the numerator matrix Q'(s) of the dual system.
-        info : int
-            = 0:  successful exit;
-            < 0:  if info = -i, the i-th argument had an illegal value.
+    Parameters
+    ----------
+    m : int
+        The number of system inputs. m > 0.
+    p : int
+        The number of system outputs. p > 0.
+    indlim : int
+        The highest value of k for which pcoeff(.,.,k) and qcoeff(.,.,k)
+        are to be transposed.
+        k = kpcoef + 1, where kpcoef is the maximum degree of the polynomials
+        in P(s).  indlim > 0.
+    pcoeff : (p, p, indlim) or (m, m, indlim) array_like
+        If leri = 'L' then porm = p, otherwise porm = m.
+        On entry, the leading porm-by-porm-by-indlim part of this array
+        must contain the coefficients of the denominator matrix P(s).
+        pcoeff(i,j,k) is the coefficient in s**(indlim-k) of polynomial
+        (i,j) of P(s), where k = 1,2,...,indlim.
+    qcoeff : (max(m,p), max(m,p), indlim) array_like
+        On entry, the leading p-by-m-by-indlim part of this array must
+        contain the coefficients of the numerator matrix Q(s).
+        qcoeff(i,j,k) is the coefficient in s**(indlim-k) of polynomial
+        (i,j) of Q(s), where k = 1,2,...,indlim.
+    leri : {'L', 'R'}
+        = 'L':  A left matrix fraction is input;
+        = 'R':  A right matrix fraction is input.
+
+    Returns
+    -------
+    pcoeff : (p, p, indlim) ndarray
+        On exit, the leading porm-by-porm-by-indlim part of this array
+        contains the coefficients of the denominator matrix P'(s) of
+        the dual system.
+    qcoeff : (max(m,p), max(m,p), indlim) ndarray
+        On exit, the leading m-by-p-by-indlim part of the array contains
+        the coefficients of the numerator matrix Q'(s) of the dual system.
     """
     hidden = ' (hidden by the wrapper)'
     arg_list = ['leri', 'M', 'P', 'indlim', 'pcoeff', 'LDPCO1'+hidden,
@@ -793,32 +883,35 @@ def tf01md(n,m,p,N,A,B,C,D,u,x0):
     To compute the output sequence of a linear time-invariant
     open-loop system given by its discrete-time state-space model
 
-    Required arguments:
-        n : input int
-            Order of the State-space representation.
-        m : input int
-            Number of inputs.
-        p : input int
-            Number of outputs.
-        N : input int
-            Number of output samples to be computed.
-        A : input rank-2 array('d') with bounds (n,n)
-            State dynamics matrix.
-        B : input rank-2 array('d') with bounds (n,m)
-            Input/state matrix.
-        C : input rank-2 array('d') with bounds (p,n)
-            State/output matrix.
-        D : input rank-2 array('d') with bounds (p,m)
-            Direct transmission matrix.
-        u : input rank-2 array('d') with bounds (m,N)
-            Input signal.
-        x0 : input rank-1 array('d') with bounds (n)
-            Initial state, at time 0.
-    Return objects:
-        xf : rank-1 array('d') with bounds (n)
-            Final state, at time N+1.
-        y : rank-2 array('d') with bounds (p,N)
-            Output signal.
+    Parameters
+    ----------
+    n : int
+        Order of the State-space representation.
+    m : int
+        Number of inputs.
+    p : int
+        Number of outputs.
+    N : int
+        Number of output samples to be computed.
+    A : (n, n) array_like
+        State dynamics matrix.
+    B : (n, m) array_like
+        Input/state matrix.
+    C : (p, n) array_like
+        State/output matrix.
+    D : (p, m) array_like
+        Direct transmission matrix.
+    u : (m, n)
+        Input signal.
+    x0 : (n, ) array_like
+        Initial state, at time 0.
+    
+    Returns
+    -------
+    xf : (n) ndarray
+        Final state, at time n+1.
+    y : (p, n) ndarray
+        Output signal.
     """
     hidden = ' (hidden by the wrapper)'
     arg_list = ['n','m','p','ny','A','lda'+hidden,'B','ldb'+hidden,
@@ -839,28 +932,31 @@ def tf01rd(n,m,p,N,A,B,C,ldwork=None):
     All matrices are treated as dense, and hence TF01RD is not
     intended for large sparse problems.
 
+    Parameters
+    ----------
+    n : int
+        Order of the State-space representation.
+    m : int
+        Number of inputs.
+    p : int
+        Number of outputs.
+    N : int
+        Number of Markov parameters to be computed.
+    A : (n, n) array_like
+        State dynamics matrix.
+    B : (n, m) array_like
+        Input/state matrix.
+    C : (p, n) array_like
+        State/output matrix.
+    ldwork : int, optional
+        The length of the array DWORK.
+        ldwork >= max(1, 2*n*p).
 
-    Required arguments:
-        n : input int
-            Order of the State-space representation.
-        m : input int
-            Number of inputs.
-        p : input int
-            Number of outputs.
-        N : input int
-            Number of Markov parameters to be computed.
-        A : input rank-2 array('d') with bounds (n,n)
-            State dynamics matrix.
-        B : input rank-2 array('d') with bounds (n,m)
-            Input/state matrix.
-        C : input rank-2 array('d') with bounds (p,n)
-            State/output matrix.
-    Optional arguments:
-        ldwork := 2*na*nc input int
-    Return objects:
-        H : rank-2 array('d') with bounds (p,N*m)
-            H[:,(k-1)*m : k*m] contains the k-th Markov parameter,
-            for k = 1,2...N.
+    Returns
+    -------
+    H : (p, N*m) ndarray
+        H[:,(k-1)*m : k*m] contains the k-th Markov parameter,
+        for k = 1,2...N.
     """
     hidden = ' (hidden by the wrapper)'
     arg_list = ['n','m','p','N','A','lda'+hidden,'B','ldb'+hidden,'C',
@@ -872,86 +968,6 @@ def tf01rd(n,m,p,N,A,B,C,ldwork=None):
         out = _wrapper.tf01rd(n,m,p,N,A,B,C,ldwork=ldwork)
     raise_if_slycot_error(out[-1], arg_list)
     return out[0]
-
-def tb01pd(n, m, p, A, B, C, job='M', equil='S', tol=1e-8, ldwork=None):
-    """Ar, Br, Cr, nr = tb01pd(n,m,p,A,B,C,[job,equil,tol,ldwork])
-
-    To find a reduced (controllable, observable, or minimal) state-
-    space representation (Ar,Br,Cr) for any original state-space
-    representation (A,B,C). The matrix Ar is in upper block
-    Hessenberg form.
-
-    Required arguments:
-        n : input int
-            Order of the State-space representation.
-        m : input int
-            Number of inputs.
-        p : input int
-            Number of outputs.
-        A : input rank-2 array('d') with bounds (n,n)
-            State dynamics matrix.
-        B : input rank-2 array('d') with bounds (n,max(m,p))
-            The leading n-by-m part of this array must contain the original
-            input/state matrix B; the remainder of the leading n-by-max(m,p)
-            part is used as internal workspace.
-        C : input rank-2 array('d') with bounds (p,n)
-            The leading p-by-n part of this array must contain the original
-            state/output matrix C; the remainder of the leading max(1,m,p)-by-n
-            part is used as internal workspace.
-    Optional arguments:
-        job : input char*1
-            Indicates whether the user wishes to remove the
-            uncontrollable and/or unobservable parts as follows:
-            = 'M':  Remove both the uncontrollable and unobservable
-                    parts to get a minimal state-space representation;
-            = 'C':  Remove the uncontrollable part only to get a
-                    controllable state-space representation;
-            = 'O':  Remove the unobservable part only to get an
-                    observable state-space representation.
-        equil : input char*1
-            Specifies whether the user wishes to preliminarily balance
-            the triplet (A,B,C) as follows:
-            = 'S':  Perform balancing (scaling);
-            = 'N':  Do not perform balancing.
-    Return objects:
-        Ar : output rank-2 array('d') with bounds (nr,nr)
-            Contains the upper block Hessenberg state dynamics matrix
-            Ar of a minimal, controllable, or observable realization
-            for the original system, depending on the value of JOB,
-            JOB = 'M', JOB = 'C', or JOB = 'O', respectively.
-        Br : output rank-2 array('d') with bounds (nr,m)
-            Contains the transformed input/state matrix Br of a
-            minimal, controllable, or observable realization for the
-            original system, depending on the value of JOB, JOB = 'M',
-            JOB = 'C', or JOB = 'O', respectively.  If JOB = 'C', only
-            the first IWORK(1) rows of B are nonzero.
-        Cr : output rank-2 array('d') with bounds (p,nr)
-
-            Contains the transformed state/output matrix Cr of a
-            minimal, C controllable, or observable realization for the
-            original C system, depending on the value of JOB, JOB =
-            'M', C JOB = 'C', or JOB = 'O', respectively.  C If JOB =
-            'M', or JOB = 'O', only the last IWORK(1) columns C (in
-            the first NR columns) of C are nonzero.
-        nr : output int
-            The order of the reduced state-space representation
-            (Ar,Br,Cr) of a minimal, controllable, or observable
-            realization for the original system, depending on
-            JOB = 'M', JOB = 'C', or JOB = 'O'.
-    """
-    hidden = ' (hidden by the wrapper)'
-    arg_list = ['job', 'equil', 'n','m','p','A','lda'+hidden,'B','ldb'+hidden,
-                'C','ldc'+hidden,'nr','tol','iwork'+hidden,'dwork'+hidden,
-                'ldwork','info'+hidden]
-    if ldwork is None:
-        ldwork = max(1, n+max(n,3*m,3*p))
-    elif ldwork < max(1, n+max(n,3*m,3*p)):
-        raise SlycotParameterError("ldwork is too small", -15)
-    out = _wrapper.tb01pd(n=n,m=m,p=p,a=A,b=B,c=C,
-                          job=job,equil=equil,tol=tol,ldwork=ldwork)
-
-    raise_if_slycot_error(out[-1], arg_list)
-    return out[:-1]
 
 def tg01ad(l,n,m,p,A,E,B,C,thresh=0.0,job='A'):
     """ A,E,B,C,lscale,rscale = tg01ad(l,n,m,p,A,E,B,C,[thresh,job])
@@ -981,64 +997,69 @@ def tg01ad(l,n,m,p,A,E,B,C,thresh=0.0,job='A'):
 
             S = ( A-lambda E ).
                 (     C      )
-    Required arguments:
-        l : input int
-            The number of rows of matrices A, B, and E.  l >= 0.
-        n : input int
-            The number of columns of matrices A, E, and C.  n >= 0.
-        m : input int
-            The number of columns of matrix B.  m >= 0.
-        p : input int
-            The number of rows of matrix C.  P >= 0.
-        A : rank-2 array('d') with bounds (l,n)
-            The leading L-by-N part of this array must
-            contain the state dynamics matrix A.
-        E : rank-2 array('d') with bounds (l,n)
-            The leading L-by-N part of this array must
-            contain the descriptor matrix E.
-        B : rank-2 array('d') with bounds (l,m)
-            The leading L-by-M part of this array must
-            contain the input/state matrix B.
-            The array B is not referenced if M = 0.
-        C : rank-2 array('d') with bounds (p,n)
-            The leading P-by-N part of this array must
-            contain the state/output matrix C.
-            The array C is not referenced if P = 0.
-    Optional arguments:
-        job := 'A' input string(len=1)
-          Indicates which matrices are involved in balancing, as
-          follows:
-          = 'A':  All matrices are involved in balancing;
-          = 'B':  B, A and E matrices are involved in balancing;
-          = 'C':  C, A and E matrices are involved in balancing;
-          = 'N':  B and C matrices are not involved in balancing.
-        thresh := 0.0 input float
-            Threshold value for magnitude of elements:
-            elements with magnitude less than or equal to
-            THRESH are ignored for balancing. THRESH >= 0.
-    Return objects:
-        A : rank-2 array('d') with bounds (l,n)
-          The leading L-by-N part of this array contains
-          the balanced matrix Dl*A*Dr.
-        E : rank-2 array('d') with bounds (l,n)
-          The leading L-by-N part of this array contains
-          the balanced matrix Dl*E*Dr.
-        B : rank-2 array('d') with bounds (l,m)
-          If M > 0, the leading L-by-M part of this array
-          contains the balanced matrix Dl*B.
-          The array B is not referenced if M = 0.
-        C : rank-2 array('d') with bounds (p,n)
-          If P > 0, the leading P-by-N part of this array
-          contains the balanced matrix C*Dr.
-          The array C is not referenced if P = 0.
-        lscale : rank-1 array('d') with bounds (l)
-          The scaling factors applied to S from left.  If Dl(j) is
-          the scaling factor applied to row j, then
-          SCALE(j) = Dl(j), for j = 1,...,L.
-        rscale : rank-1 array('d') with bounds (n)
-          The scaling factors applied to S from right.  If Dr(j) is
-          the scaling factor applied to column j, then
-          SCALE(j) = Dr(j), for j = 1,...,N.
+
+    Parameters
+    ----------
+    l : int
+        The number of rows of matrices A, B, and E.  l >= 0.
+    n : int
+        The number of columns of matrices A, E, and C.  n >= 0.
+    m : int
+        The number of columns of matrix B.  m >= 0.
+    p : int
+        The number of rows of matrix C.  P >= 0.
+    A : (l, n) array_like
+        The leading L-by-N part of this array must
+        contain the state dynamics matrix A.
+    E : (l, n) array_like
+        The leading L-by-N part of this array must
+        contain the descriptor matrix E.
+    B : (l, m) array_like
+        The leading L-by-M part of this array must
+        contain the input/state matrix B.
+        The array B is not referenced if M = 0.
+    C : (p, n) array_like
+        The leading P-by-N part of this array must
+        contain the state/output matrix C.
+        The array C is not referenced if P = 0.
+    job : {'A', 'B', 'C', 'N'}, optional
+        Indicates which matrices are involved in balancing, as
+        follows:
+        = 'A':  All matrices are involved in balancing;
+        = 'B':  B, A and E matrices are involved in balancing;
+        = 'C':  C, A and E matrices are involved in balancing;
+        = 'N':  B and C matrices are not involved in balancing.
+        Default is 'A'.
+    thresh : float, optional
+        Threshold value for magnitude of elements:
+        elements with magnitude less than or equal to
+        THRESH are ignored for balancing. THRESH >= 0.
+        Default is `0.0`.
+    
+    Returns
+    -------
+    A : (l, n) ndarray
+        The leading L-by-N part of this array contains
+        the balanced matrix Dl*A*Dr.
+    E : (l, n) ndarray
+        The leading L-by-N part of this array contains
+        the balanced matrix Dl*E*Dr.
+    B : (l, m) ndarray
+        If M > 0, the leading L-by-M part of this array
+        contains the balanced matrix Dl*B.
+        The array B is not referenced if M = 0.
+    C : (p, n) ndarray
+        If P > 0, the leading P-by-N part of this array
+        contains the balanced matrix C*Dr.
+        The array C is not referenced if P = 0.
+    lscale : (l, ) ndarray
+        The scaling factors applied to S from left.  If Dl(j) is
+        the scaling factor applied to row j, then
+        SCALE(j) = Dl(j), for j = 1,...,L.
+    rscale : (n, ) ndarray
+        The scaling factors applied to S from right.  If Dr(j) is
+        the scaling factor applied to column j, then
+        SCALE(j) = Dr(j), for j = 1,...,N.
     """
 
     hidden = ' (hidden by the wrapper)'
@@ -1072,132 +1093,141 @@ def tg01fd(l,n,m,p,A,E,B,C,Q=None,Z=None,compq='N',compz='N',joba='N',tol=0.0,ld
     The left and/or right orthogonal transformations performed
     to reduce E and A22 can be optionally accumulated.
 
-    Required arguments:
-        l : input int
-            The number of rows of matrices A, B, and E.  l >= 0.
-        n : input int
-            The number of columns of matrices A, E, and C.  n >= 0.
-        m : input int
-            The number of columns of matrix B.  m >= 0.
-        p : input int
-            The number of rows of matrix C.  p >= 0.
-        A : rank-2 array('d') with bounds (l,n)
-            The leading l-by-n part of this array must
-            contain the state dynamics matrix A.
-        E : rank-2 array('d') with bounds (l,n)
-            The leading l-by-n part of this array must
-            contain the descriptor matrix E.
-        B : rank-2 array('d') with bounds (l,m)
-            The leading L-by-M part of this array must
-            contain the input/state matrix B.
-        C : rank-2 array('d') with bounds (p,n)
-            The leading P-by-N part of this array must
-            contain the state/output matrix C.
-    Optional arguments:
-        Q : rank-2 array('d') with bounds (l,l)
-            If COMPQ = 'N':  Q is not referenced.
-            If COMPQ = 'I':  Q need not be set.
-            If COMPQ = 'U':  The leading l-by-l part of this
-                            array must contain an orthogonal matrix
-                            Q1.
-        Z : rank-2 array('d') with bounds (n,n)
-            If COMPZ = 'N':  Z is not referenced.
-            If COMPZ = 'I':  Z need not be set.
-            If COMPZ = 'U':  The leading n-by-n part of this
-                            array must contain an orthogonal matrix
-                            Z1.
-        compq := 'N' input string(len=1)
-            = 'N':  do not compute Q.
-            = 'I':  Q is initialized to the unit matrix, and the
-                    orthogonal matrix Q is returned.
-            = 'U':  Q must contain an orthogonal matrix Q1 on entry,
-                    and the product Q1*Q is returned.
-        compz := 'N' input string(len=1)
-            = 'N':  do not compute Z.
-            = 'I':  Z is initialized to the unit matrix, and the
-                    orthogonal matrix Z is returned.
-            = 'U':  Z must contain an orthogonal matrix Z1 on entry,
-                    and the product Z1*Z is returned.
-        joba := 'N' input string(len=1)
-            = 'N':  do not reduce A22.
-            = 'R':  reduce A22 to a SVD-like upper triangular form.
-            = 'T':  reduce A22 to an upper trapezoidal form.
-        tol := 0 input float
-            The tolerance to be used in determining the rank of E
-            and of A22. If the user sets TOL > 0, then the given
-            value of TOL is used as a lower bound for the
-            reciprocal condition numbers of leading submatrices
-            of R or R22 in the QR decompositions E * P = Q * R of E
-            or A22 * P22 = Q22 * R22 of A22.
-            A submatrix whose estimated condition number is less than
-            1/TOL is considered to be of full rank.  If the user sets
-            TOL <= 0, then an implicitly computed, default tolerance,
-            defined by  TOLDEF = L*N*EPS,  is used instead, where
-            EPS is the machine precision (see LAPACK Library routine
-            DLAMCH). TOL < 1.
-        ldwork : input int
-            The length of the cache array.
-            ldwork >= MAX( 1, n+p, MIN(l,n)+MAX(3*n-1,m,l) ).
-            For optimal performance, ldwork should be larger.
-    Return objects:
-        A : rank-2 array('d') with bounds (l,n)
-            On entry, the leading L-by-N part of this array must
-            contain the state dynamics matrix A.
-            On exit, the leading L-by-N part of this array contains
-            the transformed matrix Q'*A*Z. If JOBA = 'T', this matrix
-            is in the form
+    Parameters
+    ----------
+    l : int
+        The number of rows of matrices A, B, and E.  l >= 0.
+    n : int
+        The number of columns of matrices A, E, and C.  n >= 0.
+    m : int
+        The number of columns of matrix B.  m >= 0.
+    p : int
+        The number of rows of matrix C.  p >= 0.
+    A : (l, n) array_like
+        The leading l-by-n part of this array must
+        contain the state dynamics matrix A.
+    E : (l, n) array_like
+        The leading l-by-n part of this array must
+        contain the descriptor matrix E.
+    B : (l, m) array_like
+        The leading L-by-M part of this array must
+        contain the input/state matrix B.
+    C : (p, n) array_like
+        The leading P-by-N part of this array must
+    contain the state/output matrix C.
+    Q : (l, l) array_like, optional
+        If COMPQ = 'N':  Q is not referenced.
+        If COMPQ = 'I':  Q need not be set.
+        If COMPQ = 'U':  The leading l-by-l part of this
+                        array must contain an orthogonal matrix
+                        Q1.
+        Default is None.
+    Z : (n, n) array_like, optional
+        If COMPZ = 'N':  Z is not referenced.
+        If COMPZ = 'I':  Z need not be set.
+        If COMPZ = 'U':  The leading n-by-n part of this
+                        array must contain an orthogonal matrix
+                        Z1.
+        Default is None.
+    compq : {'N', 'I', 'U'}, optional
+        = 'N':  do not compute Q.
+        = 'I':  Q is initialized to the unit matrix, and the
+                orthogonal matrix Q is returned.
+        = 'U':  Q must contain an orthogonal matrix Q1 on entry,
+                and the product Q1*Q is returned.
+        Default is 'N'.
+    compz :  {'N', 'I', 'U'}, optional
+        = 'N':  do not compute Z.
+        = 'I':  Z is initialized to the unit matrix, and the
+                orthogonal matrix Z is returned.
+        = 'U':  Z must contain an orthogonal matrix Z1 on entry,
+                and the product Z1*Z is returned.
+        Default is 'N'.
+    joba :  {'N', 'R', 'T'}, optional
+        = 'N':  do not reduce A22.
+        = 'R':  reduce A22 to a SVD-like upper triangular form.
+        = 'T':  reduce A22 to an upper trapezoidal form.
+        Default is 'N'.
+    tol : float, optional
+        The tolerance to be used in determining the rank of E
+        and of A22. If the user sets TOL > 0, then the given
+        value of TOL is used as a lower bound for the
+        reciprocal condition numbers of leading submatrices
+        of R or R22 in the QR decompositions E * P = Q * R of E
+        or A22 * P22 = Q22 * R22 of A22.
+        A submatrix whose estimated condition number is less than
+        1/TOL is considered to be of full rank.  If the user sets
+        TOL <= 0, then an implicitly computed, default tolerance,
+        defined by  TOLDEF = L*N*EPS,  is used instead, where
+        EPS is the machine precision (see LAPACK Library routine
+        DLAMCH). TOL < 1.
+        Default is `0.0`.
+    ldwork : int, optional
+        The length of the cache array.
+        ldwork >= MAX( 1, n+p, MIN(l,n)+MAX(3*n-1,m,l) ).
+        For optimal performance, ldwork should be larger.
+        Default is None.
+    
+    Returns
+    -------
+    A : (l, n) ndarray
+        On entry, the leading L-by-N part of this array must
+        contain the state dynamics matrix A.
+        On exit, the leading L-by-N part of this array contains
+        the transformed matrix Q'*A*Z. If JOBA = 'T', this matrix
+        is in the form
 
-                         ( A11  *   *  )
-                Q'*A*Z = (  *   Ar  X  ) ,
-                         (  *   0   0  )
+                        ( A11  *   *  )
+            Q'*A*Z = (  *   Ar  X  ) ,
+                        (  *   0   0  )
 
-            where A11 is a RANKE-by-RANKE matrix and Ar is a
-            RNKA22-by-RNKA22 invertible upper triangular matrix.
-            If JOBA = 'R' then A has the above form with X = 0.
-        E : rank-2 array('d') with bounds (l,n)
-            The leading L-by-N part of this array contains
-            the transformed matrix Q'*E*Z.
+        where A11 is a RANKE-by-RANKE matrix and Ar is a
+        RNKA22-by-RNKA22 invertible upper triangular matrix.
+        If JOBA = 'R' then A has the above form with X = 0.
+    E : (l, n) ndarray
+        The leading L-by-N part of this array contains
+        the transformed matrix Q'*E*Z.
 
-                     ( Er  0 )
-            Q'*E*Z = (       ) ,
-                     (  0  0 )
+                    ( Er  0 )
+        Q'*E*Z = (       ) ,
+                    (  0  0 )
 
-            where Er is a RANKE-by-RANKE upper triangular invertible
-            matrix.
-        B : rank-2 array('d') with bounds (l,m)
-            The leading L-by-M part of this array contains
-            the transformed matrix Q'*B.
-        C : rank-2 array('d') with bounds (p,n)
-            The leading P-by-N part of this array contains
-            the transformed matrix C*Z.
-        Q : rank-2 array('d') with bounds (l,l)
-            If COMPQ = 'N':  Q is not referenced.
-            If COMPQ = 'I':  The leading L-by-L part of this
-                            array contains the orthogonal matrix Q,
-                            where Q' is the product of Householder
-                            transformations which are applied to A,
-                            E, and B on the left.
-            If COMPQ = 'U':  The leading L-by-L part of this
-                            array contains the orthogonal matrix
-                            Q1*Q.
-        Z : rank-2 array('d') with bounds (n,n)
-            If COMPZ = 'N':  Z is not referenced.
-            If COMPZ = 'I':  The leading N-by-N part of this
-                            array contains the orthogonal matrix Z,
-                            which is the product of Householder
-                            transformations applied to A, E, and C
-                            on the right.
-            If COMPZ = 'U':  The leading N-by-N part of this
-                            array contains the orthogonal matrix
-                            Z1*Z.
-        ranke : output int
-            The estimated rank of matrix E, and thus also the order
-            of the invertible upper triangular submatrix Er.
-        rnka22 : output int
-            If JOBA = 'R' or 'T', then RNKA22 is the estimated rank of
-            matrix A22, and thus also the order of the invertible
-            upper triangular submatrix Ar.
-            If JOBA = 'N', then RNKA22 is not referenced.
+        where Er is a RANKE-by-RANKE upper triangular invertible
+        matrix.
+    B : (l, m) ndarray
+        The leading L-by-M part of this array contains
+        the transformed matrix Q'*B.
+    C : (p, n) ndarray
+        The leading P-by-N part of this array contains
+        the transformed matrix C*Z.
+    ranke : int
+        The estimated rank of matrix E, and thus also the order
+        of the invertible upper triangular submatrix Er.
+    rnka22 : int
+        If JOBA = 'R' or 'T', then RNKA22 is the estimated rank of
+        matrix A22, and thus also the order of the invertible
+        upper triangular submatrix Ar.
+        If JOBA = 'N', then RNKA22 is not referenced.
+    Q : (l, l) ndarray
+        If COMPQ = 'N':  Q is not referenced.
+        If COMPQ = 'I':  The leading L-by-L part of this
+                        array contains the orthogonal matrix Q,
+                        where Q' is the product of Householder
+                        transformations which are applied to A,
+                        E, and B on the left.
+        If COMPQ = 'U':  The leading L-by-L part of this
+                        array contains the orthogonal matrix
+                        Q1*Q.
+    Z : (n, n) ndarray
+        If COMPZ = 'N':  Z is not referenced.
+        If COMPZ = 'I':  The leading N-by-N part of this
+                        array contains the orthogonal matrix Z,
+                        which is the product of Householder
+                        transformations applied to A, E, and C
+                        on the right.
+        If COMPZ = 'U':  The leading N-by-N part of this
+                        array contains the orthogonal matrix
+                        Z1*Z.
     """
 
     hidden = ' (hidden by the wrapper)'
