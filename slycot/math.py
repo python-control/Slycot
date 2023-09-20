@@ -17,10 +17,10 @@
 #       Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 #       MA 02110-1301, USA.
 
-import numpy as np
 from . import _wrapper
 from .exceptions import raise_if_slycot_error
 
+import numpy as np
 
 def mb02ed(n: int, k: int, T: np.ndarray, B: np.ndarray, typet: str, nrhs: int):
     hidden = " (hidden by the wrapper)"
@@ -44,8 +44,7 @@ def mb02ed(n: int, k: int, T: np.ndarray, B: np.ndarray, typet: str, nrhs: int):
 
     return b
 
-
-def mb03rd(n, A, X=None, jobx="U", sort="N", pmax=1.0, tol=0.0):
+def mb03rd(n, A, X=None, jobx='U', sort='N', pmax=1.0, tol=0.0):
     """Ar, Xr, blsize, W = mb03rd(n, A, [X, jobx, sort, pmax, tol])
 
     To reduce a matrix `A` in real Schur form to a block-diagonal form
@@ -245,44 +244,30 @@ def mb03rd(n, A, X=None, jobx="U", sort="N", pmax=1.0, tol=0.0):
            SIAM J. Numer. Anal., 20, pp. 599-610, 1983.
 
     """
-    hidden = " (hidden by the wrapper)"
-    arg_list = [
-        "jobx",
-        "sort",
-        "n",
-        "pmax",
-        "A",
-        "lda" + hidden,
-        "X",
-        "ldx" + hidden,
-        "nblcks",
-        "blsize",
-        "wr",
-        "wi",
-        "tol",
-        "dwork" + hidden,
-        "info",
-    ]
+    hidden = ' (hidden by the wrapper)'
+    arg_list = ['jobx', 'sort', 'n', 'pmax',
+                'A', 'lda' + hidden, 'X', 'ldx' + hidden,
+                'nblcks', 'blsize', 'wr', 'wi', 'tol',
+                'dwork' + hidden, 'info']
 
     if X is None:
         X = np.eye(n)
 
     Ar, Xr, nblcks, blsize, wr, wi, info = _wrapper.mb03rd(
-        jobx, sort, n, pmax, A, X, tol
-    )
+        jobx, sort, n, pmax, A, X, tol)
 
     raise_if_slycot_error(info, arg_list)
-    if jobx == "N":
+    if jobx == 'N':
         Xr = None
     else:
         Xr = Xr[:n, :n]
     Ar = Ar[:n, :n]
-    W = wr + 1j * wi
+    W = wr + 1J*wi
     return Ar, Xr, blsize[:nblcks], W
 
 
 def mb03vd(n, ilo, ihi, A):
-    """HQ, Tau = mb03vd(n, ilo, ihi, A)
+    """ HQ, Tau = mb03vd(n, ilo, ihi, A)
 
     To reduce a product of p real general matrices A = A_1*A_2*...*A_p
     to upper Hessenberg form, H = H_1*H_2*...*H_p, where H_1 is
@@ -390,20 +375,11 @@ def mb03vd(n, ilo, ihi, A):
     (1,2) in A_p is also unchanged for this example.)
 
     """
-    hidden = " (hidden by the wrapper)"
-    arg_list = [
-        "n",
-        "p" + hidden,
-        "ilo",
-        "ihi",
-        "a",
-        "lda1" + hidden,
-        "lda2" + hidden,
-        "tau",
-        "ldtau" + hidden,
-        "dwork" + hidden,
-        "info",
-    ]
+    hidden = ' (hidden by the wrapper)'
+    arg_list = ['n', 'p' + hidden,
+                'ilo', 'ihi', 'a',
+                'lda1' + hidden, 'lda2' + hidden, 'tau',
+                'ldtau' + hidden, 'dwork' + hidden, 'info']
 
     HQ, Tau, info = _wrapper.mb03vd(n, ilo, ihi, A)
 
@@ -412,7 +388,7 @@ def mb03vd(n, ilo, ihi, A):
 
 
 def mb03vy(n, ilo, ihi, A, Tau, ldwork=None):
-    """Q = mb03vy(n, ilo, ihi, A, Tau, [ldwork])
+    """ Q = mb03vy(n, ilo, ihi, A, Tau, [ldwork])
 
     To generate the real orthogonal matrices Q_1, Q_2, ..., Q_p,
     which are defined as the product of ihi-ilo elementary reflectors
@@ -456,21 +432,11 @@ def mb03vy(n, ilo, ihi, A, Tau, ldwork=None):
 
     """
 
-    hidden = " (hidden by the wrapper)"
-    arg_list = [
-        "n",
-        "p" + hidden,
-        "ilo",
-        "ihi",
-        "a",
-        "lda1" + hidden,
-        "lda2" + hidden,
-        "tau",
-        "ldtau" + hidden,
-        "dwork" + hidden,
-        "ldwork",
-        "info" + hidden,
-    ]
+    hidden = ' (hidden by the wrapper)'
+    arg_list = ['n', 'p' + hidden,
+                'ilo', 'ihi', 'a',
+                'lda1' + hidden, 'lda2' + hidden, 'tau',
+                'ldtau' + hidden, 'dwork' + hidden, 'ldwork', 'info' + hidden]
 
     if not ldwork:
         ldwork = max(1, 2 * n)
@@ -483,155 +449,139 @@ def mb03vy(n, ilo, ihi, A, Tau, ldwork=None):
 
 
 def mb03wd(job, compz, n, ilo, ihi, iloz, ihiz, H, Q, ldwork=None):
-    """T, Z, Wr = mb03wd(job, compz, n, ilo, ihi, iloz, ihiz, H, Q, [ldwork])
+    """ T, Z, Wr = mb03wd(job, compz, n, ilo, ihi, iloz, ihiz, H, Q, [ldwork])
 
-     To compute the Schur decomposition and the eigenvalues of a
-     product of matrices, H = H_1*H_2*...*H_p, with H_1 an upper
-     Hessenberg matrix and H_2, ..., H_p upper triangular matrices,
-     without evaluating the product. Specifically, the matrices Z_i
-     are computed, such that
+    To compute the Schur decomposition and the eigenvalues of a
+    product of matrices, H = H_1*H_2*...*H_p, with H_1 an upper
+    Hessenberg matrix and H_2, ..., H_p upper triangular matrices,
+    without evaluating the product. Specifically, the matrices Z_i
+    are computed, such that
 
-     ::
+    ::
 
-             Z_1' * H_1 * Z_2 = T_1,
-             Z_2' * H_2 * Z_3 = T_2,
-                    ...
-             Z_p' * H_p * Z_1 = T_p,
+            Z_1' * H_1 * Z_2 = T_1,
+            Z_2' * H_2 * Z_3 = T_2,
+                   ...
+            Z_p' * H_p * Z_1 = T_p,
 
-     where T_1 is in real Schur form, and T_2, ..., T_p are upper
-     triangular.
+    where T_1 is in real Schur form, and T_2, ..., T_p are upper
+    triangular.
 
-     The routine works primarily with the Hessenberg and triangular
-     submatrices in rows and columns ilo to ihi, but optionally applies
-     the transformations to all the rows and columns of the matrices
-     H_i, i = 1,...,p. The transformations can be optionally
-     accumulated.
+    The routine works primarily with the Hessenberg and triangular
+    submatrices in rows and columns ilo to ihi, but optionally applies
+    the transformations to all the rows and columns of the matrices
+    H_i, i = 1,...,p. The transformations can be optionally
+    accumulated.
 
-     Parameters
-     ----------
-     job : {'E', 'S'}
-             Indicates whether the user wishes to compute the full
-             Schur form or the eigenvalues only, as follows:
-             = 'E':  Compute the eigenvalues only;
-             = 'S':  Compute the factors T_1, ..., T_p of the full
-                     Schur form, T = T_1*T_2*...*T_p.
-    compz : {'N', 'I', 'V'}
-             Indicates whether or not the user wishes to accumulate
-             the matrices Z_1, ..., Z_p, as follows:
-             = 'N':  The matrices Z_1, ..., Z_p are not required;
-             = 'I':  Z_i is initialized to the unit matrix and the
-                     orthogonal transformation matrix Z_i is returned,
-                     i = 1, ..., p;
-             = 'V':  Z_i must contain an orthogonal matrix Q_i on
-                     entry, and the product Q_i*Z_i is returned,
-                     i = 1, ..., p.
-     n : int
-             The order of the matrix H.  n >= 0
-     ilo, ihi : int
-             It is assumed that all matrices H_j, j = 2, ..., p, are
-             already upper triangular in rows and columns [:ilo-1] and
-             [ihi:n], and H_1 is upper quasi-triangular in rows and
-             columns [:ilo-1] and [ihi:n], with H_1[ilo-1,ilo-2] = 0
-             (unless ilo = 1), and H_1[ihi,ihi-1] = 0 (unless ihi = n).
-             The routine works primarily with the Hessenberg submatrix
-             in rows and columns ilo to ihi, but applies the
-             transformations to all the rows and columns of the
-             matrices H_i, i = 1,...,p, if JOB = 'S'.
-             1 <= ilo <= max(1,n); min(ilo,n) <= ihi <= n.
-     iloz, ihiz : int
-             Specify the rows of Z to which the transformations must be
-             applied if compz = 'I' or compz = 'V'.
-             1 <= iloz <= ilo; ihi <= ihiz <= n.
-     H : array_like
-             H[:n,:n,0] must contain the upper Hessenberg matrix H_1 and
-             H[:n,:n,j-1] for j > 1 must contain the upper triangular matrix
-             H_j, j = 2, ..., p.
-     Q : array_like
-             If compz = 'V', Q[:n,:n,:p] must contain the current matrix Q of
-             transformations accumulated by SLICOT Library routine
-             MB03VY.
-             If compz = 'I', Q is ignored
-     ldwork : int, optional
-             The length of the cache array. The default value is
-             ihi-ilo+p-1
+    Parameters
+    ----------
+    job : {'E', 'S'}
+            Indicates whether the user wishes to compute the full
+            Schur form or the eigenvalues only, as follows:
+            = 'E':  Compute the eigenvalues only;
+            = 'S':  Compute the factors T_1, ..., T_p of the full
+                    Schur form, T = T_1*T_2*...*T_p.
+   compz : {'N', 'I', 'V'}
+            Indicates whether or not the user wishes to accumulate
+            the matrices Z_1, ..., Z_p, as follows:
+            = 'N':  The matrices Z_1, ..., Z_p are not required;
+            = 'I':  Z_i is initialized to the unit matrix and the
+                    orthogonal transformation matrix Z_i is returned,
+                    i = 1, ..., p;
+            = 'V':  Z_i must contain an orthogonal matrix Q_i on
+                    entry, and the product Q_i*Z_i is returned,
+                    i = 1, ..., p.
+    n : int
+            The order of the matrix H.  n >= 0
+    ilo, ihi : int
+            It is assumed that all matrices H_j, j = 2, ..., p, are
+            already upper triangular in rows and columns [:ilo-1] and
+            [ihi:n], and H_1 is upper quasi-triangular in rows and
+            columns [:ilo-1] and [ihi:n], with H_1[ilo-1,ilo-2] = 0
+            (unless ilo = 1), and H_1[ihi,ihi-1] = 0 (unless ihi = n).
+            The routine works primarily with the Hessenberg submatrix
+            in rows and columns ilo to ihi, but applies the
+            transformations to all the rows and columns of the
+            matrices H_i, i = 1,...,p, if JOB = 'S'.
+            1 <= ilo <= max(1,n); min(ilo,n) <= ihi <= n.
+    iloz, ihiz : int
+            Specify the rows of Z to which the transformations must be
+            applied if compz = 'I' or compz = 'V'.
+            1 <= iloz <= ilo; ihi <= ihiz <= n.
+    H : array_like
+            H[:n,:n,0] must contain the upper Hessenberg matrix H_1 and
+            H[:n,:n,j-1] for j > 1 must contain the upper triangular matrix
+            H_j, j = 2, ..., p.
+    Q : array_like
+            If compz = 'V', Q[:n,:n,:p] must contain the current matrix Q of
+            transformations accumulated by SLICOT Library routine
+            MB03VY.
+            If compz = 'I', Q is ignored
+    ldwork : int, optional
+            The length of the cache array. The default value is
+            ihi-ilo+p-1
 
-     Returns
-     -------
-     T : ndarray
-             3D array with the same shape as H.
-             If JOB = 'S', T[:n,:n,0] is upper quasi-triangular in rows
-             and columns [ilo-1:ihi], with any 2-by-2 diagonal blocks
-             corresponding to a pair of complex conjugated eigenvalues, and
-             T[:n,:n,j-1] for j > 1 contains the resulting upper
-             triangular matrix T_j.
-             If job = 'E', T is None
-     Z : ndarray
-             3D array with the same shape as Q.
-             If compz = 'V', or compz = 'I', the leading
-             N-by-N-by-P part of this array contains the transformation
-             matrices which produced the Schur form; the
-             transformations are applied only to the submatrices
-             Z[iloz-1:ihiz,ilo-1:ihi,j-1], j = 1, ..., p.
-             If compz = 'N', Z is None
-     W : (n,) complex ndarray
-             The computed eigenvalues ilo to ihi. If two eigenvalues
-             are computed as a complex conjugate pair, they are stored
-             in consecutive elements of W say the i-th and
-             (i+1)th, with imag(W][i]) > 0 and imag(W[i+1]) < 0.
-             If JOB = 'S', the eigenvalues are stored in the same order
-             as on the diagonal of the Schur form returned in H.
+    Returns
+    -------
+    T : ndarray
+            3D array with the same shape as H.
+            If JOB = 'S', T[:n,:n,0] is upper quasi-triangular in rows
+            and columns [ilo-1:ihi], with any 2-by-2 diagonal blocks
+            corresponding to a pair of complex conjugated eigenvalues, and
+            T[:n,:n,j-1] for j > 1 contains the resulting upper
+            triangular matrix T_j.
+            If job = 'E', T is None
+    Z : ndarray
+            3D array with the same shape as Q.
+            If compz = 'V', or compz = 'I', the leading
+            N-by-N-by-P part of this array contains the transformation
+            matrices which produced the Schur form; the
+            transformations are applied only to the submatrices
+            Z[iloz-1:ihiz,ilo-1:ihi,j-1], j = 1, ..., p.
+            If compz = 'N', Z is None
+    W : (n,) complex ndarray
+            The computed eigenvalues ilo to ihi. If two eigenvalues
+            are computed as a complex conjugate pair, they are stored
+            in consecutive elements of W say the i-th and
+            (i+1)th, with imag(W][i]) > 0 and imag(W[i+1]) < 0.
+            If JOB = 'S', the eigenvalues are stored in the same order
+            as on the diagonal of the Schur form returned in H.
 
-     Warns
-     -----
-     SlycotResultWarning
-         :info > 0:
-             failed to compute all the eigenvalues {ilo} to {ihi}
-             in a total of 30*({ihi}-{ilo}+1) iterations
-             the elements Wr[{info}:{ihi}] contains those
-             eigenvalues which have been successfully computed.
+    Warns
+    -----
+    SlycotResultWarning
+        :info > 0:
+            failed to compute all the eigenvalues {ilo} to {ihi}
+            in a total of 30*({ihi}-{ilo}+1) iterations
+            the elements Wr[{info}:{ihi}] contains those
+            eigenvalues which have been successfully computed.
     """
-    hidden = " (hidden by the wrapper)"
-    arg_list = [
-        "job",
-        "compz",
-        "n",
-        "p" + hidden,
-        "ilo",
-        "ihi",
-        "iloz",
-        "ihiz",
-        "h",
-        "ldh1" + hidden,
-        "ldh2" + hidden,
-        "z",
-        "ldz1" + hidden,
-        "ldz2" + hidden,
-        "wr",
-        "wi",
-        "dwork" + hidden,
-        "ldwork",
-        "info" + hidden,
-    ]
+    hidden = ' (hidden by the wrapper)'
+    arg_list = ['job', 'compz', 'n', 'p' + hidden,
+                'ilo', 'ihi', 'iloz', 'ihiz',
+                'h', 'ldh1' + hidden, 'ldh2' + hidden,
+                'z', 'ldz1' + hidden, 'ldz2' + hidden,
+                'wr', 'wi',
+                'dwork' + hidden, 'ldwork', 'info' + hidden]
 
     if not ldwork:
         p = H.shape[2]
         ldwork = max(1, ihi - ilo + p - 1)
 
     T, Z, Wr, Wi, info = _wrapper.mb03wd(
-        job, compz, n, ilo, ihi, iloz, ihiz, H, Q, ldwork
-    )
+            job, compz, n, ilo, ihi, iloz, ihiz, H, Q, ldwork)
     raise_if_slycot_error(info, arg_list, mb03rd.__doc__, locals())
 
-    if job == "E":
+    if job == 'E':
         T = None
-    if compz == "N":
+    if compz == 'N':
         Z = None
 
-    W = Wr + Wi * 1j
+    W = Wr + Wi*1J
     return (T, Z, W)
 
 
-def mb05md(a, delta, balanc="N"):
+def mb05md(a, delta, balanc='N'):
     """Ar, Vr, Yr, w = mb05md(a, delta, balanc='N')
 
     Matrix exponential for a real non-defective matrix
@@ -708,35 +658,24 @@ def mb05md(a, delta, balanc="N"):
         :info == n+2:
             Matrix A is defective, possibly due to rounding errors.
     """
-    hidden = " (hidden by the wrapper)"
-    arg_list = [
-        "balanc",
-        "n",
-        "delta",
-        "a",
-        "lda" + hidden,
-        "v",
-        "ldv" + hidden,
-        "y",
-        "ldy" + hidden,
-        "valr",
-        "vali",
-        "iwork" + hidden,
-        "dwork" + hidden,
-        "ldwork" + hidden,
-        "info" + hidden,
-    ]
+    hidden = ' (hidden by the wrapper)'
+    arg_list = ['balanc', 'n', 'delta', 'a', 'lda'+hidden, 'v', 'ldv'+hidden,
+                'y', 'ldy'+hidden, 'valr', 'vali',
+                'iwork'+hidden, 'dwork'+hidden, 'ldwork'+hidden,
+                'info'+hidden]
     n = min(a.shape)
-    (Ar, Vr, Yr, VALr, VALi, INFO) = _wrapper.mb05md(
-        balanc=balanc, n=n, delta=delta, a=a
-    )
+    (Ar, Vr, Yr, VALr, VALi, INFO) = _wrapper.mb05md(balanc=balanc,
+                                                     n=n,
+                                                     delta=delta,
+                                                     a=a)
     raise_if_slycot_error(INFO, arg_list, mb05md.__doc__, locals())
 
     if not all(VALi == 0):
-        w = VALr + 1j * VALi
+        w = VALr + 1J*VALi
     else:
         w = VALr
     return (Ar, Vr, Yr, w)
+
 
 
 def mb05nd(a, delta, tol=1e-7):
@@ -781,25 +720,15 @@ def mb05nd(a, delta, tol=1e-7):
             representable number near the overflow threshold of
             the machine (see LAPACK Library Routine DLAMCH).
     """
-    hidden = " (hidden by the wrapper)"
-    arg_list = [
-        "n",
-        "delta",
-        "a",
-        "lda" + hidden,
-        "ex",
-        "ldex" + hidden,
-        "exint",
-        "ldexin" + hidden,
-        "tol",
-        "iwork" + hidden,
-        "dwork" + hidden,
-        "ldwork" + hidden,
-    ]
+    hidden = ' (hidden by the wrapper)'
+    arg_list = ['n', 'delta', 'a', 'lda'+hidden, 'ex', 'ldex'+hidden,
+                'exint', 'ldexin'+hidden, 'tol', 'iwork'+hidden,
+                'dwork'+hidden, 'ldwork'+hidden]
     n = min(a.shape)
     out = _wrapper.mb05nd(n=n, delta=delta, a=a, tol=tol)
     raise_if_slycot_error(out[-1], arg_list, mb05nd.__doc__, locals())
     return out[:-1]
+
 
 
 def mc01td(dico, dp, p):
@@ -860,9 +789,9 @@ def mc01td(dico, dp, p):
             ``P(DB+1-j) = 0.0`` on entry
             for ``j = 0, 1,..., k-1`` and ``P(DB+1-k) <> 0.0``.
     """
-    hidden = " (hidden by the wrapper)"
-    arg_list = ["dico", "dp", "P", "stable",
-                "nz", "DWORK" + hidden, "IWARN", "INFO"]
+    hidden = ' (hidden by the wrapper)'
+    arg_list = ['dico', 'dp', 'P', 'stable', 'nz', 'DWORK' + hidden,
+                'IWARN', 'INFO']
     (dp_out, stable_log, nz, iwarn, info) = _wrapper.mc01td(dico, dp, p)
     raise_if_slycot_error([iwarn, info], arg_list, mc01td.__doc__, locals())
     ftrue, ffalse = _wrapper.ftruefalse()
