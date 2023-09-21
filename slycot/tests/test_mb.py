@@ -58,7 +58,7 @@ def test_mb02ed():
         [0.1653, 0.3307],
     ]
 
-    result = mb02ed(T=T, B=B, n=n, k=k, typet=TYPET, nrhs=nrhs)
+    result,_ = mb02ed(T=T, B=B, n=n, k=k, typet=TYPET, nrhs=nrhs)
     print(result)
     np.testing.assert_almost_equal(result, X, decimal=4)
 
