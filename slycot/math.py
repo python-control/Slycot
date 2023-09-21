@@ -40,27 +40,27 @@ def mb02ed(typet: str,T: np.ndarray, B: np.ndarray, n: int, k: int,  nrhs: int):
         Note: the notation x / y means that x corresponds to
                 typet = 'R' and y corresponds to typet = 'C'.
     T : ndarray
-            The leading K-by-N*K or N*K-by-K part of this array must contain the first
+            The leading k-by-n*k or n*k-by-k part of this array must contain the first
             block row/column of an s.p.d. block Toeplitz matrix.
     B : ndarray
-            The leading NRHS-by-N*K or N*K-by-NRHS part of this array must contain the
+            The leading nrhs-by-n*k or n*k-by-nrhs part of this array must contain the
             right-hand side matrix B.
     n : int
-            The number of blocks in T. N >= 0.
+            The number of blocks in T. n >= 0.
     k : int
-       The number of rows/columns in T, equal to the blocksize. K >= 0.
+       The number of rows/columns in T, equal to the blocksize. k >= 0.
     nrhs : int
-            The number of right-hand sides. NRHS >= 0.
+            The number of right-hand sides. nrhs >= 0.
 
     Returns
     -------
     X : ndarray
-        Leading NRHS-by-N*K / N*K-by-NRHS part of
+        Leading nrhs-by-n*k / n*k-by-nrhs part of
         this array contains the solution matrix X.
     T: ndarray
-        On exit, if no error is thrown  and  NRHS > 0,  then the leading
-          K-by-N*K / N*K-by-K part of this array contains the last
-          row / column of the Cholesky factor of inv(T).
+        On exit, if no error is thrown  and  nrhs > 0,  then the leading
+        k-by-n*k / n*k-by-k part of this array contains the last
+        row / column of the Cholesky factor of inv(T).
 
     Warns
     -----
