@@ -69,8 +69,14 @@ def mb02ed(typet: str,T: np.ndarray, B: np.ndarray, n: int, k: int,  nrhs: int):
             the reduction algorithm failed. The Toeplitz matrix associated
             with T is not numerically positive definite.
     SlycotParameterError
-        :info < 0:
-            if INFO = -i, the i-th argument had an illegal value.
+        :info = -1:
+            typet must be either "R" or "C"
+        :info = -2:
+            k must be >= 0
+        :info = -3:
+            n must be >= 0
+        :info = -4:
+            nrhs must be >= 0
 
     Notes
     -----
