@@ -10,12 +10,13 @@ from numpy.testing import assert_allclose
 from scipy.linalg import schur
 
 from slycot import math, mb02ed, mb03rd, mb03vd, mb03vy, mb03wd, mb05md, mb05nd
-from slycot.exceptions import SlycotArithmeticError, SlycotResultWarning
+from slycot.exceptions import SlycotArithmeticError, SlycotResultWarning, SlycotParameterError
 
 from .test_exceptions import assert_docstring_parse
 
 
-def test_mb02ed():
+def test_mb02ed_ex():
+    """Test MB02ED using the example given in the MB02ED SLICOT Documentation"""
     n = 3
     k = 3
     nrhs = 2
@@ -46,21 +47,141 @@ def test_mb02ed():
             [1.0000, 2.0000],
         ]
     )
-    X = [
-        [0.2408, 0.4816],
-        [0.1558, 0.3116],
-        [0.1534, 0.3068],
-        [0.2302, 0.4603],
-        [0.1467, 0.2934],
-        [0.1537, 0.3075],
-        [0.2349, 0.4698],
-        [0.1498, 0.2995],
-        [0.1653, 0.3307],
-    ]
+    X = np.array(
+        [
+            [0.2408, 0.4816],
+            [0.1558, 0.3116],
+            [0.1534, 0.3068],
+            [0.2302, 0.4603],
+            [0.1467, 0.2934],
+            [0.1537, 0.3075],
+            [0.2349, 0.4698],
+            [0.1498, 0.2995],
+            [0.1653, 0.3307],
+        ]
+    )
 
     result,_ = mb02ed(T=T, B=B, n=n, k=k, typet=TYPET, nrhs=nrhs)
-    print(result)
     np.testing.assert_almost_equal(result, X, decimal=4)
+
+def test_mb02ed_parameter_errors():
+    """Test for errors in the input parameters of MB02ED"""
+    n = 3
+    k = 3
+    nrhs = 2
+    TYPET = "C"
+    T = np.array(
+        [
+            [3.0000, 1.0000, 0.2000],
+            [1.0000, 4.0000, 0.4000],
+            [0.2000, 0.4000, 5.0000],
+            [0.1000, 0.1000, 0.2000],
+            [0.2000, 0.0400, 0.0300],
+            [0.0500, 0.2000, 0.1000],
+            [0.1000, 0.0300, 0.1000],
+            [0.0400, 0.0200, 0.2000],
+            [0.0100, 0.0300, 0.0200],
+        ]
+    )
+    B = np.array(
+        [
+            [1.0000, 2.0000],
+            [1.0000, 2.0000],
+            [1.0000, 2.0000],
+            [1.0000, 2.0000],
+            [1.0000, 2.0000],
+            [1.0000, 2.0000],
+            [1.0000, 2.0000],
+            [1.0000, 2.0000],
+            [1.0000, 2.0000],
+        ]
+    )
+    X = np.array(
+        [
+            [0.2408, 0.4816],
+            [0.1558, 0.3116],
+            [0.1534, 0.3068],
+            [0.2302, 0.4603],
+            [0.1467, 0.2934],
+            [0.1537, 0.3075],
+            [0.2349, 0.4698],
+            [0.1498, 0.2995],
+            [0.1653, 0.3307],
+        ]
+    )
+
+    # Test for negative number of columns
+    with pytest.raises(expected_exception=SlycotParameterError, match="k must be >= 0") as cm:
+        result,_ = mb02ed(T=T, B=B, n=n, k=-1, typet=TYPET, nrhs=nrhs)
+        assert cm.value.info == -2
+    # Test for negative number of blocks
+    with pytest.raises(expected_exception=SlycotParameterError, match="n must be >= 0") as cm:
+        result,_ = mb02ed(T=T, B=B, n=-1, k=n, typet=TYPET, nrhs=nrhs)
+        assert cm.value.info == -3
+    # Test for negative number of right hand sides
+    with pytest.raises(expected_exception=SlycotParameterError, match="nrhs must be >= 0") as cm:
+        result,_ = mb02ed(T=T, B=B, n=n, k=n, typet=TYPET, nrhs=-1)
+        assert cm.value.info == -4
+
+
+
+def test_mb02ed_matrix_error():
+    """Test for a negative definite input matrix in MB02ED"""
+    n = 3
+    k = 3
+    nrhs = 2
+    TYPET = "C"
+    T = np.array(
+        [
+            [3.0000, 1.0000, 0.2000],
+            [1.0000, 4.0000, 0.4000],
+            [0.2000, 0.4000, 5.0000],
+            [0.1000, 0.1000, 0.2000],
+            [0.2000, 0.0400, 0.0300],
+            [0.0500, 0.2000, 0.1000],
+            [0.1000, 0.0300, 0.1000],
+            [0.0400, 0.0200, 0.2000],
+            [0.0100, 0.0300, 0.0200],
+        ]
+    )
+    # Create a negative definite matrix
+    T = -1 * T
+    B = np.array(
+        [
+            [1.0000, 2.0000],
+            [1.0000, 2.0000],
+            [1.0000, 2.0000],
+            [1.0000, 2.0000],
+            [1.0000, 2.0000],
+            [1.0000, 2.0000],
+            [1.0000, 2.0000],
+            [1.0000, 2.0000],
+            [1.0000, 2.0000],
+        ]
+    )
+    X = np.array(
+        [
+            [0.2408, 0.4816],
+            [0.1558, 0.3116],
+            [0.1534, 0.3068],
+            [0.2302, 0.4603],
+            [0.1467, 0.2934],
+            [0.1537, 0.3075],
+            [0.2349, 0.4698],
+            [0.1498, 0.2995],
+            [0.1653, 0.3307],
+        ]
+    )
+
+    with pytest.raises(SlycotArithmeticError,
+                       match = r"the reduction algorithm failed."
+                       r"The Toeplitz matrix associated with T"
+                       r"is not numerically positive definite.") as cm:
+        mb02ed(T=T, B=B, n=n, k=k, typet=TYPET, nrhs=nrhs)
+        assert cm.value.info == 1
+
+
+
 
 def test_mb03rd():
     """ Test for Schur form reduction.

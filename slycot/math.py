@@ -18,13 +18,13 @@
 #       MA 02110-1301, USA.
 
 from . import _wrapper
-from .exceptions import raise_if_slycot_error
+from .exceptions import SlycotParameterError, raise_if_slycot_error
 
 import numpy as np
 
 
 def mb02ed(typet: str,T: np.ndarray, B: np.ndarray, n: int, k: int,  nrhs: int):
-    """ B = mb02ed(typet, T, B, n, k, nrhs)
+    """ X, T = mb02ed(typet, T, B, n, k, nrhs)
 
     Solve a system of linear equations T*X = B or X*T = B with a positive
     definite block Toeplitz matrix T.
@@ -58,18 +58,20 @@ def mb02ed(typet: str,T: np.ndarray, B: np.ndarray, n: int, k: int,  nrhs: int):
         Leading nrhs-by-n*k / n*k-by-nrhs part of
         this array contains the solution matrix X.
     T: ndarray
-        On exit, if no error is thrown  and  nrhs > 0,  then the leading
+        If no error is thrown  and  nrhs > 0,  then the leading
         k-by-n*k / n*k-by-k part of this array contains the last
         row / column of the Cholesky factor of inv(T).
 
     Warns
     -----
-    SlycotResultWarning
-        :info < 0:
-            if INFO = -i, the i-th argument had an illegal value;
+    SlycotArithmeticError
         :info = 1:
-            the reduction algorithm failed. The Toeplitz matrix
-            associated with T is not (numerically) positive definite.
+            the reduction algorithm failed. The Toeplitz matrix associated
+            with T is not numerically positive definite.
+    SlycotParameterError
+        :info < 0:
+            if INFO = -i, the i-th argument had an illegal value.
+
     Notes
     -----
     The algorithm uses Householder transformations, modified hyperbolic rotations,
@@ -109,9 +111,16 @@ def mb02ed(typet: str,T: np.ndarray, B: np.ndarray, n: int, k: int,  nrhs: int):
         "info",
     ]
 
-    T, X, info = _wrapper.mb02ed(typet="C", k=k, n=n, nrhs=nrhs, t=T, b=B)
+    if k < 0:
+        raise SlycotParameterError(message="k must be >= 0",info=-2)
+    if n< 0:
+        raise SlycotParameterError(message="n must be >= 0", info=-3)
+    if nrhs < 0:
+        raise SlycotParameterError(message="nrhs must be >= 0", info=-4)
 
-    raise_if_slycot_error(info, arg_list)
+    T, X, info = _wrapper.mb02ed(typet=typet, k=k, n=n, nrhs=nrhs, t=T, b=B)
+
+    raise_if_slycot_error(info, arg_list, docstring=mb02ed.__doc__, checkvars=locals())
 
     return X, T
 
