@@ -40,10 +40,10 @@ def mb02ed(typet: str, T: np.ndarray, B: np.ndarray, n: int, k: int,  nrhs: int)
         Note: the notation x / y means that x corresponds to
                 typet = 'R' and y corresponds to typet = 'C'.
     T : array_like
-            The leading k-by-n*k or n*k-by-k part of this array must contain the first
+            The leading k-by-n*k / n*k-by-k part of this array must contain the first
             block row/column of an s.p.d. block Toeplitz matrix.
     B : array_like
-            The leading nrhs-by-n*k or n*k-by-nrhs part of this array must contain the
+            The leading nrhs-by-n*k / n*k-by-nrhs part of this array must contain the
             right-hand side matrix B.
     n : int
             The number of blocks in T. n >= 0.
