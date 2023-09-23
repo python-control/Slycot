@@ -111,13 +111,6 @@ def mb02ed(typet: str,T: np.ndarray, B: np.ndarray, n: int, k: int,  nrhs: int):
         "info",
     ]
 
-    if k < 0:
-        raise SlycotParameterError(message="k must be >= 0",info=-2)
-    if n< 0:
-        raise SlycotParameterError(message="n must be >= 0", info=-3)
-    if nrhs < 0:
-        raise SlycotParameterError(message="nrhs must be >= 0", info=-4)
-
     T, X, info = _wrapper.mb02ed(typet=typet, k=k, n=n, nrhs=nrhs, t=T, b=B)
 
     raise_if_slycot_error(info, arg_list, docstring=mb02ed.__doc__, checkvars=locals())
