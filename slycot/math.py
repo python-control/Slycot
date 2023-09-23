@@ -62,8 +62,8 @@ def mb02ed(typet: str,T: np.ndarray, B: np.ndarray, n: int, k: int,  nrhs: int):
         k-by-n*k / n*k-by-k part of this array contains the last
         row / column of the Cholesky factor of inv(T).
 
-    Warns
-    -----
+    Raises
+    ------
     SlycotArithmeticError
         :info = 1:
             the reduction algorithm failed. The Toeplitz matrix associated
