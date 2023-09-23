@@ -128,7 +128,6 @@ def test_mb02ed_parameter_errors():
         assert cm.value.info == -4
 
 
-
 def test_mb02ed_matrix_error():
     """Test for a negative definite input matrix in MB02ED"""
     n = 3
@@ -178,13 +177,11 @@ def test_mb02ed_matrix_error():
     )
 
     with pytest.raises(SlycotArithmeticError,
-                       match = "\nthe reduction algorithm failed. "
+                       match = "The reduction algorithm failed. "
                        "The Toeplitz matrix associated\nwith T "
                        r"is not numerically positive definite.") as cm:
         mb02ed(T=T, B=B, n=n, k=k, typet=TYPET, nrhs=nrhs)
         assert cm.value.info == 1
-
-
 
 
 def test_mb03rd():

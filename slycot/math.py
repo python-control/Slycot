@@ -23,7 +23,7 @@ from .exceptions import raise_if_slycot_error
 import numpy as np
 
 
-def mb02ed(typet: str,T: np.ndarray, B: np.ndarray, n: int, k: int,  nrhs: int):
+def mb02ed(typet: str, T: np.ndarray, B: np.ndarray, n: int, k: int,  nrhs: int):
     """ X, T = mb02ed(typet, T, B, n, k, nrhs)
 
     Solve a system of linear equations T*X = B or X*T = B with a positive
@@ -39,10 +39,10 @@ def mb02ed(typet: str,T: np.ndarray, B: np.ndarray, n: int, k: int,  nrhs: int):
                 and the system T*X = B is solved.
         Note: the notation x / y means that x corresponds to
                 typet = 'R' and y corresponds to typet = 'C'.
-    T : ndarray
+    T : array_like
             The leading k-by-n*k or n*k-by-k part of this array must contain the first
             block row/column of an s.p.d. block Toeplitz matrix.
-    B : ndarray
+    B : array_like
             The leading nrhs-by-n*k or n*k-by-nrhs part of this array must contain the
             right-hand side matrix B.
     n : int
@@ -66,7 +66,7 @@ def mb02ed(typet: str,T: np.ndarray, B: np.ndarray, n: int, k: int,  nrhs: int):
     ------
     SlycotArithmeticError
         :info = 1:
-            the reduction algorithm failed. The Toeplitz matrix associated
+            The reduction algorithm failed. The Toeplitz matrix associated
             with T is not numerically positive definite.
     SlycotParameterError
         :info = -1:
