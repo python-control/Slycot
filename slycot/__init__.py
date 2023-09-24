@@ -35,7 +35,7 @@ else:
                            ab08nd, ab08nz,
                            ab09ad, ab09ax, ab09bd, ab09md, ab09nd,
                            ab13bd, ab13dd, ab13ed, ab13fd, ab13md)
-    
+
     # Benchmark routines (0/6 wrapped)
 
     # Adaptive control routines (0/0 wrapped)
@@ -46,8 +46,8 @@ else:
 
     # Identification routines (0/15 wrapped)
 
-    # Mathematical routines (7/281 wrapped)
-    from .math import (mb03rd, mb03vd, mb03vy, mb03wd,
+    # Mathematical routines (8/281 wrapped)
+    from .math import (mb02ed, mb03rd, mb03vd, mb03vy, mb03wd,
                        mb05md, mb05nd,
                        mc01td)
 
@@ -55,13 +55,13 @@ else:
 
     # Synthesis routines ((16+1)/131 wrapped), sb03md57 is not part of slicot
     from .synthesis import (sb01bd,
-                            sb02md, sb02mt, sb02od, 
+                            sb02md, sb02mt, sb02od,
                             sb03md, sb03md57, sb03od,
                             sb04md, sb04qd,
                             sb10ad, sb10dd, sb10fd, sb10hd, sb10yd,
                             sg02ad,
                             sg03ad, sg03bd)
-                            
+
     # Transformation routines (10/77 wrapped)
     from .transform import (tb01id, tb01pd,
                             tb03ad,

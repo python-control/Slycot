@@ -23,6 +23,107 @@ from .exceptions import raise_if_slycot_error
 import numpy as np
 
 
+def mb02ed(typet: str, T: np.ndarray, B: np.ndarray, n: int, k: int,  nrhs: int):
+    """ X, T = mb02ed(typet, T, B, n, k, nrhs)
+
+    Solve a system of linear equations T*X = B or X*T = B with a positive
+    definite block Toeplitz matrix T.
+
+    Parameters
+    ----------
+    typet: str
+        Specifies the type of T:
+            - 'R': T contains the first block row of an s.p.d. block Toeplitz matrix,
+                and the system X*T = B is solved.
+            - 'C': T contains the first block column of an s.p.d. block Toeplitz matrix,
+                and the system T*X = B is solved.
+        Note: the notation x / y means that x corresponds to
+                typet = 'R' and y corresponds to typet = 'C'.
+    T : array_like
+            The leading k-by-n*k / n*k-by-k part of this array must contain the first
+            block row/column of an s.p.d. block Toeplitz matrix.
+    B : array_like
+            The leading nrhs-by-n*k / n*k-by-nrhs part of this array must contain the
+            right-hand side matrix B.
+    n : int
+            The number of blocks in T. n >= 0.
+    k : int
+       The number of rows/columns in T, equal to the blocksize. k >= 0.
+    nrhs : int
+            The number of right-hand sides. nrhs >= 0.
+
+    Returns
+    -------
+    X : ndarray
+        Leading nrhs-by-n*k / n*k-by-nrhs part of
+        this array contains the solution matrix X.
+    T: ndarray
+        If no error is thrown  and  nrhs > 0,  then the leading
+        k-by-n*k / n*k-by-k part of this array contains the last
+        row / column of the Cholesky factor of inv(T).
+
+    Raises
+    ------
+    SlycotArithmeticError
+        :info = 1:
+            The reduction algorithm failed. The Toeplitz matrix associated
+            with T is not numerically positive definite.
+    SlycotParameterError
+        :info = -1:
+            typet must be either "R" or "C"
+        :info = -2:
+            k must be >= 0
+        :info = -3:
+            n must be >= 0
+        :info = -4:
+            nrhs must be >= 0
+
+    Notes
+    -----
+    The algorithm uses Householder transformations, modified hyperbolic rotations,
+    and block Gaussian eliminations in the Schur algorithm [1], [2].
+
+    References
+    ----------
+    [1] Kailath, T. and Sayed, A.
+        Fast Reliable Algorithms for Matrices with Structure.
+        SIAM Publications, Philadelphia, 1999.
+
+    [2] Kressner, D. and Van Dooren, P.
+        Factorizations and linear system solvers for matrices with Toeplitz structure.
+        SLICOT Working Note 2000-2, 2000.
+
+    Numerical Aspects
+    -----------------
+    The implemented method is numerically equivalent to forming the Cholesky factor R and the
+    inverse Cholesky factor of T using the generalized Schur algorithm and solving the systems
+    of equations R*X = L*B or X*R = B*L by a blocked backward substitution algorithm.
+    The algorithm requires O(K * N^2 + K * N * NRHS) floating-point operations.
+
+    """
+
+    hidden = " (hidden by the wrapper)"
+    arg_list = [
+        "typet",
+        "k",
+        "n",
+        "nrhs",
+        "t",
+        "ldt" + hidden,
+        "b",
+        "ldb" + hidden,
+        "ldwork" + hidden,
+        "dwork" + hidden,
+        "info",
+    ]
+
+    T, X, info = _wrapper.mb02ed(typet=typet, k=k, n=n, nrhs=nrhs, t=T, b=B)
+
+    raise_if_slycot_error(info, arg_list, docstring=mb02ed.__doc__, checkvars=locals())
+
+    return X, T
+
+
 def mb03rd(n, A, X=None, jobx='U', sort='N', pmax=1.0, tol=0.0):
     """Ar, Xr, blsize, W = mb03rd(n, A, [X, jobx, sort, pmax, tol])
 
