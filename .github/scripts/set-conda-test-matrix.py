@@ -14,7 +14,7 @@ blas_implementations = ['unset', 'Generic', 'OpenBLAS', 'Intel10_64lp']
 
 combinations = {'ubuntu': blas_implementations,
                 'macos': blas_implementations,
-                'windows': ['unset', 'Intel10_64lp'],
+                'windows': ['unset', 'Intel10_64lp', 'OpenBLAS'],
                }
 
 conda_jobs = []

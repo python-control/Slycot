@@ -57,7 +57,7 @@ jobs:
               - 'ubuntu'
               - 'macos'
             python:
-              - '3.8'
+              - '3.10'
               - '3.11'
             bla_vendor: [ 'unset' ]
             include:

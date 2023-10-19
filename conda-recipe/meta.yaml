@@ -15,14 +15,15 @@ requirements:
     - {{ compiler('c') }}
     - cmake >=3.14
     - make  # [linux]
-    - flang >=11  # [win]
+    # Always build against NETLIB ('Generic') LAPACK/Blas
+    - blas-devel * *netlib
+    # https://github.com/conda-forge/blas-feedstock/issues/106, conda-forge pins it themselves
+    - flang >=5.0.0,<6.0.0.a0  # [win]
 
   host:
     # Always build against NETLIB ('Generic') LAPACK/Blas
     # https://conda-forge.org/docs/maintainer/knowledge_base.html#blas
-    # deviating from above link: we have to specifiy netlib variant, because
-    # the mkl variant selected by default for older pythons on windows
-    # does not provide the generic headers
+    # deviating from above link: we have to pin ourselves, because we do not have the conda-forge build setups
     - libblas * *netlib
     - libcblas * *netlib
     - liblapack * *netlib
@@ -36,7 +37,8 @@ requirements:
   run:
     - python {{ PY_VER }}
     - {{ pin_compatible('numpy') }}
-    - libflang  # [win]
+    # see above
+    - libflang >=5.0.0,<6.0.0.a0  # [win]
 
 test:
   requires:
