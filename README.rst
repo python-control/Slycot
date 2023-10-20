@@ -19,18 +19,18 @@ Riccati, Lyapunov, and Sylvester equations.
 Dependencies
 ------------
 
-Slycot supports Python versions 3.8 or later.
+Slycot supports Python versions 3.10 or later.
 
 To run the compiled Slycot package, the following must be installed as
 dependencies:
 
-- Python 3.8+
+- Python 3.10+
 - NumPy
 
 If you are compiling and installing Slycot from source, you will need the
 following dependencies:
 
-- Python 3.8+
+- Python 3.10+
 - NumPy
 - scikit-build
 - CMake
@@ -189,8 +189,6 @@ A similar method can be used for Linux and macOS, but is detailed here
 for Windows.  This method uses conda and conda-forge to get most build
 dependencies, *except* for the C compiler.
 
-This procedure has been tested on Python 3.8.
-
 1. Install `Microsoft Visual Studio`_.
 2. Unpack the source code to a directory of your choice,
 3. Create a command shell setup that can run the conda commands and the Visual
@@ -199,7 +197,7 @@ This procedure has been tested on Python 3.8.
    following commands to build and install Slycot (this example creates a
    Python 3.8 environment)::
 
-        conda create --channel conda-forge --name build-slycot python=3.8 numpy scipy libblas=*=*netlib liblapack=*=*netlib scikit-build flang pytest
+        conda create --channel conda-forge --name build-slycot python=3.10 numpy scipy libblas=*=*netlib liblapack=*=*netlib scikit-build flang pytest
         conda activate build-slycot
 
         pip install -v .

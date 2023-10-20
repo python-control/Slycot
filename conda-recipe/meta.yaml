@@ -11,32 +11,23 @@ build:
 
 requirements:
   build:
-    - {{ compiler('fortran') }}  # [not win]
+    - {{ compiler('fortran') }}
     - {{ compiler('c') }}
     - cmake >=3.14
     - make  # [linux]
-    - flang >=11  # [win]
-
   host:
-    # Always build against NETLIB ('Generic') LAPACK/Blas
-    # https://conda-forge.org/docs/maintainer/knowledge_base.html#blas
-    # deviating from above link: we have to specifiy netlib variant, because
-    # the mkl variant selected by default for older pythons on windows
-    # does not provide the generic headers
-    - libblas * *netlib
-    - libcblas * *netlib
-    - liblapack * *netlib
+    - libblas
+    - libcblas
+    - liblapack
     - python
-    - numpy >=1.19,!=1.23.0
-    - pip
+    - numpy
     - scikit-build >=0.15
+    - pip
     - setuptools >=45
     - setuptools_scm >=7
-
   run:
     - python {{ PY_VER }}
     - {{ pin_compatible('numpy') }}
-    - libflang  # [win]
 
 test:
   requires:
