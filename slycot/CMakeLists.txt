@@ -626,9 +626,13 @@ set(SLYCOT_FSOURCE  src/ftruefalse.f src/XERBLA.f)
 
 set(F2PYSOURCE src/_wrapper.pyf)
 set(F2PYSOURCE_DEPS
-  src/analysis.pyf src/math.pyf
-  src/transform.pyf src/synthesis.pyf
-  src/_helper.pyf)
+  src/dss.pyf
+  src/analysis.pyf
+  src/math.pyf
+  src/transform.pyf
+  src/synthesis.pyf
+  src/_helper.pyf
+  )
 
 set(PYSOURCE
 

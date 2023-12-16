@@ -301,6 +301,36 @@ subroutine ab09nd(dico,job,equil,ordsel,n,m,p,nr,alpha,a,lda,b,ldb,c,ldc,d,ldd,n
     integer intent(out) :: iwarn
     integer intent(out) :: info
 end subroutine ab09nd
+subroutine ab09hd(dico,job,equil,ordsel,n,m,p,nr,alpha,beta,a,lda,b,ldb,c,ldc,d,ldd,ns,hsv,tol1,tol2,iwork,dwork,ldwork,bwork,iwarn,info) ! in SLICOT-Reference/src/AB09HD.f
+    character :: dico
+    character :: job
+    character :: equil
+    character :: ordsel
+    integer :: n
+    integer :: m
+    integer :: p
+    integer :: nr
+    double precision :: alpha
+    double precision :: beta
+    double precision dimension(lda,*) :: a
+    integer, optional,check(shape(a, 0) == lda),depend(a) :: lda=shape(a, 0)
+    double precision dimension(ldb,*) :: b
+    integer, optional,check(shape(b, 0) == ldb),depend(b) :: ldb=shape(b, 0)
+    double precision dimension(ldc,*) :: c
+    integer, optional,check(shape(c, 0) == ldc),depend(c) :: ldc=shape(c, 0)
+    double precision dimension(ldd,*) :: d
+    integer, optional,check(shape(d, 0) == ldd),depend(d) :: ldd=shape(d, 0)
+    integer :: ns
+    double precision dimension(*) :: hsv
+    double precision :: tol1
+    double precision :: tol2
+    integer dimension(*) :: iwork
+    double precision dimension(*) :: dwork
+    integer :: ldwork
+    logical dimension(*) :: bwork
+    integer :: iwarn
+    integer :: info
+end subroutine ab09hd
 function ab13bd(dico,jobn,n,m,p,a,lda,b,ldb,c,ldc,d,ldd,nq,tol,dwork,ldwork,iwarn,info) ! in AB13BD.f
     character intent(in) :: dico
     character intent(in) :: jobn

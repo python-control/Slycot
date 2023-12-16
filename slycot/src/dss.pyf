@@ -1,0 +1,63 @@
+!    -*- f90 -*-
+! Note: the context of this file is case sensitive.
+
+subroutine tg01gd(jobs,l,n,m,p,a,lda,e,lde,b,ldb,c,ldc,d,ldd,lr,nr,ranke,infred,tol,iwork,dwork,ldwork,info) ! in SLICOT-Reference/src/TG01GD.f
+    character :: jobs
+    integer :: l
+    integer :: n
+    integer :: m
+    integer :: p
+    double precision dimension(lda,*) :: a
+    integer, optional,check(shape(a, 0) == lda),depend(a) :: lda=shape(a, 0)
+    double precision dimension(lde,*) :: e
+    integer, optional,check(shape(e, 0) == lde),depend(e) :: lde=shape(e, 0)
+    double precision dimension(ldb,*) :: b
+    integer, optional,check(shape(b, 0) == ldb),depend(b) :: ldb=shape(b, 0)
+    double precision dimension(ldc,*) :: c
+    integer, optional,check(shape(c, 0) == ldc),depend(c) :: ldc=shape(c, 0)
+    double precision dimension(ldd,*) :: d
+    integer, optional,check(shape(d, 0) == ldd),depend(d) :: ldd=shape(d, 0)
+    integer :: lr
+    integer :: nr
+    integer :: ranke
+    integer :: infred
+    double precision :: tol
+    integer dimension(*) :: iwork
+    double precision dimension(*) :: dwork
+    integer :: ldwork
+    integer :: info
+end subroutine tg01gd
+subroutine tg01ld(job,joba,compq,compz,n,m,p,a,lda,e,lde,b,ldb,c,ldc,q,ldq,z,ldz,nf,nd,niblck,iblck,tol,iwork,dwork,ldwork,info) ! in SLICOT-Reference/src/TG01LD.f
+    character :: job
+    character :: joba
+    character :: compq
+    character :: compz
+    integer :: n
+    integer :: m
+    integer :: p
+    double precision dimension(lda,*) :: a
+    integer, optional,check(shape(a, 0) == lda),depend(a) :: lda=shape(a, 0)
+    double precision dimension(lde,*) :: e
+    integer, optional,check(shape(e, 0) == lde),depend(e) :: lde=shape(e, 0)
+    double precision dimension(ldb,*) :: b
+    integer, optional,check(shape(b, 0) == ldb),depend(b) :: ldb=shape(b, 0)
+    double precision dimension(ldc,*) :: c
+    integer, optional,check(shape(c, 0) == ldc),depend(c) :: ldc=shape(c, 0)
+    double precision dimension(ldq,*) :: q
+    integer, optional,check(shape(q, 0) == ldq),depend(q) :: ldq=shape(q, 0)
+    double precision dimension(ldz,*) :: z
+    integer, optional,check(shape(z, 0) == ldz),depend(z) :: ldz=shape(z, 0)
+    integer :: nf
+    integer :: nd
+    integer :: niblck
+    integer dimension(*) :: iblck
+    double precision :: tol
+    integer dimension(*) :: iwork
+    double precision dimension(*) :: dwork
+    integer :: ldwork
+    integer :: info
+end subroutine tg01ld
+
+! This file was auto-generated with f2py (version:1.23.5).
+! See:
+! https://web.archive.org/web/20140822061353/http://cens.ioc.ee/projects/f2py2e
