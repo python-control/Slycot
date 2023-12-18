@@ -1236,4 +1236,248 @@ def tg01fd(l,n,m,p,A,E,B,C,Q=None,Z=None,compq='N',compz='N',joba='N',tol=0.0,ld
 
     return A,E,B,C,ranke,rnka22,Q,Z
 
+def tg01gd(
+        jobs,
+        l,
+        n,
+        m,
+        p,
+        a,
+        e,
+        b,
+        c,
+        d,
+        tol,
+        ldwork=None
+):
+    """
+    A,E,B,C,lscale,rscale = tg01ad(l,n,m,p,A,E,B,C,[thresh,job])
+
+    To find a reduced descriptor representation (Ar-lambda*Er,Br,Cr)
+    without non-dynamic modes for a descriptor representation
+    (A-lambda*E,B,C). Optionally, the reduced descriptor system can
+    be put into a standard form with the leading diagonal block
+    of Er identity.
+
+    Arguments
+
+    Mode Parameters
+
+    JOBS    CHARACTER*1
+            Indicates whether the user wishes to transform the leading
+            diagonal block of Er to an identity matrix, as follows:
+            = 'S':  make Er with leading diagonal identity;
+            = 'D':  keep Er unreduced or upper triangular.
+
+    Input/Output Parameters
+
+    L       (input) INTEGER
+            The number of rows of the matrices A, E, and B;
+            also the number of differential equations.  L >= 0.
+
+    N       (input) INTEGER
+            The number of columns of the matrices A, E, and C;
+            also the dimension of descriptor state vector.  N >= 0.
+
+    M       (input) INTEGER
+            The number of columns of the matrix B;
+            also the dimension of the input vector.  M >= 0.
+
+    P       (input) INTEGER
+            The number of rows of the matrix C.
+            also the dimension of the output vector.  P >= 0.
+
+    A       (input/output) DOUBLE PRECISION array, dimension (LDA,N)
+            On entry, the leading L-by-N part of this array must
+            contain the state dynamics matrix A.
+            On exit, if NR < N, the leading LR-by-NR part of this
+            array contains the reduced order state matrix Ar of a
+            descriptor realization without non-dynamic modes.
+            Array A contains the original state dynamics matrix if
+            INFRED < 0.
+
+    LDA     INTEGER
+            The leading dimension of the array A.  LDA >= MAX(1,L).
+
+    E       (input/output) DOUBLE PRECISION array, dimension (LDE,N)
+            On entry, the leading L-by-N part of this array must
+            contain the descriptor matrix E.
+            On exit, if INFRED >= 0, the leading LR-by-NR part of this
+            array contains the reduced order descriptor matrix Er of a
+            descriptor realization without non-dynamic modes.
+            In this case, only the leading RANKE-by-RANKE submatrix
+            of Er is nonzero and this submatrix is nonsingular and
+            upper triangular. Array E contains the original descriptor
+            matrix if INFRED < 0. If JOBS = 'S', then the leading
+            RANKE-by-RANKE submatrix results in an identity matrix.
+
+    LDE     INTEGER
+            The leading dimension of the array E.  LDE >= MAX(1,L).
+
+    B       (input/output) DOUBLE PRECISION array, dimension (LDB,M)
+            On entry, the leading L-by-M part of this array must
+            contain the input matrix B.
+            On exit, the leading LR-by-M part of this array contains
+            the reduced order input matrix Br of a descriptor
+            realization without non-dynamic modes. Array B contains
+            the original input matrix if INFRED < 0.
+
+    LDB     INTEGER
+            The leading dimension of the array B.  LDB >= MAX(1,L).
+
+    C       (input/output) DOUBLE PRECISION array, dimension (LDC,N)
+            On entry, the leading P-by-N part of this array must
+            contain the output matrix C.
+            On exit, the leading P-by-NR part of this array contains
+            the reduced order output matrix Cr of a descriptor
+            realization without non-dynamic modes. Array C contains
+            the original output matrix if INFRED < 0.
+
+    LDC     INTEGER
+            The leading dimension of the array C.  LDC >= MAX(1,P).
+
+    D       (input/output) DOUBLE PRECISION array, dimension (LDD,M)
+            On entry, the leading P-by-M part of this array must
+            contain the original feedthrough matrix D.
+            On exit, the leading P-by-M part of this array contains
+            the feedthrough matrix Dr of a reduced descriptor
+            realization without non-dynamic modes.
+
+    LDD     INTEGER
+            The leading dimension of the array D.  LDD >= MAX(1,P).
+
+    LR      (output) INTEGER
+            The number of reduced differential equations.
+
+    NR      (output) INTEGER
+            The dimension of the reduced descriptor state vector.
+
+    RANKE   (output) INTEGER
+            The estimated rank of the matrix E.
+
+    INFRED  (output) INTEGER
+            This parameter contains information on performed reduction
+            and on structure of resulting system matrices, as follows:
+            INFRED >= 0 the reduced system is in an SVD-like
+                        coordinate form with Er upper triangular;
+                        INFRED is the achieved order reduction.
+            INFRED  < 0 no reduction achieved and the original
+                        system has been restored.
+
+    Tolerances
+
+    TOL     DOUBLE PRECISION
+            The tolerance to be used in rank determinations when
+            transforming (A-lambda*E). If the user sets TOL > 0,
+            then the given value of TOL is used as a lower bound for
+            reciprocal condition numbers in rank determinations; a
+            (sub)matrix whose estimated condition number is less than
+            1/TOL is considered to be of full rank.  If the user sets
+            TOL <= 0, then an implicitly computed, default tolerance,
+            defined by  TOLDEF = L*N*EPS,  is used instead, where EPS
+            is the machine precision (see LAPACK Library routine
+            DLAMCH).  TOL < 1.
+
+    Workspace
+
+    IWORK   INTEGER array, dimension (N)
+
+    DWORK   DOUBLE PRECISION array, dimension (LDWORK)
+            On exit, if INFO = 0, DWORK(1) returns the optimal value
+            of LDWORK.
+
+    LDWORK  INTEGER
+            The length of the array DWORK.
+            LDWORK >= 1, if MIN(L,N) = 0; otherwise,
+            LDWORK >= MAX( N+P, MIN(L,N)+MAX(3*N-1,M,L) ).
+            If LDWORK >= 2*L*N+L*M+N*P+
+                        MAX( 1, N+P, MIN(L,N)+MAX(3*N-1,M,L) ) then
+            the original matrices are restored if no order reduction
+            is possible. This is achieved by saving system matrices
+            before reduction and restoring them if no order reduction
+            took place.
+
+            If LDWORK = -1, then a workspace query is assumed; the
+            routine only calculates the optimal size of the DWORK
+            array, returns this value as the first entry of the DWORK
+            array, and no error message related to LDWORK is issued by
+            XERBLA. The optimal size does not necessarily include the 
+            space needed for saving the original system matrices.
+
+    Error Indicator
+
+    INFO    INTEGER
+            = 0:  successful exit;
+            < 0:  if INFO = -i, the i-th argument had an illegal
+                    value.
+
+    Method
+
+    The subroutine elliminates the non-dynamics modes in two steps:
+
+    Step 1: Reduce the system to the SVD-like coordinate form
+    (Q'*A*Z-lambda*Q'*E*Z, Q'*B, C*Z) , where
+
+            ( A11 A12 A13 )           ( E11 0 0 )         ( B1 )
+    Q'*A*Z = ( A21 A22  0  ), Q'*E*Z = (  0  0 0 ), Q'*B = ( B2 ),
+            ( A31  0   0  )           (  0  0 0 )         ( B3 )
+
+        C*Z = ( C1  C2  C3 ),
+
+    where E11 and A22 are upper triangular invertible matrices.
+
+    Step 2: Compute the reduced system as (Ar-lambda*Er,Br,Cr,Dr),
+    where
+        ( A11 - A12*inv(A22)*A21, A13 )        ( E11 0 )
+    Ar = (                             ),  Er = (       ),
+        (     A31                  0  )        (  0  0 )
+
+        ( B1 - A12*inv(A22)*B2 )
+    Br = (                      ),  Cr = ( C1 - C2*inv(A22)*A21, C3 ),
+        (        B3            )
+
+    Dr = D - C2*inv(A22)*B2.
+
+    Step 3: If desired (JOBS = 'S'), reduce the descriptor system to
+    the standard form
+
+    Ar <- diag(inv(Er),I)*Ar;  Br <- diag(inv(Er),I)*Br;
+    Er  = diag(I,0).
+
+    If L = N and LR = NR = RANKE, then if Step 3 is performed,
+    the resulting system is a standard state space system.
+
+    Numerical Aspects
+
+    If L = N, the algorithm requires 0( N**3 ) floating point
+    operations.
+
+    """
+
+    hidden = ' (hidden by the wrapper)'
+    arg_list = [
+        'jobs',
+        'l',
+        'n',
+        'm',
+        'p',
+        'A',
+        'lda'+hidden,
+        'E',
+        'lde'+hidden,
+        'B',
+        'ldb'+hidden,
+        'C',
+        'ldc'+hidden,
+        'D',
+        'ldd'+hidden,
+        'tol',
+        'dwork'+hidden,
+        'info'
+    ]
+
+    A,E,B,C,lr,nr,ranke,infred,info = _wrapper.tg01gd(job,l,n,m,p,thresh,A,E,B,C)
+    raise_if_slycot_error(info, arg_list)
+    return A,E,B,C,lr,nr,ranke,infred
+
 # to be replaced by python wrappers

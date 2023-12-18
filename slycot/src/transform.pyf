@@ -529,7 +529,7 @@ subroutine tg01fd_uu(compq,compz,joba,l,n,m,p,a,lda,e,lde,b,ldb,c,ldc,q,ldq,z,ld
     integer intent(out) :: info
 end subroutine tg01fd_uu
 subroutine tg01gd(jobs,l,n,m,p,a,lda,e,lde,b,ldb,c,ldc,d,ldd,lr,nr,ranke,infred,tol,iwork,dwork,ldwork,info) ! in SLICOT-Reference/src/TG01GD.f
-    character :: jobs
+    character intent(in) :: jobs
     integer intent(in),required,check(l>=0) :: l
     integer intent(in),required,check(n>=0) :: n
     integer intent(in),required,check(m>=0) :: m
@@ -544,43 +544,13 @@ subroutine tg01gd(jobs,l,n,m,p,a,lda,e,lde,b,ldb,c,ldc,d,ldd,lr,nr,ranke,infred,
     integer intent(hide),depend(c) :: ldc = shape(c,0)
     double precision dimension(p,m),depend(m,p) :: d
     integer intent(hide),depend(d) :: ldd = shape(d,0)
-    integer :: lr
-    integer :: nr
-    integer :: ranke
-    integer :: infred
-    double precision :: tol
-    integer dimension(*) :: iwork
-    double precision intent(hide,cache),dimension(ldwork) :: dwork
+    integer intent(out) :: lr
+    integer intent(out) :: nr
+    integer intent(out) :: ranke
+    integer intent(out) :: infred
+    double precision intent(in) :: tol
+    integer intent(hide,cache),depend(n),dimension(n) :: iwork
+    double precision intent(hide,cache),dimension(ldwork),depend(ldwork) :: dwork
     integer optional :: ldwork = 2*l*n + l*m+ n*p + max(max(1, n+p), min(l,n) + max(3*n-1,max(m,l)))
-    integer :: info
+    integer intent(out) :: info
 end subroutine tg01gd
-subroutine tg01ld(job,joba,compq,compz,n,m,p,a,lda,e,lde,b,ldb,c,ldc,q,ldq,z,ldz,nf,nd,niblck,iblck,tol,iwork,dwork,ldwork,info) ! in SLICOT-Reference/src/TG01LD.f
-    character :: job
-    character :: joba
-    character :: compq
-    character :: compz
-    integer intent(in),required,check(n>=0) :: n
-    integer intent(in),required,check(m>=0) :: m
-    integer intent(in),required,check(p>=0) :: p
-    double precision dimension(lda,*) :: a
-    integer, optional,check(shape(a, 0) == lda),depend(a) :: lda=shape(a, 0)
-    double precision dimension(lde,*) :: e
-    integer, optional,check(shape(e, 0) == lde),depend(e) :: lde=shape(e, 0)
-    double precision dimension(ldb,*) :: b
-    integer, optional,check(shape(b, 0) == ldb),depend(b) :: ldb=shape(b, 0)
-    double precision dimension(ldc,*) :: c
-    integer, optional,check(shape(c, 0) == ldc),depend(c) :: ldc=shape(c, 0)
-    double precision intent(in,out,copy),dimension(n,n) :: q
-    integer intent(hide),depend(q) :: ldq=MAX(shape(q,0),1)
-    double precision intent(in,out,copy),dimension(n,n) :: z
-    integer intent(hide),depend(z) :: ldz=MAX(shape(z,0),1)
-    integer :: nf
-    integer :: nd
-    integer :: niblck
-    integer dimension(*) :: iblck
-    double precision :: tol
-    integer dimension(*) :: iwork
-    double precision intent(hide,cache),dimension(ldwork) :: dwork
-    integer optional :: ldwork = n + max(3*n,max(m,p))
-    integer :: info
-end subroutine tg01ld
