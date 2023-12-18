@@ -1293,8 +1293,10 @@ def ab09nd(dico,job,equil,n,m,p,A,B,C,D,alpha=None,nr=None,tol1=0,tol2=0,ldwork=
         ordsel = 'F'
     if alpha is None:
         alpha = {'C': 0, 'D': 1.}[dico]
-    out = _wrapper.ab09nd(dico, job, equil, ordsel,
-                          n, m, p, nr, alpha, A, B, C, D, tol1, tol2, ldwork)
+    # out = _wrapper.ab09nd(dico, job, equil, ordsel,
+    #                       n, m, p, nr, alpha, A, B, C, D, tol1, tol2, ldwork)
+    # Nr, A, B, C, D, Ns, hsv = out[:-2]
+    out = _wrapper.ab09nd_alt(dico, job, equil, ordsel, nr, alpha, A, B, C, D, tol1, tol2, ldwork)
     Nr, A, B, C, D, Ns, hsv = out[:-2]
     raise_if_slycot_error(out[-2:], arg_list, ab09nd.__doc__, locals())
     return Nr, A[:Nr, :Nr], B[:Nr, :], C[:, :Nr], D, Ns, hsv
