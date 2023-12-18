@@ -3,7 +3,6 @@
 
 python module _wrapper ! in
     interface  ! in :wrapper
-    include "dss.pyf"
 		include "analysis.pyf"
 		include "math.pyf"
 		include "synthesis.pyf"

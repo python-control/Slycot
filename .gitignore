@@ -10,5 +10,7 @@ build.log
 *.egg-info/
 .coverage
 *~
+.#*
+.*~
 setup.cfg
 _skbuild
