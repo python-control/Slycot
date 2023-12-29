@@ -534,15 +534,15 @@ subroutine tg01gd(jobs,l,n,m,p,a,lda,e,lde,b,ldb,c,ldc,d,ldd,lr,nr,ranke,infred,
     integer intent(in),required,check(n>=0) :: n
     integer intent(in),required,check(m>=0) :: m
     integer intent(in),required,check(p>=0) :: p
-    double precision dimension(n,n),depend(n) :: a
+    double precision intent(in,out,copy),dimension(n,n),depend(n) :: a
     integer intent(hide),depend(a) :: lda = shape(a,0)
-    double precision dimension(n,n),depend(n) :: e
+    double precision intent(in,out,copy),dimension(n,n),depend(n) :: e
     integer intent(hide),depend(e) :: lde = shape(e,0)
-    double precision dimension(n,m),depend(n,m) :: b
+    double precision intent(in,out,copy),dimension(n,m),depend(n,m) :: b
     integer intent(hide),depend(b) :: ldb = shape(b,0)
-    double precision dimension(p,n),depend(n,p) :: c
+    double precision intent(in,out,copy),dimension(p,n),depend(n,p) :: c
     integer intent(hide),depend(c) :: ldc = shape(c,0)
-    double precision dimension(p,m),depend(m,p) :: d
+    double precision intent(in,out,copy),dimension(p,m),depend(m,p) :: d
     integer intent(hide),depend(d) :: ldd = shape(d,0)
     integer intent(out) :: lr
     integer intent(out) :: nr

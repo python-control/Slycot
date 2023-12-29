@@ -1461,8 +1461,20 @@ def tg01gd(
         'info'
     ]
 
-    A,E,B,C,D,lr,nr,ranke,infred,info = _wrapper.tg01gd(jobs,l,n,m,p,a,e,b,c,d,tol)
+    out = _wrapper.tg01gd(jobs,l,n,m,p,a,e,b,c,d,tol)
+    info = out[-1]
     raise_if_slycot_error(info, arg_list)
-    return A,E,B,C,D,lr,nr,ranke,infred
+    A,E,B,C,D,lr,nr,ranke,infred,info = out
+    return (
+        A[..., :nr, :nr],
+        E[..., :nr, :nr],
+        B[..., :nr, :],
+        C[..., :, :nr],
+        D,
+        lr,
+        nr,
+        ranke,
+        infred
+    )
 
 # to be replaced by python wrappers
