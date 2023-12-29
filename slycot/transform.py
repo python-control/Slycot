@@ -1238,20 +1238,13 @@ def tg01fd(l,n,m,p,A,E,B,C,Q=None,Z=None,compq='N',compz='N',joba='N',tol=0.0,ld
 
 def tg01gd(
         jobs,
-        l,
-        n,
-        m,
-        p,
-        a,
-        e,
-        b,
-        c,
-        d,
-        tol,
+        l, n, m, p,
+        a, e, b, c, d,
+        tol=0,
         ldwork=None
 ):
     """
-    A,E,B,C,lscale,rscale = tg01ad(l,n,m,p,A,E,B,C,[thresh,job])
+    A,E,B,C,D,lr,nr,ranke,infred = tg01gd(jobs,l,n,m,p,A,E,B,C,D,tol,ldwork)
 
     To find a reduced descriptor representation (Ar-lambda*Er,Br,Cr)
     without non-dynamic modes for a descriptor representation
@@ -1457,27 +1450,19 @@ def tg01gd(
     hidden = ' (hidden by the wrapper)'
     arg_list = [
         'jobs',
-        'l',
-        'n',
-        'm',
-        'p',
-        'A',
-        'lda'+hidden,
-        'E',
-        'lde'+hidden,
-        'B',
-        'ldb'+hidden,
-        'C',
-        'ldc'+hidden,
-        'D',
-        'ldd'+hidden,
+        'l', 'n', 'm', 'p',
+        'A', 'lda'+hidden,
+        'E', 'lde'+hidden,
+        'B', 'ldb'+hidden,
+        'C', 'ldc'+hidden,
+        'D', 'ldd'+hidden,
         'tol',
         'dwork'+hidden,
         'info'
     ]
 
-    A,E,B,C,lr,nr,ranke,infred,info = _wrapper.tg01gd(job,l,n,m,p,thresh,A,E,B,C)
+    A,E,B,C,D,lr,nr,ranke,infred,info = _wrapper.tg01gd(jobs,l,n,m,p,a,e,b,c,d,tol)
     raise_if_slycot_error(info, arg_list)
-    return A,E,B,C,lr,nr,ranke,infred
+    return A,E,B,C,D,lr,nr,ranke,infred
 
 # to be replaced by python wrappers

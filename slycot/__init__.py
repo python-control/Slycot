@@ -44,6 +44,7 @@ else:
     from .transform import tc04ad, tc01od
     from .transform import tf01md, tf01rd
     from .transform import td04ad, tb01pd
+    from .transform import tg01ad, tg01fd, tg01gd
 
     from .version import __version__
 
