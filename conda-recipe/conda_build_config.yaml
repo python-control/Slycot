@@ -5,13 +5,10 @@
 # zip_keys Python/Numpy matrix to build for
 python:
     - 3.10.* *_cpython
-    - 3.11.* *_cpython
-# 3.12 is already building in conda-forge/slycot-feedstock, but they did not publish everything yet
-#    - 3.12.* *_cpython
+    - 3.12.* *_cpython
 numpy:
-    - 1.22
     - 1.23
-#    - 1.23
+    - 1.23
 
 zip_keys:
   -
