@@ -58,9 +58,10 @@ def sb01bd(n,m,np,alpha,A,B,w,dico,tol=0.0,ldwork=None):
             := 'C':  continuous-time system;
             := 'D':  discrete-time system.
     tol : float, optional
-            The absolute tolerance level below which the elements of A or B are
-            considered zero (used for controllability tests).
-            If tol <= 0 the default value is used.
+        The absolute tolerance level below which the elements of A or B are
+        considered zero (used for controllability tests).
+        If tol <= 0 the default value is used.
+        Default is `0.0`.
     ldwork : int, optional
         The length of the cache array. The default value is
         max(1,5*m,5*n,2*n+4*m), for optimum performance it should be larger.
@@ -128,7 +129,6 @@ def sb01bd(n,m,np,alpha,A,B,w,dico,tol=0.0,ldwork=None):
 
     Example
     -------
-
     >>> import numpy as np
     >>> import slycot
     >>> A = np.array([[0, 1, 0], [0, 0, 1], [-2, 1, 3]])
@@ -281,8 +281,6 @@ def sb02md(n,A,G,Q,dico,hinv='D',uplo='U',scal='N',sort='S',ldwork=None):
 
     Raises
     ------
-    SlycotParameterError
-        :info = -i: the i-th argument had an illegal value;
     SlycotArithmeticError
         :info = 1:
             Matrix A is (numerically) singular in discrete-
@@ -304,7 +302,6 @@ def sb02md(n,A,G,Q,dico,hinv='D',uplo='U',scal='N',sort='S',ldwork=None):
 
     Example
     -------
-
     >>> import numpy as np
     >>> import slycot
     >>> A = np.array([[0, 1], [0, 0]])
@@ -622,7 +619,6 @@ def sb02od(n,m,A,B,Q,R,dico,p=None,L=None,fact='N',uplo='U',sort='S',tol=0.0,ldw
 
     Example
     -------
-
     >>> import numpy as np
     >>> import slycot
     >>> A = np.array([[0, 1], [0, 0]])
@@ -707,7 +703,7 @@ def sb03md57(A, U=None, C=None,
     C : (n, n) array_like
         If job = 'X' or 'B', this array must contain the symmetric matrix C.
         If job = 'S', C is not referenced.
-    dico : {'C', 'D'}
+    dico : {'C', 'D'}, optional
         Specifies the equation from which X is to be determined as follows:
             := 'C':  Equation (1), continuous-time case;
             := 'D':  Equation (2), discrete-time case.
@@ -905,7 +901,7 @@ def sb03od(n,m,A,Q,B,dico,fact='N',trans='N',ldwork=None):
         For optimum performance ldwork should sometimes be larger.
 
     Returns
-    _______
+    -------
     U : (n, n) ndarray
         The leading n-by-n part of this array contains
         the upper triangular Cholesky factor U of the solution
@@ -1019,6 +1015,9 @@ def sb04md(n,m,A,B,C,ldwork=None):
         Matrix B
     C : (n, m) array_like
         Matrix C
+    ldwork : int, optional
+        The length of the array DWORK.
+        Default is None.
 
     Returns
     -------
@@ -1068,6 +1067,9 @@ def sb04qd(n,m,A,B,C,ldwork=None):
         Matrix B
     C : (n, m) array_like
         Matrix C
+    ldwork : int, optional
+        The length of the array DWORK.
+        Default is None.
 
     Returns
     -------
@@ -1743,9 +1745,9 @@ def sb10yd(discfl,flag,lendat,rfrdat,ifrdat,omega,n,tol,ldwork=None):
     n : int
         On entry, the desired order of the system to be fitted.
         n <= lendat-1.
-    tol : int, optional
+    tol : int
         The length of the cache array.
-    ldwork : int
+    ldwork : int, optional
         With None it will be automatically calculated.
         For details see SLICOT help.
 
@@ -2206,6 +2208,7 @@ def sg02ad(dico,jobb,fact,uplo,jobl,scal,sort,acc,N,M,P,A,E,B,Q,R,L,ldwork=None,
             LDR >= MAX(1,M) if JOBB = 'B' and FACT = 'N' or 'C';
             LDR >= MAX(1,P) if JOBB = 'B' and FACT = 'D' or 'B';
             LDR >= 1        if JOBB = 'G'.
+
     L : (n, M) array_like
         If JOBL = 'N' and JOBB = 'B', the leading N-by-M part of
         this array must contain the cross weighting matrix L.
@@ -2217,6 +2220,7 @@ def sg02ad(dico,jobb,fact,uplo,jobl,scal,sort,acc,N,M,P,A,E,B,Q,R,L,ldwork=None,
 
             LDWORK >= MAX(7*(2*N+1)+16,16*N),           if JOBB = 'G';
             LDWORK >= MAX(7*(2*N+1)+16,16*N,2*N+M,3*M), if JOBB = 'B'.
+
         For optimum performance LDWORK should be larger.
         Default:  ``max(7*(2*n+1)+16,16*n)``
     tol : float, optional
@@ -2432,7 +2436,7 @@ def sg03bd(n,m,A,E,Q,Z,B,dico,fact='N',trans='N',ldwork=None):
     than one).
 
     Parameters
-    __________
+    ----------
     n : int
         The order of the matrix A.  n >= 0.
     m : int
@@ -2495,11 +2499,13 @@ def sg03bd(n,m,A,E,Q,Z,B,dico,fact='N',trans='N',ldwork=None):
         on entry or not:
             := 'N':  Factorization is not supplied;
             := 'F':  Factorization is supplied.
+        Default is 'N'.
     trans : {'N', 'T'}, optional
         Specifies whether the transposed equation is to be solved
         or not:
             := 'N':  op(A) = A,    op(E) = E;
             := 'T':  op(A) = A**T, op(E) = E**T.
+        Default is 'N'.
     ldwork : int, optional
         The dimension of the array dwork::
 
@@ -2508,7 +2514,7 @@ def sg03bd(n,m,A,E,Q,Z,B,dico,fact='N',trans='N',ldwork=None):
         For good performance, ldwork should be larger.
 
     Returns
-    _______
+    -------
     U : (n, n) ndarray
         The leading n-by-b part of this array contains
         the Cholesky factor U of the solution matrix X of the
@@ -2521,6 +2527,7 @@ def sg03bd(n,m,A,E,Q,Z,B,dico,fact='N',trans='N',ldwork=None):
         If INFO = 0, 3, 5, 6, or 7, then
         ((j), j=1,...,n, are the
         eigenvalues of the matrix pencil A - lambda * E.
+        Default is None.
 
     Raises
     ------
@@ -2647,7 +2654,7 @@ def sb10fd(n,m,np,ncon,nmeas,gamma,A,B,C,D,tol=0.0,ldwork=None):
         whose reciprocal condition numbers are less than tol are
         not allowed. If tol <= 0, then a default value equal to
         sqrt(eps) is used, where eps is the relative machine
-        precision.
+        precision. Default is `0.0`.
     ldwork : int, optional
         The dimension of the cache array::
 
@@ -2683,7 +2690,7 @@ def sb10fd(n,m,np,ncon,nmeas,gamma,A,B,C,D,tol=0.0,ldwork=None):
 
         if the default (None) value is used, the size for good performance
         is automatically used, when ldwork is set to zero, the minimum
-        cache size will be used.
+        cache size will be used. Default is None.
 
     Returns
     -------
