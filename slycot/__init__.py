@@ -27,15 +27,16 @@ else:
     # U : Utility Routines
 
 
-    # Analysis routines (17/60 wrapped)
+    # Analysis routines (18/60 wrapped)
     from .analysis import (ab01nd,
                            ab04md,
                            ab05md, ab05nd,
                            ab07nd,
                            ab08nd, ab08nz,
                            ab09ad, ab09ax, ab09bd, ab09md, ab09nd,
-                           ab13bd, ab13dd, ab13ed, ab13fd, ab13md)
-
+                           ab13bd, ab13dd, ab13ed, ab13fd, ab13md,
+                           ag08bd)
+    
     # Benchmark routines (0/6 wrapped)
 
     # Adaptive control routines (0/0 wrapped)
