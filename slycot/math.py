@@ -137,80 +137,80 @@ def mb03rd(n, A, X=None, jobx='U', sort='N', pmax=1.0, tol=0.0):
 
     Parameters
     ----------
-        n : int
-            The order of the matrices `A` and `X`.  `n` >= 0.
-        A : (n, n) array_like
-            The matrix `A` to be block-diagonalized, in real Schur form.
-        X : (n, n) array_like, optional
-            A given matrix `X`, for accumulation of transformations (only if
-            `jobx`='U'). Default value is identity matrix of order `n`.
-        jobx : {'N', 'U'}, optional
-            Specifies whether or not the transformations are
-            accumulated, as follows:
+    n : int
+        The order of the matrices `A` and `X`.  `n` >= 0.
+    A : (n, n) array_like
+        The matrix `A` to be block-diagonalized, in real Schur form.
+    X : (n, n) array_like, optional
+        A given matrix `X`, for accumulation of transformations (only if
+        `jobx`='U'). Default value is identity matrix of order `n`.
+    jobx : {'N', 'U'}, optional
+        Specifies whether or not the transformations are
+        accumulated, as follows:
 
-            := 'N': The transformations are not accumulated
-            := 'U': The transformations are accumulated in `Xr` (default)
+        := 'N': The transformations are not accumulated
+        := 'U': The transformations are accumulated in `Xr` (default)
 
-        sort : {'N', 'S', 'C', 'B'}, optional
-            Specifies whether or not the diagonal blocks of the real
-            Schur form are reordered, as follows:
+    sort : {'N', 'S', 'C', 'B'}, optional
+        Specifies whether or not the diagonal blocks of the real
+        Schur form are reordered, as follows:
 
-            := 'N':  The diagonal blocks are not reordered (default);
-            := 'S':  The diagonal blocks are reordered before each
-                     step of reduction, so that clustered eigenvalues
-                     appear in the same block;
-            := 'C':  The diagonal blocks are not reordered, but the
-                     "closest-neighbour" strategy is used instead of
-                     the standard "closest to the mean" strategy
-                     (see Notes_);
-            := 'B':  The diagonal blocks are reordered before each
-                     step of reduction, and the "closest-neighbour"
-                     strategy is used (see Notes_).
+        := 'N':  The diagonal blocks are not reordered (default);
+        := 'S':  The diagonal blocks are reordered before each
+                    step of reduction, so that clustered eigenvalues
+                    appear in the same block;
+        := 'C':  The diagonal blocks are not reordered, but the
+                    "closest-neighbour" strategy is used instead of
+                    the standard "closest to the mean" strategy
+                    (see Notes_);
+        := 'B':  The diagonal blocks are reordered before each
+                    step of reduction, and the "closest-neighbour"
+                    strategy is used (see Notes_).
 
-        pmax : float, optional
-            An upper bound for the infinity norm of elementary
-            submatrices of the individual transformations used for
-            reduction (see Notes_).  `pmax` >= 1.0
-        tol : float, optional
-            The tolerance to be used in the ordering of the diagonal
-            blocks of the real Schur form matrix.
-            If the user sets `tol` > 0, then the given value of `tol` is
-            used as an absolute tolerance: a block `i` and a temporarily
-            fixed block 1 (the first block of the current trailing
-            submatrix to be reduced) are considered to belong to the
-            same cluster if their eigenvalues satisfy
+    pmax : float, optional
+        An upper bound for the infinity norm of elementary
+        submatrices of the individual transformations used for
+        reduction (see Notes_).  `pmax` >= 1.0
+    tol : float, optional
+        The tolerance to be used in the ordering of the diagonal
+        blocks of the real Schur form matrix.
+        If the user sets `tol` > 0, then the given value of `tol` is
+        used as an absolute tolerance: a block `i` and a temporarily
+        fixed block 1 (the first block of the current trailing
+        submatrix to be reduced) are considered to belong to the
+        same cluster if their eigenvalues satisfy
 
-            .. math:: | \\lambda_1 - \\lambda_i | <= tol.
+        .. math:: | \\lambda_1 - \\lambda_i | <= tol.
 
-            If the user sets `tol` < 0, then the given value of tol is
-            used as a relative tolerance: a block i and a temporarily
-            fixed block 1 are considered to belong to the same cluster
-            if their eigenvalues satisfy, for ``j = 1, ..., n``
+        If the user sets `tol` < 0, then the given value of tol is
+        used as a relative tolerance: a block i and a temporarily
+        fixed block 1 are considered to belong to the same cluster
+        if their eigenvalues satisfy, for ``j = 1, ..., n``
 
-            .. math:: | \\lambda_1 - \\lambda_i | <= | tol | * \\max | \\lambda_j |.
+        .. math:: | \\lambda_1 - \\lambda_i | <= | tol | * \\max | \\lambda_j |.
 
-            If the user sets `tol` = 0, then an implicitly computed,
-            default tolerance, defined by ``tol = SQRT( SQRT( EPS ) )``
-            is used instead, as a relative tolerance, where `EPS` is
-            the machine precision (see LAPACK Library routine DLAMCH).
-            If `sort` = 'N' or 'C', this parameter is not referenced.
+        If the user sets `tol` = 0, then an implicitly computed,
+        default tolerance, defined by ``tol = SQRT( SQRT( EPS ) )``
+        is used instead, as a relative tolerance, where `EPS` is
+        the machine precision (see LAPACK Library routine DLAMCH).
+        If `sort` = 'N' or 'C', this parameter is not referenced.
 
     Returns
     -------
-        Ar : (n, n) ndarray
-            Contains the computed block-diagonal matrix, in real Schur
-            canonical form. The non-diagonal blocks are set to zero.
-        Xr : (n, n) ndarray or None
-            Contains the product of the given matrix `X` and the
-            transformation matrix that reduced `A` to block-diagonal
-            form. The transformation matrix is itself a product of
-            non-orthogonal similarity transformations having elements
-            with magnitude less than or equal to `pmax`.
-            If `jobx` = 'N', this array is returned as None
-        blsize : (n,) ndarray
-            The orders of the resulting diagonal blocks of the matrix `Ar`.
-        W : (n,) complex ndarray
-            Contains the complex eigenvalues of the matrix `A`.
+    Ar : (n, n) ndarray
+        Contains the computed block-diagonal matrix, in real Schur
+        canonical form. The non-diagonal blocks are set to zero.
+    Xr : (n, n) ndarray or None
+        Contains the product of the given matrix `X` and the
+        transformation matrix that reduced `A` to block-diagonal
+        form. The transformation matrix is itself a product of
+        non-orthogonal similarity transformations having elements
+        with magnitude less than or equal to `pmax`.
+        If `jobx` = 'N', this array is returned as None
+    blsize : (n,) ndarray
+        The orders of the resulting diagonal blocks of the matrix `Ar`.
+    W : (n,) complex ndarray
+        Contains the complex eigenvalues of the matrix `A`.
 
     Notes
     -----
@@ -361,11 +361,9 @@ def mb03vd(n, ilo, ihi, A):
 
     Parameters
     ----------
-
     n : int
             The order of the square matrices A_1, A_2, ..., A_p.
             n >= 0.
-
     ilo, ihi : int
             It is assumed that all matrices A_j, j = 2, ..., p, are
             already upper triangular in rows and columns [:ilo-1] and
@@ -375,15 +373,12 @@ def mb03vd(n, ilo, ihi, A):
             If this is not the case, ilo and ihi should be set to 1
             and n, respectively.
             1 <= ilo <= max(1,n); min(ilo,n) <= ihi <= n.
-
     A : ndarray
             A[:n,:n,:p] must contain the matrices of factors to be reduced;
             specifically, A[:,:,j-1] must contain A_j, j = 1, ..., p.
 
-
     Returns
     -------
-
     HQ : ndarray
             3D array with same shape as A. The upper triangle and the first
             subdiagonal of HQ[:n,:n,0] contain the upper Hessenberg
@@ -396,16 +391,14 @@ def mb03vd(n, ilo, ihi, A):
             below the diagonal, with the j-th column of the array TAU
             represent the orthogonal matrix Q_j as a product of
             elementary reflectors. See FURTHER COMMENTS.
-
     Tau : ndarray
             2D array with shape (max(1, n-1), p).
             The leading n-1 elements in the j-th column contain the
             scalar factors of the elementary reflectors used to form
             the matrix Q_j, j = 1, ..., p. See FURTHER COMMENTS.
 
-    Further Comments
-    ----------------
-
+    Notes
+    -----
     Each matrix Q_j is represented as a product of (ihi-ilo)
     elementary reflectors,
 
@@ -478,26 +471,21 @@ def mb03vy(n, ilo, ihi, A, Tau, ldwork=None):
 
     Parameters
     ----------
-
     n : int
             The order of the matrices Q_1, Q_2, ..., Q_p.  N >= 0.
-
     ilo, ihi : int
             The values of the indices ilo and ihi, respectively, used
             in the previous call of the SLICOT Library routine MB03VD.
             1 <= ilo <= max(1,n); min(ilo,n) <= ihi <= n.
-
     A : ndarray
             A[:n,:n,j-1] must contain the vectors which define the
             elementary reflectors used for reducing A_j, as returned
             by SLICOT Library routine MB03VD, j = 1, ..., p.
-
     Tau : ndarray
             The leading N-1 elements in the j-th column must contain
             the scalar factors of the elementary reflectors used to
             form the matrix Q_j, as returned by SLICOT Library routine
             MB03VD.
-
     ldwork : int, optional
             The length of the internal array DWORK.  ldwork >= max(1, n).
             For optimum performance ldwork should be larger.
@@ -505,11 +493,9 @@ def mb03vy(n, ilo, ihi, A, Tau, ldwork=None):
 
     Returns
     -------
-
     Q : ndarray
             3D array with same shape as A. Q[:n,:n,j-1] contains the
             N-by-N orthogonal matrix Q_j, j = 1, ..., p.
-
     """
 
     hidden = ' (hidden by the wrapper)'
@@ -561,7 +547,7 @@ def mb03wd(job, compz, n, ilo, ihi, iloz, ihiz, H, Q, ldwork=None):
             = 'E':  Compute the eigenvalues only;
             = 'S':  Compute the factors T_1, ..., T_p of the full
                     Schur form, T = T_1*T_2*...*T_p.
-   compz : {'N', 'I', 'V'}
+    compz : {'N', 'I', 'V'}
             Indicates whether or not the user wishes to accumulate
             the matrices Z_1, ..., Z_p, as follows:
             = 'N':  The matrices Z_1, ..., Z_p are not required;
@@ -776,9 +762,10 @@ def mb05nd(a, delta, tol=1e-7):
         Square matrix
     delta : float
         The scalar value delta of the problem.
-    tol : float
-        Tolerance. A good value is sqrt(eps)
-
+    tol : float, optional
+        Tolerance. A good value is sqrt(eps).
+        Default is 1e-7.
+        
     Returns
     -------
     F : (n, n) ndarray
@@ -831,7 +818,6 @@ def mc01td(dico, dp, p):
 
         = 'C':  continuous-time case;
         = 'D':  discrete-time case.
-
     dp : int
         The degree of the polynomial `P(x)`.  ``dp >= 0``.
     p : (dp+1, ) array_like
