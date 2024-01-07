@@ -1,6 +1,6 @@
 # https://github.com/conda-forge/blas-feedstock/issues/106#issuecomment-1771747983
 # https://github.com/conda-forge/conda-forge-pinning-feedstock/blob/main/recipe/conda_build_config.yaml
-
+# https://github.com/conda-forge/conda-forge-pinning-feedstock/blob/main/recipe/migrations/python312.yaml
 
 # zip_keys Python/Numpy matrix to build for
 python:
@@ -8,7 +8,7 @@ python:
     - 3.12.* *_cpython
 numpy:
     - 1.23
-    - 1.23
+    - 1.26
 
 zip_keys:
   -
