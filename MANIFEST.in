@@ -7,7 +7,6 @@ include CMakeLists.txt
 include pyproject.toml
 include conda-recipe/*
 include slycot/CMakeLists.txt
-include slycot/tests/CMakeLists.txt
 include slycot/*.py
 include slycot/src/*.f
 include slycot/tests/*.py

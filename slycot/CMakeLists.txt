@@ -630,12 +630,6 @@ set(F2PYSOURCE_DEPS
   src/transform.pyf src/synthesis.pyf
   src/_helper.pyf)
 
-set(PYSOURCE
-
-  __init__.py  examples.py exceptions.py
-  analysis.py math.py synthesis.py transform.py
-)
-
 set(SLYCOT_MODULE "_wrapper")
 
 set(GENERATED_MODULE
@@ -681,6 +675,3 @@ endif()
 python_extension_module(${SLYCOT_MODULE})
 
 install(TARGETS ${SLYCOT_MODULE} LIBRARY DESTINATION slycot)
-install(FILES ${PYSOURCE} DESTINATION slycot)
-
-add_subdirectory(tests)
