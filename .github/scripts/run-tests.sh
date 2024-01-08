@@ -34,4 +34,5 @@ cd ${slycot_srcdir}
 echo "  ${slycot_libdir}" >> .coveragerc
 coverage combine
 coverage report
+coverage xml
 echo "::endgroup::"

@@ -7,4 +7,3 @@ dependencies:
   - pytest-cov
   - pytest-timeout
   - coverage
-  - coveralls >= 3.3
