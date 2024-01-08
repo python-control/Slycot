@@ -62,15 +62,17 @@ else:
                             sb10ad, sb10dd, sb10fd, sb10hd, sb10jd, sb10yd,
                             sg02ad,
                             sg03ad, sg03bd)
-
-    # Transformation routines (10/77 wrapped)
+                            
+    # Transformation routines (12/77 wrapped)
     from .transform import (tb01id, tb01pd,
                             tb03ad,
                             tb04ad,
                             tb05ad,
-                            tc01od, tc04ad,
+                            tc01od,
+                            tc04ad,
                             td04ad,
-                            tf01md, tf01rd)
+                            tf01md, tf01rd,
+                            tg01ad, tg01fd)
 
     # Utility routines (0/7 wrapped)
 
