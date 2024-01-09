@@ -40,6 +40,7 @@ Mathematical routines
 .. autosummary::
    :toctree: generated/
 
+   mb02ed
    mb03rd
    mb03vd
    mb03vy
@@ -67,6 +68,7 @@ Synthesis
    sb10dd
    sb10fd
    sb10hd
+   sb10jd
    sb10yd
    sg02ad
    sg03ad
@@ -88,3 +90,5 @@ Transformation Routines
    td04ad
    tf01md
    tf01rd
+   tg01ad
+   tg01fd

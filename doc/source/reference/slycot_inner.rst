@@ -40,6 +40,7 @@ Mathematical routines
 .. autosummary::
    :toctree: generated/
 
+   _wrapper.mb02ed
    _wrapper.mb03rd
    _wrapper.mb03vd
    _wrapper.mb03vy
