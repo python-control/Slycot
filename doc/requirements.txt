@@ -1,11 +1,12 @@
-sphinx>=3.4
+sphinx>=7.2.6
 numpy
 scipy
 pandas
 matplotlib
 matplotlib_venn
-sphinx_rtd_theme
+sphinx_rtd_theme>=2.0.0
 numpydoc
 ipykernel
 nbsphinx
-docutils==0.16 # pin until sphinx_rtd_theme is compatible with 0.17 or later
+docutils
+#docutils==0.16 # pin until sphinx_rtd_theme is compatible with 0.17 or later
