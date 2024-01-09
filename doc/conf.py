@@ -13,8 +13,9 @@ sys.path.insert(0, os.path.abspath('../slycot'))
 import subprocess
 subprocess.run(["python", "check_names.py"])
 
+from datetime import date
 project = 'Slycot'
-copyright = '2023, Slycot Developers'
+copyright = f'{date.today().year}, Slycot Developers'
 author = 'Slycot Developers'
 
 # Version information - read from the source code
