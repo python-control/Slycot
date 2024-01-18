@@ -1,10 +1,6 @@
-************
-Introduction
-************
+.. this page is referenced from the front page but it's unnecessary as a navigation section for now.
 
-Welcome to the Slycot (`slycot`) User's Manual. 
-This manual contains information on using the `slycot` package, 
-including documentation for all functions in the package and examples illustrating their use.
+:orphan:
 
 Installation
 ============
@@ -49,18 +45,3 @@ Alternatively, to install from source, first `download the source
 To install in your home directory, use::
     
     pip install .
-
-Getting started
-===============
-
-There are two different ways to use the package. For the default interface
-described in :ref:`function-ref`, simply import the slycot package as follows::
-
-    >>> import slycot
-
-.. warning::
-  In general, the second way is not recommended.
-
-  To access the f2py interface described in :ref:`inner_function-ref`, simply import the slycot package as follows::
-
-    >>> import slycot._wrapper

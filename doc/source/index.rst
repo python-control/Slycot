@@ -1,15 +1,16 @@
-.. slycot documentation master file, created by
-   sphinx-quickstart on Wed Jul 26 15:18:00 2023.
+.. Slycot documentation master file, created by
+   sphinx-quickstart on Thu Jan 18 21:43:47 2024.
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Slycot
-======
+Welcome to Slycot's documentation!
+==================================
 
 Python wrapper for selected `SLICOT <https://github.com/SLICOT/SLICOT-Reference>`_ routines, 
 notably including solvers for Riccati, Lyapunov, and Sylvester equations.
 
-.. rubric:: Chapters
+Chapters
+--------
 
 The Slycot library is organised by chapters. Each chapter can be identified by a single letter. The following chapters are included:
 
@@ -25,19 +26,38 @@ The Slycot library is organised by chapters. Each chapter can be identified by a
 - ``T`` : Transformation Routines
 - ``U`` : Utility Routines
 
-.. rubric:: Documentation
+.. toctree::
+   :maxdepth: 2
+   :hidden:
+   :caption: 🚀 Tutorials
+
+   /tutorial/index
+   /tutorial/getting
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
+   :hidden:
+   :caption: 💡 Explanation
 
-   intro
-   source/reference/index
-   source/dev/index
-   source/examples/index
+   /explanation/index
 
-Indices and tables
-==================
+.. toctree::
+   :maxdepth: 2
+   :hidden:
+   :caption: 🪄 How-to guides
 
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
+   /guides/system_norms
+
+.. toctree::
+   :maxdepth: 2
+   :hidden:
+   :caption: 📚 Reference
+
+   /reference/index
+
+.. toctree::
+   :maxdepth: 2
+   :hidden:
+   :caption: Contributing
+
+   /contributing/index
