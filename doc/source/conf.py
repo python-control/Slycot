@@ -19,7 +19,7 @@ author = 'Slycot Developers'
 import re
 
 # Get the version number for this commmit (including alpha/beta/rc tags)
-release = re.sub('^v', '', os.popen('git describe').read().strip())
+release = re.sub('^v', '', os.popen('git describe --tags').read().strip())
 
 # The short X.Y.Z version
 version = re.sub(r'(\d+\.\d+\.\d+(.post\d+)?)(.*)', r'\1', release)
@@ -33,7 +33,7 @@ extensions = [
     'sphinx.ext.autodoc', 'sphinx.ext.todo', 'sphinx.ext.napoleon',
     'sphinx.ext.intersphinx', 'sphinx.ext.imgmath',
     'sphinx.ext.autosummary', 'nbsphinx', 'numpydoc',
-    'sphinx.ext.doctest'
+    'sphinx.ext.doctest',  'sphinx_copybutton'
 ]
 # scan documents for autosummary directives and generate stub pages for each.
 autosummary_generate = True
