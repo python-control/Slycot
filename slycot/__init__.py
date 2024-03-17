@@ -27,7 +27,7 @@ else:
     # U : Utility Routines
 
 
-    # Analysis routines (18/60 wrapped)
+    # Analysis routines (18/61 wrapped)
     from .analysis import (ab01nd,
                            ab04md,
                            ab05md, ab05nd,
@@ -47,7 +47,7 @@ else:
 
     # Identification routines (0/15 wrapped)
 
-    # Mathematical routines (8/281 wrapped)
+    # Mathematical routines (8/291 wrapped)
     from .math import (mb02ed, mb03rd, mb03vd, mb03vy, mb03wd,
                        mb05md, mb05nd,
                        mc01td)

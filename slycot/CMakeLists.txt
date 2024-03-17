@@ -58,6 +58,7 @@ src/SLICOT-Reference/src/AB13DD.f
 src/SLICOT-Reference/src/AB13DX.f
 src/SLICOT-Reference/src/AB13ED.f
 src/SLICOT-Reference/src/AB13FD.f
+src/SLICOT-Reference/src/AB13HD.f
 src/SLICOT-Reference/src/AB13ID.f
 src/SLICOT-Reference/src/AB13MD.f
 src/SLICOT-Reference/src/AB8NXZ.f
@@ -105,6 +106,8 @@ src/SLICOT-Reference/src/MA01AD.f
 src/SLICOT-Reference/src/MA01BD.f
 src/SLICOT-Reference/src/MA01BZ.f
 src/SLICOT-Reference/src/MA01CD.f
+src/SLICOT-Reference/src/MA01DD.f
+src/SLICOT-Reference/src/MA01DZ.f
 src/SLICOT-Reference/src/MA02AD.f
 src/SLICOT-Reference/src/MA02AZ.f
 src/SLICOT-Reference/src/MA02BD.f
@@ -131,6 +134,8 @@ src/SLICOT-Reference/src/MA02OD.f
 src/SLICOT-Reference/src/MA02OZ.f
 src/SLICOT-Reference/src/MA02PD.f
 src/SLICOT-Reference/src/MA02PZ.f
+src/SLICOT-Reference/src/MA02RD.f
+src/SLICOT-Reference/src/MA02SD.f
 src/SLICOT-Reference/src/MB01KD.f
 src/SLICOT-Reference/src/MB01LD.f
 src/SLICOT-Reference/src/MB01MD.f
@@ -322,7 +327,13 @@ src/SLICOT-Reference/src/MB04QF.f
 src/SLICOT-Reference/src/MB04QS.f
 src/SLICOT-Reference/src/MB04QU.f
 src/SLICOT-Reference/src/MB04RB.f
+src/SLICOT-Reference/src/MB04RD.f
+src/SLICOT-Reference/src/MB04RS.f
+src/SLICOT-Reference/src/MB04RT.f
 src/SLICOT-Reference/src/MB04RU.f
+src/SLICOT-Reference/src/MB04RV.f
+src/SLICOT-Reference/src/MB04RW.f
+src/SLICOT-Reference/src/MB04RZ.f
 src/SLICOT-Reference/src/MB04SU.f
 src/SLICOT-Reference/src/MB04TB.f
 src/SLICOT-Reference/src/MB04TS.f
@@ -613,6 +624,7 @@ src/SLICOT-Reference/src/UD01MD.f
 src/SLICOT-Reference/src/UD01MZ.f
 src/SLICOT-Reference/src/UD01ND.f
 src/SLICOT-Reference/src/UE01MD.f
+src/SLICOT-Reference/src/zelctg.f
 
 src/SLICOT-Reference/src/delctg.f
 src/SLICOT-Reference/src/select.f
