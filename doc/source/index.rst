@@ -46,7 +46,7 @@ The Slycot library is organised by chapters. Each chapter can be identified by a
    :hidden:
    :caption: 🪄 How-to guides
 
-   /guides/system_norms
+   /guides/index
 
 .. toctree::
    :maxdepth: 2
