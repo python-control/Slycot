@@ -174,7 +174,7 @@ jobs:
             mkdir -p "slycot-conda-pkgs/${conda_platform}"
             cp "${conda_pkg}" "slycot-conda-pkgs/${conda_platform}/"
           done
-          conda index --no-progress ./slycot-conda-pkgs
+          python -m conda index --no-progress ./slycot-conda-pkgs
       - name: Save to local conda pkg channel
         uses: actions/upload-artifact@v3
         with:
