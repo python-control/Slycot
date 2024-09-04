@@ -192,7 +192,7 @@ jobs:
       - name: Checkout Slycot
         uses: actions/checkout@v3
       - name: Download wheels (if any)
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4.1.7
         with:
           name: slycot-wheels
           path: slycot-wheels
@@ -210,7 +210,7 @@ jobs:
       - name: Checkout Slycot
         uses: actions/checkout@v3
       - name: Download conda packages
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4.1.7
         with:
           name: slycot-conda-pkgs
           path: slycot-conda-pkgs
@@ -272,7 +272,7 @@ jobs:
               exit 1 ;;
           esac
       - name: Download wheels
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4.1.7
         with:
           name: slycot-wheels
           path: slycot-wheels
@@ -331,7 +331,7 @@ jobs:
           channel-priority: strict
           auto-activate-base: false
       - name: Download conda packages
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4.1.7
         with:
           name: slycot-conda-pkgs
           path: slycot-conda-pkgs
