@@ -25,7 +25,6 @@ import numpy as _np
 from . import _wrapper
 from .exceptions import raise_if_slycot_error, SlycotParameterError
 
-
 def sb01bd(n,m,np,alpha,A,B,w,dico,tol=0.0,ldwork=None):
     """ A_z,w,nfp,nap,nup,F,Z = sb01bd(n,m,np,alpha,A,B,w,dico,[tol,ldwork])
 
@@ -59,9 +58,10 @@ def sb01bd(n,m,np,alpha,A,B,w,dico,tol=0.0,ldwork=None):
             := 'C':  continuous-time system;
             := 'D':  discrete-time system.
     tol : float, optional
-            The absolute tolerance level below which the elements of A or B are
-            considered zero (used for controllability tests).
-            If tol <= 0 the default value is used.
+        The absolute tolerance level below which the elements of A or B are
+        considered zero (used for controllability tests).
+        If tol <= 0 the default value is used.
+        Default is `0.0`.
     ldwork : int, optional
         The length of the cache array. The default value is
         max(1,5*m,5*n,2*n+4*m), for optimum performance it should be larger.
@@ -129,7 +129,6 @@ def sb01bd(n,m,np,alpha,A,B,w,dico,tol=0.0,ldwork=None):
 
     Example
     -------
-
     >>> import numpy as np
     >>> import slycot
     >>> A = np.array([[0, 1, 0], [0, 0, 1], [-2, 1, 3]])
@@ -282,8 +281,6 @@ def sb02md(n,A,G,Q,dico,hinv='D',uplo='U',scal='N',sort='S',ldwork=None):
 
     Raises
     ------
-    SlycotParameterError
-        :info = -i: the i-th argument had an illegal value;
     SlycotArithmeticError
         :info = 1:
             Matrix A is (numerically) singular in discrete-
@@ -305,7 +302,6 @@ def sb02md(n,A,G,Q,dico,hinv='D',uplo='U',scal='N',sort='S',ldwork=None):
 
     Example
     -------
-
     >>> import numpy as np
     >>> import slycot
     >>> A = np.array([[0, 1], [0, 0]])
@@ -623,7 +619,6 @@ def sb02od(n,m,A,B,Q,R,dico,p=None,L=None,fact='N',uplo='U',sort='S',tol=0.0,ldw
 
     Example
     -------
-
     >>> import numpy as np
     >>> import slycot
     >>> A = np.array([[0, 1], [0, 0]])
@@ -708,7 +703,7 @@ def sb03md57(A, U=None, C=None,
     C : (n, n) array_like
         If job = 'X' or 'B', this array must contain the symmetric matrix C.
         If job = 'S', C is not referenced.
-    dico : {'C', 'D'}
+    dico : {'C', 'D'}, optional
         Specifies the equation from which X is to be determined as follows:
             := 'C':  Equation (1), continuous-time case;
             := 'D':  Equation (2), discrete-time case.
@@ -906,7 +901,7 @@ def sb03od(n,m,A,Q,B,dico,fact='N',trans='N',ldwork=None):
         For optimum performance ldwork should sometimes be larger.
 
     Returns
-    _______
+    -------
     U : (n, n) ndarray
         The leading n-by-n part of this array contains
         the upper triangular Cholesky factor U of the solution
@@ -1020,6 +1015,9 @@ def sb04md(n,m,A,B,C,ldwork=None):
         Matrix B
     C : (n, m) array_like
         Matrix C
+    ldwork : int, optional
+        The length of the array DWORK.
+        Default is None.
 
     Returns
     -------
@@ -1069,6 +1067,9 @@ def sb04qd(n,m,A,B,C,ldwork=None):
         Matrix B
     C : (n, m) array_like
         Matrix C
+    ldwork : int, optional
+        The length of the array DWORK.
+        Default is None.
 
     Returns
     -------
@@ -1700,6 +1701,119 @@ def sb10jd(n,m,np,A,B,C,D,E,ldwork=None):
 
     return A[:nsys,:nsys],B[:nsys,:m],C[:np, :nsys],D[:np, :m]
 
+def sb10yd(discfl,flag,lendat,rfrdat,ifrdat,omega,n,tol,ldwork=None):
+    """ A,B,C,D = sb10yd(discfl,flag,lendat,rfrdat,ifrdat,omega,n,tol,[ldwork])
+
+    To fit a supplied frequency response data with a stable, minimum
+    phase SISO (single-input single-output) system represented by its
+    matrices A, B, C, D. It handles both discrete- and continuous-time
+    cases.
+
+    ::
+
+        dx/dt = A*x + B*u
+            y = C*x + D*u
+    
+    ::
+
+        x[n+1] = A*x[n] + B*u[n]
+        y[n] = C*x[n] + D*u[n] .
+
+    Parameters
+    ----------
+    discfl : int
+        Indicatres the type of the system, as follows:
+        = 0: continuous-time system;
+        = 1: discrete-time system.
+    flag : int
+        If flag = 0, then the system zeros and poles are not constrained.
+        If flag = 1, then the system zeros and poles will have negative
+        real parts in the continuous-time case, or moduli less than 1 in
+        the discrete-time case. Consequently, flag must be equal to 1 in
+        mu-synthesis routines.
+    lendat : int
+        The length of the vectors rfrdat, ifrdat and omega.
+        length >= 2.
+    rfrdat : dimension (lendat), array_like
+        The real part of the frequency data to be fitted.
+    ifrdat : dimension (lendat), array_like
+        The imaginary part of the frequency data to be fitted.
+    omega : dimension (lendat), array_like
+        The frequencies corresponding to rfrdat and ifrdat.
+        These value must be nonnegative and monotonically increasing.
+        Additionally, for discrete-time systems they must be between 0 and PI.
+    n : int
+        On entry, the desired order of the system to be fitted.
+        n <= lendat-1.
+    tol : int
+        The length of the cache array.
+    ldwork : int, optional
+        With None it will be automatically calculated.
+        For details see SLICOT help.
+
+    Returns
+    -------
+    n : int
+        The order of the obtained system. The value of n
+        could only be modified if n > 0 and flag = 1.
+    A : (n, n) ndarray
+        The computed matrix A.
+        matrix A.
+    B : (n, 1) ndarray
+        The computed column vector B.
+    C : (1, n) ndarray
+        The computed row vector C.
+    D : (1, 1) ndarray
+        The computed scalar D.
+
+    Raises
+    ------
+    SlycotArithmeticError
+        :info == 0:  successful exit;
+        :info < 0:   if info = -i, the i-th argument had an illegal value
+        :info = 1:   if the discret --> continous transformation cannot be made;
+        :info = 2:   if the system poles cannot be found;
+        :info = 3:   if the inverse system cannot be found, i.e., D is (close to) zero;
+        :info = 4:   if the system zeros cannot be found;
+        :info = 5:   if the state-space representation of the new transfer function T(s) cannot found;
+        :info = 6:   if the continous --> discrete transformation cannot be made.
+            The iteration for computing singular value
+            decomposition did not converge.
+    """
+
+    hidden = ' (hidden by the wrapper)'
+    arg_list = ['discfl', 'flag', 'lendat', 'rfrdat', 'ifrdat', 'omega', 
+                'n', 'A', 'lda' + hidden, 'B', 'C', 'D', 
+                'TOL', 'IWORK' + hidden, 'DWORK' + hidden, 'LDWORK',
+                'ZWORK' + hidden, 'LZWORK', 'INFO' + hidden]
+
+    if ldwork is None:
+        lw1 = 2*lendat + 4*2048
+        lw2 =   lendat + 6*2048
+        mn  = min(2*lendat,2*n+1)
+        if n > 0:
+            lw3 = 2*lendat*(2*n+1) + max(2*lendat,2*n+1) + max(mn+6*n+4,2*mn+1)
+        elif n == 0:
+            lw3 = 4*lendat + 5
+        if flag == 1:
+            lw4 = max(n*n+5*n,6*n+1+min(1,n))
+        elif flag == 0:
+            lw4 = 0
+        ldwork = max(2, lw1, lw2, lw3, lw4)
+    if n > 0:
+        lzwork = lendat*(2*n+3)
+    elif n == 0:
+        lzwork = lendat
+
+    out = _wrapper.sb10yd(
+        discfl, flag, lendat, rfrdat, ifrdat, omega,
+        n,
+        tol,ldwork,lzwork)
+
+    raise_if_slycot_error(out[-1], arg_list, sb10yd.__doc__)
+
+    return out[:-1]
+
 def sg03ad(dico,job,fact,trans,uplo,N,A,E,Q,Z,X,ldwork=None):
     """ A,E,Q,Z,X,scale,sep,ferr,alphar,alphai,beta =
             sg03ad(dico,job,fact,trans,uplo,N,A,E,Q,Z,X,[ldwork])
@@ -2094,6 +2208,7 @@ def sg02ad(dico,jobb,fact,uplo,jobl,scal,sort,acc,N,M,P,A,E,B,Q,R,L,ldwork=None,
             LDR >= MAX(1,M) if JOBB = 'B' and FACT = 'N' or 'C';
             LDR >= MAX(1,P) if JOBB = 'B' and FACT = 'D' or 'B';
             LDR >= 1        if JOBB = 'G'.
+
     L : (n, M) array_like
         If JOBL = 'N' and JOBB = 'B', the leading N-by-M part of
         this array must contain the cross weighting matrix L.
@@ -2105,6 +2220,7 @@ def sg02ad(dico,jobb,fact,uplo,jobl,scal,sort,acc,N,M,P,A,E,B,Q,R,L,ldwork=None,
 
             LDWORK >= MAX(7*(2*N+1)+16,16*N),           if JOBB = 'G';
             LDWORK >= MAX(7*(2*N+1)+16,16*N,2*N+M,3*M), if JOBB = 'B'.
+
         For optimum performance LDWORK should be larger.
         Default:  ``max(7*(2*n+1)+16,16*n)``
     tol : float, optional
@@ -2320,7 +2436,7 @@ def sg03bd(n,m,A,E,Q,Z,B,dico,fact='N',trans='N',ldwork=None):
     than one).
 
     Parameters
-    __________
+    ----------
     n : int
         The order of the matrix A.  n >= 0.
     m : int
@@ -2383,11 +2499,13 @@ def sg03bd(n,m,A,E,Q,Z,B,dico,fact='N',trans='N',ldwork=None):
         on entry or not:
             := 'N':  Factorization is not supplied;
             := 'F':  Factorization is supplied.
+        Default is 'N'.
     trans : {'N', 'T'}, optional
         Specifies whether the transposed equation is to be solved
         or not:
             := 'N':  op(A) = A,    op(E) = E;
             := 'T':  op(A) = A**T, op(E) = E**T.
+        Default is 'N'.
     ldwork : int, optional
         The dimension of the array dwork::
 
@@ -2396,7 +2514,7 @@ def sg03bd(n,m,A,E,Q,Z,B,dico,fact='N',trans='N',ldwork=None):
         For good performance, ldwork should be larger.
 
     Returns
-    _______
+    -------
     U : (n, n) ndarray
         The leading n-by-b part of this array contains
         the Cholesky factor U of the solution matrix X of the
@@ -2409,6 +2527,7 @@ def sg03bd(n,m,A,E,Q,Z,B,dico,fact='N',trans='N',ldwork=None):
         If INFO = 0, 3, 5, 6, or 7, then
         ((j), j=1,...,n, are the
         eigenvalues of the matrix pencil A - lambda * E.
+        Default is None.
 
     Raises
     ------
@@ -2535,7 +2654,7 @@ def sb10fd(n,m,np,ncon,nmeas,gamma,A,B,C,D,tol=0.0,ldwork=None):
         whose reciprocal condition numbers are less than tol are
         not allowed. If tol <= 0, then a default value equal to
         sqrt(eps) is used, where eps is the relative machine
-        precision.
+        precision. Default is `0.0`.
     ldwork : int, optional
         The dimension of the cache array::
 
@@ -2571,7 +2690,7 @@ def sb10fd(n,m,np,ncon,nmeas,gamma,A,B,C,D,tol=0.0,ldwork=None):
 
         if the default (None) value is used, the size for good performance
         is automatically used, when ldwork is set to zero, the minimum
-        cache size will be used.
+        cache size will be used. Default is None.
 
     Returns
     -------

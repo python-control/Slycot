@@ -11,11 +11,14 @@ echo "::endgroup::"
 
 echo "::group::python-control unit tests"
 pushd ${python_control_srcdir:=./python-control}
-# test_root_locus_zoom, test_sisotool: problems with the toolbar for MPL backends, not relevant to Slycot
+# problems with the toolbar for MPL backends, not relevant to Slycot
+donttest="test_root_locus_zoom or test_sisotool"
+# don't care about deprecation warnings here
+donttest="$donttest or test_default_deprecation"
 pytest control/tests \
         --cov=$slycot_libdir \
         --cov-config=${slycot_srcdir}/.coveragerc \
-        -k "not (test_root_locus_zoom or test_sisotool)"
+        -k "not ($donttest)"
 mv .coverage ${slycot_srcdir}/.coverage.control
 popd
 echo "::endgroup::"
@@ -31,4 +34,5 @@ cd ${slycot_srcdir}
 echo "  ${slycot_libdir}" >> .coveragerc
 coverage combine
 coverage report
+coverage xml
 echo "::endgroup::"

@@ -12,6 +12,20 @@ subroutine mc01td(dico,dp,p,stable,nz,dwork,iwarn,info) ! in :new:MC01TD.f
 	integer intent(out) :: info
 end subroutine mc01td
 
+subroutine mb02ed(typet,k,n,nrhs,t,ldt,b,ldb,dwork,ldwork,info) ! in MB02ED.f
+  character :: typet
+  integer intent(in),required  :: k
+  integer intent(in),required :: n
+  integer intent(in),required :: nrhs
+  double precision intent(in,out,copy),dimension(ldt,*) :: t
+  integer, intent(hide),optional,check(shape(t, 0) == ldt),depend(t) :: ldt=shape(t, 0)
+  double precision intent(in,out,copy),dimension(ldb,*) :: b
+  integer, intent(hide),optional,check(shape(b, 0) == ldb),depend(b) :: ldb=shape(b, 0)
+  double precision intent(cache,hide),dimension(ldwork) :: dwork
+  integer optional,check(ldwork>=n*k*k+(n+2)*k), depend(n,k) :: ldwork=max(1,n*k*k+(n+2)*k)
+  integer intent(out):: info
+end subroutine mb02ed
+
 subroutine mb03rd(jobx,sort,n,pmax,a,lda,x,ldx,nblcks,blsize,wr,wi,tol,dwork,info) ! in MB03RD.f
   character intent(in) :: jobx
   character intent(in),required :: sort

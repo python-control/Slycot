@@ -24,9 +24,9 @@ import sys
 
 import pytest
 
-from slycot.exceptions import raise_if_slycot_error, \
-                              SlycotError, SlycotWarning, SlycotParameterError
 from slycot import _wrapper
+from slycot.exceptions import (SlycotError, SlycotParameterError,
+                               SlycotWarning, raise_if_slycot_error)
 
 
 def assert_docstring_parse(docstring, exception_class, erange, checkvars={}):
@@ -91,6 +91,55 @@ def test_unhandled_info_iwarn():
     assert wm[0].message.info == 0
     assert wm[1].message.iwarn == 102
     assert wm[1].message.info == 0
+
+
+def test_info_standard_i():
+    """Test the handling of standard "`info = -i`
+
+    Raises
+    ------
+    SlycotError
+        :info = -i: Non-standard msg, info is {info}, -i is -{i}
+    """
+    # No i in check_vars: keep silent
+    raise_if_slycot_error(-1, docstring=test_info_standard_i.__doc__,
+        checkvars={'a': 1})
+    # -i does not match
+    raise_if_slycot_error(-1, docstring=test_info_standard_i.__doc__,
+        checkvars={'i': 2})
+    # -i matches, raise the error
+    with pytest.raises(SlycotError) as ex_info:
+        raise_if_slycot_error(-1, docstring=test_info_standard_i.__doc__,
+            checkvars={'i': 1})
+    assert str(ex_info.value) == "\nNon-standard msg, info is -1, -i is -1"
+
+
+def test_infospec_nameerror():
+    """Test infospec with unknown variable.
+
+    Raises
+    ------
+    SlycotError
+        :info = v: We do not know {v}
+    """
+    with pytest.raises(RuntimeError) as ex_info:
+        raise_if_slycot_error(-1, docstring=test_infospec_nameerror.__doc__,
+            checkvars={'a': 1})
+    assert str(ex_info.value) == "Unknown variable in infospec: info = v"
+
+
+def test_infospec_syntaxerror():
+    """Test invalid infospec.
+
+    Raises
+    ------
+    SlycotError
+        :info i: Invalid expression
+    """
+    with pytest.raises(RuntimeError) as ex_info:
+        raise_if_slycot_error(-1, docstring=test_infospec_syntaxerror.__doc__,
+            checkvars={'i': 1})
+    assert str(ex_info.value) == "Invalid infospec: info i"
 
 
 # Test code for test_xerbla_override
