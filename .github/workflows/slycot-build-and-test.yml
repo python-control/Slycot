@@ -164,7 +164,7 @@ jobs:
           auto-update-conda: false
           auto-activate-base: false
       - name: Conda build
-        shell: bash -l {0}
+        shell: bash -el {0}
         run: |
           set -e
           conda mambabuild conda-recipe
@@ -316,7 +316,7 @@ jobs:
 
     defaults:
       run:
-        shell: bash -l {0}
+        shell: bash -el {0}
 
     steps:
       - name: Checkout Slycot
@@ -368,7 +368,7 @@ jobs:
           mamba install -c ./slycot-conda-pkgs slycot
           conda list
       - name: Slycot and python-control tests
-        run: JOBNAME="$JOBNAME" bash slycot-src/.github/scripts/run-tests.sh
+        run: JOBNAME="$JOBNAME" bash -el slycot-src/.github/scripts/run-tests.sh
         env:
           JOBNAME: conda ${{ matrix.packagekey }} ${{ matrix.blas_lib }}
       - name: report coverage
