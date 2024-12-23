@@ -315,7 +315,7 @@ subroutine ab09nd(dico,job,equil,ordsel,n,m,p,nr,alpha,a,lda,b,ldb,c,ldc,d,ldd,n
     double precision intent(out),dimension(n),depend(n) :: hsv
     double precision :: tol1 =0.0
     double precision :: tol2 =0.0
-    integer intent(hide,cache),dimension(max(m,p)) :: iwork
+    integer intent(hide,cache),dimension(max(1,2*n)) :: iwork
     double precision intent(hide,cache),dimension(ldwork) :: dwork
     integer optional :: ldwork = max(1,n*(2*n+max(n,max(m,p))+5)+n*(n+1)/2)
     integer intent(out) :: iwarn
