@@ -154,21 +154,20 @@ jobs:
           fetch-depth: 0
           submodules: 'recursive'
       - name: Setup Conda
-        uses: conda-incubator/setup-miniconda@v2
+        uses: conda-incubator/setup-miniconda@v3
         with:
           python-version: ${{ matrix.python }}
           activate-environment: build-env
           environment-file: .github/conda-env/build-env.yml
           miniforge-version: latest
-          miniforge-variant: Mambaforge
           channel-priority: strict
           auto-update-conda: false
           auto-activate-base: false
       - name: Conda build
-        shell: bash -l {0}
+        shell: bash -el {0}
         run: |
           set -e
-          conda mambabuild conda-recipe
+          conda build conda-recipe
           # preserve directory structure for custom conda channel
           find "${CONDA_PREFIX}/conda-bld" -maxdepth 2 -name 'slycot*.tar.bz2' | while read -r conda_pkg; do
             conda_platform=$(basename $(dirname "${conda_pkg}"))
@@ -261,7 +260,7 @@ jobs:
           sudo apt-get -y update
           case ${{ matrix.blas_lib }} in
             Generic )  sudo apt-get -y install libblas3 liblapack3 ;;
-            unset | OpenBLAS        ) sudo apt-get -y install libopenblas-base ;;
+            unset | OpenBLAS        ) sudo apt-get -y install libopenblas0 ;;
             *)
               echo "BLAS ${{ matrix.blas_lib }} not supported for wheels on Ubuntu"
               exit 1 ;;
@@ -317,7 +316,7 @@ jobs:
 
     defaults:
       run:
-        shell: bash -l {0}
+        shell: bash -el {0}
 
     steps:
       - name: Checkout Slycot
@@ -333,11 +332,10 @@ jobs:
         if: matrix.os == 'macos'
         run: brew install coreutils
       - name: Setup Conda
-        uses: conda-incubator/setup-miniconda@v2
+        uses: conda-incubator/setup-miniconda@v3
         with:
           python-version: ${{ matrix.python }}
           miniforge-version: latest
-          miniforge-variant: Mambaforge
           activate-environment: test-env
           environment-file: slycot-src/.github/conda-env/test-env.yml
           channel-priority: strict
@@ -352,25 +350,25 @@ jobs:
           set -e
           case ${{ matrix.blas_lib }} in
             unset        ) # the conda-forge default (os dependent)
-              mamba install libblas libcblas liblapack
+              conda install libblas libcblas liblapack
               ;;
             Generic      )
-              mamba install 'libblas=*=*netlib' 'libcblas=*=*netlib' 'liblapack=*=*netlib'
+              conda install 'libblas=*=*netlib' 'libcblas=*=*netlib' 'liblapack=*=*netlib'
               echo "libblas * *netlib" >> $CONDA_PREFIX/conda-meta/pinned
               ;;
             OpenBLAS     )
-              mamba install 'libblas=*=*openblas' openblas
+              conda install 'libblas=*=*openblas' openblas
               echo "libblas * *openblas" >> $CONDA_PREFIX/conda-meta/pinned
               ;;
             Intel10_64lp )
-              mamba install 'libblas=*=*mkl' mkl
+              conda install 'libblas=*=*mkl' mkl
               echo "libblas * *mkl" >> $CONDA_PREFIX/conda-meta/pinned
               ;;
           esac
-          mamba install -c ./slycot-conda-pkgs slycot
+          conda install -c ./slycot-conda-pkgs slycot
           conda list
       - name: Slycot and python-control tests
-        run: JOBNAME="$JOBNAME" bash slycot-src/.github/scripts/run-tests.sh
+        run: JOBNAME="$JOBNAME" bash -el slycot-src/.github/scripts/run-tests.sh
         env:
           JOBNAME: conda ${{ matrix.packagekey }} ${{ matrix.blas_lib }}
       - name: report coverage
