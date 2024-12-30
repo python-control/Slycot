@@ -1,0 +1,244 @@
+!     -*- f90 -*-
+! Signatures for f2py wrappers of FORTRAN LAPACK functions.
+!
+! Author: Pearu Peterson
+! Created: Jan-Feb 2002
+! $Revision$ $Date$
+!
+! Additions by Lee McCuller, based on the scipy sources by Travis Oliphant,
+! Tiziano Zito, Collin RM Stocks, Fabian Pedregosa
+! Skipper Seabold, Ilhan Polat
+!
+! Shorthand Notations:
+! --------------------
+! 
+! 
+! 
+! 
+! 
+! 
+! 
+! 
+! 
+! 
+! 
+! 
+! 
+!
+
+subroutine sgebal(scale,permute,n,a,m,lo,hi,pivscale,info)
+    !
+    ! ba,lo,hi,pivscale,info = gebal(a,scale=0,permute=0,overwrite_a=0)
+    ! Balance general matrix a.
+    ! hi,lo are such that ba[i][j]==0 if i>j and j=0...lo-1 or i=hi+1..n-1
+    ! pivscale([0:lo], [lo:hi+1], [hi:n+1]) = (p1,d,p2) where (p1,p2)[j] is
+    ! the index of the row and column interchanged with row and column j.
+    ! d[j] is the scaling factor applied to row and column j.
+    ! The order in which the interchanges are made is n-1 to hi+1, then 0 to lo-1.
+    !
+    ! P * A * P = [[T1,X,Y],[0,B,Z],[0,0,T2]]
+    ! BA = [[T1,X*D,Y],[0,inv(D)*B*D,ind(D)*Z],[0,0,T2]]
+    ! where D = diag(d), T1,T2 are upper triangular matrices.
+    ! lo,hi mark the starting and ending columns of submatrix B.
+
+    callstatement { (*f2py_func)((permute?(scale?"B":"P"):(scale?"S":"N")),&n,a,&m,&lo,&hi,pivscale,&info); hi--; lo--; }
+    callprotoargument char*,F_INT*,float*,F_INT*,F_INT*,F_INT*,float*,F_INT*
+    integer intent(in),optional :: permute = 0
+    integer intent(in),optional :: scale = 0
+    integer intent(hide),depend(a,n) :: m = shape(a,0)
+    integer intent(hide),depend(a) :: n = shape(a,1)
+    check(m>=n) m
+    integer intent(out) :: hi,lo
+    real dimension(n),intent(out),depend(n) :: pivscale
+    real dimension(m,n),intent(in,out,copy,out=ba) :: a
+    integer intent(out) :: info
+
+end subroutine sgebal
+
+
+subroutine dgebal(scale,permute,n,a,m,lo,hi,pivscale,info)
+    !
+    ! ba,lo,hi,pivscale,info = gebal(a,scale=0,permute=0,overwrite_a=0)
+    ! Balance general matrix a.
+    ! hi,lo are such that ba[i][j]==0 if i>j and j=0...lo-1 or i=hi+1..n-1
+    ! pivscale([0:lo], [lo:hi+1], [hi:n+1]) = (p1,d,p2) where (p1,p2)[j] is
+    ! the index of the row and column interchanged with row and column j.
+    ! d[j] is the scaling factor applied to row and column j.
+    ! The order in which the interchanges are made is n-1 to hi+1, then 0 to lo-1.
+    !
+    ! P * A * P = [[T1,X,Y],[0,B,Z],[0,0,T2]]
+    ! BA = [[T1,X*D,Y],[0,inv(D)*B*D,ind(D)*Z],[0,0,T2]]
+    ! where D = diag(d), T1,T2 are upper triangular matrices.
+    ! lo,hi mark the starting and ending columns of submatrix B.
+
+    callstatement { (*f2py_func)((permute?(scale?"B":"P"):(scale?"S":"N")),&n,a,&m,&lo,&hi,pivscale,&info); hi--; lo--; }
+    callprotoargument char*,F_INT*,double*,F_INT*,F_INT*,F_INT*,double*,F_INT*
+    integer intent(in),optional :: permute = 0
+    integer intent(in),optional :: scale = 0
+    integer intent(hide),depend(a,n) :: m = shape(a,0)
+    integer intent(hide),depend(a) :: n = shape(a,1)
+    check(m>=n) m
+    integer intent(out) :: hi,lo
+    double precision dimension(n),intent(out),depend(n) :: pivscale
+    double precision dimension(m,n),intent(in,out,copy,out=ba) :: a
+    integer intent(out) :: info
+
+end subroutine dgebal
+
+
+subroutine cgebal(scale,permute,n,a,m,lo,hi,pivscale,info)
+    !
+    ! ba,lo,hi,pivscale,info = gebal(a,scale=0,permute=0,overwrite_a=0)
+    ! Balance general matrix a.
+    ! hi,lo are such that ba[i][j]==0 if i>j and j=0...lo-1 or i=hi+1..n-1
+    ! pivscale([0:lo], [lo:hi+1], [hi:n+1]) = (p1,d,p2) where (p1,p2)[j] is
+    ! the index of the row and column interchanged with row and column j.
+    ! d[j] is the scaling factor applied to row and column j.
+    ! The order in which the interchanges are made is n-1 to hi+1, then 0 to lo-1.
+    !
+    ! P * A * P = [[T1,X,Y],[0,B,Z],[0,0,T2]]
+    ! BA = [[T1,X*D,Y],[0,inv(D)*B*D,ind(D)*Z],[0,0,T2]]
+    ! where D = diag(d), T1,T2 are upper triangular matrices.
+    ! lo,hi mark the starting and ending columns of submatrix B.
+
+    callstatement { (*f2py_func)((permute?(scale?"B":"P"):(scale?"S":"N")),&n,a,&m,&lo,&hi,pivscale,&info); hi--; lo--; }
+    callprotoargument char*,F_INT*,complex_float*,F_INT*,F_INT*,F_INT*,float*,F_INT*
+    integer intent(in),optional :: permute = 0
+    integer intent(in),optional :: scale = 0
+    integer intent(hide),depend(a,n) :: m = shape(a,0)
+    integer intent(hide),depend(a) :: n = shape(a,1)
+    check(m>=n) m
+    integer intent(out) :: hi,lo
+    real dimension(n),intent(out),depend(n) :: pivscale
+    complex dimension(m,n),intent(in,out,copy,out=ba) :: a
+    integer intent(out) :: info
+
+end subroutine cgebal
+
+
+subroutine zgebal(scale,permute,n,a,m,lo,hi,pivscale,info)
+    !
+    ! ba,lo,hi,pivscale,info = gebal(a,scale=0,permute=0,overwrite_a=0)
+    ! Balance general matrix a.
+    ! hi,lo are such that ba[i][j]==0 if i>j and j=0...lo-1 or i=hi+1..n-1
+    ! pivscale([0:lo], [lo:hi+1], [hi:n+1]) = (p1,d,p2) where (p1,p2)[j] is
+    ! the index of the row and column interchanged with row and column j.
+    ! d[j] is the scaling factor applied to row and column j.
+    ! The order in which the interchanges are made is n-1 to hi+1, then 0 to lo-1.
+    !
+    ! P * A * P = [[T1,X,Y],[0,B,Z],[0,0,T2]]
+    ! BA = [[T1,X*D,Y],[0,inv(D)*B*D,ind(D)*Z],[0,0,T2]]
+    ! where D = diag(d), T1,T2 are upper triangular matrices.
+    ! lo,hi mark the starting and ending columns of submatrix B.
+
+    callstatement { (*f2py_func)((permute?(scale?"B":"P"):(scale?"S":"N")),&n,a,&m,&lo,&hi,pivscale,&info); hi--; lo--; }
+    callprotoargument char*,F_INT*,complex_double*,F_INT*,F_INT*,F_INT*,double*,F_INT*
+    integer intent(in),optional :: permute = 0
+    integer intent(in),optional :: scale = 0
+    integer intent(hide),depend(a,n) :: m = shape(a,0)
+    integer intent(hide),depend(a) :: n = shape(a,1)
+    check(m>=n) m
+    integer intent(out) :: hi,lo
+    double precision dimension(n),intent(out),depend(n) :: pivscale
+    double complex dimension(m,n),intent(in,out,copy,out=ba) :: a
+    integer intent(out) :: info
+
+end subroutine zgebal
+
+
+
+subroutine sggbal(scale,permute,n,a,lda,b,ldb,lo,hi,lscale,rscale,work,lwork,info) ! in zggbal.f
+  !          WORK is DOUBLE PRECISION array, dimension (lwork)
+  !          lwork must be at least MAX(1,6*N) when JOB = 'S' or 'B', and
+  !          at least 1 when JOB = 'N' or 'P'.
+    callstatement { (*f2py_func)((permute?(scale?"B":"P"):(scale?"S":"N")),&n,a,&lda,b,&ldb,&lo,&hi,lscale,rscale,work,&info); hi--; lo--; }
+    callprotoargument char*,F_INT*,float*,F_INT*,float*,F_INT*,F_INT*,F_INT*,float*,float*,float*,F_INT*
+    integer intent(in),optional :: permute = 0
+    integer intent(in),optional :: scale = 0
+    integer intent(hide),depend(a) :: n = shape(a,1)
+    integer intent(hide),depend(a,n) :: lda = shape(a,0)
+    integer intent(hide),depend(b,n) :: ldb = shape(b,0)
+    check(lda>=n) lda
+    check(ldb>=n) ldb
+    real dimension(lda,n),intent(in,out,copy,out=ao) :: a
+    real dimension(ldb,n),intent(in,out,copy,out=bo) :: b
+    integer intent(out) :: hi,lo
+    real dimension(n),intent(out),depend(n) :: lscale
+    real dimension(n),intent(out),depend(n) :: rscale
+    real precision intent(hide,cache),dimension(lwork) :: work
+    integer optional :: lwork = (scale?MAX(1,6*n):1)
+    integer intent(out) :: info
+end subroutine sgebal
+
+
+subroutine dggbal(scale,permute,n,a,lda,b,ldb,lo,hi,lscale,rscale,work,lwork,info) ! in zggbal.f
+  !          WORK is DOUBLE PRECISION array, dimension (lwork)
+  !          lwork must be at least MAX(1,6*N) when JOB = 'S' or 'B', and
+  !          at least 1 when JOB = 'N' or 'P'.
+    callstatement { (*f2py_func)((permute?(scale?"B":"P"):(scale?"S":"N")),&n,a,&lda,b,&ldb,&lo,&hi,lscale,rscale,work,&info); hi--; lo--; }
+    callprotoargument char*,F_INT*,double*,F_INT*,double*,F_INT*,F_INT*,F_INT*,double*,double*,double*,F_INT*
+    integer intent(in),optional :: permute = 0
+    integer intent(in),optional :: scale = 0
+    integer intent(hide),depend(a) :: n = shape(a,1)
+    integer intent(hide),depend(a,n) :: lda = shape(a,0)
+    integer intent(hide),depend(b,n) :: ldb = shape(b,0)
+    check(lda>=n) lda
+    check(ldb>=n) ldb
+    double precision dimension(lda,n),intent(in,out,copy,out=ao) :: a
+    double precision dimension(ldb,n),intent(in,out,copy,out=bo) :: b
+    integer intent(out) :: hi,lo
+    double precision dimension(n),intent(out),depend(n) :: lscale
+    double precision dimension(n),intent(out),depend(n) :: rscale
+    double precision intent(hide,cache),dimension(lwork),depend(lwork) :: work
+    integer optional :: lwork = (scale?MAX(1,6*n):1)
+    integer intent(out) :: info
+end subroutine dgebal
+
+
+subroutine cggbal(scale,permute,n,a,lda,b,ldb,lo,hi,lscale,rscale,work,lwork,info) ! in zggbal.f
+  !          WORK is DOUBLE PRECISION array, dimension (lwork)
+  !          lwork must be at least MAX(1,6*N) when JOB = 'S' or 'B', and
+  !          at least 1 when JOB = 'N' or 'P'.
+    callstatement { (*f2py_func)((permute?(scale?"B":"P"):(scale?"S":"N")),&n,a,&lda,b,&ldb,&lo,&hi,lscale,rscale,work,&info); hi--; lo--; }
+    callprotoargument char*,F_INT*,complex_float*,F_INT*,complex_float*,F_INT*,F_INT*,F_INT*,float*,float*,complex_float*,F_INT*
+    integer intent(in),optional :: permute = 0
+    integer intent(in),optional :: scale = 0
+    integer intent(hide),depend(a) :: n = shape(a,1)
+    integer intent(hide),depend(a,n) :: lda = shape(a,0)
+    integer intent(hide),depend(b,n) :: ldb = shape(b,0)
+    check(lda>=n) lda
+    check(ldb>=n) ldb
+    complex dimension(lda,n),intent(in,out,copy,out=ao) :: a
+    complex dimension(ldb,n),intent(in,out,copy,out=bo) :: b
+    integer intent(out) :: hi,lo
+    real dimension(n),intent(out),depend(n) :: lscale
+    real dimension(n),intent(out),depend(n) :: rscale
+    complex precision intent(hide,cache),dimension(lwork),depend(lwork) :: work
+    integer optional :: lwork = (scale?MAX(1,6*n):1)
+    integer intent(out) :: info
+end subroutine cgebal
+
+
+subroutine zggbal(scale,permute,n,a,lda,b,ldb,lo,hi,lscale,rscale,work,lwork,info) ! in zggbal.f
+  !          WORK is DOUBLE PRECISION array, dimension (lwork)
+  !          lwork must be at least MAX(1,6*N) when JOB = 'S' or 'B', and
+  !          at least 1 when JOB = 'N' or 'P'.
+    callstatement { (*f2py_func)((permute?(scale?"B":"P"):(scale?"S":"N")),&n,a,&lda,b,&ldb,&lo,&hi,lscale,rscale,work,&info); hi--; lo--; }
+    callprotoargument char*,F_INT*,complex_double*,F_INT*,complex_double*,F_INT*,F_INT*,F_INT*,double*,double*,complex_double*,F_INT*
+    integer intent(in),optional :: permute = 0
+    integer intent(in),optional :: scale = 0
+    integer intent(hide),depend(a) :: n = shape(a,1)
+    integer intent(hide),depend(a,n) :: lda = shape(a,0)
+    integer intent(hide),depend(b,n) :: ldb = shape(b,0)
+    check(lda>=n) lda
+    check(ldb>=n) ldb
+    double complex dimension(lda,n),intent(in,out,copy,out=ao) :: a
+    double complex dimension(ldb,n),intent(in,out,copy,out=bo) :: b
+    integer intent(out) :: hi,lo
+    double precision dimension(n),intent(out),depend(n) :: lscale
+    double precision dimension(n),intent(out),depend(n) :: rscale
+    double complex precision intent(hide,cache),dimension(lwork),depend(lwork) :: work
+    integer optional :: lwork = (scale?MAX(1,6*n):1)
+    integer intent(out) :: info
+end subroutine zgebal
+

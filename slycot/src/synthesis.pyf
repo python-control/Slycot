@@ -20,7 +20,7 @@ subroutine sb01bd(dico,n,m,np,alpha,a,lda,b,ldb,wr,wi,nfp,nap,nup,f,ldf,z,ldz,to
     integer intent(hide),depend(z) :: ldz=shape(z,0)
     double precision :: tol = 0
     double precision intent(hide,cache),dimension(ldwork),depend(ldwork) :: dwork
-    integer :: ldwork = max(5*n,2*n+5*m)+1
+    integer :: ldwork = MAX(5*n,2*n+5*m)+1
     integer intent(out) :: iwarn
     integer intent(out) :: info
 end subroutine sb01bd
@@ -47,8 +47,8 @@ subroutine sb02md(dico,hinv,uplo,scal,sort,n,a,lda,g,ldg,q,ldq,rcond,wr,wi,s,lds
 	double precision intent(out),dimension(2*n,2*n),depend(n) :: s
 	integer intent(hide),depend(s) :: lds=shape(s,0)
 	integer intent(hide,cache),dimension(2*n),depend(n) :: iwork
-	double precision intent(hide,cache),dimension(ldwork) :: dwork
-	integer optional,check(ldwork>=max(3,6*n)),depend(n) :: ldwork=max(3,6*n)
+	double precision intent(hide,cache),dimension(ldwork),depend(ldwork) :: dwork
+	integer optional,check(ldwork>=MAX(3,6*n)),depend(n) :: ldwork=MAX(3,6*n)
 	logical intent(hide,cache),dimension(2*n),depend(n) :: bwork
 end subroutine sb02md
 !
@@ -88,8 +88,8 @@ subroutine sb02od_n(dico,jobb,fact,uplo,jobl,sort,n,m,p,a,lda,b,ldb,q,ldq,r,ldr,
 	double precision intent(hide),dimension(2*n,2*n) :: u ! not needed as jobb = 'B'
 	integer intent(hide),depend(u) :: ldu=shape(u,0)
 	double precision :: tol=0
-	integer intent(hide,cache),dimension(max(2*n,m)),depend(n,m) :: iwork
-	double precision intent(hide,cache),dimension(ldwork) :: dwork
+	integer intent(hide,cache),dimension(MAX(2*n,m)),depend(n,m) :: iwork
+	double precision intent(hide,cache),dimension(ldwork),depend(ldwork) :: dwork
 	integer optional :: ldwork=16*n+3*m+16
 	logical intent(hide,cache),dimension(2*n),depend(n) :: bwork
 	integer intent(out) :: info
@@ -128,8 +128,8 @@ subroutine sb02od_c(dico,jobb,fact,uplo,jobl,sort,n,m,p,a,lda,b,ldb,q,ldq,r,ldr,
 	double precision intent(hide),dimension(2*n,2*n) :: u ! not needed as jobb = 'B'
 	integer intent(hide),depend(u) :: ldu=shape(u,0)
 	double precision :: tol=0
-	integer intent(hide,cache),dimension(max(2*n,m)),depend(n,m) :: iwork
-	double precision intent(hide,cache),dimension(ldwork) :: dwork
+	integer intent(hide,cache),dimension(MAX(2*n,m)),depend(n,m) :: iwork
+	double precision intent(hide,cache),dimension(ldwork),depend(ldwork) :: dwork
 	integer optional :: ldwork=16*n+3*m+16
 	logical intent(hide,cache),dimension(2*n),depend(n) :: bwork
 	integer intent(out) :: info
@@ -168,8 +168,8 @@ subroutine sb02od_d(dico,jobb,fact,uplo,jobl,sort,n,m,p,a,lda,b,ldb,q,ldq,r,ldr,
 	double precision intent(hide),dimension(2*n,2*n) :: u ! not needed as jobb = 'B'
 	integer intent(hide),depend(u) :: ldu=shape(u,0)
 	double precision :: tol=0
-	integer intent(hide,cache),dimension(max(2*n,m)),depend(n,m) :: iwork
-	double precision intent(hide,cache),dimension(ldwork) :: dwork
+	integer intent(hide,cache),dimension(MAX(2*n,m)),depend(n,m) :: iwork
+	double precision intent(hide,cache),dimension(ldwork),depend(ldwork) :: dwork
 	integer optional :: ldwork=16*n+3*m+16
 	logical intent(hide,cache),dimension(2*n),depend(n) :: bwork
 	integer intent(out) :: info
@@ -208,8 +208,8 @@ subroutine sb02od_b(dico,jobb,fact,uplo,jobl,sort,n,m,p,a,lda,b,ldb,q,ldq,r,ldr,
 	double precision intent(hide),dimension(2*n,2*n) :: u ! not needed as jobb = 'B'
 	integer intent(hide),depend(u) :: ldu=shape(u,0)
 	double precision :: tol=0
-	integer intent(hide,cache),dimension(max(2*n,m)),depend(n,m) :: iwork
-	double precision intent(hide,cache),dimension(ldwork) :: dwork
+	integer intent(hide,cache),dimension(MAX(2*n,m)),depend(n,m) :: iwork
+	double precision intent(hide,cache),dimension(ldwork),depend(ldwork) :: dwork
 	integer optional :: ldwork=16*n+3*m+16
 	logical intent(hide,cache),dimension(2*n),depend(n) :: bwork
 	integer intent(out) :: info
@@ -241,7 +241,7 @@ subroutine sb02mt_n(jobg,jobl,fact,uplo,n,m,a,lda,b,ldb,q,ldq,r,ldr,l,ldl,ipiv,o
     integer intent(hide),depend(g) :: ldg=shape(g,0)
     integer intent(hide,cache),dimension(m) :: iwork
     double precision intent(hide,cache),dimension(ldwork),depend(ldwork) :: dwork
-    integer :: ldwork = max(3,n)*m+2
+    integer :: ldwork = MAX(3,n)*m+2
     integer intent(out) :: info
 end subroutine sb02mt_n
 subroutine sb02mt_c(jobg,jobl,fact,uplo,n,m,a,lda,b,ldb,q,ldq,r,ldr,l,ldl,ipiv,oufact,g,ldg,iwork,dwork,ldwork,info) ! in SB02MT.f
@@ -295,7 +295,7 @@ subroutine sb02mt_nl(jobg,jobl,fact,uplo,n,m,a,lda,b,ldb,q,ldq,r,ldr,l,ldl,ipiv,
     integer intent(hide),depend(g) :: ldg=shape(g,0)
     integer intent(hide,cache),dimension(m) :: iwork
     double precision intent(hide,cache),dimension(ldwork),depend(ldwork) :: dwork
-    integer :: ldwork = max(3,n)*m+2
+    integer :: ldwork = MAX(3,n)*m+2
     integer intent(out) :: info
 end subroutine sb02mt_nl
 subroutine sb02mt_cl(jobg,jobl,fact,uplo,n,m,a,lda,b,ldb,q,ldq,r,ldr,l,ldl,ipiv,oufact,g,ldg,iwork,dwork,ldwork,info) ! in SB02MT.f
@@ -344,8 +344,8 @@ subroutine sb03md(dico,job,fact,trana,n,a,lda,u,ldu,c,ldc,scale,sep,ferr,wr,wi,i
     double precision intent(out),dimension(n),depend(n) :: wr
     double precision intent(out),dimension(n),depend(n) :: wi
     integer intent(hide,cache),dimension(n*n),depend(n) :: iwork
-    double precision intent(hide,cache),dimension(ldwork) :: dwork
-    integer optional,check(ldwork>=max(2*n*n,3*n)),depend(n) :: ldwork=max(2*n*n,3*n)
+    double precision intent(hide,cache),dimension(ldwork),depend(ldwork) :: dwork
+    integer optional,check(ldwork>=MAX(2*n*n,3*n)),depend(n) :: ldwork=MAX(2*n*n,3*n)
     integer intent(out) :: info
 end subroutine sb03md
 subroutine sb03od(dico,fact,trans,n,m,a,lda,q,ldq,b,ldb,scale,wr,wi,dwork,ldwork,info) ! in SB03OD.f
@@ -364,8 +364,8 @@ subroutine sb03od(dico,fact,trans,n,m,a,lda,q,ldq,b,ldb,scale,wr,wi,dwork,ldwork
     double precision intent(out) :: scale
     double precision intent(out),dimension(n),depend(n) :: wr
     double precision intent(out),dimension(n),depend(n) :: wi
-    double precision intent(hide,cache),dimension(ldwork) :: dwork
-    integer optional,check(ldwork>=max(1,4*n)),depend(n,m) :: ldwork=max(1,4*n)
+    double precision intent(hide,cache),dimension(ldwork),depend(ldwork) :: dwork
+    integer optional,check(ldwork>=MAX(1,4*n)),depend(n,m) :: ldwork=MAX(1,4*n)
     integer intent(out) :: info    
 end subroutine sb03od
 subroutine sb04md(n,m,a,lda,b,ldb,c,ldc,z,ldz,iwork,dwork,ldwork,info) ! in SB04MD.f
@@ -380,8 +380,8 @@ subroutine sb04md(n,m,a,lda,b,ldb,c,ldc,z,ldz,iwork,dwork,ldwork,info) ! in SB04
     double precision intent(out),dimension(m,m),depend(m) :: z
     integer intent(hide),depend(z) :: ldz=shape(z,0)
     integer intent(hide,cache),dimension(4*n),depend(n) :: iwork
-    double precision intent(hide,cache),dimension(ldwork) :: dwork
-    integer optional,depend(n,m) :: ldwork = max(2*n*n+8*n,max(5*m,n+m))
+    double precision intent(hide,cache),dimension(ldwork),depend(ldwork) :: dwork
+    integer optional,depend(n,m) :: ldwork = MAX(2*n*n+8*n,MAX(5*m,n+m))
     integer intent(out) :: info
 end subroutine sb04md
 subroutine sb04qd(n,m,a,lda,b,ldb,c,ldc,z,ldz,iwork,dwork,ldwork,info) ! in SB04QD.f
@@ -397,8 +397,8 @@ subroutine sb04qd(n,m,a,lda,b,ldb,c,ldc,z,ldz,iwork,dwork,ldwork,info) ! in SB04
      double precision intent(out),dimension(m,m),depend(m) :: z
      integer intent(hide),depend(z) :: ldz=shape(z,0)
      integer intent(hide,cache),dimension(4*n),depend(n) :: iwork
-     double precision intent(hide,cache),dimension(ldwork) :: dwork
-     integer optional,depend(n,m) :: ldwork = max(2*n*n+9*n,max(5*m,n+m))
+     double precision intent(hide,cache),dimension(ldwork),depend(ldwork) :: dwork
+     integer optional,depend(n,m) :: ldwork = MAX(2*n*n+9*n,MAX(5*m,n+m))
      integer intent(out) :: info
 end subroutine sb04qd
 subroutine sb10ad(job,n,m,np,ncon,nmeas,gamma,a,lda,b,ldb,c,ldc,d,ldd,ak,ldak,bk,ldbk,ck,ldck,dk,lddk,ac,ldac,bc,ldbc,cc,ldcc,dc,lddc,rcond,gtol,actol,iwork,liwork,dwork,ldwork,bwork,lbwork,info) ! in :python-control:SB10AD.f
@@ -483,8 +483,8 @@ subroutine sb10dd(n,m,np,ncon,nmeas,gamma,a,lda,b,ldb,c,ldc,d,ldd,ak,ldak,bk,ldb
     integer intent(hide), depend(z) :: ldz=shape(z,0)
     double precision intent(out), dimension(8) :: rcond
     double precision optional :: tol=0.0
-    ! integer intent(hide,cache), dimension(max(2*max(m,n),max(m,max(m+np,n*n)))), depend(n,m,np,ncon,nmeas) :: iwork
-    integer intent(hide), dimension(max(2*max(max(max(max(n,m-ncon),np-nmeas),ncon),nmeas),n*n)), depend(n,m,np,ncon,nmeas) :: iwork
+    ! integer intent(hide,cache), dimension(MAX(2*MAX(m,n),MAX(m,MAX(m+np,n*n)))), depend(n,m,np,ncon,nmeas) :: iwork
+    integer intent(hide), dimension(MAX(2*MAX(MAX(MAX(MAX(n,m-ncon),np-nmeas),ncon),nmeas),n*n)), depend(n,m,np,ncon,nmeas) :: iwork
     double precision intent(hide,cache), dimension(ldwork), depend(ldwork) :: dwork
     integer optional :: ldwork
     logical intent(hide,cache), dimension(2*n), depend(n) :: bwork
@@ -515,7 +515,7 @@ subroutine sb10fd(n,m,np,ncon,nmeas,gamma,a,lda,b,ldb,c,ldc,d,ldd,ak,ldak,bk,ldb
     integer intent(hide),depend(dk) :: lddk=shape(dk,0)
     double precision intent(out),dimension(4) :: rcond
     double precision intent(in) :: tol
-    integer intent(hide,cache),dimension(max(2*max(n,m-ncon),2*max(np-nmeas,ncon)),n*n),depend(n,m,ncon,np,nmeas) :: iwork
+    integer intent(hide,cache),dimension(MAX(2*MAX(n,m-ncon),2*MAX(np-nmeas,ncon)),n*n),depend(n,m,ncon,np,nmeas) :: iwork
     double precision intent(hide,cache),dimension(ldwork),depend(ldwork) :: dwork
     integer intent(in) :: ldwork
     logical intent(hide,cache),dimension(2*n),depend(n) :: bwork
@@ -550,7 +550,7 @@ subroutine sb10hd(n,m,np,ncon,nmeas,a,lda,b,ldb,c,ldc,d,ldd,ak,ldak,bk,ldbk,ck,l
     integer intent(hide), depend(dk) :: lddk=shape(dk,0)
     double precision intent(out), dimension(4) :: rcond
     double precision optional:: tol=0.0
-    integer intent(hide), dimension(max(2*n,n*n)), depend(n) :: iwork
+    integer intent(hide), dimension(MAX(2*n,n*n)), depend(n) :: iwork
     double precision intent(hide), dimension(ldwork), depend(ldwork) :: dwork
     integer optional:: ldwork
     logical intent(hide), dimension(2*n), depend(n) :: bwork
@@ -584,12 +584,12 @@ subroutine sb10yd(discfl,flag,lendat,rfrdat,ifrdat,omega,n,a,lda,b,c,d,tol,iwork
     double precision intent(in), dimension(lendat), depend(lendat) :: omega
     integer intent(in,out,copy), :: n
     double precision intent(out), dimension(lda,n) :: a
-    integer, intent(hide) :: lda=max(n,1)
+    integer, intent(hide) :: lda=MAX(n,1)
     double precision intent(out), dimension(n,1) :: b
     double precision intent(out), dimension(1,n) :: c
     double precision intent(out), dimension(1,1) :: d
     double precision :: tol
-    integer intent(hide, cache), dimension(max(2,2*n+1)), depend(n) :: iwork
+    integer intent(hide, cache), dimension(MAX(2,2*n+1)), depend(n) :: iwork
     double precision intent(hide, cache), dimension(ldwork), depend(ldwork) :: dwork
     integer intent(in) :: ldwork
     complex*16 intent(hide, cache), dimension(lzwork), depend(lzwork) :: zwork
@@ -620,8 +620,8 @@ subroutine sg03ad(dico,job,fact,trans,uplo,n,a,lda,e,lde,q,ldq,z,ldz,x,ldx,scale
     double precision intent(out), dimension(n), depend(n) :: alphai
     double precision intent(out), dimension(n), depend(n) :: beta
     integer intent(hide,cache),dimension(n*n),depend(n) :: iwork
-    double precision intent(hide,cache),dimension(ldwork) :: dwork
-    integer optional,check(ldwork>=max(1,max(2*n*n,8*n+16))),depend(n) :: ldwork=max(1,max(2*n*n,8*n+16))
+    double precision intent(hide,cache),dimension(ldwork),depend(ldwork) :: dwork
+    integer optional,check(ldwork>=MAX(1,MAX(2*n*n,8*n+16))),depend(n) :: ldwork=MAX(1,MAX(2*n*n,8*n+16))
     integer intent(out) :: info
 end subroutine sg03ad
 subroutine sg02ad_g(dico,jobb,fact,uplo,jobl,scal,sort,acc,n,m,p,a,lda,e,lde,b,ldb,q,ldq,r,ldr,l,ldl,rcondu,x,ldx,alfar,alfai,beta,s,lds,t,ldt,u,ldu,tol,iwork,dwork,ldwork,bwork,iwarn,info) ! in SG02AD.f
@@ -637,34 +637,34 @@ subroutine sg02ad_g(dico,jobb,fact,uplo,jobl,scal,sort,acc,n,m,p,a,lda,e,lde,b,l
     integer intent(input), (check n>=0) :: n
     integer intent(hide), (check m>=0) :: m = 0 !  Unused for jobb = 'G'
     integer intent(hide) :: p = 0 ! Unused for jobb = 'G''
-    double precision dimension(max(1,n),n), depend(n) :: a
+    double precision dimension(MAX(1,n),n), depend(n) :: a
     integer intent(hide), depend(a) :: lda=shape(a,0)
-    double precision dimension(max(1,n),n), depend(n) :: e
+    double precision dimension(MAX(1,n),n), depend(n) :: e
     integer intent(hide), depend(e) :: lde=shape(e,0)
-    double precision dimension(max(1,n),n), depend(n) :: b
+    double precision dimension(MAX(1,n),n), depend(n) :: b
     integer intent(hide), depend(b) :: ldb=shape(b,0)
-    double precision dimension(max(1,n),n), depend(n) :: q
+    double precision dimension(MAX(1,n),n), depend(n) :: q
     integer intent(hide), depend(q) :: ldq=shape(q,0)
     double precision intent(hide), dimension(1,1) :: r ! Unused for jobb = 'G'
     integer intent(hide), depend(r) :: ldr=shape(r,0)
     double precision intent(hide), dimension(1,1) :: l  ! Unused for jobb = 'G'
     integer intent(hide), depend(l) :: ldl=shape(l,0)  ! Unused for jobb = 'G'
     double precision intent(out) :: rcondu
-    double precision intent(out), dimension(max(1,n),n), depend(n) :: x
+    double precision intent(out), dimension(MAX(1,n),n), depend(n) :: x
     integer intent(hide), depend(x) :: ldx=shape(x,0)
     double precision intent(out), dimension(2*n), depend(n) :: alfar
     double precision intent(out), dimension(2*n), depend(n) :: alfai
     double precision intent(out), dimension(2*n), depend(n) :: beta
-    double precision intent(out), dimension(max(1,2*n),2*n), depend(n) :: s
+    double precision intent(out), dimension(MAX(1,2*n),2*n), depend(n) :: s
     integer intent(hide), depend(s) :: lds=shape(s,0)
-    double precision intent(out), dimension(max(1,2*n),2*n), depend(n) :: t
+    double precision intent(out), dimension(MAX(1,2*n),2*n), depend(n) :: t
     integer intent(hide), depend(t) :: ldt=shape(t,0)
-    double precision intent(out), dimension(max(1,2*n),2*n), depend(n) :: u
+    double precision intent(out), dimension(MAX(1,2*n),2*n), depend(n) :: u
     integer intent(hide), depend(u) :: ldu=shape(u,0)
     double precision intent(hide) :: tol = 0 ! Unused for jobb = 'G'
     integer intent(hide,cache), dimension(2*n), depend(n) :: iwork ! Since jobb = 'G'
-    double precision intent(hide,cache), dimension(ldwork) :: dwork
-    integer optional,check(ldwork>=max(7*(2*n+1)+16,max(16*n,8*n+16))),depend(n) :: ldwork=max(7*(2*n+1)+16,max(16*n,8*n+16))
+    double precision intent(hide,cache), dimension(ldwork),depend(ldwork) :: dwork
+    integer optional,check(ldwork>=MAX(7*(2*n+1)+16,MAX(16*n,8*n+16))),depend(n) :: ldwork=MAX(7*(2*n+1)+16,MAX(16*n,8*n+16))
     logical intent(hide,cache), dimension(2*n), depend(n) :: bwork
     integer intent(out) :: iwarn
     integer intent(out) :: info
@@ -682,34 +682,34 @@ subroutine sg02ad_bn(dico,jobb,fact,uplo,jobl,scal,sort,acc,n,m,p,a,lda,e,lde,b,
     integer (check n>=0) :: n
     integer (check m>=0) :: m
     integer intent(hide) :: p = 0 ! Unused for fact = 'N'
-    double precision dimension(max(1,n),n), depend(n) :: a
+    double precision dimension(MAX(1,n),n), depend(n) :: a
     integer intent(hide), depend(a) :: lda=shape(a,0)
-    double precision dimension(max(1,n),n), depend(n) :: e
+    double precision dimension(MAX(1,n),n), depend(n) :: e
     integer intent(hide), depend(e) :: lde=shape(e,0)
-    double precision dimension(max(1,n),m), depend(n,m) :: b
+    double precision dimension(MAX(1,n),m), depend(n,m) :: b
     integer intent(hide), depend(b) :: ldb=shape(b,0)
-    double precision dimension(max(1,n),n), depend(n) :: q
+    double precision dimension(MAX(1,n),n), depend(n) :: q
     integer intent(hide), depend(q) :: ldq=shape(q,0)
-    double precision dimension(max(1,m),m), depend(m) :: r ! fact = 'N'
+    double precision dimension(MAX(1,m),m), depend(m) :: r ! fact = 'N'
     integer intent(hide), depend(r) :: ldr=shape(r,0)
-    double precision dimension(max(1,n),m), depend(n,m) :: l  ! It would be nicer to not force the dimension here when not used
+    double precision dimension(MAX(1,n),m), depend(n,m) :: l  ! It would be nicer to not force the dimension here when not used
     integer intent(hide), depend(l) :: ldl=shape(l,0)
     double precision intent(out) :: rcondu
-    double precision intent(out), dimension(max(1,n),n), depend(n) :: x
+    double precision intent(out), dimension(MAX(1,n),n), depend(n) :: x
     integer intent(hide), depend(x) :: ldx=shape(x,0)
     double precision intent(out), dimension(2*n), depend(n) :: alfar
     double precision intent(out), dimension(2*n), depend(n) :: alfai
     double precision intent(out), dimension(2*n), depend(n) :: beta
-    double precision intent(out), dimension(max(1,2*n+m),2*n+m), depend(n,m) :: s
+    double precision intent(out), dimension(MAX(1,2*n+m),2*n+m), depend(n,m) :: s
     integer intent(hide), depend(s) :: lds=shape(s,0)
-    double precision intent(out), dimension(max(1,2*n+m),2*n), depend(n,m) :: t
+    double precision intent(out), dimension(MAX(1,2*n+m),2*n), depend(n,m) :: t
     integer intent(hide), depend(t) :: ldt=shape(t,0)
-    double precision intent(out), dimension(max(1,2*n),2*n), depend(n) :: u
+    double precision intent(out), dimension(MAX(1,2*n),2*n), depend(n) :: u
     integer intent(hide), depend(u) :: ldu=shape(u,0)
     double precision optional :: tol = -1
-    integer intent(hide,cache), dimension(max(m,2*n)), depend(n,m) :: iwork ! Since jobb = 'B'
-    double precision intent(hide,cache), dimension(ldwork) :: dwork
-    integer optional,check(ldwork>=max(3*m,max(2*n+m,max(7*(2*n+1)+16,max(16*n,8*n+16))))),depend(n,m) :: ldwork=max(3*m,max(2*n+m,max(7*(2*n+1)+16,max(16*n,8*n+16))))
+    integer intent(hide,cache), dimension(MAX(m,2*n)), depend(n,m) :: iwork ! Since jobb = 'B'
+    double precision intent(hide,cache), dimension(ldwork),depend(ldwork) :: dwork
+    integer optional,check(ldwork>=MAX(3*m,MAX(2*n+m,MAX(7*(2*n+1)+16,MAX(16*n,8*n+16))))),depend(n,m) :: ldwork=MAX(3*m,MAX(2*n+m,MAX(7*(2*n+1)+16,MAX(16*n,8*n+16))))
     logical intent(hide,cache), dimension(2*n), depend(n) :: bwork
     integer intent(out) :: iwarn
     integer intent(out) :: info
@@ -727,17 +727,17 @@ subroutine sg02ad_bc(dico,jobb,fact,uplo,jobl,scal,sort,acc,n,m,p,a,lda,e,lde,b,
     integer (check n>=0) :: n
     integer (check m>=0) :: m
     integer (check p>=0) :: p
-    double precision dimension(max(1,n),n), depend(n) :: a
+    double precision dimension(MAX(1,n),n), depend(n) :: a
     integer intent(hide), depend(a) :: lda=shape(a,0)
-    double precision dimension(max(1,n),n), depend(n) :: e
+    double precision dimension(MAX(1,n),n), depend(n) :: e
     integer intent(hide), depend(e) :: lde=shape(e,0)
-    double precision dimension(max(1,n),m), depend(n,m) :: b
+    double precision dimension(MAX(1,n),m), depend(n,m) :: b
     integer intent(hide), depend(b) :: ldb=shape(b,0)
-    double precision dimension(max(1,p),n), depend(p,n) :: q ! fact = 'C'
+    double precision dimension(MAX(1,p),n), depend(p,n) :: q ! fact = 'C'
     integer intent(hide), depend(q) :: ldq=shape(q,0)
-    double precision dimension(max(1,m),m), depend(m) :: r ! fact = 'C'
+    double precision dimension(MAX(1,m),m), depend(m) :: r ! fact = 'C'
     integer intent(hide), depend(r) :: ldr=shape(r,0)
-    double precision dimension(max(1,n),m), depend(n,m) :: l  ! It would be nicer to not force the dimension here when not used
+    double precision dimension(MAX(1,n),m), depend(n,m) :: l  ! It would be nicer to not force the dimension here when not used
     integer intent(hide), depend(l) :: ldl=shape(l,0)
     double precision intent(out) :: rcondu
     double precision intent(out), dimension(n,n), depend(n) :: x
@@ -745,16 +745,16 @@ subroutine sg02ad_bc(dico,jobb,fact,uplo,jobl,scal,sort,acc,n,m,p,a,lda,e,lde,b,
     double precision intent(out), dimension(2*n), depend(n) :: alfar
     double precision intent(out), dimension(2*n), depend(n) :: alfai
     double precision intent(out), dimension(2*n), depend(n) :: beta
-    double precision intent(out), dimension(max(1,2*n+m),2*n+m), depend(n,m) :: s
+    double precision intent(out), dimension(MAX(1,2*n+m),2*n+m), depend(n,m) :: s
     integer intent(hide), depend(s) :: lds=shape(s,0)
-    double precision intent(out), dimension(max(1,2*n+m),2*n), depend(n,m) :: t
+    double precision intent(out), dimension(MAX(1,2*n+m),2*n), depend(n,m) :: t
     integer intent(hide), depend(t) :: ldt=shape(t,0)
-    double precision intent(out), dimension(max(1,2*n),2*n), depend(n) :: u
+    double precision intent(out), dimension(MAX(1,2*n),2*n), depend(n) :: u
     integer intent(hide), depend(u) :: ldu=shape(u,0)
     double precision optional :: tol = -1
-    integer intent(hide,cache), dimension(max(m,2*n)), depend(n,m) :: iwork ! Since jobb = 'B'
-    double precision intent(hide,cache), dimension(ldwork) :: dwork
-    integer optional,check(ldwork>=max(3*m,max(2*n+m,max(7*(2*n+1)+16,max(16*n,8*n+16))))),depend(n,m) :: ldwork=max(3*m,max(2*n+m,max(7*(2*n+1)+16,max(16*n,8*n+16))))
+    integer intent(hide,cache), dimension(MAX(m,2*n)), depend(n,m) :: iwork ! Since jobb = 'B'
+    double precision intent(hide,cache), dimension(ldwork),depend(ldwork) :: dwork
+    integer optional,check(ldwork>=MAX(3*m,MAX(2*n+m,MAX(7*(2*n+1)+16,MAX(16*n,8*n+16))))),depend(n,m) :: ldwork=MAX(3*m,MAX(2*n+m,MAX(7*(2*n+1)+16,MAX(16*n,8*n+16))))
     logical intent(hide,cache), dimension(2*n), depend(n) :: bwork
     integer intent(out) :: iwarn
     integer intent(out) :: info
@@ -772,17 +772,17 @@ subroutine sg02ad_bd(dico,jobb,fact,uplo,jobl,scal,sort,acc,n,m,p,a,lda,e,lde,b,
     integer (check n>=0) :: n
     integer (check m>=0) :: m
     integer (check p>=0) :: p
-    double precision dimension(max(1,n),n), depend(n) :: a
+    double precision dimension(MAX(1,n),n), depend(n) :: a
     integer intent(hide), depend(a) :: lda=shape(a,0)
-    double precision dimension(max(1,n),n), depend(n) :: e
+    double precision dimension(MAX(1,n),n), depend(n) :: e
     integer intent(hide), depend(e) :: lde=shape(e,0)
-    double precision dimension(max(1,n),m), depend(n,m) :: b
+    double precision dimension(MAX(1,n),m), depend(n,m) :: b
     integer intent(hide), depend(b) :: ldb=shape(b,0)
-    double precision dimension(max(1,n),n), depend(n) :: q ! fact = 'D'
+    double precision dimension(MAX(1,n),n), depend(n) :: q ! fact = 'D'
     integer intent(hide), depend(q) :: ldq=shape(q,0)
-    double precision dimension(max(1,p),m), depend(p,m) :: r ! fact = 'D'
+    double precision dimension(MAX(1,p),m), depend(p,m) :: r ! fact = 'D'
     integer intent(hide), depend(r) :: ldr=shape(r,0)
-    double precision dimension(max(1,n),m), depend(n,m) :: l  ! It would be nicer to not force the dimension here when not used
+    double precision dimension(MAX(1,n),m), depend(n,m) :: l  ! It would be nicer to not force the dimension here when not used
     integer intent(hide), depend(l) :: ldl=shape(l,0)
     double precision intent(out) :: rcondu
     double precision intent(out), dimension(n,n), depend(n) :: x
@@ -790,16 +790,16 @@ subroutine sg02ad_bd(dico,jobb,fact,uplo,jobl,scal,sort,acc,n,m,p,a,lda,e,lde,b,
     double precision intent(out), dimension(2*n), depend(n) :: alfar
     double precision intent(out), dimension(2*n), depend(n) :: alfai
     double precision intent(out), dimension(2*n), depend(n) :: beta
-    double precision intent(out), dimension(max(1,2*n+m),2*n+m), depend(n,m) :: s
+    double precision intent(out), dimension(MAX(1,2*n+m),2*n+m), depend(n,m) :: s
     integer intent(hide), depend(s) :: lds=shape(s,0)
-    double precision intent(out), dimension(max(1,2*n+m),2*n), depend(n,m) :: t
+    double precision intent(out), dimension(MAX(1,2*n+m),2*n), depend(n,m) :: t
     integer intent(hide), depend(t) :: ldt=shape(t,0)
-    double precision intent(out), dimension(max(1,2*n),2*n), depend(n) :: u
+    double precision intent(out), dimension(MAX(1,2*n),2*n), depend(n) :: u
     integer intent(hide), depend(u) :: ldu=shape(u,0)
     double precision optional :: tol = -1
-    integer intent(hide,cache), dimension(max(m,2*n)), depend(n,m) :: iwork ! Since jobb = 'B'
-    double precision intent(hide,cache), dimension(ldwork) :: dwork
-    integer optional,check(ldwork>=max(3*m,max(2*n+m,max(7*(2*n+1)+16,max(16*n,8*n+16))))),depend(n,m) :: ldwork=max(3*m,max(2*n+m,max(7*(2*n+1)+16,max(16*n,8*n+16))))
+    integer intent(hide,cache), dimension(MAX(m,2*n)), depend(n,m) :: iwork ! Since jobb = 'B'
+    double precision intent(hide,cache), dimension(ldwork),depend(ldwork) :: dwork
+    integer optional,check(ldwork>=MAX(3*m,MAX(2*n+m,MAX(7*(2*n+1)+16,MAX(16*n,8*n+16))))),depend(n,m) :: ldwork=MAX(3*m,MAX(2*n+m,MAX(7*(2*n+1)+16,MAX(16*n,8*n+16))))
     logical intent(hide,cache), dimension(2*n), depend(n) :: bwork
     integer intent(out) :: iwarn
     integer intent(out) :: info
@@ -817,17 +817,17 @@ subroutine sg02ad_bb(dico,jobb,fact,uplo,jobl,scal,sort,acc,n,m,p,a,lda,e,lde,b,
     integer (check n>=0) :: n
     integer (check m>=0) :: m
     integer (check p>=0) :: p
-    double precision dimension(max(1,n),n), depend(n) :: a
+    double precision dimension(MAX(1,n),n), depend(n) :: a
     integer intent(hide), depend(a) :: lda=shape(a,0)
-    double precision dimension(max(1,n),n), depend(n) :: e
+    double precision dimension(MAX(1,n),n), depend(n) :: e
     integer intent(hide), depend(e) :: lde=shape(e,0)
-    double precision dimension(max(1,n),m), depend(n,m) :: b
+    double precision dimension(MAX(1,n),m), depend(n,m) :: b
     integer intent(hide), depend(b) :: ldb=shape(b,0)
-    double precision dimension(max(1,p),n), depend(p,n) :: q ! fact = 'B'
+    double precision dimension(MAX(1,p),n), depend(p,n) :: q ! fact = 'B'
     integer intent(hide), depend(q) :: ldq=shape(q,0)
-    double precision dimension(max(1,p),m), depend(p,m) :: r ! fact = 'B'
+    double precision dimension(MAX(1,p),m), depend(p,m) :: r ! fact = 'B'
     integer intent(hide), depend(r) :: ldr=shape(r,0)
-    double precision dimension(max(1,n),m), depend(n,m) :: l  ! It would be nicer to not force the dimension here when not used
+    double precision dimension(MAX(1,n),m), depend(n,m) :: l  ! It would be nicer to not force the dimension here when not used
     integer intent(hide), depend(l) :: ldl=shape(l,0)
     double precision intent(out) :: rcondu
     double precision intent(out), dimension(n,n), depend(n) :: x
@@ -835,16 +835,16 @@ subroutine sg02ad_bb(dico,jobb,fact,uplo,jobl,scal,sort,acc,n,m,p,a,lda,e,lde,b,
     double precision intent(out), dimension(2*n), depend(n) :: alfar
     double precision intent(out), dimension(2*n), depend(n) :: alfai
     double precision intent(out), dimension(2*n), depend(n) :: beta
-    double precision intent(out), dimension(max(1,2*n+m),2*n+m), depend(n,m) :: s
+    double precision intent(out), dimension(MAX(1,2*n+m),2*n+m), depend(n,m) :: s
     integer intent(hide), depend(s) :: lds=shape(s,0)
-    double precision intent(out), dimension(max(1,2*n+m),2*n), depend(n,m) :: t
+    double precision intent(out), dimension(MAX(1,2*n+m),2*n), depend(n,m) :: t
     integer intent(hide), depend(t) :: ldt=shape(t,0)
-    double precision intent(out), dimension(max(1,2*n),2*n), depend(n) :: u
+    double precision intent(out), dimension(MAX(1,2*n),2*n), depend(n) :: u
     integer intent(hide), depend(u) :: ldu=shape(u,0)
     double precision optional :: tol = -1
-    integer intent(hide,cache), dimension(max(m,2*n)), depend(n) :: iwork ! Since jobb = 'B'
-    double precision intent(hide,cache), dimension(ldwork) :: dwork
-    integer optional,check(ldwork>=max(3*m,max(2*n+m,max(7*(2*n+1)+16,max(16*n,8*n+16))))),depend(n,m) :: ldwork=max(3*m,max(2*n+m,max(7*(2*n+1)+16,max(8*n+16,16*n))))
+    integer intent(hide,cache), dimension(MAX(m,2*n)), depend(n) :: iwork ! Since jobb = 'B'
+    double precision intent(hide,cache), dimension(ldwork),depend(ldwork) :: dwork
+    integer optional,check(ldwork>=MAX(3*m,MAX(2*n+m,MAX(7*(2*n+1)+16,MAX(16*n,8*n+16))))),depend(n,m) :: ldwork=MAX(3*m,MAX(2*n+m,MAX(7*(2*n+1)+16,MAX(8*n+16,16*n))))
     logical intent(hide,cache), dimension(2*n), depend(n) :: bwork
     integer intent(out) :: iwarn
     integer intent(out) :: info
@@ -864,13 +864,13 @@ subroutine sg03bd(dico,fact,trans,n,m,a,lda,e,lde,q,ldq,z,ldz,b,ldb,scale,alphar
     integer intent(hide),depend(q) :: ldq=shape(q,0)
     double precision dimension(n,n),depend(n) :: z
     integer intent(hide),depend(z) :: ldz=shape(z,0)
-    double precision intent(in,out,copy),dimension(max(m,n),n),depend(m,n) :: b
+    double precision intent(in,out,copy),dimension(MAX(m,n),n),depend(m,n) :: b
     integer intent(hide),depend(b) :: ldb=shape(b,0)
     double precision intent(out) :: scale
     double precision intent(out),dimension(n),depend(n) :: alphar
     double precision intent(out),dimension(n),depend(n) :: alphai
     double precision intent(out),dimension(n),depend(n) :: beta
-    double precision intent(hide,cache),dimension(ldwork) :: dwork
-    integer optional,check(ldwork>=max(4*n,6*n-6)),depend(n,m) :: ldwork=max(4*n,6*n-6)
+    double precision intent(hide,cache),dimension(ldwork),depend(ldwork) :: dwork
+    integer optional,check(ldwork>=MAX(4*n,6*n-6)),depend(n,m) :: ldwork=MAX(4*n,6*n-6)
     integer intent(out) :: info    
 end subroutine sg03bd

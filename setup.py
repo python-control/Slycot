@@ -62,5 +62,6 @@ setup(
     packages=['slycot', 'slycot.tests'],
     cmdclass={'sdist': sdist_checked},
     cmake_languages=('C', 'Fortran'),
+    cmake_args=['-DCMAKE_VERBOSE_MAKEFILE:BOOL=ON', '-DCMAKE_BUILD_TYPE=Debug'],
     include_package_data = False,
 )

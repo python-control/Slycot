@@ -21,20 +21,20 @@ subroutine mb02ed(typet,k,n,nrhs,t,ldt,b,ldb,dwork,ldwork,info) ! in MB02ED.f
   integer, intent(hide),optional,check(shape(t, 0) == ldt),depend(t) :: ldt=shape(t, 0)
   double precision intent(in,out,copy),dimension(ldb,*) :: b
   integer, intent(hide),optional,check(shape(b, 0) == ldb),depend(b) :: ldb=shape(b, 0)
-  double precision intent(cache,hide),dimension(ldwork) :: dwork
-  integer optional,check(ldwork>=n*k*k+(n+2)*k), depend(n,k) :: ldwork=max(1,n*k*k+(n+2)*k)
+  double precision intent(cache,hide),dimension(ldwork),depend(ldwork) :: dwork
+  integer optional,check(ldwork>=n*k*k+(n+2)*k), depend(n,k) :: ldwork=MAX(1,n*k*k+(n+2)*k)
   integer intent(out):: info
 end subroutine mb02ed
 
-subroutine mb03rd(jobx,sort,n,pmax,a,lda,x,ldx,nblcks,blsize,wr,wi,tol,dwork,info) ! in MB03RD.f
+subroutine mb03rd(jobx,sort,n,pMAX,a,lda,x,ldx,nblcks,blsize,wr,wi,tol,dwork,info) ! in MB03RD.f
   character intent(in) :: jobx
   character intent(in),required :: sort
   integer intent(in),required,check(n>=0) :: n
-  double precision intent(in),required,check(pmax>=1.0) :: pmax
+  double precision intent(in),required,check(pMAX>=1.0) :: pMAX
   double precision intent(in,out,copy),dimension(lda,n),depend(n) :: a
-  integer intent(hide),check(lda>=max(1,n)),depend(a,n) :: lda=shape(a,0)
+  integer intent(hide),check(lda>=MAX(1,n)),depend(a,n) :: lda=shape(a,0)
   double precision intent(in,out,copy),dimension(ldx,n),depend(n) :: x
-  integer intent(hide),check((*jobx == 'N' && ldx>=1) || (*jobx == 'U' && ldx >= max(1,n))),depend(x,n,jobx) :: ldx=shape(x,0)
+  integer intent(hide),check((*jobx == 'N' && ldx>=1) || (*jobx == 'U' && ldx >= MAX(1,n))),depend(x,n,jobx) :: ldx=shape(x,0)
   integer intent(out) :: nblcks
   integer intent(out),dimension(n) :: blsize
   double precision intent(out),dimension(n) :: wr
@@ -47,12 +47,12 @@ end subroutine mb03rd
 subroutine mb03vd(n,p,ilo,ihi,a,lda1,lda2,tau,ldtau,dwork,info) ! in MB03VD.f
     integer intent(in),check(n>=0) :: n
     integer intent(hide),depend(a),check(p>=1) :: p=shape(a,2)
-    integer intent(in),depend(n),check(1<=ilo && ilo<=max(1,n)) :: ilo
+    integer intent(in),depend(n),check(1<=ilo && ilo<=MAX(1,n)) :: ilo
     integer intent(in),depend(n,ilo),check(min(ilo,n)<=ihi && ihi<=n) :: ihi
     double precision intent(in,out,copy),dimension(lda1,lda2,p) :: a
-    integer intent(hide),depend(a,n),check(lda1>=max(1,n)) :: lda1=shape(a,0)
-    integer intent(hide),depend(a,n),check(lda2>=max(1,n)) :: lda2=shape(a,1)
-    double precision intent(out),depend(n,p),dimension(max(1,n-1),p) :: tau
+    integer intent(hide),depend(a,n),check(lda1>=MAX(1,n)) :: lda1=shape(a,0)
+    integer intent(hide),depend(a,n),check(lda2>=MAX(1,n)) :: lda2=shape(a,1)
+    double precision intent(out),depend(n,p),dimension(MAX(1,n-1),p) :: tau
     integer intent(hide),depend(tau) :: ldtau=shape(tau,0)
     double precision intent(hide,cache),depend(n),dimension(n) :: dwork
     integer intent(out) :: info
@@ -61,15 +61,15 @@ end subroutine mb03vd
 subroutine mb03vy(n,p,ilo,ihi,a,lda1,lda2,tau,ldtau,dwork,ldwork,info) ! in MB03VY.f
     integer intent(in),check(n>=0) :: n
     integer intent(hide),depend(a),check(p>=1) :: p=shape(a,2)
-    integer intent(in),depend(n),check(1<=ilo && ilo<=max(1,n)) :: ilo
+    integer intent(in),depend(n),check(1<=ilo && ilo<=MAX(1,n)) :: ilo
     integer intent(in),depend(n,ilo),check(min(ilo,n)<=ihi && ihi<=n) :: ihi
     double precision intent(in,out,copy),dimension(lda1,lda2,p) :: a
-    integer intent(hide),depend(a,n),check(lda1>=max(1,n)) :: lda1=shape(a,0)
-    integer intent(hide),depend(a,n),check(lda2>=max(1,n)) :: lda2=shape(a,1)
+    integer intent(hide),depend(a,n),check(lda1>=MAX(1,n)) :: lda1=shape(a,0)
+    integer intent(hide),depend(a,n),check(lda2>=MAX(1,n)) :: lda2=shape(a,1)
     double precision intent(in),depend(n,p),dimension(ldtau,p) :: tau
-    integer intent(hide),depend(tau),check(ldtau>=max(1,n-1)) :: ldtau=shape(tau,0)
-    double precision intent(hide,cache),depend(ldwork),dimension(ldwork) :: dwork
-    integer intent(in),optional,check(ldwork>=max(1,n)) :: ldwork=max(1,n)
+    integer intent(hide),depend(tau),check(ldtau>=MAX(1,n-1)) :: ldtau=shape(tau,0)
+    double precision intent(hide,cache),depend(ldwork),dimension(ldwork),depend(ldwork) :: dwork
+    integer intent(in),optional,check(ldwork>=MAX(1,n)) :: ldwork=MAX(1,n)
     integer intent(out) :: info
 end subroutine mb03vy
 
@@ -78,20 +78,20 @@ subroutine mb03wd(job,compz,n,p,ilo,ihi,iloz,ihiz,h,ldh1,ldh2,z,ldz1,ldz2,wr,wi,
     character intent(in) :: compz
     integer intent(in),check(n>=0) :: n
     integer intent(hide),depend(h),check(p>=1) :: p=shape(h,2)
-    integer intent(in),depend(n),check(1<=ilo && ilo<=max(1,n)) :: ilo
+    integer intent(in),depend(n),check(1<=ilo && ilo<=MAX(1,n)) :: ilo
     integer intent(in),depend(n,ilo),check(min(ilo,n)<=ihi && ihi<=n) :: ihi
     integer intent(in),depend(ilo),check(1<=iloz & iloz<=ilo) :: iloz
     integer intent(in),depend(n,ihi),check(ihi<=ihiz && ihiz<=n) :: ihiz
     double precision intent(in,out,copy),dimension(ldh1,ldh2,p) :: h
-    integer intent(hide),depend(h,n),check(ldh1>=max(1,n)) :: ldh1=shape(h,0)
-    integer intent(hide),depend(h,n),check(ldh2>=max(1,n)) :: ldh2=shape(h,1)
+    integer intent(hide),depend(h,n),check(ldh1>=MAX(1,n)) :: ldh1=shape(h,0)
+    integer intent(hide),depend(h,n),check(ldh2>=MAX(1,n)) :: ldh2=shape(h,1)
     double precision intent(in,out,copy),depend(p),dimension(ldz1,ldz2,p) :: z
     integer intent(hide),depend(z) :: ldz1=shape(z,0)
     integer intent(hide),depend(z) :: ldz2=shape(z,1)
     double precision intent(out), dimension(n), depend(n) :: wr
     double precision intent(out), dimension(n), depend(n) :: wi
-    double precision intent(hide,cache),  dimension(ldwork) :: dwork
-    integer optional,check(ldwork>=ihi-ilo+p-1), depend(ihi,ilo,p) :: ldwork=max(1,ihi-ilo+p-1)
+    double precision intent(hide,cache),  dimension(ldwork),depend(ldwork) :: dwork
+    integer optional,check(ldwork>=ihi-ilo+p-1), depend(ihi,ilo,p) :: ldwork=MAX(1,ihi-ilo+p-1)
     integer intent(out) :: info
 end subroutine mb03wd
 
@@ -124,7 +124,7 @@ subroutine mb05nd(n,delta,a,lda,ex,ldex,exint,ldexin,tol,iwork,dwork,ldwork,info
   integer intent(hide),check(shape(exint,0)==ldexin),depend(exint) :: ldexin=shape(exint,0)
   double precision required :: tol
   integer intent(cache,hide),dimension(n),depend(n) :: iwork
-  double precision intent(cache,hide),dimension(max(2*n*n,1)),depend(n) :: dwork
+  double precision intent(cache,hide),dimension(MAX(2*n*n,1)),depend(n) :: dwork
   integer intent(hide),depend(dwork):: ldwork=shape(dwork,0)
   integer intent(out) :: info
 end subroutine mb05nd

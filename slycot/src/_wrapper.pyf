@@ -2,11 +2,17 @@
 ! Note: the context of this file is case sensitive.
 
 python module _wrapper ! in
+
+usercode '''
+#define F_INT int
+'''
+
     interface  ! in :wrapper
+    include "lapack_bal.pyf"
 		include "analysis.pyf"
 		include "math.pyf"
 		include "synthesis.pyf"
 		include "transform.pyf"
 		include "_helper.pyf"
     end interface
-end python module slycot
+end python module _wrapper

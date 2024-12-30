@@ -6,6 +6,10 @@ cmake_policy(SET CMP0074 NEW)
 
 project(slycot LANGUAGES NONE)
 
+#set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -fcheck=all  -Og -g -Wall")
+set(CMAKE_Fortran_FLAGS_DEBUG "${CMAKE_Fortran_FLAGS_DEBUG} -fcheck=bounds -Og -g") # -Wall  -fbacktrace
+set(CMAKE_C_FLAGS_DEBUG "${CMAKE_c_FLAGS_DEBUG} -Og -g -Wall") #  -fsanitize=address
+
 enable_language(C)
 enable_language(Fortran)
 

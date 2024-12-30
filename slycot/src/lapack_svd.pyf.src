@@ -1,0 +1,374 @@
+!    -*- f90 -*-
+! Note: the context of this file is case sensitive.
+! Shorthand Notations:
+! --------------------
+! <prefix=s,d,c,z>
+! <prefix2=s,d>
+! <prefix2c=c,z>
+! <ftype=real,double precision,complex,double complex>
+! <ftype2=real,double precision>
+! <ftype2c=complex,double complex>
+! <ftypereal=real,double precision,real,double precision>
+! <ftypecomplex=complex,double complex,\0,\1>
+! <ctype=float,double,complex_float,complex_double>
+! <ctype2=float,double>
+! <ctype2c=complex_float,complex_double>
+! <ctypereal=float,double,float,double>
+! <ctypecomplex=complex_float,complex_double,\0,\1>
+! <wrap2=ws,d>
+! <wrap2c=wc,z>
+!
+
+python module lapack_svd ! in
+    interface  ! in :lapack_svd
+!        subroutine dgesvd(jobu,jobvt,m,n,a,lda,s,u,ldu,vt,ldvt,work,lwork,info) ! in :lapack_svd:dgesvd.f
+!            character :: jobu
+!            character :: jobvt
+!            integer :: m
+!            integer :: n
+!            double precision dimension(lda,*) :: a
+!            integer, optional,check(shape(a,0)==lda),depend(a) :: lda=shape(a,0)
+!            double precision dimension(*) :: s
+!            double precision dimension(ldu,*) :: u
+!            integer, optional,check(shape(u,0)==ldu),depend(u) :: ldu=shape(u,0)
+!            double precision dimension(ldvt,*) :: vt
+!            integer, optional,check(shape(vt,0)==ldvt),depend(vt) :: ldvt=shape(vt,0)
+!            double precision dimension(*) :: work
+!            integer :: lwork
+!            integer :: info
+!        end subroutine dgesvd
+!        subroutine dgesvdx(jobu,jobvt,range,m,n,a,lda,vl,vu,il,iu,ns,s,u,ldu,vt,ldvt,work,lwork,iwork,info) ! in :lapack_svd:dgesvdx.f
+!            character :: jobu
+!            character :: jobvt
+!            character :: range
+!            integer :: m
+!            integer :: n
+!            double precision dimension(lda,*) :: a
+!            integer, optional,check(shape(a,0)==lda),depend(a) :: lda=shape(a,0)
+!            double precision :: vl
+!            double precision :: vu
+!            integer :: il
+!            integer :: iu
+!            integer :: ns
+!            double precision dimension(*) :: s
+!            double precision dimension(ldu,*) :: u
+!            integer, optional,check(shape(u,0)==ldu),depend(u) :: ldu=shape(u,0)
+!            double precision dimension(ldvt,*) :: vt
+!            integer, optional,check(shape(vt,0)==ldvt),depend(vt) :: ldvt=shape(vt,0)
+!            double precision dimension(*) :: work
+!            integer :: lwork
+!            integer dimension(*) :: iwork
+!            integer :: info
+!        end subroutine dgesvdx
+!        subroutine zgesvd(jobu,jobvt,m,n,a,lda,s,u,ldu,vt,ldvt,work,lwork,rwork,info) ! in :lapack_svd:zgesvd.f
+!            character :: jobu
+!            character :: jobvt
+!            integer :: m
+!            integer :: n
+!            complex*16 dimension(lda,*) :: a
+!            integer, optional,check(shape(a,0)==lda),depend(a) :: lda=shape(a,0)
+!            double precision dimension(*) :: s
+!            complex*16 dimension(ldu,*) :: u
+!            integer, optional,check(shape(u,0)==ldu),depend(u) :: ldu=shape(u,0)
+!            complex*16 dimension(ldvt,*) :: vt
+!            integer, optional,check(shape(vt,0)==ldvt),depend(vt) :: ldvt=shape(vt,0)
+!            complex*16 dimension(*) :: work
+!            integer :: lwork
+!            double precision dimension(*) :: rwork
+!            integer :: info
+!        end subroutine zgesvd
+!        subroutine zgesvdx(jobu,jobvt,range,m,n,a,lda,vl,vu,il,iu,ns,s,u,ldu,vt,ldvt,work,lwork,rwork,iwork,info) ! in :lapack_svd:zgesvdx.f
+!            character :: jobu
+!            character :: jobvt
+!            character :: range
+!            integer :: m
+!            integer :: n
+!            complex*16 dimension(lda,*) :: a
+!            integer, optional,check(shape(a,0)==lda),depend(a) :: lda=shape(a,0)
+!            double precision :: vl
+!            double precision :: vu
+!            integer :: il
+!            integer :: iu
+!            integer :: ns
+!            double precision dimension(*) :: s
+!            complex*16 dimension(ldu,*) :: u
+!            integer, optional,check(shape(u,0)==ldu),depend(u) :: ldu=shape(u,0)
+!            complex*16 dimension(ldvt,*) :: vt
+!            integer, optional,check(shape(vt,0)==ldvt),depend(vt) :: ldvt=shape(vt,0)
+!            complex*16 dimension(*) :: work
+!            integer :: lwork
+!            double precision dimension(*) :: rwork
+!            integer dimension(*) :: iwork
+!            integer :: info
+!        end subroutine zgesvdx
+
+  subroutine <prefix2>gesvd(m,n,minmn,u0,u1,vt0,vt1,a,compute_u,compute_v,full_matrices,u,s,vt,work,lwork,info)
+
+    ! u,s,vt,info = gesvd(a,compute_u=1,compute_v=1,lwork=..,overwrite_a=0)
+    ! Compute the singular value decomposition (SVD):
+   !   A = U * SIGMA * transpose(V)
+   ! A - M x N matrix
+   ! U - M x M matrix or min(M,N) x N if full_matrices=False
+   ! SIGMA - M x N zero matrix with a main diagonal filled with min(M,N)
+   !               singular values
+   ! transpose(V) - N x N matrix or N x min(M,N) if full_matrices=False
+
+   callstatement (*f2py_func)((compute_u?(full_matrices?"A":"S"):"N"),(compute_v?(full_matrices?"A":"S"):"N"),&m,&n,a,&m,s,u,&u0,vt,&vt0,work,&lwork,&info)
+   callprotoargument char*,char*,int*,int*,<ctype2>*,int*,<ctype2>*,<ctype2>*,int*,<ctype2>*,int*,<ctype2>*,int*,int*
+
+   integer intent(in),optional,check(compute_u==0||compute_u==1):: compute_u = 1
+   integer intent(in),optional,check(compute_v==0||compute_v==1):: compute_v = 1
+   integer intent(in),optional,check(full_matrices==0||full_matrices==1):: full_matrices = 1
+   integer intent(hide),depend(a):: m = shape(a,0)
+   integer intent(hide),depend(a):: n = shape(a,1)
+   integer intent(hide),depend(m,n):: minmn = MIN(m,n)
+   integer intent(hide),depend(compute_u,minmn) :: u0 = (compute_u?m:1)
+   integer intent(hide),depend(compute_u,minmn, full_matrices) :: u1 = (compute_u?(full_matrices?m:minmn):1)
+   integer intent(hide),depend(compute_v,minmn, full_matrices) :: vt0 = (compute_v?(full_matrices?n:minmn):1)
+   integer intent(hide),depend(compute_v,minmn) :: vt1 = (compute_v?n:1)
+   <ftype2> dimension(m,n),intent(in,copy,aligned8) :: a
+   <ftype2> dimension(minmn),intent(out),depend(minmn) :: s
+   <ftype2> dimension(u0,u1),intent(out),depend(u0, u1) :: u
+   <ftype2> dimension(vt0,vt1),intent(out),depend(vt0, vt1) :: vt
+   <ftype2> dimension(lwork),intent(hide,cache),depend(lwork) :: work
+   integer optional,intent(in),depend(minmn) :: lwork = max(MAX(3*minmn+MAX(m,n),5*minmn),1)
+   integer intent(out) :: info
+
+   end subroutine <prefix2>gesvd
+
+   subroutine <prefix2>gesvd_lwork(m,n,minmn,u0,vt0,a,compute_u,compute_v,full_matrices,u,s,vt,work,lwork,info)
+   ! LWORK computation for (S/D)GESVD
+
+   fortranname <prefix2>gesvd
+   callstatement (*f2py_func)((compute_u?(full_matrices?"A":"S"):"N"),(compute_v?(full_matrices?"A":"S"):"N"),&m,&n,a,&m,&s,&u,&u0,&vt,&vt0,&work,&lwork,&info)
+   callprotoargument char*,char*,int*,int*,<ctype2>*,int*,<ctype2>*,<ctype2>*,int*,<ctype2>*,int*,<ctype2>*,int*,int*
+
+   integer intent(in),optional,check(compute_u==0||compute_u==1):: compute_u = 1
+   integer intent(in),optional,check(compute_v==0||compute_v==1):: compute_v = 1
+   integer intent(in),optional,check(full_matrices==0||full_matrices==1):: full_matrices = 1
+   integer intent(hide),depend(a):: m = shape(a,0)
+   integer intent(hide),depend(a):: n = shape(a,1)
+   integer intent(hide),depend(m,n):: minmn = MIN(m,n)
+   integer intent(hide),depend(compute_u,minmn) :: u0 = (compute_u?m:1)
+   integer intent(hide),depend(compute_v,minmn, full_matrices) :: vt0 = (compute_v?(full_matrices?n:minmn):1)
+   <ftype2> dimension(m,n),intent(in) :: a
+   <ftype2> intent(hide) :: s
+   <ftype2> intent(hide) :: u
+   <ftype2> intent(hide) :: vt
+   integer intent(hide) :: lwork = -1
+   <ftype2> intent(out) :: work
+   integer intent(out) :: info
+
+   end subroutine <prefix2>gesvd_lwork
+
+   subroutine <prefix2c>gesvd(m,n,minmn,u0,u1,vt0,vt1,a,compute_u,compute_v,full_matrices,u,s,vt,work,rwork,lwork,info)
+
+   ! u,s,vt,info = gesvd(a,compute_uv=1,lwork=..,overwrite_a=0)
+   ! Compute the singular value decomposition (SVD):
+   !   A = U * SIGMA * conjugate-transpose(V)
+   ! A - M x N matrix
+   ! U - M x M matrix or min(M,N) x N if full_matrices=False
+   ! SIGMA - M x N zero matrix with a main diagonal filled with min(M,N)
+   !               singular values
+   ! transpose(V) - N x N matrix or N x min(M,N) if full_matrices=False
+
+   callstatement (*f2py_func)((compute_u?(full_matrices?"A":"S"):"N"),(compute_v?(full_matrices?"A":"S"):"N"),&m,&n,a,&m,s,u,&u0,vt,&vt0,work,&lwork,rwork,&info)
+   callprotoargument char*,char*,int*,int*,<ctype2c>*,int*,<ctype2>*,<ctype2c>*,int*,<ctype2c>*,int*,<ctype2c>*,int*,<ctype2>*,int*
+
+   integer intent(in),optional,check(compute_u==0||compute_u==1):: compute_u = 1
+   integer intent(in),optional,check(compute_v==0||compute_v==1):: compute_v = 1
+   integer intent(in),optional,check(full_matrices==0||full_matrices==1):: full_matrices = 1
+   integer intent(hide),depend(a):: m = shape(a,0)
+   integer intent(hide),depend(a):: n = shape(a,1)
+   integer intent(hide),depend(m,n):: minmn = MIN(m,n)
+   integer intent(hide),depend(compute_u,minmn) :: u0 = (compute_u?m:1)
+   integer intent(hide),depend(compute_u,minmn, full_matrices) :: u1 = (compute_u?(full_matrices?m:minmn):1)
+   integer intent(hide),depend(compute_v,minmn, full_matrices) :: vt0 = (compute_v?(full_matrices?n:minmn):1)
+   integer intent(hide),depend(compute_v,minmn) :: vt1 = (compute_v?n:1)
+   <ftype2c> dimension(m,n),intent(in, copy) :: a
+   <ftype2> dimension(minmn),intent(out),depend(minmn) :: s
+   <ftype2c> dimension(u0,u1),intent(out),depend(u0,u1) :: u
+   <ftype2c> dimension(vt0,vt1),intent(out),depend(vt0,vt1) :: vt
+   <ftype2c> dimension(lwork),intent(hide,cache),depend(lwork) :: work
+   <ftype2> dimension((MAX(1,5*minmn))),intent(hide,cache),depend(minmn) :: rwork
+   integer optional,intent(in),depend(minmn) :: lwork = MAX(2*minmn+MAX(m,n),1)
+   integer intent(out) :: info
+
+   end subroutine <prefix2c>gesvd
+
+   subroutine <prefix2c>gesvd_lwork(m,n,minmn,u0,vt0,a,compute_u,compute_v,full_matrices,u,s,vt,work,rwork,lwork,info)
+   ! (C/Z)GESVD call with LWORK=-1 -- copypaste of above gesvd with dummy arrays
+
+   fortranname <prefix2c>gesvd
+   callstatement (*f2py_func)((compute_u?(full_matrices?"A":"S"):"N"),(compute_v?(full_matrices?"A":"S"):"N"),&m,&n,a,&m,&s,&u,&u0,&vt,&vt0,&work,&lwork,&rwork,&info)
+   callprotoargument char*,char*,int*,int*,<ctype2c>*,int*,<ctype2>*,<ctype2c>*,int*,<ctype2c>*,int*,<ctype2c>*,int*,<ctype2>*,int*
+
+   integer intent(in),optional,check(compute_u==0||compute_u==1):: compute_u = 1
+   integer intent(in),optional,check(compute_v==0||compute_v==1):: compute_v = 1
+   integer intent(in),optional,check(full_matrices==0||full_matrices==1):: full_matrices = 1
+   integer intent(hide),depend(a):: m = shape(a,0)
+   integer intent(hide),depend(a):: n = shape(a,1)
+   integer intent(hide),depend(m,n):: minmn = MIN(m,n)
+   integer intent(hide),depend(compute_u,minmn) :: u0 = (compute_u?m:1)
+   integer intent(hide),depend(compute_v,minmn, full_matrices) :: vt0 = (compute_v?(full_matrices?n:minmn):1)
+   integer intent(hide) :: lwork = -1
+   <ftype2c> dimension(m,n),intent(in) :: a
+   <ftype2> intent(hide) :: s
+   <ftype2c> intent(hide) :: u
+   <ftype2c> intent(hide) :: vt
+   <ftype2c> intent(out) :: work
+   <ftype2> intent(hide) :: rwork
+   integer intent(out) :: info
+
+   end subroutine <prefix2c>gesvd_lwork
+
+!        subroutine zgesvdx(jobu,jobvt,range,m,n,a,lda,vl,vu,il,iu,ns,s,u,ldu,vt,ldvt,work,lwork,rwork,iwork,info) ! in :lapack_svd:zgesvdx.f
+   subroutine <prefix2>gesvdx(m,n,minmn,u0,u1,vt0,vt1,a,compute_u,compute_v,u,ns,s,vt,work,lwork,iwork,info,vl,vu,il,iu)
+
+    ! u,s,vt,info = gesvdx(a,compute_u=1,compute_v=1,lwork=..,overwrite_a=0)
+    ! Compute the singular value decomposition (SVD):
+   !   A = U * SIGMA * transpose(V)
+   ! A - M x N matrix
+   ! U - M x M matrix or min(M,N) x N if full_matrices=False
+   ! SIGMA - M x N zero matrix with a main diagonal filled with min(M,N)
+   !               singular values
+   ! transpose(V) - N x N matrix or N x min(M,N) if full_matrices=False
+
+    callstatement (*f2py_func)((compute_u?"V":"N"), (compute_v?"V":"N"), "I", &m, &n, a, &m, &vl, &vu, &il, &iu, &ns, s, u, &u0, vt, &vt0, work, &lwork, iwork, &info)
+
+    callprotoargument char*,char*,char*,int*,int*,<ctype2>*,int*,<ctype2>*,<ctype2>*,int*,int*,int*,<ctype2>*,<ctype2>*,int*,<ctype2>*,int*,<ctype2>*,int*,int*,int*
+
+   integer intent(in),optional,check(compute_u==0||compute_u==1):: compute_u = 1
+   integer intent(in),optional,check(compute_v==0||compute_v==1):: compute_v = 1
+   integer intent(hide),depend(a):: m = shape(a,0)
+   integer intent(hide),depend(a):: n = shape(a,1)
+   integer intent(hide),depend(m,n):: minmn = MIN(m,n)
+   integer intent(hide),depend(compute_u,minmn) :: u0 = (compute_u?m:1)
+   integer intent(hide),depend(compute_u,minmn) :: u1 = (compute_u?minmn:1)
+   integer intent(hide),depend(compute_v,minmn) :: vt0 = (compute_v?minmn:1)
+   integer intent(hide),depend(compute_v,minmn) :: vt1 = (compute_v?n:1)
+   <ftype2> dimension(m,n),intent(in,copy,aligned8) :: a
+   <ftype2> dimension(minmn),intent(out),depend(minmn) :: s
+   <ftype2> dimension(u0,u1),intent(out),depend(u0, u1) :: u
+   <ftype2> dimension(vt0,vt1),intent(out),depend(vt0, vt1) :: vt
+   <ftype2> dimension(lwork),intent(hide,cache),depend(lwork) :: work
+   integer dimension(12*minmn),intent(out),depend(minmn) :: iwork
+   <ftype2> intent(hide):: vl=0
+   <ftype2> intent(hide):: vu=0
+   integer intent(in),optional,depend(minmn, iu),check((il>=1)&&(il<=iu)):: il = 1
+   integer intent(in),optional,depend(minmn),check((iu<=minmn)):: iu = minmn
+   integer optional,intent(in),depend(minmn) :: lwork = max(MAX(3*minmn+MAX(m,n),5*minmn),1)
+   integer intent(out) :: info
+   integer intent(out) :: ns
+
+   end subroutine <prefix2>gesvdx
+
+   subroutine <prefix2>gesvdx_lwork(m,n,minmn,u0,vt0,a,compute_u,compute_v,u,ns,s,vt,work,lwork,iwork,info,vl,vu,il,iu)
+   ! LWORK computation for (S/D)GESVDX
+
+    fortranname <prefix2>gesvdx
+    callstatement (*f2py_func)((compute_u?"V":"N"), (compute_v?"V":"N"), "I", &m, &n, a, &m, &vl, &vu, &il, &iu, &ns, &s, &u, &u0, &vt, &vt0, &work, &lwork, &iwork, &info)
+    
+    callprotoargument char*,char*,char*,int*,int*,<ctype2>*,int*,<ctype2>*,<ctype2>*,int*,int*,int*,<ctype2>*,<ctype2>*,int*,<ctype2>*,int*,<ctype2>*,int*,int*,int*
+
+   integer intent(in),optional,check((compute_u==0) || (compute_u==1)):: compute_u = 1
+   integer intent(in),optional,check((compute_v==0) || (compute_v==1)):: compute_v = 1
+   integer intent(hide),depend(a):: m = shape(a,0)
+   integer intent(hide),depend(a):: n = shape(a,1)
+   integer intent(hide),depend(m,n):: minmn = MIN(m,n)
+   integer intent(hide),depend(compute_u,minmn) :: u0 = (compute_u?minmn:1)
+   integer intent(hide),depend(compute_v,minmn) :: vt0 = (compute_v?minmn:1)
+   <ftype2> intent(hide):: vl=0
+   <ftype2> intent(hide):: vu=0
+   integer intent(in),optional,depend(minmn, iu),check((il>=1)&&(il<=iu)):: il = 1
+   integer intent(in),optional,depend(minmn),check((iu<=minmn)):: iu = minmn
+   <ftype2> dimension(m,n),intent(in,copy,aligned8) :: a
+   <ftype2> intent(hide) :: s
+   <ftype2> intent(hide) :: u
+   <ftype2> intent(hide) :: vt
+   integer dimension(12*minmn),intent(hide),depend(minmn) :: iwork
+   integer intent(hide) :: ns
+   integer intent(hide) :: lwork = -1
+   <ftype2> intent(out) :: work
+   integer intent(out) :: info
+
+   end subroutine <prefix2>gesvdx_lwork
+
+   subroutine <prefix2c>gesvdx(m,n,minmn,u0,u1,vt0,vt1,a,compute_u,compute_v,u,ns,s,vt,work,lwork,iwork,info,vl,vu,il,iu,rwork)
+
+    ! u,s,vt,info = gesvdx(a,compute_u=1,compute_v=1,lwork=..,overwrite_a=0)
+    ! Compute the singular value decomposition (SVD):
+   !   A = U * SIGMA * transpose(V)
+   ! A - M x N matrix
+   ! U - M x M matrix or min(M,N) x N if full_matrices=False
+   ! SIGMA - M x N zero matrix with a main diagonal filled with min(M,N)
+   !               singular values
+   ! transpose(V) - N x N matrix or N x min(M,N) if full_matrices=False
+
+    callstatement (*f2py_func)((compute_u?"V":"N"), (compute_v?"V":"N"), "I", &m, &n, a, &m, &vl, &vu, &il, &iu, &ns, s, u, &u0, vt, &vt0, work, &lwork, rwork, iwork, &info)
+
+    callprotoargument char*,char*,char*,int*,int*,<ctype2c>*,int*,<ctype2>*,<ctype2>*,int*,int*,int*,<ctype2>*,<ctype2c>*,int*,<ctype2c>*,int*,<ctype2c>*,int*,<ctype2>*,int*,int*
+
+   integer intent(in),optional,check(compute_u==0||compute_u==1):: compute_u = 1
+   integer intent(in),optional,check(compute_v==0||compute_v==1):: compute_v = 1
+   integer intent(hide),depend(a):: m = shape(a,0)
+   integer intent(hide),depend(a):: n = shape(a,1)
+   integer intent(hide),depend(m,n):: minmn = MIN(m,n)
+   integer intent(hide),depend(compute_u,minmn) :: u0 = (compute_u?m:1)
+   integer intent(hide),depend(compute_u,minmn) :: u1 = (compute_u?minmn:1)
+   integer intent(hide),depend(compute_v,minmn) :: vt0 = (compute_v?minmn:1)
+   integer intent(hide),depend(compute_v,minmn) :: vt1 = (compute_v?n:1)
+   <ftype2c> dimension(m,n),intent(in,copy,aligned8) :: a
+   <ftype2> dimension(minmn),intent(out),depend(minmn) :: s
+   <ftype2c> dimension(u0,u1),intent(out),depend(u0, u1) :: u
+   <ftype2c> dimension(vt0,vt1),intent(out),depend(vt0, vt1) :: vt
+   <ftype2c> dimension(lwork),intent(hide,cache),depend(lwork) :: work
+   integer dimension(12*minmn),intent(out),depend(minmn) :: iwork
+   <ftype2> intent(hide):: vl=0
+   <ftype2> intent(hide):: vu=0
+   integer intent(in),optional,depend(minmn, iu),check((il>=1)&&(il<=iu)):: il = 1
+   integer intent(in),optional,depend(minmn),check((iu<=minmn)):: iu = minmn
+   integer optional,intent(in),depend(minmn) :: lwork = max(MAX(3*minmn+MAX(m,n),5*minmn),1)
+   <ftype2> dimension((MAX(1,minmn*(minmn*2+15*minmn)))),intent(hide,cache),depend(minmn) :: rwork
+   integer intent(out) :: info
+   integer intent(out) :: ns
+
+   end subroutine <prefix2c>gesvdx
+
+   subroutine <prefix2c>gesvdx_lwork(m,n,minmn,u0,vt0,a,compute_u,compute_v,u,ns,s,vt,work,lwork,iwork,info,vl,vu,il,iu,rwork)
+   ! LWORK computation for (S/D)GESVDX
+
+    fortranname <prefix2c>gesvdx
+    callstatement (*f2py_func)((compute_u?"V":"N"), (compute_v?"V":"N"), "I", &m, &n, a, &m, &vl, &vu, &il, &iu, &ns, &s, &u, &u0, &vt, &vt0, &work, &lwork, &rwork, &iwork, &info)
+    
+    callprotoargument char*,char*,char*,int*,int*,<ctype2c>*,int*,<ctype2>*,<ctype2>*,int*,int*,int*,<ctype2>*,<ctype2c>*,int*,<ctype2c>*,int*,<ctype2c>*,int*,<ctype2>*,int*,int*
+
+   integer intent(in),optional,check((compute_u==0) || (compute_u==1)):: compute_u = 1
+   integer intent(in),optional,check((compute_v==0) || (compute_v==1)):: compute_v = 1
+   integer intent(hide),depend(a):: m = shape(a,0)
+   integer intent(hide),depend(a):: n = shape(a,1)
+   integer intent(hide),depend(m,n):: minmn = MIN(m,n)
+   integer intent(hide),depend(compute_u,minmn) :: u0 = (compute_u?minmn:1)
+   integer intent(hide),depend(compute_v,minmn) :: vt0 = (compute_v?minmn:1)
+   <ftype2> intent(hide):: vl=0
+   <ftype2> intent(hide):: vu=0
+   integer intent(in),optional,depend(minmn, iu),check((il>=1)&&(il<=iu)):: il = 1
+   integer intent(in),optional,depend(minmn),check((iu<=minmn)):: iu = minmn
+   <ftype2c> dimension(m,n),intent(in,copy,aligned8) :: a
+   <ftype2> intent(hide) :: s
+   <ftype2c> intent(hide) :: u
+   <ftype2c> intent(hide) :: vt
+   integer dimension(12*minmn),intent(hide),depend(minmn) :: iwork
+   integer intent(hide) :: ns
+   integer intent(hide) :: lwork = -1
+   <ftype2c> intent(out) :: work
+   <ftype2> intent(hide) :: rwork
+   integer intent(out) :: info
+
+   end subroutine <prefix2c>gesvdx_lwork
+
+    end interface
+end python module lapack_svd
+
+! This file was auto-generated with f2py (version:2).
+! See http://cens.ioc.ee/projects/f2py2e/

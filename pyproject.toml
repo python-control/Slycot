@@ -51,3 +51,7 @@ write_to = "slycot/version.py"
 [tool.pytest.ini_options]
 # run the tests with compiled and installed package
 addopts = "--pyargs slycot"
+
+[tool.scikit-build]
+cmake.verbose = true
+logging.level = "INFO"

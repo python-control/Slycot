@@ -634,10 +634,12 @@ src/SLICOT-Reference/src/SLCT_ZLATZM.f
 
 )
 
-set(SLYCOT_FSOURCE  src/ftruefalse.f src/XERBLA.f)
+set(SLYCOT_FSOURCE  src/ftruefalse.f src/XERBLA.f src/dggbal.f src/zggbal.f)
+# set(SLYCOT_FSOURCE  src/ftruefalse.f src/XERBLA.f)
 
 set(F2PYSOURCE src/_wrapper.pyf)
 set(F2PYSOURCE_DEPS
+  src/lapack_bal.pyf
   src/analysis.pyf
   src/math.pyf
   src/transform.pyf
@@ -651,9 +653,14 @@ set(GENERATED_MODULE
   ${CMAKE_CURRENT_BINARY_DIR}/${SLYCOT_MODULE}${PYTHON_EXTENSION_MODULE_SUFFIX})
 
 
-set(CMAKE_Fortran_FLAGS )
-
 add_custom_target(wrapper ALL DEPENDS ${SLICOT_FSOURCE} ${SLYCOT_FSOURCE})
+
+# add_custom_command(
+#   OUTPUT _wrappermodule.c _wrapper-f2pywrappers.f
+#   COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/src/generate_f2pymod.py -o ${CMAKE_CURRENT_BINARY_DIR}/ ${CMAKE_CURRENT_SOURCE_DIR}/src/_wrapper.pyf.src
+#   DEPENDS ${F2PYSOURCE_DEPS} ${F2PYSOURCE} src/lapack_bal.pyf.src src/_wrapper.pyf.src
+# )
+
 add_custom_command(
   OUTPUT _wrappermodule.c _wrapper-f2pywrappers.f
   COMMAND ${F2PY_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/${F2PYSOURCE}
@@ -668,7 +675,8 @@ add_library(
   ${SLICOT_FSOURCE} ${SLYCOT_FSOURCE})
 
 target_link_libraries(${SLYCOT_MODULE}
-  ${LAPACK_LIBRARIES})
+  ${LAPACK_LIBRARIES}
+)
 
 target_include_directories(
   ${SLYCOT_MODULE} PUBLIC
@@ -677,6 +685,9 @@ target_include_directories(
   ${F2PY_INCLUDE_DIRS}
   )
 
+# set_target_properties(${SLYCOT_MODULE} PROPERTIES
+#  LINK_FLAGS_DEBUG "-fsanitize=address")
+  
 if (UNIX)
   if (APPLE)
     set_target_properties(${SLYCOT_MODULE} PROPERTIES
@@ -688,5 +699,6 @@ if (UNIX)
 endif()
 
 python_extension_module(${SLYCOT_MODULE})
+
 
 install(TARGETS ${SLYCOT_MODULE} LIBRARY DESTINATION slycot)

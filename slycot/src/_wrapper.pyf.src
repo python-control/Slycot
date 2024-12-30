@@ -1,0 +1,44 @@
+!     -*- f90 -*-
+! Signatures for f2py wrappers of FORTRAN LAPACK functions.
+!
+! Author: Pearu Peterson
+! Created: Jan-Feb 2002
+! $Revision$ $Date$
+!
+! Additions by Lee McCuller, based on the scipy sources by Travis Oliphant,
+! Tiziano Zito, Collin RM Stocks, Fabian Pedregosa
+! Skipper Seabold, Ilhan Polat
+!
+! Shorthand Notations:
+! --------------------
+! <prefix=s,d,c,z>
+! <prefix2=s,d>
+! <prefix2c=c,z>
+! <ftype=real,double precision,complex,double complex>
+! <ftype2=real,double precision>
+! <ftype2c=complex,double complex>
+! <ftypereal=real,double precision,real,double precision>
+! <ftypecomplex=complex,double complex,\0,\1>
+! <ctype=float,double,complex_float,complex_double>
+! <ctype2=float,double>
+! <ctype2c=complex_float,complex_double>
+! <ctypereal=float,double,float,double>
+! <ctypecomplex=complex_float,complex_double,\0,\1>
+!
+
+python module _wrapper
+    usercode '''
+#define F_INT int
+'''
+
+interface                 ! in :wrapper
+    include "lapack_bal.pyf.src"
+    include "analysis.pyf"
+    include "math.pyf"
+    include "synthesis.pyf"
+    include "transform.pyf"
+    include "_helper.pyf"
+end interface
+
+end python module _wrapper
+
