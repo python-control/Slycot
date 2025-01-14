@@ -192,6 +192,119 @@ def tb01pd(n, m, p, A, B, C, job='M', equil='S', tol=1e-8, ldwork=None):
     raise_if_slycot_error(out[-1], arg_list)
     return out[:-1]
 
+def tb01jd(n, m, p, A, E, B, C, job='I', systyp='R', equil='S', tol=1e-13, ldwork=None):
+    """Ar, Br, Cr, nr = tb01jd(n,m,p,A,B,C,[job,equil,tol,ldwork])
+
+    To find a reduced (controllable, observable, or minimal) state-
+    space representation (Ar,Er,Br,Cr) for any original state-space
+    representation (A,E,B,C). The matrix Ar,Er is in upper block
+    Hessenberg form. Also removes unobservable/controllable states
+    at infinity.
+
+    Parameters
+    ----------
+    n : int
+        Order of the State-space representation.
+    m : int
+        Number of inputs.
+    p : int
+        Number of outputs.
+    A : (n, n) array_like
+        State dynamics matrix.
+    E : (n, n) array_like
+        State descriptor dynamics Matrix
+    B : (n, max(m,p)) array_like
+        The leading n-by-m part of this array must contain the original
+        input/state matrix B; the remainder of the leading n-by-max(m,p)
+        part is used as internal workspace.
+    C : (p, n) array_like
+        The leading p-by-n part of this array must contain the original
+        state/output matrix C; the remainder of the leading max(1,m,p)-by-n
+        part is used as internal workspace.
+    job : {'I', 'C', 'O'}, optional
+        Indicates whether the user wishes to remove the
+        uncontrollable and/or unobservable parts as follows:
+        = 'I':  Remove both the uncontrollable and unobservable
+                parts to get a minimal state-space representation;
+        = 'C':  Remove the uncontrollable part only to get a
+                controllable state-space representation;
+        = 'O':  Remove the unobservable part only to get an
+                observable state-space representation.
+        Default is 'I'.
+    systyp : {'R', 'S', 'P'}, defaults to 'R'
+        = 'R':  Rational transfer-function matrix; (most general)
+        = 'S':  Proper (standard) transfer-function matrix;
+        = 'P':  Polynomial transfer-function matrix.
+    equil : {'S', 'N'}, optional
+        Specifies whether the user wishes to preliminarily balance
+        the triplet (A,B,C) as follows:
+        = 'S':  Perform balancing (scaling);
+        = 'N':  Do not perform balancing.
+    tol : float, optional
+        The tolerance to be used in rank determination when
+        transforming (A, B, C). If the user sets tol > 0, then
+        the given value of tol is used as a lower bound for the
+        reciprocal condition number.
+        Default is `1e-13`.
+    ldwork : int, optional
+        The length of the cache array. Default is None to use a
+        default, preferred size 2*n*n+n*m+n*p+MAX(n,2*p,2*p)
+
+    Returns
+    -------
+    Ar : (nr, nr) ndarray
+        Contains the upper block Hessenberg state dynamics matrix
+        Ar of a minimal, controllable, or observable realization
+        for the original system, depending on the value of JOB,
+        JOB = 'I', JOB = 'C', or JOB = 'O', respectively.
+    Er : (nr, nr) ndarray
+        Contains the upper block Hessenberg state descriptor
+        dynamics matrix Er of a minimal, controllable, or
+        observable realization for the original system, depending
+         on the value of JOB,
+        JOB = 'I', JOB = 'C', or JOB = 'O', respectively.
+    Br : (nr, m) ndarray
+        Contains the transformed input/state matrix Br of a
+        minimal, controllable, or observable realization for the
+        original system, depending on the value of JOB, JOB = 'I',
+        JOB = 'C', or JOB = 'O', respectively.  If JOB = 'C', only
+        the first IWORK(1) rows of B are nonzero.
+    Cr : (p, nr) ndarray
+        Contains the transformed state/output matrix Cr of a
+        minimal, C controllable, or observable realization for the
+        original C system, depending on the value of JOB, JOB =
+        'I', C JOB = 'C', or JOB = 'O', respectively.  C If JOB =
+        'I', or JOB = 'O', only the last IWORK(1) columns C (in
+        the first NR columns) of C are nonzero.
+    nr : int
+        The order of the reduced state-space representation
+        (Ar,Br,Cr) of a minimal, controllable, or observable
+        realization for the original system, depending on
+        JOB = 'I', JOB = 'C', or JOB = 'O'.
+    """
+    hidden = ' (hidden by the wrapper)'
+    arg_list = ['job', 'equil', 'n','m','p','A','lda'+hidden,'B','ldb'+hidden,
+                'C','ldc'+hidden,'nr','tol','iwork'+hidden,'dwork'+hidden,
+                'ldwork','info'+hidden]
+    if ldwork is None:
+        # the wrapper knows good ldwork
+        ldwork = None
+    elif EQUIL == 'S':
+        assert(ldwork >= max(8*n,2*m,2*p))
+        raise SlycotParameterError("ldwork is too small", -15)
+    elif EQUIL == 'N':
+        assert(ldwork >= max(n,2*m,2*p))
+        raise SlycotParameterError("ldwork is too small", -15)
+    out = _wrapper.tb01jd(n=n,m=m,p=p,a=A,e=E,b=B,c=C,
+                          job=job,systyp=systyp,equil=equil,
+                          tol=tol,ldwork=ldwork)
+
+    # extra information about block sizes returned by the wrapped
+    # function
+    infred = out[5]
+    raise_if_slycot_error(out[-1], arg_list)
+    return out[:5]
+
 def tb03ad(n,m,p,A,B,C,D,leri,equil='N',tol=0.0,ldwork=None):
     """ A_min,b_min,C_min,nr,index,pcoeff,qcoeff,vcoeff = tb03ad_l(n,m,p,A,B,C,D,leri,[equil,tol,ldwork])
 
@@ -1266,6 +1379,7 @@ def tg01fd(l,n,m,p,A,E,B,C,Q=None,Z=None,compq='N',compz='N',joba='N',tol=0.0,ld
 
     return A,E,B,C,ranke,rnka22,Q,Z
 
+#TODO clean documentation
 def tg01gd(
         jobs,
         l, n, m, p,

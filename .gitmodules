@@ -1,3 +1,4 @@
 [submodule "slycot/src/SLICOT-Reference"]
 	path = slycot/src/SLICOT-Reference
 	url = https://github.com/python-control/SLICOT-Reference
+	branch = balancers

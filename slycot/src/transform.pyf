@@ -421,6 +421,29 @@ subroutine tb01pd(job,equil,n,m,p,a,lda,b,ldb,c,ldc,nr,tol,iwork,dwork,ldwork,in
     integer optional,depend(n,m,p) :: ldwork=MAX(1,n+MAX(n,MAX(3*m,3*p)))
     integer intent(out) :: info
 end subroutine tb01pd
+subroutine tg01jd(job,systyp,equil,n,m,p,a,lda,e,lde,b,ldb,c,ldc,nr,infred,tol,iwork,dwork,ldwork,info) ! in TG01JD.f
+  character intent(in) :: job = 'M'
+  character intent(in) :: systyp = 'R'
+  character intent(in) :: equil = 'S'
+  integer required,check(n>=0) :: n
+  integer required,check(m>=0) :: m
+  integer required,check(p>=0) :: p
+  double precision intent(in,out,copy),dimension(n,n),depend(n) :: a
+  integer, intent(hide), depend(a) :: lda=shape(a,0)
+  double precision intent(in,out,copy),dimension(n,n),depend(n) :: e
+  integer, intent(hide), depend(e) :: lde=shape(e,0)
+  double precision intent(in,out,copy),dimension(n,MAX(m,p)),depend(n,m,p) :: b
+  integer, intent(hide), depend(b) :: ldb=shape(b,0)
+  double precision intent(in,out,copy),dimension(MAX(p,m),n),depend(p,n,m) :: c
+  integer, intent(hide), depend(c) :: ldc=shape(c,0)
+  integer, intent(out) :: nr
+  integer, dimension(7) :: infred
+  double precision, intent(in) :: tol = 0.0
+  integer, intent(hide,cache),dimension(2*n+MAX(m,p)),depend(n,m,p) :: iwork
+  double precision intent(hide,cache),dimension(ldwork),depend(ldwork) :: dwork
+  integer optional,depend(n,m,p) :: ldwork=(2*n*n+n*m+n*p+MAX(n,MAX(2*p,2*p)))
+  integer intent(out) :: info
+end subroutine tg01jd
 subroutine tg01ad(job,l,n,m,p,thresh,a,lda,e,lde,b,ldb,c,ldc,lscale,rscale,dwork,info) ! in TG01AD.f
     character :: job
     integer intent(in),required,check(l>=0) :: l
