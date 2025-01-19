@@ -1827,7 +1827,7 @@ def ab13md(Z, nblock, itype, x=None):
     else:
         fact='F'
         if len(x) != m+mr-1:
-            raise ValueError(f'Require len(x)==m+mr-1, but'
+            raise ValueError('Require len(x)==m+mr-1, but'
                              + f' len(x)={len(x)}, m={m}, mr={mr}')
         x = np.concatenate([x,np.zeros(2*m-1-len(x))])
 
@@ -1838,7 +1838,7 @@ def ab13md(Z, nblock, itype, x=None):
     return bound, d, g, x[:m+mr-1]
 
 
-def ag08bd(l,n,m,p,A,E,B,C,D,equil='N',tol=0.0,ldwork=None):
+def ag08bd(l,n,m,p,A,E,B,C,D,equil='N',tol=0.0,ldwork=None): # noqa: E741
     """ Af,Ef,nrank,niz,infz,kronr,infe,kronl = ag08bd(l,n,m,p,A,E,B,C,D,[equil,tol,ldwork])
 
     To extract from the system pencil

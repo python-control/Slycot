@@ -7,7 +7,7 @@ from numpy.testing import assert_allclose, assert_raises
 
 from slycot import synthesis
 from slycot.exceptions import (SlycotArithmeticError, SlycotParameterError,
-                               SlycotResultWarning, raise_if_slycot_error)
+                               SlycotResultWarning)
 
 from .test_exceptions import assert_docstring_parse
 

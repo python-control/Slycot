@@ -33,7 +33,6 @@ def sb02md_example():
     print('rcond =', out[1])
     
 def sb03md_example():
-    from numpy import zeros
     A = array([ [3, 1, 1],
                 [1, 3, 0],
                 [0, 0, 3]])
@@ -47,7 +46,7 @@ def sb03md_example():
     print('scaling factor:', out[3])
     
 def ab08nd_example():
-    from numpy import zeros, size
+    from numpy import zeros
     from scipy.linalg import eigvals
     A = array([ [1, 0, 0, 0, 0, 0],
                 [0, 1, 0, 0, 0, 0],
@@ -153,7 +152,7 @@ def mc01td_example():
         print('The polynomial has', out[2], 'unstable zeros')
         
 def sb02od_example():
-    from numpy import zeros, shape, dot, ones
+    from numpy import dot, ones
     A = array([ [0, 1],
                 [0, 0]])
     B = array([ [0],

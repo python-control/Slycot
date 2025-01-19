@@ -77,7 +77,7 @@ def _parse_docsection(section_name, docstring, checkvars):
             continue
         section_indent = next(docline).index("-")
 
-        for l in docline:
+        for l in docline: # noqa: E741
             # ignore blank lines
             if not l.strip():
                 continue
@@ -121,7 +121,7 @@ def _parse_docsection(section_name, docstring, checkvars):
                             break  # docstring
                         body_indent = len(mmatch.group(1))
                         message += mmatch.group(2) + '\n'
-                        for l in docline:
+                        for l in docline: # noqa: E741
                             if l and not l[:body_indent].isspace():
                                 break  # message body
                             message += l[body_indent:] + '\n'

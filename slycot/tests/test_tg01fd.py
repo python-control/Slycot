@@ -2,7 +2,7 @@
 # tg01fd tests
 
 import numpy as np
-from numpy.testing import assert_almost_equal, assert_equal, assert_raises
+from numpy.testing import assert_almost_equal, assert_equal
 
 from slycot import transform
 
@@ -76,7 +76,7 @@ def test1_tg01fd():
 def test2_tg01fd():
     """ verify that Q and Z output with compq and compz set to 'U' equals the dot product of Q and Z input and Q and Z output with compq and compz set to 'I' """
 
-    l = 30
+    l = 30 # noqa: E741
     n = 30
     m = 70
     p = 44
