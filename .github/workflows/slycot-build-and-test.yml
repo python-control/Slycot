@@ -12,6 +12,24 @@ on:
 
 jobs:
 
+  ruff-lint:
+    name: Static lint checks with ruff
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Slycot
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          submodules: 'recursive'
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+      - name: Run ruff check
+        run: |
+          pip install ruff
+          ruff check slycot
+
   build-sdist:
     # Super fast sniff build. If this fails, don't start the other jobs
     name: Build sdist on Ubuntu
