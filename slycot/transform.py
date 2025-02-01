@@ -969,7 +969,7 @@ def tf01rd(n,m,p,N,A,B,C,ldwork=None):
     raise_if_slycot_error(out[-1], arg_list)
     return out[0]
 
-def tg01ad(l,n,m,p,A,E,B,C,thresh=0.0,job='A'): # noqa: E741
+def tg01ad(l,n,m,p,A,E,B,C,thresh=0.0,job='A'):
     """ A,E,B,C,lscale,rscale = tg01ad(l,n,m,p,A,E,B,C,[thresh,job])
 
     To balance the matrices of the system pencil
@@ -1069,7 +1069,7 @@ def tg01ad(l,n,m,p,A,E,B,C,thresh=0.0,job='A'): # noqa: E741
     raise_if_slycot_error(info, arg_list)
     return A,E,B,C,lscale,rscale
 
-def tg01fd(l,n,m,p,A,E,B,C,Q=None,Z=None,compq='N',compz='N',joba='N',tol=0.0,ldwork=None):  # noqa: E741
+def tg01fd(l,n,m,p,A,E,B,C,Q=None,Z=None,compq='N',compz='N',joba='N',tol=0.0,ldwork=None):
     """ A,E,B,C,ranke,rnka22,Q,Z = tg01fd(l,n,m,p,A,E,B,C,[Q,Z,compq,compz,joba,tol,ldwork])
 
     To compute for the descriptor system (A-lambda E,B,C)
