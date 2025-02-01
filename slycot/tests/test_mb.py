@@ -2,8 +2,6 @@
 # test_mb.py - test suite for linear algebra commands
 # bnavigator <code@bnavigator.de>, Aug 2019
 
-import sys
-
 import numpy as np
 import pytest
 from numpy.testing import assert_allclose
@@ -96,19 +94,6 @@ def test_mb02ed_parameter_errors():
             [1.0000, 2.0000],
         ]
     )
-    X = np.array(
-        [
-            [0.2408, 0.4816],
-            [0.1558, 0.3116],
-            [0.1534, 0.3068],
-            [0.2302, 0.4603],
-            [0.1467, 0.2934],
-            [0.1537, 0.3075],
-            [0.2349, 0.4698],
-            [0.1498, 0.2995],
-            [0.1653, 0.3307],
-        ]
-    )
 
     # Test for wrong parameter typet
     with pytest.raises(expected_exception=SlycotParameterError, match='typet must be either "R" or "C"') as cm:
@@ -160,19 +145,6 @@ def test_mb02ed_matrix_error():
             [1.0000, 2.0000],
             [1.0000, 2.0000],
             [1.0000, 2.0000],
-        ]
-    )
-    X = np.array(
-        [
-            [0.2408, 0.4816],
-            [0.1558, 0.3116],
-            [0.1534, 0.3068],
-            [0.2302, 0.4603],
-            [0.1467, 0.2934],
-            [0.1537, 0.3075],
-            [0.2349, 0.4698],
-            [0.1498, 0.2995],
-            [0.1653, 0.3307],
         ]
     )
 

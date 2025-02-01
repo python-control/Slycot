@@ -2,7 +2,7 @@
 # ab08n* tests
 
 import numpy as np
-from numpy.testing import assert_allclose, assert_array_equal, assert_equal
+from numpy.testing import assert_allclose, assert_array_equal
 from scipy import linalg, signal
 
 from slycot import analysis

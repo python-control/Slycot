@@ -1827,7 +1827,7 @@ def ab13md(Z, nblock, itype, x=None):
     else:
         fact='F'
         if len(x) != m+mr-1:
-            raise ValueError(f'Require len(x)==m+mr-1, but'
+            raise ValueError('Require len(x)==m+mr-1, but'
                              + f' len(x)={len(x)}, m={m}, mr={mr}')
         x = np.concatenate([x,np.zeros(2*m-1-len(x))])
 
