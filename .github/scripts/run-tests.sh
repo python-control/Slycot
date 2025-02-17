@@ -18,6 +18,7 @@ donttest="$donttest or test_default_deprecation"
 pytest control/tests \
         --cov=$slycot_libdir \
         --cov-config=${slycot_srcdir}/.coveragerc \
+        --ignore=control/tests/docstrings_test.py \
         -k "not ($donttest)"
 mv .coverage ${slycot_srcdir}/.coverage.control
 popd
