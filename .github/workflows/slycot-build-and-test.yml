@@ -179,6 +179,7 @@ jobs:
           environment-file: .github/conda-env/build-env.yml
           miniforge-version: latest
           channel-priority: strict
+          channels: conda-forge,defaults
           auto-update-conda: false
           auto-activate-base: false
       - name: Conda build
@@ -356,6 +357,7 @@ jobs:
           miniforge-version: latest
           activate-environment: test-env
           environment-file: slycot-src/.github/conda-env/test-env.yml
+          channels: conda-forge,defaults
           channel-priority: strict
           auto-activate-base: false
       - name: Download conda packages
