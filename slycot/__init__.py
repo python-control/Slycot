@@ -63,8 +63,9 @@ else:
                             sg02ad,
                             sg03ad, sg03bd)
                             
-    # Transformation routines (12/77 wrapped)
+    # Transformation routines (13/77 wrapped)
     from .transform import (tb01id, tb01pd,
+                            tg01jd,
                             tb03ad,
                             tb04ad,
                             tb05ad,

@@ -437,7 +437,7 @@ subroutine tg01jd(job,systyp,equil,n,m,p,a,lda,e,lde,b,ldb,c,ldc,nr,infred,tol,i
   double precision intent(in,out,copy),dimension(MAX(p,m),n),depend(p,n,m) :: c
   integer, intent(hide), depend(c) :: ldc=shape(c,0)
   integer, intent(out) :: nr
-  integer, dimension(7) :: infred
+  integer, intent(out), dimension(7) :: infred
   double precision, intent(in) :: tol = 0.0
   integer, intent(hide,cache),dimension(2*n+MAX(m,p)),depend(n,m,p) :: iwork
   double precision intent(hide,cache),dimension(ldwork),depend(ldwork) :: dwork

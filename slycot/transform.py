@@ -192,7 +192,7 @@ def tb01pd(n, m, p, A, B, C, job='M', equil='S', tol=1e-8, ldwork=None):
     raise_if_slycot_error(out[-1], arg_list)
     return out[:-1]
 
-def tb01jd(n, m, p, A, E, B, C, job='I', systyp='R', equil='S', tol=1e-13, ldwork=None):
+def tg01jd(n, m, p, A, E, B, C, job='I', systyp='R', equil='S', tol=1e-13, ldwork=None):
     """Ar, Br, Cr, nr = tb01jd(n,m,p,A,B,C,[job,equil,tol,ldwork])
 
     To find a reduced (controllable, observable, or minimal) state-
@@ -295,7 +295,7 @@ def tb01jd(n, m, p, A, E, B, C, job='I', systyp='R', equil='S', tol=1e-13, ldwor
     elif EQUIL == 'N':
         assert(ldwork >= max(n,2*m,2*p))
         raise SlycotParameterError("ldwork is too small", -15)
-    out = _wrapper.tb01jd(n=n,m=m,p=p,a=A,e=E,b=B,c=C,
+    out = _wrapper.tg01jd(n=n,m=m,p=p,a=A,e=E,b=B,c=C,
                           job=job,systyp=systyp,equil=equil,
                           tol=tol,ldwork=ldwork)
 
