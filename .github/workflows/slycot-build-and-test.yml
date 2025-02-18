@@ -179,6 +179,7 @@ jobs:
           environment-file: .github/conda-env/build-env.yml
           miniforge-version: latest
           channel-priority: strict
+          channels: conda-forge,defaults
           auto-update-conda: false
           auto-activate-base: false
       - name: Conda build
@@ -221,7 +222,10 @@ jobs:
           name: slycot-wheels
           path: slycot-wheels
       - id: set-matrix
-        run: echo "matrix=$(python3 .github/scripts/set-pip-test-matrix.py)" >> $GITHUB_OUTPUT
+        run: |
+          TEMPFILE="$(mktemp)"
+          python3 .github/scripts/set-pip-test-matrix.py | tee $TEMPFILE
+          echo "matrix=$(cat $TEMPFILE)" >> $GITHUB_OUTPUT
 
   create-conda-test-matrix:
     name: Create conda test matrix
@@ -244,7 +248,10 @@ jobs:
           name: slycot-conda-pkgs
           path: slycot-conda-pkgs
       - id: set-matrix
-        run: echo "matrix=$(python3 .github/scripts/set-conda-test-matrix.py)" >> $GITHUB_OUTPUT
+        run: |
+          TEMPFILE="$(mktemp)"
+          python3 .github/scripts/set-conda-test-matrix.py | tee $TEMPFILE
+          echo "matrix=$(cat $TEMPFILE)" >> $GITHUB_OUTPUT
 
 
   test-wheel:
@@ -356,6 +363,7 @@ jobs:
           miniforge-version: latest
           activate-environment: test-env
           environment-file: slycot-src/.github/conda-env/test-env.yml
+          channels: conda-forge,defaults
           channel-priority: strict
           auto-activate-base: false
       - name: Download conda packages
