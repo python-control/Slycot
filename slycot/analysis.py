@@ -919,6 +919,148 @@ def ab09ax(dico,job,n,m,p,A,B,C,nr=None,tol=0.0,ldwork=None):
     raise_if_slycot_error(out[-2:], arg_list, ab09ax.__doc__, locals())
     return Nr, A[:Nr, :Nr], B[:Nr, :], C[:, :Nr], hsv, T[:, :Nr], Ti[:Nr, :]
 
+
+def ab09bx(dico,job,n,m,p,A,B,C,D,nr=None,tol1=0.0,tol2=0.0,ldwork=None):
+    """``nr,Ar,Br,Cr,Dr,hsv,T,Ti = ab09bx(dico,job,equil,n,m,p,nr,A,B,C,D,[nr,tol1,tol2,ldwork])``
+
+    TODO update docs for ab09bx
+
+    To compute a reduced order model ``(Ar,Br,Cr,Dr)`` for a stable original
+    state-space representation ``(A,B,C,D)`` by using either the square-root
+    or the balancing-free square-root Singular Perturbation model
+    reduction method. The state dynamics matrix `A` of the original
+    system is an upper quasi-triangular matrix in *real Schur canonical
+    form.* The matrices of the reduced order system are computed using
+    the truncation formulas:
+
+        ``Ar = TI * A * T ,  Br = TI * B ,  Cr = C * T`` .
+
+    Parameters
+    ----------
+    dico : {'D', 'C'}
+        Indicate whether the system is discrete `D` or continuous `C`
+    job : {'B', 'N'}
+        Balance `B` or not `N`
+    n : int
+        The number of state variables. n >= 0.
+    m : int
+        The number of system inputs. m >= 0.
+    p : int
+        The number of system outputs. p >= 0.
+    A : (n, n) array_like
+        The leading n-by-n part of this array must contain the state
+        dynamics matrix A of the system *in real Schur form.*
+    B : (n, m) array_like
+        The leading n-by-m part of this array must contain the input/state
+        matrix B of the system.
+    C : (p, n) array_like
+        The leading p-by-n part of this array must contain the
+        state/output matrix C of the system.
+    D : (p, m) array_like
+        The leading p-by-m part of this array must contain the
+        state/output matrix D of the system.
+    nr : int, optional
+        `nr` is the desired order of the resulting reduced order
+        system.  ``0 <= nr <= n``. Automatically determined by `tol` if
+        ``nr is None`` and returned. See return object `nr`.
+        Default is None.
+    tol2 : float, optional
+        If ``nr is None``, `tol`contains the tolerance for determining the
+        order of the reduced system. For model reduction, the recommended
+        value is ``tol = c * HNORM(A, B, C)``, where `c` is a constant in
+        the interval ``[0.00001, 0.001]`` and ``HNORM(A, B, C)`` is
+        the Hankel-Norm of the given sysstem (computed in ``HSV(1)``). For
+        computing a minimal realization, the recommended value is
+        ``tol = n * eps * HNORM(A, B, C)``, where `eps` is the machine
+        precision (see LAPACK Library Routine `DLAMCH`). This value is
+        used by default if ``tol <= 0`` on entry. If `nr` is specified,
+        the value of `tol` is ignored. Default is `0.0`.
+    tol2 : float, optional
+        additional tolerance TODO update but slicot docs not illuminating
+    ldwork : int, optional
+        The length of the cache array. The default value is
+        ``n*(2*n+max(n,m,p)+5) + n*(n+1)/2 ~= 3.5*n**2 + 5*n``,
+        a larger value should lead to better performance.
+        Default is None.
+
+    Returns
+    -------
+    nr : int
+        `nr` is the order of the resulting reduced order model.
+        `nr` is set as follows:
+        If on input ``nr is not None``, `nr` is equal to ``MIN(nr,NMIN)``,
+        where `nr` is the desired order on entry and `NMIN` is the order
+        of a minimal realization of the given system; `NMIN` is
+        determined as the number of Hankel singular values greater
+        than ``n*eps*HNORM(A,B,C)``, where `eps` is the machine
+        precision (see LAPACK Library Routine DLAMCH) and
+        ``HNORM(A,B,C)`` is the Hankel norm of the system (computed
+        in ``HSV(1)``);
+        If on input ``nr is None``, `nr` is equal to the number of Hankel
+        singular values greater than ``MAX(tol,n*eps*HNORM(A,B,C))``.
+    Ar : (nr, nr) ndarray
+        This array contains the state dynamics matrix `Ar` of the reduced
+        order system.
+    Br : (nr, m) ndarray
+        Tthis array contains the input/state matrix `Br` of the reduced
+        order system.
+    Cr : (p, nr) ndarray
+        This array contains the state/output matrix `Cr` of the reduced
+        order system.
+    Dr : (p, m) ndarray
+        This array contains the state/output matrix `Dr` of the reduced
+        order system.
+    hsv : (n, ) ndarray
+        If ``INFO = 0``, it contains the Hankel singular values of
+        the original system ordered decreasingly. ``HSV(1)`` is the
+        Hankel norm of the system.
+    T : (n, nr) ndarray
+        This array contains the right truncation matrix `T` of the reduced
+        order system.
+    Ti : (nr, n) ndarray
+        This array contains the left truncation matrix `Ti` of the reduced
+        order system.
+
+    Raises
+    ------
+    SlycotArithmeticError
+        :info == 1 and dico == 'C':
+            The state matrix A is not stable
+        :info == 1 and dico == 'D':
+            The state matrix A is not convergent
+        :info == 2:
+            The computation of Hankel singular values failed
+
+    Warns
+    -----
+    SlycotResultWarning
+        :iwarn == 1:
+                The selected order {nr} is greater
+                than the order of a minimal realization of the
+                given system. `nr` was set automatically to {Nr}
+                corresponding to the order of a minimal realization
+                of the system
+    """
+    hidden = ' (hidden by the wrapper)'
+    arg_list = ['dico', 'job', 'ordsel', 'n', 'm', 'p', 'nr',
+                'A', 'lda' + hidden, 'B', 'ldb' + hidden, 'C', 'ldc' + hidden,
+                'hsv', 'T', 'ldt' + hidden, 'Ti', 'ldti' + hidden, 'tol',
+                'iwork' + hidden, 'dwork' + hidden, 'ldwork', 'iwarn', 'info']
+    if ldwork is None:
+        ldwork = max(1, n*(2*n + max(n, max(m, p))+5)+n*(n+1)/2)
+    if nr is None:
+        ordsel = 'A'
+        nr = 0  # order will be computed by the routine
+    else:
+        ordsel = 'F'
+    out = _wrapper.ab09bx(dico, job, ordsel, n, m, p, nr, A, B, C, D, tol1, tol2, ldwork)
+    Nr, A, B, C, D, hsv, T, Ti = out[:-2]  # 
+    raise_if_slycot_error(out[-2:], arg_list, ab09bx.__doc__, locals())
+    return Nr, A[:Nr, :Nr], B[:Nr, :], C[:, :Nr], D, hsv, T[:, :Nr], Ti[:Nr, :]
+
+
+# TODO wrap ab09hx, the interface is similar to ab09bx
+
 def ab09bd(dico,job,equil,n,m,p,A,B,C,D,nr=None,tol1=0,tol2=0,ldwork=None):
     """ nr,Ar,Br,Cr,Dr,hsv = ab09bd(dico,job,equil,n,m,p,A,B,C,D,[nr,tol1,tol2,ldwork])
 
