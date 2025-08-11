@@ -14,14 +14,11 @@ description = "A wrapper for the SLICOT control and systems library"
 readme = "README.rst"
 authors = [{ name = "Enrico Avventi et al." }]
 maintainers = [{ name = "Slycot developers", email = "python-control-discuss@lists.sourceforge.net"}]
-license = {text = "GPL-2.0 AND BSD-3-Clause"}
+license = "GPL-2.0 AND BSD-3-Clause"
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Science/Research",
     "Intended Audience :: Developers",
-    "License :: OSI Approved",
-    "License :: OSI Approved :: GNU General Public License v2 (GPLv2)",
-    "License :: OSI Approved :: BSD License",
     "Programming Language :: C",
     "Programming Language :: Fortran",
     "Programming Language :: Python",
