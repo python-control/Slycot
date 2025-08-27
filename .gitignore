@@ -1,3 +1,6 @@
+doc/_build
+doc/generated
+doc/source/reference/generated/
 .DS_Store*
 MANIFEST
 dist/
@@ -12,3 +15,4 @@ build.log
 *~
 setup.cfg
 _skbuild
+
