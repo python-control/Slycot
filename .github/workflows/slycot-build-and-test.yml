@@ -153,6 +153,7 @@ jobs:
   build-conda:
     name: Build conda, ${{ matrix.os }} ${{ matrix.python }}
     runs-on: ${{ matrix.os }}-latest
+    needs: build-sdist
     strategy:
         fail-fast: false
         matrix:
