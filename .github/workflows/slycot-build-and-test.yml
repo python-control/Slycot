@@ -175,7 +175,7 @@ jobs:
         with:
           activate-environment: build-env
           channel-priority: strict
-          channels: defaults
+          channels: conda-forge,defaults
           conda-build-version: 25.7.0
           miniforge-version: latest
           python-version: ${{ matrix.python }}
@@ -360,7 +360,7 @@ jobs:
         with:
           activate-environment: test-env
           channel-priority: strict
-          channels: defaults
+          channels: conda-forge,defaults
           environment-file: slycot-src/.github/conda-env/test-env.yml
           miniforge-version: latest
           python-version: ${{ matrix.python }}
