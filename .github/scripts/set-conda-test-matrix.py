@@ -16,7 +16,7 @@ combinations = {'ubuntu': ['unset', 'Generic', 'OpenBLAS', 'Intel10_64lp'],
                }
 
 conda_jobs = []
-for conda_pkg_file in Path("slycot-conda-pkgs").glob("*/*.tar.bz2"):
+for conda_pkg_file in Path("slycot-conda-pkgs").glob("*/*.conda"):
     cos = osmap[conda_pkg_file.parent.name.split("-")[0]]
     m = re.search(r'py(\d)(\d+)_', conda_pkg_file.name)
     pymajor, pyminor = int(m[1]), int(m[2])
@@ -27,6 +27,9 @@ for conda_pkg_file in Path("slycot-conda-pkgs").glob("*/*.tar.bz2"):
                 'python': cpy,
                 'blas_lib':  cbl}
         conda_jobs.append(cjob)
+
+if not conda_jobs:
+    raise SystemExit("No conda packages found")
 
 matrix = { 'include': conda_jobs }
 print(json.dumps(matrix))
