@@ -1,0 +1,9 @@
+name: test-env
+dependencies:
+  # in addtion to package dependencies and explicit LAPACK/BLAS implementations installed in workflow
+  - scipy
+  - matplotlib
+  - pytest
+  - pytest-cov
+  - pytest-timeout
+  - coverage
