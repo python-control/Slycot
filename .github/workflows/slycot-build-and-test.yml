@@ -173,12 +173,11 @@ jobs:
       - name: Setup Conda
         uses: conda-incubator/setup-miniconda@v3
         with:
-          activate-environment: build-env
-          channel-priority: strict
-          channels: conda-forge,defaults
-          conda-build-version: 25.7.0
-          miniforge-version: latest
           python-version: ${{ matrix.python }}
+          activate-environment: build-env
+          miniforge-version: latest
+          conda-build-version: 25.7.0
+          channel-priority: strict
       - name: Conda build
         shell: bash -el {0}
         run: |
@@ -358,12 +357,13 @@ jobs:
       - name: Setup Conda
         uses: conda-incubator/setup-miniconda@v3
         with:
-          activate-environment: test-env
-          channel-priority: strict
-          channels: conda-forge,defaults
-          environment-file: slycot-src/.github/conda-env/test-env.yml
-          miniforge-version: latest
           python-version: ${{ matrix.python }}
+          miniforge-version: latest
+          activate-environment: test-env
+          environment-file: slycot-src/.github/conda-env/test-env.yml
+          channels: conda-forge,defaults
+          channel-priority: strict
+          auto-activate-base: false
       - name: Download conda packages
         uses: actions/download-artifact@v4
         with:
