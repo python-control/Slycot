@@ -16,6 +16,7 @@ donttest="test_root_locus_zoom or test_sisotool"
 # don't care about deprecation warnings here
 donttest="$donttest or test_default_deprecation"
 pytest control/tests \
+        -m slycot \
         --cov=$slycot_libdir \
         --cov-config=${slycot_srcdir}/.coveragerc \
         --ignore=control/tests/docstrings_test.py \

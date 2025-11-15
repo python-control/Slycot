@@ -1,4 +1,0 @@
-name: build-env
-dependencies:
-  - boa
-  - numpy

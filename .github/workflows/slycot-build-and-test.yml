@@ -151,7 +151,7 @@ jobs:
           retention-days: 5
 
   build-conda:
-    name: Build conda, ${{ matrix.os }}
+    name: Build conda, ${{ matrix.os }} ${{ matrix.python }}
     runs-on: ${{ matrix.os }}-latest
     needs: build-sdist
     strategy:
@@ -162,8 +162,7 @@ jobs:
             - 'macos'
             - 'windows'
           python:
-          # this is not the packaged version, just the version conda-build runs on.
-            - '3.11'
+            - '3.13'
 
     steps:
       - name: Checkout Slycot
@@ -174,32 +173,32 @@ jobs:
       - name: Setup Conda
         uses: conda-incubator/setup-miniconda@v3
         with:
+          auto-update-conda: true
           python-version: ${{ matrix.python }}
           activate-environment: build-env
-          environment-file: .github/conda-env/build-env.yml
           miniforge-version: latest
+          conda-build-version: 25.7.0
           channel-priority: strict
-          channels: conda-forge,defaults
-          auto-update-conda: false
-          auto-activate-base: false
       - name: Conda build
         shell: bash -el {0}
         run: |
           set -e
-          conda build conda-recipe
+          conda build conda-recipe --python ${{ matrix.python }}
           # preserve directory structure for custom conda channel
-          find "${CONDA_PREFIX}/conda-bld" -maxdepth 2 -name 'slycot*.tar.bz2' | while read -r conda_pkg; do
+          CONDA_ROOT=$(conda info --base)
+          find "${CONDA_ROOT}/conda-bld" -maxdepth 2 -name 'slycot*.conda' | while read -r conda_pkg; do
             conda_platform=$(basename $(dirname "${conda_pkg}"))
             mkdir -p "slycot-conda-pkgs/${conda_platform}"
             cp "${conda_pkg}" "slycot-conda-pkgs/${conda_platform}/"
           done
-          python -m conda_index ./slycot-conda-pkgs
+          conda index ./slycot-conda-pkgs
       - name: Save to local conda pkg channel
         uses: actions/upload-artifact@v4
         with:
           name: slycot-conda-pkgs-${{ matrix.os }}-${{ matrix.python }}
           path: slycot-conda-pkgs
           retention-days: 5
+
 
   create-wheel-test-matrix:
     name: Create wheel test matrix
@@ -403,6 +402,7 @@ jobs:
           flag-name: wheel-${{ matrix.packagekey }}-${{matrix.blas_lib}}
           parallel: true
           file: slycot-src/coverage.xml
+
 
   coveralls-final:
     name: Finalize parallel coveralls

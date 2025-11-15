@@ -11,8 +11,13 @@ build:
 
 requirements:
   build:
+    - python                                 # [build_platform != target_platform]
+    - cross-python_{{ target_platform }}     # [build_platform != target_platform]
+    - numpy                                  # [build_platform != target_platform]
+    - scikit-build >=0.15                    # [build_platform != target_platform]
     - {{ compiler('fortran') }}
     - {{ compiler('c') }}
+    - {{ stdlib("c") }}
     - cmake >=3.14
     - make  # [linux]
   host:
@@ -26,8 +31,7 @@ requirements:
     - setuptools >=45
     - setuptools_scm >=7
   run:
-    - python {{ PY_VER }}
-    - {{ pin_compatible('numpy') }}
+    - python
 
 test:
   requires:
