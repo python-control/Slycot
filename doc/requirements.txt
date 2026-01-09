@@ -1,0 +1,13 @@
+sphinx>=7.2.6
+sphinx-copybutton
+numpy
+scipy
+pandas
+matplotlib
+matplotlib_venn
+sphinx_rtd_theme>=2.0.0
+numpydoc
+ipykernel
+nbsphinx
+docutils
+#docutils==0.16 # pin until sphinx_rtd_theme is compatible with 0.17 or later
