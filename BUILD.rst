@@ -3,9 +3,11 @@
 =================
 
 Slycot can be built on Linux, macOS, and Windows, with building on
-Linux being easiest and Windows hardest.  It can *probably* be built
-on other Unix-like systems that have Python, CMake, and a BLAS/LAPACK
-library.
+Linux being easiest and Windows hardest.
+
+Slycot can *probably* also be built on other Unix-like systems that
+have Python, CMake, a C compiler, a Fortran compiler, and a
+BLAS/LAPACK library.
 
 Building from the sdist
 -----------------------
@@ -17,7 +19,7 @@ distribution (sdist)`_ on PyPi.
 
 Ensure you have the the following:
 
-- Python 3.10 or later, including development files like Python.h
+- Python 3.10 or later, including development files like ``Python.h``
 - CMake, and a CMake-compatible build tool like Ninja
 - C compiler (e.g. gcc, MS Visual C++, clang)
 - FORTRAN 77 compiler (e.g. gfortran, ifort, flang)
@@ -41,7 +43,7 @@ Building from Github source
 ---------------------------
 
 Instead of building from the sdist, you can get the source by cloning
-the repository, with submodules::
+the repository, with its submodules::
 
    git clone --recurse-submodules https://github.com/python-control/Slycot.git
   
@@ -49,14 +51,14 @@ and build from the working tree::
 
   pip install .[test]
 
-The test command is the same as building from the sdist::
+The test command is the same as when building from the sdist::
 
   pytest --pyargs slycot
 
 Non-isolated, editable build
 ----------------------------
 
-When doing development once builds over and over; in that case it's faster to do a non-isolated editable build.  Run or adapt developer script `inplace-editable-build.bash`_ for that.
+When doing development one builds over and over; in that case it's faster to do a non-isolated editable build.  Run or adapt developer script `inplace-editable-build.bash`_ for that.
 
 .. _`inplace-editable-build.bash`: ./dev-tools/inplace-editable-build.bash
 
@@ -64,7 +66,7 @@ When doing development once builds over and over; in that case it's faster to do
 Customizing the build
 ----------------------
 
-To specify the C and Fortran compilers and compilation flags use the CMake and scikit-build-core customization mechanisms.  For example, on a Unix-like system one could set specific environment variables before running the `pip install` step::
+To specify the C and Fortran compilers and compilation flags use the CMake and scikit-build-core customization mechanisms.  For example, on a Unix-like system one could set specific environment variables before running the ``pip install`` step::
 
   export CC=clang # C compiler
   export CFLAGS=-Os # C compilation flags
@@ -73,24 +75,24 @@ To specify the C and Fortran compilers and compilation flags use the CMake and s
   export BLA_VENDOR=Atlas # BLAS/LAPACK library to use
   export SKBUILD_BUILD_VERBOSE=true # verbose build
 
-There are other ways to specify these; see CMake and scikit-build-core docs.
+There are other ways to specify these; see `CMake docs`_ and `scikit-build-core docs`_ for more.  See `BLA_VENDOR`_ for
+information about specifying the BLAS/LAPACK library in CMake.
 
-See `CMake`_ documentation for more in general, and `BLA_VENDOR`_ for
-information about specifying the BLAS/LAPACK library.
-
+.. _CMake docs: https://cmake.org/documentation/
+.. _scikit-build-core docs: https://scikit-build-core.readthedocs.io/
 .. _BLA_VENDOR: https://cmake.org/cmake/help/latest/module/FindBLAS.html#input-variables
 
 
 Building wheels
 ---------------
 
-Wheels are built with `cibuildwheel`_ via Github Actions.  A test build of wheels for the "manylinux" x86_64 target can be built locally using developer script `check-linux-cibw.bash`_ .  To use this script you'll need to have installed cibuildwheel and `Docker`_.
+Wheels are built with `cibuildwheel`_ via Github Actions.  A test build of wheels for the manylinux x86_64 target can be done locally using developer script `check-linux-cibw.bash`_ .  To use this script you'll need cibuildwheel and `Docker`_.
 
 The wheels bundle the OpenBLAS libraries provided by `scipy-openblas-libs`_.
 
 .. _`cibuildwheel`: https://cibuildwheel.pypa.io/
 .. _`Docker`: https://www.docker.com
-.. _`check-linux-cibw.bash`: ./tools/check-linux-cibw.bash
+.. _`check-linux-cibw.bash`: ./dev-tools/check-linux-cibw.bash
 .. _`scipy-openblas-libs`: https://github.com/MacPython/openblas-libs
 
 
@@ -126,23 +128,7 @@ To build and install::
 Build design
 ------------
 
-..
-   Slycot is a multi-language package used on different operating systems
-   and computer architectures.  Building Slycot for a *single* operating
-   system and architecture combination is a challenge, and supporting
-   mutiple platforms is even harder.
-
-   To solve the multi-platform problem we use Python packaging tools.
-   Slycot uses `scikit-build-core`_ for its `build backend`_.
-   scikit-build-core, in turn, uses `CMake`_ to find necessary compilers,
-   libraries, and other components, to generate build instructions, and
-   to execute these build instructions.
-
-   The sdist published to PyPI contains the Slycot and SLICOT source
-   code, and the scikit-build-core and CMake build configuration needed
-   to build the package.
-
-The build uses `scikit-build-core`_ for the build backend;
+The build uses scikit-build-core for the build backend;
 scikit-build-core, in turn, uses CMake to configure and orchestrate
 compilers, libraries, and other components needed for the build.
 
@@ -153,18 +139,25 @@ The build configuration must be:
 - compatible with building conda-forge packages
 - able to be built from source with user choice of compilers and BLAS/LAPACK vendor
 
-Most scikit-build-core configuration is in ``pyproject.toml``; see section ``[tool.scikit-build]`` in that file.  Some directives are in the Github workflow files, especially those for building wheels.
+Most scikit-build-core configuration is in ``pyproject.toml``; see
+section ``[tool.scikit-build]`` in that file.  Some directives are in
+the Github workflow files, especially those for building wheels.
 
 The CMake configuration is in files ``CMakeLists.txt`` and
 ``slycot/CMakeLists.txt``.  The former is the top-level build file,
 responsible for finding the necessary components for the build, and high-level configuration.
 
-The only custom CMake build variable is ``SLYCOT_BUNDLE_OPENBLAS``,
+``slycot/CMakeLists.txt`` is where the actual Slycot build is defined:
+what source files are included, and what is linked in.
+
+The main Slyoct CMake build variable is ``SLYCOT_BUNDLE_OPENBLAS``,
 which, if set, arranges for scipy-openblas-lib bundling (more on this
 below).
 
-``slycot/CMakeLists.txt`` is where the actual Slycot build is defined:
-what source files are included, and what is linked in.
+The other Slycot CMake variable is ``SLYCOT_WINDOWS_CONDA_BUILD``;
+this used with Slycot's own conda recipe when building on Windows, and
+shouldn't need to be set otherwise.
+
 
 Wheel building
 ~~~~~~~~~~~~~~
@@ -174,11 +167,6 @@ bundled copy of the OpenBLAS libraries.  This requires some fiddly
 setup, which is handled by the ``[tool.cibuildwheel*]`` sections in
 ``pyproject.toml``, and also the Github Action workflow configured in
 ``.github/workflows/cibuildwheel.yml``.
-
-.. _`build backend`: https://packaging.python.org/en/latest/glossary/#term-Build-Backend
-.. _`scikit-build-core`: https://scikit-build-core.readthedocs.io/
-.. _`CMake`: https://cmake.org/
-
 
 Additional hints
 ----------------
