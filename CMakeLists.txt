@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.17.2...3.29)
 
-if(SLYCOT_CI)
+if(SLYCOT_WINDOWS_CONDA_BUILD)
   set(CMAKE_MSVC_DEBUG_INFORMATION_FORMAT "")
   message(STATUS "Set CMAKE_MSVC_DEBUG_INFORMATION_FORMAT to empty string")
 endif()
