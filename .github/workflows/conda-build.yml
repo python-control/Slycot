@@ -1,0 +1,42 @@
+name: Conda build
+
+on:
+  push:
+  pull_request:
+
+jobs:
+
+  build-conda:
+    name: Build conda on ${{ matrix.os }} with Python ${{ matrix.python }}
+    runs-on: ${{ matrix.os }}-latest
+    strategy:
+        fail-fast: false
+        matrix:
+          os:
+            - 'ubuntu'
+            - 'macos'
+            - 'windows'
+          python:
+            - '3.13'
+
+    steps:
+      - name: Checkout Slycot
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          submodules: 'recursive'
+      - name: Setup Conda
+        uses: conda-incubator/setup-miniconda@v3
+        with:
+          auto-update-conda: true
+          activate-environment: build-env
+          miniforge-version: latest
+          conda-build-version: 26.3.0
+          channel-priority: strict
+      - name: Conda build
+        shell: bash -el {0}
+        env:
+          PYTHONUNBUFFERED: "1"
+        run: |
+          set -e
+          conda build conda-recipe --python ${{ matrix.python }}

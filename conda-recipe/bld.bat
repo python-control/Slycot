@@ -1,8 +1,8 @@
-set BLAS_ROOT=%PREFIX%
-set LAPACK_ROOT=%PREFIX%
+@echo on
 
-set "SKBUILD_CONFIGURE_OPTIONS=-DBLA_VENDOR=Generic"
-set "CMAKE_GENERATOR=NMake Makefiles"
-"%PYTHON%" -m pip install -v .
+set "SKBUILD_CMAKE_ARGS=-GNinja;-DVERBOSE=ON;-DSLYCOT_CI=ON"
 
-if errorlevel 1 exit 1
+echo SKBUILD_CMAKE_ARGS is - %SKBUILD_CMAKE_ARGS% -
+
+%PYTHON% -m pip install --no-deps --no-build-isolation -vv .
+if %ERRORLEVEL% neq 0 exit 1

@@ -1,6 +1,6 @@
 package:
   name: slycot
-  version: {{ environ.get('GIT_DESCRIBE_TAG', 'v0.0.0')[1:] }}
+  version: 'v0.0.0'
 
 source:
   git_url: ../
@@ -13,23 +13,19 @@ requirements:
   build:
     - python                                 # [build_platform != target_platform]
     - cross-python_{{ target_platform }}     # [build_platform != target_platform]
-    - numpy                                  # [build_platform != target_platform]
-    - scikit-build >=0.15                    # [build_platform != target_platform]
     - {{ compiler('fortran') }}
     - {{ compiler('c') }}
     - {{ stdlib("c") }}
-    - cmake >=3.14
-    - make  # [linux]
+    - cmake >=3.15
+    - ninja
   host:
     - libblas
-    - libcblas
     - liblapack
-    - python
     - numpy
-    - scikit-build >=0.15
     - pip
-    - setuptools >=45
-    - setuptools_scm >=7
+    - python
+    - scikit-build-core
+    - setuptools_scm
   run:
     - python
 

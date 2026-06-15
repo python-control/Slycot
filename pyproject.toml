@@ -1,15 +1,10 @@
 [build-system]
-requires = [
-    "setuptools>=45",
-    "setuptools_scm>=8",
-    "wheel",
-    "scikit-build>=0.15",
-    "cmake>=3.14",
-    "numpy >= 1.23.1"]
-build-backend = "setuptools.build_meta"
+requires = ["scikit-build-core", "numpy"]
+build-backend = "scikit_build_core.build"
 
 [project]
 name = "slycot"
+dynamic = ["version"]
 description = "A wrapper for the SLICOT control and systems library"
 readme = "README.rst"
 authors = [{ name = "Enrico Avventi et al." }]
@@ -25,6 +20,8 @@ classifiers = [
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
     "Topic :: Software Development",
     "Topic :: Scientific/Engineering",
     "Operating System :: Microsoft :: Windows",
@@ -34,16 +31,18 @@ classifiers = [
 ]
 requires-python = ">=3.10"
 dependencies = [
-    "numpy >= 1.23.1",
+    "numpy>=2",
 ]
-dynamic = ["version"]
+
+[project.optional-dependencies]
+test = ["pytest", "scipy"]
 
 [project.urls]
 homepage = "https://github.com/python-control/Slycot"
 
-
-[tool.setuptools_scm]
-write_to = "slycot/version.py"
+[tool.scikit-build]
+metadata.version.provider = "scikit_build_core.metadata.setuptools_scm"
+wheel.exclude = ["slycot/src/", "slycot/CMakeLists.txt", "slycot/slicot-source.cmake", "slycot/scipy-openblas-symbols"]
 
 [tool.pytest.ini_options]
 # run the tests with compiled and installed package
@@ -51,3 +50,26 @@ addopts = "--pyargs slycot"
 
 [tool.ruff.lint]
 ignore = [ "E741" ]
+
+[tool.cibuildwheel]
+# scipy-openblas32 version specified here
+before-build = "python {project}/build-tools/cibw_before_build.py 0.3.31.22.1 {project}"
+test-command = "pytest --pyargs slycot"
+test-extras = ['test']
+
+skip = ["cp38-*", "cp39-*", "cp3??t-*", "*-win32", "*-win_arm64"]
+
+[tool.cibuildwheel.linux]
+repair-wheel-command = [
+  "LD_LIBRARY_PATH=./build-libs",
+  "auditwheel repair -w {dest_dir} {wheel}",
+]
+
+[tool.cibuildwheel.windows]
+repair-wheel-command = [
+  "pip install delvewheel",
+  "delvewheel repair --add-path build-libs -w {dest_dir} {wheel}"
+]
+
+[tool.cibuildwheel.macos]
+repair-wheel-command = "bash {project}/build-tools/cibw_repair_wheel_macos.sh {dest_dir} {wheel} {project}"

@@ -1,0 +1,21 @@
+name: In-place editable build
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: [ubuntu-latest]
+
+    steps:
+
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+          submodules: 'recursive'
+
+      - name: Install build requirements
+        run: sudo apt-get update --quiet --yes && sudo apt-get install --quiet --yes liblapack-dev
+
+      - name: Build
+        run:  ./dev-tools/inplace-editable-build.bash
