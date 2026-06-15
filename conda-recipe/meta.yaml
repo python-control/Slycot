@@ -1,6 +1,6 @@
 package:
   name: slycot
-  version: 'v0.0.0'
+  version: {{ environ.get('GIT_DESCRIBE_TAG', 'v0.0.0')[1:] }}
 
 source:
   git_url: ../
