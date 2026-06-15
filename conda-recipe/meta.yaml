@@ -43,7 +43,7 @@ about:
   dev_url: https://github.com/python-control/Slycot
   license: GPL-2.0-only
   license_family: GPL
-  license_file: COPYING
+  license_file: LICENSE.txt
   summary: 'Slycot: a wrapper for the SLICOT control and systems library'
   description: |
     Slycot wraps the SLICOT library which is used for control and systems
