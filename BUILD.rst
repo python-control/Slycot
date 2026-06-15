@@ -9,11 +9,15 @@ Slycot can *probably* also be built on other Unix-like systems that
 have Python, CMake, a C compiler, a Fortran compiler, and a
 BLAS/LAPACK library.
 
+Slycot should be built either from an sdist or a git working tree.
+Building from a git archive, e.g., the one auto-created by GitHub for
+releases, won't work.
+
 Building from the sdist
 -----------------------
 
 This section describes building Slycot using the latest `source
-distribution (sdist)`_ on PyPi.
+distribution (sdist)`_ on PyPI.
 
 .. _`source distribution (sdist)`: https://packaging.python.org/en/latest/glossary/#term-Source-Distribution-or-sdist
 
