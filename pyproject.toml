@@ -9,7 +9,10 @@ description = "A wrapper for the SLICOT control and systems library"
 readme = "README.rst"
 authors = [{ name = "Enrico Avventi et al." }]
 maintainers = [{ name = "Slycot developers", email = "python-control-discuss@lists.sourceforge.net"}]
-license = "GPL-2.0 AND BSD-3-Clause"
+license = "GPL-2.0 AND BSD-3-Clause AND GPL-3.0-with-GCC-exception AND BSD-2-Clause"
+# the * is important: it allows adding SLICOT and OpenBLAS licenses when building wheels
+license-files = ["AUTHORS", "LICENSE*.txt"]
+
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Science/Research",
