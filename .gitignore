@@ -1,10 +1,11 @@
+/slycot/_version.py
+
 .DS_Store*
 MANIFEST
 dist/
 build/
 *.pyc
 *.so
-slycot/version.py
 .ropeproject/
 build.log
 *.egg-info/
@@ -12,3 +13,4 @@ build.log
 *~
 setup.cfg
 _skbuild
+/wheelhouse/

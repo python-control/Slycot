@@ -1,0 +1,166 @@
+name: cibuildwheel
+
+on: [push, pull_request, workflow_dispatch]
+
+jobs:
+
+  build-sdist:
+    # Super fast sniff build. If this fails, don't start the other jobs
+    name: Build sdist on Ubuntu
+    runs-on: ubuntu-latest
+    outputs:
+      sdist-id: ${{ steps.artifact-upload-step.outputs.artifact-id }}
+      sdist-name: ${{ steps.create-sdist.outputs.sdist }}
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          submodules: 'recursive'
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.14'
+
+      - name: Run linter
+        run: |
+          pip install ruff
+          ruff check slycot
+
+      - name: Create sdist
+        id: create-sdist
+        run: |
+          pip install build
+          python -m build --sdist
+          [ $(find dist -type f|wc -l) -eq 1 ] || { echo "Expect 1 file in dist" 1>&2; exit 1; }
+          echo "sdist=$(find dist -type f)" >> "$GITHUB_ENV"
+          echo "sdist=$(find dist -type f -printf \"%f\")" >> "$GITHUB_OUTPUT"
+
+      - name: Install build requirements
+        run: sudo apt-get update --quiet --yes && sudo apt-get install --quiet --yes liblapack-dev
+
+      - name: Install sdist
+        run: |
+          pip install --verbose "$sdist[test]" pytest-cov
+
+      - name: Run tests
+        run: |
+          mkdir test-tmp
+          cd test-tmp
+          pytest --cov=slycot --pyargs slycot
+          coverage xml
+
+      - name: Upload sdist
+        uses: actions/upload-artifact@v7
+        id: artifact-upload-step
+        with:
+            archive: false
+            if-no-files-found: error
+            path: ${{ env.sdist }}
+
+      - name: Coveralls
+        uses: coverallsapp/github-action@v2
+        with:
+          file: test-tmp/coverage.xml
+        continue-on-error: true
+
+
+  test-lapack-vendors:
+    name: Build and test with BLAS & LAPACK from ${{ matrix.lapack.name }}
+    needs: build-sdist
+    runs-on: ubuntu-latest
+    env:
+      DEBIAN_FRONTEND: noninteractive
+      BLA_VENDOR: ${{ matrix.lapack.BLA_VENDOR }}
+
+    strategy:
+      matrix:
+        lapack:
+          - name: OpenBLAS
+            package: libopenblas-dev
+            BLA_VENDOR: OpenBLAS
+          - name: Intel MKL
+            package: libmkl-dev
+            BLA_VENDOR: Intel10_64_dyn
+
+    steps:
+      - name: Get sdist
+        uses: actions/download-artifact@v8
+        with:
+          artifact-ids: ${{ needs.build-sdist.outputs.sdist-id }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.14'
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update --quiet --yes && sudo apt-get install --quiet --yes ${{ matrix.lapack.package }}
+
+      - name: Build and test
+        run: |
+          python -m venv venv
+          source venv/bin/activate
+          pip install --verbose ${{ needs.build-sdist.outputs.sdist-name }}[test]
+          pytest --pyargs slycot
+
+  build-wheels:
+    name: Build wheels on ${{ matrix.os }}
+    needs: [build-sdist, test-lapack-vendors]
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-15-intel, windows-latest, ubuntu-24.04-arm,  macos-14]
+    env:
+      CIBW_ENVIRONMENT: "CMAKE_ARGS='-DSLYCOT_BUNDLE_OPENBLAS=ON'"
+      CIBW_TEST_REQUIRES: "control[test]@git+https://github.com/python-control/python-control"
+      CIBW_TEST_COMMAND: "pytest --pyargs slycot && pytest -Wignore::pytest.PytestUnknownMarkWarning --pyargs control -m slycot"
+
+    steps:
+
+      - name: Get sdist
+        uses: actions/download-artifact@v8
+        with:
+          artifact-ids: ${{ needs.build-sdist.outputs.sdist-id }}
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.14'
+
+      - name: macos-config
+        if: startsWith(matrix.os, 'macos')
+        run: |
+          set -x
+          gfortran_bin=$(command -v gfortran-13) || { echo "gfortran-13 not found" 1>&2; exit 1; }
+          gcc_bin=$(command -v gcc-13) || { echo "gcc-13 not found" 1>&2; exit 1; }
+          echo SKBUILD_CMAKE_ARGS="-G Ninja;-DCMAKE_Fortran_COMPILER=$gfortran_bin;-DCMAKE_C_COMPILER=$gcc_bin" >> $GITHUB_ENV
+          SLYCOT_LIBS=$($gfortran_bin -print-search-dirs|grep "^libraries: ="|sed s/^libraries:\ =//)
+          echo CIBW_ENVIRONMENT="SLYCOT_LIBS=$SLYCOT_LIBS $CIBW_ENVIRONMENT" >> "$GITHUB_ENV"
+
+      - name: macos-deployment-target-14
+        if: startsWith(matrix.os, 'macos-14')
+        run: echo MACOSX_DEPLOYMENT_TARGET=14.0 >> $GITHUB_ENV
+
+      - name: macos-deployment-target-15
+        if: startsWith(matrix.os, 'macos-15')
+        run: echo MACOSX_DEPLOYMENT_TARGET=15.0 >> $GITHUB_ENV
+
+      - name: windows-config
+        if: startsWith(matrix.os, 'windows')
+        run: |
+          echo SKBUILD_CMAKE_ARGS="-G Ninja;-DCMAKE_Fortran_COMPILER=c:/mingw64/bin/gfortran.exe;-DCMAKE_C_COMPILER=c:/mingw64/bin/gcc.exe" >> $env:GITHUB_ENV
+
+      - name: Install cibuildwheel
+        run: python -m pip install cibuildwheel==3.3.1
+
+      - name: Build wheels
+        run: |
+          python -m cibuildwheel --output-dir wheelhouse ${{ needs.build-sdist.outputs.sdist-name }}
+
+      - uses: actions/upload-artifact@v6
+        with:
+          name: cibw-wheels-${{ matrix.os }}-${{ strategy.job-index }}
+          path: ./wheelhouse/*.whl

@@ -1,39 +1,43 @@
-# CMake file for use in conjunction with scikit-build
+cmake_minimum_required(VERSION 3.17.2...3.29)
 
-cmake_minimum_required(VERSION 3.14.0)
-
-cmake_policy(SET CMP0074 NEW)
-
-project(slycot LANGUAGES NONE)
-
-enable_language(C)
-enable_language(Fortran)
-
-find_package(Python COMPONENTS Interpreter Development NumPy REQUIRED)
-find_package(PythonExtensions REQUIRED)
-find_package(NumPy REQUIRED)
-find_package(F2PY REQUIRED)
-find_package(BLAS REQUIRED)
-find_package(LAPACK REQUIRED)
-
-message(STATUS "Python headers included from: ${Python_INCLUDE_DIRS}")
-message(STATUS "NumPy headers included from: ${Python_NumPy_INCLUDE_DIRS}")
-message(STATUS "F2PY headers included from: ${F2PY_INCLUDE_DIRS}")
-message(STATUS "LAPACK: ${LAPACK_LIBRARIES}")
-message(STATUS "BLAS: ${BLAS_LIBRARIES}")
-
-# https://github.com/python-control/Slycot/issues/193
-if((EXISTS "${Python_INCLUDE_DIRS}/numpy")
-    AND (NOT ("${Python_INCLUDE_DIRS}/numpy" EQUAL "${Python_NumPy_INCLUDE_DIRS}")))
-
-  message(FATAL_ERROR
-  "Python include directory has a numpy sub-directory,
-      ${Python_INCLUDE_DIRS}/numpy,
-  which is different from Numpy include directory
-    ${Python_NumPy_INCLUDE_DIRS}.
-  You're probably building in a virtual environment, in which case
-  uninstall numpy from the base environment and try again.")
-
+if(SLYCOT_WINDOWS_CONDA_BUILD)
+  set(CMAKE_MSVC_DEBUG_INFORMATION_FORMAT "")
+  message(STATUS "Set CMAKE_MSVC_DEBUG_INFORMATION_FORMAT to empty string")
 endif()
+
+project(slycot LANGUAGES C Fortran)
+
+set(SLYCOT_BUNDLE_OPENBLAS OFF CACHE BOOL "Bundle libraries from scipy-openblas32 in built wheel")
+
+find_package(
+  Python
+  COMPONENTS Interpreter Development.Module NumPy
+  REQUIRED)
+
+execute_process(
+  COMMAND "${PYTHON_EXECUTABLE}" -c
+          "import numpy.f2py; print(numpy.f2py.get_include())"
+  OUTPUT_VARIABLE F2PY_INCLUDE_DIR
+  OUTPUT_STRIP_TRAILING_WHITESPACE)
+
+cmake_path(CONVERT ${F2PY_INCLUDE_DIR} TO_CMAKE_PATH_LIST F2PY_INCLUDE_DIR)
+
+if(SLYCOT_BUNDLE_OPENBLAS)
+  set(OPENBLAS_DIR "${CMAKE_CURRENT_SOURCE_DIR}/build-libs")
+
+  find_library(
+    OPENBLAS_LIBRARY_FILE
+    NAMES libscipy_openblas.lib libscipy_openblas.dylib libscipy_openblas.so scipy_openblas.lib
+    PATHS ${OPENBLAS_DIR}
+    NO_DEFAULT_PATH
+    REQUIRED)
+else()
+  find_package(LAPACK REQUIRED)
+endif()
+
+add_library(fortranobject OBJECT "${F2PY_INCLUDE_DIR}/fortranobject.c")
+target_link_libraries(fortranobject PUBLIC Python::NumPy)
+target_include_directories(fortranobject PUBLIC "${F2PY_INCLUDE_DIR}")
+set_property(TARGET fortranobject PROPERTY POSITION_INDEPENDENT_CODE ON)
 
 add_subdirectory(slycot)
