@@ -25,6 +25,7 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
     "Programming Language :: Python :: 3.14",
+    "Programming Language :: Python :: 3.15",
     "Topic :: Software Development",
     "Topic :: Scientific/Engineering",
     "Operating System :: Microsoft :: Windows",
@@ -65,7 +66,7 @@ before-build = "python {project}/build-tools/cibw_before_build.py 0.3.31.22.1 {p
 test-command = "pytest --pyargs slycot"
 test-extras = ['test']
 
-skip = ["cp38-*", "cp39-*", "cp3??t-*", "*-win32", "*-win_arm64"]
+skip = ["cp39-*", "cp3??t-*", "*-win32", "*-win_arm64"]
 
 [tool.cibuildwheel.linux]
 repair-wheel-command = [
